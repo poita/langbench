@@ -1,0 +1,24 @@
+{
+  "schema": {},
+  "tests": [
+    {
+      "description": "null",
+      "data": null
+    },
+    {
+      "description": "number",
+      "data": 1.5
+    },
+    {
+      "description": "nested",
+      "data": {
+        "x": [
+          1,
+          {
+            "y": "z"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "format": "iri"
+  },
+  "tests": [
+    {
+      "description": "all string formats ignore integers",
+      "data": 12
+    },
+    {
+      "description": "all string formats ignore floats",
+      "data": 13.7
+    },
+    {
+      "description": "all string formats ignore objects",
+      "data": {}
+    },
+    {
+      "description": "all string formats ignore arrays",
+      "data": []
+    },
+    {
+      "description": "all string formats ignore booleans",
+      "data": false
+    },
+    {
+      "description": "all string formats ignore nulls",
+      "data": null
+    },
+    {
+      "description": "invalid iri string is only an annotation by default",
+      "data": "http://2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+    }
+  ]
+}

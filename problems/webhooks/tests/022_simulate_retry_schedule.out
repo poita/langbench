@@ -1,0 +1,21 @@
+sim 17 3
+attempt 1 ev_1 ep_fail 1 1000000 failure 500
+attempt 2 ev_1 ep_slow 1 1000000 timeout -
+attempt 3 ev_1 ep_ok 1 1000000 success 200
+attempt 4 ev_1 ep_fail 2 1000005 failure 500
+attempt 5 ev_1 ep_slow 2 1000005 timeout -
+attempt 6 ev_1 ep_fail 3 1000305 failure 500
+attempt 7 ev_1 ep_slow 3 1000305 timeout -
+attempt 8 ev_1 ep_fail 4 1002105 failure 500
+attempt 9 ev_1 ep_slow 4 1002105 timeout -
+attempt 10 ev_1 ep_fail 5 1009305 failure 500
+attempt 11 ev_1 ep_slow 5 1009305 timeout -
+attempt 12 ev_1 ep_fail 6 1027305 failure 500
+attempt 13 ev_1 ep_slow 6 1027305 timeout -
+attempt 14 ev_1 ep_fail 7 1063305 failure 500
+attempt 15 ev_1 ep_slow 7 1063305 timeout -
+attempt 16 ev_1 ep_fail 8 1099305 failure 500
+attempt 17 ev_1 ep_slow 8 1099305 timeout -
+delivery ev_1 ep_fail failed 8 1099305 v1,C2FU01c185VreU0MmzGnktCrM51uoSzhyjm9G06CqD4=
+delivery ev_1 ep_slow failed 8 1099305 v1,OgmJZUUlDo8NThLhZH+dADKyWZGzoOW7RNgpxyM0TeI=
+delivery ev_1 ep_ok delivered 1 1000000 v1,9jh+z/y3mHcwunuYify+zRIpiVAOUqV0STlcA+lt0ts=

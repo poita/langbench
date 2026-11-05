@@ -1,0 +1,66 @@
+[message]
+id 0099
+source "mbox:99"
+
+[headers]
+received: "from lists.example.edu (mx8.dev.example.io [149.106.59.32]) by post.example.fr (Postfix) with ESMTP id ABAABBF4B for <ddubois@example.org>; Thu, 24 Feb 2003 03:03:16 MET"
+received: "from example.org (mx7.corp.example.co.uk [119.199.77.34]) by corp.example.co.uk (Postfix) with ESMTP id 4860C9AFE9 for <mbrown@example.org>; Sat, 14 Oct 2025 08:58:48 -0700"
+received: "from students.example.ac.jp (mx3.example.org [208.16.219.114]) by example.org (Postfix) with ESMTP id 6ECBB72F80 for <ptaylor@mail.example.net>; Thu, 12 Apr 2009 11:49:00 Z (CET)"
+received: "from students.example.ac.jp (mx6.lists.example.edu [121.4.38.11]) by example.com (Postfix) with ESMTP id EF7A76FFC for <bvanderberg@apache.org>; Fri, 5 May 2024 11:35:16 -0000"
+received: "from corp.example.co.uk (mx8.eu.example.de [199.81.24.2]) by corp.example.co.uk (Postfix) with ESMTP id CB119774F1 for <lefvre@mail.example.net>; Tue, 17 Apr 2003 11:27:47 +0900 (EDT)"
+return-path: "<gkowalski@post.example.fr>"
+message-id: "<774.fb9e94b9.48458@students.example.ac.jp>"
+in-reply-to: "<780.66cb872c.88381@mail.example.net>"
+references: "<775.cb1bdfcb.22274@students.example.ac.jp> <776.fd791703.32451@dev.example.io> <777.11357dbc.60154@mail.example.net> <778.c6aaa48c.45384@lists.example.edu> <779.8f683f3b.75954@students.example.ac.jp> <780.66cb872c.88381@mail.example.net>"
+date: "Thu, 9 Sep 2018 06:40:10 -0700"
+from: "Yuki 山田 <y.77@apache.org>"
+to: "太郎 Petrov <petrov@eu.example.de>"
+subject: "[VOTE] The has all that trunk this word point"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 188\""
+
+[addresses]
+from 0 display="Yuki 山田" spec="y.77@apache.org"
+to 0 display="太郎 Petrov" spec="petrov@eu.example.de"
+
+[date]
+raw " Thu, 9 Sep 2018 06:40:10 -0700"
+valid yes
+utc 2018-09-09T13:40:10Z
+offset -0700
+epoch 1536500410
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 188" parts=3 preamble=0 epilogue=0
+  1 text/plain charset=windows-1252 cte=base64 size=622 adler32=2b8ad911 role=text
+  2 text/csv charset=utf-8 cte=base64 disposition=attachment filename="out_this_an_they.csv" size=10697 adler32=0399389d role=attachment
+  3 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="she.csv" size=5721 adler32=f7891789 role=attachment
+
+[body]
+text 1 chars 622
+| Response look you alias over server boy must the but act élan the. To
+| and the their fiancée were any us and to.
+| 
+| Out see high a the the sound? Such him his been of our must one!
+| Ångström to show said need had. That had he little but near I. Go
+| Ångström as world and Paulo. Year him most or the time he out her and
+| they or!
+| 
+| Name most any he keepalive you! Follow there and time as you than too
+| see is a had pool under.
+| 
+| Live pool than see server. Paulo bug alias get in do of! First if that
+| with and people high part even. For the warning the about day word just
+| little be the is need for what hot near a!
+| 
+| -- 
+| Olga Smith
+html none
+
+[attachments]
+2 type=text/csv filename="out_this_an_they.csv" size=10697 adler32=0399389d file=parts/0099/002.bin
+3 type=text/csv filename="she.csv" size=5721 adler32=f7891789 file=parts/0099/003.bin

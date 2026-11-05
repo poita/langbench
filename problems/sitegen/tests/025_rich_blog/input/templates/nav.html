@@ -1,0 +1,9 @@
+<nav>
+<ul>
+{%- for p in pages %}
+<li><a href="{{ p.url }}">{{ p.title }}</a></li>
+{%- endfor %}
+<li><a href="/tags/">Tags</a></li>
+</ul>
+</nav>
+

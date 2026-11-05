@@ -1,0 +1,5 @@
+kiln-state 1
+step out/ok.txt
+cmd write("ok\n")
+out out/ok.txt 1a19f91921d9561f
+end

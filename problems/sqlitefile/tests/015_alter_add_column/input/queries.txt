@@ -1,0 +1,6 @@
+.schema item
+COUNT item
+SELECT * FROM item
+SELECT id,qty FROM item WHERE qty IS NULL
+SELECT id,qty,tag FROM item WHERE qty > 70 ORDER BY qty DESC
+SELECT id,tag FROM item WHERE tag = 'tag1'

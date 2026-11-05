@@ -1,0 +1,9 @@
+build
+edit src/a.txt
+ABC
+---
+build
+edit src/a.txt
+xyz
+---
+build

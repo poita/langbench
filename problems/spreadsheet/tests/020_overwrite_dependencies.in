@@ -1,0 +1,33 @@
+set A1 1
+set A2 2
+set A3 3
+set B1 =A1+A2
+get B1
+set B1 =A3
+get B1
+set A1 100
+set A2 200
+get B1
+set A3 300
+get B1
+set B1 42
+set A3 5
+get B1
+set B1 =A1
+get B1
+set B1 "str"
+set A1 7
+get B1
+set B1 =SUM(A1:A3)
+get B1
+set B1 =SUM(A2:A3)
+set A1 1000
+get B1
+set A2 1000
+get B1
+set C1 =B1
+set B1 =C1
+get C1
+set B1 =A1
+get C1
+get B1

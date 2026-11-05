@@ -1,0 +1,5 @@
+kiln-state 1
+step out/w.txt
+cmd write("W|30|3\n")
+out out/w.txt 3785c00d168f4df6
+end

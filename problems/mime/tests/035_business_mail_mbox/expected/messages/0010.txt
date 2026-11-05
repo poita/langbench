@@ -1,0 +1,104 @@
+[message]
+id 0010
+source "mbox:10"
+
+[headers]
+received: "from example.org (mx7.lists.example.edu [69.225.43.217]) by apache.org (Postfix) with ESMTP id 564F08AC7 for <stergaard@corp.example.co.uk>; Wed, 19 Feb 2009 02:16:56 MET"
+received: "from post.example.fr (mx3.dev.example.io [144.158.113.109]) by lists.example.edu (Postfix) with ESMTP id 394EAAEC0C for <fstergaard@corp.example.co.uk>; Tue, 3 Dec 2004 18:33:19 +0000"
+return-path: "<sobrien@students.example.ac.jp>"
+message-id: "<90.81cfd9e9.89749@lists.example.edu>"
+date: "Fri, 28 Jul 2018 07:49:01 UT (EDT)"
+from: "Carl Taylor <ctaylor.30@lists.example.edu>"
+reply-to: "pjohansson@apache.org (Pierre Johansson)"
+to: "Vera Kowalski <vkowalski@dev.example.io>"
+cc: "Björn Dubois <bdubois.49@example.com>"
+subject: "Re: Use mutex his with alias been of façade"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 837\""
+
+[addresses]
+from 0 display="Carl Taylor" spec="ctaylor.30@lists.example.edu"
+reply-to 0 display="" spec="pjohansson@apache.org"
+to 0 display="Vera Kowalski" spec="vkowalski@dev.example.io"
+cc 0 display="Björn Dubois" spec="bdubois.49@example.com"
+
+[date]
+raw " Fri, 28 Jul 2018 07:49:01 UT (EDT)"
+valid yes
+utc 2018-07-28T07:49:01Z
+offset +0000
+epoch 1532764141
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 837" parts=4 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="00000000000022bf037682f7" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=us-ascii cte=quoted-printable size=580 adler32=5bffb886 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=984 adler32=b7214382 role=html
+  4 image/jpeg cte=base64 disposition=attachment filename="filter.jpg" size=3563 adler32=3102de5d role=attachment
+  5 text/csv charset=utf-8 cte=7bit disposition=attachment filename="résumé_there.csv" size=6384 adler32=8f69e9c1 role=attachment
+  6 message/rfc822 cte=7bit disposition=inline parts=1
+    7 multipart/mixed cte=7bit boundary="0000000000003d691af63f6f" parts=4 preamble=45 epilogue=0
+      8 multipart/related cte=7bit boundary="simple boundary 360" parts=4 preamble=0 epilogue=0
+        9 multipart/alternative cte=7bit boundary="----=_Part_4442_282665142.828855480006" parts=2 preamble=0 epilogue=0
+          10 text/plain charset=utf-8 cte=7bit size=2217 adler32=a00908ed role=attachment
+          11 text/html charset=windows-1252 cte=quoted-printable size=2800 adler32=9100c6d3 role=attachment
+        12 image/jpeg cte=base64 disposition=attachment filename="think.jpg" size=2007 adler32=6a2be682 role=attachment
+        13 image/jpeg cte=base64 disposition=attachment filename="request_men.jpg" size=3142 adler32=87a00718 role=attachment
+        14 image/jpeg cte=base64 disposition=attachment filename="small.jpg" size=2889 adler32=86dc9154 role=attachment
+      15 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="such_one.csv" size=9975 adler32=231b6919 role=attachment
+      16 text/plain charset=utf-8 cte=7bit disposition=inline filename="Paulo_near_time.txt" size=13918 adler32=87d6517b role=attachment
+      17 application/pdf cte=base64 disposition=attachment filename="rewrite_each.pdf" size=5343 adler32=eb0774c8 role=attachment
+
+[body]
+text 2 chars 580
+| It to look the old up is na?ve do show before play same from more you
+| thing show. In what and to directive he way little the them which the
+| Krak?w!
+| 
+| Some that again been with fianc?e is hand round! Is one them as come the
+| the. Many did you of cr?me error vhost change. Paulo the of that side
+| after their.
+| 
+| It as time was has pool use that in? Of apr in was be pi?ata socket
+| little at the world then have the the two?
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Ann Rossi
+html 3 chars 979
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">It to look the old up is naïve do show before play same from more you<br>
+| thing show. In what and to directive he way little the them which the<br>
+| Kraków!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Some that again been with fiancée is hand round! Is one them as come the<br>
+| the. Many did you of crème error vhost change. Paulo the of that side<br>
+| after their.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">It as time was has pool use that in? Of apr in was be piñata socket<br>
+| little at the world then have the the two?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ann Rossi<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="filter.jpg" size=3563 adler32=3102de5d file=parts/0010/004.bin
+5 type=text/csv filename="résumé_there.csv" size=6384 adler32=8f69e9c1 file=parts/0010/005.bin
+10 type=text/plain filename=- size=2217 adler32=a00908ed file=parts/0010/010.bin
+11 type=text/html filename=- size=2800 adler32=9100c6d3 file=parts/0010/011.bin
+12 type=image/jpeg filename="think.jpg" size=2007 adler32=6a2be682 file=parts/0010/012.bin
+13 type=image/jpeg filename="request_men.jpg" size=3142 adler32=87a00718 file=parts/0010/013.bin
+14 type=image/jpeg filename="small.jpg" size=2889 adler32=86dc9154 file=parts/0010/014.bin
+15 type=text/csv filename="such_one.csv" size=9975 adler32=231b6919 file=parts/0010/015.bin
+16 type=text/plain filename="Paulo_near_time.txt" size=13918 adler32=87d6517b file=parts/0010/016.bin
+17 type=application/pdf filename="rewrite_each.pdf" size=5343 adler32=eb0774c8 file=parts/0010/017.bin

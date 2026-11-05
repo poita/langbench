@@ -1,0 +1,27 @@
+map : int
+- : int
+fst : 'a -> 'a
+- : int
+hd : bool
+- : bool
+not : int -> int
+- : int
+letx : int
+inx : int
+funny : int
+iffy : int
+thenx : int
+recx : int
+truex : int
+x_1 : int
+x1 : int
+xY : int
+a_B_c9 : int
+- : int * int * int * int * int * int * int * int * int * int * int
+ab : 'a -> 'b -> 'a * 'b
+- : 'a -> 'b -> 'a * 'b
+- : 'a -> 'a
+- : int
+- : int list
+- : int
+- : (int -> int -> 'a) -> 'a

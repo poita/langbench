@@ -1,0 +1,23 @@
+.tables
+.schema intpk
+.schema host
+.schema pair
+.schema descpk
+.schema intpk_label
+.schema host_touch
+SELECT * FROM intpk
+SELECT rowid,code,label,score FROM intpk
+SELECT * FROM descpk
+SELECT rowid,n,label FROM descpk ORDER BY n
+SELECT * FROM tdesc
+SELECT rowid,n,label FROM tdesc
+SELECT * FROM pair
+SELECT rowid,a,b,note FROM pair
+COUNT pair
+COUNT host
+INDEX intpk_label 'gamma'
+INDEX intpk_label 'delta'
+SELECT * FROM hostview
+COUNT hostview
+INDEX hostview 'x'
+SELECT * FROM host_touch

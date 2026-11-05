@@ -1,0 +1,52 @@
+[message]
+id 0007
+source "attachment_pdf_non_ascii.eml"
+
+[headers]
+return-path: "<xxxx@xxxx.com>"
+x-original-to: "xxxx@xxxx.com"
+delivered-to: "xxxx@xxxx.com"
+received: "from localhost (localhost [127.0.0.1]) by xxx.xxxxx.com (Postfix) with ESMTP id 50FD3A96F for <xxxx@xxxx.com>; Tue, 10 May 2005 17:26:50 +0000 (GMT)"
+received: "from xxx.xxxxx.com ([127.0.0.1]) by localhost (xxx.xxxxx.com [127.0.0.1]) (amavisd-new, port 10024) with LMTP id 70060-03 for <xxxx@xxxx.com>; Tue, 10 May 2005 17:26:49 +0000 (GMT)"
+received: "from xxx.xxxxx.com (xxx.xxxxx.com [69.36.39.150]) by xxx.xxxxx.com (Postfix) with ESMTP id 8B957A94B for <xxxx@xxxx.com>; Tue, 10 May 2005 17:26:48 +0000 (GMT)"
+received: "from xxx.xxxxx.com (xxx.xxxxx.com [64.233.184.203]) by xxx.xxxxx.com (Postfix) with ESMTP id 9972514824C for <xxxx@xxxx.com>; Tue, 10 May 2005 12:26:40 -0500 (CDT)"
+received: "by xxx.xxxxx.com with SMTP id 68so1694448wri for <xxxx@xxxx.com>; Tue, 10 May 2005 10:26:40 -0700 (PDT)"
+domainkey-signature: "a=rsa-sha1; q=dns; c=nofws;        s=beta; d=xxxxx.com;        h=received:message-id:date:from:reply-to:to:subject:mime-version:content-type;        b=g8ZO5ttS6GPEMAz9WxrRk9+9IXBUfQIYsZLL6T88+ECbsXqGIgfGtzJJFn6o9CE3/HMrrIGkN5AisxVFTGXWxWci5YA/7PTVWwPOhJff5BRYQDVNgRKqMl/SMttNrrRElsGJjnD1UyQ/5kQmcBxq2PuZI5Zc47u6CILcuoBcM+A="
+received: "by 10.54.96.19 with SMTP id t19mr621017wrb; Tue, 10 May 2005 10:26:39 -0700 (PDT)"
+received: "by 10.54.110.5 with HTTP; Tue, 10 May 2005 10:26:39 -0700 (PDT)"
+message-id: "<xxxx@xxxx.com>"
+date: "Tue, 10 May 2005 11:26:39 -0600"
+from: "Test Tester <xxxx@xxxx.com>"
+reply-to: "Test Tester <xxxx@xxxx.com>"
+to: "xxxx@xxxx.com, xxxx@xxxx.com"
+subject: "Another PDF with 🎉 Unicode chars in it 🍿"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_2192_32400445.1115745999735\""
+x-virus-scanned: "amavisd-new at textdrive.com"
+
+[addresses]
+from 0 display="Test Tester" spec="xxxx@xxxx.com"
+reply-to 0 display="Test Tester" spec="xxxx@xxxx.com"
+to 0 display="" spec="xxxx@xxxx.com"
+to 1 display="" spec="xxxx@xxxx.com"
+
+[date]
+raw " Tue, 10 May 2005 11:26:39 -0600"
+valid yes
+utc 2005-05-10T17:26:39Z
+offset -0600
+epoch 1115745999
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_2192_32400445.1115745999735" parts=2 preamble=0 epilogue=1
+  1 text/plain charset=iso-8859-1 cte=quoted-printable disposition=inline size=133 adler32=300e2de7 role=text
+  2 application/pdf cte=base64 disposition=attachment filename="broken.pdf" size=1026 adler32=a01dd3e8 role=attachment
+
+[body]
+text 1 chars 133
+| Just attaching another PDF, here, to see what the message looks like,
+| and to see if I can figure out what is going wrong here.    Ã\x82
+html none
+
+[attachments]
+2 type=application/pdf filename="broken.pdf" size=1026 adler32=a01dd3e8 file=parts/0007/002.bin

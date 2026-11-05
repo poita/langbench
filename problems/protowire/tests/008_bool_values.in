@@ -1,0 +1,16 @@
+message B { bool a = 1; bool b = 2; repeated bool r = 3; }
+--
+encode B {a: true}
+encode B {b: true, a: false}
+encode B {r: [true, false, false, true]}
+encode B {r: [false]}
+decode B 0801
+decode B 0800
+decode B 0802
+decode B 08ffffffffffffffffff01
+decode B 1a04010200ff
+decode B 180118001805
+decode B 1a00
+encode B {a: 1}
+encode B {a: True}
+encode B {a: "true"}

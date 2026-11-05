@@ -1,0 +1,120 @@
+error: unbound
+error: occurs
+error: unify
+error: unify
+x1 : 'a -> 'b -> int
+error: unbound
+error: unbound
+- : int
+error: unbound
+error: unify
+error: unify
+error: unbound
+error: unify
+t : 'a list -> int
+t : 'a list -> 'a list
+z : 'a list -> 'a list
+l : 'a -> ('b list -> 'b list) list
+k : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> int
+lst : 'a list -> 'a list
+error: unbound
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unbound
+error: unify
+w : int
+q : 'a -> int -> bool -> 'b -> 'c -> bool
+error: unify
+error: occurs
+error: unify
+y : 'a list
+r : 'a list
+q : 'a -> 'b list
+error: unbound
+e : 'a list * unit * ('b -> 'c -> bool) list
+error: unify
+error: unify
+error: unbound
+error: unbound
+- : 'a list * ('b -> 'c -> 'd list) * int
+w : 'a -> 'a
+h : bool
+error: unbound
+s : 'a -> 'b -> int -> ('c -> 'd -> 'a * int * int) * (int list * int)
+error: unify
+error: unify
+error: unbound
+error: unbound
+- : ('a list -> 'a list) list
+error: unbound
+error: unbound
+error: unify
+e : 'a -> 'b -> 'c -> int
+error: occurs
+y : 'a -> 'b -> 'c -> bool -> int
+k : int
+error: unify
+error: unify
+error: unify
+- : int
+p : bool
+z : 'a list
+error: unify
+error: unify
+q : 'a -> 'b list
+error: occurs
+error: unify
+error: unbound
+y : 'a list -> int
+error: unify
+f : int
+error: unify
+error: unify
+c : bool
+error: unbound
+error: unify
+error: unify
+error: unbound
+lst : 'a -> 'b -> 'c list
+acc : 'a list
+error: unify
+error: unify
+error: unify
+error: unify
+a : 'a -> 'b list
+- : 'a list
+error: unify
+error: unify
+- : 'a -> 'b -> 'c list
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+u : bool
+error: unify
+error: unbound
+a : int
+l : int
+error: unify
+m : int
+- : int
+error: unify
+x2 : int
+error: unify
+error: unify
+error: unify
+- : 'a -> 'b -> 'c -> int
+error: unbound
+q : int * (('a -> (('b list -> 'b) -> 'c) -> 'c) * (('d -> 'e -> 'd) * ('f -> 'g -> 'h -> int)) * (int * bool * 'i list))
+error: unify

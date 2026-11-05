@@ -1,0 +1,137 @@
+(define v0 (cond ((<= 17 ((lambda (w) w) 16)) -30) (else (let ((p -5) (r -2)) -18))))
+v0
+(define v1 (let* ((r (+ (cond ((<= (let* ((p v0)) v0) v0) ((lambda (u) -7) v0)) (else (cond ((>= v0 -27) v0) (else v0)))) (let* ((p (cond ((> -16 v0) v0) (else -14)))) (remainder -11 v0)))) (s (let* ((p ((lambda (w) w) (let ((q v0)) q))) (q r)) ((lambda (u) (cond ((<= r 22) 26) (else r))) (cond ((<= r 26) q) (else -30)))))) (let ((s (if (<= ((lambda (w) -4) s) (let ((s -12) (q r)) s)) -2 s)) (r -19)) (quotient 28 (if (<= r s) 12 -1)))))
+v1
+(define v2 (+ (cond ((<= (remainder 19 (let ((r v0) (p 30)) v0)) ((lambda (w) v1) (let* ((q v1)) v1))) v1) (else (let ((r v1)) (if (>= -15 v0) 15 v1)))) (- v0 (let ((q (let ((s v0)) s)) (s (let ((s -5)) 5))) (let ((p v0) (r -9)) v1)))))
+v2
+(cond ((= v2 v1) v2) (else -24))
+(remainder (let* ((q v0) (p v0)) -6) v0)
+(begin v0 (begin -19 9))
+((lambda (w) ((lambda (w) -9) v0)) (+ 7 v2))
+11
+(define v8 v0)
+v8
+(define v9 ((lambda (u) (let ((q (let* ((p v2) (r u)) v1)) (s ((lambda (w) -11) -15))) (begin -16 7))) (let* ((q (if (> -6 -1) v8 v8)) (r (let* ((q v8) (r v0)) v2))) ((lambda (u) q) v1))))
+v9
+(define v10 ((lambda (u) (cond ((> v0 -8) v9) (else v2))) (if (> -21 v9) v0 3)))
+v10
+(define v11 7)
+v11
+(define v12 ((lambda (u) (if (> -21 u) -22 v8)) (if (< v9 v1) v9 v11)))
+v12
+(define v13 (* v12 4))
+v13
+(define v14 (begin (begin (if (< (let ((p v1)) 13) v11) (let* ((q -4) (s v2)) v12) (+ -23 v12)) (quotient ((lambda (w) 27) v1) (cond ((>= v13 v8) v9) (else v1)))) (cond ((>= (begin v11 v13) (if (< ((lambda (u) v11) -30) (- -21 v2)) (cond ((<= 24 10) 6) (else v0)) (begin -10 v0))) (cond ((< (begin 5 v11) 7) (cond ((> v8 18) -9) (else -27))) (else v12))) (else (let* ((r ((lambda (w) v12) v8)) (q (begin 29 v11))) ((lambda (u) v0) v0))))))
+v14
+(define v15 (if (> ((lambda (w) (remainder -23 (quotient v8 v10))) (cond ((< 25 (let* ((r 9)) 21)) (let ((s v10)) 29)) (else (cond ((>= 29 v1) 3) (else v2))))) v12) (if (<= ((lambda (w) -15) (+ 10 30)) ((lambda (u) (let ((r -13) (p 1)) v0)) (begin v0 v1))) (cond ((> v0 (let* ((s v9)) v9)) (remainder v10 -3)) (else 11)) (if (< ((lambda (u) -28) v13) ((lambda (u) 13) v10)) (begin v11 21) v8)) 13))
+v15
+v13
+(begin (if (> v8 (let* ((p -18)) -17)) (let ((p ((lambda (u) v2) v10))) (let ((r 0)) v14)) (quotient 21 (let* ((q v2)) v11))) (cond ((> 29 (if (>= (let ((r v10)) v12) v2) (begin 3 v2) (let ((q v1)) v15))) (cond ((>= (let* ((p v8) (s -10)) v11) (- -20 1)) (cond ((= 15 v11) v10) (else v2))) (else (let ((q v12)) v13)))) (else (if (>= 24 (let* ((q v0)) v9)) (begin v9 28) (cond ((<= -6 11) v12) (else v13))))))
+(define v18 (let ((r (+ v8 (- v11 v10))) (q (let ((q (begin v12 v10))) (begin v9 v10)))) -20))
+v18
+(define v19 v12)
+v19
+(let* ((q (let ((q (let* ((r v13)) r)) (s ((lambda (w) -13) 0))) ((lambda (u) 10) v12))) (r (* (let ((r v8)) v9) ((lambda (u) v18) v0)))) ((lambda (u) (let ((q v14)) v0)) (cond ((< v0 3) v14) (else -24))))
+(if (= (let ((r v8) (s (let ((s -17)) (if (< v14 v18) v18 v2)))) (begin (let* ((r -24) (q v13)) 2) ((lambda (w) -24) 25))) (let ((q (cond ((< (let ((q v14) (s v18)) v12) (let ((q -16)) v15)) (let ((s -24) (q v1)) -10)) (else (quotient v0 21)))) (p (quotient (begin -24 v10) (if (< v15 -22) v19 1)))) (let* ((s (quotient v8 v18))) ((lambda (w) v9) v2)))) (let ((s (let* ((q -14) (r (begin -13 q))) (cond ((> v1 r) v9) (else v11)))) (p (begin v15 (let* ((q -8) (r -11)) v2)))) (let ((s (let ((p -12) (s v1)) v11)) (r (begin 10 v8))) ((lambda (w) v19) s))) (quotient (let* ((p (if (> 5 29) v19 25))) v11) ((lambda (u) (begin 5 -2)) (if (= v8 v2) 12 v13))))
+(quotient ((lambda (w) v2) -16) (begin ((lambda (w) ((lambda (u) 28) v8)) (if (>= -7 v1) -9 17)) v19))
+(cond ((> (cond ((= 25 30) 22) (else v8)) (let* ((p -17) (q 21)) 0)) (quotient 16 v18)) (else (let* ((q v13)) -13)))
+(define v24 (if (< (begin 11 v9) (if (= 5 -22) 14 -8)) (let* ((r -27) (p 28)) v19) (let ((q v14)) 15)))
+v24
+(define v25 (let* ((s v13) (q -6)) v14))
+v25
+(define v26 ((lambda (u) -13) v10))
+v26
+(define v27 (+ (begin -10 -2) (cond ((<= -29 v8) -1) (else 8))))
+v27
+v14
+(define v29 (let* ((p (let ((r v13)) v15))) v8))
+v29
+(define v30 (if (>= v26 v29) v27 v0))
+v30
+(define v31 (if (< (cond ((> v19 v18) v2) (else 15)) (let* ((p v29)) v14)) (begin -22 v29) (if (>= -7 v24) v19 v12)))
+v31
+(define v32 (cond ((= v13 -6) -8) (else v8)))
+v32
+(define v33 (let ((q v11)) v31))
+v33
+(define v34 v0)
+v34
+v33
+(begin (remainder 8 11) -7)
+(cond ((= 1 v0) 25) (else v24))
+(define v38 (let* ((r (begin (cond ((<= 30 v31) v10) (else 25)) (* -5 v33))) (s 28)) ((lambda (w) (begin v2 v27)) (let ((r 29)) v8))))
+v38
+(define v39 ((lambda (u) (let* ((r v11)) v18)) (let* ((s v26) (q v29)) 24)))
+v39
+(define v40 13)
+v40
+(define v41 -13)
+v41
+(let ((p v33)) 5)
+(define v43 (+ (begin (quotient v39 10) (let ((q v13)) v32)) (begin (let ((s -17) (p -9)) v29) -27)))
+v43
+(let ((q (cond ((= -13 v34) v18) (else v27)))) (let ((q v2) (s 27)) -4))
+(define v45 (cond ((= v40 v2) 25) (else -27)))
+v45
+(let ((q v43)) 10)
+(let* ((s (let* ((p (let* ((q 27)) v41))) (let ((q -23) (p v14)) 0))) (p ((lambda (u) (cond ((<= -13 v19) 26) (else 16))) (let ((q 23) (r v13)) v12)))) (cond ((= (let* ((s v43) (q v15)) s) (if (= -17 v34) v18 v12)) v39) (else (cond ((= 30 v39) v1) (else v40)))))
+(define v48 (if (= (- (let* ((s v2)) -7) (let* ((q -26) (r -5)) v11)) ((lambda (u) (begin v14 v33)) ((lambda (u) -2) v30))) v33 (let ((r (cond ((<= v12 1) 15) (else 5)))) (cond ((<= v40 v39) v25) (else v14)))))
+v48
+(define v49 ((lambda (w) v31) ((lambda (u) 28) (let* ((r v0) (q (remainder v1 v8))) (if (< v1 v29) -24 v33)))))
+v49
+(define v50 v34)
+v50
+(define v51 ((lambda (u) (let ((p v45) (r v40)) 23)) v26))
+v51
+(define v52 (if (<= (begin (begin v0 (let* ((s v0) (q v12)) -18)) ((lambda (w) (let ((q v9)) v26)) (let ((r v30) (q v29)) -6))) (cond ((= (if (>= (cond ((< 16 v39) v51) (else v30)) (let ((q 27) (p v2)) v49)) (begin -8 -13) (quotient v26 v11)) ((lambda (w) (let ((s v11) (r v50)) v50)) (if (< v41 v2) -7 v11))) (let ((q (if (>= -12 v0) 2 v24)) (p (if (< 30 -15) 18 -16))) (let* ((p v43) (s v1)) -28))) (else (let* ((s (if (<= -22 -11) v40 -23)) (q (begin v24 -28))) ((lambda (w) v27) -28))))) (cond ((> v31 (if (> (cond ((= 3 9) v32) (else v26)) (let* ((q v15)) 22)) ((lambda (u) v14) v18) (* v25 v14))) (let ((r v25)) (- -10 v48))) (else (cond ((<= (begin v13 4) v24) ((lambda (u) -18) v14)) (else (cond ((< v48 v10) -5) (else 20)))))) (let* ((p (let* ((r (begin v24 -21)) (p v43)) (if (> v8 6) v19 -19))) (r (begin -8 (quotient -29 -29)))) (begin (cond ((>= v10 v41) v48) (else -2)) ((lambda (w) v39) 24)))))
+v52
+(define v53 v48)
+v53
+(cond ((< 11 (cond ((= (remainder -12 19) (cond ((= 0 11) v45) (else 19))) (begin v32 v49)) (else (remainder v9 -11)))) (- v34 v34)) (else (let ((p (remainder -24 -10))) v45)))
+(begin (cond ((> -11 (begin -24 v34)) (- -9 v11)) (else (cond ((>= -1 -19) v34) (else 16)))) ((lambda (u) (cond ((<= v13 -17) v49) (else v50))) (let ((q -13) (s v12)) v26)))
+(define v56 (* (if (<= 5 -17) 5 -27) (begin v15 -5)))
+v56
+(define v57 (remainder (let* ((s (cond ((<= (begin v24 v24) (+ -27 -24)) (let* ((s v18) (r s)) v48)) (else (cond ((< v51 v41) v10) (else v34))))) (p (cond ((> (if (< 9 v15) v49 6) (if (<= v0 18) v15 13)) (begin 28 1)) (else (let* ((q 16)) -7))))) (cond ((< (if (< v15 21) 13 -19) (+ v30 v13)) (begin v30 v10)) (else (if (= v33 v19) 10 v19)))) (begin (let ((q ((lambda (w) 11) v30)) (s v45)) (let ((q v45) (p 21)) -23)) v45)))
+v57
+(define v58 v56)
+v58
+(begin v12 v18)
+(define v60 (quotient v34 -15))
+v60
+(define v61 (let ((r 14)) (cond ((<= 22 v26) 2) (else -26))))
+v61
+(define v62 (begin -23 (- 5 v50)))
+v62
+(define v63 (cond ((< (let ((p (if (< v48 v13) -11 15))) (let ((p 12) (s -9)) -25)) (* 23 (cond ((= -2 v14) v2) (else v62)))) v32) (else ((lambda (u) (+ v62 v18)) (cond ((= v1 v19) v30) (else v2))))))
+v63
+(define v64 (* (cond ((< (begin -9 v48) (if (<= v39 -13) -14 17)) (cond ((< v49 v14) -7) (else v29))) (else -14)) (let ((s (if (>= v63 v12) -12 v1))) 15)))
+v64
+(define v65 -26)
+v65
+(+ ((lambda (w) (let* ((q v12)) v58)) (+ 15 -4)) (begin (cond ((> v53 25) 7) (else v65)) (if (= -20 v24) v31 v63)))
+(define v67 ((lambda (w) -14) ((lambda (u) (if (= (let* ((q 2) (p v30)) 24) (let* ((r v38)) v0)) 20 24)) (begin -3 (let* ((s 7) (r v26)) v9)))))
+v67
+(define v68 (if (>= (begin (let* ((p v24) (q v0)) (let ((r 3) (s v56)) 8)) (quotient (let* ((s v64)) v25) (cond ((< 22 14) v19) (else -7)))) (if (> (let* ((r (begin v31 11))) ((lambda (u) -9) v18)) (let ((q (let* ((p 29)) 9)) (s (cond ((>= 1 v32) v0) (else v43)))) (let* ((p v67)) v10))) ((lambda (u) (begin -27 v57)) (begin v64 v0)) (if (> ((lambda (w) -30) v19) (if (= v2 v41) 21 -9)) -6 (* -12 23)))) -19 (if (= (remainder (let* ((s -4)) v49) (let* ((r 20) (p v32)) 4)) ((lambda (w) (begin v11 v31)) 9)) (let* ((q (begin 19 v19))) v11) (let ((r (let* ((s v45) (q v61)) -16)) (p -23)) v63))))
+v68
+(define v69 (begin (let ((s v18)) v32) (cond ((< 16 v43) 10) (else 4))))
+v69
+(define v70 (cond ((> (cond ((= (cond ((<= (cond ((< 21 v40) v2) (else -8)) (cond ((<= -25 v26) v0) (else 8))) (+ v29 v12)) (else v2)) ((lambda (w) v64) v30)) (begin ((lambda (w) v13) -28) (cond ((> v32 -21) -29) (else -9)))) (else (* (if (<= 3 14) v26 3) (if (> v64 v10) 28 17)))) 18) v60) (else v49)))
+v70
+(define v71 (begin (begin (let* ((q v70)) v40) (remainder -18 8)) (let ((q (cond ((< v61 12) v50) (else -22))) (r (* -9 17))) ((lambda (u) v32) v38))))
+v71
+(define v72 v0)
+v72
+0
+(let ((q (remainder 15 v64))) (cond ((< v32 v10) v43) (else v57)))
+(define v75 (begin (cond ((<= (begin v25 23) v41) (let ((p -15) (q 18)) v51)) (else (remainder -11 v1))) -20))
+v75
+(define v76 (cond ((= (let ((s (begin (cond ((> v60 v70) v8) (else v13)) (quotient v1 v31))) (r (quotient (let* ((p v67)) -6) v48))) (let* ((p (cond ((= v27 v71) 24) (else v67))) (r v65)) (cond ((> -17 12) -27) (else v13)))) (let* ((q (remainder (begin -1 v14) (if (>= -18 13) v10 v12)))) (begin (begin v50 v72) ((lambda (u) v49) v57)))) ((lambda (w) ((lambda (u) 0) (let* ((r -29)) v53))) (+ (begin v26 v45) (cond ((> -11 -29) v57) (else 25))))) (else (if (<= (cond ((> (let* ((q v19) (r v39)) v63) ((lambda (u) v33) v33)) (cond ((= v51 v64) v26) (else v25))) (else (begin -14 15))) (cond ((< (let ((p v56)) v11) ((lambda (u) 12) -7)) (cond ((= -19 6) 13) (else v0))) (else (* v72 23)))) (let* ((s (cond ((<= 29 v26) v41) (else 9))) (p (cond ((<= v39 v15) 9) (else v41)))) ((lambda (w) v49) v31)) (if (= ((lambda (w) -25) v10) (let ((s v24)) -27)) (let* ((r 23)) v0) (if (= v69 v15) v27 v72))))))
+v76
+(define v77 (cond ((<= ((lambda (w) (* v45 v56)) (let* ((r v38)) 27)) -11) v30) (else (- 25 (let* ((r 10) (q v33)) 9)))))
+v77
+(define v78 ((lambda (u) (let ((q (if (> v56 8) v63 v43))) (if (> v52 v75) u 4))) (begin (begin -27 v13) -6)))
+v78
+(define v79 v14)
+v79
+(list v0 v1 v2 v8 v9 v10 v11 v12 v13 v14 v15 v18 v19 v24 v25 v26 v27 v29 v30 v31 v32 v33 v34 v38 v39 v40 v41 v43 v45 v48 v49 v50 v51 v52 v53 v56 v57 v58 v60 v61 v62 v63 v64 v65 v67 v68 v69 v70 v71 v72 v75 v76 v77 v78 v79)
+(+ v0 v1 v2 v8 v9 v10 v11 v12 v13 v14 v15 v18 v19 v24 v25 v26 v27 v29 v30 v31 v32 v33 v34 v38 v39 v40 v41 v43 v45 v48 v49 v50 v51 v52 v53 v56 v57 v58 v60 v61 v62 v63 v64 v65 v67 v68 v69 v70 v71 v72 v75 v76 v77 v78 v79)

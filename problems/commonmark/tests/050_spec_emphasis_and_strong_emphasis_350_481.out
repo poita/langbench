@@ -1,0 +1,259 @@
+<p><em>foo bar</em></p>
+<hr />
+<p>a * foo bar*</p>
+<hr />
+<p>a*&quot;foo&quot;*</p>
+<hr />
+<p>foo<em>bar</em></p>
+<hr />
+<p>5<em>6</em>78</p>
+<hr />
+<p><em>foo bar</em></p>
+<hr />
+<p>_ foo bar_</p>
+<hr />
+<p>a_&quot;foo&quot;_</p>
+<hr />
+<p>foo_bar_</p>
+<hr />
+<p>5_6_78</p>
+<hr />
+<p>пристаням_стремятся_</p>
+<hr />
+<p>aa_&quot;bb&quot;_cc</p>
+<hr />
+<p>foo-<em>(bar)</em></p>
+<hr />
+<p>_foo*</p>
+<hr />
+<p>*foo bar *</p>
+<hr />
+<p>*foo bar
+*</p>
+<hr />
+<p>*(*foo)</p>
+<hr />
+<p><em>(<em>foo</em>)</em></p>
+<hr />
+<p><em>foo</em>bar</p>
+<hr />
+<p>_foo bar _</p>
+<hr />
+<p>_(_foo)</p>
+<hr />
+<p><em>(<em>foo</em>)</em></p>
+<hr />
+<p>_foo_bar</p>
+<hr />
+<p>_пристаням_стремятся</p>
+<hr />
+<p><em>foo_bar_baz</em></p>
+<hr />
+<p><em>(bar)</em>.</p>
+<hr />
+<p><strong>foo bar</strong></p>
+<hr />
+<p>** foo bar**</p>
+<hr />
+<p>a**&quot;foo&quot;**</p>
+<hr />
+<p>foo<strong>bar</strong></p>
+<hr />
+<p><strong>foo bar</strong></p>
+<hr />
+<p>__ foo bar__</p>
+<hr />
+<p>__
+foo bar__</p>
+<hr />
+<p>a__&quot;foo&quot;__</p>
+<hr />
+<p>foo__bar__</p>
+<hr />
+<p>5__6__78</p>
+<hr />
+<p>пристаням__стремятся__</p>
+<hr />
+<p><strong>foo, <strong>bar</strong>, baz</strong></p>
+<hr />
+<p>foo-<strong>(bar)</strong></p>
+<hr />
+<p>**foo bar **</p>
+<hr />
+<p>**(**foo)</p>
+<hr />
+<p><em>(<strong>foo</strong>)</em></p>
+<hr />
+<p><strong>Gomphocarpus (<em>Gomphocarpus physocarpus</em>, syn.
+<em>Asclepias physocarpa</em>)</strong></p>
+<hr />
+<p><strong>foo &quot;<em>bar</em>&quot; foo</strong></p>
+<hr />
+<p><strong>foo</strong>bar</p>
+<hr />
+<p>__foo bar __</p>
+<hr />
+<p>__(__foo)</p>
+<hr />
+<p><em>(<strong>foo</strong>)</em></p>
+<hr />
+<p>__foo__bar</p>
+<hr />
+<p>__пристаням__стремятся</p>
+<hr />
+<p><strong>foo__bar__baz</strong></p>
+<hr />
+<p><strong>(bar)</strong>.</p>
+<hr />
+<p><em>foo <a href="/url">bar</a></em></p>
+<hr />
+<p><em>foo
+bar</em></p>
+<hr />
+<p><em>foo <strong>bar</strong> baz</em></p>
+<hr />
+<p><em>foo <em>bar</em> baz</em></p>
+<hr />
+<p><em><em>foo</em> bar</em></p>
+<hr />
+<p><em>foo <em>bar</em></em></p>
+<hr />
+<p><em>foo <strong>bar</strong> baz</em></p>
+<hr />
+<p><em>foo<strong>bar</strong>baz</em></p>
+<hr />
+<p><em>foo**bar</em></p>
+<hr />
+<p><em><strong>foo</strong> bar</em></p>
+<hr />
+<p><em>foo <strong>bar</strong></em></p>
+<hr />
+<p><em>foo<strong>bar</strong></em></p>
+<hr />
+<p>foo<em><strong>bar</strong></em>baz</p>
+<hr />
+<p>foo<strong><strong><strong>bar</strong></strong></strong>***baz</p>
+<hr />
+<p><em>foo <strong>bar <em>baz</em> bim</strong> bop</em></p>
+<hr />
+<p><em>foo <a href="/url"><em>bar</em></a></em></p>
+<hr />
+<p>** is not an empty emphasis</p>
+<hr />
+<p>**** is not an empty strong emphasis</p>
+<hr />
+<p><strong>foo <a href="/url">bar</a></strong></p>
+<hr />
+<p><strong>foo
+bar</strong></p>
+<hr />
+<p><strong>foo <em>bar</em> baz</strong></p>
+<hr />
+<p><strong>foo <strong>bar</strong> baz</strong></p>
+<hr />
+<p><strong><strong>foo</strong> bar</strong></p>
+<hr />
+<p><strong>foo <strong>bar</strong></strong></p>
+<hr />
+<p><strong>foo <em>bar</em> baz</strong></p>
+<hr />
+<p><strong>foo<em>bar</em>baz</strong></p>
+<hr />
+<p><strong><em>foo</em> bar</strong></p>
+<hr />
+<p><strong>foo <em>bar</em></strong></p>
+<hr />
+<p><strong>foo <em>bar <strong>baz</strong>
+bim</em> bop</strong></p>
+<hr />
+<p><strong>foo <a href="/url"><em>bar</em></a></strong></p>
+<hr />
+<p>__ is not an empty emphasis</p>
+<hr />
+<p>____ is not an empty strong emphasis</p>
+<hr />
+<p>foo ***</p>
+<hr />
+<p>foo <em>*</em></p>
+<hr />
+<p>foo <em>_</em></p>
+<hr />
+<p>foo *****</p>
+<hr />
+<p>foo <strong>*</strong></p>
+<hr />
+<p>foo <strong>_</strong></p>
+<hr />
+<p>*<em>foo</em></p>
+<hr />
+<p><em>foo</em>*</p>
+<hr />
+<p>*<strong>foo</strong></p>
+<hr />
+<p>***<em>foo</em></p>
+<hr />
+<p><strong>foo</strong>*</p>
+<hr />
+<p><em>foo</em>***</p>
+<hr />
+<p>foo ___</p>
+<hr />
+<p>foo <em>_</em></p>
+<hr />
+<p>foo <em>*</em></p>
+<hr />
+<p>foo _____</p>
+<hr />
+<p>foo <strong>_</strong></p>
+<hr />
+<p>foo <strong>*</strong></p>
+<hr />
+<p>_<em>foo</em></p>
+<hr />
+<p><em>foo</em>_</p>
+<hr />
+<p>_<strong>foo</strong></p>
+<hr />
+<p>___<em>foo</em></p>
+<hr />
+<p><strong>foo</strong>_</p>
+<hr />
+<p><em>foo</em>___</p>
+<hr />
+<p><strong>foo</strong></p>
+<hr />
+<p><em><em>foo</em></em></p>
+<hr />
+<p><strong>foo</strong></p>
+<hr />
+<p><em><em>foo</em></em></p>
+<hr />
+<p><strong><strong>foo</strong></strong></p>
+<hr />
+<p><strong><strong>foo</strong></strong></p>
+<hr />
+<p><strong><strong><strong>foo</strong></strong></strong></p>
+<hr />
+<p><em><strong>foo</strong></em></p>
+<hr />
+<p><em><strong><strong>foo</strong></strong></em></p>
+<hr />
+<p><em>foo _bar</em> baz_</p>
+<hr />
+<p><em>foo <strong>bar *baz bim</strong> bam</em></p>
+<hr />
+<p>**foo <strong>bar baz</strong></p>
+<hr />
+<p>*foo <em>bar baz</em></p>
+<hr />
+<p>*<a href="/url">bar*</a></p>
+<hr />
+<p>_foo <a href="/url">bar_</a></p>
+<hr />
+<p><em>a <code>*</code></em></p>
+<hr />
+<p><em>a <code>_</code></em></p>
+<hr />
+<p>**a<a href="https://foo.bar/?q=**">https://foo.bar/?q=**</a></p>
+<hr />
+<p>__a<a href="https://foo.bar/?q=__">https://foo.bar/?q=__</a></p>

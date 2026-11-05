@@ -1,0 +1,22 @@
+[message]
+id 0002
+source "continued.eml"
+
+[headers]
+content-type: "application/octet-stream"
+content-disposition: "attachment; filename*0=\"a very \"; filename*1=\"long name.txt\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 application/octet-stream cte=7bit disposition=attachment filename="a very long name.txt" size=5 adler32=05a501a5 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/octet-stream filename="a very long name.txt" size=5 adler32=05a501a5 file=parts/0002/000.bin

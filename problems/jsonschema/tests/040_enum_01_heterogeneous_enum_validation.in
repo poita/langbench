@@ -1,0 +1,43 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "enum": [
+      6,
+      "foo",
+      [],
+      true,
+      {
+        "foo": 12
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "one of the enum is valid",
+      "data": []
+    },
+    {
+      "description": "something else is invalid",
+      "data": null
+    },
+    {
+      "description": "objects are deep compared",
+      "data": {
+        "foo": false
+      }
+    },
+    {
+      "description": "valid object matches",
+      "data": {
+        "foo": 12
+      }
+    },
+    {
+      "description": "extra properties in object is invalid",
+      "data": {
+        "foo": 12,
+        "boo": 42
+      }
+    }
+  ]
+}

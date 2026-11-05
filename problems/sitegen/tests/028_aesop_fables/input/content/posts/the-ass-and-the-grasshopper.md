@@ -1,0 +1,11 @@
++++
+title = "The Ass And The Grasshopper"
+date = "2019-01-02"
+slug = "the-ass-and-the-grasshopper"
+tags = ["Asses"]
++++
+**AN ASS** having heard some Grasshoppers chirping, was highly enchanted;
+and, desiring to possess the same charms of melody, demanded what sort
+of food they lived on to give them such beautiful voices. They replied,
+“The dew.” The Ass resolved that he would live only upon dew, and in a
+short time died of hunger.

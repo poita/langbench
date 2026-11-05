@@ -1,0 +1,21 @@
+name "typeset"
+description "Codexa typesetting engine: total-fit line breaking, Liang hyphenation, footnotes, floats and tables of contents."
+authors "typeset contributors"
+license "MIT"
+copyright "Copyright (c) typeset contributors"
+
+targetType "library"
+sourcePaths "source"
+importPaths "source"
+
+configuration "library" {
+    targetType "library"
+}
+
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}
+
+subPackage "./cli"

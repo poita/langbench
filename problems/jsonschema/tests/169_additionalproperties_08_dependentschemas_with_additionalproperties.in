@@ -1,0 +1,38 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo2": {}
+    },
+    "dependentSchemas": {
+      "foo": {},
+      "foo2": {
+        "properties": {
+          "bar": {}
+        }
+      }
+    },
+    "additionalProperties": false
+  },
+  "tests": [
+    {
+      "description": "additionalProperties doesn't consider dependentSchemas",
+      "data": {
+        "foo": ""
+      }
+    },
+    {
+      "description": "additionalProperties can't see bar",
+      "data": {
+        "bar": ""
+      }
+    },
+    {
+      "description": "additionalProperties can't see bar even when foo2 is present",
+      "data": {
+        "foo2": "",
+        "bar": ""
+      }
+    }
+  ]
+}

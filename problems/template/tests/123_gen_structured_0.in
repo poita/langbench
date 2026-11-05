@@ -1,0 +1,52 @@
+{
+  "x": 3,
+  "y": "abc",
+  "nums": [
+    5,
+    2,
+    9,
+    1
+  ],
+  "names": [
+    "bob",
+    "Al",
+    "cy"
+  ],
+  "d": {
+    "k": "kv",
+    "m": [
+      1,
+      2
+    ]
+  }
+}
+--
+=== main
+{% macro tag(name, val, sep=":") %}<{{ name }}{{ sep }}{{ val }}>{% endmacro %}{% macro rep(n, ch="*") %}{% for i in range(n) %}{{ ch }}{% endfor %}{% endmacro %}{% set v0 = x + 1 %}{{ v0 }}{{ tag("x", x) }}
+{% set v1 = [x, y] %}{{ v1 }}{% if x > 2 %}{{ x > 2 }}{{- "S" -}}{% set v2 = nums|first %}{{ v2 }}{% if d.k %}{% if x in nums %}{{ x > 2 }}
+  {{ y ~ x }}
+{{ nums|length }}{{ x > 2 }}{% elif x %}{{ y|upper }}{{ names|sort|join }}{% set tmp = x + 1 %}{{ tmp }}{{ y|upper }}{% else %}T{{ x }}
+  {{ y ~ x }}
+{% endif %}{% for i3 in range(3) %}{{ loop.index }}/{{ loop.length }}:{{- "S" -}}{{ d.k }}{{ d.q is defined }}{{ nums|join("+") }}{{ d.k }}{{ d.q is defined }}{% else %}E{% endfor %}{{ missing|default(x) }}{% elif false %}{% set v4 = x + 1 %}{{ v4 }}{{ nums|join("+") }}{{- "S" -}}{% else %} plain text
+T{{ x }}{% if missing is defined %}T{{ x }}{{ d.k }}{{ d.q is defined }}
+  {{ y ~ x }}
+{% elif nums|length > 1 %}T{{ x }}{{ d.k }}{{ d.q is defined }}{{ y|upper }}{{- "S" -}}{% else %}T{{ x }}{{ missing|default(x) }}{# c #} plain text
+{% endif %}{{ nums|length }}{% endif %}{% elif false %}{{ x * 2 + 1 }}{{ x > 2 }}{% for i5 in names|sort %}{{ loop.index }}/{{ loop.length }}:{% set tmp = x + 1 %}{{ tmp }}{{ x > 2 }}{% endfor %}T{{ x }}{% endif %}{% if y == "abc" %}{% for i6 in names -%}{{ loop.index }}/{{ loop.length }}:{% set v7 = x + 1 %}{{ v7 }}{% set v8 = y ~ "!" %}{{ v8 }}{% set v9 = names|length %}{{ v9 }}{% set v10 = y ~ "!" %}{{ v10 }}{%- endfor %}{{- "S" -}}{% endif %}{{ rep(x) }}
+{{- "S" -}}{% set v11 = x + 1 %}{{ v11 }}
+  {{ y ~ x }}
+{% if x in nums %}{% set v12 = y ~ "!" %}{{ v12 }}{% elif nums|length > 1 %}{{ nums|length }}{% else %}{% set v13 = y ~ "!" %}{{ v13 }}{% endif %}{% include "sub" %}
+{% for i14 in names %}{{ loop.index }}/{{ loop.length }}:{% for i15 in [] %}{{ loop.index }}/{{ loop.length }}:{{ x * 2 + 1 }}{% else %}E{% endfor %}{% for i16 in [] %}{{ loop.index }}/{{ loop.length }}:
+  {{ y ~ x }}
+{% for i17 in nums|reverse %}{{ loop.index }}/{{ loop.length }}:{{ names|first }}{% set tmp = x + 1 %}{{ tmp }}{% endfor %}{% endfor %}{% endfor %}{{ x * 2 + 1 }}{{ nums|length }}{% set v18 = [x, y] %}{{ v18 }}{% include "sub" %}
+{# c #}{% if true %}T{{ x }}{% set v19 = names|length %}{{ v19 }}{% endif %}{% set v20 = x + 1 %}{{ v20 }}{% for i21 in range(3) %}{{ loop.index }}/{{ loop.length }}:{% for i22 in names|sort %}{{ loop.index }}/{{ loop.length }}:{{ nums|join("+") }}{% for i23 in nums %}{{ loop.index }}/{{ loop.length }}:{{ x > 2 }}T{{ i23 }}{% else %}E{% endfor %}{% for i24 in names|sort %}{{ loop.index }}/{{ loop.length }}: plain text
+{{ nums|join("+") }}{{ x > 2 }}{% endfor %}{% for i25 in y %}{{ loop.index }}/{{ loop.length }}:{{ nums|length }}{{ names|first }}{{ y|upper }}{{ d.k }}{{ d.q is defined }}{% endfor %}{% endfor %}{{ nums|length }}{% set v26 = names|length %}{{ v26 }}{% endfor %}{{ tag("n", nums|length, sep="=") }}
+{{ x > 2 }}{{ tag("x", x) }}
+{% if not names %}{{ x * 2 + 1 }}T{{ x }}{% else %}{{ names|sort|join }}{% for i27 in names -%}{{ loop.index }}/{{ loop.length }}:{% set v28 = y ~ "!" %}{{ v28 }}{% else %}E{%- endfor %}{% endif %}{{ tag("n", nums|length, sep="=") }}
+{{ nums|length }}{% set v29 = y ~ "!" %}{{ v29 }}{{ nums|join("+") }}{{ tag("n", nums|length, sep="=") }}
+{% for i30 in names|sort -%}{{ loop.index }}/{{ loop.length }}:{% set v31 = [x, y] %}{{ v31 }}{% else %}E{%- endfor %}{% set v32 = y ~ "!" %}{{ v32 }}{{ rep(x) }}
+{{ d.k }}{{ d.q is defined }}{{ d.k }}{{ d.q is defined }}{{ tag("n", nums|length, sep="=") }}
+{% set v33 = nums|first %}{{ v33 }}{{ names|sort|join }}{{ tag("x", x) }}
+{% for i34 in [] %}{{ loop.index }}/{{ loop.length }}:{% set v35 = y ~ "!" %}{{ v35 }}{{ nums|join("+") }}{% else %}E{% endfor %}{{ tag("n", nums|length, sep="=") }}
+
+=== sub
+[sub {{ x }} {{ y|upper }}{% for n in nums %}{{ n }}{% endfor %}{% if names %}{{ names|first }}{% endif %}]

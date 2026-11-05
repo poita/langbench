@@ -1,0 +1,3555 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://json-schema.org/draft/2020-12/schema",
+    "$vocabulary": {
+      "https://json-schema.org/draft/2020-12/vocab/core": true,
+      "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+      "https://json-schema.org/draft/2020-12/vocab/unevaluated": true,
+      "https://json-schema.org/draft/2020-12/vocab/validation": true,
+      "https://json-schema.org/draft/2020-12/vocab/meta-data": true,
+      "https://json-schema.org/draft/2020-12/vocab/format-annotation": true,
+      "https://json-schema.org/draft/2020-12/vocab/content": true
+    },
+    "$dynamicAnchor": "meta",
+    "title": "Core and Validation specifications meta-schema",
+    "allOf": [
+      {
+        "$ref": "meta/core"
+      },
+      {
+        "$ref": "meta/applicator"
+      },
+      {
+        "$ref": "meta/unevaluated"
+      },
+      {
+        "$ref": "meta/validation"
+      },
+      {
+        "$ref": "meta/meta-data"
+      },
+      {
+        "$ref": "meta/format-annotation"
+      },
+      {
+        "$ref": "meta/content"
+      }
+    ],
+    "type": [
+      "object",
+      "boolean"
+    ],
+    "$comment": "This meta-schema also defines keywords that have appeared in previous drafts in order to prevent incompatible extensions as they remain in common use.",
+    "properties": {
+      "definitions": {
+        "$comment": "\"definitions\" has been replaced by \"$defs\".",
+        "type": "object",
+        "additionalProperties": {
+          "$dynamicRef": "#meta"
+        },
+        "deprecated": true,
+        "default": {}
+      },
+      "dependencies": {
+        "$comment": "\"dependencies\" has been split and replaced by \"dependentSchemas\" and \"dependentRequired\" in order to serve their differing semantics.",
+        "type": "object",
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "$dynamicRef": "#meta"
+            },
+            {
+              "$ref": "meta/validation#/$defs/stringArray"
+            }
+          ]
+        },
+        "deprecated": true,
+        "default": {}
+      },
+      "$recursiveAnchor": {
+        "$comment": "\"$recursiveAnchor\" has been replaced by \"$dynamicAnchor\".",
+        "$ref": "meta/core#/$defs/anchorString",
+        "deprecated": true
+      },
+      "$recursiveRef": {
+        "$comment": "\"$recursiveRef\" has been replaced by \"$dynamicRef\".",
+        "$ref": "meta/core#/$defs/uriReferenceString",
+        "deprecated": true
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "the OpenAPI 3.1 schema",
+      "data": {
+        "$id": "https://spec.openapis.org/oas/3.1/schema/2022-10-07",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "description": "The description of OpenAPI v3.1.x documents without schema validation, as defined by https://spec.openapis.org/oas/v3.1.0",
+        "type": "object",
+        "properties": {
+          "openapi": {
+            "type": "string",
+            "pattern": "^3\\.1\\.\\d+(-.+)?$"
+          },
+          "info": {
+            "$ref": "#/$defs/info"
+          },
+          "jsonSchemaDialect": {
+            "type": "string",
+            "format": "uri",
+            "default": "https://spec.openapis.org/oas/3.1/dialect/base"
+          },
+          "servers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/server"
+            },
+            "default": [
+              {
+                "url": "/"
+              }
+            ]
+          },
+          "paths": {
+            "$ref": "#/$defs/paths"
+          },
+          "webhooks": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/path-item-or-reference"
+            }
+          },
+          "components": {
+            "$ref": "#/$defs/components"
+          },
+          "security": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/security-requirement"
+            }
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/tag"
+            }
+          },
+          "externalDocs": {
+            "$ref": "#/$defs/external-documentation"
+          }
+        },
+        "required": [
+          "openapi",
+          "info"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "paths"
+            ]
+          },
+          {
+            "required": [
+              "components"
+            ]
+          },
+          {
+            "required": [
+              "webhooks"
+            ]
+          }
+        ],
+        "$ref": "#/$defs/specification-extensions",
+        "unevaluatedProperties": false,
+        "$defs": {
+          "info": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#info-object",
+            "type": "object",
+            "properties": {
+              "title": {
+                "type": "string"
+              },
+              "summary": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "termsOfService": {
+                "type": "string",
+                "format": "uri"
+              },
+              "contact": {
+                "$ref": "#/$defs/contact"
+              },
+              "license": {
+                "$ref": "#/$defs/license"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "title",
+              "version"
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "contact": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#contact-object",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "license": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#license-object",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "identifier": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "dependentSchemas": {
+              "identifier": {
+                "not": {
+                  "required": [
+                    "url"
+                  ]
+                }
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "server": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#server-object",
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "description": {
+                "type": "string"
+              },
+              "variables": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/server-variable"
+                }
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "server-variable": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#server-variable-object",
+            "type": "object",
+            "properties": {
+              "enum": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              },
+              "default": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "default"
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "components": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#components-object",
+            "type": "object",
+            "properties": {
+              "schemas": {
+                "type": "object",
+                "additionalProperties": {
+                  "$dynamicRef": "#meta"
+                }
+              },
+              "responses": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/response-or-reference"
+                }
+              },
+              "parameters": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/parameter-or-reference"
+                }
+              },
+              "examples": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/example-or-reference"
+                }
+              },
+              "requestBodies": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/request-body-or-reference"
+                }
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/header-or-reference"
+                }
+              },
+              "securitySchemes": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/security-scheme-or-reference"
+                }
+              },
+              "links": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/link-or-reference"
+                }
+              },
+              "callbacks": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/callbacks-or-reference"
+                }
+              },
+              "pathItems": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/path-item-or-reference"
+                }
+              }
+            },
+            "patternProperties": {
+              "^(schemas|responses|parameters|examples|requestBodies|headers|securitySchemes|links|callbacks|pathItems)$": {
+                "$comment": "Enumerating all of the property names in the regex above is necessary for unevaluatedProperties to work as expected",
+                "propertyNames": {
+                  "pattern": "^[a-zA-Z0-9._-]+$"
+                }
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "paths": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#paths-object",
+            "type": "object",
+            "patternProperties": {
+              "^/": {
+                "$ref": "#/$defs/path-item"
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "path-item": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#path-item-object",
+            "type": "object",
+            "properties": {
+              "summary": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "servers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/server"
+                }
+              },
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/parameter-or-reference"
+                }
+              },
+              "get": {
+                "$ref": "#/$defs/operation"
+              },
+              "put": {
+                "$ref": "#/$defs/operation"
+              },
+              "post": {
+                "$ref": "#/$defs/operation"
+              },
+              "delete": {
+                "$ref": "#/$defs/operation"
+              },
+              "options": {
+                "$ref": "#/$defs/operation"
+              },
+              "head": {
+                "$ref": "#/$defs/operation"
+              },
+              "patch": {
+                "$ref": "#/$defs/operation"
+              },
+              "trace": {
+                "$ref": "#/$defs/operation"
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "path-item-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/path-item"
+            }
+          },
+          "operation": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#operation-object",
+            "type": "object",
+            "properties": {
+              "tags": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "summary": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "externalDocs": {
+                "$ref": "#/$defs/external-documentation"
+              },
+              "operationId": {
+                "type": "string"
+              },
+              "parameters": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/parameter-or-reference"
+                }
+              },
+              "requestBody": {
+                "$ref": "#/$defs/request-body-or-reference"
+              },
+              "responses": {
+                "$ref": "#/$defs/responses"
+              },
+              "callbacks": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/callbacks-or-reference"
+                }
+              },
+              "deprecated": {
+                "default": false,
+                "type": "boolean"
+              },
+              "security": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/security-requirement"
+                }
+              },
+              "servers": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/$defs/server"
+                }
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "external-documentation": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#external-documentation-object",
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "parameter": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#parameter-object",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "in": {
+                "enum": [
+                  "query",
+                  "header",
+                  "path",
+                  "cookie"
+                ]
+              },
+              "description": {
+                "type": "string"
+              },
+              "required": {
+                "default": false,
+                "type": "boolean"
+              },
+              "deprecated": {
+                "default": false,
+                "type": "boolean"
+              },
+              "schema": {
+                "$dynamicRef": "#meta"
+              },
+              "content": {
+                "$ref": "#/$defs/content",
+                "minProperties": 1,
+                "maxProperties": 1
+              }
+            },
+            "required": [
+              "name",
+              "in"
+            ],
+            "oneOf": [
+              {
+                "required": [
+                  "schema"
+                ]
+              },
+              {
+                "required": [
+                  "content"
+                ]
+              }
+            ],
+            "if": {
+              "properties": {
+                "in": {
+                  "const": "query"
+                }
+              },
+              "required": [
+                "in"
+              ]
+            },
+            "then": {
+              "properties": {
+                "allowEmptyValue": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              }
+            },
+            "dependentSchemas": {
+              "schema": {
+                "properties": {
+                  "style": {
+                    "type": "string"
+                  },
+                  "explode": {
+                    "type": "boolean"
+                  }
+                },
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/examples"
+                  },
+                  {
+                    "$ref": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-path"
+                  },
+                  {
+                    "$ref": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-header"
+                  },
+                  {
+                    "$ref": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-query"
+                  },
+                  {
+                    "$ref": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-cookie"
+                  },
+                  {
+                    "$ref": "#/$defs/parameter/dependentSchemas/schema/$defs/styles-for-form"
+                  }
+                ],
+                "$defs": {
+                  "styles-for-path": {
+                    "if": {
+                      "properties": {
+                        "in": {
+                          "const": "path"
+                        }
+                      },
+                      "required": [
+                        "in"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "name": {
+                          "pattern": "[^/#?]+$"
+                        },
+                        "style": {
+                          "default": "simple",
+                          "enum": [
+                            "matrix",
+                            "label",
+                            "simple"
+                          ]
+                        },
+                        "required": {
+                          "const": true
+                        }
+                      },
+                      "required": [
+                        "required"
+                      ]
+                    }
+                  },
+                  "styles-for-header": {
+                    "if": {
+                      "properties": {
+                        "in": {
+                          "const": "header"
+                        }
+                      },
+                      "required": [
+                        "in"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "style": {
+                          "default": "simple",
+                          "const": "simple"
+                        }
+                      }
+                    }
+                  },
+                  "styles-for-query": {
+                    "if": {
+                      "properties": {
+                        "in": {
+                          "const": "query"
+                        }
+                      },
+                      "required": [
+                        "in"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "style": {
+                          "default": "form",
+                          "enum": [
+                            "form",
+                            "spaceDelimited",
+                            "pipeDelimited",
+                            "deepObject"
+                          ]
+                        },
+                        "allowReserved": {
+                          "default": false,
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  },
+                  "styles-for-cookie": {
+                    "if": {
+                      "properties": {
+                        "in": {
+                          "const": "cookie"
+                        }
+                      },
+                      "required": [
+                        "in"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "style": {
+                          "default": "form",
+                          "const": "form"
+                        }
+                      }
+                    }
+                  },
+                  "styles-for-form": {
+                    "if": {
+                      "properties": {
+                        "style": {
+                          "const": "form"
+                        }
+                      },
+                      "required": [
+                        "style"
+                      ]
+                    },
+                    "then": {
+                      "properties": {
+                        "explode": {
+                          "default": true
+                        }
+                      }
+                    },
+                    "else": {
+                      "properties": {
+                        "explode": {
+                          "default": false
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "parameter-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/parameter"
+            }
+          },
+          "request-body": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#request-body-object",
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "content": {
+                "$ref": "#/$defs/content"
+              },
+              "required": {
+                "default": false,
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "content"
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "request-body-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/request-body"
+            }
+          },
+          "content": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#fixed-fields-10",
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/$defs/media-type"
+            },
+            "propertyNames": {
+              "format": "media-range"
+            }
+          },
+          "media-type": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#media-type-object",
+            "type": "object",
+            "properties": {
+              "schema": {
+                "$dynamicRef": "#meta"
+              },
+              "encoding": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/encoding"
+                }
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/$defs/specification-extensions"
+              },
+              {
+                "$ref": "#/$defs/examples"
+              }
+            ],
+            "unevaluatedProperties": false
+          },
+          "encoding": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#encoding-object",
+            "type": "object",
+            "properties": {
+              "contentType": {
+                "type": "string",
+                "format": "media-range"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/header-or-reference"
+                }
+              },
+              "style": {
+                "default": "form",
+                "enum": [
+                  "form",
+                  "spaceDelimited",
+                  "pipeDelimited",
+                  "deepObject"
+                ]
+              },
+              "explode": {
+                "type": "boolean"
+              },
+              "allowReserved": {
+                "default": false,
+                "type": "boolean"
+              }
+            },
+            "allOf": [
+              {
+                "$ref": "#/$defs/specification-extensions"
+              },
+              {
+                "$ref": "#/$defs/encoding/$defs/explode-default"
+              }
+            ],
+            "unevaluatedProperties": false,
+            "$defs": {
+              "explode-default": {
+                "if": {
+                  "properties": {
+                    "style": {
+                      "const": "form"
+                    }
+                  },
+                  "required": [
+                    "style"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "explode": {
+                      "default": true
+                    }
+                  }
+                },
+                "else": {
+                  "properties": {
+                    "explode": {
+                      "default": false
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#responses-object",
+            "type": "object",
+            "properties": {
+              "default": {
+                "$ref": "#/$defs/response-or-reference"
+              }
+            },
+            "patternProperties": {
+              "^[1-5](?:[0-9]{2}|XX)$": {
+                "$ref": "#/$defs/response-or-reference"
+              }
+            },
+            "minProperties": 1,
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "response": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#response-object",
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "headers": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/header-or-reference"
+                }
+              },
+              "content": {
+                "$ref": "#/$defs/content"
+              },
+              "links": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/link-or-reference"
+                }
+              }
+            },
+            "required": [
+              "description"
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "response-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/response"
+            }
+          },
+          "callbacks": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#callback-object",
+            "type": "object",
+            "$ref": "#/$defs/specification-extensions",
+            "additionalProperties": {
+              "$ref": "#/$defs/path-item-or-reference"
+            }
+          },
+          "callbacks-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/callbacks"
+            }
+          },
+          "example": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#example-object",
+            "type": "object",
+            "properties": {
+              "summary": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "value": true,
+              "externalValue": {
+                "type": "string",
+                "format": "uri"
+              }
+            },
+            "not": {
+              "required": [
+                "value",
+                "externalValue"
+              ]
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "example-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/example"
+            }
+          },
+          "link": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#link-object",
+            "type": "object",
+            "properties": {
+              "operationRef": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "operationId": {
+                "type": "string"
+              },
+              "parameters": {
+                "$ref": "#/$defs/map-of-strings"
+              },
+              "requestBody": true,
+              "description": {
+                "type": "string"
+              },
+              "body": {
+                "$ref": "#/$defs/server"
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "operationRef"
+                ]
+              },
+              {
+                "required": [
+                  "operationId"
+                ]
+              }
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "link-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/link"
+            }
+          },
+          "header": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#header-object",
+            "type": "object",
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "required": {
+                "default": false,
+                "type": "boolean"
+              },
+              "deprecated": {
+                "default": false,
+                "type": "boolean"
+              },
+              "schema": {
+                "$dynamicRef": "#meta"
+              },
+              "content": {
+                "$ref": "#/$defs/content",
+                "minProperties": 1,
+                "maxProperties": 1
+              }
+            },
+            "oneOf": [
+              {
+                "required": [
+                  "schema"
+                ]
+              },
+              {
+                "required": [
+                  "content"
+                ]
+              }
+            ],
+            "dependentSchemas": {
+              "schema": {
+                "properties": {
+                  "style": {
+                    "default": "simple",
+                    "const": "simple"
+                  },
+                  "explode": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "$ref": "#/$defs/examples"
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "header-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/header"
+            }
+          },
+          "tag": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#tag-object",
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "externalDocs": {
+                "$ref": "#/$defs/external-documentation"
+              }
+            },
+            "required": [
+              "name"
+            ],
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false
+          },
+          "reference": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#reference-object",
+            "type": "object",
+            "properties": {
+              "$ref": {
+                "type": "string",
+                "format": "uri-reference"
+              },
+              "summary": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "unevaluatedProperties": false
+          },
+          "schema": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#schema-object",
+            "$dynamicAnchor": "meta",
+            "type": [
+              "object",
+              "boolean"
+            ]
+          },
+          "security-scheme": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#security-scheme-object",
+            "type": "object",
+            "properties": {
+              "type": {
+                "enum": [
+                  "apiKey",
+                  "http",
+                  "mutualTLS",
+                  "oauth2",
+                  "openIdConnect"
+                ]
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "type"
+            ],
+            "allOf": [
+              {
+                "$ref": "#/$defs/specification-extensions"
+              },
+              {
+                "$ref": "#/$defs/security-scheme/$defs/type-apikey"
+              },
+              {
+                "$ref": "#/$defs/security-scheme/$defs/type-http"
+              },
+              {
+                "$ref": "#/$defs/security-scheme/$defs/type-http-bearer"
+              },
+              {
+                "$ref": "#/$defs/security-scheme/$defs/type-oauth2"
+              },
+              {
+                "$ref": "#/$defs/security-scheme/$defs/type-oidc"
+              }
+            ],
+            "unevaluatedProperties": false,
+            "$defs": {
+              "type-apikey": {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "apiKey"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "in": {
+                      "enum": [
+                        "query",
+                        "header",
+                        "cookie"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "in"
+                  ]
+                }
+              },
+              "type-http": {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "http"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "scheme": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "scheme"
+                  ]
+                }
+              },
+              "type-http-bearer": {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "http"
+                    },
+                    "scheme": {
+                      "type": "string",
+                      "pattern": "^[Bb][Ee][Aa][Rr][Ee][Rr]$"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "scheme"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "bearerFormat": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "type-oauth2": {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "oauth2"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "flows": {
+                      "$ref": "#/$defs/oauth-flows"
+                    }
+                  },
+                  "required": [
+                    "flows"
+                  ]
+                }
+              },
+              "type-oidc": {
+                "if": {
+                  "properties": {
+                    "type": {
+                      "const": "openIdConnect"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ]
+                },
+                "then": {
+                  "properties": {
+                    "openIdConnectUrl": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  },
+                  "required": [
+                    "openIdConnectUrl"
+                  ]
+                }
+              }
+            }
+          },
+          "security-scheme-or-reference": {
+            "if": {
+              "type": "object",
+              "required": [
+                "$ref"
+              ]
+            },
+            "then": {
+              "$ref": "#/$defs/reference"
+            },
+            "else": {
+              "$ref": "#/$defs/security-scheme"
+            }
+          },
+          "oauth-flows": {
+            "type": "object",
+            "properties": {
+              "implicit": {
+                "$ref": "#/$defs/oauth-flows/$defs/implicit"
+              },
+              "password": {
+                "$ref": "#/$defs/oauth-flows/$defs/password"
+              },
+              "clientCredentials": {
+                "$ref": "#/$defs/oauth-flows/$defs/client-credentials"
+              },
+              "authorizationCode": {
+                "$ref": "#/$defs/oauth-flows/$defs/authorization-code"
+              }
+            },
+            "$ref": "#/$defs/specification-extensions",
+            "unevaluatedProperties": false,
+            "$defs": {
+              "implicit": {
+                "type": "object",
+                "properties": {
+                  "authorizationUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "refreshUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  }
+                },
+                "required": [
+                  "authorizationUrl",
+                  "scopes"
+                ],
+                "$ref": "#/$defs/specification-extensions",
+                "unevaluatedProperties": false
+              },
+              "password": {
+                "type": "object",
+                "properties": {
+                  "tokenUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "refreshUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  }
+                },
+                "required": [
+                  "tokenUrl",
+                  "scopes"
+                ],
+                "$ref": "#/$defs/specification-extensions",
+                "unevaluatedProperties": false
+              },
+              "client-credentials": {
+                "type": "object",
+                "properties": {
+                  "tokenUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "refreshUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  }
+                },
+                "required": [
+                  "tokenUrl",
+                  "scopes"
+                ],
+                "$ref": "#/$defs/specification-extensions",
+                "unevaluatedProperties": false
+              },
+              "authorization-code": {
+                "type": "object",
+                "properties": {
+                  "authorizationUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "tokenUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "refreshUrl": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "scopes": {
+                    "$ref": "#/$defs/map-of-strings"
+                  }
+                },
+                "required": [
+                  "authorizationUrl",
+                  "tokenUrl",
+                  "scopes"
+                ],
+                "$ref": "#/$defs/specification-extensions",
+                "unevaluatedProperties": false
+              }
+            }
+          },
+          "security-requirement": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#security-requirement-object",
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "specification-extensions": {
+            "$comment": "https://spec.openapis.org/oas/v3.1.0#specification-extensions",
+            "patternProperties": {
+              "^x-": true
+            }
+          },
+          "examples": {
+            "properties": {
+              "example": true,
+              "examples": {
+                "type": "object",
+                "additionalProperties": {
+                  "$ref": "#/$defs/example-or-reference"
+                }
+              }
+            }
+          },
+          "map-of-strings": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "the package.json schema",
+      "data": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "JSON schema for NPM package.json files",
+        "type": "object",
+        "patternProperties": {
+          "^_": {
+            "description": "Any property starting with _ is valid.",
+            "tsType": "any"
+          }
+        },
+        "properties": {
+          "name": {
+            "description": "The name of the package.",
+            "type": "string",
+            "maxLength": 214,
+            "minLength": 1
+          },
+          "version": {
+            "description": "Version must be parsable by node-semver, which is bundled with npm as a dependency.",
+            "type": "string"
+          },
+          "description": {
+            "description": "This helps people discover your package, as it's listed in 'npm search'.",
+            "type": "string"
+          },
+          "keywords": {
+            "description": "This helps people discover your package as it's listed in 'npm search'.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "homepage": {
+            "description": "The url to the project homepage.",
+            "type": "string"
+          },
+          "bugs": {
+            "description": "The url to your project's issue tracker and / or the email address to which issues should be reported. These are helpful for people who encounter issues with your package.",
+            "type": [
+              "object",
+              "string"
+            ],
+            "properties": {
+              "url": {
+                "type": "string",
+                "description": "The url to your project's issue tracker.",
+                "format": "uri"
+              },
+              "email": {
+                "type": "string",
+                "description": "The email address to which issues should be reported.",
+                "format": "email"
+              }
+            }
+          },
+          "license": {
+            "$ref": "#/$defs/license",
+            "description": "You should specify a license for your package so that people know how they are permitted to use it, and any restrictions you're placing on it."
+          },
+          "licenses": {
+            "description": "DEPRECATED: Instead, use SPDX expressions, like this: { \"license\": \"ISC\" } or { \"license\": \"(MIT OR Apache-2.0)\" } see: 'https://docs.npmjs.com/files/package.json#license'.",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "type": {
+                  "$ref": "#/$defs/license"
+                },
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            }
+          },
+          "author": {
+            "$ref": "#/$defs/person"
+          },
+          "contributors": {
+            "description": "A list of people who contributed to this package.",
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/person"
+            }
+          },
+          "maintainers": {
+            "description": "A list of people who maintains this package.",
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/person"
+            }
+          },
+          "files": {
+            "description": "The 'files' field is an array of files to include in your project. If you name a folder in the array, then it will also include the files inside that folder.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "main": {
+            "description": "The main field is a module ID that is the primary entry point to your program.",
+            "type": "string"
+          },
+          "exports": {
+            "description": "The \"exports\" field is used to restrict external access to non-exported module files, also enables a module to import itself using \"name\".",
+            "oneOf": [
+              {
+                "$ref": "#/$defs/packageExportsEntryPath",
+                "description": "The module path that is resolved when the module specifier matches \"name\", shadows the \"main\" field."
+              },
+              {
+                "type": "object",
+                "properties": {
+                  ".": {
+                    "$ref": "#/$defs/packageExportsEntryOrFallback",
+                    "description": "The module path that is resolved when the module specifier matches \"name\", shadows the \"main\" field."
+                  }
+                },
+                "patternProperties": {
+                  "^\\./.+": {
+                    "$ref": "#/$defs/packageExportsEntryOrFallback",
+                    "description": "The module path prefix that is resolved when the module specifier starts with \"name/\", set to \"./*\" to allow external modules to import any subpath."
+                  }
+                },
+                "additionalProperties": false
+              },
+              {
+                "$ref": "#/$defs/packageExportsEntryObject",
+                "description": "The module path that is resolved when the module specifier matches \"name\", shadows the \"main\" field."
+              },
+              {
+                "$ref": "#/$defs/packageExportsFallback",
+                "description": "The module path that is resolved when the module specifier matches \"name\", shadows the \"main\" field."
+              }
+            ]
+          },
+          "imports": {
+            "description": "The \"imports\" field is used to create private mappings that only apply to import specifiers from within the package itself.",
+            "type": "object",
+            "patternProperties": {
+              "^#.+$": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved when this environment matches the property name."
+              }
+            },
+            "additionalProperties": false
+          },
+          "bin": {
+            "type": [
+              "string",
+              "object"
+            ],
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "type": {
+            "description": "When set to \"module\", the type field allows a package to specify all .js files within are ES modules. If the \"type\" field is omitted or set to \"commonjs\", all .js files are treated as CommonJS.",
+            "type": "string",
+            "enum": [
+              "commonjs",
+              "module"
+            ],
+            "default": "commonjs"
+          },
+          "types": {
+            "description": "Set the types property to point to your bundled declaration file.",
+            "type": "string"
+          },
+          "typings": {
+            "description": "Note that the \"typings\" field is synonymous with \"types\", and could be used as well.",
+            "type": "string"
+          },
+          "typesVersions": {
+            "description": "The \"typesVersions\" field is used since TypeScript 3.1 to support features that were only made available in newer TypeScript versions.",
+            "type": "object",
+            "additionalProperties": {
+              "description": "Contains overrides for the TypeScript version that matches the version range matching the property key.",
+              "type": "object",
+              "properties": {
+                "*": {
+                  "description": "Maps all file paths to the file paths specified in the array.",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[^*]*(?:\\*[^*]*)?$"
+                  }
+                }
+              },
+              "patternProperties": {
+                "^[^*]+$": {
+                  "description": "Maps the file path matching the property key to the file paths specified in the array.",
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "^[^*]*\\*[^*]*$": {
+                  "description": "Maps file paths matching the pattern specified in property key to file paths specified in the array.",
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[^*]*(?:\\*[^*]*)?$"
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "man": {
+            "type": [
+              "array",
+              "string"
+            ],
+            "description": "Specify either a single file or an array of filenames to put in place for the man program to find.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "directories": {
+            "type": "object",
+            "properties": {
+              "bin": {
+                "description": "If you specify a 'bin' directory, then all the files in that folder will be used as the 'bin' hash.",
+                "type": "string"
+              },
+              "doc": {
+                "description": "Put markdown files in here. Eventually, these will be displayed nicely, maybe, someday.",
+                "type": "string"
+              },
+              "example": {
+                "description": "Put example scripts in here. Someday, it might be exposed in some clever way.",
+                "type": "string"
+              },
+              "lib": {
+                "description": "Tell people where the bulk of your library is. Nothing special is done with the lib folder in any way, but it's useful meta info.",
+                "type": "string"
+              },
+              "man": {
+                "description": "A folder that is full of man pages. Sugar to generate a 'man' array by walking the folder.",
+                "type": "string"
+              },
+              "test": {
+                "type": "string"
+              }
+            }
+          },
+          "repository": {
+            "description": "Specify the place where your code lives. This is helpful for people who want to contribute.",
+            "type": [
+              "object",
+              "string"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string"
+              },
+              "directory": {
+                "type": "string"
+              }
+            }
+          },
+          "funding": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/fundingUrl"
+              },
+              {
+                "$ref": "#/$defs/fundingWay"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/$defs/fundingUrl"
+                    },
+                    {
+                      "$ref": "#/$defs/fundingWay"
+                    }
+                  ]
+                },
+                "minItems": 1,
+                "uniqueItems": true
+              }
+            ]
+          },
+          "scripts": {
+            "description": "The 'scripts' member is an object hash of script commands that are run at various times in the lifecycle of your package. The key is the lifecycle event, and the value is the command to run at that point.",
+            "type": "object",
+            "properties": {
+              "lint": {
+                "type": "string",
+                "description": "Run code quality tools, e.g. ESLint, TSLint, etc."
+              },
+              "prepublish": {
+                "type": "string",
+                "description": "Run BEFORE the package is published (Also run on local npm install without any arguments)."
+              },
+              "prepare": {
+                "type": "string",
+                "description": "Runs BEFORE the package is packed, i.e. during \"npm publish\" and \"npm pack\", and on local \"npm install\" without any arguments. This is run AFTER \"prepublish\", but BEFORE \"prepublishOnly\"."
+              },
+              "prepublishOnly": {
+                "type": "string",
+                "description": "Run BEFORE the package is prepared and packed, ONLY on npm publish."
+              },
+              "prepack": {
+                "type": "string",
+                "description": "run BEFORE a tarball is packed (on npm pack, npm publish, and when installing git dependencies)."
+              },
+              "postpack": {
+                "type": "string",
+                "description": "Run AFTER the tarball has been generated and moved to its final destination."
+              },
+              "publish": {
+                "type": "string",
+                "description": "Publishes a package to the registry so that it can be installed by name. See https://docs.npmjs.com/cli/v8/commands/npm-publish"
+              },
+              "postpublish": {
+                "$ref": "#/$defs/scriptsPublishAfter"
+              },
+              "preinstall": {
+                "type": "string",
+                "description": "Run BEFORE the package is installed."
+              },
+              "install": {
+                "$ref": "#/$defs/scriptsInstallAfter"
+              },
+              "postinstall": {
+                "$ref": "#/$defs/scriptsInstallAfter"
+              },
+              "preuninstall": {
+                "$ref": "#/$defs/scriptsUninstallBefore"
+              },
+              "uninstall": {
+                "$ref": "#/$defs/scriptsUninstallBefore"
+              },
+              "postuninstall": {
+                "type": "string",
+                "description": "Run AFTER the package is uninstalled."
+              },
+              "preversion": {
+                "$ref": "#/$defs/scriptsVersionBefore"
+              },
+              "version": {
+                "$ref": "#/$defs/scriptsVersionBefore"
+              },
+              "postversion": {
+                "type": "string",
+                "description": "Run AFTER bump the package version."
+              },
+              "pretest": {
+                "$ref": "#/$defs/scriptsTest"
+              },
+              "test": {
+                "$ref": "#/$defs/scriptsTest"
+              },
+              "posttest": {
+                "$ref": "#/$defs/scriptsTest"
+              },
+              "prestop": {
+                "$ref": "#/$defs/scriptsStop"
+              },
+              "stop": {
+                "$ref": "#/$defs/scriptsStop"
+              },
+              "poststop": {
+                "$ref": "#/$defs/scriptsStop"
+              },
+              "prestart": {
+                "$ref": "#/$defs/scriptsStart"
+              },
+              "start": {
+                "$ref": "#/$defs/scriptsStart"
+              },
+              "poststart": {
+                "$ref": "#/$defs/scriptsStart"
+              },
+              "prerestart": {
+                "$ref": "#/$defs/scriptsRestart"
+              },
+              "restart": {
+                "$ref": "#/$defs/scriptsRestart"
+              },
+              "postrestart": {
+                "$ref": "#/$defs/scriptsRestart"
+              },
+              "serve": {
+                "type": "string",
+                "description": "Start dev server to serve application files"
+              }
+            },
+            "additionalProperties": {
+              "type": "string",
+              "tsType": "string | undefined",
+              "x-intellij-language-injection": "Shell Script"
+            }
+          },
+          "config": {
+            "description": "A 'config' hash can be used to set configuration parameters used in package scripts that persist across upgrades.",
+            "type": "object",
+            "additionalProperties": true
+          },
+          "dependencies": {
+            "$ref": "#/$defs/dependency"
+          },
+          "devDependencies": {
+            "$ref": "#/$defs/devDependency"
+          },
+          "optionalDependencies": {
+            "$ref": "#/$defs/optionalDependency"
+          },
+          "peerDependencies": {
+            "$ref": "#/$defs/peerDependency"
+          },
+          "peerDependenciesMeta": {
+            "$ref": "#/$defs/peerDependencyMeta"
+          },
+          "bundleDependencies": {
+            "description": "Array of package names that will be bundled when publishing the package.",
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "bundledDependencies": {
+            "description": "DEPRECATED: This field is honored, but \"bundleDependencies\" is the correct field name. Ignored if \"bundleDependencies\" is also present.",
+            "oneOf": [
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "resolutions": {
+            "description": "Resolutions is used to support selective version resolutions using yarn, which lets you define custom package versions or ranges inside your dependencies. For npm, use overrides instead. See: https://yarnpkg.com/configuration/manifest#resolutions",
+            "type": "object"
+          },
+          "overrides": {
+            "description": "Overrides is used to support selective version overrides using npm, which lets you define custom package versions or ranges inside your dependencies. For yarn, use resolutions instead. See: https://docs.npmjs.com/cli/v9/configuring-npm/package-json#overrides",
+            "type": "object"
+          },
+          "packageManager": {
+            "description": "Defines which package manager is expected to be used when working on the current project. This field is currently experimental and needs to be opted-in; see https://nodejs.org/api/corepack.html",
+            "type": "string",
+            "oneOf": [
+              {
+                "pattern": "(npm|pnpm|yarn|bun|aube|nub|utoo)@\\d+\\.\\d+\\.\\d+(-.+)?"
+              },
+              {
+                "const": "bun"
+              }
+            ]
+          },
+          "engines": {
+            "type": "object",
+            "properties": {
+              "node": {
+                "type": "string"
+              },
+              "runtime": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/runtimeEngineDependency"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/runtimeEngineDependency"
+                    }
+                  }
+                ],
+                "description": "Specifies which JavaScript runtimes (like Node.js, Deno, Bun) are supported. Values should use WinterCG Runtime Keys (see https://runtime-keys.proposal.wintercg.org/)."
+              }
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "volta": {
+            "description": "Defines which tools and versions are expected to be used when Volta is installed.",
+            "type": "object",
+            "properties": {
+              "extends": {
+                "description": "The value of that entry should be a path to another JSON file which also has a \"volta\" section",
+                "type": "string"
+              }
+            },
+            "patternProperties": {
+              "(node|npm|pnpm|yarn)": {
+                "type": "string"
+              }
+            }
+          },
+          "engineStrict": {
+            "type": "boolean"
+          },
+          "os": {
+            "description": "Specify which operating systems your module will run on.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "cpu": {
+            "description": "Specify that your code only runs on certain cpu architectures.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "devEngines": {
+            "description": "Define the runtime and package manager for developing the current project.",
+            "type": "object",
+            "properties": {
+              "os": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/devEngineDependency"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/devEngineDependency"
+                    }
+                  }
+                ],
+                "description": "Specifies which operating systems are supported for development"
+              },
+              "cpu": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/devEngineDependency"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/devEngineDependency"
+                    }
+                  }
+                ],
+                "description": "Specifies which CPU architectures are supported for development"
+              },
+              "libc": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/devEngineDependency"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/devEngineDependency"
+                    }
+                  }
+                ],
+                "description": "Specifies which C standard libraries are supported for development"
+              },
+              "runtime": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/devEngineDependency"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/devEngineDependency"
+                    }
+                  }
+                ],
+                "description": "Specifies which JavaScript runtimes (like Node.js, Deno, Bun) are supported for development. Values should use WinterCG Runtime Keys (see https://runtime-keys.proposal.wintercg.org/)"
+              },
+              "packageManager": {
+                "oneOf": [
+                  {
+                    "$ref": "#/$defs/devEngineDependency"
+                  },
+                  {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/$defs/devEngineDependency"
+                    }
+                  }
+                ],
+                "description": "Specifies which package managers are supported for development"
+              }
+            }
+          },
+          "preferGlobal": {
+            "type": "boolean",
+            "description": "DEPRECATED: This option used to trigger an npm warning, but it will no longer warn. It is purely there for informational purposes. It is now recommended that you install any binaries as local devDependencies wherever possible."
+          },
+          "private": {
+            "description": "If set to true, then npm will refuse to publish it.",
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "enum": [
+                  "false",
+                  "true"
+                ]
+              }
+            ]
+          },
+          "publishConfig": {
+            "description": "Values applied at publish time. npm: publish-time config values (tag, registry, access, provenance), see https://docs.npmjs.com/cli/v12/configuring-npm/package-json#publishconfig. pnpm: also overrides manifest fields (main, exports, types, etc.) before packing, plus pnpm-specific fields (directory, linkDirectory, executableFiles), see https://pnpm.io/package_json#publishconfig.",
+            "type": "object",
+            "properties": {
+              "access": {
+                "description": "Access level for scoped packages at publish time (defaults to \"restricted\"). Supported by npm, honored by pnpm.",
+                "type": "string",
+                "enum": [
+                  "public",
+                  "restricted"
+                ]
+              },
+              "tag": {
+                "description": "Distribution tag to publish under (defaults to \"latest\"). Supported by npm, honored by pnpm.",
+                "type": "string"
+              },
+              "registry": {
+                "description": "Registry to publish the package to. Supported by npm, honored by pnpm.",
+                "type": "string",
+                "format": "uri"
+              },
+              "provenance": {
+                "description": "npm only: generate and publish a provenance attestation (requires a supported CI provider).",
+                "type": "boolean"
+              },
+              "directory": {
+                "description": "pnpm only: subdirectory (relative to this package.json) to publish from; it must contain its own package.json.",
+                "type": "string"
+              },
+              "linkDirectory": {
+                "description": "pnpm only: symlink the project from publishConfig.directory during local development (default: true).",
+                "type": "boolean"
+              },
+              "executableFiles": {
+                "description": "pnpm only: additional files to mark executable (+x) in the package archive.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": true
+          },
+          "dist": {
+            "type": "object",
+            "properties": {
+              "shasum": {
+                "type": "string"
+              },
+              "tarball": {
+                "type": "string"
+              }
+            }
+          },
+          "readme": {
+            "type": "string"
+          },
+          "module": {
+            "description": "An ECMAScript module ID that is the primary entry point to your program.",
+            "type": "string"
+          },
+          "esnext": {
+            "description": "A module ID with untranspiled code that is the primary entry point to your program.",
+            "type": [
+              "string",
+              "object"
+            ],
+            "properties": {
+              "main": {
+                "type": "string"
+              },
+              "browser": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "workspaces": {
+            "description": "Allows packages within a directory to depend on one another using direct linking of local files. Additionally, dependencies within a workspace are hoisted to the workspace root when possible to reduce duplication. Note: It's also a good idea to set \"private\" to true when using this feature.",
+            "anyOf": [
+              {
+                "type": "array",
+                "description": "Workspace package paths. Glob patterns are supported.",
+                "items": {
+                  "type": "string"
+                }
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "packages": {
+                    "type": "array",
+                    "description": "Workspace package paths. Glob patterns are supported.",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "nohoist": {
+                    "type": "array",
+                    "description": "Packages to block from hoisting to the workspace root. Currently only supported in Yarn only.",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "jspm": {
+            "$ref": "#"
+          },
+          "eslintConfig": {
+            "$ref": "eslintrc.json"
+          },
+          "prettier": {
+            "$ref": "https://www.schemastore.org/prettierrc.json"
+          },
+          "stylelint": {
+            "$ref": "stylelintrc.json"
+          },
+          "ava": {
+            "$ref": "ava.json"
+          },
+          "release": {
+            "$ref": "semantic-release.json"
+          },
+          "jscpd": {
+            "$ref": "jscpd.json"
+          },
+          "madge": {
+            "$ref": "madge.json"
+          },
+          "nodemonConfig": {
+            "$ref": "nodemon.json"
+          },
+          "quikrun": {
+            "$ref": "https://www.schemastore.org/quikrun.json"
+          },
+          "pnpm": {
+            "description": "Defines pnpm specific configuration.",
+            "type": "object",
+            "properties": {
+              "overrides": {
+                "description": "Used to override any dependency in the dependency graph.",
+                "type": "object"
+              },
+              "packageExtensions": {
+                "description": "Used to extend the existing package definitions with additional information.",
+                "type": "object",
+                "patternProperties": {
+                  "^.+$": {
+                    "type": "object",
+                    "properties": {
+                      "dependencies": {
+                        "$ref": "#/$defs/dependency"
+                      },
+                      "optionalDependencies": {
+                        "$ref": "#/$defs/optionalDependency"
+                      },
+                      "peerDependencies": {
+                        "$ref": "#/$defs/peerDependency"
+                      },
+                      "peerDependenciesMeta": {
+                        "$ref": "#/$defs/peerDependencyMeta"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              },
+              "peerDependencyRules": {
+                "type": "object",
+                "properties": {
+                  "ignoreMissing": {
+                    "description": "pnpm will not print warnings about missing peer dependencies from this list.",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "allowedVersions": {
+                    "description": "Unmet peer dependency warnings will not be printed for peer dependencies of the specified range.",
+                    "type": "object"
+                  },
+                  "allowAny": {
+                    "description": "Any peer dependency matching the pattern will be resolved from any version, regardless of the range specified in \"peerDependencies\".",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "neverBuiltDependencies": {
+                "description": "A list of dependencies to run builds for.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "onlyBuiltDependencies": {
+                "description": "A list of package names that are allowed to be executed during installation.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "onlyBuiltDependenciesFile": {
+                "description": "Specifies a JSON file that lists the only packages permitted to run installation scripts during the pnpm install process.",
+                "type": "string"
+              },
+              "ignoredBuiltDependencies": {
+                "description": "A list of package names that should not be built during installation.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "allowedDeprecatedVersions": {
+                "description": "A list of deprecated versions that the warnings are suppressed.",
+                "type": "object"
+              },
+              "patchedDependencies": {
+                "description": "A list of dependencies that are patched.",
+                "type": "object"
+              },
+              "allowNonAppliedPatches": {
+                "description": "When true, installation won't fail if some of the patches from the \"patchedDependencies\" field were not applied.",
+                "type": "boolean"
+              },
+              "allowUnusedPatches": {
+                "description": "When true, installation won't fail if some of the patches from the \"patchedDependencies\" field were not applied.",
+                "type": "boolean"
+              },
+              "updateConfig": {
+                "type": "object",
+                "properties": {
+                  "ignoreDependencies": {
+                    "description": "A list of packages that should be ignored when running \"pnpm outdated\" or \"pnpm update --latest\".",
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "configDependencies": {
+                "type": "object",
+                "description": "Configurational dependencies are installed before all the other types of dependencies (before 'dependencies', 'devDependencies', 'optionalDependencies')."
+              },
+              "auditConfig": {
+                "type": "object",
+                "properties": {
+                  "ignoreCves": {
+                    "description": "A list of CVE IDs that will be ignored by \"pnpm audit\".",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^CVE-\\d{4}-\\d{4,7}$"
+                    }
+                  },
+                  "ignoreGhsas": {
+                    "description": "A list of GHSA Codes that will be ignored by \"pnpm audit\".",
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "pattern": "^GHSA(-[23456789cfghjmpqrvwx]{4}){3}$"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "requiredScripts": {
+                "description": "A list of scripts that must exist in each project.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "supportedArchitectures": {
+                "description": "Specifies architectures for which you'd like to install optional dependencies, even if they don't match the architecture of the system running the install.",
+                "type": "object",
+                "properties": {
+                  "os": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "cpu": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "libc": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "additionalProperties": false
+              },
+              "ignoredOptionalDependencies": {
+                "description": "A list of optional dependencies that the install should be skipped.",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "executionEnv": {
+                "type": "object",
+                "properties": {
+                  "nodeVersion": {
+                    "description": "Specifies which exact Node.js version should be used for the project's runtime.",
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          },
+          "stackblitz": {
+            "description": "Defines the StackBlitz configuration for the project.",
+            "type": "object",
+            "properties": {
+              "installDependencies": {
+                "description": "StackBlitz automatically installs npm dependencies when opening a project.",
+                "type": "boolean"
+              },
+              "startCommand": {
+                "description": "A terminal command to be executed when opening the project, after installing npm dependencies.",
+                "type": [
+                  "string",
+                  "boolean"
+                ]
+              },
+              "compileTrigger": {
+                "description": "The compileTrigger option controls how file changes in the editor are written to the WebContainers in-memory filesystem. ",
+                "oneOf": [
+                  {
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "keystroke",
+                      "save"
+                    ]
+                  }
+                ]
+              },
+              "env": {
+                "description": "A map of default environment variables that will be set in each top-level shell process.",
+                "type": "object"
+              }
+            },
+            "additionalProperties": false
+          },
+          "allowScripts": {
+            "description": "Records which dependencies are permitted to run install scripts (preinstall, install, postinstall, and prepare for non-registry sources). Maintained via the \"npm approve-scripts\" command, which enforces a default-deny policy: install scripts for any dependency without a matching entry are silently skipped. Keys are package identifiers — either name-only (e.g. \"pkg\") or pinned with a version (e.g. \"pkg@1.2.3\"); by default entries are pinned so approval is version-specific. A value of true allows the dependency's install scripts to run, while false explicitly denies them (existing false entries are never silently overridden).",
+            "type": "object",
+            "additionalProperties": {
+              "type": "boolean"
+            }
+          },
+          "sideEffects": {
+            "description": "Provides hints to the Webpack compiler, denoting which files in your project are \"pure\" and therefore safe to prune if unused.",
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "uniqueItems": true
+              }
+            ]
+          }
+        },
+        "$id": "https://json.schemastore.org/package.json",
+        "$defs": {
+          "person": {
+            "description": "A person who has been involved in creating or maintaining this package.",
+            "type": [
+              "object",
+              "string"
+            ],
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              }
+            }
+          },
+          "dependency": {
+            "description": "Dependencies are specified with a simple hash of package name to version range. The version range is a string which has one or more space-separated descriptors. Dependencies can also be identified with a tarball or git URL.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "devDependency": {
+            "description": "Specifies dependencies that are required for the development and testing of the project. These dependencies are not needed in the production environment.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "optionalDependency": {
+            "description": "Specifies dependencies that are optional for your project. These dependencies are attempted to be installed during the npm install process, but if they fail to install, the installation process will not fail.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "peerDependency": {
+            "description": "Specifies dependencies that are required by the package but are expected to be provided by the consumer of the package.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "peerDependencyMeta": {
+            "description": "When a user installs your package, warnings are emitted if packages specified in \"peerDependencies\" are not already installed. The \"peerDependenciesMeta\" field serves to provide more information on how your peer dependencies are utilized. Most commonly, it allows peer dependencies to be marked as optional. Metadata for this field is specified with a simple hash of the package name to a metadata object.",
+            "type": "object",
+            "additionalProperties": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "optional": {
+                  "description": "Specifies that this peer dependency is optional and should not be installed automatically.",
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "license": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "enum": [
+                  "AGPL-3.0-only",
+                  "Apache-2.0",
+                  "BSD-2-Clause",
+                  "BSD-3-Clause",
+                  "BSL-1.0",
+                  "CC0-1.0",
+                  "CDDL-1.0",
+                  "CDDL-1.1",
+                  "EPL-1.0",
+                  "EPL-2.0",
+                  "GPL-2.0-only",
+                  "GPL-3.0-only",
+                  "ISC",
+                  "LGPL-2.0-only",
+                  "LGPL-2.1-only",
+                  "LGPL-2.1-or-later",
+                  "LGPL-3.0-only",
+                  "LGPL-3.0-or-later",
+                  "MIT",
+                  "MPL-2.0",
+                  "MS-PL",
+                  "UNLICENSED"
+                ]
+              }
+            ]
+          },
+          "scriptsInstallAfter": {
+            "description": "Run AFTER the package is installed.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "scriptsPublishAfter": {
+            "description": "Run AFTER the package is published.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "scriptsRestart": {
+            "description": "Run by the 'npm restart' command. Note: 'npm restart' will run the stop and start scripts if no restart script is provided.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "scriptsStart": {
+            "description": "Run by the 'npm start' command.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "scriptsStop": {
+            "description": "Run by the 'npm stop' command.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "scriptsTest": {
+            "description": "Run by the 'npm test' command.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "scriptsUninstallBefore": {
+            "description": "Run BEFORE the package is uninstalled.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "scriptsVersionBefore": {
+            "description": "Run BEFORE bump the package version.",
+            "type": "string",
+            "x-intellij-language-injection": "Shell Script"
+          },
+          "packageExportsEntryPath": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The module path that is resolved when this specifier is imported. Set to `null` to disallow importing this module.",
+            "pattern": "^\\./"
+          },
+          "packageExportsEntryObject": {
+            "type": "object",
+            "description": "Used to specify conditional exports, note that Conditional exports are unsupported in older environments, so it's recommended to use the fallback array option if support for those environments is a concern.",
+            "properties": {
+              "require": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "description": "The module path that is resolved when this specifier is imported as a CommonJS module using the `require(...)` function."
+              },
+              "import": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "description": "The module path that is resolved when this specifier is imported as an ECMAScript module using an `import` declaration or the dynamic `import(...)` function."
+              },
+              "module-sync": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "$comment": "https://nodejs.org/api/packages.html#conditional-exports#:~:text=%22module-sync%22",
+                "description": "The same as `import`, but can be used with require(esm) in Node 20+. This requires the files to not use any top-level awaits."
+              },
+              "node": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "description": "The module path that is resolved when this environment is Node.js."
+              },
+              "default": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "description": "The module path that is resolved when no other export type matches."
+              },
+              "types": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "description": "The module path that is resolved for TypeScript types when this specifier is imported. Should be listed before other conditions. Additionally, versioned \"types\" condition in the form \"types@{selector}\" are supported."
+              }
+            },
+            "patternProperties": {
+              "^[^.0-9]+$": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "description": "The module path that is resolved when this environment matches the property name."
+              },
+              "^types@.+$": {
+                "$ref": "#/$defs/packageExportsEntryOrFallback",
+                "description": "The module path that is resolved for TypeScript types when this specifier is imported. Should be listed before other conditions. Additionally, versioned \"types\" condition in the form \"types@{selector}\" are supported."
+              }
+            },
+            "additionalProperties": false
+          },
+          "packageExportsEntry": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/packageExportsEntryPath"
+              },
+              {
+                "$ref": "#/$defs/packageExportsEntryObject"
+              }
+            ]
+          },
+          "packageExportsFallback": {
+            "type": "array",
+            "description": "Used to allow fallbacks in case this environment doesn't support the preceding entries.",
+            "items": {
+              "$ref": "#/$defs/packageExportsEntry"
+            }
+          },
+          "packageExportsEntryOrFallback": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/packageExportsEntry"
+              },
+              {
+                "$ref": "#/$defs/packageExportsFallback"
+              }
+            ]
+          },
+          "packageImportsEntryPath": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "The module path that is resolved when this specifier is imported. Set to `null` to disallow importing this module."
+          },
+          "packageImportsEntryObject": {
+            "type": "object",
+            "description": "Used to specify conditional exports, note that Conditional exports are unsupported in older environments, so it's recommended to use the fallback array option if support for those environments is a concern.",
+            "properties": {
+              "require": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved when this specifier is imported as a CommonJS module using the `require(...)` function."
+              },
+              "import": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved when this specifier is imported as an ECMAScript module using an `import` declaration or the dynamic `import(...)` function."
+              },
+              "node": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved when this environment is Node.js."
+              },
+              "default": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved when no other export type matches."
+              },
+              "types": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved for TypeScript types when this specifier is imported. Should be listed before other conditions. Additionally, versioned \"types\" condition in the form \"types@{selector}\" are supported."
+              }
+            },
+            "patternProperties": {
+              "^[^.0-9]+$": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved when this environment matches the property name."
+              },
+              "^types@.+$": {
+                "$ref": "#/$defs/packageImportsEntryOrFallback",
+                "description": "The module path that is resolved for TypeScript types when this specifier is imported. Should be listed before other conditions. Additionally, versioned \"types\" condition in the form \"types@{selector}\" are supported."
+              }
+            },
+            "additionalProperties": false
+          },
+          "packageImportsEntry": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/packageImportsEntryPath"
+              },
+              {
+                "$ref": "#/$defs/packageImportsEntryObject"
+              }
+            ]
+          },
+          "packageImportsFallback": {
+            "type": "array",
+            "description": "Used to allow fallbacks in case this environment doesn't support the preceding entries.",
+            "items": {
+              "$ref": "#/$defs/packageImportsEntry"
+            }
+          },
+          "packageImportsEntryOrFallback": {
+            "oneOf": [
+              {
+                "$ref": "#/$defs/packageImportsEntry"
+              },
+              {
+                "$ref": "#/$defs/packageImportsFallback"
+              }
+            ]
+          },
+          "fundingUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "URL to a website with details about how to fund the package."
+          },
+          "fundingWay": {
+            "type": "object",
+            "description": "Used to inform about ways to help fund development of the package.",
+            "properties": {
+              "url": {
+                "$ref": "#/$defs/fundingUrl"
+              },
+              "type": {
+                "type": "string",
+                "description": "The type of funding or the platform through which funding can be provided, e.g. patreon, opencollective, tidelift or github."
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "url"
+            ]
+          },
+          "devEngineDependency": {
+            "description": "Specifies requirements for development environment components such as operating systems, runtimes, or package managers. Used to ensure consistent development environments across the team.",
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The name of the dependency, with allowed values depending on the parent field"
+              },
+              "version": {
+                "type": "string",
+                "description": "The version range for the dependency"
+              },
+              "onFail": {
+                "type": "string",
+                "enum": [
+                  "ignore",
+                  "warn",
+                  "error",
+                  "download"
+                ],
+                "description": "What action to take if validation fails"
+              }
+            }
+          },
+          "runtimeEngineDependency": {
+            "description": "Specifies a supported JavaScript runtime.",
+            "type": "object",
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "The runtime name"
+              },
+              "version": {
+                "type": "string",
+                "description": "The version range for the runtime"
+              },
+              "onFail": {
+                "type": "string",
+                "enum": [
+                  "ignore",
+                  "warn",
+                  "error",
+                  "download"
+                ],
+                "description": "What action to take if runtime validation fails"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "the 2020-12 meta-schema itself",
+      "data": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://json-schema.org/draft/2020-12/schema",
+        "$vocabulary": {
+          "https://json-schema.org/draft/2020-12/vocab/core": true,
+          "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+          "https://json-schema.org/draft/2020-12/vocab/unevaluated": true,
+          "https://json-schema.org/draft/2020-12/vocab/validation": true,
+          "https://json-schema.org/draft/2020-12/vocab/meta-data": true,
+          "https://json-schema.org/draft/2020-12/vocab/format-annotation": true,
+          "https://json-schema.org/draft/2020-12/vocab/content": true
+        },
+        "$dynamicAnchor": "meta",
+        "title": "Core and Validation specifications meta-schema",
+        "allOf": [
+          {
+            "$ref": "meta/core"
+          },
+          {
+            "$ref": "meta/applicator"
+          },
+          {
+            "$ref": "meta/unevaluated"
+          },
+          {
+            "$ref": "meta/validation"
+          },
+          {
+            "$ref": "meta/meta-data"
+          },
+          {
+            "$ref": "meta/format-annotation"
+          },
+          {
+            "$ref": "meta/content"
+          }
+        ],
+        "type": [
+          "object",
+          "boolean"
+        ],
+        "$comment": "This meta-schema also defines keywords that have appeared in previous drafts in order to prevent incompatible extensions as they remain in common use.",
+        "properties": {
+          "definitions": {
+            "$comment": "\"definitions\" has been replaced by \"$defs\".",
+            "type": "object",
+            "additionalProperties": {
+              "$dynamicRef": "#meta"
+            },
+            "deprecated": true,
+            "default": {}
+          },
+          "dependencies": {
+            "$comment": "\"dependencies\" has been split and replaced by \"dependentSchemas\" and \"dependentRequired\" in order to serve their differing semantics.",
+            "type": "object",
+            "additionalProperties": {
+              "anyOf": [
+                {
+                  "$dynamicRef": "#meta"
+                },
+                {
+                  "$ref": "meta/validation#/$defs/stringArray"
+                }
+              ]
+            },
+            "deprecated": true,
+            "default": {}
+          },
+          "$recursiveAnchor": {
+            "$comment": "\"$recursiveAnchor\" has been replaced by \"$dynamicAnchor\".",
+            "$ref": "meta/core#/$defs/anchorString",
+            "deprecated": true
+          },
+          "$recursiveRef": {
+            "$comment": "\"$recursiveRef\" has been replaced by \"$dynamicRef\".",
+            "$ref": "meta/core#/$defs/uriReferenceString",
+            "deprecated": true
+          }
+        }
+      }
+    },
+    {
+      "description": "the applicator vocabulary schema",
+      "data": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "https://json-schema.org/draft/2020-12/meta/applicator",
+        "$vocabulary": {
+          "https://json-schema.org/draft/2020-12/vocab/applicator": true
+        },
+        "$dynamicAnchor": "meta",
+        "title": "Applicator vocabulary meta-schema",
+        "type": [
+          "object",
+          "boolean"
+        ],
+        "properties": {
+          "prefixItems": {
+            "$ref": "#/$defs/schemaArray"
+          },
+          "items": {
+            "$dynamicRef": "#meta"
+          },
+          "contains": {
+            "$dynamicRef": "#meta"
+          },
+          "additionalProperties": {
+            "$dynamicRef": "#meta"
+          },
+          "properties": {
+            "type": "object",
+            "additionalProperties": {
+              "$dynamicRef": "#meta"
+            },
+            "default": {}
+          },
+          "patternProperties": {
+            "type": "object",
+            "additionalProperties": {
+              "$dynamicRef": "#meta"
+            },
+            "propertyNames": {
+              "format": "regex"
+            },
+            "default": {}
+          },
+          "dependentSchemas": {
+            "type": "object",
+            "additionalProperties": {
+              "$dynamicRef": "#meta"
+            },
+            "default": {}
+          },
+          "propertyNames": {
+            "$dynamicRef": "#meta"
+          },
+          "if": {
+            "$dynamicRef": "#meta"
+          },
+          "then": {
+            "$dynamicRef": "#meta"
+          },
+          "else": {
+            "$dynamicRef": "#meta"
+          },
+          "allOf": {
+            "$ref": "#/$defs/schemaArray"
+          },
+          "anyOf": {
+            "$ref": "#/$defs/schemaArray"
+          },
+          "oneOf": {
+            "$ref": "#/$defs/schemaArray"
+          },
+          "not": {
+            "$dynamicRef": "#meta"
+          }
+        },
+        "$defs": {
+          "schemaArray": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$dynamicRef": "#meta"
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "a schema from the test suite",
+      "data": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "unevaluatedProperties": true
+      }
+    }
+  ],
+  "remotes": {
+    "https://json-schema.org/draft/2020-12/schema": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/schema",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/core": true,
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true,
+        "https://json-schema.org/draft/2020-12/vocab/unevaluated": true,
+        "https://json-schema.org/draft/2020-12/vocab/validation": true,
+        "https://json-schema.org/draft/2020-12/vocab/meta-data": true,
+        "https://json-schema.org/draft/2020-12/vocab/format-annotation": true,
+        "https://json-schema.org/draft/2020-12/vocab/content": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Core and Validation specifications meta-schema",
+      "allOf": [
+        {
+          "$ref": "meta/core"
+        },
+        {
+          "$ref": "meta/applicator"
+        },
+        {
+          "$ref": "meta/unevaluated"
+        },
+        {
+          "$ref": "meta/validation"
+        },
+        {
+          "$ref": "meta/meta-data"
+        },
+        {
+          "$ref": "meta/format-annotation"
+        },
+        {
+          "$ref": "meta/content"
+        }
+      ],
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "$comment": "This meta-schema also defines keywords that have appeared in previous drafts in order to prevent incompatible extensions as they remain in common use.",
+      "properties": {
+        "definitions": {
+          "$comment": "\"definitions\" has been replaced by \"$defs\".",
+          "type": "object",
+          "additionalProperties": {
+            "$dynamicRef": "#meta"
+          },
+          "deprecated": true,
+          "default": {}
+        },
+        "dependencies": {
+          "$comment": "\"dependencies\" has been split and replaced by \"dependentSchemas\" and \"dependentRequired\" in order to serve their differing semantics.",
+          "type": "object",
+          "additionalProperties": {
+            "anyOf": [
+              {
+                "$dynamicRef": "#meta"
+              },
+              {
+                "$ref": "meta/validation#/$defs/stringArray"
+              }
+            ]
+          },
+          "deprecated": true,
+          "default": {}
+        },
+        "$recursiveAnchor": {
+          "$comment": "\"$recursiveAnchor\" has been replaced by \"$dynamicAnchor\".",
+          "$ref": "meta/core#/$defs/anchorString",
+          "deprecated": true
+        },
+        "$recursiveRef": {
+          "$comment": "\"$recursiveRef\" has been replaced by \"$dynamicRef\".",
+          "$ref": "meta/core#/$defs/uriReferenceString",
+          "deprecated": true
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/core": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/core",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/core": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Core vocabulary meta-schema",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "$id": {
+          "$ref": "#/$defs/uriReferenceString",
+          "$comment": "Non-empty fragments not allowed.",
+          "pattern": "^[^#]*#?$"
+        },
+        "$schema": {
+          "$ref": "#/$defs/uriString"
+        },
+        "$ref": {
+          "$ref": "#/$defs/uriReferenceString"
+        },
+        "$anchor": {
+          "$ref": "#/$defs/anchorString"
+        },
+        "$dynamicRef": {
+          "$ref": "#/$defs/uriReferenceString"
+        },
+        "$dynamicAnchor": {
+          "$ref": "#/$defs/anchorString"
+        },
+        "$vocabulary": {
+          "type": "object",
+          "propertyNames": {
+            "$ref": "#/$defs/uriString"
+          },
+          "additionalProperties": {
+            "type": "boolean"
+          }
+        },
+        "$comment": {
+          "type": "string"
+        },
+        "$defs": {
+          "type": "object",
+          "additionalProperties": {
+            "$dynamicRef": "#meta"
+          }
+        }
+      },
+      "$defs": {
+        "anchorString": {
+          "type": "string",
+          "pattern": "^[A-Za-z_][-A-Za-z0-9._]*$"
+        },
+        "uriString": {
+          "type": "string",
+          "format": "uri"
+        },
+        "uriReferenceString": {
+          "type": "string",
+          "format": "uri-reference"
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/applicator": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/applicator",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/applicator": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Applicator vocabulary meta-schema",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "prefixItems": {
+          "$ref": "#/$defs/schemaArray"
+        },
+        "items": {
+          "$dynamicRef": "#meta"
+        },
+        "contains": {
+          "$dynamicRef": "#meta"
+        },
+        "additionalProperties": {
+          "$dynamicRef": "#meta"
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$dynamicRef": "#meta"
+          },
+          "default": {}
+        },
+        "patternProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "$dynamicRef": "#meta"
+          },
+          "propertyNames": {
+            "format": "regex"
+          },
+          "default": {}
+        },
+        "dependentSchemas": {
+          "type": "object",
+          "additionalProperties": {
+            "$dynamicRef": "#meta"
+          },
+          "default": {}
+        },
+        "propertyNames": {
+          "$dynamicRef": "#meta"
+        },
+        "if": {
+          "$dynamicRef": "#meta"
+        },
+        "then": {
+          "$dynamicRef": "#meta"
+        },
+        "else": {
+          "$dynamicRef": "#meta"
+        },
+        "allOf": {
+          "$ref": "#/$defs/schemaArray"
+        },
+        "anyOf": {
+          "$ref": "#/$defs/schemaArray"
+        },
+        "oneOf": {
+          "$ref": "#/$defs/schemaArray"
+        },
+        "not": {
+          "$dynamicRef": "#meta"
+        }
+      },
+      "$defs": {
+        "schemaArray": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$dynamicRef": "#meta"
+          }
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/unevaluated": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/unevaluated",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/unevaluated": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Unevaluated applicator vocabulary meta-schema",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "unevaluatedItems": {
+          "$dynamicRef": "#meta"
+        },
+        "unevaluatedProperties": {
+          "$dynamicRef": "#meta"
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/validation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/validation",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/validation": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Validation vocabulary meta-schema",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/simpleTypes"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/simpleTypes"
+              },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          ]
+        },
+        "const": true,
+        "enum": {
+          "type": "array",
+          "items": true
+        },
+        "multipleOf": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "maximum": {
+          "type": "number"
+        },
+        "exclusiveMaximum": {
+          "type": "number"
+        },
+        "minimum": {
+          "type": "number"
+        },
+        "exclusiveMinimum": {
+          "type": "number"
+        },
+        "maxLength": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "minLength": {
+          "$ref": "#/$defs/nonNegativeIntegerDefault0"
+        },
+        "pattern": {
+          "type": "string",
+          "format": "regex"
+        },
+        "maxItems": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "minItems": {
+          "$ref": "#/$defs/nonNegativeIntegerDefault0"
+        },
+        "uniqueItems": {
+          "type": "boolean",
+          "default": false
+        },
+        "maxContains": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "minContains": {
+          "$ref": "#/$defs/nonNegativeInteger",
+          "default": 1
+        },
+        "maxProperties": {
+          "$ref": "#/$defs/nonNegativeInteger"
+        },
+        "minProperties": {
+          "$ref": "#/$defs/nonNegativeIntegerDefault0"
+        },
+        "required": {
+          "$ref": "#/$defs/stringArray"
+        },
+        "dependentRequired": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/$defs/stringArray"
+          }
+        }
+      },
+      "$defs": {
+        "nonNegativeInteger": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "nonNegativeIntegerDefault0": {
+          "$ref": "#/$defs/nonNegativeInteger",
+          "default": 0
+        },
+        "simpleTypes": {
+          "enum": [
+            "array",
+            "boolean",
+            "integer",
+            "null",
+            "number",
+            "object",
+            "string"
+          ]
+        },
+        "stringArray": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true,
+          "default": []
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/meta-data": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/meta-data",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/meta-data": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Meta-data vocabulary meta-schema",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "default": true,
+        "deprecated": {
+          "type": "boolean",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false
+        },
+        "writeOnly": {
+          "type": "boolean",
+          "default": false
+        },
+        "examples": {
+          "type": "array",
+          "items": true
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/format-annotation": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/format-annotation",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/format-annotation": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Format vocabulary meta-schema for annotation results",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "format": {
+          "type": "string"
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/format-assertion": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/format-assertion",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/format-assertion": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Format vocabulary meta-schema for assertion results",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "format": {
+          "type": "string"
+        }
+      }
+    },
+    "https://json-schema.org/draft/2020-12/meta/content": {
+      "$schema": "https://json-schema.org/draft/2020-12/schema",
+      "$id": "https://json-schema.org/draft/2020-12/meta/content",
+      "$vocabulary": {
+        "https://json-schema.org/draft/2020-12/vocab/content": true
+      },
+      "$dynamicAnchor": "meta",
+      "title": "Content vocabulary meta-schema",
+      "type": [
+        "object",
+        "boolean"
+      ],
+      "properties": {
+        "contentEncoding": {
+          "type": "string"
+        },
+        "contentMediaType": {
+          "type": "string"
+        },
+        "contentSchema": {
+          "$dynamicRef": "#meta"
+        }
+      }
+    }
+  }
+}

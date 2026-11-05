@@ -1,0 +1,69 @@
+[message]
+id 0025
+source "content_transfer_encoding_x_uuencode.eml"
+
+[headers]
+received: "from nahou-mscnx06p.corp.enron.com ([192.168.110.237]) by napdx-msmbx01v.corp.enron.com with Microsoft SMTPSVC(5.0.2195.2966); Thu, 10 Jan 2002 14:12:53 -0800"
+received: "from NAHOU-MSMSW06P.corp.enron.com ([192.168.110.228]) by nahou-mscnx06p.corp.enron.com with Microsoft SMTPSVC(5.0.2195.2966); Thu, 10 Jan 2002 16:12:52 -0600"
+received: "from mailman.enron.com (unverified) by NAHOU-MSMSW06P.corp.enron.com (Content Technologies SMTPRS 4.2.5) with ESMTP id <T585d94ff81c0a86ee487c@NAHOU-MSMSW06P.corp.enron.com>; Thu, 10 Jan 2002 16:12:47 -0600"
+received: "from tblexch01.transmission.bpa.gov (int.transmission.bpa.gov [206.137.58.133] (may be forged)) by mailman.enron.com (8.11.4/8.11.4/corp-1.06) with ESMTP id g0AMCB920856; Thu, 10 Jan 2002 16:12:11 -0600 (CST)"
+received: "from TBLLIST1 ([206.137.58.134]) by tblexch01.transmission.bpa.gov with SMTP (Microsoft Exchange Internet Mail Service Version 5.5.2650.21) id CRWWC3K1; Thu, 10 Jan 2002 14:11:55 -0800"
+received: "from LIST.TRANSMISSION.BPA.GOV by LIST.TRANSMISSION.BPA.GOV (LISTSERV-TCP/IP release 1.8c) with spool id 2458 for RRGA-L@LIST.TRANSMISSION.BPA.GOV; Thu, 10 Jan 2002 14:13:50 -0800"
+received: "from [207.202.136.216] (ip136.r2.d.pdx.nwlink.com [207.202.136.136]) by comet.pacifier.com (8.11.2/8.11.1) with ESMTP id g0ALxLX06696; Thu, 10 Jan 2002 13:59:21 -0800 (PST)"
+mime-version: "1.0"
+x-sender: "lpeters@mail.pacifier.com"
+references: "<1168BAF252B7D41194810001028D743108913C@SERVER>"
+content-type: "multipart/mixed; boundary=\"============_-1201422494==_============\""
+message-id: "<p05100307b863befdfb67@[207.202.136.216]>"
+date: "Thu, 10 Jan 2002 13:59:53 -0800"
+sender: "RTO West Regional Representatives Group <RRGA-L@LIST.RTOWEST.ORG>"
+from: "\"Lon L. Peters\" <lpeters@PACIFIER.COM>"
+subject: "PGP Comments on RTO West Release of Dec. 14"
+comments: "cc: ltopaz@gcpud.org, gary.zarker@ci.seattle.wa.us,          dgodard@gcpud.org, wdobbins@dcpud.org, drobinson@cowlitzpud.org,          bgeddes@popud.com, \"Culbertson, Tim\" <tculber@gcpud.org>,          kknitte@gcpud.org, paula.green@ci.seattle.wa.us,          jim.harding@ci.seattle.wa.us, ghuhta@cowlitzpud.org,          dosborn@gcpud.org, jscheel@popud.com, jim.todd@ci.seattle.wa.us,          CWAGERS@dcpud.org, ali.rodol@ci.seattle.wa.us,          kevin.clark@ci.seattle.wa.us, bessex@cowlitzpud.org,          Cindy.Wright@ci.seattle.wa.us, \"Juj, Hardev\"           <Hardev.Juj@ci.seattle.wa.us>,          \"Conger, Kurt\" <kconger@energyexpertsvcs.com>,          \"Kindley, Ray\" <rkindley@schwabe.com>"
+to: "RRGA-L@LIST.RTOWEST.ORG"
+in-reply-to: "<1168BAF252B7D41194810001028D743108913C@SERVER>"
+return-path: "owner-rrga-l@list.rtowest.org"
+
+[addresses]
+from 0 display="Lon L. Peters" spec="lpeters@PACIFIER.COM"
+sender 0 display="RTO West Regional Representatives Group" spec="RRGA-L@LIST.RTOWEST.ORG"
+to 0 display="" spec="RRGA-L@LIST.RTOWEST.ORG"
+
+[date]
+raw "         Thu, 10 Jan 2002 13:59:53 -0800"
+valid yes
+utc 2002-01-10T21:59:53Z
+offset -0800
+epoch 1010699993
+
+[structure]
+0 multipart/mixed cte=7bit boundary="============_-1201422494==_============" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=765 adler32=87c107b3 role=text
+  2 application/msword cte=x-uuencode disposition=attachment filename="PGP_Cmts_on_12-14-01_Pkg.doc" size=0 adler32=00000001 role=attachment
+
+[body]
+text 1 chars 765
+| Attached are the comments of the Public Generating Pool.
+| --
+| _________________________________
+| Lon L. Peters
+| Northwest Economic Research, Inc.
+| 6765 S.W. Preslynn Drive
+| Portland, Oregon 97225-2668
+| 503-203-1539 (voice)
+| 503-203-1569 (fax)
+| 503-709-5942 (mobile)
+| lpeters@pacifier.com
+| 
+| NOTICE:  This communication and its attachments, if any, may contain
+| sensitive, privileged, or other confidential information.  If you are
+| not the intended recipient or believe that you have received this
+| communication in error, please notify the sender of this
+| communication and delete the copy you received from all storage
+| devices.  In addition, please do not print, copy, retransmit,
+| forward, disseminate, or otherwise use this communication or its
+| attachments, if any.  Thank you.
+html none
+
+[attachments]
+2 type=application/msword filename="PGP_Cmts_on_12-14-01_Pkg.doc" size=0 adler32=00000001 file=parts/0025/002.bin

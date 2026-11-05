@@ -1,0 +1,12 @@
+CREATE TABLE runway(
+        id INTEGER PRIMARY KEY,
+        airport_ref INTEGER,
+        airport_ident TEXT,
+        length_ft INTEGER,
+        width_ft INTEGER,
+        surface TEXT,
+        lighted INTEGER,
+        closed INTEGER,
+        le_ident TEXT,
+        he_ident TEXT);
+CREATE INDEX runway_ref ON runway(airport_ref);

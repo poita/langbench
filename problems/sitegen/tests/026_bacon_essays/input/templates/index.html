@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block head %}{{ site.title }} &mdash; page {{ pagination.number }} of {{ pagination.total_pages }}{% endblock %}
+{% block bodyclass %}index{% endblock %}
+{% block content %}
+{% set shown = posts|length %}
+<p>Showing {{ shown }} of {{ pagination.total_posts }} essays.</p>
+<ol class="essays">
+{%- for post in posts %}
+<li>
+<a href="{{ post.url }}">{{ post.title }}</a>
+<small>{{ post.date_long }}</small>
+{%- if post.tags %} <em>{% for t in post.tags %}{{ t.name }}{% if not loop.last %}, {% endif %}{% endfor %}</em>{% endif %}
+{{ post.excerpt }}</li>
+{%- endfor %}
+</ol>
+<p class="pager">
+{%- if pagination.has_prev %}<a href="{{ pagination.prev_url }}">&laquo; newer</a>{% endif %}
+{%- if pagination.has_prev %}{% if pagination.has_next %} | {% endif %}{% endif %}
+{%- if pagination.has_next %}<a href="{{ pagination.next_url }}">older &raquo;</a>{% endif %}
+</p>
+{% endblock %}

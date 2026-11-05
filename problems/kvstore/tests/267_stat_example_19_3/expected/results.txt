@@ -1,0 +1,17 @@
+[1] ok put created
+[2] ok put created
+[3] ok get value
+  {"age":36,"name":"ada"}
+[4] ok scan 2
+  "a" = {"age":36,"name":"ada"}
+  "b" = 2
+[5] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 4272

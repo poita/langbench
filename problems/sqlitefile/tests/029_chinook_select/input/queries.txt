@@ -1,0 +1,9 @@
+SELECT * FROM Artist LIMIT 10
+SELECT AlbumId,Title FROM Album WHERE ArtistId = 90
+SELECT Name,Milliseconds,UnitPrice FROM Track WHERE Milliseconds > 3000000 ORDER BY Milliseconds DESC
+SELECT FirstName,LastName,Title FROM Employee ORDER BY LastName
+SELECT InvoiceId,Total FROM Invoice WHERE Total >= 15 ORDER BY Total DESC LIMIT 20
+SELECT CustomerId,Country,City FROM Customer WHERE Country = 'Brazil' ORDER BY City
+SELECT TrackId,Name FROM Track WHERE Composer IS NULL LIMIT 25
+SELECT Name FROM Genre ORDER BY Name
+SELECT * FROM MediaType

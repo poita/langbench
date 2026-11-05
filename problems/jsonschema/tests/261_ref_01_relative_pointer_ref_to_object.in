@@ -1,0 +1,27 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "type": "integer"
+      },
+      "bar": {
+        "$ref": "#/properties/foo"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "match",
+      "data": {
+        "bar": 3
+      }
+    },
+    {
+      "description": "mismatch",
+      "data": {
+        "bar": true
+      }
+    }
+  ]
+}

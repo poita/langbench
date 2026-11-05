@@ -1,0 +1,22 @@
+[message]
+id 0001
+source "empty.eml"
+
+[headers]
+content-type: "application/octet-stream"
+content-transfer-encoding: "base64"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 application/octet-stream cte=base64 size=0 adler32=00000001 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/octet-stream filename=- size=0 adler32=00000001 file=parts/0001/000.bin

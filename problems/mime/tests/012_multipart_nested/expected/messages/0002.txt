@@ -1,0 +1,28 @@
+[message]
+id 0002
+source "nested.eml"
+
+[headers]
+subject: "nested"
+content-type: "multipart/mixed; boundary=\"outer\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="outer" parts=2 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="inner" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=8 adler32=0f1603a1 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=14 adler32=277d0545 role=html
+  4 application/pdf cte=base64 disposition=attachment filename="doc.pdf" size=9 adler32=09f701ca role=attachment
+
+[body]
+text 2 chars 7
+| plain é
+html 3 chars 13
+| <p>html é</p>
+
+[attachments]
+4 type=application/pdf filename="doc.pdf" size=9 adler32=09f701ca file=parts/0002/004.bin

@@ -1,0 +1,12 @@
+Content-Type: multipart/mixed; boundary="B"
+
+--B
+Content-Type: text/plain
+Content-Disposition: attachment; filename="notes.txt"
+
+this text part is an attachment, not the body
+--B
+Content-Type: text/plain
+
+this one is the body
+--B--

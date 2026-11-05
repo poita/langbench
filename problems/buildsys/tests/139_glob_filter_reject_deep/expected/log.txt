@@ -1,0 +1,16 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/f0.txt write("25/0:A/b/C.txt|deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|p|p.q|q/r|q/r.s/t.u||x|x/|/x|a//b|deep|deep/1|MIX/a-b.txt\n")
+  run 1 2 w0 out/f1.txt write("25/0:A/b/C.txt|deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|p|p.q|q/r|q/r.s/t.u||x|x/|/x|a//b|deep|deep/1|MIX/a-b.txt\n")
+  run 2 3 w0 out/f2.txt write("25/0:A/b/C.txt|deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|p|p.q|q/r|q/r.s/t.u||x|x/|/x|a//b|deep|deep/1|MIX/a-b.txt\n")
+  run 3 4 w0 out/f3.txt write("7/18:deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|deep|deep/1\n")
+  run 4 5 w0 out/f4.txt write("4/21:deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt\n")
+  run 5 6 w0 out/f5.txt write("12/13:A/b/C.txt|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|MIX/a-b.txt\n")
+  run 6 7 w0 out/f6.txt write("1/24:deep/1/2/3/4/leaf.txt\n")
+  run 7 8 w0 out/f7.txt write("2/23:deep/1/2/3/4/leaf.txt|deep/1/2/x.txt\n")
+  run 8 9 w0 out/f8.txt write("1/24:deep/1/2/x.txt\n")
+  run 9 10 w0 out/f9.txt write("2/23:p|x\n")
+  run 10 11 w0 out/f10.txt write("1/24:p.q\n")
+  run 11 12 w0 out/f11.txt write("2/23:q/r|q/r.s/t.u\n")
+  run 12 13 w0 out/f12.txt write("1/24:q/r.s/t.u\n")
+  run 13 14 w0 out/f13.txt write("7/18:mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt\n")
+  ok ran=14 hit=0 time=14

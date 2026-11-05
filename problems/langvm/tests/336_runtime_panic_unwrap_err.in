@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let r: Result<Int, Str> = Err("e"); print(showInt(unwrapOk(r)));
+}

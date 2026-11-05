@@ -1,0 +1,7 @@
+decode
+a = [{ b = 1 }]
+
+# Cannot extend tables within static arrays
+# https://github.com/toml-lang/toml/issues/908
+[a.c]
+foo = 1

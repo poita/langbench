@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "exclusiveMinimum": 1.1
+  },
+  "tests": [
+    {
+      "description": "above the exclusiveMinimum is valid",
+      "data": 1.2
+    },
+    {
+      "description": "boundary point is invalid",
+      "data": 1.1
+    },
+    {
+      "description": "below the exclusiveMinimum is invalid",
+      "data": 0.6
+    },
+    {
+      "description": "ignores non-numbers",
+      "data": "x"
+    }
+  ]
+}

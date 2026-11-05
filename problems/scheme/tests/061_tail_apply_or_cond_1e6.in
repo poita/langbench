@@ -1,0 +1,6 @@
+(define (loop-apply i) (if (= i 0) 'apply-done (apply loop-apply (list (- i 1)))))
+(loop-apply 1000000)
+(define (loop-or i) (or (= i 0) (loop-or (- i 1))))
+(loop-or 1000000)
+(define (loop-cond i) (cond ((= i 0) 'cond-done) (else (loop-cond (- i 1)))))
+(loop-cond 1000000)

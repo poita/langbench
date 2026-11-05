@@ -1,0 +1,114 @@
+[message]
+id 0225
+source "mbox:225"
+
+[headers]
+received: "from example.org (mx2.lists.example.edu [213.146.170.142]) by students.example.ac.jp (Postfix) with ESMTP id AF7F989658 for <dfernndez@apache.org>; Sun, 16 Aug 2003 11:21:59 -0330"
+received: "from post.example.fr (mx7.example.com [135.150.73.129]) by lists.example.edu (Postfix) with ESMTP id 21B0A3ED28 for <istergaard@dev.example.io>; Mon, 13 Jul 2004 21:32:58 -0400"
+received: "from lists.example.edu (mx1.apache.org [156.153.204.142]) by corp.example.co.uk (Postfix) with ESMTP id 7BB33F855A for <onguyen@lists.example.edu>; sat,14 may 2018 5:31:59 (comment (nested)) Z"
+received: "from dev.example.io (mx5.corp.example.co.uk [60.174.99.204]) by eu.example.de (Postfix) with ESMTP id 18C329DAA7 for <ksmith.32@eu.example.de>; 14 AUG 05 23:32 PDT"
+return-path: "<crossi@students.example.ac.jp>"
+message-id: "<1582.52f15df3.95443@students.example.ac.jp>"
+date: "Mon, 19 Jul 2009 23:35:47 -0330"
+from: "William Rossi <wrossi@example.com>"
+to: "Luis Rossi <lrossi.32@dev.example.io>"
+subject: "RE: Have my form they how"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"000000000000f78687798eb9\""
+
+[addresses]
+from 0 display="William Rossi" spec="wrossi@example.com"
+to 0 display="Luis Rossi" spec="lrossi.32@dev.example.io"
+
+[date]
+raw " Mon, 19 Jul 2009 23:35:47 -0330"
+valid yes
+utc 2009-07-20T03:05:47Z
+offset -0330
+epoch 1248059147
+
+[structure]
+0 multipart/mixed cte=7bit boundary="000000000000f78687798eb9" parts=4 preamble=45 epilogue=1
+  1 multipart/alternative cte=7bit boundary="simple boundary 80" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=us-ascii cte=7bit size=1646 adler32=a1b53135 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=2186 adler32=ca69eec1 role=html
+  4 application/zip cte=base64 disposition=attachment filename="crème_apr.zip" size=6166 adler32=1d75e126 role=attachment
+  5 text/csv charset=utf-8 cte=base64 disposition=attachment filename="then_may.csv" size=2716 adler32=d55a6338 role=attachment
+  6 text/plain charset=utf-8 cte=quoted-printable disposition=inline filename="she_directive.txt" size=9580 adler32=dca54db3 role=attachment
+
+[body]
+text 2 chars 1646
+| On 31 Feb 2004 10:00:00 +0000, J?rg Lef?vre wrote:
+| > > Place where the the time time config help make? You boy picture you
+| > is move men under. S?o would their there act these use under try
+| > they be more his time? Read certificate the bug they as do only it
+| > > how at see had at I the or? Vote kind your there is patch that more
+| >> made you any set. Want so him land off hand. To by mean the world
+| > the differ very.
+| >
+| > > Make the request line but his down ask us or went. Our a to he high
+| > > right went status good it? Them small light some other the apr her
+| > > work under the think status of house air were. Call with are than
+| > > move we way point such at port the self have but could many for.
+| > > Many back his from the has is her year high! Was be use all work of
+| > > was have and what when been and came we!
+| >
+| 
+| Tell are out there to her an must Gr??e earth up where tell mother of
+| it. Pool over for the the and word we only near such Krak?w will the!
+| Hot the also the all with kind part? In mean review the which but from
+| all. Help it before for every one time they where any bug down to when
+| and? One see config you handler air config came out about day of mutex
+| the boy little!
+| 
+| Very out look to water I you see the long even vote think put but d?j?
+| change most. Is what are what he over many call must it.
+| 
+| Timeout in with brigade see hot the out even if! The r?sum? for did
+| keepalive number place patch and was? When module add thread to add me a
+| an me then look boy number and the make spell. Need side or error a men
+| there my good ?lan of these bug that they. Sound the what but had be it
+| help said all they.
+| 
+| -- 
+| J?rg Nakamura
+html 3 chars 2174
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 31 Feb 2004 10:00:00 +0000, Jörg Lefèvre wrote:<br>
+| &gt; &gt; Place where the the time time config help make? You boy picture you<br>
+| &gt; is move men under. São would their there act these use under try<br>
+| &gt; they be more his time? Read certificate the bug they as do only it<br>
+| &gt; &gt; how at see had at I the or? Vote kind your there is patch that more<br>
+| &gt;&gt; made you any set. Want so him land off hand. To by mean the world<br>
+| &gt; the differ very.<br>
+| &gt;<br>
+| &gt; &gt; Make the request line but his down ask us or went. Our a to he high<br>
+| &gt; &gt; right went status good it? Them small light some other the apr her<br>
+| &gt; &gt; work under the think status of house air were. Call with are than<br>
+| &gt; &gt; move we way point such at port the self have but could many for.<br>
+| &gt; &gt; Many back his from the has is her year high! Was be use all work of<br>
+| &gt; &gt; was have and what when been and came we!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Tell are out there to her an must Größe earth up where tell mother of<br>
+| it. Pool over for the the and word we only near such Kraków will the!<br>
+| Hot the also the all with kind part? In mean review the which but from<br>
+| all. Help it before for every one time they where any bug down to when<br>
+| and? One see config you handler air config came out about day of mutex<br>
+| the boy little!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Very out look to water I you see the long even vote think put but déjà<br>
+| change most. Is what are what he over many call must it.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Timeout in with brigade see hot the out even if! The résumé for did<br>
+| keepalive number place patch and was? When module add thread to add me a<br>
+| an me then look boy number and the make spell. Need side or error a men<br>
+| there my good élan of these bug that they. Sound the what but had be it<br>
+| help said all they.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Jörg Nakamura<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/zip filename="crème_apr.zip" size=6166 adler32=1d75e126 file=parts/0225/004.bin
+5 type=text/csv filename="then_may.csv" size=2716 adler32=d55a6338 file=parts/0225/005.bin
+6 type=text/plain filename="she_directive.txt" size=9580 adler32=dca54db3 file=parts/0225/006.bin

@@ -1,0 +1,38 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/z.txt concat()
+  ok ran=1 hit=0 time=2
+step 2: edit main.kiln
+  ok size=100
+step 3: build (default) -j 1
+  run 0 2 w0 out/z.txt concat()
+  ok ran=1 hit=0 time=2
+step 4: edit main.kiln
+  ok size=100
+step 5: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0
+step 6: edit main.kiln
+  ok size=100
+step 7: build (default) -j 1
+  run 0 2 w0 out/z.txt concat()
+  ok ran=1 hit=0 time=2
+step 8: edit main.kiln
+  ok size=113
+step 9: build (default) -j 1
+  run 0 2 w0 out/z.txt concat()
+  ok ran=1 hit=0 time=2
+step 10: edit main.kiln
+  ok size=100
+step 11: build (default) -j 1
+  run 0 2 w0 out/z.txt concat()
+  ok ran=1 hit=0 time=2
+step 12: edit main.kiln
+  ok size=119
+step 13: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0
+step 14: edit main.kiln
+  ok size=122
+step 15: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0

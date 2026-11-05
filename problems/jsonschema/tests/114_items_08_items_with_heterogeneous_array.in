@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {}
+    ],
+    "items": false
+  },
+  "tests": [
+    {
+      "description": "heterogeneous invalid instance",
+      "data": [
+        "foo",
+        "bar",
+        37
+      ]
+    },
+    {
+      "description": "valid instance",
+      "data": [
+        null
+      ]
+    }
+  ]
+}

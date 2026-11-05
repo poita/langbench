@@ -1,0 +1,37 @@
+[message]
+id 0002
+source "mbox:2"
+
+[headers]
+subject: "Re: café meeting"
+from: "René Descartes <rene@example.fr>"
+to: "Ann Example <ann@example.com>"
+cc: "undisclosed-recipients:;"
+in-reply-to: "<20251003.091542@example.com>"
+references: "<20251001.000000@example.com> <20251003.091542@example.com>"
+date: "Fri, 3 Oct 2025 16:02:11 +0200"
+content-type: "text/plain; charset=iso-8859-1"
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="René Descartes" spec="rene@example.fr"
+to 0 display="Ann Example" spec="ann@example.com"
+
+[date]
+raw " Fri, 3 Oct 2025 16:02:11 +0200"
+valid yes
+utc 2025-10-03T14:02:11Z
+offset +0200
+epoch 1759500131
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=8bit size=62 adler32=9d1415a6 role=text
+
+[body]
+text 0 chars 62
+| > Revenue rose 12% this quarter
+| 
+| Très bien. À demain au café.
+html none
+
+[attachments]

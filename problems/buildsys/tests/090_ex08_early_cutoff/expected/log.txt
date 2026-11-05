@@ -1,0 +1,10 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/mid.txt upper()
+  run 2 4 w0 out/final.txt number()
+  ok ran=2 hit=0 time=4
+step 2: edit src/a.txt
+  ok size=4
+step 3: build (default) -j 1
+  run 0 2 w0 out/mid.txt upper()
+  hit 2 out/final.txt
+  ok ran=1 hit=1 time=2

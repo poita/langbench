@@ -1,0 +1,8 @@
+CREATE TABLE aff(
+        id INTEGER PRIMARY KEY,
+        i INTEGER,
+        t TEXT,
+        r REAL,
+        n NUMERIC(10,2),
+        b BLOB,
+        x);

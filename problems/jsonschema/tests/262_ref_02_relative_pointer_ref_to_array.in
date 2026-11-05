@@ -1,0 +1,29 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "type": "integer"
+      },
+      {
+        "$ref": "#/prefixItems/0"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "match array",
+      "data": [
+        1,
+        2
+      ]
+    },
+    {
+      "description": "mismatch array",
+      "data": [
+        1,
+        "foo"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+count-objects
+log HEAD
+log HEAD 25
+ls-tree HEAD
+ls-tree HEAD test
+ls-tree HEAD examples
+rev-parse HEAD~100
+diff HEAD~100 HEAD

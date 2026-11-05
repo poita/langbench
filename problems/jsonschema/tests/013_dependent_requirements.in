@@ -1,0 +1,46 @@
+{
+  "schema": {
+    "type": "object",
+    "dependentRequired": {
+      "card": [
+        "billing_address"
+      ]
+    },
+    "dependentSchemas": {
+      "billing_address": {
+        "required": [
+          "country"
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "no dependencies triggered",
+      "data": {
+        "name": "a"
+      }
+    },
+    {
+      "description": "card without billing address",
+      "data": {
+        "card": "x"
+      }
+    },
+    {
+      "description": "card with an incomplete address",
+      "data": {
+        "card": "x",
+        "billing_address": "s"
+      }
+    },
+    {
+      "description": "complete",
+      "data": {
+        "card": "x",
+        "billing_address": "s",
+        "country": "NZ"
+      }
+    }
+  ]
+}

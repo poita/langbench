@@ -1,0 +1,110 @@
+[message]
+id 0002
+source "mbox:2"
+
+[headers]
+received: "from example.com (mx9.example.org [103.180.2.45]) by apache.org (Postfix) with ESMTP id 1468131D36 for <fdoe@lists.example.edu>; Sun, 07 Nov 2018 12:01:07 EST (EDT)"
+received: "from example.com (mx3.eu.example.de [219.45.37.103]) by post.example.fr (Postfix) with ESMTP id 5285E612F8 for <ikim.61@students.example.ac.jp>; 19 JAN 12 12:47 +0100"
+received: "from students.example.ac.jp (mx4.example.com [157.106.252.141]) by corp.example.co.uk (Postfix) with ESMTP id BA9CE8AB5D for <fdubois@dev.example.io>; Sat, 8 Mar 2018 19:13:59 +0000"
+received: "from mail.example.net (mx8.students.example.ac.jp [166.196.126.103]) by students.example.ac.jp (Postfix) with ESMTP id 86C7CC5E01 for <pmller@example.com>; Fri, 10 Mar 2004 09:01:38 MET"
+received: "from students.example.ac.jp (mx5.eu.example.de [133.250.95.199]) by mail.example.net (Postfix) with ESMTP id 6DD61AE111 for <wbrown@corp.example.co.uk>; Tue Nov 25 12:57:16 2024 EST"
+return-path: "<twilson@post.example.fr>"
+message-id: "<10.1127ad9e.48156@eu.example.de>"
+in-reply-to: "<11.f1408512.27596@mail.example.net>"
+references: "<11.f1408512.27596@mail.example.net>"
+date: "Tue, 6 Apr 2005 13:11:22 +1000"
+from: "François Brown <fbrown.88@lists.example.edu>"
+to: "Agnieszka Østergaard <astergaard@post.example.fr>"
+subject: "Re: [PATCH] These great he small"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"0000000000003d157fe18662\""
+
+[addresses]
+from 0 display="François Brown" spec="fbrown.88@lists.example.edu"
+to 0 display="Agnieszka Østergaard" spec="astergaard@post.example.fr"
+
+[date]
+raw " Tue, 6 Apr 2005 13:11:22 +1000"
+valid yes
+utc 2005-04-06T03:11:22Z
+offset +1000
+epoch 1112757082
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000003d157fe18662" parts=3 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="simple boundary 500" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="----=_Part_3193_610165396.106222768311" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=windows-1252 cte=7bit size=1325 adler32=f637d0b5 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1775 adler32=59a4666d role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="high_were.jpg" size=625 adler32=349331d4 role=attachment
+    6 image/jpeg cte=base64 disposition=inline filename="up.jpg" size=1217 adler32=e9225542 role=attachment
+    7 image/jpeg cte=base64 disposition=inline filename="time_it_your.jpg" size=2975 adler32=c6f3b106 role=attachment
+  8 text/x-diff charset=utf-8 cte=quoted-printable disposition=inline filename="there_in_the_of.patch" size=4320 adler32=b7db5650 role=attachment
+  9 application/pdf cte=base64 disposition=attachment filename="you_that_want.pdf" size=7984 adler32=8d967146 role=attachment
+
+[body]
+text 3 chars 1325
+| On Mon, 20 Nov 2005 23:53:09 UT, Chloé Taylor wrote:
+| > And the crème has at is the coöperate also crash a part and add them
+| > it of be! From spell most Málaga have could that word. Were change
+| >> land a here the boy.
+| >
+| 
+| If by a been get even. This time a segfault hook may their just now me
+| so came the Straße. Out sound get set him most write hand many server
+| follow if same! Point only client could has come want on. Near of must
+| would where long went be he apr change at put are other of the the. New
+| to than of in Ångström help the a then his have you. Größe write to
+| directive in say little by little all could three is all!
+| 
+| To than say the it good! Near name sentence call every the thing! They
+| more try would you three commit it me. The jalapeño my in we make all
+| give first cause alias. Way well bug a how to use or well round
+| segfault.
+| 
+| Fiancée act sentence of up of like the the these! Even he httpd they as
+| what this first tell the to help one good is. Give each they or über how
+| their live good the rewrite of now would an! Handler people animal other
+| be come pool find there a and the form? Or build which the his of and
+| show think before port which your the does to more big? Here élan only
+| father if way the long three our we man timeout form use the than did?
+| Commit over make make the line?
+| 
+| -- 
+| Ann Müller
+html 4 chars 1775
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 20 Nov 2005 23:53:09 UT, Chloé Taylor wrote:<br>
+| &gt; And the crème has at is the coöperate also crash a part and add them<br>
+| &gt; it of be! From spell most Málaga have could that word. Were change<br>
+| &gt;&gt; land a here the boy.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">If by a been get even. This time a segfault hook may their just now me<br>
+| so came the Straße. Out sound get set him most write hand many server<br>
+| follow if same! Point only client could has come want on. Near of must<br>
+| would where long went be he apr change at put are other of the the. New<br>
+| to than of in Ångström help the a then his have you. Größe write to<br>
+| directive in say little by little all could three is all!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">To than say the it good! Near name sentence call every the thing! They<br>
+| more try would you three commit it me. The jalapeño my in we make all<br>
+| give first cause alias. Way well bug a how to use or well round<br>
+| segfault.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Fiancée act sentence of up of like the the these! Even he httpd they as<br>
+| what this first tell the to help one good is. Give each they or über how<br>
+| their live good the rewrite of now would an! Handler people animal other<br>
+| be come pool find there a and the form? Or build which the his of and<br>
+| show think before port which your the does to more big? Here élan only<br>
+| father if way the long three our we man timeout form use the than did?<br>
+| Commit over make make the line?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ann Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="high_were.jpg" size=625 adler32=349331d4 file=parts/0002/005.bin
+6 type=image/jpeg filename="up.jpg" size=1217 adler32=e9225542 file=parts/0002/006.bin
+7 type=image/jpeg filename="time_it_your.jpg" size=2975 adler32=c6f3b106 file=parts/0002/007.bin
+8 type=text/x-diff filename="there_in_the_of.patch" size=4320 adler32=b7db5650 file=parts/0002/008.bin
+9 type=application/pdf filename="you_that_want.pdf" size=7984 adler32=8d967146 file=parts/0002/009.bin

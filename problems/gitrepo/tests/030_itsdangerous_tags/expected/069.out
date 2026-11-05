@@ -1,0 +1,10 @@
+18c9844cdfa2727d5951e8627ab97b70186065a2 Armin Ronacher 1309346679 Bump to 0.10
+f5a21581cbf64d795a884e962a3f628bea924d68 Armin Ronacher 1309346663 Updated implementation to accept serializers from parameters to match Djangos improved interface.
+6648bc08f22cc3092f3a4174f8d8fd735f4ee0f2 Armin Ronacher 1309346652 Added missing changelog file
+d0e7a41b0e801b8afefc895e9b19a660bf9973f2 Armin Ronacher 1309346632 Updated docs
+d5552e560232e9fb7867835046956b2ffc7f7d4e Armin Ronacher 1309345054 Explained the purpose of the salt.
+d5b350b46bc26b738bd5262f482fbf11001b3b4a Armin Ronacher 1309045017 Fixed a bug that caused the library not to accept unicode strings
+736a57b35a190d6d1fc10bc2efb00ce2d8445625 Armin Ronacher 1308933463 The actual tagline
+f7b55500be1182ae26769ea741d0077ecc6ec2de Armin Ronacher 1308913578 Fixed an embarrasing typo in the unittests
+49ae3b3bfbf80e212ce40364f7fa60c7ced7abce Armin Ronacher 1308913499 Removed unnecessary constant
+f5472ac9ff6c9ad2e115a299dc0b10d51868737d Armin Ronacher 1308913323 One more example

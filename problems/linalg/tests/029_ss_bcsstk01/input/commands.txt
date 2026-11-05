@@ -1,0 +1,8 @@
+norm1 bcsstk01.mtx
+norminf bcsstk01.mtx
+normfro bcsstk01.mtx
+chol bcsstk01.mtx
+inv bcsstk01.mtx
+cond bcsstk01.mtx
+qr bcsstk01.mtx
+solve bcsstk01.mtx rhs.mtx

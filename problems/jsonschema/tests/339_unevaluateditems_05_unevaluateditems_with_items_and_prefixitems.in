@@ -1,0 +1,21 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "type": "string"
+      }
+    ],
+    "items": true,
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "unevaluatedItems doesn't apply",
+      "data": [
+        "foo",
+        42
+      ]
+    }
+  ]
+}

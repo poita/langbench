@@ -1,0 +1,10 @@
+ls-tree HEAD
+ls-tree main
+ls-tree v1.0
+ls-tree v0.1
+ls-tree HEAD^{tree}
+ls-tree aa4db946751788c133acc342eb98204fa8155e18
+ls-tree HEAD~29
+ls-tree blobtag
+ls-tree nosuch
+ls-tree v1.0-signed

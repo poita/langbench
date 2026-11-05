@@ -1,0 +1,28 @@
+name "webhooks"
+description "Standard Webhooks signing/verification and a deterministic delivery simulator, with SHA-256, HMAC and Base64 written from scratch."
+authors "webhooks contributors"
+license "MIT"
+copyright "Copyright © webhooks contributors"
+targetName "webhooks"
+targetPath "bin"
+
+configuration "cli" {
+    targetType "executable"
+    mainSourceFile "cli/app.d"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+    importPaths "source"
+    excludedSourceFiles "cli/*"
+}
+
+configuration "unittest" {
+    targetType "executable"
+    mainSourceFile "tests/main.d"
+    sourcePaths "source" "tests"
+    importPaths "source"
+}

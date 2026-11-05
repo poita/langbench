@@ -1,0 +1,8 @@
+.dub/
+kiln
+*.a
+*.o
+*.lib
+*-test-*
+dub.selections.json
+docs/

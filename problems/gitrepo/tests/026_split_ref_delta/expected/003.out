@@ -1,0 +1,25 @@
+6f26484ce4ea037dbcfe07ba558f9c150c6feb19 Dominic Tarr 1504712879 Merge pull request #28 from EdwardBetts/spelling
+d69471390bffd2cc66fee9d0cb2e075a58836901 Edward Betts 1504293158 correct spelling mistake
+b567eb4768dfb1d2153e19702438626059ac9f37 Dominic Tarr 1501747413 1.0.1
+13b21fc2dfb5ef6590f142d1001f726f78febfd1 Dominic Tarr 1501746891 return on error
+17fb0f0b231e30d5465d399ff683102cdcb9274d Dominic Tarr 1475971742 Merge pull request #25 from frantz/fix-typo-readme
+4daa5672a0e5599e6f72ff88362aa96ec700403c Frantz Gauthier 1475960744 Fix typo in readme: `Array#split` > `String#split`
+953dc14e487d9d3a2bc65b755fb8921153570e47 Dominic Tarr 1464812152 Merge pull request #23 from wreckah/master
+47f138046bedda17f0d16d29e033acf9a05a3826 Alexander Pokatilov 1464794521 Fix misspelling
+290c796dfc609910eddb0f2452abd877de24b8c2 Dominic Tarr 1456031745 Merge pull request #21 from evanp/patch-1
+31ac74b01fdd094234a23572ca210382fd25d2ef Evan Prodromou 1455206146 Fix spelling errors in readme
+08b99aafdd40ec84aa88ac29eb808c70a2ecb549 Dominic Tarr 1432487151 1.0.0
+68577d2162b439b35a9a829571310c376a4c2590 Jason Campbell 1430874136 Change options.ignoreTrailing based on PR feedback.
+a344a088b426e2c44d58cf9deeea86ee4ab40687 Jason Campbell 1430869976 Adds `options.ignoreTrailing` which defaults to `false`.
+f150beaf6b4b4f19b44290f58d220599d3dbc8ff Dominic Tarr 1422871635 drop support for 0.8
+3fe392ef2aabce9db7abe8185ec48389ae224883 Dominic Tarr 1422871343 0.3.3
+8d3adea2963a611c3fce4a0c0562d049a8105db8 Dominic Tarr 1422871336 update deps
+cefd735750212988960cb9b56210fcfabae020b7 Tejesh Mehta 1422737250 patch: properly handle empty string chunks
+36b59384a9f4a6c4363ceae47b5ded1be988c700 Tejesh Mehta 1422737242 broken test: split adds 'undefined' when handling '' chunks
+d2ae5e25453c89181c7e53527f08eef416c5fdba Dominic Tarr 1417529136 0.3.2
+2405e8e9f36f4f48a82bb6d71486a929c4de567f Dominic Tarr 1417529131 document how to keep the separators
+93d5c8a04da1ca4acf040c1f08dc5f4316e09711 Dominic Tarr 1415032764 0.3.1
+34cff9d3c6fb18bddf77a51508cb185a9a366134 Dominic Tarr 1415032750 Merge pull request #10 from michaelsanford/master
+f07ada2b36bfb338917dafb257f8798bce656a96 Michael Sanford 1415032671 Add MIT license to package.json
+a0f053f20639527742da5928d7718296e44d4f24 Dominic Tarr 1391019115 0.3.0
+31168e4d945e0d71539dc71db6c738c328b996b5 Dominic Tarr 1391019101 explain what the feature does

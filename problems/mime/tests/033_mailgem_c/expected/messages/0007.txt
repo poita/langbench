@@ -1,0 +1,44 @@
+[message]
+id 0007
+source "raw_email5.eml"
+
+[headers]
+return-path: "<xxx@xxxx.xxx>"
+received: "from xxx.xxxx.xxx by xxx.xxxx.xxx with ESMTP id C1B953B4CB6 for <xxxxx@Exxx.xxxx.xxx>; Tue, 10 May 2005 15:27:05 -0500"
+received: "from SMS-GTYxxx.xxxx.xxx by xxx.xxxx.xxx with ESMTP id ca for <xxxxx@Exxx.xxxx.xxx>; Tue, 10 May 2005 15:27:04 -0500"
+received: "from xxx.xxxx.xxx by SMS-GTYxxx.xxxx.xxx with ESMTP id j4AKR3r23323 for <xxxxx@Exxx.xxxx.xxx>; Tue, 10 May 2005 15:27:03 -0500"
+date: "Tue, 10 May 2005 15:27:03 -0500"
+from: "xxx@xxxx.xxx"
+sender: "xxx@xxxx.xxx"
+to: "xxxxxxxxxxx@xxxx.xxxx.xxx"
+message-id: "<xxx@xxxx.xxx>"
+x-original-to: "xxxxxxxxxxx@xxxx.xxxx.xxx"
+delivered-to: "xxx@xxxx.xxx"
+importance: "normal"
+
+[addresses]
+from 0 display="" spec="xxx@xxxx.xxx"
+sender 0 display="" spec="xxx@xxxx.xxx"
+to 0 display="" spec="xxxxxxxxxxx@xxxx.xxxx.xxx"
+
+[date]
+raw " Tue, 10 May 2005 15:27:03 -0500"
+valid yes
+utc 2005-05-10T20:27:03Z
+offset -0500
+epoch 1115756823
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=268 adler32=3057479b role=text
+
+[body]
+text 0 chars 268
+| Test test. Hi. Waving. m
+| 
+| ----------------------------------------------------------------
+| Sent via Bell Mobility's Text Messaging service. 
+| Envoy�� par le service de messagerie texte de Bell Mobilit��.
+| ----------------------------------------------------------------
+html none
+
+[attachments]

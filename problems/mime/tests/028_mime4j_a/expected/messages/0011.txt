@@ -1,0 +1,24 @@
+[message]
+id 0011
+source "bluedot-simple.eml"
+
+[headers]
+content-type: "image/jpeg; name=\"bluedot.jpg\""
+content-disposition: "inline; filename=\"bluedot.jpg\""
+content-transfer-encoding: "base64"
+content-id: "my-graphic"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 image/jpeg cte=base64 disposition=inline filename="bluedot.jpg" size=4272 adler32=6a58165b role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=image/jpeg filename="bluedot.jpg" size=4272 adler32=6a58165b file=parts/0011/000.bin

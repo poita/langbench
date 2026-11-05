@@ -1,0 +1,60 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "foo": {
+        "enum": [
+          "foo"
+        ]
+      },
+      "bar": {
+        "enum": [
+          "bar"
+        ]
+      }
+    },
+    "required": [
+      "bar"
+    ]
+  },
+  "tests": [
+    {
+      "description": "both properties are valid",
+      "data": {
+        "foo": "foo",
+        "bar": "bar"
+      }
+    },
+    {
+      "description": "wrong foo value",
+      "data": {
+        "foo": "foot",
+        "bar": "bar"
+      }
+    },
+    {
+      "description": "wrong bar value",
+      "data": {
+        "foo": "foo",
+        "bar": "bart"
+      }
+    },
+    {
+      "description": "missing optional property is valid",
+      "data": {
+        "bar": "bar"
+      }
+    },
+    {
+      "description": "missing required property is invalid",
+      "data": {
+        "foo": "foo"
+      }
+    },
+    {
+      "description": "missing all properties is invalid",
+      "data": {}
+    }
+  ]
+}

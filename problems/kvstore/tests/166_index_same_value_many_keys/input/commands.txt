@@ -1,0 +1,61 @@
+put "k000" {v:7}
+put "k001" {v:7}
+put "k002" {v:7}
+put "k003" {v:7}
+put "k004" {v:7}
+put "k005" {v:7}
+put "k006" {v:7}
+put "k007" {v:7}
+put "k008" {v:7}
+put "k009" {v:7}
+put "k010" {v:7}
+put "k011" {v:7}
+put "k012" {v:7}
+put "k013" {v:7}
+put "k014" {v:7}
+put "k015" {v:7}
+put "k016" {v:7}
+put "k017" {v:7}
+put "k018" {v:7}
+put "k019" {v:7}
+put "k020" {v:7}
+put "k021" {v:7}
+put "k022" {v:7}
+put "k023" {v:7}
+put "k024" {v:7}
+put "k025" {v:7}
+put "k026" {v:7}
+put "k027" {v:7}
+put "k028" {v:7}
+put "k029" {v:7}
+put "k030" {v:7}
+put "k031" {v:7}
+put "k032" {v:7}
+put "k033" {v:7}
+put "k034" {v:7}
+put "k035" {v:7}
+put "k036" {v:7}
+put "k037" {v:7}
+put "k038" {v:7}
+put "k039" {v:7}
+put "k040" {v:7}
+put "k041" {v:7}
+put "k042" {v:7}
+put "k043" {v:7}
+put "k044" {v:7}
+put "k045" {v:7}
+put "k046" {v:7}
+put "k047" {v:7}
+put "k048" {v:7}
+put "k049" {v:7}
+create index v
+indexes
+find v == 7 limit 3
+find v >= 7 limit 3
+find v > 7
+find v < 7
+delete "k000"
+delete "k049"
+indexes
+find v == 7 limit 2
+stat

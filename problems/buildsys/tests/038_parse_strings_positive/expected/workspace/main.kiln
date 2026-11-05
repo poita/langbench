@@ -1,0 +1,17 @@
+let n = 7
+let xs = ["a", "b"]
+let s = 'raw\nand{x}'
+step {
+    out "out/s.txt"
+    cmd write("{{literal}} {n} {n * 2 + 1} {xs[0]}-{xs[1]} {len(xs) == 2} {join(xs, ", ")} {s} # not a comment\n")
+}
+step {
+    out "out/t.txt"
+    cmd write("tab:\there\0nl:\ndq:\" bs:\\ cr:\r done\n")
+}
+step {
+    out "out/h.txt"
+    in ["out/s.txt", "out/t.txt"]
+    cmd hash()
+}
+default "out/h.txt"

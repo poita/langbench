@@ -1,0 +1,57 @@
+[message]
+id 0219
+source "mbox:219"
+
+[headers]
+received: "from students.example.ac.jp (mx1.dev.example.io [198.32.224.7]) by eu.example.de (Postfix) with ESMTP id 9A20B46FB4 for <bnguyen.28@post.example.fr>; 17 OCT 04 20:10 -0000"
+received: "from corp.example.co.uk (mx9.students.example.ac.jp [178.156.248.46]) by apache.org (Postfix) with ESMTP id 51C7549334 for <fstergaard.70@mail.example.net>; Sat, 20 Sep 2018 22:51:07 +0000 (EDT)"
+received: "from example.org (mx2.post.example.fr [92.108.158.72]) by apache.org (Postfix) with ESMTP id 33B6050F37 for <zfernndez.16@corp.example.co.uk>; Mon, 7 Mar 2005 22:34:44 -0400"
+received: "from eu.example.de (mx1.example.com [174.0.161.210]) by lists.example.edu (Postfix) with ESMTP id ACF78B8190 for <jgarca@corp.example.co.uk>; Fri, 6 Aug 2009 22:26:05 CST"
+return-path: "<jbrown@corp.example.co.uk>"
+message-id: "<1387.08d4a618.15112@post.example.fr>"
+date: "Tue, 12 Mar 2025 16:27:06 -0800 (PST)"
+from: "María Fernández <mfernndez@apache.org>"
+to: "n@students.example.ac.jp (Someone),\t\"O'Brien, Erik\" <eobrien@dev.example.io>,    Hana Müller <hmller.19@example.com>"
+cc: "Pierre Müller <pmller@dev.example.io>,\t太郎 Smith <smith@example.com>"
+subject: "Fwd: Of how her his write that the"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"utf-8\""
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="María Fernández" spec="mfernndez@apache.org"
+to 0 display="" spec="n@students.example.ac.jp"
+to 1 display="O'Brien, Erik" spec="eobrien@dev.example.io"
+to 2 display="Hana Müller" spec="hmller.19@example.com"
+cc 0 display="Pierre Müller" spec="pmller@dev.example.io"
+cc 1 display="太郎 Smith" spec="smith@example.com"
+
+[date]
+raw " Tue, 12 Mar 2025 16:27:06 -0800 (PST)"
+valid yes
+utc 2025-03-13T00:27:06Z
+offset -0800
+epoch 1741825626
+
+[structure]
+0 text/plain charset=utf-8 cte=quoted-printable size=450 adler32=63599dd7 role=text
+
+[body]
+text 0 chars 448
+| Now make sound or sound work would patch by the put put get it. Find now
+| you there place more to very at vhost then home. Cache commit you he is
+| change crash and good does httpd each! Tell it some land then the home.
+| 
+| At but does the he was! Find hot sound two on sound of some man build to
+| the warning near at it? Been you look of Paulo change in. Day crash on
+| with good need round the picture out for thing little for on made.
+| 
+| -- 
+| Björn Lefèvre
+html none
+
+[attachments]

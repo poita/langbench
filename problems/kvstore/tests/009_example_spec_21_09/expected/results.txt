@@ -1,0 +1,35 @@
+[1] ok put created
+[2] ok create index age entries 1
+[3] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 2
+  indexes 1
+  wal 4272
+[4] ok checkpoint pages 3
+[5] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 2
+  indexes 1
+  wal 32
+[6] ok drop index age pages 1
+[7] ok stat
+  pages 3
+  free 1
+  freehead 3
+  docs 1
+  root 2
+  height 1
+  commits 3
+  indexes 0
+  wal 2152
+[8] error index-missing

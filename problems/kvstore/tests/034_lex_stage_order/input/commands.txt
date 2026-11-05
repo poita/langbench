@@ -1,0 +1,15 @@
+frobnicate "\ud800"
+put "\ud800" 1
+put 1 "x"
+put "a" {x:1,x:2}
+put "\ud800" {x:1,x:2}
+put "a" {x:9223372036854775808,x:2}
+put "" {x:1,x:2}
+put "" "\ud800"
+put "a" [1,2 3]
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+put "a" ["\ud800",[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+update "a" b 1
+update "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk" b 1
+unset "" b.c.d.e.f.g.h.i
+stat

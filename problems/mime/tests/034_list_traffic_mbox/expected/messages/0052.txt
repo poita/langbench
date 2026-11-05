@@ -1,0 +1,64 @@
+[message]
+id 0052
+source "mbox:52"
+
+[headers]
+received: "from dev.example.io (mx1.eu.example.de [166.55.222.236]) by post.example.fr (Postfix) with ESMTP id C84CF73EB4 for <spapadopoulos@example.org>; Tue, 14 Feb 2003 14:13:20 +0100"
+received: "from example.org (mx5.dev.example.io [110.56.249.154]) by students.example.ac.jp (Postfix) with ESMTP id C82749C39D for <xpapadopoulos.90@example.com>; Mon, 2 Oct 2004 04:02:26 +1000"
+received: "from students.example.ac.jp (mx4.dev.example.io [103.147.80.125]) by mail.example.net (Postfix) with ESMTP id 21CE01B960 for <yfernndez@example.org>; Tue, 14 Sep 2009 03:08:43 +1245"
+received: "from post.example.fr (mx7.lists.example.edu [50.129.31.81]) by students.example.ac.jp (Postfix) with ESMTP id D55A6E2DB for <ataylor@lists.example.edu>; Sat, 7 Feb 2003 18:43:09 +0200"
+received: "from example.org (mx4.apache.org [20.195.153.61]) by example.com (Postfix) with ESMTP id 75ABEAA56C for <wwilson.43@lists.example.edu>; Thu, 24 Jul 2005 06:25:57 MET"
+return-path: "<arossi@mail.example.net>"
+message-id: "<367.2cdfd321.43435@corp.example.co.uk>"
+in-reply-to: "<378.36a33f92.19409@example.org>"
+references: "<368.c5006f4a.76386@corp.example.co.uk> <369.bc488ad2.47752@example.org> <370.0504bae1.68166@corp.example.co.uk> <371.f39dd99b.67135@eu.example.de> <372.211d4b48.45464@eu.example.de> <373.4b5092bd.77334@students.example.ac.jp> <374.185fbf88.54511@example.com> <375.47ebe446.38365@example.com> <376.9d2b8729.22501@example.org> <377.87d927b2.27700@students.example.ac.jp> <378.36a33f92.19409@example.org>"
+date: "Tue, 17 Oct 2005 14:45:47 +0000"
+from: "Chloé Kowalski <ckowalski@corp.example.co.uk>"
+to: "太郎 O'Brien <obrien@eu.example.de>,    Fiona Dubois <fdubois@corp.example.co.uk>, Greg Papadopoulos <gpapadopoulos.6@post.example.fr>"
+subject: "[VOTE] And many in"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=us-ascii"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Chloé Kowalski" spec="ckowalski@corp.example.co.uk"
+to 0 display="太郎 O'Brien" spec="obrien@eu.example.de"
+to 1 display="Fiona Dubois" spec="fdubois@corp.example.co.uk"
+to 2 display="Greg Papadopoulos" spec="gpapadopoulos.6@post.example.fr"
+
+[date]
+raw " Tue, 17 Oct 2005 14:45:47 +0000"
+valid yes
+utc 2005-10-17T14:45:47Z
+offset +0000
+epoch 1129560347
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=596 adler32=50c1be85 role=text
+
+[body]
+text 0 chars 596
+| Of of a to like? Had certificate and they on if been the people the out
+| over the! Keepalive from and only to give over these many say work to
+| hook kind a his what in! The segfault word can follow with? He help
+| cache big are over put than? More with in can if mean his the one
+| keepalive be back. First on the differ which have.
+| 
+| Over every what the like! Did need only as man go had this but and work
+| at trunk even well has the.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Chlo? Kowalski
+html none
+
+[attachments]

@@ -1,0 +1,18 @@
+put "n" null
+put "t" true
+put "f" false
+put "i" 42
+put "neg" -42
+put "s" "hello"
+put "l" [1,2,3]
+put "o" {a:1,b:"two",c:[true,null]}
+get "n"
+get "t"
+get "f"
+get "i"
+get "neg"
+get "s"
+get "l"
+get "o"
+scan
+stat

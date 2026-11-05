@@ -1,0 +1,21 @@
+[message]
+id 0002
+source "partial.eml"
+
+[headers]
+content-type: "message/partial; id=\"x\"; number=1; total=2"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 message/partial cte=7bit size=27 adler32=87a80958 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=message/partial filename=- size=27 adler32=87a80958 file=parts/0002/000.bin

@@ -1,0 +1,10 @@
+simulate
+endpoint ep_all whsec_c2VjcmV0 * 200
+endpoint ep_user whsec_b3RoZXItc2VjcmV0 user.created,user.deleted 200
+endpoint ep_repo whsec_dGhpcmQta2V5 repo.pushed 200
+endpoint ep_none whsec_c2VjcmV0 no.such.type 200
+event ev_1 100 user.created 7b7d
+event ev_2 200 user.deleted 7b7d
+event ev_3 300 repo.pushed 7b7d
+event ev_4 400 billing.paid 7b7d
+end

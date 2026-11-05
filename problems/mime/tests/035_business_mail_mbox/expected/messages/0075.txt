@@ -1,0 +1,122 @@
+[message]
+id 0075
+source "mbox:75"
+
+[headers]
+received: "from lists.example.edu (mx2.apache.org [140.195.155.138]) by mail.example.net (Postfix) with ESMTP id 3F7D54052E for <bjohansson@dev.example.io>; 20 AUG 05 08:27 PDT"
+received: "from corp.example.co.uk (mx3.example.org [68.80.97.213]) by lists.example.edu (Postfix) with ESMTP id DCC8477548 for <ffernndez@apache.org>; Fri, 24 Mar 2025 01:07:50 Z"
+received: "from post.example.fr (mx7.students.example.ac.jp [246.65.48.223]) by dev.example.io (Postfix) with ESMTP id 7CDA70F4B2 for <cdubois.62@mail.example.net>; Mon, 14 Apr 2009 20:51:57 -0330"
+received: "from dev.example.io (mx4.example.com [199.108.201.229]) by apache.org (Postfix) with ESMTP id 636A9913AD for <r@dev.example.io>; 9 FEB 24 20:55 +0900"
+return-path: "<dbrown.12@eu.example.de>"
+message-id: "<757.1096759a.51730@example.com>"
+in-reply-to: "<764.fcbed388.92561@dev.example.io>"
+references: "<758.c07cdbd2.2759@apache.org> <759.3162d70b.43851@example.org> <760.a6b8e716.52016@students.example.ac.jp> <761.b07573af.70552@apache.org> <762.d0995d0e.93717@example.org> <763.bb7f895a.71362@lists.example.edu> <764.fcbed388.92561@dev.example.io>"
+date: "Thu, 8 Jul 2004 17:35:04 +0900"
+from: "idoe@corp.example.co.uk (Ivan Doe)"
+to: "Jörg Doe <jdoe@corp.example.co.uk>"
+subject: "[VOTE] Our and of look are can hot or live"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"0000000000001f7c8e657576\""
+
+[addresses]
+from 0 display="" spec="idoe@corp.example.co.uk"
+to 0 display="Jörg Doe" spec="jdoe@corp.example.co.uk"
+
+[date]
+raw " Thu, 8 Jul 2004 17:35:04 +0900"
+valid yes
+utc 2004-07-08T08:35:04Z
+offset +0900
+epoch 1089275704
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000001f7c8e657576" parts=5 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="Apple-Mail=_E578B1803DCBD175" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=1645 adler32=bb373a17 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=2176 adler32=965ae09b role=html
+  4 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="or_had_build.patch" size=1279 adler32=06da889d role=attachment
+  5 text/plain charset=utf-8 cte=base64 disposition=attachment filename="so_live.txt" size=9110 adler32=bb269e68 role=attachment
+  6 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="you_a_that.csv" size=5620 adler32=4a890547 role=attachment
+  7 image/png cte=base64 disposition=inline filename="Größe_near_are.png" size=6675 adler32=3f95a362 role=attachment
+
+[body]
+text 2 chars 1622
+| On Thu, 05 Dec 2003 20:09:39 -0800 (GMT), Đorđe Иванов wrote:
+| >> Use house said small of them come Größe is a at man your! From large
+| > > cache I is. So came place hand you part Ångström and in would me
+| > > thing is is the world.
+| >
+| >> Or same see that self server said crash from the up part then side.
+| >> Same the small and very smörgåsbord. Élan that now how in change is
+| > one many! Timeout some people über and. On of so it a! Made then
+| >> will a this. Crème only side where very to end see the and a the
+| > > piñata there one the man need!
+| >
+| >> Light go change the earth land need to the is be a my who is of the.
+| > > Way is was of no side how year write much set? At review day near of
+| > > on he first said again than are the had the his up now!
+| >
+| > > If from the every the be little as spell been day a the of httpd! A
+| >> just all picture man! And a is he look?
+| >
+| 
+| Brûlée them under branch man know! It you work may and will. Request but
+| the first go Kraków. Here there review from in she. A water there filter
+| the get two. Did many find apr my the out jalapeño.
+| 
+| The get mean just a certificate big will earth she say each so! Was just
+| the port on über take may is hook if. Could some said time thing may to.
+| Do day has will config have too as but act it keepalive their is. It
+| light our review under the was good has much out him the write at year
+| water I.
+| 
+| Of the more you than in. Hot water of our ssl as which went be just as
+| more time look in much. Brigade me were had was to it them crash on can!
+| On we came before when crash would picture. The her thing only are give
+| on the of man the go?
+| 
+| -- 
+| Yuki O'Brien
+html 3 chars 2176
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Thu, 05 Dec 2003 20:09:39 -0800 (GMT), ?or?e ?????? wrote:<br>
+| &gt;&gt; Use house said small of them come Größe is a at man your! From large<br>
+| &gt; &gt; cache I is. So came place hand you part Ångström and in would me<br>
+| &gt; &gt; thing is is the world.<br>
+| &gt;<br>
+| &gt;&gt; Or same see that self server said crash from the up part then side.<br>
+| &gt;&gt; Same the small and very smörgåsbord. Élan that now how in change is<br>
+| &gt; one many! Timeout some people über and. On of so it a! Made then<br>
+| &gt;&gt; will a this. Crème only side where very to end see the and a the<br>
+| &gt; &gt; piñata there one the man need!<br>
+| &gt;<br>
+| &gt;&gt; Light go change the earth land need to the is be a my who is of the.<br>
+| &gt; &gt; Way is was of no side how year write much set? At review day near of<br>
+| &gt; &gt; on he first said again than are the had the his up now!<br>
+| &gt;<br>
+| &gt; &gt; If from the every the be little as spell been day a the of httpd! A<br>
+| &gt;&gt; just all picture man! And a is he look?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Brûlée them under branch man know! It you work may and will. Request but<br>
+| the first go Kraków. Here there review from in she. A water there filter<br>
+| the get two. Did many find apr my the out jalapeño.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The get mean just a certificate big will earth she say each so! Was just<br>
+| the port on über take may is hook if. Could some said time thing may to.<br>
+| Do day has will config have too as but act it keepalive their is. It<br>
+| light our review under the was good has much out him the write at year<br>
+| water I.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Of the more you than in. Hot water of our ssl as which went be just as<br>
+| more time look in much. Brigade me were had was to it them crash on can!<br>
+| On we came before when crash would picture. The her thing only are give<br>
+| on the of man the go?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Yuki O'Brien<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/x-diff filename="or_had_build.patch" size=1279 adler32=06da889d file=parts/0075/004.bin
+5 type=text/plain filename="so_live.txt" size=9110 adler32=bb269e68 file=parts/0075/005.bin
+6 type=text/csv filename="you_a_that.csv" size=5620 adler32=4a890547 file=parts/0075/006.bin
+7 type=image/png filename="Größe_near_are.png" size=6675 adler32=3f95a362 file=parts/0075/007.bin

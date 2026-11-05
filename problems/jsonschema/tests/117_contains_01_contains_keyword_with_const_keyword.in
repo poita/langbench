@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contains": {
+      "const": 5
+    }
+  },
+  "tests": [
+    {
+      "description": "array with item 5 is valid",
+      "data": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "description": "array with two items 5 is valid",
+      "data": [
+        3,
+        4,
+        5,
+        5
+      ]
+    },
+    {
+      "description": "array without item 5 is invalid",
+      "data": [
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

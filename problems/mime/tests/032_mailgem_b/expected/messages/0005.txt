@@ -1,0 +1,34 @@
+[message]
+id 0005
+source "example02.eml"
+
+[headers]
+from: "John Doe <jdoe@machine.example>"
+sender: "Michael Jones <mjones@machine.example>"
+to: "Mary Smith <mary@example.net>"
+subject: "Saying Hello"
+date: "Fri, 21 Nov 1997 09:55:06 -0600"
+message-id: "<1234@local.machine.example>"
+
+[addresses]
+from 0 display="John Doe" spec="jdoe@machine.example"
+sender 0 display="Michael Jones" spec="mjones@machine.example"
+to 0 display="Mary Smith" spec="mary@example.net"
+
+[date]
+raw " Fri, 21 Nov 1997 09:55:06 -0600"
+valid yes
+utc 1997-11-21T15:55:06Z
+offset -0600
+epoch 880127706
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=50 adler32=ba51105b role=text
+
+[body]
+text 0 chars 50
+| This is a message just to say hello.
+| So, \"Hello\".
+html none
+
+[attachments]

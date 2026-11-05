@@ -1,0 +1,21 @@
+step {
+    out "out/top.txt"
+    in "src/a.txt"
+    cmd copy()
+}
+each i, n in ["left", "right"] {
+    step {
+        out "out/{n}.txt"
+        in "out/top.txt"
+        cmd wrap("{n}:", "\n")
+        cost i + 2
+    }
+}
+step {
+    out "out/join.txt"
+    in ["out/left.txt", "out/right.txt"]
+    after "@both"
+    cmd concat()
+}
+phony both = ["out/left.txt", "out/right.txt"]
+default "out/join.txt"

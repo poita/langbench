@@ -1,0 +1,30 @@
+name "sat"
+description "A CDCL SAT solver library and DIMACS command-line tool"
+authors "Peter Alexander"
+license "MIT"
+copyright "Copyright © 2026"
+targetPath "bin"
+
+// The first configuration is what a plain `dub build` produces: the CLI.
+configuration "cli" {
+    targetType "executable"
+    targetName "sat-cli"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
+}
+
+// Use this configuration (the default for dependants via
+// `subConfiguration "sat" "library"`) to link the solver into another program.
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+// Unit tests live in tests/, separate from the library sources.
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

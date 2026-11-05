@@ -1,0 +1,12 @@
+SELECT name FROM people WHERE age = 45
+SELECT name FROM people WHERE age != 45
+SELECT name FROM people WHERE age < 45
+SELECT name FROM people WHERE age <= 45
+SELECT name FROM people WHERE age > 45
+SELECT name FROM people WHERE age >= 45
+SELECT name FROM people WHERE name = 'Ada'
+SELECT name FROM people WHERE name > 'B'
+SELECT name FROM people WHERE height < 1.7
+SELECT name FROM people WHERE age IS NULL
+SELECT name FROM people WHERE age IS 45
+SELECT name FROM people WHERE age IS NOT NULL

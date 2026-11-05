@@ -1,0 +1,2 @@
+1, [.[] | if . == 2 then error("boom") else . end], 3
+[1,2,3]

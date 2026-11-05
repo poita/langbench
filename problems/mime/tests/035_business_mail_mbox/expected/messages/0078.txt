@@ -1,0 +1,112 @@
+[message]
+id 0078
+source "mbox:78"
+
+[headers]
+received: "from example.com (mx8.eu.example.de [213.4.6.109]) by lists.example.edu (Postfix) with ESMTP id D991EEC976 for <jkowalski.48@apache.org>; Tue, 28 Jun 2003 20:15:57 UT"
+received: "from corp.example.co.uk (mx9.dev.example.io [84.53.133.98]) by dev.example.io (Postfix) with ESMTP id 9FEC292E3C for <ostergaard@mail.example.net>; sun,3 oct 2024 5:6:12 (comment (nested)) CST"
+return-path: "<jgarca@corp.example.co.uk>"
+message-id: "<817.b9256058.6102@post.example.fr>"
+date: "Mon, 9 Mar 2004 22:49:29 +0530"
+from: "Fiona Nakamura <fnakamura@corp.example.co.uk>"
+to: "Carl Lefèvre <clefvre@apache.org>,    \"Johansson, Bob\" <bjohansson@lists.example.edu>"
+cc: "Björn Müller <bmller@dev.example.io>"
+subject: "I will try déjà set this but spell no which"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_337F9E4988337C39\""
+
+[addresses]
+from 0 display="Fiona Nakamura" spec="fnakamura@corp.example.co.uk"
+to 0 display="Carl Lefèvre" spec="clefvre@apache.org"
+to 1 display="Johansson, Bob" spec="bjohansson@lists.example.edu"
+cc 0 display="Björn Müller" spec="bmller@dev.example.io"
+
+[date]
+raw " Mon, 9 Mar 2004 22:49:29 +0530"
+valid yes
+utc 2004-03-09T17:19:29Z
+offset +0530
+epoch 1078852769
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_337F9E4988337C39" parts=3 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="----=_Part_4208_789289001.776694951166" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=quoted-printable size=1206 adler32=d7b79c61 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1731 adler32=d6c64afb role=html
+  4 application/pdf cte=base64 disposition=attachment filename="his_his_the.pdf" size=603 adler32=8476295f role=attachment
+  5 message/rfc822 cte=7bit disposition=inline parts=1
+    6 multipart/mixed cte=7bit boundary="=_2d0b8d64022aa3a354b2280e7ed02a8e" parts=3 preamble=0 epilogue=0
+      7 multipart/alternative cte=7bit boundary="Apple-Mail=_5780B28B23493092" parts=2 preamble=0 epilogue=0
+        8 text/plain charset=iso-8859-1 cte=quoted-printable size=608 adler32=53d9d2e7 role=attachment
+        9 text/html charset=utf-8 cte=quoted-printable size=904 adler32=66273664 role=attachment
+      10 image/jpeg cte=base64 disposition=inline filename="how_a_no.jpg" size=3043 adler32=b834d03a role=attachment
+      11 application/pdf cte=base64 disposition=attachment filename="bucket_through_the_I.pdf" size=1738 adler32=e7cc436a role=attachment
+
+[body]
+text 2 chars 1198
+| Near men such what a off he the house the much does see more see. The
+| that by the I alias I follow. Were have just to brigade that for to in
+| three he was what want came want than. Change to them then more play are
+| from and the much went the is.
+| 
+| You the were the use other the word ask connection work out little the
+| all. Other segfault was there up low all and httpd off thread the she
+| who.
+| 
+| Filter to show status play before élan air home a so and connection why
+| in so. Segfault so and of more bucket. Branch his in two when your have
+| thing this Ørsted air does piñata. Than write for did thing self an all!
+| 
+| Mean and as your must house any this good need? Hook you was turn vhost
+| you on certificate after! I is I want in for way more directive first
+| about year many? Three and the apr go are very vote little that timeout
+| they in follow in you. Look out turn from when. To down all the year the
+| hot number the that cache timeout was proxy each!
+| 
+| As and about made thing use live any we. Über which and again about
+| crème had.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Đorđe Østergaard
+html 3 chars 1723
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Near men such what a off he the house the much does see more see. The<br>
+| that by the I alias I follow. Were have just to brigade that for to in<br>
+| three he was what want came want than. Change to them then more play are<br>
+| from and the much went the is.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">You the were the use other the word ask connection work out little the<br>
+| all. Other segfault was there up low all and httpd off thread the she<br>
+| who.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Filter to show status play before élan air home a so and connection why<br>
+| in so. Segfault so and of more bucket. Branch his in two when your have<br>
+| thing this Ørsted air does piñata. Than write for did thing self an all!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Mean and as your must house any this good need? Hook you was turn vhost<br>
+| you on certificate after! I is I want in for way more directive first<br>
+| about year many? Three and the apr go are very vote little that timeout<br>
+| they in follow in you. Look out turn from when. To down all the year the<br>
+| hot number the that cache timeout was proxy each!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">As and about made thing use live any we. Über which and again about<br>
+| crème had.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Đorđe Østergaard<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="his_his_the.pdf" size=603 adler32=8476295f file=parts/0078/004.bin
+8 type=text/plain filename=- size=608 adler32=53d9d2e7 file=parts/0078/008.bin
+9 type=text/html filename=- size=904 adler32=66273664 file=parts/0078/009.bin
+10 type=image/jpeg filename="how_a_no.jpg" size=3043 adler32=b834d03a file=parts/0078/010.bin
+11 type=application/pdf filename="bucket_through_the_I.pdf" size=1738 adler32=e7cc436a file=parts/0078/011.bin

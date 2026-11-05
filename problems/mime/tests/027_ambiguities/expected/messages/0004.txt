@@ -1,0 +1,26 @@
+[message]
+id 0004
+source "huge-zone.eml"
+
+[headers]
+subject: "a four-digit zone that is more than 99 hours"
+date: "Sat, 1 Jan 2000 00:00:00 +9999"
+
+[addresses]
+
+[date]
+raw " Sat, 1 Jan 2000 00:00:00 +9999"
+valid yes
+utc 1999-12-27T19:21:00Z
+offset +10039
+epoch 946322460
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

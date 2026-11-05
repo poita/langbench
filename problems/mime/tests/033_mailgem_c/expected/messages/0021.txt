@@ -1,0 +1,37 @@
+[message]
+id 0021
+source "sig_only_email.eml"
+
+[headers]
+date: "Mon, 4 Jun 2007 15:01:31 -0700"
+from: "Test <test@test.lindsaar.net>"
+to: "Mikel <mikel@test.lindsaar.net>"
+subject: "Re: Testing multipart/signed"
+message-id: "<20070604150131.40d4fa1e@reforged>"
+mime-version: "1.0"
+content-type: "multipart/signed; boundary=Sig_2GIY2xfzqSADMmu9sKGJqWm; protocol=\"application/pgp-signature\"; micalg=PGP-SHA1"
+
+[addresses]
+from 0 display="Test" spec="test@test.lindsaar.net"
+to 0 display="Mikel" spec="mikel@test.lindsaar.net"
+
+[date]
+raw " Mon, 4 Jun 2007 15:01:31 -0700"
+valid yes
+utc 2007-06-04T22:01:31Z
+offset -0700
+epoch 1180994491
+
+[structure]
+0 multipart/signed cte=7bit boundary="Sig_2GIY2xfzqSADMmu9sKGJqWm" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=quoted-printable size=97 adler32=93d0223e role=text
+  2 application/pgp-signature cte=7bit disposition=attachment filename="signature.asc" size=190 adler32=95693795 role=attachment
+
+[body]
+text 1 chars 97
+| This is random text, not what has been signed below, ie, this sig
+| email is not signed correctly.
+html none
+
+[attachments]
+2 type=application/pgp-signature filename="signature.asc" size=190 adler32=95693795 file=parts/0021/002.bin

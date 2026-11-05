@@ -1,0 +1,32 @@
+name "jq"
+description "A jq-subset query language: JSON parser, serializer and filter interpreter"
+authors "Peter Alexander"
+license "MIT"
+copyright "Copyright (c) 2026"
+targetPath "bin"
+
+// Default configuration: the command-line tool (`dub build`).
+configuration "application" {
+    targetType "executable"
+    targetName "jq"
+    sourcePaths "source"
+    importPaths "source"
+    sourceFiles "app/main.d"
+    mainSourceFile "app/main.d"
+}
+
+// The reusable library only (`dub build --config=library`).
+configuration "library" {
+    targetType "library"
+    targetName "jq"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+// Used by `dub test`: library sources plus the separate unit-test modules.
+configuration "unittest" {
+    targetType "library"
+    targetName "jq-unittest"
+    sourcePaths "source" "tests"
+    importPaths "source"
+}

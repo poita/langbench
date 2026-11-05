@@ -1,0 +1,22 @@
+[
+ {
+  "agent": "rep1:go:gitrepo",
+  "kind": "banned-facility",
+  "detail": "compress/zlib (inflate/inflate_test.go)"
+ },
+ {
+  "agent": "rep1:go:gitrepo",
+  "kind": "banned-facility",
+  "detail": "compress/zlib (testrepo_test.go)"
+ },
+ {
+  "agent": "rep1:go:inflate",
+  "kind": "banned-facility",
+  "detail": "compress/flate (decoder_test.go)"
+ },
+ {
+  "agent": "rep2:go:webhooks",
+  "kind": "banned-facility",
+  "detail": "crypto/sha256 (hmac/hmac_test.go)"
+ }
+]

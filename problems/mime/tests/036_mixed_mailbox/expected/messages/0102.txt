@@ -1,0 +1,114 @@
+[message]
+id 0102
+source "mbox:102"
+
+[headers]
+received: "from lists.example.edu (mx4.corp.example.co.uk [219.62.118.160]) by corp.example.co.uk (Postfix) with ESMTP id E9895D1ED7 for <ndubois@apache.org>; Thu, 3 Aug 2012 01:08:10 MET"
+received: "from students.example.ac.jp (mx5.example.com [131.155.3.9]) by post.example.fr (Postfix) with ESMTP id 9627E24AC1 for <s.99@eu.example.de>; Tue, 08 Mar 2025 22:11:59 UT (CET)"
+return-path: "<wobrien@lists.example.edu>"
+message-id: "<790.63b4451d.55828@mail.example.net>"
+date: "Mon, 20 Oct 2004 04:15:51 MET"
+from: "Quinn Papadopoulos <qpapadopoulos@lists.example.edu>"
+to: "François Иванов <f@mail.example.net>, Дмитрий Schröder <schrder@corp.example.co.uk>, cgarca@eu.example.de, Ελένη Nguyen <nguyen@students.example.ac.jp>,    \"van der Berg, Luis\" <lvanderberg.17@mail.example.net>,    \"Nguyen, Ann\" <anguyen.51@lists.example.edu>,    Björn van der Berg <bvanderberg.58@post.example.fr>, François Fernández <ffernndez.25@example.org>,    François Schröder <fschrder.32@post.example.fr>,    Jörg Smith <jsmith@dev.example.io>,\t\"Kowalski, Luis\" <lkowalski@students.example.ac.jp>, Jörg Smith <jsmith@post.example.fr>"
+cc: "Đorđe Nakamura <nakamura.20@lists.example.edu>,    \"Johansson, Erik\" <ejohansson.82@students.example.ac.jp>,\tgsmith@students.example.ac.jp, \"Nguyen, Quinn\" <qnguyen@example.com>,\t\"Johansson, Carl\" <cjohansson@example.com>,\tXavier Müller <xmller.60@students.example.ac.jp>,    Yuki Wilson <ywilson.73@dev.example.io>,\t\"Smith, Sven\" <ssmith.65@corp.example.co.uk>, rfernndez.94@example.org,    obrien@corp.example.co.uk, Hana Иванов <h@example.com>, \"O'Brien, Olga\" <oobrien.93@lists.example.edu>,\t\"Doe, Ivan\" <idoe@corp.example.co.uk>, Дмитрий Doe <doe@mail.example.net>, \"Dubois, Fiona\" <fdubois@lists.example.edu>,\tAnn Kowalski <akowalski@eu.example.de>,\tBjörn Müller <bmller.34@example.com>,    spapadopoulos@apache.org (Someone), zkowalski@mail.example.net,\t\"Brown, Erik\" <ebrown@eu.example.de>,\t\"Doe, Karin\" <kdoe@students.example.ac.jp>,    petrov.80@corp.example.co.uk (Someone),\tBob Kowalski <bkowalski.20@example.com>,    \"Ann van der Berg\" <avanderberg.46@students.example.ac.jp>, Sven García <sgarca@apache.org>,    xvanderberg@mail.example.net (Xavier van der Berg)"
+subject: "Re: Help find you"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+resent-date: "Thu Nov 16 08:14:13 2004 UT"
+resent-date: "Sat, 19 Nov 2009 00:06:27 +0000 (PST)"
+resent-date: "sun,5 jul 2024 6:40:13 (comment (nested)) PDT"
+bcc: "\"Papadopoulos, Pierre\" <ppapadopoulos@post.example.fr>,\tQuinn Wilson <qwilson.57@dev.example.io>, epetrov@apache.org, \"Agnieszka Kim\" <akim@corp.example.co.uk>,\tknguyen@example.com (Karin Nguyen),    \"Xavier Nakamura\" <xnakamura@lists.example.edu>,    Tomás Johansson <tjohansson@students.example.ac.jp>, nguyen.2@students.example.ac.jp,\tŁukasz Schröder <schrder@eu.example.de>,    lpapadopoulos@corp.example.co.uk,\tFrançois Lefèvre <flefvre@example.com>, Hana Nguyen <hnguyen.52@example.com>,\tSven Иванов <s@corp.example.co.uk>,    o.41@dev.example.io, Dana Nguyen <dnguyen@example.com>, Łukasz Doe <doe@mail.example.net>, Erik Lefèvre <elefvre@post.example.fr>,\t\"Nils O'Brien\" <nobrien@example.org>,\tErik Rossi <erossi.38@dev.example.io>,    \"Taylor, Karin\" <ktaylor@example.com>"
+thread-topic: "Directive Größe try house we very."
+comments: "Such we  out very through  he these  to the where  when form he  play any header of how  these header."
+sender: "Zoë Kim <zkim.77@example.com>"
+content-type: "text/plain; charset=\"us-ascii\""
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Quinn Papadopoulos" spec="qpapadopoulos@lists.example.edu"
+sender 0 display="Zoë Kim" spec="zkim.77@example.com"
+to 0 display="François Иванов" spec="f@mail.example.net"
+to 1 display="Дмитрий Schröder" spec="schrder@corp.example.co.uk"
+to 2 display="" spec="cgarca@eu.example.de"
+to 3 display="Ελένη Nguyen" spec="nguyen@students.example.ac.jp"
+to 4 display="van der Berg, Luis" spec="lvanderberg.17@mail.example.net"
+to 5 display="Nguyen, Ann" spec="anguyen.51@lists.example.edu"
+to 6 display="Björn van der Berg" spec="bvanderberg.58@post.example.fr"
+to 7 display="François Fernández" spec="ffernndez.25@example.org"
+to 8 display="François Schröder" spec="fschrder.32@post.example.fr"
+to 9 display="Jörg Smith" spec="jsmith@dev.example.io"
+to 10 display="Kowalski, Luis" spec="lkowalski@students.example.ac.jp"
+to 11 display="Jörg Smith" spec="jsmith@post.example.fr"
+cc 0 display="Đorđe Nakamura" spec="nakamura.20@lists.example.edu"
+cc 1 display="Johansson, Erik" spec="ejohansson.82@students.example.ac.jp"
+cc 2 display="" spec="gsmith@students.example.ac.jp"
+cc 3 display="Nguyen, Quinn" spec="qnguyen@example.com"
+cc 4 display="Johansson, Carl" spec="cjohansson@example.com"
+cc 5 display="Xavier Müller" spec="xmller.60@students.example.ac.jp"
+cc 6 display="Yuki Wilson" spec="ywilson.73@dev.example.io"
+cc 7 display="Smith, Sven" spec="ssmith.65@corp.example.co.uk"
+cc 8 display="" spec="rfernndez.94@example.org"
+cc 9 display="" spec="obrien@corp.example.co.uk"
+cc 10 display="Hana Иванов" spec="h@example.com"
+cc 11 display="O'Brien, Olga" spec="oobrien.93@lists.example.edu"
+cc 12 display="Doe, Ivan" spec="idoe@corp.example.co.uk"
+cc 13 display="Дмитрий Doe" spec="doe@mail.example.net"
+cc 14 display="Dubois, Fiona" spec="fdubois@lists.example.edu"
+cc 15 display="Ann Kowalski" spec="akowalski@eu.example.de"
+cc 16 display="Björn Müller" spec="bmller.34@example.com"
+cc 17 display="" spec="spapadopoulos@apache.org"
+cc 18 display="" spec="zkowalski@mail.example.net"
+cc 19 display="Brown, Erik" spec="ebrown@eu.example.de"
+cc 20 display="Doe, Karin" spec="kdoe@students.example.ac.jp"
+cc 21 display="" spec="petrov.80@corp.example.co.uk"
+cc 22 display="Bob Kowalski" spec="bkowalski.20@example.com"
+cc 23 display="Ann van der Berg" spec="avanderberg.46@students.example.ac.jp"
+cc 24 display="Sven García" spec="sgarca@apache.org"
+cc 25 display="" spec="xvanderberg@mail.example.net"
+bcc 0 display="Papadopoulos, Pierre" spec="ppapadopoulos@post.example.fr"
+bcc 1 display="Quinn Wilson" spec="qwilson.57@dev.example.io"
+bcc 2 display="" spec="epetrov@apache.org"
+bcc 3 display="Agnieszka Kim" spec="akim@corp.example.co.uk"
+bcc 4 display="" spec="knguyen@example.com"
+bcc 5 display="Xavier Nakamura" spec="xnakamura@lists.example.edu"
+bcc 6 display="Tomás Johansson" spec="tjohansson@students.example.ac.jp"
+bcc 7 display="" spec="nguyen.2@students.example.ac.jp"
+bcc 8 display="Łukasz Schröder" spec="schrder@eu.example.de"
+bcc 9 display="" spec="lpapadopoulos@corp.example.co.uk"
+bcc 10 display="François Lefèvre" spec="flefvre@example.com"
+bcc 11 display="Hana Nguyen" spec="hnguyen.52@example.com"
+bcc 12 display="Sven Иванов" spec="s@corp.example.co.uk"
+bcc 13 display="" spec="o.41@dev.example.io"
+bcc 14 display="Dana Nguyen" spec="dnguyen@example.com"
+bcc 15 display="Łukasz Doe" spec="doe@mail.example.net"
+bcc 16 display="Erik Lefèvre" spec="elefvre@post.example.fr"
+bcc 17 display="Nils O'Brien" spec="nobrien@example.org"
+bcc 18 display="Erik Rossi" spec="erossi.38@dev.example.io"
+bcc 19 display="Taylor, Karin" spec="ktaylor@example.com"
+
+[date]
+raw " Mon, 20 Oct 2004 04:15:51 MET"
+valid yes
+utc 2004-10-20T04:15:51Z
+offset +0000
+epoch 1098245751
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=446 adler32=d98d9968 role=text
+
+[body]
+text 0 chars 446
+| Does all a said for self with which the of first has her that S?o your
+| big you. It act his as too and but by the where certificate was sound of
+| for day ?lan.
+| 
+| Write go fianc?e on na?ve other do she of had. Do all config when the
+| na?ve put your could rewrite Gr??e release part the the commit call! A
+| went through and is the hand they at just cache home to your be pool
+| work need? Make header filter be you the d?j? where how.
+| 
+| -- 
+| Erik Fern?ndez
+html none
+
+[attachments]

@@ -1,0 +1,14 @@
++++
+title = "The Bald Knight"
+date = "2019-03-22"
+slug = "the-bald-knight"
+tags = ["Fables"]
++++
+A **BALD KNIGHT**, who wore a wig, went out to hunt. A sudden puff of wind
+blew off his hat and wig, at which a loud laugh rang forth from his
+companions. He pulled up his horse, and with great glee joined in the
+joke by saying, “What a marvel it is that hairs which are not mine
+should fly from me, when they have forsaken even the man on whose head
+they grew.”
+
+Read the whole collection at [Project Gutenberg](https://www.gutenberg.org/ebooks/21).

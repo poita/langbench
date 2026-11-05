@@ -1,0 +1,12 @@
+@module main
+fn main() {
+    var xs: [fn() -> Int] = listNew();
+    var i = 0;
+    while i < 3 {
+        let j = i;
+        push(xs, || j);
+        i = i + 1;
+    }
+    for f in xs { emit(showInt(f())); }
+    print("");
+}

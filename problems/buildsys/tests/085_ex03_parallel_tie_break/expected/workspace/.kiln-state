@@ -1,0 +1,25 @@
+kiln-state 1
+step out/a.txt
+cmd write("A\n")
+out out/a.txt 09089c07b5a14cd2
+end
+step out/all.txt
+cmd concat()
+in out/a.txt 09089c07b5a14cd2
+in out/b.txt 0912de07b5aa117d
+in out/c.txt 090f7407b5a72788
+in out/d.txt 08fe7607b598b7bb
+out out/all.txt dc1432c2d0222709
+end
+step out/b.txt
+cmd write("B\n")
+out out/b.txt 0912de07b5aa117d
+end
+step out/c.txt
+cmd write("C\n")
+out out/c.txt 090f7407b5a72788
+end
+step out/d.txt
+cmd write("D\n")
+out out/d.txt 08fe7607b598b7bb
+end

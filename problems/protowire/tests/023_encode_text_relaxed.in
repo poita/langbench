@@ -1,0 +1,22 @@
+message E { int32 a = 1; string s = 2; bool b = 3; Sub m = 4; repeated int32 r = 5; uint32 u = 6; bytes y = 7; repeated Sub ms = 8; }
+message Sub { int32 v = 1; repeated string t = 2; }
+--
+encode E {a:1}
+encode E {a:1,s:"x",b:true,m:{v:2},r:[1,2,3],u:4,y:x"05",ms:[{},{v:1,t:["a","b"]}]}
+encode E {  a  :  1  ,  s  :  "x"  ,  r  :  [  1  ,  2  ]  ,  m  :  {  v  :  2  }  }
+encode E {ms: [{v: 1}], y: x"05", u: 4, r: [1, 2, 3], m: {v: 2}, b: true, s: "x", a: 1}
+encode E {a: 0, s: "", b: false, r: [], u: 0, y: x""}
+encode E {u: 0, a: 5, m: {v: 0, t: []}, s: ""}
+encode E {s: "spaces   inside , and : and } and ] and \" too"}
+encode E {s: "{}[],:"}
+encode E {ms: [{t: ["x y", "z"]}, {}]}
+encode E {r: [1,2,3]}
+encode E {r: [ 1 ]}
+encode E {r:[]}
+encode E {m:{}}
+encode E {m: { }}
+encode E {y: x"0a0b"}
+encode E {s: "\x7e\x7f\x20"}
+encode E {s: "\xF0\x9F\x98\x80"}
+encode E   {a: 1}
+encode E {a: 1}  

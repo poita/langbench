@@ -1,0 +1,27 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$ref": "urn:uuid:deadbeef-4321-ffff-ffff-1234feebdaed",
+    "$defs": {
+      "foo": {
+        "$id": "urn:uuid:deadbeef-4321-ffff-ffff-1234feebdaed",
+        "$defs": {
+          "bar": {
+            "type": "string"
+          }
+        },
+        "$ref": "#/$defs/bar"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "a string is valid",
+      "data": "bar"
+    },
+    {
+      "description": "a non-string is invalid",
+      "data": 12
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+step {
+    out "out/w.txt"
+    cmd write("a\\b\"c\nd\te\r\0ü\n")
+}
+step {
+    out "out/e.txt"
+    cmd write("")
+}
+step {
+    out "out/h.txt"
+    in ["out/w.txt", "out/e.txt"]
+    cmd hash()
+}
+default "out/h.txt"

@@ -1,0 +1,103 @@
+[message]
+id 0030
+source "mbox:30"
+
+[headers]
+received: "from lists.example.edu (mx8.post.example.fr [110.174.33.213]) by dev.example.io (Postfix) with ESMTP id A7387DCCC5 for <lstergaard@post.example.fr>; Thu, 10 Mar 2003 16:31:55 -0400"
+received: "from lists.example.edu (mx6.students.example.ac.jp [3.176.23.155]) by example.com (Postfix) with ESMTP id 2328715A15 for <ffernndez@students.example.ac.jp>; Fri, 06 Jun 2025 00:03:20 -0800 (GMT)"
+received: "from post.example.fr (mx8.lists.example.edu [104.54.208.44]) by dev.example.io (Postfix) with ESMTP id 1AAE42E65D for <tkim.78@example.com>; Sun, 10 May 2025 05:16:06 MET"
+return-path: "<brown@corp.example.co.uk>"
+message-id: "<222.68e8b35b.76916@students.example.ac.jp>"
+in-reply-to: "<224.5354dcca.52731@corp.example.co.uk>"
+references: "<223.b5c5aa93.75758@eu.example.de> <224.5354dcca.52731@corp.example.co.uk>"
+date: "Tue, 10 Nov 2012 01:24:57 -0400"
+from: "nakamura.18@eu.example.de"
+to: "w@mail.example.net, François Schröder <fschrder@post.example.fr>,\tIvan Rossi <irossi@students.example.ac.jp>,    \"Nakamura, Greg\" <gnakamura.15@dev.example.io>,    Björn Petrov <bpetrov@eu.example.de>,    William Wilson <wwilson.2@lists.example.edu>, Ελένη Kim <kim@post.example.fr>, wobrien@post.example.fr,    \"Kim, Fiona\" <fkim.68@apache.org>,\tRémi O'Brien <robrien@eu.example.de>, \"Johansson, Ann\" <ajohansson@example.com>,    Karin Papadopoulos <kpapadopoulos@example.com>, mller.26@dev.example.io,\tusmith.95@students.example.ac.jp"
+cc: "\"Doe, Bob\" <bdoe@corp.example.co.uk>"
+subject: "Re: Us write Zürich"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+resent-date: "Thu Dec 21 18:20:30 2018 CST"
+resent-date: "Wed, 1 Aug 2025 05:31:41 +0900"
+resent-date: "Thu, 15 May 2003 06:05:55 +0000"
+bcc: "\"Rossi, Hana\" <hrossi.2@dev.example.io>,\tzjohansson@students.example.ac.jp, William Taylor <wtaylor@apache.org>,\t\"Nguyen, Fiona\" <fnguyen.41@example.org>,\tFrançois Schröder <fschrder@example.org>, brown@eu.example.de, Carl Kim <ckim@example.org>,    Ann Иванов <a@lists.example.edu>,    \"Johansson, Yuki\" <yjohansson.61@example.org>, Uwe Fernández <ufernndez@students.example.ac.jp>,    Ελένη Nguyen <nguyen@dev.example.io>,    Rémi Müller <rmller.16@lists.example.edu>,\tДмитрий Rossi <rossi.28@example.org>"
+bcc: "kobrien.4@corp.example.co.uk (Karin O'Brien), Björn Dubois <bdubois.34@apache.org>,    Søren Brown <sbrown@post.example.fr>,\tZoë Papadopoulos <zpapadopoulos@lists.example.edu>, eobrien@dev.example.io, Chloé Wilson <cwilson@apache.org>,    inguyen.8@example.org (Ivan Nguyen),\tŁukasz Fernández <fernndez@lists.example.edu>, \"Doe, Nils\" <ndoe@eu.example.de>, \"Vera Taylor\" <vtaylor@apache.org>,    Carl Nguyen <cnguyen@eu.example.de>, Greg Kim <gkim@apache.org>, Olga Østergaard <ostergaard@lists.example.edu>"
+thread-topic: "Of under up or where all her like?"
+comments: "And the the of  change work have on  hand here."
+sender: "Greg Schröder <gschrder@corp.example.co.uk>"
+content-type: "text/plain; CHARSET=UTF-8"
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="" spec="nakamura.18@eu.example.de"
+sender 0 display="Greg Schröder" spec="gschrder@corp.example.co.uk"
+to 0 display="" spec="w@mail.example.net"
+to 1 display="François Schröder" spec="fschrder@post.example.fr"
+to 2 display="Ivan Rossi" spec="irossi@students.example.ac.jp"
+to 3 display="Nakamura, Greg" spec="gnakamura.15@dev.example.io"
+to 4 display="Björn Petrov" spec="bpetrov@eu.example.de"
+to 5 display="William Wilson" spec="wwilson.2@lists.example.edu"
+to 6 display="Ελένη Kim" spec="kim@post.example.fr"
+to 7 display="" spec="wobrien@post.example.fr"
+to 8 display="Kim, Fiona" spec="fkim.68@apache.org"
+to 9 display="Rémi O'Brien" spec="robrien@eu.example.de"
+to 10 display="Johansson, Ann" spec="ajohansson@example.com"
+to 11 display="Karin Papadopoulos" spec="kpapadopoulos@example.com"
+to 12 display="" spec="mller.26@dev.example.io"
+to 13 display="" spec="usmith.95@students.example.ac.jp"
+cc 0 display="Doe, Bob" spec="bdoe@corp.example.co.uk"
+bcc 0 display="Rossi, Hana" spec="hrossi.2@dev.example.io"
+bcc 1 display="" spec="zjohansson@students.example.ac.jp"
+bcc 2 display="William Taylor" spec="wtaylor@apache.org"
+bcc 3 display="Nguyen, Fiona" spec="fnguyen.41@example.org"
+bcc 4 display="François Schröder" spec="fschrder@example.org"
+bcc 5 display="" spec="brown@eu.example.de"
+bcc 6 display="Carl Kim" spec="ckim@example.org"
+bcc 7 display="Ann Иванов" spec="a@lists.example.edu"
+bcc 8 display="Johansson, Yuki" spec="yjohansson.61@example.org"
+bcc 9 display="Uwe Fernández" spec="ufernndez@students.example.ac.jp"
+bcc 10 display="Ελένη Nguyen" spec="nguyen@dev.example.io"
+bcc 11 display="Rémi Müller" spec="rmller.16@lists.example.edu"
+bcc 12 display="Дмитрий Rossi" spec="rossi.28@example.org"
+bcc 13 display="" spec="kobrien.4@corp.example.co.uk"
+bcc 14 display="Björn Dubois" spec="bdubois.34@apache.org"
+bcc 15 display="Søren Brown" spec="sbrown@post.example.fr"
+bcc 16 display="Zoë Papadopoulos" spec="zpapadopoulos@lists.example.edu"
+bcc 17 display="" spec="eobrien@dev.example.io"
+bcc 18 display="Chloé Wilson" spec="cwilson@apache.org"
+bcc 19 display="" spec="inguyen.8@example.org"
+bcc 20 display="Łukasz Fernández" spec="fernndez@lists.example.edu"
+bcc 21 display="Doe, Nils" spec="ndoe@eu.example.de"
+bcc 22 display="Vera Taylor" spec="vtaylor@apache.org"
+bcc 23 display="Carl Nguyen" spec="cnguyen@eu.example.de"
+bcc 24 display="Greg Kim" spec="gkim@apache.org"
+bcc 25 display="Olga Østergaard" spec="ostergaard@lists.example.edu"
+
+[date]
+raw " Tue, 10 Nov 2012 01:24:57 -0400"
+valid yes
+utc 2012-11-10T05:24:57Z
+offset -0400
+epoch 1352525097
+
+[structure]
+0 text/plain charset=utf-8 cte=base64 size=580 adler32=ff64cd5e role=text
+
+[body]
+text 0 chars 574
+| Name naïve number from new set Málaga their for brigade help change!
+| Handler up to a what. So these have as write was high even move. The end
+| config or to the proxy he word a of one? Coöperate first little like as
+| a the of this.
+| 
+| Crème to out will a! The about your was we response can than! Of has so
+| act his read their request that off rewrite! Sound certificate such a
+| know. Large résumé you as has that I water with be bug made release act
+| long in side look! Are right hook look give word such that then he has
+| the is the. My the number their help the.
+| 
+| -- 
+| Quinn Smith
+html none
+
+[attachments]

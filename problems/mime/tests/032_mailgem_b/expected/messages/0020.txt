@@ -1,0 +1,29 @@
+[message]
+id 0020
+source "japanese_iso_2022.eml"
+
+[headers]
+mime-version: "1.0"
+subject: "まみむめも"
+from: "Mikel Lindsaar <raasdnil@gmail.com>"
+to: "みける <raasdnil@gmail.com>"
+content-type: "text/plain; charset=iso-2022-jp"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Mikel Lindsaar" spec="raasdnil@gmail.com"
+to 0 display="みける" spec="raasdnil@gmail.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=iso-2022-jp cte=7bit size=20 adler32=297803b7 role=text
+
+[body]
+text 0 chars 20
+| \x1b$B$9$_$^$;$s!#\x1b(B
+| 
+html none
+
+[attachments]

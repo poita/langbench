@@ -1,0 +1,41 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "$ref": "#"
+      }
+    },
+    "additionalProperties": false
+  },
+  "tests": [
+    {
+      "description": "match",
+      "data": {
+        "foo": false
+      }
+    },
+    {
+      "description": "recursive match",
+      "data": {
+        "foo": {
+          "foo": false
+        }
+      }
+    },
+    {
+      "description": "mismatch",
+      "data": {
+        "bar": false
+      }
+    },
+    {
+      "description": "recursive mismatch",
+      "data": {
+        "foo": {
+          "bar": false
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+set A1 5
+set A2 "yes"
+set B1 =IF(1,10,20)
+set B2 =IF(0,10,20)
+set B3 =IF("a",1,2)
+set B4 =IF(1/0,1,2)
+set B5 =IF(1,5,1/0)
+set B6 =IF(0,1/0,"no")
+set B7 =IF(A1>5,"big","small")
+set B8 =IF(Z1,1,2)
+set B9 =IF(A1,IF(A1>3,"gt3","le3"),"zero")
+set B10 =IF(1,Z1,7)
+set B11 =IF(1,"",2)
+set B12 =IF(A1=5,A2,"no")
+set B13 =IF(A1-5,1,2)
+set B14 =IF(-0.5,1,2)
+set B15 =IF(A1>1,A1*2,A1/2)+1
+set B16 =IF(A1,A2,0)&"!"
+set B17 =IF(A2="yes",1,0)
+set B18 =IF(A2,1,0)
+set B19 =IF(IF(1,0,1),"a","b")
+set B20 =IF(1,1/0,2)
+set B21 =IF(0,"x",Z1)
+get B11
+dump

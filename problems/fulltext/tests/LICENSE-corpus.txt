@@ -1,0 +1,70 @@
+Corpus provenance and licence
+=============================
+
+Project Gutenberg texts
+-----------------------
+
+The 36 `*.txt` files in this directory are the bodies of public-domain works
+obtained from Project Gutenberg (https://www.gutenberg.org/).  `make_corpus.py`
+downloaded each one, kept only the text between the `*** START OF THE PROJECT
+GUTENBERG EBOOK ***` and `*** END OF THE PROJECT GUTENBERG EBOOK ***` markers,
+and then removed every line mentioning Project Gutenberg.  The files therefore
+contain none of Project Gutenberg's header, footer, licence or trademark text,
+and carry no Project Gutenberg licence obligations.
+
+The underlying works are in the public domain in the United States and in most
+other jurisdictions; every author and translator died before 1950.
+
+  alice.txt                  Alice's Adventures in Wonderland, Lewis Carroll (#11)
+  anne-of-green-gables.txt   Anne of Green Gables, L. M. Montgomery (#45)
+  being-earnest.txt          The Importance of Being Earnest, Oscar Wilde (#844)
+  call-of-the-wild.txt       The Call of the Wild, Jack London (#215)
+  christmas-carol.txt        A Christmas Carol, Charles Dickens (#46)
+  dolls-house.txt            A Doll's House, Henrik Ibsen (#2542)
+  dorian-gray.txt            The Picture of Dorian Gray, Oscar Wilde (#174)
+  douglass.txt               Narrative of the Life of Frederick Douglass (#23)
+  dracula.txt                Dracula, Bram Stoker (#345)
+  dubliners.txt              Dubliners, James Joyce (#2814)
+  emma.txt                   Emma, Jane Austen (#158)
+  frankenstein.txt           Frankenstein, Mary Wollstonecraft Shelley (#84)
+  great-expectations.txt     Great Expectations, Charles Dickens (#1400)
+  grimms-fairy-tales.txt     Grimms' Fairy Tales, Jacob and Wilhelm Grimm (#2591)
+  heart-of-darkness.txt      Heart of Darkness, Joseph Conrad (#219)
+  huckleberry-finn.txt       Adventures of Huckleberry Finn, Mark Twain (#76)
+  jane-eyre.txt              Jane Eyre, Charlotte Bronte (#1260)
+  jekyll-hyde.txt            The Strange Case of Dr. Jekyll and Mr. Hyde (#43)
+  looking-glass.txt          Through the Looking-Glass, Lewis Carroll (#12)
+  modest-proposal.txt        A Modest Proposal, Jonathan Swift (#1080)
+  odyssey.txt                The Odyssey, Homer, tr. Samuel Butler (#1727)
+  peter-pan.txt              Peter Pan, J. M. Barrie (#16)
+  pride-and-prejudice.txt    Pride and Prejudice, Jane Austen (#1342)
+  sense-and-sensibility.txt  Sense and Sensibility, Jane Austen (#161)
+  sherlock-holmes.txt        The Adventures of Sherlock Holmes, A. C. Doyle (#1661)
+  the-prince.txt             The Prince, Niccolo Machiavelli (#1232)
+  time-machine.txt           The Time Machine, H. G. Wells (#35)
+  tom-sawyer.txt             The Adventures of Tom Sawyer, Mark Twain (#74)
+  treasure-island.txt        Treasure Island, Robert Louis Stevenson (#120)
+  two-cities.txt             A Tale of Two Cities, Charles Dickens (#98)
+  walden.txt                 Walden, Henry David Thoreau (#205)
+  war-of-the-worlds.txt      The War of the Worlds, H. G. Wells (#36)
+  wizard-of-oz.txt           The Wonderful Wizard of Oz, L. Frank Baum (#55)
+  wuthering-heights.txt      Wuthering Heights, Emily Bronte (#768)
+  yellow-wallpaper.txt       The Yellow Wallpaper, C. P. Gilman (#1952)
+  zarathustra.txt            Thus Spake Zarathustra, F. Nietzsche (#1998)
+
+The numbers in brackets are Project Gutenberg ebook numbers; the originals are
+at https://www.gutenberg.org/ebooks/<number>.
+
+
+Porter stemmer test vocabulary
+------------------------------
+
+  porter/voc.txt     23531 words
+  porter/output.txt  their stems
+
+These are Martin Porter's own test files for the 1980 stemming algorithm,
+from https://tartarus.org/martin/PorterStemmer/.  Porter placed the algorithm
+and all of its accompanying material in the public domain: "the software is
+completely free for any purpose" (https://tartarus.org/martin/PorterStemmer/).
+gen_tests.py uses them purely as an oracle for the reference stemmer, and
+derives the documents of tests/017_porter_vocabulary from voc.txt.

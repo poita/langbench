@@ -1,0 +1,7 @@
+@module main
+fn fib(n: Int) -> Int { if n < 2 { n } else { fib(n - 1) + fib(n - 2) } }
+fn main() {
+    for n in [0, 1, 2, 10, 20] { emit(showInt(fib(n)) ++ " "); }
+    print("");
+    print(showInt(fib(28)));
+}

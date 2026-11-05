@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "anyOf": [
+      {
+        "type": "integer"
+      },
+      {
+        "minimum": 2
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "first anyOf valid",
+      "data": 1
+    },
+    {
+      "description": "second anyOf valid",
+      "data": 2.5
+    },
+    {
+      "description": "both anyOf valid",
+      "data": 3
+    },
+    {
+      "description": "neither anyOf valid",
+      "data": 1.5
+    }
+  ]
+}

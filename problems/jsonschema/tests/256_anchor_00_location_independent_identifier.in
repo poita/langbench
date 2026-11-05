@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$ref": "#foo",
+    "$defs": {
+      "A": {
+        "$anchor": "foo",
+        "type": "integer"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "match",
+      "data": 1
+    },
+    {
+      "description": "mismatch",
+      "data": "a"
+    }
+  ]
+}

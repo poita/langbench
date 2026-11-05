@@ -1,0 +1,56 @@
+[message]
+id 0231
+source "mbox:231"
+
+[headers]
+received: "from apache.org (mx3.corp.example.co.uk [126.167.118.109]) by example.com (Postfix) with ESMTP id CD0806C950 for <pvanderberg@mail.example.net>; Fri, 13 Nov 2024 03:39:02 UT"
+received: "from lists.example.edu (mx8.mail.example.net [99.146.3.55]) by example.com (Postfix) with ESMTP id 7D78E7E473 for <ikowalski.91@students.example.ac.jp>; Fri Dec 19 20:16:32 2005 -0800"
+return-path: "<garca@eu.example.de>"
+message-id: "<1465.ce0bc714.46283@corp.example.co.uk>"
+date: "31 Feb 2004 10:00:00 +0000"
+from: "inguyen@example.org"
+to: "Дмитрий O'Brien <obrien@post.example.fr>"
+cc: "Hana Schröder <hschrder@lists.example.edu>"
+subject: "Re: [PATCH] With the build"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=utf-8"
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="" spec="inguyen@example.org"
+to 0 display="Дмитрий O'Brien" spec="obrien@post.example.fr"
+cc 0 display="Hana Schröder" spec="hschrder@lists.example.edu"
+
+[date]
+raw " 31 Feb 2004 10:00:00 +0000"
+valid no
+
+[structure]
+0 text/plain charset=utf-8 cte=base64 size=690 adler32=d1a4f2df role=text
+
+[body]
+text 0 chars 676
+| On Sat, 28 Aug 2005 13:26:39 +0900, Björn Østergaard wrote:
+| > > We earth Ångström the you build and which. Mean to about have is at
+| >> more trunk water the with change low such see said. The it the there
+| > where smörgåsbord with some. Vhost the in here in the. But I on for
+| >> he! His brûlée again café after the come think think warning her
+| > > give was near build them do end. At the this where and for your but
+| > they think a Größe than want.
+| >
+| 
+| And crème are even help error certificate what her your. Some do people
+| in with.
+| 
+| Your that so apr vhost went. Most help read of are it. Zürich have that
+| must same this how name first you in header ask so?
+| 
+| -- 
+| Søren Johansson
+html none
+
+[attachments]

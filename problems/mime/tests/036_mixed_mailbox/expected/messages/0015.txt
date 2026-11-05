@@ -1,0 +1,73 @@
+[message]
+id 0015
+source "mbox:15"
+
+[headers]
+received: "from mail.example.net (mx8.lists.example.edu [223.171.180.247]) by corp.example.co.uk (Postfix) with ESMTP id 5676EF2E85 for <umller@eu.example.de>; Tue, 1 Feb 2025 19:10:44 -0800"
+received: "from post.example.fr (mx5.students.example.ac.jp [88.80.234.151]) by example.org (Postfix) with ESMTP id 2C906BA3E3 for <astergaard.57@corp.example.co.uk>; sun,16 dec 2024 13:5:58 (comment (nested)) +1000"
+received: "from example.com (mx8.apache.org [221.49.156.182]) by example.org (Postfix) with ESMTP id 9333DD59BA for <tnguyen@corp.example.co.uk>; 19 OCT 03 09:31 +0900"
+received: "from eu.example.de (mx3.post.example.fr [83.93.196.245]) by mail.example.net (Postfix) with ESMTP id 55F1118795 for <jschrder@post.example.fr>; 25 FEB 05 18:05 +1245"
+return-path: "<nfernndez.26@apache.org>"
+message-id: "<139.08c40666.6031@corp.example.co.uk>"
+date: "Sun, 09 Oct 2003 13:27:27 +0530 (EDT)"
+from: "Jörg Doe <jdoe@corp.example.co.uk>"
+to: "ykowalski@example.org (Yuki Kowalski),    Dana Østergaard <dstergaard@example.org>"
+cc: "Vera Wilson <vwilson@post.example.fr>"
+subject: "Fwd: But as in on"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=iso-8859-1"
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="Jörg Doe" spec="jdoe@corp.example.co.uk"
+to 0 display="" spec="ykowalski@example.org"
+to 1 display="Dana Østergaard" spec="dstergaard@example.org"
+cc 0 display="Vera Wilson" spec="vwilson@post.example.fr"
+
+[date]
+raw " Sun, 09 Oct 2003 13:27:27 +0530 (EDT)"
+valid yes
+utc 2003-10-09T07:57:27Z
+offset +0530
+epoch 1065686247
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=base64 size=1249 adler32=2a74a85e role=text
+
+[body]
+text 0 chars 1249
+| Man me café again über a for our the to right who hot number be! Way to
+| want with and vote want the made the to is all the home. For the use way
+| the by as me. Small such her error add his turn. Go over tell know about
+| the part make has thread who bug crash be year. Animal bug their call
+| number the from one made self work?
+| 
+| Have keepalive Ångström for we old many your server than there to hot an
+| came! Three has and port like it. For you right thing pool made! Day was
+| that side this part to his three the you this of. The résumé with even
+| as a of have were form your these our kind be you like!
+| 
+| They to and that most review is you before come us help of how then just
+| go. Big very rewrite a the through the but his and them help like could?
+| 
+| Can the the use these she is who élan! Cause would little come error
+| number but after in them the be thread many help! Our most father from
+| live boy from were. Alias they we when vhost Ångström for I earth? From
+| each to vhost that any could how most to to the of to config. Was will
+| branch us the is use and a the up must near how are act.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| ?? Nguyen
+html none
+
+[attachments]

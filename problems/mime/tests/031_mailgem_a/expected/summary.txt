@@ -1,0 +1,27 @@
+messages 26
+0001 source="attachment_content_disposition.eml" bytes=662 parts=3 attachments=1 text=1 html=-
+0002 source="attachment_content_location.eml" bytes=952 parts=3 attachments=1 text=1 html=-
+0003 source="attachment_nonascii_filename.eml" bytes=640 parts=3 attachments=1 text=1 html=-
+0004 source="attachment_only_email.eml" bytes=799 parts=1 attachments=1 text=- html=-
+0005 source="attachment_pdf.eml" bytes=3705 parts=3 attachments=1 text=1 html=-
+0006 source="attachment_pdf_lf.eml" bytes=3705 parts=3 attachments=1 text=1 html=-
+0007 source="attachment_pdf_non_ascii.eml" bytes=3711 parts=3 attachments=1 text=1 html=-
+0008 source="attachment_pdf_non_ascii_lf.eml" bytes=3711 parts=3 attachments=1 text=1 html=-
+0009 source="attachment_with_quoted_filename.eml" bytes=3569 parts=2 attachments=1 text=- html=-
+0010 source="bad_date_header.eml" bytes=2396 parts=1 attachments=0 text=- html=0
+0011 source="bad_date_header2.eml" bytes=1107 parts=1 attachments=0 text=- html=-
+0012 source="bad_encoded_subject.eml" bytes=34 parts=1 attachments=0 text=0 html=-
+0013 source="bad_subject.eml" bytes=2675 parts=3 attachments=0 text=1 html=2
+0014 source="basic_email.eml" bytes=1519 parts=1 attachments=0 text=0 html=-
+0015 source="basic_email_lf.eml" bytes=1519 parts=1 attachments=0 text=0 html=-
+0016 source="cant_parse_from.eml" bytes=1076 parts=3 attachments=0 text=1 html=2
+0017 source="content_transfer_encoding_7-bit.eml" bytes=18235 parts=3 attachments=0 text=1 html=2
+0018 source="content_transfer_encoding_empty.eml" bytes=2266 parts=1 attachments=0 text=- html=0
+0019 source="content_transfer_encoding_plain.eml" bytes=6210 parts=1 attachments=0 text=0 html=-
+0020 source="content_transfer_encoding_qp_with_space.eml" bytes=1864 parts=3 attachments=0 text=1 html=2
+0021 source="content_transfer_encoding_spam.eml" bytes=1982 parts=1 attachments=0 text=0 html=-
+0022 source="content_transfer_encoding_text-html.eml" bytes=1868 parts=2 attachments=0 text=- html=1
+0023 source="content_transfer_encoding_with_8bits.eml" bytes=35605 parts=1 attachments=0 text=- html=0
+0024 source="content_transfer_encoding_with_semi_colon.eml" bytes=8080 parts=3 attachments=0 text=1 html=2
+0025 source="content_transfer_encoding_x_uuencode.eml" bytes=4044 parts=3 attachments=1 text=1 html=-
+0026 source="email_with_similar_boundaries.eml" bytes=1416 parts=5 attachments=1 text=2 html=3

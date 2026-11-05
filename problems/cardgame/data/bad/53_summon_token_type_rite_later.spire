@@ -1,0 +1,3 @@
+(card AAA-002 (name "Two") (type rite) (cost 1) (resolve (nothing)))
+(card AAA-001 (name "One") (type unit) (cost 1) (body 1 1)
+  (on arrive (summon AAA-002 1 you)))

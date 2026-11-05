@@ -1,0 +1,14 @@
+kiln-state 1
+step out/a.txt
+cmd write("A\n")
+out out/a.txt 09089c07b5a14cd2
+end
+step out/b.txt
+cmd copy()
+in out/a.txt 09089c07b5a14cd2
+out out/b.txt 09089c07b5a14cd2
+end
+step out/idle.txt
+cmd write("idle\n")
+out out/idle.txt a517343b47a0d47b
+end

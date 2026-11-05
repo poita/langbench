@@ -1,0 +1,37 @@
+[message]
+id 0008
+source "re-fwd.eml"
+
+[headers]
+content-disposition: "inline"
+content-transfer-encoding: "binary"
+content-type: "message/rfc822"
+mime-version: "1.0"
+x-mailer: "MIME::Lite 1.147  (B2.09; Q2.03)"
+date: "Tue, 6 Jun 2000 03:20:11 UT"
+from: "user2"
+to: "user0"
+subject: "Re: Fwd: hello world"
+
+[addresses]
+from 0 display="" spec="user2"
+to 0 display="" spec="user0"
+
+[date]
+raw " Tue, 6 Jun 2000 03:20:11 UT"
+valid yes
+utc 2000-06-06T03:20:11Z
+offset +0000
+epoch 960261611
+
+[structure]
+0 message/rfc822 cte=binary disposition=inline parts=1
+  1 message/rfc822 cte=binary disposition=inline parts=1
+    2 text/plain charset=us-ascii cte=binary disposition=inline size=60 adler32=82b41446 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+2 type=text/plain filename=- size=60 adler32=82b41446 file=parts/0008/002.bin

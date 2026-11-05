@@ -1,0 +1,50 @@
+step 1: edit src/root.txt
+  ok size=11
+step 2: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_PATH ../x
+step 3: edit src/root.txt
+  ok size=13
+step 4: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_PATH /abs/x
+step 5: edit src/root.txt
+  ok size=18
+step 6: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_PATH src/a b.txt
+step 7: edit src/root.txt
+  ok size=22
+step 8: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_MISSING src/missing.txt needed by src/root.txt
+step 9: edit src/root.txt
+  ok size=21
+step 10: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_MISSING src/gone.txt needed by src/mid.txt
+step 11: edit src/root.txt
+  ok size=19
+step 12: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_CYCLE src/root.txt
+step 13: edit src/root.txt
+  ok size=23
+step 14: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_CYCLE src/selfloop.txt
+step 15: edit src/root.txt
+  ok size=19
+step 16: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_CYCLE src/cyc1.txt
+step 17: edit src/root.txt
+  ok size=37
+step 18: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_MISSING src/missing.txt needed by src/root.txt
+step 19: edit src/root.txt
+  ok size=39
+step 20: build (default) -j 1
+  fail 0 6 w0 out/doc.txt preprocess()
+  error E_NEED_MISSING src/missing.txt needed by src/root.txt

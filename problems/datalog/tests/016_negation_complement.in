@@ -1,0 +1,10 @@
+all(1). all(2). all(3). all(4). all(a). all(b).
+sub(2). sub(a). sub(zzz).
+rest(X) :- all(X), not sub(X).
+none(X) :- all(X), not all(X).
+missing(X) :- sub(X), not all(X).
+gone(X, Y) :- all(X), all(Y), not sub(X), not sub(Y), X < Y.
+?- rest(X).
+?- none(X).
+?- missing(X).
+?- gone(X, Y).

@@ -1,0 +1,28 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "propertyNames": {
+      "pattern": "^a+$"
+    }
+  },
+  "tests": [
+    {
+      "description": "matching property names valid",
+      "data": {
+        "a": {},
+        "aa": {},
+        "aaa": {}
+      }
+    },
+    {
+      "description": "non-matching property name is invalid",
+      "data": {
+        "aaA": {}
+      }
+    },
+    {
+      "description": "object without properties is valid",
+      "data": {}
+    }
+  ]
+}

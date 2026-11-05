@@ -1,0 +1,27 @@
+step {
+    out "out/a.txt"
+    cmd write("A\n")
+    cost 3
+}
+step {
+    out "out/b.txt"
+    cmd write("B\n")
+    cost 1
+}
+step {
+    out "out/c.txt"
+    cmd write("C\n")
+    cost 4
+}
+step {
+    out "out/d.txt"
+    cmd write("D\n")
+    cost 2
+}
+step {
+    out "out/all.txt"
+    in ["out/a.txt", "out/b.txt", "out/c.txt", "out/d.txt"]
+    cmd concat()
+    cost 2
+}
+default "out/all.txt"

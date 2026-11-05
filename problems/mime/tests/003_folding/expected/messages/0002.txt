@@ -1,0 +1,26 @@
+[message]
+id 0002
+source "folded.eml"
+
+[headers]
+subject: "a long subject that was folded\tand folded again"
+x-empty: ""
+x-nospace: "value"
+x-spaced: "lots   of   space"
+x-dup: "first"
+x-dup: "second"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

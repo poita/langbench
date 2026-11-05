@@ -1,0 +1,57 @@
+[message]
+id 0018
+source "frag.eml"
+
+[headers]
+return-path: "<omrec@mailandnews.com>"
+received: "from virtual.mrf.mail.rcn.net ([207.172.4.103]) by mta05.mrf.mail.rcn.net (InterMail vM.4.01.02.27 201-229-119-110) with ESMTP id <20000524184032.XKFS1688.mta05.mrf.mail.rcn.net@virtual.mrf.mail.rcn.net> for <eryq@mta.mrf.mail.rcn.net>; Wed, 24 May 2000 14:40:32 -0400"
+received: "from mail.desktop.com ([166.90.128.242]) by virtual.mrf.mail.rcn.net with esmtp (Exim 2.12 #3) id 12ug50-00059f-00 for eryq@zeegee.com; Wed, 24 May 2000 14:40:30 -0400"
+received: "from mailandnews.com (jumpgate.desktop.com [166.90.128.243]) by mail.desktop.com (8.9.2/8.9.2) with ESMTP id LAA31102 for <eryq@zeegee.com>; Wed, 24 May 2000 11:40:29 -0700 (PDT) (envelope-from omrec@mailandnews.com)"
+message-id: "<392C2385.4C402C55@mailandnews.com>"
+date: "Wed, 24 May 2000 11:46:29 -0700"
+from: "Sven <omrec@mailandnews.com>"
+reply-to: "omrec@mailandnews.com"
+x-mailer: "Mozilla 4.7 [en] (WinNT; I)"
+x-accept-language: "en"
+mime-version: "1.0"
+to: "Eryq <eryq@zeegee.com>"
+subject: "[Fwd: [Fwd: [Fwd: FW: Another Priceless  Moment]]]"
+content-type: "multipart/mixed; boundary=\"------------ABE49921AF9E83E8F9A7667E\""
+x-mozilla-status: "8001"
+
+[addresses]
+from 0 display="Sven" spec="omrec@mailandnews.com"
+reply-to 0 display="" spec="omrec@mailandnews.com"
+to 0 display="Eryq" spec="eryq@zeegee.com"
+
+[date]
+raw " Wed, 24 May 2000 11:46:29 -0700"
+valid yes
+utc 2000-05-24T18:46:29Z
+offset -0700
+epoch 959193989
+
+[structure]
+0 multipart/mixed cte=7bit boundary="------------ABE49921AF9E83E8F9A7667E" parts=2 preamble=44 epilogue=1
+  1 text/plain charset=us-ascii cte=7bit size=1 adler32=000b000b role=text
+  2 message/rfc822 cte=7bit disposition=inline parts=1
+    3 multipart/mixed cte=7bit boundary="------------4CEB5E448DC077F35050C4BE" parts=2 preamble=44 epilogue=1
+      4 text/plain charset=us-ascii cte=7bit size=36 adler32=f4940c90 role=attachment
+      5 message/rfc822 cte=7bit disposition=inline parts=1
+        6 multipart/mixed cte=7bit boundary="------------8B533A82922407D7C3D35A99" parts=2 preamble=44 epilogue=1
+          7 text/plain charset=us-ascii cte=7bit size=1 adler32=000b000b role=attachment
+          8 message/rfc822 cte=7bit disposition=inline parts=1
+            9 multipart/mixed cte=7bit boundary="----_=_NextPart_000_01BFC0CA.C32A4450" parts=2 preamble=136 epilogue=none
+              10 text/plain charset=iso-8859-1 cte=7bit size=389 adler32=3f077c4f role=attachment
+              11 image/jpeg cte=base64 disposition=attachment filename="aprilfools.jpg" size=60896 adler32=3221c39f role=attachment
+
+[body]
+text 1 chars 1
+| 
+html none
+
+[attachments]
+4 type=text/plain filename=- size=36 adler32=f4940c90 file=parts/0018/004.bin
+7 type=text/plain filename=- size=1 adler32=000b000b file=parts/0018/007.bin
+10 type=text/plain filename=- size=389 adler32=3f077c4f file=parts/0018/010.bin
+11 type=image/jpeg filename="aprilfools.jpg" size=60896 adler32=3221c39f file=parts/0018/011.bin

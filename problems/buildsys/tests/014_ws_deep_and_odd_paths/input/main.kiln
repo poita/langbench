@@ -1,0 +1,7 @@
+let xs = sort(glob("**/*.txt"))
+step {
+    out "out/deep/sub/list.txt"
+    in xs
+    cmd count_lines()
+}
+default "out/deep/sub/list.txt"

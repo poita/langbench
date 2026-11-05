@@ -1,0 +1,27 @@
+rev-parse HEAD
+rev-parse main
+rev-parse refs/heads/main
+rev-parse heads/main
+rev-parse side
+rev-parse old
+rev-parse origin/main
+rev-parse refs/remotes/origin/main
+rev-parse remotes/origin/main
+rev-parse origin
+rev-parse remotes/origin
+rev-parse refs/remotes/origin
+rev-parse tags/v0.1
+rev-parse v0.1
+rev-parse v1.0
+rev-parse tags/v1.0
+rev-parse v1.0-signed
+rev-parse blobtag
+rev-parse refs/tags/blobtag
+rev-parse nosuchref
+rev-parse refs/heads/nosuch
+rev-parse 
+rev-parse HEAD 
+rev-parse heads/v0.1
+rev-parse refs/heads/v0.1
+rev-parse config
+rev-parse packed-refs

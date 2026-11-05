@@ -1,0 +1,42 @@
+[message]
+id 0012
+source "raw_email_quoted_with_0d0a.eml"
+
+[headers]
+mime-version: "1.0 (Apple Message framework v730)"
+message-id: "<9169D984-4E0B-45EF-82D4-8F5E53AD7012@example.com>"
+from: "foo@example.com"
+subject: "testing"
+date: "Mon, 6 Jun 2005 22:21:22 +0200"
+to: "blah@example.com"
+content-transfer-encoding: "quoted-printable"
+content-type: "text/plain"
+
+[addresses]
+from 0 display="" spec="foo@example.com"
+to 0 display="" spec="blah@example.com"
+
+[date]
+raw " Mon, 6 Jun 2005 22:21:22 +0200"
+valid yes
+utc 2005-06-06T20:21:22Z
+offset +0200
+epoch 1118089282
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=299 adler32=c6db514e role=text
+
+[body]
+text 0 chars 299
+| A fax has arrived from remote ID ''.\r
+| ------------------------------------------------------------\r
+| Time: 3/9/2006 3:50:52 PM\r
+| Received from remote ID: \r
+| Inbound user ID XXXXXXXXXX, routing code XXXXXXXXX\r
+| Result: (0/352;0/0) Successful Send\r
+| Page record: 1 - 1\r
+| Elapsed time: 00:58 on channel 11\r
+| 
+html none
+
+[attachments]

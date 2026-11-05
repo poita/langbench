@@ -1,0 +1,16 @@
+add a.mtx b.mtx
+mul a.mtx b.mtx
+transpose a.mtx
+lu a.mtx
+det a.mtx
+inv a.mtx
+solve a.mtx r.mtx
+qr a.mtx
+chol s.mtx
+eig s.mtx
+svd a.mtx
+lstsq a.mtx r.mtx
+norm1 a.mtx
+norminf a.mtx
+normfro a.mtx
+cond a.mtx

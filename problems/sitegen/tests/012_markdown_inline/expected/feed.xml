@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Test Site</title>
+  <id>https://example.com/</id>
+  <updated>2020-04-01T00:00:00Z</updated>
+  <link href="https://example.com/" rel="alternate"/>
+  <link href="https://example.com/feed.xml" rel="self"/>
+  <author>
+    <name>A. Author</name>
+  </author>
+  <entry>
+    <title>Inline constructs</title>
+    <id>https://example.com/posts/inline/</id>
+    <updated>2020-04-01T00:00:00Z</updated>
+    <link href="https://example.com/posts/inline/" rel="alternate"/>
+    <content type="html">&lt;p&gt;&lt;em&gt;emphasis&lt;/em&gt;, &lt;em&gt;also emphasis&lt;/em&gt;, &lt;strong&gt;strong&lt;/strong&gt;, &lt;strong&gt;also strong&lt;/strong&gt;, &lt;em&gt;&lt;strong&gt;both&lt;/strong&gt;&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;code span&lt;/code&gt;, &lt;code&gt;a span with ` inside&lt;/code&gt;, and &lt;code&gt;`padded`&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;A &lt;a href="https://example.com/a?b=c&amp;amp;d=e" title="with a title"&gt;link&lt;/a&gt; and
+an &lt;img src="/img/pic.png" alt="image" title="alt title" /&gt; and a &lt;a href="https://example.com/x%20y"&gt;bare&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Autolinks: &lt;a href="https://example.com/auto"&gt;https://example.com/auto&lt;/a&gt; and &lt;a href="mailto:someone@example.com"&gt;someone@example.com&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Entities: &amp;amp; &amp;lt; &amp;gt; &amp;quot; A A and a non-entity &amp;amp;notreal;.&lt;/p&gt;
+&lt;p&gt;Backslash escapes: *not emphasis*, [not a link], \ and `.&lt;/p&gt;
+&lt;p&gt;A hard break at the end of this line&lt;br /&gt;
+and the next line.&lt;/p&gt;
+&lt;p&gt;A hard break with two spaces
+and the next line.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

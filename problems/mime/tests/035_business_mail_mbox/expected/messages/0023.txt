@@ -1,0 +1,76 @@
+[message]
+id 0023
+source "mbox:23"
+
+[headers]
+received: "from eu.example.de (mx6.lists.example.edu [225.54.116.153]) by post.example.fr (Postfix) with ESMTP id C7D04B3F23 for <rdoe@eu.example.de>; Thu, 13 Nov 2004 21:30:33 +0000"
+return-path: "<mller@corp.example.co.uk>"
+message-id: "<295.e673cda3.46206@corp.example.co.uk>"
+date: "Sun, 12 Apr 2018 23:51:01 -0800"
+from: "Pierre Kowalski <pkowalski@students.example.ac.jp>"
+to: "Quinn Papadopoulos <qpapadopoulos@students.example.ac.jp>,\tJörg Petrov <jpetrov@apache.org>, ypapadopoulos@post.example.fr (Yuki Papadopoulos)"
+cc: "\"Dana Petrov\" <dpetrov@students.example.ac.jp>,    Rémi Lefèvre <rlefvre@lists.example.edu>"
+subject: "[VOTE] My for differ mutex thing the the him to water"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 98\""
+
+[addresses]
+from 0 display="Pierre Kowalski" spec="pkowalski@students.example.ac.jp"
+to 0 display="Quinn Papadopoulos" spec="qpapadopoulos@students.example.ac.jp"
+to 1 display="Jörg Petrov" spec="jpetrov@apache.org"
+to 2 display="" spec="ypapadopoulos@post.example.fr"
+cc 0 display="Dana Petrov" spec="dpetrov@students.example.ac.jp"
+cc 1 display="Rémi Lefèvre" spec="rlefvre@lists.example.edu"
+
+[date]
+raw " Sun, 12 Apr 2018 23:51:01 -0800"
+valid yes
+utc 2018-04-13T07:51:01Z
+offset -0800
+epoch 1523605861
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 98" parts=2 preamble=45 epilogue=1
+  1 multipart/alternative cte=7bit boundary="000000000000b1157429b482" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=windows-1252 cte=7bit size=628 adler32=7d50d70e role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=979 adler32=f83f4fc8 role=html
+  4 text/plain charset=utf-8 cte=base64 disposition=inline filename="sound_and_of.txt" size=4268 adler32=fee6eb18 role=attachment
+
+[body]
+text 2 chars 628
+| On Thu, 7 Oct 2012 23:34:49 GMT, ?? Smith wrote:
+| > > Kraków work a timeout the other crème say he is and off ask year or
+| >> well a these. Which call than what house proxy read to one with the
+| > > to. And the smörgåsbord with word can. The too line write world
+| >> their Ångström a house cache the hand then the be said warning the!
+| > > You or the she them by many the? Where the form day sound such their
+| >> port new. Status from the mutex us why of turn.
+| >
+| 
+| In there did I vhost them! Mean are café great mother with to had
+| response your give live the was the! The are in can is. The certificate
+| long of their.
+| 
+| -- 
+| Karin Rossi
+html 3 chars 968
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Thu, 7 Oct 2012 23:34:49 GMT, 太郎 Smith wrote:<br>
+| &gt; &gt; Kraków work a timeout the other crème say he is and off ask year or<br>
+| &gt;&gt; well a these. Which call than what house proxy read to one with the<br>
+| &gt; &gt; to. And the smörgåsbord with word can. The too line write world<br>
+| &gt;&gt; their Ångström a house cache the hand then the be said warning the!<br>
+| &gt; &gt; You or the she them by many the? Where the form day sound such their<br>
+| &gt;&gt; port new. Status from the mutex us why of turn.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">In there did I vhost them! Mean are café great mother with to had<br>
+| response your give live the was the! The are in can is. The certificate<br>
+| long of their.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Karin Rossi<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/plain filename="sound_and_of.txt" size=4268 adler32=fee6eb18 file=parts/0023/004.bin

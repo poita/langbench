@@ -1,0 +1,72 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "bar": {
+        "type": "integer"
+      }
+    },
+    "required": [
+      "bar"
+    ],
+    "allOf": [
+      {
+        "properties": {
+          "foo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "foo"
+        ]
+      },
+      {
+        "properties": {
+          "baz": {
+            "type": "null"
+          }
+        },
+        "required": [
+          "baz"
+        ]
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "valid",
+      "data": {
+        "foo": "quux",
+        "bar": 2,
+        "baz": null
+      }
+    },
+    {
+      "description": "mismatch base schema",
+      "data": {
+        "foo": "quux",
+        "baz": null
+      }
+    },
+    {
+      "description": "mismatch first allOf",
+      "data": {
+        "bar": 2,
+        "baz": null
+      }
+    },
+    {
+      "description": "mismatch second allOf",
+      "data": {
+        "foo": "quux",
+        "bar": 2
+      }
+    },
+    {
+      "description": "mismatch both",
+      "data": {
+        "bar": 2
+      }
+    }
+  ]
+}

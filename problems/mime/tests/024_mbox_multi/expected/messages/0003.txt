@@ -1,0 +1,24 @@
+[message]
+id 0003
+source "mbox:3"
+
+[headers]
+subject: "third"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=26 adler32=70f6086c role=text
+
+[body]
+text 0 chars 26
+| 
+| 
+| body after blank lines
+| 
+html none
+
+[attachments]

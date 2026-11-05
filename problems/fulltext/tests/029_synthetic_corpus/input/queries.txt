@@ -1,0 +1,12 @@
+%k 5
+alpha
+alpha beta
+alpha OR beta
+alpha NOT beta
+"alpha beta"
+"the alpha"
+run connect
+happiness
+(alpha OR beta) AND NOT gamma
+%k 20
+omega

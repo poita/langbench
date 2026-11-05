@@ -1,0 +1,28 @@
+name "ordered-map"
+description "Size-augmented AVL ordered map from 64-bit keys to string values, with a line-oriented command-line front end."
+authors "ordered-map contributors"
+license "MIT"
+targetType "executable"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "ordered-map"
+    mainSourceFile "app/main.d"
+    sourcePaths "source" "app"
+    importPaths "source"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "orderedmap"
+    sourcePaths "source"
+    importPaths "source"
+    excludedSourceFiles "app/*"
+}
+
+configuration "unittest" {
+    targetType "library"
+    targetName "ordered-map-test"
+    sourcePaths "source" "tests"
+    importPaths "source"
+}

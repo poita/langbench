@@ -1,0 +1,34 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": true,
+      "bar": false
+    }
+  },
+  "tests": [
+    {
+      "description": "no property present is valid",
+      "data": {}
+    },
+    {
+      "description": "only 'true' property present is valid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "only 'false' property present is invalid",
+      "data": {
+        "bar": 2
+      }
+    },
+    {
+      "description": "both properties present is invalid",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    }
+  ]
+}

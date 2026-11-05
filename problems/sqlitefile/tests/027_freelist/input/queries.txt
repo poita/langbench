@@ -1,0 +1,7 @@
+.schema ev
+COUNT ev
+SELECT * FROM ev LIMIT 6
+SELECT id,kind,amount FROM ev WHERE amount > 99000 ORDER BY amount DESC
+INDEX ev_kind 'kind-3'
+SELECT id FROM ev WHERE id > 29900
+SELECT id,amount FROM ev ORDER BY amount LIMIT 10

@@ -1,0 +1,2 @@
+[(.nums | add), (.strs | add), (.arrs | add), (.objs | add), (.nulls | add), ([] | add), ({"a":1,"b":2} | add), ({"a":"x","b":"y"} | add), ([[1],null,[2]] | add), ([null,1] | add), ([1,null] | add), (.mixed | add)]
+{"nums":[1,2,3.5],"strs":["a","b","c"],"arrs":[[1],[2,3],[]],"objs":[{"a":1},{"b":2},{"a":3}],"nulls":[null,null],"mixed":[null,[1],[2]]}

@@ -1,0 +1,15 @@
+message U { uint32 a = 1; uint64 b = 2; repeated uint64 rb = 3; }
+--
+encode U {a: 4294967295}
+encode U {b: 18446744073709551615}
+encode U {a: 300, b: 4294967296}
+encode U {rb: [0, 1, 128, 16384, 2097152, 268435456, 34359738368, 4398046511104, 562949953421312, 72057594037927936, 9223372036854775808, 18446744073709551615]}
+decode U 08ffffffff0f
+decode U 08ffffffffff01
+decode U 10ffffffffffffffffff01
+decode U 10ffffffffffffffffff7f
+decode U 08ffffffffffffffffff01
+encode U {a: 4294967296}
+encode U {b: 18446744073709551616}
+encode U {a: -1}
+encode U {b: -0}

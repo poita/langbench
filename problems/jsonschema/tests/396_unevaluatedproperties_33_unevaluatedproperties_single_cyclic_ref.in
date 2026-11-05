@@ -1,0 +1,68 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "x": {
+        "$ref": "#"
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "Empty is valid",
+      "data": {}
+    },
+    {
+      "description": "Single is valid",
+      "data": {
+        "x": {}
+      }
+    },
+    {
+      "description": "Unevaluated on 1st level is invalid",
+      "data": {
+        "x": {},
+        "y": {}
+      }
+    },
+    {
+      "description": "Nested is valid",
+      "data": {
+        "x": {
+          "x": {}
+        }
+      }
+    },
+    {
+      "description": "Unevaluated on 2nd level is invalid",
+      "data": {
+        "x": {
+          "x": {},
+          "y": {}
+        }
+      }
+    },
+    {
+      "description": "Deep nested is valid",
+      "data": {
+        "x": {
+          "x": {
+            "x": {}
+          }
+        }
+      }
+    },
+    {
+      "description": "Unevaluated on 3rd level is invalid",
+      "data": {
+        "x": {
+          "x": {
+            "x": {},
+            "y": {}
+          }
+        }
+      }
+    }
+  ]
+}

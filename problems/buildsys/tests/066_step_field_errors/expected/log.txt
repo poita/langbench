@@ -1,0 +1,94 @@
+step 1: build (default) -j 1
+  error E_STEP_FIELD missing cmd
+step 2: edit main.kiln
+  ok size=28
+step 3: build (default) -j 1
+  error E_STEP_FIELD missing out
+step 4: edit main.kiln
+  ok size=9
+step 5: build (default) -j 1
+  error E_STEP_FIELD missing cmd
+step 6: edit main.kiln
+  ok size=39
+step 7: build (default) -j 1
+  error E_STEP_FIELD missing out
+step 8: edit main.kiln
+  ok size=63
+step 9: build (default) -j 1
+  error E_STEP_FIELD duplicate cmd
+step 10: edit main.kiln
+  ok size=83
+step 11: build (default) -j 1
+  error E_STEP_FIELD duplicate cost
+step 12: edit main.kiln
+  ok size=94
+step 13: build (default) -j 1
+  error E_STEP_FIELD duplicate depfile
+step 14: edit main.kiln
+  ok size=38
+step 15: build (default) -j 1
+  error E_TYPE field out: expected strlist, got int
+step 16: edit main.kiln
+  ok size=53
+step 17: build (default) -j 1
+  error E_TYPE field out: expected strlist, got int
+step 18: edit main.kiln
+  ok size=53
+step 19: build (default) -j 1
+  error E_TYPE field in: expected strlist, got int
+step 20: edit main.kiln
+  ok size=63
+step 21: build (default) -j 1
+  error E_TYPE field after: expected strlist, got bool
+step 22: edit main.kiln
+  ok size=61
+step 23: build (default) -j 1
+  error E_TYPE field cost: expected int, got str
+step 24: edit main.kiln
+  ok size=63
+step 25: build (default) -j 1
+  error E_ARG field cost: negative
+step 26: edit main.kiln
+  ok size=64
+step 27: build (default) -j 1
+  error E_TYPE field depfile: expected str, got int
+step 28: edit main.kiln
+  ok size=46
+step 29: build (default) -j 1
+  error E_UNKNOWN_CMD nosuch
+step 30: edit main.kiln
+  ok size=60
+step 31: build (default) -j 1
+  error E_UNKNOWN_CMD nosuch
+step 32: edit main.kiln
+  ok size=63
+step 33: build (default) -j 1
+  error E_ARITY cmd grep: expected 1, got 0
+step 34: edit main.kiln
+  ok size=53
+step 35: build (default) -j 1
+  error E_ARITY cmd write: expected 1, got 2
+step 36: edit main.kiln
+  ok size=64
+step 37: build (default) -j 1
+  error E_ARITY cmd copy: expected 0, got 1
+step 38: edit main.kiln
+  ok size=64
+step 39: build (default) -j 1
+  error E_TYPE cmd grep argument 1: expected str, got int
+step 40: edit main.kiln
+  ok size=68
+step 41: build (default) -j 1
+  error E_TYPE cmd indent argument 1: expected int, got str
+step 42: edit main.kiln
+  ok size=72
+step 43: build (default) -j 1
+  error E_TYPE cmd replace argument 2: expected str, got int
+step 44: edit main.kiln
+  ok size=73
+step 45: build (default) -j 1
+  error E_ARG cmd replace: empty pattern
+step 46: edit main.kiln
+  ok size=70
+step 47: build (default) -j 1
+  error E_ARG cmd indent: negative

@@ -1,0 +1,21 @@
+message F { fixed32 a = 1; fixed64 b = 2; sfixed32 c = 3; sfixed64 d = 4;
+  repeated fixed32 ra = 5; repeated fixed64 rb = 6; repeated sfixed32 rc = 7; repeated sfixed64 rd = 8; }
+--
+encode F {a: 1, b: 1, c: 1, d: 1}
+encode F {a: 4294967295, b: 18446744073709551615, c: -1, d: -1}
+encode F {c: -2147483648, d: -9223372036854775808}
+encode F {a: 305419896, b: 1311768467463790320}
+encode F {ra: [0, 1], rb: [0], rc: [-1, 2147483647], rd: [-2, 9223372036854775807]}
+decode F 0d78563412
+decode F 11f0debc9a78563412
+decode F 1dffffffff
+decode F 21ffffffffffffffff
+decode F 2a0801000000ffffffff
+decode F 32100100000000000000ffffffffffffffff
+decode F 3d010000003dffffffff
+decode F 4102000000000000004100000000000000ff
+decode F 0d010000
+decode F 1101000000000000
+encode F {a: -1}
+encode F {c: 2147483648}
+encode F {b: 18446744073709551616}

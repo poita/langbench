@@ -1,0 +1,6 @@
+SELECT id FROM people
+SELECT rowid FROM people
+SELECT rowid,id,name FROM people WHERE rowid >= 3
+SELECT * FROM notes
+SELECT rowid,note FROM notes
+COUNT notes

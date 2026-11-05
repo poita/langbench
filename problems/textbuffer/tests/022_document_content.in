@@ -1,0 +1,22 @@
+8
+insert x
+  leading and trailing  
+\n is literal here \\
+print
+
+goto 0 0
+--
+cursor 1 2
+print
+goto 2 0
+move end
+insert \\n
+print
+goto 4 0
+insert \n
+print
+goto 1 0
+insert  
+move end
+insert  
+print

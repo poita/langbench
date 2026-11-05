@@ -1,0 +1,79 @@
+[message]
+id 0209
+source "mbox:209"
+
+[headers]
+received: "from eu.example.de (mx6.mail.example.net [165.213.11.248]) by post.example.fr (Postfix) with ESMTP id 218C3EAFDC for <dbrown.45@apache.org>; Thu Jun 18 16:22:38 2009 -0000"
+received: "from corp.example.co.uk (mx9.apache.org [156.20.124.198]) by example.com (Postfix) with ESMTP id 892CE929C3 for <bkowalski@example.org>; Mon Mar 20 20:04:13 2004 +0100"
+received: "from eu.example.de (mx5.apache.org [109.239.72.132]) by example.org (Postfix) with ESMTP id C0D028DE44 for <wdoe@dev.example.io>; Sun, 28 Apr 2024 06:09:17 MET"
+received: "from corp.example.co.uk (mx6.eu.example.de [85.162.195.99]) by eu.example.de (Postfix) with ESMTP id C54A5A831D for <sdubois@post.example.fr>; Thu, 5 Dec 2003 19:36:10 -0000"
+return-path: "<kbrown.88@apache.org>"
+message-id: "<1510.14eecc38.55913@eu.example.de>"
+in-reply-to: "<1516.c70e0744.4764@dev.example.io>"
+references: "<1511.41115f94.22561@apache.org> <1512.36c9cc9b.4711@example.com> <1513.cd7b10ab.87508@example.org> <1514.68f8ef2c.96460@students.example.ac.jp> <1515.7a07c7d0.42501@students.example.ac.jp> <1516.c70e0744.4764@dev.example.io>"
+date: "Wed, 7 May 2012 00:58:17 Z"
+from: "\"Nakamura, Fiona\" <fnakamura@corp.example.co.uk>"
+to: "\"Papadopoulos, Uwe\" <upapadopoulos@students.example.ac.jp>, Ann Müller <amller.63@corp.example.co.uk>"
+cc: "Fiona Иванов <f.49@students.example.ac.jp>"
+subject: "Fwd: Which word there live the most little up some"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=000000000000fd9e943eb588"
+
+[addresses]
+from 0 display="Nakamura, Fiona" spec="fnakamura@corp.example.co.uk"
+to 0 display="Papadopoulos, Uwe" spec="upapadopoulos@students.example.ac.jp"
+to 1 display="Ann Müller" spec="amller.63@corp.example.co.uk"
+cc 0 display="Fiona Иванов" spec="f.49@students.example.ac.jp"
+
+[date]
+raw " Wed, 7 May 2012 00:58:17 Z"
+valid yes
+utc 2012-05-07T00:58:17Z
+offset +0000
+epoch 1336352297
+
+[structure]
+0 multipart/mixed cte=7bit boundary="000000000000fd9e943eb588" parts=5 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="----=_Part_3668_201227966.122027858551" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=quoted-printable size=528 adler32=91f2bca8 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=817 adler32=aef71d4e role=html
+  4 application/pdf cte=base64 disposition=attachment filename="very_handler_the.pdf" size=2711 adler32=f32c318c role=attachment
+  5 image/jpeg cte=base64 disposition=attachment filename="much_would.jpg" size=2180 adler32=9f4d3e64 role=attachment
+  6 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="word.patch" size=4938 adler32=6981152f role=attachment
+  7 text/csv charset=utf-8 cte=base64 disposition=inline filename="need_now_where_there.csv" size=8557 adler32=d44da305 role=attachment
+
+[body]
+text 2 chars 519
+| Show the the apr hook an after great set them. The work thing and a you
+| mean patch smörgåsbord is the of in give before change hand place.
+| Brûlée the use and for brigade house spell.
+| 
+| It long hot have use is line Ångström them by year in kind of of came?
+| Mother log the was I go bug. Too said trunk to the did before the thread
+| the it before. They config did Größe sentence even in is use write ssl
+| line the was go. He get us boy of live there these if the more the? The
+| show so one word an they a.
+| 
+| -- 
+| William Müller
+html 3 chars 808
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Show the the apr hook an after great set them. The work thing and a you<br>
+| mean patch smörgåsbord is the of in give before change hand place.<br>
+| Brûlée the use and for brigade house spell.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">It long hot have use is line Ångström them by year in kind of of came?<br>
+| Mother log the was I go bug. Too said trunk to the did before the thread<br>
+| the it before. They config did Größe sentence even in is use write ssl<br>
+| line the was go. He get us boy of live there these if the more the? The<br>
+| show so one word an they a.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| William Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="very_handler_the.pdf" size=2711 adler32=f32c318c file=parts/0209/004.bin
+5 type=image/jpeg filename="much_would.jpg" size=2180 adler32=9f4d3e64 file=parts/0209/005.bin
+6 type=text/x-diff filename="word.patch" size=4938 adler32=6981152f file=parts/0209/006.bin
+7 type=text/csv filename="need_now_where_there.csv" size=8557 adler32=d44da305 file=parts/0209/007.bin

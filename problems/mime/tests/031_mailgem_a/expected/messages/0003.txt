@@ -1,0 +1,36 @@
+[message]
+id 0003
+source "attachment_nonascii_filename.eml"
+
+[headers]
+mime-version: "1.0 (Apple Message framework v730)"
+content-type: "multipart/mixed; boundary=Apple-Mail-13-196941151"
+message-id: "<9169D984-4E0B-45EF-82D4-8F5E53AD7012@example.com>"
+from: "foo@example.com"
+subject: "testing"
+date: "Mon, 6 Jun 2005 22:21:22 +0200"
+to: "blah@example.com"
+
+[addresses]
+from 0 display="" spec="foo@example.com"
+to 0 display="" spec="blah@example.com"
+
+[date]
+raw " Mon, 6 Jun 2005 22:21:22 +0200"
+valid yes
+utc 2005-06-06T20:21:22Z
+offset +0200
+epoch 1118089282
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail-13-196941151" parts=2 preamble=0 epilogue=1
+  1 text/plain charset=iso-8859-1 cte=quoted-printable size=24 adler32=6b1d084d role=text
+  2 text/plain charset=us-ascii cte=7bit disposition=attachment filename="ciële.txt" size=10 adler32=127d0322 role=attachment
+
+[body]
+text 1 chars 24
+| This is the first part.
+html none
+
+[attachments]
+2 type=text/plain filename="ciële.txt" size=10 adler32=127d0322 file=parts/0003/002.bin

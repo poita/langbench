@@ -1,0 +1,28 @@
+name "kvstore"
+description "Tessera: an embedded transactional document store with a WAL, B+tree index and a small command language"
+authors "kvstore authors"
+license "MIT"
+copyright "Copyright (c) kvstore authors"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "kvstore"
+    targetPath "bin"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "tessera"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+configuration "unittest" {
+    targetType "library"
+    targetName "tessera-test"
+    sourcePaths "source" "tests"
+    importPaths "source" "."
+}

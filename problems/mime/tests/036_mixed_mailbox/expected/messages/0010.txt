@@ -1,0 +1,89 @@
+[message]
+id 0010
+source "mbox:10"
+
+[headers]
+received: "from corp.example.co.uk (mx9.example.com [204.181.25.43]) by example.com (Postfix) with ESMTP id 6C9BA4A9DB for <bobrien@post.example.fr>; Fri, 5 Aug 2018 01:34:19 Z"
+received: "from lists.example.edu (mx1.example.com [98.210.191.133]) by example.com (Postfix) with ESMTP id 4606A4E5FB for <wnguyen@dev.example.io>; Wed, 26 May 2012 04:37:41 GMT"
+received: "from mail.example.net (mx8.example.com [213.178.200.14]) by students.example.ac.jp (Postfix) with ESMTP id 9243710C34 for <bdubois@mail.example.net>; Thu, 26 Jul 2005 03:02:11 MET"
+return-path: "<e.40@dev.example.io>"
+message-id: "<97.375af5e8.34234@students.example.ac.jp>"
+in-reply-to: "<106.cf627b45.51139@post.example.fr>"
+references: "<98.66125364.12567@mail.example.net> <99.d2f6b0da.10644@lists.example.edu> <100.19ff68a5.5184@example.com> <101.3a3c521c.26158@eu.example.de> <102.64acaeb4.98287@eu.example.de> <103.7445967e.19766@example.org> <104.fdf9130d.73598@lists.example.edu> <105.e23e537a.65672@corp.example.co.uk> <106.cf627b45.51139@post.example.fr>"
+date: "Fri, 28 Jan 2003 15:21:21 -0700"
+from: "Дмитрий Lefèvre <lefvre@example.org>"
+to: "François Brown <fbrown@apache.org>, 太郎 Nguyen <nguyen@eu.example.de>"
+subject: "[PATCH] Many way long such by with crème two"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"0000000000005599a9d1d3e5\""
+
+[addresses]
+from 0 display="Дмитрий Lefèvre" spec="lefvre@example.org"
+to 0 display="François Brown" spec="fbrown@apache.org"
+to 1 display="太郎 Nguyen" spec="nguyen@eu.example.de"
+
+[date]
+raw " Fri, 28 Jan 2003 15:21:21 -0700"
+valid yes
+utc 2003-01-28T22:21:21Z
+offset -0700
+epoch 1043792481
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000005599a9d1d3e5" parts=3 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="simple boundary 884" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=quoted-printable size=799 adler32=10d80504 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1197 adler32=63818aff role=html
+  4 image/png cte=base64 disposition=inline filename="of_in_his.png" size=737 adler32=8e7a6fb8 role=attachment
+  5 application/pdf cte=base64 disposition=attachment filename="the_think_on.pdf" size=7463 adler32=163e74ce role=attachment
+
+[body]
+text 2 chars 799
+| On 31 Feb 2004 10:00:00 +0000, Quinn Dubois wrote:
+| >> Then sound act as you pool all did of back up the so keepalive get
+| > the tell? Many of home if small know the part that the self have
+| > need again part thing now. Through jalapeño the air went word find
+| > thing self man sound for act I time take is in. Apr that her round
+| >> your after every that socket.
+| >
+| 
+| Is each up small with more Kraków what coöperate land error about résumé
+| ssl too that house end. Just see her can hand! Their vote can me had or
+| that? To back he some show down put place find in she may log to their
+| it. And even name by round very the when Zürich to add!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Rémi Müller
+html 3 chars 1189
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 31 Feb 2004 10:00:00 +0000, Quinn Dubois wrote:<br>
+| &gt;&gt; Then sound act as you pool all did of back up the so keepalive get<br>
+| &gt; the tell? Many of home if small know the part that the self have<br>
+| &gt; need again part thing now. Through jalapeño the air went word find<br>
+| &gt; thing self man sound for act I time take is in. Apr that her round<br>
+| &gt;&gt; your after every that socket.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Is each up small with more Kraków what coöperate land error about résumé<br>
+| ssl too that house end. Just see her can hand! Their vote can me had or<br>
+| that? To back he some show down put place find in she may log to their<br>
+| it. And even name by round very the when Zürich to add!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Rémi Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/png filename="of_in_his.png" size=737 adler32=8e7a6fb8 file=parts/0010/004.bin
+5 type=application/pdf filename="the_think_on.pdf" size=7463 adler32=163e74ce file=parts/0010/005.bin

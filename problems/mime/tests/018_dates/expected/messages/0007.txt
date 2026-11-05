@@ -1,0 +1,26 @@
+[message]
+id 0007
+source "leap-second.eml"
+
+[headers]
+subject: "date test"
+date: "Tue, 1 Jan 2036 00:00:60 +0000"
+
+[addresses]
+
+[date]
+raw " Tue, 1 Jan 2036 00:00:60 +0000"
+valid yes
+utc 2036-01-01T00:01:00Z
+offset +0000
+epoch 2082758460
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

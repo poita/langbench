@@ -1,0 +1,22 @@
+[message]
+id 0002
+source "boundary-utf8.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"bé\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="bé" parts=1 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=5 adler32=06570229 role=text
+
+[body]
+text 1 chars 5
+| first
+html none
+
+[attachments]

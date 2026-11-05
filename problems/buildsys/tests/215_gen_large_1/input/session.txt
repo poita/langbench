@@ -1,0 +1,21 @@
+build
+create src/m7/new0.txt
+omicron
+iota
+birch
+---
+build @m2 -j 2
+edit src/m11/f10.txt
+pi
+ilex
+---
+build @m5
+touch main.kiln
+build -j 3
+edit src/m2/f0.txt
+lambda
+ilex
+cedar
+eta
+---
+build @m2 -j 16

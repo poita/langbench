@@ -1,0 +1,25 @@
+[message]
+id 0003
+source "prefix-boundaries.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=2 preamble=0 epilogue=0
+  1 multipart/mixed cte=7bit boundary="BB" parts=1 preamble=0 epilogue=0
+    2 text/plain charset=us-ascii cte=7bit size=9 adler32=11d2037f role=text
+  3 text/plain charset=us-ascii cte=7bit size=9 adler32=129503aa role=attachment
+
+[body]
+text 2 chars 9
+| inner one
+html none
+
+[attachments]
+3 type=text/plain filename=- size=9 adler32=129503aa file=parts/0003/003.bin

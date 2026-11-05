@@ -1,0 +1,28 @@
+name "depresolve"
+description "Deterministic package dependency resolver (depth-first, newest-first, chronological backtracking)"
+authors "depresolve authors"
+license "MIT"
+copyright "Copyright © depresolve authors"
+targetName "depresolve"
+targetPath "bin"
+
+configuration "cli" {
+    targetType "executable"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+configuration "unittest" {
+    targetType "executable"
+    targetName "depresolve-test"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+    mainSourceFile "tests/main.d"
+}

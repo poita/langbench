@@ -1,0 +1,7 @@
+kiln-state 1
+step out/z.txt
+cmd concat()
+in src/a.txt 089bdc07b544e7b2
+in src/b.txt 089bdc07b544e7b2
+out out/z.txt 78f78981f13f2f99
+end

@@ -1,0 +1,32 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "allOf": [
+      {
+        "prefixItems": [
+          {
+            "type": "string"
+          }
+        ],
+        "items": true
+      }
+    ],
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "with no additional items",
+      "data": [
+        "foo"
+      ]
+    },
+    {
+      "description": "with additional items",
+      "data": [
+        "foo",
+        42,
+        true
+      ]
+    }
+  ]
+}

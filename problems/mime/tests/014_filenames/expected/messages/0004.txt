@@ -1,0 +1,28 @@
+[message]
+id 0004
+source "quoting.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=4 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=4 adler32=041a01af role=text
+  2 application/octet-stream cte=7bit disposition=attachment filename="with space.txt" size=1 adler32=00620062 role=attachment
+  3 application/octet-stream cte=7bit disposition=attachment filename="unquoted.txt" size=1 adler32=00630063 role=attachment
+  4 application/octet-stream cte=7bit disposition=attachment filename="café.txt" size=1 adler32=00640064 role=attachment
+
+[body]
+text 1 chars 4
+| body
+html none
+
+[attachments]
+2 type=application/octet-stream filename="with space.txt" size=1 adler32=00620062 file=parts/0004/002.bin
+3 type=application/octet-stream filename="unquoted.txt" size=1 adler32=00630063 file=parts/0004/003.bin
+4 type=application/octet-stream filename="café.txt" size=1 adler32=00640064 file=parts/0004/004.bin

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ tag.name }} &middot; {{ site.title }}{% endblock %}
+{% block main %}
+<h1>Posts tagged &ldquo;{{ tag.name }}&rdquo;</h1>
+<p>{{ tag.post_count }} post{% if tag.post_count != 1 %}s{% endif %}.</p>
+<ul class="postlist">
+{%- for post in posts %}
+<li><time datetime="{{ post.date }}">{{ post.date }}</time> <a href="{{ post.url }}">{{ post.title }}</a></li>
+{%- endfor %}
+</ul>
+{% endblock %}

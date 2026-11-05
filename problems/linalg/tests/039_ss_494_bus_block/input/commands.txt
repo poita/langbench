@@ -1,0 +1,5 @@
+chol bus150.mtx
+det bus150.mtx
+inv bus150.mtx
+solve bus150.mtx rhs.mtx
+norm1 bus150.mtx

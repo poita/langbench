@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Test Site</title>
+  <id>https://example.com/</id>
+  <updated>2020-05-07T00:00:00Z</updated>
+  <link href="https://example.com/" rel="alternate"/>
+  <link href="https://example.com/feed.xml" rel="self"/>
+  <author>
+    <name>A. Author</name>
+  </author>
+  <entry>
+    <title>Normal</title>
+    <id>https://example.com/posts/normal/</id>
+    <updated>2020-05-07T00:00:00Z</updated>
+    <link href="https://example.com/posts/normal/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Text.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Blank body</title>
+    <id>https://example.com/posts/blank/</id>
+    <updated>2020-05-06T00:00:00Z</updated>
+    <link href="https://example.com/posts/blank/" rel="alternate"/>
+    <content type="html"></content>
+  </entry>
+  <entry>
+    <title>Empty body</title>
+    <id>https://example.com/posts/empty/</id>
+    <updated>2020-05-05T00:00:00Z</updated>
+    <link href="https://example.com/posts/empty/" rel="alternate"/>
+    <content type="html"></content>
+  </entry>
+</feed>

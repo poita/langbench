@@ -1,0 +1,21 @@
+[1] ok put created
+[2] ok update updated
+[3] error not-object
+[4] error bad-path
+[5] ok update updated
+[6] ok get value
+  {"b":{"c":3}}
+[7] ok create index aaaaaaaaaa.bbbbbbbbbb.cccccccc entries 0
+[8] error bad-path
+[9] error bad-path
+[10] error syntax
+[11] error syntax
+[12] error syntax
+[13] error syntax
+[14] error syntax
+[15] ok create index null entries 0
+[16] ok create index and entries 0
+[17] ok indexes 3
+  0 aaaaaaaaaa.bbbbbbbbbb.cccccccc root 0 entries 0
+  1 null root 0 entries 0
+  2 and root 0 entries 0

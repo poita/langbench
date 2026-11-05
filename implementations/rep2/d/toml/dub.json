@@ -1,0 +1,29 @@
+{
+    "name": "toml",
+    "description": "A TOML 1.0.0 parser and serializer with a tagged-JSON command-line tool",
+    "license": "MIT",
+    "copyright": "Copyright © 2026",
+    "authors": ["Peter Alexander"],
+    "targetType": "executable",
+    "targetName": "toml",
+    "importPaths": ["source"],
+    "configurations": [
+        {
+            "name": "cli",
+            "targetType": "executable",
+            "sourcePaths": ["source", "app"],
+            "mainSourceFile": "app/main.d"
+        },
+        {
+            "name": "library",
+            "targetType": "library",
+            "sourcePaths": ["source"]
+        },
+        {
+            "name": "unittest",
+            "targetType": "library",
+            "sourcePaths": ["source", "tests"],
+            "importPaths": ["source", "tests"]
+        }
+    ]
+}

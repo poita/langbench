@@ -1,0 +1,47 @@
+step 1: build (default) -j 1
+  error E_CMD_SHAPE write: expected inputs 0-0, got 1
+step 2: edit main.kiln
+  ok size=44
+step 3: build (default) -j 1
+  error E_CMD_SHAPE copy: expected inputs 1-1, got 0
+step 4: edit main.kiln
+  ok size=78
+step 5: build (default) -j 1
+  error E_CMD_SHAPE copy: expected inputs 1-1, got 2
+step 6: edit main.kiln
+  ok size=46
+step 7: build (default) -j 1
+  error E_CMD_SHAPE concat: expected inputs 1-N, got 0
+step 8: edit main.kiln
+  ok size=51
+step 9: build (default) -j 1
+  error E_CMD_SHAPE count_lines: expected inputs 1-N, got 0
+step 10: edit main.kiln
+  ok size=44
+step 11: build (default) -j 1
+  error E_CMD_SHAPE hash: expected inputs 1-N, got 0
+step 12: edit main.kiln
+  ok size=78
+step 13: build (default) -j 1
+  error E_CMD_SHAPE copy: expected outputs 1, got 2
+step 14: edit main.kiln
+  ok size=83
+step 15: build (default) -j 1
+  error E_CMD_SHAPE copy: expected outputs 1, got 2
+step 16: edit main.kiln
+  ok size=85
+step 17: build (default) -j 1
+  error E_CMD_SHAPE copy: depfile not allowed
+step 18: edit main.kiln
+  ok size=69
+step 19: build (default) -j 1
+  error E_CMD_SHAPE preprocess: depfile required
+step 20: edit main.kiln
+  ok size=59
+step 21: build (default) -j 1
+  error E_CMD_SHAPE copy: expected inputs 1-1, got 0
+step 22: edit main.kiln
+  ok size=122
+step 23: build (default) -j 1
+  run 0 0 w0 out/z.txt preprocess()
+  ok ran=1 hit=0 time=0

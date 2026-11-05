@@ -1,0 +1,9 @@
+r(1). r(2). r(3). s(1).
+p(X) :- r(X), not q(X).
+q(X) :- r(X), not s(X).
+t(X) :- p(X), not u(X).
+u(X) :- r(X), not p(X), not q(X).
+?- p(X).
+?- q(X).
+?- t(X).
+?- u(X).

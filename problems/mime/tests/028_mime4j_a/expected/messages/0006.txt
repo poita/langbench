@@ -1,0 +1,34 @@
+[message]
+id 0006
+source "base64-encoded-text.eml"
+
+[headers]
+content-type: "text/plain"
+content-transfer-encoding: "base64"
+subject: "a multipart message/rfc822 which has been base64-encoded as plain text"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=base64 size=336 adler32=3d696457 role=text
+
+[body]
+text 0 chars 336
+| Content-Type: multipart/mixed; boundary=\"------------299A70B339B65A93542D2AE\"
+| 
+| This is a multi-part message in MIME format.
+| 
+| --------------299A70B339B65A93542D2AE
+| Content-Type: text/plain; charset=us-ascii
+| Content-Transfer-Encoding: 7bit
+| 
+| Text body
+| 
+| --------------299A70B339B65A93542D2AE--
+| That was a multi-part message in MIME format.
+html none
+
+[attachments]

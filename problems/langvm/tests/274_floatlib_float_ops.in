@@ -1,0 +1,14 @@
+@module main
+fn main() {
+    print(showFloat(1.0 / 0.0));
+    print(showFloat(-1.0 / 0.0));
+    print(showFloat(0.0 / 0.0));
+    print(showFloat(floorF(-0.0)));
+    print(showFloat(ceilF(-0.5)));
+    print(showFloat(fmodF(5.5, 2.0)));
+    print(showFloat(fmodF(1.0, 0.0)));
+    print(showFloat(minF(nanF(), 1.0)));
+    print(showFloat(maxF(nanF(), 1.0)));
+    print(showFloat(minF(-0.0, 0.0)));
+    print(showInt(floatBits(floatFromBits(-1))));
+}

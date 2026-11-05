@@ -1,0 +1,11 @@
+build -j 3
+edit src/m0/f0.txt
+fir
+birch
+elm
+---
+build @m0
+clean
+build -j 2
+touch src/m0/f1.txt
+build

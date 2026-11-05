@@ -1,0 +1,15 @@
+14
+insert 1 a
+insert 1 b
+insert 1 c
+get 1
+size
+insert 2 x
+insert 2 x
+get 2
+size
+delete 1
+insert 1 d
+get 1
+size
+range 1 2

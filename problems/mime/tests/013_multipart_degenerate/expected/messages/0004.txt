@@ -1,0 +1,21 @@
+[message]
+id 0004
+source "no-boundary.eml"
+
+[headers]
+content-type: "multipart/mixed"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit size=22 adler32=5c4407e1 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=multipart/mixed filename=- size=22 adler32=5c4407e1 file=parts/0004/000.bin

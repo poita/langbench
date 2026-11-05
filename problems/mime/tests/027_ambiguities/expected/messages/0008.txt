@@ -1,0 +1,22 @@
+[message]
+id 0008
+source "segment-order.eml"
+
+[headers]
+content-type: "application/octet-stream; *0=x; *1=y; name=n.bin"
+content-disposition: "attachment; filename*10=j; filename*2=c; filename*0=a; filename*1=b; filename*07=h"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 application/octet-stream cte=7bit disposition=attachment filename="abchj" size=5 adler32=05a501a5 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/octet-stream filename="abchj" size=5 adler32=05a501a5 file=parts/0008/000.bin

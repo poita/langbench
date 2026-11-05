@@ -1,0 +1,51 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contains": {
+      "minimum": 5
+    }
+  },
+  "tests": [
+    {
+      "description": "array with item matching schema (5) is valid",
+      "data": [
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "description": "array with item matching schema (6) is valid",
+      "data": [
+        3,
+        4,
+        6
+      ]
+    },
+    {
+      "description": "array with two items matching schema (5, 6) is valid",
+      "data": [
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "description": "array without items matching schema is invalid",
+      "data": [
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "description": "empty array is invalid",
+      "data": []
+    },
+    {
+      "description": "not array is valid",
+      "data": {}
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+Ruby `mail` gem test fixtures
+=============================
+
+Source
+    https://github.com/mikel/mail
+    spec/fixtures/emails/  (error_emails, plain_emails, mime_emails,
+                            attachment_emails, rfc2822, multi_charset,
+                            multipart_report_emails, rfc6532)
+
+All 103 .eml files here are byte-identical to those in the repository,
+flattened into one directory. They are real messages collected as regression
+tests for the gem: attachments with RFC 2231 and RFC 2047 filenames, nested
+multiparts, 8-bit headers, and a good number of broken ones.
+
+Licence
+    MIT, reproduced in LICENSE next to this file (Copyright (c) 2009-2016
+    Mikel Lindsaar).

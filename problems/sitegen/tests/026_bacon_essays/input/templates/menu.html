@@ -1,0 +1,2 @@
+<nav>{% for p in pages %}{% if not loop.first %} | {% endif %}<a href="{{ p.url }}">{{ p.title }}</a>{% endfor %}{% if pages %} | {% endif %}<a href="/tags/">tags</a></nav>
+

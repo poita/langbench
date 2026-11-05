@@ -1,0 +1,107 @@
+build
+edit main.kiln
+step {
+    out "out/x.txt"
+    in "out/y.txt"
+    cmd copy()
+}
+step {
+    out "out/y.txt"
+    in "out/x.txt"
+    cmd copy()
+}
+default "out/x.txt"
+---
+build
+edit main.kiln
+phony a = ["@b"]
+phony b = ["@a"]
+default "@a"
+---
+build
+edit main.kiln
+step {
+    out "out/top.txt"
+    in "@p"
+    cmd write("t\n")
+}
+step {
+    out "out/mid.txt"
+    in "out/top.txt"
+    cmd copy()
+}
+phony p = ["out/mid.txt"]
+default "out/top.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/r.txt"
+    in "out/a.txt"
+    cmd copy()
+}
+step {
+    out "out/a.txt"
+    in "out/b.txt"
+    cmd copy()
+}
+step {
+    out "out/b.txt"
+    in "out/a.txt"
+    cmd copy()
+}
+default "out/r.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/a.txt"
+    after "out/b.txt"
+    cmd write("a\n")
+}
+step {
+    out "out/b.txt"
+    after "out/a.txt"
+    cmd write("b\n")
+}
+default ["out/b.txt", "out/a.txt"]
+---
+build
+edit main.kiln
+step {
+    out "out/ok.txt"
+    cmd write("ok\n")
+}
+step {
+    out "out/c1.txt"
+    in "out/c2.txt"
+    cmd copy()
+}
+step {
+    out "out/c2.txt"
+    in "out/c1.txt"
+    cmd copy()
+}
+default "out/ok.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/a.txt"
+    in ["src/a.txt", "out/b.txt"]
+    cmd concat()
+}
+step {
+    out "out/b.txt"
+    in ["src/b.txt", "out/c.txt"]
+    cmd concat()
+}
+step {
+    out "out/c.txt"
+    in ["src/a.txt", "out/a.txt"]
+    cmd concat()
+}
+phony all = ["out/a.txt", "out/b.txt", "out/c.txt"]
+default "@all"
+---
+build

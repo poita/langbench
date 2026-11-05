@@ -1,0 +1,214 @@
+message M4 {
+  repeated uint32 n43 = 259;
+}
+message M0 {
+}
+message M2 {
+}
+message M1 {
+  M1 tags = 5;
+  int64 v84 = 14;
+  repeated string label = 8;
+}
+message M3 { repeated M3 seq = 1098; int64 note = 9; sfixed64 z84 = 2; }
+--
+decode M4 980cf1d8b3a29783a4d7549a100eba01bf01df88cae902d3d99ac003bd07e99ecb5c
+encode M1 {tags: {tags: {tags: {}, label: ["\x01eb[y]\x00k A"]}}, label: ["qr3cz日", "日üü j", "B\n: \\\x7f{ah1bv", "C\r\nyhq\na\"", "\n, h[dij3w日ü"]}
+decode M4 9890808000ffffffff0f
+encode M4 {n43: [59, 460181480, 16384, 2207694758, 0]}
+decode M3 890c3f3722a0e88c4be148808080808080808080019180808000ffffffffffffff7fc9039850f7aba4e38a10
+encode M1 {tags: {tags: {tags: {}}, v84: -4290681128652800580, label: ["\\c\nbC mx", "qgx\x00a"]}, label: ["t nn\rs{", "\x00{日日Cufékt", " lB\\ü", "t}üq\x7f\x01\t]k\rr", "]"]}
+decode M4 800797c48ef9d19989d505
+decode M4 9a1005eed9b2ed02d30208051201ffd402
+decode M3 c80082f494c4e7c397ec19d10fe28c78029a4a399b
+decode M1 4209317462322078643a014207c3bc005c74627642046a790d31420a327d6c666e017ae697a542054363430964c2000568005c6a43
+encode M2 {}
+encode M3 {z84: 4045077870264703140}
+encode M2 {}
+decode M4 fa0a05b25f5a1883
+decode M4
+encode M0 {}
+encode M1 {tags: {tags: {tags: {v84: 0, label: ["qhéx[u}udi 3", "", "vBüj0\\\x00\t,h"]}, label: []}, v84: 11, label: ["ü", "Cqé"]}, v84: -89, label: ["😀\x00ljjx", "B", "nj 3x ]u"]}
+decode M0
+decode M4 9a1011ff7f809edaa70ea201c681f9b20fbf0140
+encode M1 {v84: -67}
+decode M2 a5098ccc6f31
+encode M1 {tags: {v84: 255}, v84: 1, label: []}
+decode M3 488facc6c0fa93e490c401
+encode M1 {v84: 256, label: []}
+decode M0 ed0baa6edae9
+decode M4
+encode M1 {tags: {v84: 87}, label: ["y}oz", "b", "vfiCBe"]}
+decode M1 9801a3cdc0c1ed94ccede201aa808080000ef080808000119202053bf2998370
+decode M4
+decode M0 8007b7dfc1d081fde2e442
+encode M0 {}
+decode M2
+decode M2 a80a94fdb994bcada388f701
+encode M1 {tags: {v84: 27, label: []}, v84: 2462179726856825635, label: ["\x01r\"nnzzm", "}é \\ }\twp \n ", "s\x01r ", "\x7f"]}
+encode M0 {}
+encode M1 {tags: {tags: {tags: {v84: 2677414300477128708}, v84: 75}}, v84: -2549357088942590376}
+decode M0
+encode M2 {}
+encode M0 {}
+decode M0 8801abcdf7c1f8ab82d706
+encode M3 {}
+decode M2
+encode M2 {}
+encode M0 {}
+decode M1 aa80808000072a03ea0c007061cd071947b7cc
+encode M3 {seq: [{note: 1}, {seq: [{seq: [{note: 4938011411906621552}, {note: 0}], z84: -16}, {z84: -1271914686278366129}]}], note: 128}
+encode M3 {}
+encode M4 {n43: [2510874030]}
+decode M3 488de3ccce91aefffa0895084f3e32cb11e9ffffffffffffffe00bbd85bce6b8bbca8956
+encode M4 {}
+encode M2 {}
+encode M1 {tags: {v84: -31, label: ["  B\"B"]}, v84: 24}
+decode M3
+decode M3 114128b3a526fa41cf
+decode M3 48ae8000e80b8989c4aa97f1d1a4fa01110040000000000000c20402e289
+encode M3 {seq: [{seq: [{z84: 3843959919506657804}, {seq: [{note: -5, z84: 31}], z84: -50}], note: 255, z84: 29}, {seq: [{}], z84: 98}], z84: 0}
+encode M2 {}
+decode M4 8109d0f9a86176957b50981006da110426189324
+encode M4 {n43: []}
+decode M0
+decode M2
+decode M2 e004bda4dce7ec9ab48f77
+encode M0 {}
+decode M2 f80c9ef2f8f8e8b989cda901
+decode M3 d24448d2441748abffffffffffffffff01b00afba1c3edba8489999c01d2c48080000bf001bc8accf4b581ffe212891088237aa7bd1f7d6148cad9adedbdc5a4f04b113600000000000000d24423c9013f846f1d660bc882d2c48080000af903efcc1745337d4d8f9b0e08051201ff9c0ed207030bb32c48c3fec6d88a8dfc8fd501cd053d278e01111b00000000000000
+decode M4 981001989080800096019810fae8c7d00e981090019810bec9e6c00d9810998ea6970db109346d62c80a36facb
+encode M4 {}
+decode M4 c20906a55dd75342f2
+encode M2 {}
+encode M2 {}
+encode M2 {}
+encode M3 {z84: 0}
+encode M3 {seq: [{seq: [{note: -3030243680574610818, z84: 3034626953453835628}, {seq: [], note: -87, z84: -89}], note: 0}, {seq: [{seq: [{z84: 0}], note: -4620648561887782846, z84: 72}], note: -1, z84: 0}], note: -4593521747392175363, z84: 0}
+encode M4 {}
+encode M2 {}
+decode M4 da0c0365ffc69a100100b8109a9de5b6e89cf3ff14
+encode M2 {}
+encode M2 {}
+decode M3 c80f8dc494fce58b96e539112b00000000000000b80b8eccc685e19fabed7bc8000b
+encode M4 {n43: []}
+encode M1 {tags: {v84: -8056559559173600274, label: ["h\\2xpkbs"]}, label: ["\tol0év", "s日", "}ytf", "üénk nC0xd{", "2pj"]}
+decode M4
+decode M1 70c38000
+decode M0 810fc48c906504c2d416
+decode M1
+encode M2 {}
+decode M4 a20d02e2819890808000129810d0ece0b90f9810b9e8a6950f981001ba0e06fdb767e0f1ef
+encode M3 {seq: []}
+encode M1 {tags: {tags: {tags: {v84: 9223372036854775807, label: ["]1e\x00"]}, v84: 7096623234892900444, label: ["é日dp}3msa{", "", " \"}ymc日", "日Ciw", "j\\kn😀qii1C"]}, v84: -78, label: [",3w éx", ":", "gu1é", "bém:bk\nv", "\x00ssc\x01\\"]}, v84: -3212423679715406219, label: ["ztq]:nz:\x00c3C", "g", "kxw[0", "\\ühhv😀bwv"]}
+decode M4 9a100d0067008c96f3c202a9e4cb930d
+decode M2
+encode M1 {tags: {v84: 43}, v84: 9022509143511796883, label: ["üv", "igsbq😀Bwq", "éB", "c\t日\nz\"\"u\x00q"]}
+encode M1 {tags: {tags: {tags: {v84: -79}}, label: ["afvng\x7f", "n3ao", "1ka\tj ", "}\r", "ne"]}, label: ["", "tb{An ", "\r3nfa", "o [\x00😀3f", ":1😀oo1"]}
+encode M3 {seq: [{z84: 5185600687665441805}, {seq: [{note: -3115364203113425926}, {seq: [{note: -53, z84: 8185668834313635877}]}], z84: -54}], note: 29}
+decode M4 9a100e82dde0cc030149b5e4aef00c00178505dab336d6
+encode M2 {}
+decode M3 d50779dde807c880808000c3ffffffffffffffff0111fdcc9dfdde2060c3ba010413a4704f
+encode M2 {}
+encode M0 {}
+encode M2 {}
+decode M3 f00db4f0df82a9f2e495b601d24428f90968d52edcafc2ae3548e4ffffffffffffffff018a020150118000000000000000b50c61b41e32d2441448ffffffffffffffffff0111100eb5b535f03bec
+decode M0
+encode M1 {tags: {tags: {v84: -69, label: ["t\x7f\r1ü\x7ft\x7fm", " ue\x7fo", "t{", "esg"]}, v84: -9223372036854775808, label: ["\x7f"]}, label: ["u日1\t[😀", ",rp", ":a,vdn", "tu\x00", "日Ar😀l\ngd\x7fz", ",je2n\x01qhw "]}
+decode M0 f90230e47f8977b5d78d
+encode M4 {n43: [149, 516761579]}
+encode M2 {}
+decode M4 e90d6750e07a1b4701db
+decode M4
+decode M2 b8038fdf9ff2f780d1adf601
+decode M2
+encode M2 {}
+encode M4 {n43: [1780269206, 3730902813, 127, 73086139]}
+decode M0 fa0706476369f50421
+encode M4 {n43: [68, 4294967295, 110, 38, 128]}
+encode M4 {}
+encode M4 {n43: [495507753, 3868467419]}
+decode M0
+encode M1 {v84: 37, label: ["\x7fc} oua\rqb }", ",\x7f", "}qmain vbww", "éd méi\n[}é f"]}
+encode M3 {note: 0, z84: -28}
+decode M2 9007aa959bf0ca938eee3f
+encode M2 {}
+encode M2 {}
+encode M3 {seq: [{seq: [{seq: [{note: -1021129293055419670, z84: 9}, {note: 94, z84: -100}], note: -7495712419868404841, z84: -7616261455810257727}], z84: 3391577836485127283}], note: 33}
+decode M4 9810009810009810f398818a0f981099dcee8c069810bd89f1b80d9810f2c3989a06
+encode M1 {tags: {}, v84: -90, label: ["ojo fqgbk:,j"]}
+decode M0 b80c93b0a5bcc2b9fbbf25
+decode M2
+decode M0
+encode M4 {}
+decode M4 980fe5c7b995d8aec9bbdb019a1011018ec889470000cd98efbb0f8bcac8b602
+encode M4 {}
+encode M3 {seq: [{note: -62}], z84: -49}
+decode M3 48b7ffffffffffffffff018811e587fcfb889983f29801
+encode M2 {}
+encode M1 {v84: 45, label: ["spe2B1t{", "\n\"g3}ozonqr", "mCvy\trg02{\\\x00", "aw0", "😀f"]}
+decode M0
+decode M4 f90bbf9ae5aff51cf28a9810f2c2e7ec0f981080029810ff7f
+encode M4 {}
+encode M0 {}
+decode M4 9a0500
+decode M1 aa070315ae37aa8080800035990245e70d026a5f403370f28eace0ddeca6e29f014200420371016442093a315d74316e3a3279c200004209746e642c72306a7267
+encode M0 {}
+encode M0 {}
+decode M4 a30d08051201ffa40d9a100b6091f580d30dc7dfe9dc08
+encode M0 {}
+encode M2 {}
+decode M1 2a39d1065df388f521289395aa8080800029709be0e889dcae9ebc494208016a6c75707b780142075c7f7179656666c0049c88f2e29ec0f0b8d001b80bc8d3ffd286d7c2ead001f000ffffffffffffffffff018a090370e717
+decode M0 fa0702894b
+encode M4 {n43: [460167083, 50, 2031855999, 3346138126, 161905618, 171]}
+decode M2
+decode M0
+decode M2
+encode M0 {}
+encode M3 {seq: [{seq: [{seq: [{note: -9063577421236316734, z84: 0}, {note: 6340794176205158107, z84: -2906948203478537450}]}]}, {z84: -2967090222741212654}], z84: 97}
+encode M0 {}
+encode M4 {}
+decode M3 f50691f9562011acea3b60f51021b1d90d8bd2291a5ad5c2cf4847
+decode M0
+encode M4 {}
+encode M2 {}
+encode M1 {v84: 16383}
+decode M4 b8028f9ea8ecf6bc84cf3a
+encode M3 {note: 3619917733857845581}
+decode M0
+decode M0
+decode M2
+encode M4 {}
+decode M1 2a3e4203e697a5c2000876656d76326c7b7142056f770d0061c2000669330a6f3263420fc3a9016422436d430967e697a576332a00b810b682d0a2b1e9eec711f00faf96bed7fad8bc9665
+encode M1 {tags: {tags: {tags: {v84: 0}, v84: -869036748836237928, label: ["😀y\t"]}}, v84: 127, label: ["}z日1v{is:", "aucvdm\"e", "\tluf"]}
+encode M0 {}
+encode M2 {}
+encode M3 {seq: [{note: -4374279885323295727, z84: 8436056915563736607}], note: 16383, z84: -6}
+decode M0 ba0b04b1f1d918
+decode M4 8008e9d6dfedefade9e6ed019a100a270089015ba69b83ed056094cefb82c0e4dd918401
+decode M0 c00986fdc6e9bfd7bef015
+encode M2 {}
+decode M3 48009d0b9bd0948b11bdbc81930fab8c0aca0705b8a5f8a393
+decode M0
+decode M0
+encode M1 {label: [":i😀ek\"\x7f日d"]}
+decode M1 b21206dbbfc8fb9f1470ff01800bbb8d8bed8bf88286f901
+decode M4 9810800198109201981083f7d39a0a981001
+decode M4 981010981088019890808000bcb599b10a9810e9b1edb10398105b
+encode M3 {seq: [{note: -3177855725269422400}], note: 3395796790379317043, z84: 47}
+encode M3 {seq: [], z84: 2017499285311226354}
+encode M1 {tags: {v84: -8460966239737287803, label: []}, label: ["", "t", "g [日", "d\" \\üm", "u,An0élv1\\"]}
+encode M2 {}
+encode M2 {}
+encode M4 {}
+decode M0 f00ee9fdf4b1eef7f4fcbc01
+decode M4
+encode M1 {}
+encode M1 {tags: {tags: {tags: {v84: 76, label: ["2 n", "\n3e\nnCmn", "c\x7f1f"]}, label: ["", "ofChiü\"B", "\x00", "iAqbnsdpk\r\ti"]}, label: ["i:z\t{\n[00u", "iv ", "oü{bBpl ", "en1,a u[i"]}}
+encode M4 {}
+encode M3 {seq: [], z84: 7086276347872401553}
+encode M3 {note: 0}
+decode M1
+decode M3 d2440911efffffffffffffffd2448101a00a9397e2ced296988b3fd2443fd2441be50932465fd848e6dcc1d9f9ff9b878300f90864e0b1e751b3f37fd2440d48ff7f9100adffffffffffffffc880808000ff01a906b94bce3e79fc7075d244148a0b04c404a29291808080003c9f5cee0d18384248a6ffffffffffffffff01bb0308051201ffbc03111d00000000000000e5070fd546abc800808001
+encode M2 {}
+encode M3 {}

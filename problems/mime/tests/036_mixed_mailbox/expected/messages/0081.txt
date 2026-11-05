@@ -1,0 +1,55 @@
+[message]
+id 0081
+source "mbox:81"
+
+[headers]
+received: "from eu.example.de (mx1.post.example.fr [56.205.108.50]) by example.com (Postfix) with ESMTP id 751A083900 for <gtaylor@dev.example.io>; Sun, 27 Feb 2003 08:03:37 -0400 (JST)"
+received: "from apache.org (mx1.students.example.ac.jp [73.143.116.206]) by example.com (Postfix) with ESMTP id 6EA7E6F943 for <yfernndez@lists.example.edu>; Sun, 19 Jul 2024 01:08:03 +0900"
+return-path: "<bmller@mail.example.net>"
+message-id: "<664.b4352b5d.72288@mail.example.net>"
+in-reply-to: "<668.fb5bd62a.41521@eu.example.de>"
+references: "<665.529c529b.18107@students.example.ac.jp> <666.e1e7a4b3.27681@dev.example.io> <667.84811003.67277@example.org> <668.fb5bd62a.41521@eu.example.de>"
+date: "Mon, 02 Apr 2009 21:14:09 UT (EDT)"
+from: "Karin Fernández <kfernndez@students.example.ac.jp>"
+to: "Ελένη Brown <brown@mail.example.net>,    Tomás O'Brien <tobrien.97@example.com>, Uwe 山田 <u@apache.org>"
+subject: "Each error act to be try httpd the side the"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=utf-8"
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="Karin Fernández" spec="kfernndez@students.example.ac.jp"
+to 0 display="Ελένη Brown" spec="brown@mail.example.net"
+to 1 display="Tomás O'Brien" spec="tobrien.97@example.com"
+to 2 display="Uwe 山田" spec="u@apache.org"
+
+[date]
+raw " Mon, 02 Apr 2009 21:14:09 UT (EDT)"
+valid yes
+utc 2009-04-02T21:14:09Z
+offset +0000
+epoch 1238706849
+
+[structure]
+0 text/plain charset=utf-8 cte=8bit size=398 adler32=cc778b6e role=text
+
+[body]
+text 0 chars 393
+| Hook and work of end status. Many sound bug write as of? A to just great
+| did then use trunk São café. The config word what large us had of kind
+| in light large each proxy! The and from about boy or has say need been
+| act under of.
+| 
+| I do you that part of the a get and proxy Zürich of the when for. On who
+| large most I build Größe first off the branch will do do it came only
+| we!
+| 
+| -- 
+| Erik Rossi
+html none
+
+[attachments]

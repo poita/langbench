@@ -1,0 +1,46 @@
+step 1: build (default) -j 1
+  error E_DUP_OUTPUT out/z.txt
+step 2: edit main.kiln
+  ok size=113
+step 3: build (default) -j 1
+  error E_DUP_OUTPUT out/z.txt
+step 4: edit main.kiln
+  ok size=163
+step 5: build (default) -j 1
+  error E_DUP_OUTPUT out/z.txt
+step 6: edit main.kiln
+  ok size=106
+step 7: build (default) -j 1
+  error E_MISSING_INPUT src/missing.txt required by out/z.txt
+step 8: edit main.kiln
+  ok size=108
+step 9: build (default) -j 1
+  error E_MISSING_INPUT src/gone.txt required by out/z.txt
+step 10: edit main.kiln
+  ok size=88
+step 11: build (default) -j 1
+  error E_MISSING_INPUT @nophony required by out/z.txt
+step 12: edit main.kiln
+  ok size=100
+step 13: build (default) -j 1
+  error E_MISSING_INPUT @q required by @p
+step 14: edit main.kiln
+  ok size=74
+step 15: build (default) -j 1
+  error E_UNKNOWN_TARGET out/other.txt
+step 16: edit main.kiln
+  ok size=66
+step 17: build (default) -j 1
+  error E_UNKNOWN_TARGET @nope
+step 18: edit main.kiln
+  ok size=71
+step 19: build (default) -j 1
+  error E_UNKNOWN_TARGET not a path
+step 20: edit main.kiln
+  ok size=50
+step 21: build (default) -j 1
+  error E_NO_DEFAULT
+step 22: edit main.kiln
+  ok size=163
+step 23: build (default) -j 1
+  error E_MISSING_INPUT src/missing.txt required by out/z.txt

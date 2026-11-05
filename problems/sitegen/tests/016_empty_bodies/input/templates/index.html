@@ -1,0 +1,7 @@
+INDEX {{ pagination.number }}/{{ pagination.total_pages }} total={{ pagination.total_posts }}
+{% for post in posts %}- {{ post.slug }} | {{ post.date }} | {{ post.title }} | {{ post.url }} | older={% if post.older %}{{ post.older.slug }}{% else %}-{% endif %} newer={% if post.newer %}{{ post.newer.slug }}{% else %}-{% endif %}
+{% else %}(no posts)
+{% endfor %}prev={% if pagination.has_prev %}{{ pagination.prev_url }}{% else %}-{% endif %} next={% if pagination.has_next %}{{ pagination.next_url }}{% else %}-{% endif %}
+links:{% for l in pagination.links %} {{ l.number }}{% if l.current %}*{% endif %}{% endfor %}
+nav:{% for p in pages %} {{ p.slug }}={{ p.title }}{% endfor %}
+tags:{% for t in tags %} {{ t.slug }}({{ t.post_count }}){% endfor %}

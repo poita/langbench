@@ -1,0 +1,8 @@
+count-objects
+log HEAD
+log HEAD 5
+ls-tree HEAD
+ls-tree HEAD test
+rev-parse HEAD
+rev-parse HEAD~10
+diff HEAD~5 HEAD

@@ -1,0 +1,15 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "anyOf": [
+      true,
+      false
+    ]
+  },
+  "tests": [
+    {
+      "description": "any value is valid",
+      "data": "foo"
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+step 1: build (default) -j 1
+  run 0 3 w0 out/a.txt upper()
+  run 3 4 w0 out/b.txt copy()
+  run 4 5 w0 out/c.txt copy()
+  run 5 7 w0 out/d.txt number()
+  ok ran=4 hit=0 time=7
+step 2: edit src/a.txt
+  ok size=4
+step 3: build (default) -j 1
+  run 0 3 w0 out/a.txt upper()
+  hit 3 out/b.txt
+  hit 3 out/c.txt
+  hit 3 out/d.txt
+  ok ran=1 hit=3 time=3
+step 4: edit src/a.txt
+  ok size=4
+step 5: build (default) -j 1
+  run 0 3 w0 out/a.txt upper()
+  run 3 4 w0 out/b.txt copy()
+  run 4 5 w0 out/c.txt copy()
+  run 5 7 w0 out/d.txt number()
+  ok ran=4 hit=0 time=7

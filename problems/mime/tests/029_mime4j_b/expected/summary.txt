@@ -1,0 +1,21 @@
+messages 20
+0001 source="hdr-fakeout.eml" bytes=510 parts=1 attachments=0 text=0 html=-
+0002 source="infinite.eml" bytes=5487 parts=1 attachments=0 text=0 html=-
+0003 source="intermediate-boundaries.eml" bytes=773 parts=3 attachments=1 text=1 html=-
+0004 source="intl.eml" bytes=414 parts=1 attachments=0 text=0 html=-
+0005 source="jt-0498.eml" bytes=4900 parts=4 attachments=1 text=1 html=-
+0006 source="lennie.eml" bytes=3564 parts=4 attachments=1 text=1 html=2
+0007 source="malformedHeader-nocrlfcrlf.eml" bytes=128 parts=1 attachments=0 text=0 html=-
+0008 source="malformedHeader-noheader.eml" bytes=90 parts=1 attachments=0 text=0 html=-
+0009 source="malformedHeaderStartsBody-nocrlfcrlf.eml" bytes=128 parts=1 attachments=0 text=0 html=-
+0010 source="malformedHeaderStartsBody-noheader.eml" bytes=90 parts=1 attachments=0 text=0 html=-
+0011 source="misplaced-boundary.eml" bytes=210 parts=2 attachments=0 text=1 html=-
+0012 source="missing-boundary.eml" bytes=69 parts=1 attachments=0 text=- html=-
+0013 source="mp-msg-rfc822.eml" bytes=4695 parts=4 attachments=1 text=1 html=-
+0014 source="multi-2gifs.eml" bytes=2374 parts=4 attachments=2 text=1 html=-
+0015 source="multi-frag.eml" bytes=3242 parts=9 attachments=5 text=1 html=-
+0016 source="multi-igor.eml" bytes=10572 parts=5 attachments=3 text=1 html=-
+0017 source="multi-igor2.eml" bytes=10572 parts=5 attachments=3 text=1 html=-
+0018 source="multi-nested.eml" bytes=3201 parts=9 attachments=5 text=1 html=-
+0019 source="multi-nested2.eml" bytes=3201 parts=9 attachments=5 text=1 html=-
+0020 source="multi-nested3.eml" bytes=3196 parts=9 attachments=5 text=1 html=-

@@ -1,0 +1,13 @@
+message Inner { sint32 v = 1; }
+message Outer {
+  int32 a = 1;
+  string b = 2;
+  repeated int32 c = 3;
+  Inner d = 4;
+}
+--
+encode Outer {a: 1, b: "x", c: [1, 2], d: {v: -5}}
+decode Outer 08011201781a02010222020809
+encode Outer {d: {}, c: [], a: 0}
+decode Outer 3800
+decode Outer 08ff

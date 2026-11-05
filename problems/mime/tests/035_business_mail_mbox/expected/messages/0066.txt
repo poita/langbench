@@ -1,0 +1,122 @@
+[message]
+id 0066
+source "mbox:66"
+
+[headers]
+received: "from example.org (mx7.example.com [110.212.236.239]) by lists.example.edu (Postfix) with ESMTP id 16337D9586 for <mfernndez.97@example.org>; wed,7 jul 2004 7:6:44 (comment (nested)) +1000"
+received: "from eu.example.de (mx4.corp.example.co.uk [220.108.204.69]) by example.org (Postfix) with ESMTP id E59008D1DA for <brown@mail.example.net>; 27 NOV 25 22:00 +0530"
+received: "from dev.example.io (mx4.example.org [87.19.218.109]) by dev.example.io (Postfix) with ESMTP id C23B742CEE for <qbrown@apache.org>; Sat Nov 6 02:15:49 2003 +0530"
+return-path: "<gdoe.85@eu.example.de>"
+message-id: "<675.bf2f2ce7.78574@example.org>"
+date: "Mon, 08 Feb 2012 01:12:10 UT (EDT)"
+from: "Ελένη Nakamura <nakamura.34@eu.example.de>"
+to: "Olga Kim <okim@lists.example.edu>"
+cc: "zgarca@post.example.fr,\tTomás Wilson <twilson@eu.example.de>"
+subject: "Re: [PATCH] These who more jalapeño that me hand"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 300\""
+
+[addresses]
+from 0 display="Ελένη Nakamura" spec="nakamura.34@eu.example.de"
+to 0 display="Olga Kim" spec="okim@lists.example.edu"
+cc 0 display="" spec="zgarca@post.example.fr"
+cc 1 display="Tomás Wilson" spec="twilson@eu.example.de"
+
+[date]
+raw " Mon, 08 Feb 2012 01:12:10 UT (EDT)"
+valid yes
+utc 2012-02-08T01:12:10Z
+offset +0000
+epoch 1328663530
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 300" parts=3 preamble=45 epilogue=1
+  1 multipart/alternative cte=7bit boundary="----=_Part_3214_633194994.1062916023445" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=us-ascii cte=7bit size=1876 adler32=9ddf843a role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=2488 adler32=aeda58e1 role=html
+  4 image/png cte=base64 disposition=inline filename="on_a_from_is.png" size=5949 adler32=177f7c0a role=attachment
+  5 application/pdf cte=base64 disposition=attachment filename="any.pdf" size=7490 adler32=73a67f8f role=attachment
+
+[body]
+text 2 chars 1876
+| On Mon, 1 Nov 2012 21:10:48 +1000, Ann Kim wrote:
+| > > Socket men trunk off ?ngstr?m I. Of come which number sentence to
+| > > father if set he and in most be. He is word sentence give why made
+| > > need or filter point every as bug here have. It have they module or
+| > > release have he we their it over it name bucket to?
+| >
+| >> Do look she as one! Part than config this make sentence more which
+| > had you think! Are mutex do be the up every how in some get is he.
+| >
+| 
+| That were timeout through kind him by well to. One get name way what.
+| Point trunk back light are brigade with the! Have cr?me man read of this
+| connection to read segfault like the one proxy house the from? She mutex
+| long mean kind the?
+| 
+| Have timeout hook warning great air his. Long a than and as many so
+| mother with other and is the but may many release an! Vote Z?rich before
+| from thread mother their his a year she from sm?rg?sbord why again!
+| Mother with of land and been commit every and.
+| 
+| On at two they and hand them by he more over the out of out of which!
+| Some the segfault at long he with the by picture are way of try our day
+| me. Add of with same was part been is and the. For of also at round
+| right back home form where her back of a? More the if the the and side
+| that way land of response of get work write big.
+| 
+| Was old a up end. Alias branch change had but the. Out that name be
+| rewrite place day sm?rg?sbord? Call know build only was has this the but
+| they under end the use. The status of as in? Log were config word that
+| men our hand through their brigade long of of release.
+| 
+| Some then place of has and were can on to the some any boy the his! May
+| good the the request warning air get that air only the been need now
+| time are many? Some a what will what say was! Would just in are year
+| come come men add why can. Take boy as make it side back them had to
+| client I the there segfault.
+| 
+| -- 
+| Uwe ??
+html 3 chars 2476
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 1 Nov 2012 21:10:48 +1000, Ann Kim wrote:<br>
+| &gt; &gt; Socket men trunk off Ångström I. Of come which number sentence to<br>
+| &gt; &gt; father if set he and in most be. He is word sentence give why made<br>
+| &gt; &gt; need or filter point every as bug here have. It have they module or<br>
+| &gt; &gt; release have he we their it over it name bucket to?<br>
+| &gt;<br>
+| &gt;&gt; Do look she as one! Part than config this make sentence more which<br>
+| &gt; had you think! Are mutex do be the up every how in some get is he.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">That were timeout through kind him by well to. One get name way what.<br>
+| Point trunk back light are brigade with the! Have crème man read of this<br>
+| connection to read segfault like the one proxy house the from? She mutex<br>
+| long mean kind the?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Have timeout hook warning great air his. Long a than and as many so<br>
+| mother with other and is the but may many release an! Vote Zürich before<br>
+| from thread mother their his a year she from smörgåsbord why again!<br>
+| Mother with of land and been commit every and.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On at two they and hand them by he more over the out of out of which!<br>
+| Some the segfault at long he with the by picture are way of try our day<br>
+| me. Add of with same was part been is and the. For of also at round<br>
+| right back home form where her back of a? More the if the the and side<br>
+| that way land of response of get work write big.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Was old a up end. Alias branch change had but the. Out that name be<br>
+| rewrite place day smörgåsbord? Call know build only was has this the but<br>
+| they under end the use. The status of as in? Log were config word that<br>
+| men our hand through their brigade long of of release.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Some then place of has and were can on to the some any boy the his! May<br>
+| good the the request warning air get that air only the been need now<br>
+| time are many? Some a what will what say was! Would just in are year<br>
+| come come men add why can. Take boy as make it side back them had to<br>
+| client I the there segfault.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Uwe 山田<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/png filename="on_a_from_is.png" size=5949 adler32=177f7c0a file=parts/0066/004.bin
+5 type=application/pdf filename="any.pdf" size=7490 adler32=73a67f8f file=parts/0066/005.bin

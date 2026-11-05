@@ -1,0 +1,19 @@
+
+CREATE TABLE emp (id INTEGER, name TEXT, boss INTEGER, dept TEXT);
+CREATE TABLE dept (name TEXT, floor INTEGER);
+INSERT INTO emp VALUES (1, 'ann', NULL, 'eng'), (2, 'bob', 1, 'eng'), (3, 'cy', 1, 'ops'), (4, 'dee', 2, 'eng'), (5, 'eve', 3, NULL), (6, 'fay', 9, 'ops');
+INSERT INTO dept VALUES ('eng', 3), ('ops', 1), ('hr', 2);
+SELECT emp.name, dept.floor FROM emp INNER JOIN dept ON emp.dept = dept.name;
+SELECT e.name, d.floor FROM emp AS e JOIN dept AS d ON e.dept = d.name ORDER BY d.floor, e.name;
+SELECT e.name, d.floor FROM emp e INNER JOIN dept d ON e.dept = d.name WHERE d.floor > 1 ORDER BY e.id;
+SELECT e.name, b.name FROM emp e INNER JOIN emp b ON e.boss = b.id;
+SELECT e.name, b.name FROM emp e, emp b WHERE e.boss = b.id ORDER BY b.name, e.name;
+SELECT e.id, b.id FROM emp e INNER JOIN emp b ON e.id < b.id AND e.dept = b.dept;
+SELECT e.name FROM emp e JOIN emp b ON e.boss = b.id WHERE b.boss IS NULL;
+SELECT * FROM emp e JOIN dept d ON 1 WHERE e.id = 1;
+SELECT COUNT(*) FROM emp e JOIN dept d ON e.dept = d.name;
+SELECT d.name, COUNT(*), MIN(e.name), MAX(e.id) FROM emp e JOIN dept d ON e.dept = d.name GROUP BY d.name;
+SELECT e.dept, COUNT(*) FROM emp e JOIN emp b ON e.boss = b.id GROUP BY e.dept ORDER BY 2 DESC, 1;
+SELECT id, floor FROM emp INNER JOIN dept ON dept = dept.name ORDER BY id;
+SELECT emp.name FROM emp, dept WHERE emp.dept = dept.name AND floor = 3;
+SELECT e.name, e.dept FROM emp e WHERE e.boss IS NOT NULL ORDER BY e.name;

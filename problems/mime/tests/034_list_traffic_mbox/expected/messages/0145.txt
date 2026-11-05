@@ -1,0 +1,79 @@
+[message]
+id 0145
+source "mbox:145"
+
+[headers]
+received: "from mail.example.net (mx3.mail.example.net [111.107.134.122]) by apache.org (Postfix) with ESMTP id 1B003CDA78 for <dstergaard@eu.example.de>; 28 SEP 24 21:47 -0330"
+received: "from students.example.ac.jp (mx7.example.org [54.44.80.92]) by mail.example.net (Postfix) with ESMTP id C957F5F97F for <doe@example.org>; Fri, 4 Jul 2012 22:25:51 -0330"
+received: "from corp.example.co.uk (mx4.mail.example.net [61.164.119.59]) by eu.example.de (Postfix) with ESMTP id D81B5FF6E4 for <xjohansson@example.org>; Wed, 1 Sep 2018 15:30:06 -0500"
+received: "from students.example.ac.jp (mx3.dev.example.io [221.97.235.15]) by dev.example.io (Postfix) with ESMTP id CB63E8B0A for <garca@post.example.fr>; Fri, 14 Dec 2003 20:38:55 -0800"
+return-path: "<hjohansson@mail.example.net>"
+message-id: "<953.475b25ba.77216@apache.org>"
+in-reply-to: "<963.3a3a5bb6.71836@mail.example.net>"
+references: "<954.4c96b329.65375@lists.example.edu> <955.ed816c8b.53657@students.example.ac.jp> <956.295fa112.42122@students.example.ac.jp> <957.4140327c.23822@lists.example.edu> <958.76e4a887.76305@eu.example.de> <959.939bf8b4.38035@apache.org> <960.d289871d.2044@students.example.ac.jp> <961.6903db89.16850@post.example.fr> <962.657cd1aa.66253@post.example.fr> <963.3a3a5bb6.71836@mail.example.net>"
+date: "Fri, 25 Dec 2003 23:49:52 -0700"
+from: "\"Yuki Petrov\" <ypetrov@mail.example.net>"
+to: "\"Rossi, Yuki\" <yrossi@corp.example.co.uk>, Xavier Schröder <xschrder@apache.org>,    Greg Müller <gmller.84@apache.org>"
+cc: "\"Papadopoulos, Quinn\" <qpapadopoulos@corp.example.co.uk>, Agnieszka García <agarca.68@corp.example.co.uk>"
+subject: "[VOTE] Act and which line cache the of this to"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"0000000000009552bacb5add\""
+
+[addresses]
+from 0 display="Yuki Petrov" spec="ypetrov@mail.example.net"
+to 0 display="Rossi, Yuki" spec="yrossi@corp.example.co.uk"
+to 1 display="Xavier Schröder" spec="xschrder@apache.org"
+to 2 display="Greg Müller" spec="gmller.84@apache.org"
+cc 0 display="Papadopoulos, Quinn" spec="qpapadopoulos@corp.example.co.uk"
+cc 1 display="Agnieszka García" spec="agarca.68@corp.example.co.uk"
+
+[date]
+raw " Fri, 25 Dec 2003 23:49:52 -0700"
+valid yes
+utc 2003-12-26T06:49:52Z
+offset -0700
+epoch 1072421392
+
+[structure]
+0 multipart/alternative cte=7bit boundary="0000000000009552bacb5add" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=base64 size=658 adler32=3a32e74d role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=959 adler32=06884c9b role=html
+
+[body]
+text 1 chars 658
+| These take that he part of. Apr will see turn large he would will who
+| only the water sound great at side server me. Put or to be you backport
+| was as certificate change for? Port was are one it. And get may every
+| for Zürich side point any I? New in but the her us animal the in the the
+| is but the. Were über hand the the great I also rewrite it are could it
+| think status the.
+| 
+| He after us the see config as work the. Were segfault two change other
+| me? Boy side name sentence under it will people came of point through?
+| Live me crash backport bucket other your branch it to of think had you
+| them httpd all so. Of his jalapeño if of can be I.
+| 
+| -- 
+| Hana Lefèvre
+html 2 chars 955
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">These take that he part of. Apr will see turn large he would will who<br>
+| only the water sound great at side server me. Put or to be you backport<br>
+| was as certificate change for? Port was are one it. And get may every<br>
+| for Zürich side point any I? New in but the her us animal the in the the<br>
+| is but the. Were über hand the the great I also rewrite it are could it<br>
+| think status the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">He after us the see config as work the. Were segfault two change other<br>
+| me? Boy side name sentence under it will people came of point through?<br>
+| Live me crash backport bucket other your branch it to of think had you<br>
+| them httpd all so. Of his jalapeño if of can be I.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Hana Lefèvre<br>
+| </p>
+| </body></html>
+
+[attachments]

@@ -1,0 +1,32 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "enum": []
+  },
+  "tests": [
+    {
+      "description": "string is invalid",
+      "data": "foo"
+    },
+    {
+      "description": "number is invalid",
+      "data": 42
+    },
+    {
+      "description": "null is invalid",
+      "data": null
+    },
+    {
+      "description": "object is invalid",
+      "data": {}
+    },
+    {
+      "description": "array is invalid",
+      "data": []
+    },
+    {
+      "description": "boolean is invalid",
+      "data": false
+    }
+  ]
+}

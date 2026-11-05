@@ -1,0 +1,17 @@
+put "a" {b:{c:{d:{e:{f:{g:{h:1}}}}}}}
+update "a" b.c.d.e.f.g.h 2
+update "a" b.c.d.e.f.g.h.i 2
+update "a" a.b.c.d.e.f.g.h.i. 2
+update "a" b . c 3
+get "a"
+create index aaaaaaaaaa.bbbbbbbbbb.cccccccc
+create index aaaaaaaaaa.bbbbbbbbbb.ccccccccc
+create index aaaaaaaaaa.bbbbbbbbbb.cccccccccc
+create index a.
+create index .a
+create index a..b
+create index 1a
+create index "a"
+create index null
+create index and
+indexes

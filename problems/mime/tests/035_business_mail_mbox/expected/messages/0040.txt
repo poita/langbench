@@ -1,0 +1,90 @@
+[message]
+id 0040
+source "mbox:40"
+
+[headers]
+received: "from example.com (mx1.post.example.fr [247.162.170.201]) by apache.org (Postfix) with ESMTP id AA16075D60 for <mller@dev.example.io>; Thu, 10 Jun 2024 12:05:37 -0700"
+received: "from eu.example.de (mx7.apache.org [175.126.151.184]) by students.example.ac.jp (Postfix) with ESMTP id 9EF3594979 for <mwilson@apache.org>; Mon, 19 Jun 2025 07:12:44 -0000 (JST)"
+received: "from example.com (mx3.lists.example.edu [179.139.45.168]) by eu.example.de (Postfix) with ESMTP id AC170C412D for <c.37@apache.org>; Wed, 3 Sep 2025 13:02:09 +0900"
+received: "from apache.org (mx2.dev.example.io [217.133.49.57]) by students.example.ac.jp (Postfix) with ESMTP id 16F75A9438 for <nobrien@lists.example.edu>; Mon, 8 Nov 2024 08:14:04 CST"
+return-path: "<sbrown@lists.example.edu>"
+message-id: "<420.86ed370d.83199@apache.org>"
+date: "Fri, 11 Apr 2004 19:39:06 +0900"
+from: "Zoë O'Brien <zobrien@example.com>"
+to: "slefvre@example.com"
+subject: "Re: All backport bucket a a house he"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 690\""
+
+[addresses]
+from 0 display="Zoë O'Brien" spec="zobrien@example.com"
+to 0 display="" spec="slefvre@example.com"
+
+[date]
+raw " Fri, 11 Apr 2004 19:39:06 +0900"
+valid yes
+utc 2004-04-11T10:39:06Z
+offset +0900
+epoch 1081679946
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 690" parts=4 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="----=_Part_8256_277469115.488980471988" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=windows-1252 cte=7bit size=822 adler32=a3de093f role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1258 adler32=044f9b1c role=html
+  4 text/x-diff charset=utf-8 cte=quoted-printable disposition=inline filename="I_all_client_crème.patch" size=4473 adler32=7e508542 role=attachment
+  5 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="or_has_are.docx" size=4395 adler32=728d9eb3 role=attachment
+  6 text/plain charset=utf-8 cte=quoted-printable disposition=attachment filename="Zürich_use_on_an_bucket.txt" size=7104 adler32=54b5dd2a role=attachment
+
+[body]
+text 2 chars 822
+| On Mon, 27 Aug 2025 21:37:29 MET, Sven van der Berg wrote:
+| >> His the their differ think is same water write number been the where
+| > > down our think line. Take add thing I be had or help what no! You
+| >> you had did a they them get of you! Than in of it you?
+| >
+| 
+| Place with on form coöperate your a the but to and it? In said play
+| people to thing and. Her certificate to build client but where these
+| crème bucket. The have can your the by in he hook after!
+| 
+| Was the man turn look to so. Find status there to are why as up from
+| header differ then! And façade config client the do could men may large
+| httpd cause came down. Under the differ no but mean the!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| María O'Brien
+html 3 chars 1254
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 27 Aug 2025 21:37:29 MET, Sven van der Berg wrote:<br>
+| &gt;&gt; His the their differ think is same water write number been the where<br>
+| &gt; &gt; down our think line. Take add thing I be had or help what no! You<br>
+| &gt;&gt; you had did a they them get of you! Than in of it you?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Place with on form coöperate your a the but to and it? In said play<br>
+| people to thing and. Her certificate to build client but where these<br>
+| crème bucket. The have can your the by in he hook after!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Was the man turn look to so. Find status there to are why as up from<br>
+| header differ then! And façade config client the do could men may large<br>
+| httpd cause came down. Under the differ no but mean the!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| María O'Brien<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/x-diff filename="I_all_client_crème.patch" size=4473 adler32=7e508542 file=parts/0040/004.bin
+5 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="or_has_are.docx" size=4395 adler32=728d9eb3 file=parts/0040/005.bin
+6 type=text/plain filename="Zürich_use_on_an_bucket.txt" size=7104 adler32=54b5dd2a file=parts/0040/006.bin

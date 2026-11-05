@@ -1,0 +1,26 @@
+[message]
+id 0012
+source "ticket-60931.eml"
+
+[headers]
+mime-version: "1.0"
+received: "by 10.220.78.157 with HTTP; Thu, 26 Aug 2010 21:33:17 -0700 (PDT)"
+content-type: "multipart/alternative; boundary=90e6ba4fc6ea25d329048ec69d99"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/alternative cte=7bit boundary="90e6ba4fc6ea25d329048ec69d99" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=7bit size=6 adler32=05cb017f role=text
+  2 text/html charset=iso-8859-1 cte=7bit size=10 adler32=102502cd role=html
+
+[body]
+text 1 chars 6
+| HELLO
+html 2 chars 10
+| HELLO<br>
+
+[attachments]

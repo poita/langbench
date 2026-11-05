@@ -1,0 +1,74 @@
+[message]
+id 0002
+source "mbox:2"
+
+[headers]
+received: "from students.example.ac.jp (mx2.lists.example.edu [130.207.15.24]) by example.com (Postfix) with ESMTP id 11D6E25158 for <afernndez@corp.example.co.uk>; Wed, 10 Jun 2009 04:55:29 +0900"
+received: "from eu.example.de (mx2.apache.org [109.82.44.197]) by corp.example.co.uk (Postfix) with ESMTP id B65B7DED22 for <cnakamura@corp.example.co.uk>; 8 MAY 24 08:36 +0100"
+received: "from example.com (mx6.eu.example.de [36.167.8.243]) by corp.example.co.uk (Postfix) with ESMTP id 15CE004933 for <dbrown.17@corp.example.co.uk>; Sat, 6 Sep 2005 09:50:31 +0900"
+return-path: "<vanderberg.89@example.com>"
+message-id: "<16.3ebe7835.50824@example.org>"
+in-reply-to: "<21.aca187f0.51718@lists.example.edu>"
+references: "<17.d86d47ee.85321@post.example.fr> <18.dfffe7c0.50069@apache.org> <19.aa3f5a3e.19589@eu.example.de> <20.a8df8999.10112@dev.example.io> <21.aca187f0.51718@lists.example.edu>"
+date: "Sat, 15 Dec 2009 07:13:31 +1245"
+from: "bwilson@corp.example.co.uk"
+to: "clefvre@mail.example.net, Bob Taylor <btaylor.72@eu.example.de>,    Chloé Petrov <cpetrov@corp.example.co.uk>"
+subject: "Re: [PATCH] The Ørsted build so than your"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "text/plain; charset=utf-8"
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="" spec="bwilson@corp.example.co.uk"
+to 0 display="" spec="clefvre@mail.example.net"
+to 1 display="Bob Taylor" spec="btaylor.72@eu.example.de"
+to 2 display="Chloé Petrov" spec="cpetrov@corp.example.co.uk"
+
+[date]
+raw " Sat, 15 Dec 2009 07:13:31 +1245"
+valid yes
+utc 2009-12-14T18:28:31Z
+offset +1245
+epoch 1260815311
+
+[structure]
+0 text/plain charset=utf-8 cte=base64 size=1310 adler32=70d5c0e1 role=text
+
+[body]
+text 0 chars 1300
+| The the take cause other handler proxy high land or to he over! As water
+| him had three under? But the rewrite proxy you. Such now was in this use
+| it out picture vote bucket the but Ångström. Tell good low module error
+| are of and show? Did your after had they came to work piñata turn is.
+| 
+| Two also your a and back more Paulo move. Some what she log word of play
+| two a every three a live about response? In first to use more on take
+| server such how and one the the Größe. They the near some if review
+| Zürich out year for the on when of over review. Big crash of down to
+| segfault same the when to of from? Of are where help most client been.
+| Most move of say do ssl warning show they I can!
+| 
+| Be as his to his. These some a more and all we back them part about now
+| café see is of only for? Change from by the were the so before of
+| smörgåsbord of are and. What near the good of first segfault land long
+| to? Now move now only that even sound an look sound time. Had thing at I
+| at? Live he some have by only there air had like Málaga of more.
+| 
+| Status first build I every for at to is way pool first the. She you will
+| was of was request!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Xavier Kowalski
+html none
+
+[attachments]

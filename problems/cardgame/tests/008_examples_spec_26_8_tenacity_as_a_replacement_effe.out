@@ -1,0 +1,32 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 4 4
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #2 CIN-005 #5
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DAMAGE #2 #5 3
+14 SPENT #2 CIN-005
+15 TENACITY #5
+16 PLAY A ~2 #3 CIN-005 #5
+17 PAY A ember 2
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 DAMAGE #3 #5 3
+22 SPENT #3 CIN-005
+23 DESTROY #5 DSK-024
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 10 ember 0 cap 4 vault 1 hand 0 ash 2 rift 0
+player B spire 10 ember 0 cap 0 vault 1 hand 0 ash 1 rift 0
+ash A 1 #2 CIN-005
+ash A 2 #3 CIN-005
+ash B 1 #5 DSK-024
+STATE END
+24 RESULT pending none

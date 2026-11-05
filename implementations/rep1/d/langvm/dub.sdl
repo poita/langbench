@@ -1,0 +1,35 @@
+name "langvm"
+description "A compiler and stack virtual machine for the Vellum language"
+authors "langvm authors"
+license "MIT"
+copyright "Copyright (c) langvm authors"
+targetType "executable"
+targetName "langvm"
+targetPath "bin"
+
+# `dub build` builds the command-line tool (the first configuration).
+configuration "cli" {
+    targetType "executable"
+    sourcePaths "source" "app"
+    mainSourceFile "app/main.d"
+    importPaths "source"
+}
+
+# The reusable library only (no command-line tool).
+configuration "library" {
+    targetType "library"
+    targetName "langvm"
+    sourcePaths "source"
+    importPaths "source"
+    excludedSourceFiles "app/main.d"
+}
+
+# `dub test` builds the library together with the unit tests under tests/.
+configuration "unittest" {
+    targetType "library"
+    targetName "langvm-test"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+    excludedSourceFiles "app/main.d"
+}
+

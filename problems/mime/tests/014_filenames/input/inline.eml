@@ -1,0 +1,14 @@
+Content-Type: multipart/related; boundary="B"
+
+--B
+Content-Type: text/html
+
+<img src="cid:x">
+--B
+Content-Type: image/gif
+Content-ID: <x>
+Content-Disposition: inline; filename="pic.gif"
+Content-Transfer-Encoding: base64
+
+R0lGODlh
+--B--

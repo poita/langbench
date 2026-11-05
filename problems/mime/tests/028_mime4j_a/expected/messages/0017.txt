@@ -1,0 +1,81 @@
+[message]
+id 0017
+source "example.eml"
+
+[headers]
+return-path: "<robertburrelldonkin@blueyonder.co.uk>"
+received: "(qmail 18554 invoked from network); 25 May 2008 14:38:53 -0000"
+received: "from unknown (HELO p3presmtp01-16.prod.phx3.secureserver.net) ([208.109.80.165]) (envelope-sender <rdonkin-owner@locus.apache.org>) by smtp20-01.prod.mesa1.secureserver.net (qmail-1.03) with SMTP for <asf@xmlmapt.org>; 25 May 2008 14:38:53 -0000"
+received: "(qmail 9751 invoked from network); 25 May 2008 14:38:53 -0000"
+received: "from minotaur.apache.org ([140.211.11.9]) (envelope-sender <rdonkin-owner@locus.apache.org>) by p3presmtp01-16.prod.phx3.secureserver.net (qmail-ldap-1.03) with SMTP for <asf@xmlmapt.org>; 25 May 2008 14:38:50 -0000"
+received: "(qmail 46768 invoked by uid 1289); 25 May 2008 14:38:46 -0000"
+delivered-to: "rdonkin@locus.apache.org"
+received: "(qmail 46763 invoked from network); 25 May 2008 14:38:46 -0000"
+received: "from hermes.apache.org (HELO mail.apache.org) (140.211.11.2) by minotaur.apache.org with SMTP; 25 May 2008 14:38:46 -0000"
+received: "(qmail 61275 invoked by uid 500); 25 May 2008 14:38:48 -0000"
+delivered-to: "apmail-rdonkin@apache.org"
+delivered-to: "rob@localhost"
+delivered-to: "rob@localhost"
+received: "(qmail 61272 invoked by uid 99); 25 May 2008 14:38:48 -0000"
+received: "from athena.apache.org (HELO athena.apache.org) (140.211.11.136) by apache.org (qpsmtpd/0.29) with ESMTP; Sun, 25 May 2008 07:38:48 -0700"
+x-asf-spam-status: "No, hits=-0.0 required=10.0 tests=SPF_PASS"
+x-spam-check-by: "apache.org"
+received-spf: "pass (athena.apache.org: domain of        robertburrelldonkin@blueyonder.co.uk designates 195.188.213.5 as permitted        sender)"
+received: "from [195.188.213.5] (HELO smtp-out2.blueyonder.co.uk) (195.188.213.5) by apache.org (qpsmtpd/0.29) with ESMTP; Sun, 25 May 2008 14:38:00 +0000"
+received: "from [172.23.170.140] (helo=anti-virus02-07) by smtp-out2.blueyonder.co.uk with smtp (Exim 4.52) id 1K0HMV-00087e-HY for rdonkin@apache.org; Sun, 25 May 2008 15:38:15 +0100"
+received: "from [82.38.65.6] (helo=[10.0.0.27]) by asmtp-out5.blueyonder.co.uk with esmtpa (Exim 4.52) id 1K0HMU-0001A2-3q for rdonkin@apache.org; Sun, 25 May 2008 15:38:14 +0100"
+subject: "This is an example of a multipart mixed email with image content"
+from: "Robert Burrell Donkin <robertburrelldonkin@blueyonder.co.uk>"
+to: "Robert Burrell Donkin <rdonkin@apache.org>"
+content-type: "multipart/mixed; boundary=\"=-tIdGYVstQJghyEDATnJ+\""
+date: "Sun, 25 May 2008 15:38:13 +0100"
+message-id: "<1211726293.5772.10.camel@localhost>"
+mime-version: "1.0"
+x-mailer: "Evolution 2.12.3"
+x-virus-checked: "Checked by ClamAV on apache.org"
+x-nonspam: "None"
+x-fetched-from: "mail.xmlmapt.org"
+x-evolution-source: "imap://rob@thebes/"
+
+[addresses]
+from 0 display="Robert Burrell Donkin" spec="robertburrelldonkin@blueyonder.co.uk"
+to 0 display="Robert Burrell Donkin" spec="rdonkin@apache.org"
+
+[date]
+raw " Sun, 25 May 2008 15:38:13 +0100"
+valid yes
+utc 2008-05-25T14:38:13Z
+offset +0100
+epoch 1211726293
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=-tIdGYVstQJghyEDATnJ+" parts=4 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=757 adler32=451d06bd role=text
+  2 image/png cte=base64 disposition=attachment filename="blob.png" size=355 adler32=b03f854d role=attachment
+  3 image/png cte=base64 disposition=attachment filename="blob.png" size=355 adler32=b03f854d role=attachment
+  4 text/plain charset=us-ascii cte=quoted-printable disposition=attachment filename="rhubarb.txt" size=3072 adler32=e4705927 role=attachment
+
+[body]
+text 1 chars 757
+| Licensed to the Apache Software Foundation (ASF) under one
+| or more contributor license agreements.  See the NOTICE file
+| distributed with this work for additional information
+| regarding copyright ownership.  The ASF licenses this file
+| to you under the Apache License, Version 2.0 (the
+| \"License\"); you may not use this file except in compliance
+| with the License.  You may obtain a copy of the License at
+| 
+|     http://www.apache.org/licenses/LICENSE-2.0
+|  
+| Unless required by applicable law or agreed to in writing,
+| software distributed under the License is distributed on an
+| \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+| KIND, either express or implied.  See the License for the
+| specific language governing permissions and limitations
+| under the License.
+html none
+
+[attachments]
+2 type=image/png filename="blob.png" size=355 adler32=b03f854d file=parts/0017/002.bin
+3 type=image/png filename="blob.png" size=355 adler32=b03f854d file=parts/0017/003.bin
+4 type=text/plain filename="rhubarb.txt" size=3072 adler32=e4705927 file=parts/0017/004.bin

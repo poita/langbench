@@ -1,0 +1,37 @@
+[message]
+id 0012
+source "boundary-name-clash.eml"
+
+[headers]
+subject: "test"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"--boundary.1652331600846930886\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="--boundary.1652331600846930886" parts=2 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="--boundary.1652331600846930886-1" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=60 adler32=94c213ae role=text
+    3 text/html charset=utf-8 cte=7bit size=263 adler32=95214fdc role=html
+  4 application/pdf cte=base64 disposition=attachment filename="Daily_Stats-2022-05-12-0700.pdf" size=31 adler32=876a07f8 role=attachment
+
+[body]
+text 2 chars 60
+| Please see attachment for report Daily_Stats-2022-05-12-0700
+html 3 chars 263
+| <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">
+| <html lang=\"en\">
+| \t<head>
+| \t\t<meta http-equiv=\"content-type\" content=\"text/html; charset=UTF-8\">
+| \t</head>
+| \t<body>
+| \t\t<p>Please see attachment for report Daily_Stats-2022-05-12-0700.</p>
+| \t</body>
+| </html>
+
+[attachments]
+4 type=application/pdf filename="Daily_Stats-2022-05-12-0700.pdf" size=31 adler32=876a07f8 file=parts/0012/004.bin

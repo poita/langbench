@@ -1,0 +1,23 @@
+[message]
+id 0003
+source "odd-names.eml"
+
+[headers]
+x-a_b.c: "dotted name"
+x-99: "digits"
+content-type: "TEXT/PLAIN; CHARSET=US-ASCII"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

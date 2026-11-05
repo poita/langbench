@@ -1,0 +1,58 @@
+QUERY 1 café
+HITS 2
+1	upper	1.6617	CAFÉ café Café
+2	french	0.8325	Le café est ouvert. Cafés et crèmes à la crème
+QUERY 2 crème
+HITS 1
+1	french	1.2455	Le café est ouvert. Cafés et crèmes à la crème
+QUERY 3 αλφα
+HITS 1
+1	greek	1.5743	αλφα βήτα γάμμα alpha beta gamma
+QUERY 4 alpha
+HITS 1
+1	greek	1.5743	αλφα βήτα γάμμα alpha beta gamma
+QUERY 5 well
+HITS 1
+1	dash	1.5743	well—known “quoted” words — and more
+QUERY 6 known
+HITS 1
+1	dash	1.5743	well—known “quoted” words — and more
+QUERY 7 "well known"
+HITS 1
+1	dash	1.5743	well—known “quoted” words — and more
+QUERY 8 quoted
+HITS 1
+1	dash	1.5743	well—known “quoted” words — and more
+QUERY 9 Привет
+HITS 1
+1	cyrillic	1.6856	Привет мир ПРИВЕТ Мир привет
+QUERY 10 ПРИВЕТ
+HITS 1
+1	cyrillic	1.6856	Привет мир ПРИВЕТ Мир привет
+QUERY 11 мир
+HITS 1
+1	cyrillic	1.6856	Привет мир ПРИВЕТ Мир привет
+QUERY 12 À
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ
+QUERY 13 Ö
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ
+QUERY 14 Ø
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ
+QUERY 15 ø
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ
+QUERY 16 ɏ
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ
+QUERY 17 "ͰϿ"
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ
+QUERY 18 ͰϿ
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ
+QUERY 19 Ѐӿ
+HITS 1
+1	ranges	1.3907	À Ö×Ø ö÷ø ɏɐ ͰϿ Ѐӿ

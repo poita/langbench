@@ -1,0 +1,19 @@
+@module main
+struct S<A,> { a: A, }
+enum E<T,> { V(T,), W, }
+fn f<T,>(a: T,) -> T { a }
+trait Tr { fn m(self, x: Int,) -> Int; }
+impl<T,> Tr for E<T,> { fn m(self, x: Int,) -> Int { x } }
+fn main() {
+    let s = S.{ a: 1, };
+    print(showInt(f(s.a,)));
+    let xs = [1, 2,];
+    let m = #[1: 2,];
+    let t = (1, 2,);
+    print(showInt(listLen(xs) + mapLen(m) + fst(t)));
+    let g = |a: Int, b: Int,| a + b;
+    print(showInt(g(1, 2,)));
+    print(showInt(V(3).m(4)));
+    let w: E<Int> = W;
+    match w { V(n,) -> print(showInt(n)), W -> print("w"), }
+}

@@ -1,0 +1,6 @@
+count-objects
+log HEAD
+log HEAD 50
+log HEAD 1
+rev-parse HEAD
+rev-parse HEAD~200

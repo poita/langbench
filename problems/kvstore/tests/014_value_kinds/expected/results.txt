@@ -1,0 +1,43 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok get value
+  null
+[10] ok get value
+  true
+[11] ok get value
+  false
+[12] ok get value
+  42
+[13] ok get value
+  -42
+[14] ok get value
+  "hello"
+[15] ok get value
+  [1,2,3]
+[16] ok get value
+  {"a":1,"b":"two","c":[true,null]}
+[17] ok scan 8
+  "f" = false
+  "i" = 42
+  "l" = [1,2,3]
+  "n" = null
+  "neg" = -42
+  "o" = {"a":1,"b":"two","c":[true,null]}
+  "s" = "hello"
+  "t" = true
+[18] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 8
+  root 2
+  height 1
+  commits 8
+  indexes 0
+  wal 16992

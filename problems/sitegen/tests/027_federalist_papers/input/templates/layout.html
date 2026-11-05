@@ -1,0 +1,15 @@
+{% macro authorlist(items) %}{% for t in items %}{% if not loop.first %}, {% endif %}<a href="{{ t.url }}">{{ t.name }}</a>{% endfor %}{% endmacro -%}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}{{ site.title }}{% endblock %}</title>
+</head>
+<body>
+{% include "header.html" %}
+<main>
+{% block main %}{% endblock %}
+</main>
+{% include "footer.html" %}
+</body>
+</html>

@@ -1,0 +1,10 @@
+POST {{ post.slug }} {{ post.date }} {{ post.date_long }}
+title: {{ post.title }}
+url: {{ post.url }}
+permalink: {{ post.permalink }}
+tags:{% for t in post.tags %} {{ t.name }}->{{ t.url }}({{ t.post_count }}){% endfor %}
+older: {% if post.older %}{{ post.older.slug }} {{ post.older.date }} {{ post.older.title }}{% else %}-{% endif %}
+newer: {% if post.newer %}{{ post.newer.slug }} {{ post.newer.date }} {{ post.newer.title }}{% else %}-{% endif %}
+--- content ---
+{{ post.content }}--- excerpt ---
+{{ post.excerpt }}--- end ---

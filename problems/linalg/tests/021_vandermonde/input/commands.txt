@@ -1,0 +1,8 @@
+det v6.mtx
+inv v6.mtx
+cond v6.mtx
+lu v6.mtx
+solve v6.mtx rhs6.mtx
+lstsq v93.mtx y9.mtx
+qr v93.mtx
+svd v93.mtx

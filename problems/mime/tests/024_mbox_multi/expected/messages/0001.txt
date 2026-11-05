@@ -1,0 +1,23 @@
+[message]
+id 0001
+source "mbox:1"
+
+[headers]
+subject: "first"
+from: "a@example.com"
+
+[addresses]
+from 0 display="" spec="a@example.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=11 adler32=19db0401 role=text
+
+[body]
+text 0 chars 11
+| first body
+html none
+
+[attachments]

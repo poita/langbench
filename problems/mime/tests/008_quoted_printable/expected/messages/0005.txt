@@ -1,0 +1,23 @@
+[message]
+id 0005
+source "trailing.eml"
+
+[headers]
+content-type: "text/plain; charset=us-ascii"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=29 adler32=a51409f0 role=text
+
+[body]
+text 0 chars 29
+| trailing whitespace   
+| kept 
+html none
+
+[attachments]

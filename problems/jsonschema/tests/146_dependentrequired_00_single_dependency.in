@@ -1,0 +1,49 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "dependentRequired": {
+      "bar": [
+        "foo"
+      ]
+    }
+  },
+  "tests": [
+    {
+      "description": "neither",
+      "data": {}
+    },
+    {
+      "description": "nondependant",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "with dependency",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "missing dependency",
+      "data": {
+        "bar": 2
+      }
+    },
+    {
+      "description": "ignores arrays",
+      "data": [
+        "bar"
+      ]
+    },
+    {
+      "description": "ignores strings",
+      "data": "foobar"
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    }
+  ]
+}

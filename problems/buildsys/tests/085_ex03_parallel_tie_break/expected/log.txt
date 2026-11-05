@@ -1,0 +1,7 @@
+step 1: build (default) -j 2
+  run 0 3 w0 out/a.txt write("A\n")
+  run 0 1 w1 out/b.txt write("B\n")
+  run 1 5 w1 out/c.txt write("C\n")
+  run 3 5 w0 out/d.txt write("D\n")
+  run 5 7 w0 out/all.txt concat()
+  ok ran=5 hit=0 time=7

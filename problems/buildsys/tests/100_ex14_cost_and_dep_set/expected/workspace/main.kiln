@@ -1,0 +1,7 @@
+step {
+    out "out/j.txt"
+    in ["src/b.txt", "src/a.txt"]
+    cmd concat()
+    cost 5
+}
+default "out/j.txt"

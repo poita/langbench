@@ -1,0 +1,60 @@
+6f26484ce4ea037dbcfe07ba558f9c150c6feb19 Dominic Tarr 1504712879 Merge pull request #28 from EdwardBetts/spelling
+d69471390bffd2cc66fee9d0cb2e075a58836901 Edward Betts 1504293158 correct spelling mistake
+b567eb4768dfb1d2153e19702438626059ac9f37 Dominic Tarr 1501747413 1.0.1
+13b21fc2dfb5ef6590f142d1001f726f78febfd1 Dominic Tarr 1501746891 return on error
+17fb0f0b231e30d5465d399ff683102cdcb9274d Dominic Tarr 1475971742 Merge pull request #25 from frantz/fix-typo-readme
+4daa5672a0e5599e6f72ff88362aa96ec700403c Frantz Gauthier 1475960744 Fix typo in readme: `Array#split` > `String#split`
+953dc14e487d9d3a2bc65b755fb8921153570e47 Dominic Tarr 1464812152 Merge pull request #23 from wreckah/master
+47f138046bedda17f0d16d29e033acf9a05a3826 Alexander Pokatilov 1464794521 Fix misspelling
+290c796dfc609910eddb0f2452abd877de24b8c2 Dominic Tarr 1456031745 Merge pull request #21 from evanp/patch-1
+31ac74b01fdd094234a23572ca210382fd25d2ef Evan Prodromou 1455206146 Fix spelling errors in readme
+08b99aafdd40ec84aa88ac29eb808c70a2ecb549 Dominic Tarr 1432487151 1.0.0
+68577d2162b439b35a9a829571310c376a4c2590 Jason Campbell 1430874136 Change options.ignoreTrailing based on PR feedback.
+a344a088b426e2c44d58cf9deeea86ee4ab40687 Jason Campbell 1430869976 Adds `options.ignoreTrailing` which defaults to `false`.
+f150beaf6b4b4f19b44290f58d220599d3dbc8ff Dominic Tarr 1422871635 drop support for 0.8
+3fe392ef2aabce9db7abe8185ec48389ae224883 Dominic Tarr 1422871343 0.3.3
+8d3adea2963a611c3fce4a0c0562d049a8105db8 Dominic Tarr 1422871336 update deps
+cefd735750212988960cb9b56210fcfabae020b7 Tejesh Mehta 1422737250 patch: properly handle empty string chunks
+36b59384a9f4a6c4363ceae47b5ded1be988c700 Tejesh Mehta 1422737242 broken test: split adds 'undefined' when handling '' chunks
+d2ae5e25453c89181c7e53527f08eef416c5fdba Dominic Tarr 1417529136 0.3.2
+2405e8e9f36f4f48a82bb6d71486a929c4de567f Dominic Tarr 1417529131 document how to keep the separators
+93d5c8a04da1ca4acf040c1f08dc5f4316e09711 Dominic Tarr 1415032764 0.3.1
+34cff9d3c6fb18bddf77a51508cb185a9a366134 Dominic Tarr 1415032750 Merge pull request #10 from michaelsanford/master
+f07ada2b36bfb338917dafb257f8798bce656a96 Michael Sanford 1415032671 Add MIT license to package.json
+a0f053f20639527742da5928d7718296e44d4f24 Dominic Tarr 1391019115 0.3.0
+31168e4d945e0d71539dc71db6c738c328b996b5 Dominic Tarr 1391019101 explain what the feature does
+f20ec314a5cbe9616f27038e90ffb810e5a18b3a Ryan Phillips 1391016361 documentation tweaks and change to maxLength
+078f012a08254a40e88276f24fb194f1d1d39ccd Ryan Phillips 1391009010 camelCase and simplify the options logic
+fd214613a6b57faf10852e802497add5854044c3 Ryan Phillips 1390940947 add options and maximum_limit
+fa85b7562ce88eeae69e8c0932eae1ece7b8b4b5 Dominic Tarr 1375865311 0.2.10
+96f6327bb1f2ef8cb4eed9cecd39bedf7781050a Dominic Tarr 1375865306 travis badge
+500591040804c4cf3e889dc222735fb0087c3fd2 Dominic Tarr 1375865158 0.2.9
+a4b1e6516eb065576ef48790d0a4886ee12346d9 Dominic Tarr 1375865146 test on 0.8 and 0.10
+b267621443e8827404c0d63e903e0bd041eec5c2 Dominic Tarr 1375865125 work on 0.8
+3c06fa3e23e1a9480ed588a48a805b9c4b48df62 Dominic Tarr 1375805117 0.2.8
+4882f73adf3eec41b911d89d1c265387f6ea6eb7 Dominic Tarr 1375805115 check that utf8 splits the same as String#split
+1d5beb592c5671188849cbf1019fe5ac1291884c Dominic Tarr 1375805027 0.2.7
+56e6dedc3fbb5874694c8308672748ae2882ff23 Dominic Tarr 1375805023 handle utf8 characters
+623c9d4fbbb2abcf7d98ccdfc0db27e697e0fff8 Dominic Tarr 1375804537 Merge pull request #6 from mkronschnabl/master
+f17c246045d0daa27162172d23111bab7f129a7a mkronschnabl 1375802890 test for problem with partitioned unicode characters added
+ec5a64ae5a1bef5c8e847075fe8b5bb115d5e3bd Dominic Tarr 1373526717 0.2.6
+8b7576f810b659b2f41e53606a6bc232a18b4828 Dominic Tarr 1373526709 JSON example
+87ae61c83c45402dbc36fdfb1493edabe79f42cd Dominic Tarr 1373526413 Merge pull request #4 from substack/mapper-try-catch
+e3dffea62d1146dd35f708bd28492abc9d9b0056 James Halliday 1373526105 another passing test for trailing chunks
+7e8e4307ac46d98739a9d29cc6516305747c41ff James Halliday 1373526030 try/catch around the mapper to fix the test
+e31b46917779b917ab4be21c14ef17faa4cd3bf8 James Halliday 1373526014 fix the test to write a newline so that the error actually triggers, check more things
+829176733c5e97e4a3eadc96246eeffd0f624a80 James Halliday 1373525746 failing test for wrapping the mapper function in an exception
+9f1be11c53e8368327326f946ae1db526c35ac55 Dominic Tarr 1366906695 0.2.5
+d5125c3bf474527fc9e9a21ca2e66ab0ad2c2ed1 Dominic Tarr 1366906690 do not fail to map the trailing line (after the last newline!)
+2b61f042d667b898dac893f9767fb3faba0c5d0a Dominic Tarr 1365780424 0.2.4
+6aac2ea3eb739fe846913931c02d0abb25c8cab6 Dominic Tarr 1365780362 Merge pull request #2 from tellnes/matcher
+221a13a8d41dca13eda11a194e01009c11c7864f Dominic Tarr 1365670699 0.2.3
+90fc0bfc1883b441efb83a6a314dace0f835feae Dominic Tarr 1365670695 fix example
+f9651fd92e5d7a43be161db9fb353f740a41383b Dominic Tarr 1364038046 0.2.2
+078cfb4213c43f106fc439fb4358f95bef3a8bf6 Dominic Tarr 1364038043 fix bug with empty lines at end (where last char is a \n)
+002e45479d2b9b744cffe08baeb27a90785ae688 Dominic Tarr 1360884030 0.2.1
+c9c98e724a290dcecba69c53fe17ada486b1bc92 Christian Tellnes 1360326318 change default split matcher to `/\r?\n/`
+658912074385c7ef4d8f106ea41eb1a16c20986b Dominic Tarr 1360048576 0.2.0
+bc2447e8ddf280dacc3715e92a7fc4b35bb012f4 Dominic Tarr 1360048568 pausable
+a1e520d38a7cebcaa027ccd093a778f820fea3de Dominic Tarr 1360048559 use through@2
+ec651154c5195cbf3a84dcdc5ff5a41f7e1239f5 Dominic Tarr 1358899735 0.1.2

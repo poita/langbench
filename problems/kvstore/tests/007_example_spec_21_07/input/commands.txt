@@ -1,0 +1,12 @@
+put "a" 1
+put "b" 2
+put "c" 3
+put "d" 4
+scan
+scan from "b"
+scan to "c"
+scan from "b" to "d"
+scan limit 2
+scan reverse limit 2
+scan keys reverse
+scan from "d" to "b"

@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "dependentRequired": {
+      "bar": []
+    }
+  },
+  "tests": [
+    {
+      "description": "empty object",
+      "data": {}
+    },
+    {
+      "description": "object with one property",
+      "data": {
+        "bar": 2
+      }
+    },
+    {
+      "description": "non-object is valid",
+      "data": 1
+    }
+  ]
+}

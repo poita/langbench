@@ -1,0 +1,138 @@
+[message]
+id 0048
+source "mbox:48"
+
+[headers]
+received: "from example.com (mx2.example.com [206.167.138.154]) by example.com (Postfix) with ESMTP id A61A66CAA0 for <papadopoulos@lists.example.edu>; Sat, 9 Nov 2018 09:03:58 -0000"
+received: "from corp.example.co.uk (mx9.students.example.ac.jp [60.94.192.107]) by students.example.ac.jp (Postfix) with ESMTP id 777A0ED704 for <cstergaard@eu.example.de>; Sun, 24 Dec 2003 19:59:32 +0100 (PST)"
+return-path: "<ckim@apache.org>"
+message-id: "<400.c6e20493.95536@post.example.fr>"
+in-reply-to: "<406.bfc048bf.55398@students.example.ac.jp>"
+references: "<401.3699eea7.74070@students.example.ac.jp> <402.75db2491.25538@example.com> <403.1d2c63e8.66181@students.example.ac.jp> <404.766cf1df.11962@lists.example.edu> <405.e9e6ca61.17642@lists.example.edu> <406.bfc048bf.55398@students.example.ac.jp>"
+date: "Mon, 3 Mar 2004 25:00:00 +0000"
+from: "Jörg Kim <jkim@corp.example.co.uk>"
+reply-to: "r@example.org (Someone)"
+to: "Jörg Nguyen <jnguyen@eu.example.de>"
+cc: "Fiona García <fgarca@students.example.ac.jp>"
+subject: "[PATCH] Word to the could we great you sentence the came 日本語のテスト"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"000000000000ae1a8a970c79\""
+
+[addresses]
+from 0 display="Jörg Kim" spec="jkim@corp.example.co.uk"
+reply-to 0 display="" spec="r@example.org"
+to 0 display="Jörg Nguyen" spec="jnguyen@eu.example.de"
+cc 0 display="Fiona García" spec="fgarca@students.example.ac.jp"
+
+[date]
+raw " Mon, 3 Mar 2004 25:00:00 +0000"
+valid no
+
+[structure]
+0 multipart/mixed cte=7bit boundary="000000000000ae1a8a970c79" parts=3 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="simple boundary 546" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=quoted-printable size=1923 adler32=5bec9b02 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=2525 adler32=706662d6 role=html
+  4 application/zip cte=base64 disposition=attachment filename="make_side_in.zip" size=1789 adler32=1a1d6f4e role=attachment
+  5 message/rfc822 cte=7bit disposition=inline parts=1
+    6 multipart/mixed cte=7bit boundary="----=_Part_6857_1032712798.980853126934" parts=2 preamble=45 epilogue=0
+      7 multipart/related cte=7bit boundary="00000000000092fbd2890b6f" parts=4 preamble=0 epilogue=0
+        8 multipart/alternative cte=7bit boundary="=_53e8ad9e1b2501c9406edb21d40581d2" parts=2 preamble=45 epilogue=0
+          9 text/plain charset=utf-8 cte=8bit size=2201 adler32=a954e906 role=attachment
+          10 text/html charset=utf-8 cte=quoted-printable size=2879 adler32=4006c9dc role=attachment
+        11 image/png cte=base64 disposition=inline filename="crème_too_live_did_vhost.png" size=1586 adler32=fab70de0 role=attachment
+        12 image/jpeg cte=base64 disposition=attachment filename="under.jpg" size=3458 adler32=32efb5b9 role=attachment
+        13 image/png cte=base64 disposition=attachment filename="façade_said.png" size=3026 adler32=2cf4d840 role=attachment
+      14 application/zip cte=base64 disposition=attachment filename="take_with_every.zip" size=2830 adler32=c04d6ec1 role=attachment
+
+[body]
+text 2 chars 1913
+| On Sun, 27 Jun 2018 01:24:30 MET, Karin Schröder wrote:
+| > > After no it the side than? Zürich hand old the jalapeño brigade most
+| > > the name Ørsted made an round his said? Me down you well may to but
+| > > can we the put to we the all well. End back the the for the that he.
+| > World build the the and handler. Much of word under of the the about
+| > big backport side again warning vote the work.
+| >
+| > > The been get form animal. The is of to at down is had end year is?
+| >> Some use work through give a he the.
+| >
+| >> Straße with or can was this what year what water but is the father
+| > by one light? With was and look say Ørsted with you in they when
+| >> like the like at. Number know made with the from form tell the of
+| >> httpd his how line like new said say. Same again the you our the.
+| > > Through was air vote come do will word there earth! Number give
+| >> sound be of up over house than round what is?
+| >
+| 
+| She proxy be on module for many old has thread this of was your we are.
+| Are sound the timeout of take men went port know and is thing get of the
+| hot. Of who find timeout here httpd kind round and want may a by mean
+| to. Module the handler now build over.
+| 
+| Take same and change the these the now went of big. A of one air form an
+| to which!
+| 
+| Me that the he end segfault play crash small the near or the the! Show
+| call Kraków great made. Large hot commit the water can. An backport
+| brûlée end than on when sound to up? Which the the the right by well at
+| make number how be need? Then what that and read made turn well!
+| 
+| Down been know boy the for were no a the for why day our that and! Your
+| to has great set take one name new would the some with said every time?
+| Too add word most of build the? Client differ is socket could year he
+| when turn self. I show the request the? Commit from the with by and
+| spell it turn backport the what them but. Round near use mother is her
+| follow number of she.
+| 
+| -- 
+| Ann Schröder
+html 3 chars 2515
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sun, 27 Jun 2018 01:24:30 MET, Karin Schröder wrote:<br>
+| &gt; &gt; After no it the side than? Zürich hand old the jalapeño brigade most<br>
+| &gt; &gt; the name Ørsted made an round his said? Me down you well may to but<br>
+| &gt; &gt; can we the put to we the all well. End back the the for the that he.<br>
+| &gt; World build the the and handler. Much of word under of the the about<br>
+| &gt; big backport side again warning vote the work.<br>
+| &gt;<br>
+| &gt; &gt; The been get form animal. The is of to at down is had end year is?<br>
+| &gt;&gt; Some use work through give a he the.<br>
+| &gt;<br>
+| &gt;&gt; Straße with or can was this what year what water but is the father<br>
+| &gt; by one light? With was and look say Ørsted with you in they when<br>
+| &gt;&gt; like the like at. Number know made with the from form tell the of<br>
+| &gt;&gt; httpd his how line like new said say. Same again the you our the.<br>
+| &gt; &gt; Through was air vote come do will word there earth! Number give<br>
+| &gt;&gt; sound be of up over house than round what is?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">She proxy be on module for many old has thread this of was your we are.<br>
+| Are sound the timeout of take men went port know and is thing get of the<br>
+| hot. Of who find timeout here httpd kind round and want may a by mean<br>
+| to. Module the handler now build over.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Take same and change the these the now went of big. A of one air form an<br>
+| to which!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Me that the he end segfault play crash small the near or the the! Show<br>
+| call Kraków great made. Large hot commit the water can. An backport<br>
+| brûlée end than on when sound to up? Which the the the right by well at<br>
+| make number how be need? Then what that and read made turn well!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Down been know boy the for were no a the for why day our that and! Your<br>
+| to has great set take one name new would the some with said every time?<br>
+| Too add word most of build the? Client differ is socket could year he<br>
+| when turn self. I show the request the? Commit from the with by and<br>
+| spell it turn backport the what them but. Round near use mother is her<br>
+| follow number of she.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ann Schröder<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/zip filename="make_side_in.zip" size=1789 adler32=1a1d6f4e file=parts/0048/004.bin
+9 type=text/plain filename=- size=2201 adler32=a954e906 file=parts/0048/009.bin
+10 type=text/html filename=- size=2879 adler32=4006c9dc file=parts/0048/010.bin
+11 type=image/png filename="crème_too_live_did_vhost.png" size=1586 adler32=fab70de0 file=parts/0048/011.bin
+12 type=image/jpeg filename="under.jpg" size=3458 adler32=32efb5b9 file=parts/0048/012.bin
+13 type=image/png filename="façade_said.png" size=3026 adler32=2cf4d840 file=parts/0048/013.bin
+14 type=application/zip filename="take_with_every.zip" size=2830 adler32=c04d6ec1 file=parts/0048/014.bin

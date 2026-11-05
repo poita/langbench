@@ -1,0 +1,34 @@
+name "toml"
+description "A TOML 1.0.0 parser and serializer with a tagged-JSON command-line tool"
+authors "toml authors"
+copyright "Copyright © 2026"
+license "MIT"
+
+// Default configuration: the command-line tool (built into bin/toml).
+configuration "application" {
+    targetType "executable"
+    targetName "toml"
+    targetPath "bin"
+    sourcePaths "source" "cli"
+    importPaths "source"
+    mainSourceFile "cli/main.d"
+}
+
+// The reusable library only.
+configuration "library" {
+    targetType "library"
+    targetName "toml"
+    targetPath "lib"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+// `dub test` picks this configuration; the unit tests live in tests/.
+configuration "unittest" {
+    targetType "executable"
+    targetName "toml-test"
+    targetPath "bin"
+    sourcePaths "source" "tests"
+    mainSourceFile "tests/runner.d"
+    importPaths "source"
+}

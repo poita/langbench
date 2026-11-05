@@ -1,0 +1,2110 @@
+victor	9000
+dave	8900
+peggy	8600
+grace	8500
+mallory	8300
+bob	8300
+Bea	8100
+alice	7800
+grace	7700
+Al	7600
+grace	7600
+bob	7500
+peggy	7400
+alice	7400
+Al	7000
+Al	7000
+judy	6800
+judy	6800
+carol	6700
+ivan	6700
+frank	6700
+alice	6600
+peggy	6600
+grace	6400
+frank	6400
+wendy	6400
+frank	6200
+Bea	5900
+peggy	5700
+Al	5700
+NULL	5600
+mallory	5400
+heidi	5300
+Bea	5200
+frank	5200
+judy	5200
+victor	5100
+bob	5100
+Al	4400
+NULL	4400
+alice	4400
+alice	4300
+mallory	4300
+victor	3900
+mallory	3800
+trent	3800
+peggy	3700
+judy	3600
+NULL	3500
+grace	3200
+oscar	3100
+frank	3100
+erin	3000
+wendy	2900
+Al	2900
+NULL	2700
+Bea	2600
+Al	2600
+Bea	2500
+peggy	2400
+frank	2400
+NULL	2300
+erin	2200
+frank	2100
+oscar	2100
+ivan	2000
+ivan	1900
+peggy	1800
+trent	1500
+alice	1400
+alice	1400
+heidi	1400
+oscar	1300
+heidi	1200
+NULL	1000
+oscar	NULL
+Bea	NULL
+heidi	NULL
+NULL	NULL
+-- 79 rows
+eng	45
+ops	40
+sales	39
+NULL	11
+-- 4 rows
+8	peggy	sales	4000	NULL
+16	mallory	sales	4000	NULL
+22	x	NULL	1600	NULL
+26	victor	sales	1000	NULL
+33	grace	NULL	5500	NULL
+37	carol	eng	7500	NULL
+53	carol	ops	2700	NULL
+58	victor	sales	8000	NULL
+67	grace	sales	7600	NULL
+78	dave	sales	2200	NULL
+98	Bea	ops	8700	NULL
+109	wendy	ops	8900	NULL
+123	ivan	NULL	2000	NULL
+126	trent	ops	NULL	NULL
+143	peggy	sales	1300	NULL
+-- 15 rows
+NULL	11
+1000	3
+1200	2
+1300	3
+1400	4
+1700	2
+1900	2
+2000	3
+2100	3
+2200	3
+2400	2
+2500	2
+2600	3
+2700	2
+2800	2
+2900	2
+3100	3
+3200	2
+3800	4
+4000	2
+4300	3
+4400	4
+5100	2
+5200	4
+5300	3
+5400	2
+5500	3
+5700	2
+5800	2
+6200	2
+6300	2
+6400	4
+6600	3
+6700	3
+6800	2
+7000	2
+7400	3
+7500	2
+7600	4
+7700	2
+8300	3
+8700	3
+8800	2
+8900	2
+9000	2
+-- 45 rows
+NULL	14	60300	22	60	4307.14
+eng	46	220900	21	60	5020.45
+ops	44	206400	20	60	5292.31
+sales	46	183400	21	59	4366.67
+-- 4 rows
+error
+-- 0 rows
+2	4	6950.00
+2	4	5950.00
+2	4	5875.00
+2	4	4825.00
+2	3	6100.00
+2	2	4150.00
+2	2	6300.00
+2	2	2550.00
+2	1	4400.00
+3	5	4600.00
+3	3	6200.00
+3	2	4700.00
+3	2	2850.00
+3	2	6700.00
+3	2	7750.00
+3	2	5650.00
+3	2	4750.00
+3	1	2300.00
+3	1	3700.00
+4	6	4866.67
+4	4	5433.33
+4	3	4050.00
+4	3	8000.00
+4	3	5733.33
+4	2	7750.00
+4	1	3800.00
+4	1	5400.00
+4	1	3800.00
+4	1	8700.00
+5	4	5775.00
+5	4	7750.00
+5	3	6533.33
+5	2	5200.00
+5	1	NULL
+5	1	4600.00
+5	1	6300.00
+6	6	4983.33
+-- 37 rows
+eng	57
+-- 1 rows
+eng	34
+ops	30
+sales	24
+NULL	7
+-- 4 rows
+NULL	11
+2400	2
+2500	2
+2600	4
+2700	2
+2800	2
+2900	2
+3100	3
+3200	2
+3600	2
+3800	4
+4000	3
+4300	3
+4400	4
+5100	2
+5200	4
+5300	3
+5400	2
+5500	3
+5700	2
+5800	2
+6200	2
+6300	2
+6400	4
+6600	3
+6700	3
+6800	2
+7000	2
+7400	3
+7500	2
+7600	4
+7700	2
+8300	3
+8700	3
+8800	2
+8900	2
+9000	2
+-- 37 rows
+37	170700	37.33	2300	58
+-- 1 rows
+NULL	11
+2400	2
+2500	2
+2600	4
+2700	2
+2800	2
+2900	2
+3100	3
+3200	2
+3600	2
+3800	4
+4000	3
+4300	3
+4400	4
+5100	2
+5200	4
+5300	3
+5400	2
+5500	3
+5700	2
+5800	2
+6200	2
+6300	2
+6400	4
+6600	3
+6700	3
+6800	2
+7000	2
+7400	3
+7500	2
+7600	4
+7700	2
+8300	3
+8700	3
+8800	2
+8900	2
+9000	2
+-- 37 rows
+5423	5716.22
+-- 1 rows
+NULL	11
+2400	2
+2500	2
+2600	4
+2700	2
+2800	2
+2900	2
+3100	3
+3200	2
+3600	2
+3800	4
+4000	3
+4300	3
+4400	4
+5100	2
+5200	4
+5300	3
+5400	2
+5500	3
+5700	2
+5800	2
+6200	2
+6300	2
+6400	4
+6600	3
+6700	3
+6800	2
+7000	2
+7400	3
+7500	2
+7600	4
+7700	2
+8300	3
+8700	3
+8800	2
+8900	2
+9000	2
+-- 37 rows
+4	grace	eng	7700	36
+6	erin	sales	7300	NULL
+14	peggy	eng	7400	40
+27	victor	ops	9000	21
+30	dave	ops	8900	NULL
+37	carol	eng	7500	NULL
+41	bob	sales	7500	22
+49	Al	eng	7600	42
+58	victor	sales	8000	NULL
+59	heidi	sales	8300	49
+65	victor	eng	7600	52
+67	grace	sales	7600	NULL
+70	mallory	eng	8300	38
+81	alice	ops	7800	41
+82	Bea	ops	8800	56
+83	carol	ops	8700	46
+87	alice	sales	7400	23
+88	peggy	eng	8600	21
+98	Bea	ops	8700	NULL
+107	grace	ops	8500	37
+109	wendy	ops	8900	NULL
+113	victor	ops	7400	53
+117	erin	ops	8700	48
+118	x	eng	8800	53
+120	bob	sales	8300	NULL
+125	Bea	ops	8100	40
+129	mallory	NULL	7700	60
+135	grace	ops	7600	29
+146	victor	eng	7900	53
+148	oscar	eng	9000	48
+-- 30 rows
+Al	NULL
+grace	NULL
+frank	NULL
+wendy	NULL
+Al	NULL
+heidi	NULL
+judy	NULL
+mallory	NULL
+oscar	NULL
+dave	NULL
+Bea	eng
+grace	eng
+frank	eng
+peggy	eng
+wendy	eng
+dave	eng
+frank	eng
+carol	eng
+judy	eng
+mallory	eng
+victor	eng
+carol	eng
+Bea	eng
+Bea	eng
+Al	eng
+frank	eng
+carol	eng
+victor	eng
+erin	eng
+mallory	eng
+frank	eng
+frank	eng
+Bea	eng
+peggy	eng
+frank	eng
+bob	eng
+frank	eng
+bob	eng
+Al	eng
+x	eng
+alice	eng
+x	eng
+Al	eng
+alice	eng
+frank	eng
+victor	eng
+heidi	eng
+oscar	eng
+peggy	eng
+oscar	ops
+ivan	ops
+Al	ops
+victor	ops
+dave	ops
+x	ops
+erin	ops
+grace	ops
+oscar	ops
+ivan	ops
+Al	ops
+carol	ops
+peggy	ops
+bob	ops
+frank	ops
+mallory	ops
+victor	ops
+Bea	ops
+alice	ops
+Bea	ops
+carol	ops
+oscar	ops
+Bea	ops
+ivan	ops
+grace	ops
+carol	ops
+wendy	ops
+victor	ops
+frank	ops
+erin	ops
+frank	ops
+Bea	ops
+trent	ops
+Bea	ops
+heidi	ops
+grace	ops
+mallory	ops
+bob	ops
+alice	ops
+erin	sales
+dave	sales
+peggy	sales
+frank	sales
+alice	sales
+ivan	sales
+mallory	sales
+oscar	sales
+mallory	sales
+judy	sales
+victor	sales
+bob	sales
+trent	sales
+frank	sales
+victor	sales
+heidi	sales
+frank	sales
+oscar	sales
+grace	sales
+judy	sales
+frank	sales
+peggy	sales
+frank	sales
+frank	sales
+frank	sales
+alice	sales
+victor	sales
+peggy	sales
+grace	sales
+oscar	sales
+bob	sales
+bob	sales
+mallory	sales
+judy	sales
+erin	sales
+peggy	sales
+grace	sales
+-- 125 rows
+1	57
+1	69
+1	104
+2	95
+4	133
+10	27
+10	88
+10	127
+11	38
+11	65
+11	145
+13	113
+13	118
+13	146
+14	125
+15	21
+15	79
+15	81
+20	107
+21	79
+21	81
+23	51
+23	89
+23	142
+27	88
+27	127
+29	31
+29	35
+29	119
+29	129
+29	137
+31	35
+31	119
+31	129
+31	137
+32	44
+32	45
+32	49
+32	74
+32	110
+34	103
+35	119
+35	129
+35	137
+38	65
+38	145
+39	151
+40	76
+40	135
+41	61
+41	80
+41	139
+43	73
+43	140
+44	45
+44	49
+44	74
+44	110
+45	49
+45	74
+45	110
+49	74
+49	110
+50	87
+51	89
+51	142
+52	71
+56	116
+57	69
+57	104
+59	147
+59	152
+61	80
+61	139
+62	68
+62	82
+65	145
+68	82
+69	104
+70	141
+73	140
+74	110
+75	91
+76	135
+79	81
+80	139
+86	94
+86	99
+86	128
+86	153
+88	127
+89	142
+94	99
+94	128
+94	153
+99	128
+99	153
+101	117
+101	148
+105	130
+105	149
+113	118
+113	146
+117	148
+118	146
+119	129
+119	137
+128	153
+129	137
+130	149
+147	152
+-- 111 rows
+-- 0 rows
+153	peggy
+152	grace
+149	bob
+-- 3 rows
+1	57
+1	69
+1	104
+2	95
+4	133
+10	27
+10	88
+10	127
+11	38
+11	65
+11	145
+13	113
+13	118
+13	146
+14	125
+15	21
+15	79
+15	81
+20	107
+21	79
+21	81
+23	51
+23	89
+23	142
+27	88
+27	127
+29	31
+29	35
+29	119
+29	129
+29	137
+31	35
+31	119
+31	129
+31	137
+32	44
+32	45
+32	49
+32	74
+32	110
+34	103
+35	119
+35	129
+35	137
+38	65
+38	145
+39	151
+40	76
+40	135
+41	61
+41	80
+41	139
+43	73
+43	140
+44	45
+44	49
+44	74
+44	110
+45	49
+45	74
+45	110
+49	74
+49	110
+50	87
+51	89
+51	142
+52	71
+56	116
+57	69
+57	104
+59	147
+59	152
+61	80
+61	139
+62	68
+62	82
+65	145
+68	82
+69	104
+70	141
+73	140
+74	110
+75	91
+76	135
+79	81
+80	139
+86	94
+86	99
+86	128
+86	153
+88	127
+89	142
+94	99
+94	128
+94	153
+99	128
+99	153
+101	117
+101	148
+105	130
+105	149
+113	118
+113	146
+117	148
+118	146
+119	129
+119	137
+128	153
+129	137
+130	149
+147	152
+-- 111 rows
+1	Al
+2	Bea
+4	grace
+6	erin
+-- 4 rows
+27	victor	ops	9000	21
+30	dave	ops	8900	NULL
+82	Bea	ops	8800	56
+109	wendy	ops	8900	NULL
+118	x	eng	8800	53
+148	oscar	eng	9000	48
+-- 6 rows
+1	Al
+20	Al
+49	Al
+52	Al
+95	Al
+104	Al
+133	Al
+10	alice
+81	alice
+87	alice
+124	alice
+139	alice
+151	alice
+-- 13 rows
+39	198900	41.03	2400	60
+-- 1 rows
+grace	frank
+grace	peggy
+grace	wendy
+grace	dave
+grace	frank
+grace	carol
+grace	judy
+grace	mallory
+grace	victor
+grace	carol
+grace	Bea
+grace	Bea
+grace	Al
+grace	frank
+grace	carol
+grace	victor
+grace	erin
+grace	frank
+grace	frank
+grace	frank
+grace	bob
+grace	frank
+grace	bob
+grace	Al
+grace	mallory
+grace	x
+grace	Al
+grace	mallory
+grace	heidi
+grace	peggy
+erin	peggy
+erin	frank
+erin	mallory
+erin	ivan
+erin	mallory
+erin	mallory
+erin	judy
+erin	victor
+erin	trent
+erin	frank
+erin	frank
+erin	oscar
+erin	judy
+erin	peggy
+erin	frank
+erin	frank
+erin	frank
+erin	victor
+erin	peggy
+erin	grace
+erin	oscar
+erin	mallory
+erin	judy
+erin	erin
+erin	peggy
+erin	grace
+peggy	frank
+peggy	mallory
+peggy	trent
+peggy	frank
+peggy	frank
+peggy	frank
+peggy	peggy
+peggy	grace
+peggy	mallory
+peggy	erin
+peggy	grace
+mallory	mallory
+mallory	mallory
+mallory	trent
+mallory	frank
+mallory	frank
+mallory	frank
+mallory	peggy
+mallory	grace
+mallory	mallory
+mallory	erin
+mallory	grace
+ivan	mallory
+ivan	mallory
+ivan	victor
+ivan	trent
+ivan	frank
+ivan	frank
+ivan	oscar
+ivan	judy
+ivan	peggy
+ivan	frank
+ivan	frank
+ivan	peggy
+ivan	grace
+ivan	oscar
+ivan	mallory
+ivan	judy
+ivan	erin
+ivan	grace
+frank	wendy
+frank	dave
+frank	frank
+frank	mallory
+frank	victor
+frank	Bea
+frank	Bea
+frank	frank
+frank	carol
+frank	frank
+frank	bob
+frank	frank
+frank	bob
+frank	Al
+frank	mallory
+frank	x
+frank	Al
+frank	heidi
+frank	peggy
+oscar	ivan
+oscar	erin
+oscar	grace
+oscar	oscar
+oscar	ivan
+oscar	Al
+oscar	carol
+oscar	peggy
+oscar	bob
+oscar	frank
+oscar	mallory
+oscar	victor
+oscar	Bea
+oscar	oscar
+oscar	ivan
+oscar	frank
+oscar	frank
+oscar	Bea
+oscar	mallory
+oscar	mallory
+peggy	wendy
+peggy	dave
+peggy	frank
+peggy	judy
+peggy	mallory
+peggy	victor
+peggy	carol
+peggy	Bea
+peggy	Bea
+peggy	frank
+peggy	carol
+peggy	erin
+peggy	frank
+peggy	frank
+peggy	frank
+peggy	bob
+peggy	frank
+peggy	bob
+peggy	Al
+peggy	mallory
+peggy	x
+peggy	Al
+peggy	mallory
+peggy	heidi
+peggy	peggy
+wendy	dave
+wendy	victor
+mallory	mallory
+mallory	trent
+mallory	frank
+mallory	frank
+mallory	frank
+mallory	peggy
+mallory	grace
+mallory	mallory
+mallory	erin
+mallory	grace
+ivan	erin
+ivan	oscar
+ivan	Al
+ivan	carol
+ivan	peggy
+ivan	frank
+ivan	victor
+ivan	Bea
+ivan	oscar
+ivan	frank
+ivan	frank
+ivan	mallory
+Al	erin
+Al	grace
+Al	oscar
+Al	ivan
+Al	Al
+Al	carol
+Al	peggy
+Al	bob
+Al	frank
+Al	mallory
+Al	victor
+Al	Bea
+Al	oscar
+Al	ivan
+Al	frank
+Al	frank
+Al	Bea
+Al	mallory
+Al	mallory
+mallory	frank
+mallory	frank
+mallory	peggy
+mallory	grace
+mallory	mallory
+mallory	erin
+mallory	grace
+judy	victor
+judy	trent
+judy	frank
+judy	frank
+judy	oscar
+judy	judy
+judy	peggy
+judy	frank
+judy	frank
+judy	frank
+judy	victor
+judy	peggy
+judy	grace
+judy	oscar
+judy	mallory
+judy	judy
+judy	erin
+judy	peggy
+judy	grace
+victor	dave
+victor	erin
+victor	grace
+victor	oscar
+victor	ivan
+victor	Al
+victor	carol
+victor	peggy
+victor	bob
+victor	frank
+victor	mallory
+victor	victor
+victor	Bea
+victor	mallory
+victor	Bea
+victor	carol
+victor	oscar
+victor	Bea
+victor	ivan
+victor	grace
+victor	wendy
+victor	victor
+victor	frank
+victor	erin
+victor	frank
+victor	Bea
+victor	Bea
+victor	grace
+victor	mallory
+victor	mallory
+dave	victor
+dave	erin
+dave	grace
+dave	oscar
+dave	ivan
+dave	Al
+dave	carol
+dave	peggy
+dave	bob
+dave	frank
+dave	mallory
+dave	victor
+dave	Bea
+dave	mallory
+dave	Bea
+dave	carol
+dave	oscar
+dave	Bea
+dave	ivan
+dave	grace
+dave	victor
+dave	frank
+dave	erin
+dave	frank
+dave	Bea
+dave	Bea
+dave	grace
+dave	mallory
+dave	mallory
+frank	mallory
+frank	victor
+frank	Bea
+frank	Bea
+frank	frank
+frank	carol
+frank	bob
+frank	frank
+frank	bob
+frank	Al
+frank	mallory
+frank	x
+frank	heidi
+frank	peggy
+victor	trent
+victor	frank
+victor	frank
+victor	oscar
+victor	frank
+victor	peggy
+victor	grace
+victor	oscar
+victor	mallory
+victor	erin
+victor	grace
+erin	peggy
+erin	frank
+grace	oscar
+grace	Al
+grace	carol
+grace	peggy
+grace	bob
+grace	frank
+grace	mallory
+grace	victor
+grace	Bea
+grace	oscar
+grace	ivan
+grace	frank
+grace	frank
+grace	Bea
+grace	mallory
+carol	judy
+carol	mallory
+carol	victor
+carol	carol
+carol	Bea
+carol	Bea
+carol	frank
+carol	carol
+carol	erin
+carol	frank
+carol	frank
+carol	frank
+carol	bob
+carol	frank
+carol	bob
+carol	Al
+carol	mallory
+carol	x
+carol	Al
+carol	mallory
+carol	heidi
+carol	peggy
+oscar	Al
+oscar	carol
+oscar	peggy
+oscar	frank
+oscar	Bea
+oscar	mallory
+judy	mallory
+judy	victor
+judy	carol
+judy	Bea
+judy	Bea
+judy	frank
+judy	carol
+judy	erin
+judy	frank
+judy	frank
+judy	frank
+judy	bob
+judy	frank
+judy	bob
+judy	Al
+judy	mallory
+judy	x
+judy	Al
+judy	mallory
+judy	heidi
+judy	peggy
+mallory	victor
+mallory	carol
+mallory	frank
+mallory	x
+mallory	peggy
+bob	trent
+bob	frank
+bob	frank
+bob	oscar
+bob	judy
+bob	peggy
+bob	frank
+bob	frank
+bob	frank
+bob	mallory
+bob	victor
+bob	peggy
+bob	grace
+bob	oscar
+bob	mallory
+bob	judy
+bob	erin
+bob	peggy
+bob	grace
+carol	Bea
+carol	Bea
+carol	frank
+carol	carol
+carol	erin
+carol	frank
+carol	frank
+carol	bob
+carol	frank
+carol	bob
+carol	Al
+carol	mallory
+carol	x
+carol	Al
+carol	mallory
+carol	heidi
+carol	peggy
+Bea	Bea
+Bea	carol
+Bea	frank
+Bea	Al
+Bea	mallory
+Bea	x
+Bea	peggy
+trent	frank
+trent	frank
+trent	peggy
+trent	grace
+trent	mallory
+trent	erin
+trent	grace
+Bea	carol
+Bea	frank
+Bea	x
+Bea	peggy
+Al	frank
+Al	carol
+Al	erin
+Al	frank
+Al	frank
+Al	frank
+Al	bob
+Al	frank
+Al	bob
+Al	Al
+Al	mallory
+Al	x
+Al	Al
+Al	mallory
+Al	heidi
+Al	peggy
+frank	carol
+frank	frank
+frank	Al
+frank	mallory
+frank	x
+frank	peggy
+ivan	Al
+ivan	carol
+ivan	peggy
+ivan	bob
+ivan	frank
+ivan	mallory
+ivan	victor
+ivan	Bea
+ivan	oscar
+ivan	ivan
+ivan	frank
+ivan	frank
+ivan	Bea
+ivan	mallory
+ivan	mallory
+Al	carol
+Al	peggy
+Al	frank
+Al	Bea
+Al	mallory
+carol	peggy
+carol	frank
+carol	Bea
+carol	mallory
+bob	frank
+bob	victor
+bob	Bea
+bob	oscar
+bob	frank
+bob	frank
+bob	mallory
+victor	frank
+victor	oscar
+victor	grace
+victor	judy
+victor	peggy
+victor	frank
+victor	frank
+victor	frank
+victor	mallory
+victor	victor
+victor	peggy
+victor	grace
+victor	oscar
+victor	mallory
+victor	judy
+victor	erin
+victor	peggy
+victor	grace
+heidi	frank
+heidi	oscar
+heidi	grace
+heidi	judy
+heidi	peggy
+heidi	frank
+heidi	frank
+heidi	frank
+heidi	mallory
+heidi	victor
+heidi	peggy
+heidi	grace
+heidi	oscar
+heidi	mallory
+heidi	judy
+heidi	erin
+heidi	peggy
+heidi	grace
+carol	frank
+frank	grace
+frank	mallory
+frank	erin
+oscar	frank
+oscar	peggy
+oscar	grace
+oscar	mallory
+oscar	erin
+oscar	grace
+victor	erin
+victor	frank
+victor	frank
+victor	frank
+victor	bob
+victor	frank
+victor	bob
+victor	Al
+victor	mallory
+victor	x
+victor	Al
+victor	mallory
+victor	heidi
+victor	peggy
+grace	judy
+grace	peggy
+grace	frank
+grace	frank
+grace	frank
+grace	mallory
+grace	victor
+grace	peggy
+grace	grace
+grace	oscar
+grace	mallory
+grace	judy
+grace	erin
+grace	peggy
+grace	grace
+erin	frank
+erin	bob
+erin	frank
+erin	bob
+erin	Al
+erin	mallory
+erin	x
+erin	Al
+erin	heidi
+erin	peggy
+judy	frank
+judy	peggy
+judy	grace
+judy	oscar
+judy	mallory
+judy	erin
+judy	grace
+mallory	frank
+mallory	frank
+mallory	frank
+mallory	bob
+mallory	frank
+mallory	bob
+mallory	Al
+mallory	mallory
+mallory	x
+mallory	Al
+mallory	mallory
+mallory	victor
+mallory	heidi
+mallory	peggy
+mallory	victor
+mallory	Bea
+mallory	oscar
+mallory	frank
+mallory	frank
+mallory	mallory
+peggy	frank
+peggy	frank
+peggy	peggy
+peggy	grace
+peggy	oscar
+peggy	mallory
+peggy	judy
+peggy	erin
+peggy	grace
+victor	Bea
+victor	oscar
+victor	mallory
+frank	frank
+frank	bob
+frank	frank
+frank	bob
+frank	Al
+frank	mallory
+frank	x
+frank	Al
+frank	heidi
+frank	peggy
+frank	frank
+frank	frank
+frank	victor
+frank	peggy
+frank	grace
+frank	oscar
+frank	mallory
+frank	judy
+frank	erin
+frank	grace
+frank	bob
+frank	frank
+frank	bob
+frank	Al
+frank	mallory
+frank	x
+frank	heidi
+frank	peggy
+mallory	oscar
+mallory	ivan
+mallory	victor
+mallory	frank
+mallory	frank
+mallory	Bea
+mallory	grace
+mallory	mallory
+mallory	mallory
+Bea	carol
+Bea	oscar
+Bea	Bea
+Bea	ivan
+Bea	grace
+Bea	victor
+Bea	frank
+Bea	erin
+Bea	frank
+Bea	Bea
+Bea	Bea
+Bea	grace
+Bea	mallory
+Bea	mallory
+carol	oscar
+carol	ivan
+carol	grace
+carol	victor
+carol	frank
+carol	frank
+carol	Bea
+carol	Bea
+carol	grace
+carol	mallory
+carol	mallory
+frank	frank
+frank	peggy
+frank	grace
+frank	oscar
+frank	mallory
+frank	judy
+frank	erin
+frank	grace
+frank	peggy
+frank	grace
+frank	mallory
+frank	erin
+frank	grace
+mallory	victor
+mallory	peggy
+mallory	grace
+mallory	oscar
+mallory	mallory
+mallory	judy
+mallory	erin
+mallory	peggy
+mallory	grace
+peggy	frank
+peggy	bob
+peggy	frank
+peggy	bob
+peggy	Al
+peggy	mallory
+peggy	x
+peggy	Al
+peggy	mallory
+peggy	victor
+peggy	heidi
+peggy	peggy
+victor	peggy
+victor	grace
+victor	oscar
+victor	mallory
+victor	judy
+victor	erin
+victor	grace
+oscar	mallory
+peggy	grace
+peggy	mallory
+peggy	erin
+peggy	grace
+frank	bob
+frank	frank
+frank	bob
+frank	Al
+frank	mallory
+frank	x
+frank	Al
+frank	mallory
+frank	heidi
+frank	peggy
+grace	erin
+bob	frank
+bob	bob
+bob	Al
+bob	mallory
+bob	x
+bob	heidi
+bob	peggy
+Bea	ivan
+Bea	grace
+Bea	victor
+Bea	frank
+Bea	frank
+Bea	Bea
+Bea	Bea
+Bea	grace
+Bea	mallory
+Bea	mallory
+ivan	frank
+ivan	frank
+ivan	Bea
+ivan	mallory
+bob	Al
+bob	mallory
+bob	x
+bob	peggy
+Al	x
+Al	peggy
+oscar	mallory
+oscar	erin
+oscar	grace
+grace	victor
+grace	frank
+grace	frank
+grace	Bea
+grace	Bea
+grace	grace
+grace	mallory
+grace	mallory
+wendy	victor
+wendy	frank
+wendy	erin
+wendy	frank
+wendy	Bea
+wendy	Bea
+wendy	grace
+wendy	mallory
+wendy	mallory
+victor	frank
+victor	frank
+victor	Bea
+victor	mallory
+victor	mallory
+frank	frank
+frank	mallory
+erin	frank
+erin	Bea
+erin	Bea
+erin	grace
+erin	mallory
+erin	mallory
+x	mallory
+x	x
+x	Al
+x	mallory
+x	victor
+x	heidi
+x	peggy
+frank	mallory
+bob	mallory
+bob	judy
+bob	erin
+bob	peggy
+bob	grace
+mallory	x
+mallory	peggy
+Bea	Bea
+Bea	grace
+Bea	mallory
+Bea	mallory
+Bea	mallory
+mallory	erin
+judy	erin
+judy	grace
+Al	heidi
+Al	peggy
+grace	mallory
+grace	mallory
+mallory	heidi
+mallory	peggy
+peggy	grace
+mallory	mallory
+victor	heidi
+victor	peggy
+heidi	peggy
+oscar	peggy
+-- 829 rows
+6	erin	sales	7300	NULL
+8	peggy	sales	4000	NULL
+12	frank	eng	6200	NULL
+16	mallory	sales	4000	NULL
+24	judy	sales	6800	NULL
+30	dave	ops	8900	NULL
+33	grace	NULL	5500	NULL
+36	grace	ops	6400	NULL
+37	carol	eng	7500	NULL
+42	victor	eng	2500	NULL
+48	Bea	eng	4300	NULL
+53	carol	ops	2700	NULL
+54	peggy	ops	2400	NULL
+58	victor	sales	8000	NULL
+60	carol	eng	3200	NULL
+66	frank	ops	2400	NULL
+67	grace	sales	7600	NULL
+72	frank	sales	NULL	NULL
+84	frank	sales	5500	NULL
+90	victor	sales	5800	NULL
+96	grace	sales	3200	NULL
+98	Bea	ops	8700	NULL
+102	heidi	NULL	5300	NULL
+108	carol	ops	NULL	NULL
+109	wendy	ops	8900	NULL
+114	bob	sales	NULL	NULL
+120	bob	sales	8300	NULL
+126	trent	ops	NULL	NULL
+132	judy	sales	5300	NULL
+150	dave	NULL	2800	NULL
+-- 30 rows
+eng	39	5716.22
+-- 1 rows
+erin	5
+judy	5
+ivan	4
+-- 3 rows
+error
+-- 0 rows
+error
+-- 0 rows
+1	57
+1	69
+1	104
+2	95
+2	154
+4	133
+10	27
+10	88
+10	127
+11	38
+11	65
+11	145
+13	113
+13	118
+13	146
+14	125
+15	21
+15	79
+15	81
+20	107
+21	79
+21	81
+23	51
+23	89
+23	142
+27	88
+27	127
+29	31
+29	35
+29	119
+29	129
+29	137
+31	35
+31	119
+31	129
+31	137
+32	44
+32	45
+32	49
+32	74
+32	110
+34	103
+35	119
+35	129
+35	137
+38	65
+38	145
+39	151
+40	76
+40	135
+41	61
+41	80
+41	139
+43	73
+43	140
+44	45
+44	49
+44	74
+44	110
+45	49
+45	74
+45	110
+49	74
+49	110
+50	87
+51	89
+51	142
+52	71
+56	116
+57	69
+57	104
+59	147
+59	152
+61	80
+61	139
+62	68
+62	82
+65	145
+68	82
+69	104
+70	141
+73	140
+74	110
+75	91
+76	135
+79	81
+80	139
+86	94
+86	99
+86	128
+86	153
+88	127
+89	142
+94	99
+94	128
+94	153
+95	154
+99	128
+99	153
+101	117
+101	148
+105	130
+105	149
+113	118
+113	146
+117	148
+118	146
+119	129
+119	137
+128	153
+129	137
+130	149
+147	152
+-- 113 rows
+1	Al	NULL	7000	25
+4	grace	eng	7700	36
+6	erin	sales	7300	NULL
+8	peggy	sales	4000	NULL
+10	mallory	sales	4300	21
+11	ivan	sales	5800	52
+12	frank	eng	6200	NULL
+13	oscar	ops	6900	53
+14	peggy	eng	7400	40
+16	mallory	sales	4000	NULL
+17	ivan	ops	4600	55
+20	Al	ops	7000	37
+23	mallory	sales	3800	24
+24	judy	sales	6800	NULL
+27	victor	ops	9000	21
+30	frank	ops	8900	NULL
+31	frank	eng	5500	60
+32	victor	sales	5100	42
+33	grace	NULL	5500	NULL
+36	grace	ops	6400	NULL
+37	carol	eng	7500	NULL
+39	judy	eng	6800	33
+40	mallory	eng	4300	29
+41	bob	sales	7500	22
+43	carol	eng	6700	31
+44	Bea	eng	5200	42
+45	trent	sales	3800	42
+48	Bea	eng	4300	NULL
+49	Al	eng	7600	42
+50	frank	eng	5200	23
+51	ivan	ops	6700	24
+56	bob	ops	5100	39
+58	victor	sales	8000	NULL
+59	heidi	sales	8300	49
+62	oscar	sales	4400	56
+65	victor	eng	7600	52
+67	grace	sales	7600	NULL
+68	erin	eng	6400	56
+69	judy	sales	5200	25
+70	mallory	eng	8300	38
+71	mallory	ops	5400	20
+73	peggy	sales	5700	31
+74	victor	ops	3900	42
+76	frank	eng	6400	29
+77	frank	sales	6300	58
+79	frank	eng	5600	41
+80	frank	NULL	6200	22
+81	mallory	ops	7800	41
+82	Bea	ops	8800	56
+83	carol	ops	8700	46
+84	frank	sales	5500	NULL
+85	frank	sales	3800	45
+87	mallory	sales	7400	23
+88	peggy	eng	8600	21
+89	wendy	NULL	6400	24
+90	victor	sales	5800	NULL
+92	peggy	sales	3700	32
+94	frank	eng	6700	34
+97	bob	eng	5400	44
+98	Bea	ops	8700	NULL
+101	ivan	ops	6300	48
+102	heidi	NULL	5300	NULL
+103	bob	eng	5200	54
+104	Al	eng	4400	25
+105	oscar	sales	4800	47
+107	grace	ops	8500	37
+109	wendy	ops	8900	NULL
+113	victor	ops	7400	53
+116	frank	ops	4400	39
+117	erin	ops	8700	48
+118	x	eng	8800	53
+119	frank	ops	4200	60
+120	bob	sales	8300	NULL
+124	mallory	eng	4400	26
+125	Bea	ops	8100	40
+127	Bea	ops	5900	21
+129	mallory	NULL	7700	60
+131	x	eng	3800	43
+132	judy	sales	5300	NULL
+133	Al	eng	5700	36
+135	grace	ops	7600	29
+137	oscar	NULL	7100	60
+139	mallory	eng	6600	22
+142	peggy	sales	6600	24
+145	mallory	ops	6600	52
+146	victor	eng	7900	53
+147	heidi	eng	5300	49
+148	oscar	eng	9000	48
+153	peggy	eng	4000	34
+154	frank	sales	6900	28
+-- 90 rows
+29
+31
+129
+137
+62
+68
+82
+17
+34
+103
+13
+113
+118
+146
+11
+38
+65
+145
+59
+152
+101
+117
+148
+130
+149
+83
+85
+97
+131
+32
+44
+45
+74
+110
+15
+79
+81
+125
+116
+141
+20
+107
+4
+75
+86
+94
+99
+128
+153
+39
+151
+92
+43
+73
+9
+40
+76
+135
+2
+95
+124
+1
+57
+69
+104
+23
+51
+89
+142
+50
+87
+41
+61
+80
+139
+10
+27
+88
+127
+52
+71
+6
+7
+8
+12
+14
+16
+21
+24
+30
+33
+35
+36
+37
+42
+48
+49
+53
+54
+56
+58
+60
+66
+67
+70
+72
+77
+84
+90
+91
+96
+98
+102
+105
+108
+109
+114
+119
+120
+126
+132
+133
+140
+147
+150
+154
+155
+-- 127 rows
+Bea	4
+grace	4
+frank	4
+peggy	4
+wendy	4
+frank	4
+frank	4
+carol	4
+judy	4
+mallory	4
+victor	4
+carol	4
+Bea	4
+Bea	4
+Al	4
+frank	4
+carol	4
+victor	4
+erin	4
+mallory	4
+frank	4
+frank	4
+Bea	4
+peggy	4
+frank	4
+bob	4
+frank	4
+bob	4
+Al	4
+x	4
+mallory	4
+x	4
+Al	4
+mallory	4
+frank	4
+victor	4
+heidi	4
+oscar	4
+peggy	4
+-- 39 rows
+29
+31
+129
+137
+62
+68
+82
+17
+34
+103
+13
+113
+118
+146
+11
+38
+65
+145
+59
+152
+101
+117
+148
+130
+149
+83
+85
+97
+131
+32
+44
+45
+74
+110
+15
+79
+81
+125
+116
+141
+20
+107
+4
+75
+86
+94
+99
+128
+153
+39
+151
+92
+43
+73
+9
+40
+76
+135
+2
+95
+124
+1
+57
+69
+104
+23
+51
+89
+142
+50
+87
+41
+61
+80
+139
+10
+27
+88
+127
+52
+71
+6
+7
+8
+12
+14
+16
+21
+24
+30
+33
+35
+36
+37
+42
+48
+49
+53
+54
+56
+58
+60
+66
+67
+70
+72
+77
+84
+90
+91
+96
+98
+102
+105
+108
+109
+114
+119
+120
+126
+132
+133
+140
+147
+150
+154
+155
+-- 127 rows
+error
+error
+-- 0 rows
+error
+error
+127
+-- 1 rows

@@ -1,0 +1,16 @@
+{
+  "schema": {
+    "$schema": "http://localhost:1234/draft2020-12/metaschema-optional-vocabulary.json",
+    "type": "number"
+  },
+  "tests": [
+    {
+      "description": "string value",
+      "data": "foobar"
+    },
+    {
+      "description": "number value",
+      "data": 20
+    }
+  ]
+}

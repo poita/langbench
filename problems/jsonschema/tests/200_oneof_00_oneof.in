@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "type": "integer"
+      },
+      {
+        "minimum": 2
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "first oneOf valid",
+      "data": 1
+    },
+    {
+      "description": "second oneOf valid",
+      "data": 2.5
+    },
+    {
+      "description": "both oneOf valid",
+      "data": 3
+    },
+    {
+      "description": "neither oneOf valid",
+      "data": 1.5
+    }
+  ]
+}

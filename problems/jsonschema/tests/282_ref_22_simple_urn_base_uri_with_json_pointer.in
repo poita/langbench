@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "$comment": "URIs do not have to have HTTP(s) schemes",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:uuid:deadbeef-1234-00ff-ff00-4321feebdaed",
+    "properties": {
+      "foo": {
+        "$ref": "#/$defs/bar"
+      }
+    },
+    "$defs": {
+      "bar": {
+        "type": "string"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "a string is valid",
+      "data": {
+        "foo": "bar"
+      }
+    },
+    {
+      "description": "a non-string is invalid",
+      "data": {
+        "foo": 12
+      }
+    }
+  ]
+}

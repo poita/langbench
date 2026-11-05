@@ -1,0 +1,44 @@
+[1] ok put created
+[2] ok stat
+  pages 67
+  free 0
+  freehead 0
+  docs 1
+  root 67
+  height 1
+  commits 1
+  indexes 0
+  wal 70272
+[3] ok put replaced
+[4] ok stat
+  pages 67
+  free 32
+  freehead 33
+  docs 1
+  root 67
+  height 1
+  commits 2
+  indexes 0
+  wal 140512
+[5] ok put replaced
+[6] ok stat
+  pages 67
+  free 0
+  freehead 0
+  docs 1
+  root 67
+  height 1
+  commits 3
+  indexes 0
+  wal 210752
+[7] ok delete removed
+[8] ok stat
+  pages 67
+  free 66
+  freehead 67
+  docs 0
+  root 0
+  height 0
+  commits 4
+  indexes 0
+  wal 32

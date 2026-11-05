@@ -1,0 +1,21 @@
+[message]
+id 0001
+source "ascii8bit.eml"
+
+[headers]
+content-type: "text/plain; charset=us-ascii"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=18 adler32=468d0760 role=text
+
+[body]
+text 0 chars 18
+| plain then �� raw
+html none
+
+[attachments]

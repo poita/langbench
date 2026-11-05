@@ -1,0 +1,21 @@
+[message]
+id 0001
+source "interrupted.eml"
+
+[headers]
+content-type: "text/plain; charset=utf-8"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=6 adler32=0a070279 role=text
+
+[body]
+text 0 chars 6
+| a�(�b
+html none
+
+[attachments]

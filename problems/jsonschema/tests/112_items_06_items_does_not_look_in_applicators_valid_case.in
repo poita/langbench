@@ -1,0 +1,33 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "allOf": [
+      {
+        "prefixItems": [
+          {
+            "minimum": 3
+          }
+        ]
+      }
+    ],
+    "items": {
+      "minimum": 5
+    }
+  },
+  "tests": [
+    {
+      "description": "prefixItems in allOf does not constrain items, invalid case",
+      "data": [
+        3,
+        5
+      ]
+    },
+    {
+      "description": "prefixItems in allOf does not constrain items, valid case",
+      "data": [
+        5,
+        5
+      ]
+    }
+  ]
+}

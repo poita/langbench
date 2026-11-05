@@ -1,0 +1,3 @@
+TAG {{ tag.name }} slug={{ tag.slug }} url={{ tag.url }} count={{ tag.post_count }}
+{% for post in posts %}- {{ post.date }} {{ post.slug }} {{ post.title }} older={% if post.older %}{{ post.older.slug }}{% else %}-{% endif %} newer={% if post.newer %}{{ post.newer.slug }}{% else %}-{% endif %}
+{% endfor %}same={% if posts|length == tag.posts|length %}yes{% else %}no{% endif %}

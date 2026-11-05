@@ -1,0 +1,20 @@
+2a367621645cefc27078e191f512224f9da9737a Filip Bartuzi 1483959406 Add the information that the #remove method is silent
+c1aa987f171e802fd69664c9891c8c7270837b43 Jaroslav Hanslik 1483958799 Allow undocumented attributes to be passed when creating a cookie
+4e77d05b59692b664fe869f3e2dd54b77c13badf Janus 1483957064 Use strict mode in the tests
+81e8c0b7f3753c7191eeb709b23ff0efad445203 greenkeeperio-bot 1479940921 Update grunt-contrib-jshint to version 1.1.0
+b1f0a45ac82c892442215fd3cc54877465f3ae8b greenkeeperio-bot 1474131832 Update requirejs to version 2.3.2
+7fd36e66b60a4e0ac9d09207fb3a348a2969152c greenkeeperio-bot 1473095881 Update requirejs to version 2.3.1
+da42a53ae786d983455852d2f29e542e7c702d42 Fagner Brack 1472792128 Fix the release steps
+68acf18560eb7a5d21db7197ae24d975971d1ae0 Fagner Brack 1472788734 Release version 2.1.3
+767ebd932706fc7286398bf6bb5b07e23ad1518e Fagner Brack 1472257115 Change README to point to the 'latest' tag
+92f8e2b04cb0ebef236e019a5900012e86a0729a Fagner Brack 1472247871 Register in AMD and UMD if both available
+583c52457fa1bb6ac823fa687ef52749a9cd2fa2 Fagner Brack 1471875644 Add docs to use with ES6 imports
+ccdcc583430f2646591ad01a24cac0ca5d8da9a6 Fagner Brack 1471872318 Change the manual release to use the 'latest' tag
+72d05c27ebfb99aa8b6ae8f1b46210e223e815b9 Fagner Brack 1470305243 Update grunt-contrib-uglify to version 2.0.0
+ec189f13fdb8d26144f87ab14d3229c0cfcfc67b Fagner Brack 1469950633 Remove QUnit.expect from amd test
+bccdaf79f7bef1d6d2cd56cbff00f8ed2a2c04a4 Fagner Brack 1470305008 Do not parse as JSON when window has a truthy 'json' prop
+9b467413478a0ef58e3aa65b2ab2862c63bbd6b4 greenkeeperio-bot 1468936208 Update grunt-contrib-uglify to version 1.0.2
+671f7f48092e6079b7dfc21d3806fff46b936227 greenkeeperio-bot 1467843142 Update grunt-saucelabs to version 9.0.0
+96c44da1ab77531239f20f21e02eff72fd7acdbd Fagner Brack 1466854994 Add a note in the README for cookies that expires in less than a day
+960a75ed4f5876327c2a7628cc6e41be282effcc Fagner Brack 1466339485 Clarify the interoperability of default encoding
+bafff92d609c10d1fba51054f069ccda3ba4b9dd Fagner Brack 1466339114 Remove unnecessary code alignment

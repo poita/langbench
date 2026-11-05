@@ -1,0 +1,20 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "type": "integer"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "only the first item is validated",
+      "data": [
+        1,
+        "foo",
+        false
+      ]
+    }
+  ]
+}

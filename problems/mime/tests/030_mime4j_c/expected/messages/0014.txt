@@ -1,0 +1,56 @@
+[message]
+id 0014
+source "uu-junk-target.eml"
+
+[headers]
+return-path: "<support@webmail.uwohali.com>"
+received: "from virtual.mrf.mail.rcn.net ([207.172.4.103]) by mta02.mrf.mail.rcn.net (InterMail vM.4.01.02.27 201-229-119-110) with ESMTP id <20000425112650.ZPUD516.mta02.mrf.mail.rcn.net@virtual.mrf.mail.rcn.net> for <eryq@mta.mrf.mail.rcn.net>; Tue, 25 Apr 2000 07:26:50 -0400"
+received: "from [205.139.141.226] (helo=webmail.uwohali.com ident=root) by virtual.mrf.mail.rcn.net with esmtp (Exim 2.12 #3) id 12k3VX-00012G-00 for eryq@zeegee.com; Tue, 25 Apr 2000 07:27:59 -0400"
+received: "from webmail.uwohali.com (nobody@localhost [127.0.0.1]) by webmail.uwohali.com (8.8.7/8.8.7) with SMTP id GAA10264 for <eryq@zeegee.com>; Tue, 25 Apr 2000 06:34:43 -0500"
+date: "Tue, 25 Apr 2000 06:34:43 -0500"
+message-id: "<200004251134.GAA10264@webmail.uwohali.com>"
+from: "\"ADJE Webmail Tech Support\" <support@webmail.uwohali.com>"
+to: "eryq@zeegee.com"
+subject: "mime::parser"
+content-type: "multipart/mixed; boundary=\"---------------------------7d033e3733c\""
+mime-version: "1.0"
+x-mozilla-status: "8001"
+
+[addresses]
+from 0 display="ADJE Webmail Tech Support" spec="support@webmail.uwohali.com"
+to 0 display="" spec="eryq@zeegee.com"
+
+[date]
+raw " Tue, 25 Apr 2000 06:34:43 -0500"
+valid yes
+utc 2000-04-25T11:34:43Z
+offset -0500
+epoch 956662483
+
+[structure]
+0 multipart/mixed cte=7bit boundary="---------------------------7d033e3733c" parts=2 preamble=0 epilogue=3
+  1 text/plain charset=us-ascii cte=7bit size=373 adler32=8fe87adb role=text
+  2 multipart/mixed cte=7bit boundary="----------=_960622044-2175-0" parts=3 preamble=88 epilogue=0
+    3 text/plain charset=us-ascii cte=7bit size=93 adler32=dd711f5a role=attachment
+    4 image/gif cte=base64 disposition=inline filename="up.gif" size=110 adler32=e6e42c57 role=attachment
+    5 image/gif cte=base64 disposition=inline filename="zeegee.gif" size=4834 adler32=0d55fe1b role=attachment
+
+[body]
+text 1 chars 373
+| Eryq -
+| 
+| I occasionally receive an email (see below) like this one, which
+| MIME::Parser does not parse.  Any ideas?  Is this a valid way to send
+| an attachment, or is the problem on the \"sender's\" side?  Thanks for
+| your time!
+| 
+|    Mike
+| 
+| -->> Promote YOUR web site!  FREE Perl CGI scripts add WEB ACCESS to your
+| -->> E-Mail accounts! Download today!! http://webmail.uwohali.com
+html none
+
+[attachments]
+3 type=text/plain filename=- size=93 adler32=dd711f5a file=parts/0014/003.bin
+4 type=image/gif filename="up.gif" size=110 adler32=e6e42c57 file=parts/0014/004.bin
+5 type=image/gif filename="zeegee.gif" size=4834 adler32=0d55fe1b file=parts/0014/005.bin

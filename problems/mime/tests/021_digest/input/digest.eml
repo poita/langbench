@@ -1,0 +1,20 @@
+Subject: weekly digest
+Content-Type: multipart/digest; boundary="D"
+
+--D
+
+Subject: first message
+From: a@example.com
+
+first body
+--D
+
+Subject: second message
+From: b@example.com
+
+second body
+--D
+Content-Type: text/plain
+
+an explicit text part
+--D--

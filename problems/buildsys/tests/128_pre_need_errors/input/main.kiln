@@ -1,0 +1,7 @@
+step {
+    out "out/doc.txt"
+    depfile "out/doc.d"
+    in "src/root.txt"
+    cmd preprocess()
+}
+default "out/doc.txt"

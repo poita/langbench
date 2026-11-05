@@ -1,0 +1,29 @@
+name "sat"
+description "A MiniSat-style CDCL SAT solver library and DIMACS command-line tool"
+authors "sat contributors"
+license "MIT"
+copyright "Copyright © sat contributors"
+
+# The first configuration is the one `dub build` picks: the command-line tool.
+configuration "cli" {
+    targetType "executable"
+    targetName "sat"
+    sourcePaths "src" "cli"
+    importPaths "src"
+    mainSourceFile "cli/main.d"
+}
+
+# Use as a dependency: `dependency "sat" version="*"` then `import sat;`.
+configuration "library" {
+    targetType "library"
+    sourcePaths "src"
+    importPaths "src"
+    excludedSourceFiles "cli/*"
+}
+
+# Selected by `dub test`; the tests live in tests/, apart from the library.
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "src" "tests"
+    importPaths "src"
+}

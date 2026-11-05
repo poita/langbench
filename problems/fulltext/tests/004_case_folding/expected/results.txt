@@ -1,0 +1,14 @@
+QUERY 1 hello
+HITS 2
+1	shout	0.2798	HELLO hello HeLLo WORLD world
+2	mixed	0.2588	Hello There. THERE hello
+QUERY 2 HELLO
+HITS 2
+1	shout	0.2798	HELLO hello HeLLo WORLD world
+2	mixed	0.2588	Hello There. THERE hello
+QUERY 3 world
+HITS 1
+1	shout	0.9242	HELLO hello HeLLo WORLD world
+QUERY 4 "hello world"
+HITS 1
+1	shout	0.6630	HELLO hello HeLLo WORLD world

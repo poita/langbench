@@ -1,0 +1,165 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "uniqueItems": false
+  },
+  "tests": [
+    {
+      "description": "unique array of integers is valid",
+      "data": [
+        1,
+        2
+      ]
+    },
+    {
+      "description": "non-unique array of integers is valid",
+      "data": [
+        1,
+        1
+      ]
+    },
+    {
+      "description": "numbers are unique if mathematically unequal",
+      "data": [
+        1.0,
+        1.0,
+        1
+      ]
+    },
+    {
+      "description": "false is not equal to zero",
+      "data": [
+        0,
+        false
+      ]
+    },
+    {
+      "description": "true is not equal to one",
+      "data": [
+        1,
+        true
+      ]
+    },
+    {
+      "description": "unique array of objects is valid",
+      "data": [
+        {
+          "foo": "bar"
+        },
+        {
+          "foo": "baz"
+        }
+      ]
+    },
+    {
+      "description": "non-unique array of objects is valid",
+      "data": [
+        {
+          "foo": "bar"
+        },
+        {
+          "foo": "bar"
+        }
+      ]
+    },
+    {
+      "description": "unique array of nested objects is valid",
+      "data": [
+        {
+          "foo": {
+            "bar": {
+              "baz": true
+            }
+          }
+        },
+        {
+          "foo": {
+            "bar": {
+              "baz": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "description": "non-unique array of nested objects is valid",
+      "data": [
+        {
+          "foo": {
+            "bar": {
+              "baz": true
+            }
+          }
+        },
+        {
+          "foo": {
+            "bar": {
+              "baz": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "description": "unique array of arrays is valid",
+      "data": [
+        [
+          "foo"
+        ],
+        [
+          "bar"
+        ]
+      ]
+    },
+    {
+      "description": "non-unique array of arrays is valid",
+      "data": [
+        [
+          "foo"
+        ],
+        [
+          "foo"
+        ]
+      ]
+    },
+    {
+      "description": "1 and true are unique",
+      "data": [
+        1,
+        true
+      ]
+    },
+    {
+      "description": "0 and false are unique",
+      "data": [
+        0,
+        false
+      ]
+    },
+    {
+      "description": "unique heterogeneous types are valid",
+      "data": [
+        {},
+        [
+          1
+        ],
+        true,
+        null,
+        1
+      ]
+    },
+    {
+      "description": "non-unique heterogeneous types are valid",
+      "data": [
+        {},
+        [
+          1
+        ],
+        true,
+        null,
+        {},
+        1
+      ]
+    }
+  ]
+}

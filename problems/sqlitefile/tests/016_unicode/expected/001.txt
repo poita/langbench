@@ -1,0 +1,3 @@
+CREATE TABLE words(id INTEGER PRIMARY KEY, w TEXT, lang TEXT);
+CREATE INDEX words_w ON words(w);
+CREATE INDEX words_lang ON words(lang);

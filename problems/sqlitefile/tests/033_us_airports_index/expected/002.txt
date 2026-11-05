@@ -1,0 +1,10 @@
+CREATE TABLE usap(
+        id INTEGER PRIMARY KEY,
+        ident TEXT,
+        type TEXT,
+        name TEXT,
+        elevation_ft INTEGER,
+        iso_region TEXT,
+        municipality TEXT);
+CREATE INDEX usap_region ON usap(iso_region);
+CREATE INDEX usap_type ON usap(type);

@@ -1,0 +1,14 @@
+inv h4.mtx
+det h4.mtx
+cond h4.mtx
+chol h4.mtx
+eig h4.mtx
+inv h5.mtx
+det h5.mtx
+cond h5.mtx
+solve h5.mtx ones5.mtx
+det h6.mtx
+cond h6.mtx
+normfro h6.mtx
+chol h5.mtx
+norm1 h6.mtx

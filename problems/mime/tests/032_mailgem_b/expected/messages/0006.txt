@@ -1,0 +1,35 @@
+[message]
+id 0006
+source "example03.eml"
+
+[headers]
+from: "\"Joe Q. Public\" <john.q.public@example.com>"
+to: "Mary Smith <mary@x.test>, jdoe@example.org, Who? <one@y.test>"
+cc: "<boss@nil.test>, \"Giant; \\\"Big\\\" Box\" <sysservices@example.net>"
+date: "Tue, 1 Jul 2003 10:52:37 +0200"
+message-id: "<5678.21-Nov-1997@example.com>"
+
+[addresses]
+from 0 display="Joe Q. Public" spec="john.q.public@example.com"
+to 0 display="Mary Smith" spec="mary@x.test"
+to 1 display="" spec="jdoe@example.org"
+to 2 display="Who?" spec="one@y.test"
+cc 0 display="" spec="boss@nil.test"
+cc 1 display="Giant; \"Big\" Box" spec="sysservices@example.net"
+
+[date]
+raw " Tue, 1 Jul 2003 10:52:37 +0200"
+valid yes
+utc 2003-07-01T08:52:37Z
+offset +0200
+epoch 1057049557
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=13 adler32=20ad0477 role=text
+
+[body]
+text 0 chars 13
+| Hi everyone.
+html none
+
+[attachments]

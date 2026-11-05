@@ -1,0 +1,21 @@
+kiln-state 1
+step out/l0.txt
+cmd write("1|1,2,3\n")
+out out/l0.txt 5a7bcf3c52f28c2e
+end
+step out/l1.txt
+cmd write("ABC|3\n")
+out out/l1.txt 95da6743fa2c6cc8
+end
+step out/l2.txt
+cmd write("x/y/z|3\n")
+out out/l2.txt 97f0d16fedce9b2b
+end
+step out/l3.txt
+cmd write("4-3-2-1-0|3\n")
+out out/l3.txt c0e24d54c6107364
+end
+step out/l4.txt
+cmd write("3|PAD\n")
+out out/l4.txt 6d619d18ca2524d3
+end

@@ -1,0 +1,20 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$ref": "http://example.com/ref/else",
+    "else": {
+      "$id": "http://example.com/ref/else",
+      "type": "integer"
+    }
+  },
+  "tests": [
+    {
+      "description": "a non-integer is invalid due to the $ref",
+      "data": "foo"
+    },
+    {
+      "description": "an integer is valid",
+      "data": 12
+    }
+  ]
+}

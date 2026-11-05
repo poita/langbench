@@ -1,0 +1,113 @@
+[message]
+id 0124
+source "mbox:124"
+
+[headers]
+received: "from apache.org (mx2.apache.org [210.81.234.176]) by corp.example.co.uk (Postfix) with ESMTP id 6A09040B40 for <lschrder@eu.example.de>; Wed, 17 Apr 2025 23:18:41 Z"
+received: "from example.org (mx8.post.example.fr [139.92.188.180]) by lists.example.edu (Postfix) with ESMTP id 93CCA92B25 for <btaylor.19@mail.example.net>; Fri, 12 Jan 2012 00:03:46 +0900 (GMT)"
+received: "from example.org (mx5.example.com [42.11.146.237]) by post.example.fr (Postfix) with ESMTP id CB438A8BE0 for <apapadopoulos@dev.example.io>; Sun, 10 Dec 2005 02:04:52 +0200"
+received: "from mail.example.net (mx3.apache.org [83.197.136.48]) by example.com (Postfix) with ESMTP id E7DA8AC270 for <y@eu.example.de>; 7 FEB 05 18:13 +1000"
+return-path: "<user8405@apache.org>"
+message-id: "<966.c48ed138.99077@apache.org>"
+date: "Wed, 16 Jan 2005 13:53:36 -0500 (GMT)"
+from: "\"Doe, Olga\" <odoe@post.example.fr>"
+to: "Xavier Wilson <xwilson@example.com>,    María Wilson <mwilson@students.example.ac.jp>,\t\"Papadopoulos, Ann\" <apapadopoulos@apache.org>,\tĐorđe Papadopoulos <papadopoulos@example.org>,    Đorđe Rossi <rossi@post.example.fr>,\tobrien.88@dev.example.io, Luis Dubois <ldubois.55@corp.example.co.uk>,\tudubois@mail.example.net (Uwe Dubois),    Erik Papadopoulos <epapadopoulos@post.example.fr>,\tJörg Brown <jbrown@post.example.fr>, \"Nguyen, Dana\" <dnguyen@example.com>,\tbgarca.59@mail.example.net (Someone),\tĐorđe Wilson <wilson@mail.example.net>, Tomás Lefèvre <tlefvre@apache.org>,\tFrançois Nguyen <fnguyen@dev.example.io>,    \"Kowalski, Karin\" <kkowalski.15@lists.example.edu>, Pierre Doe <pdoe@dev.example.io>,\tFrançois Wilson <fwilson@post.example.fr>,    Pierre van der Berg <pvanderberg.20@corp.example.co.uk>,\tlnguyen.7@example.com (Luis Nguyen),    Nils Petrov <npetrov@students.example.ac.jp>,\t\"William Kim\" <wkim@example.com>,\tAgnieszka Østergaard <astergaard.61@dev.example.io>,    \"Rossi, Vera\" <vrossi.84@post.example.fr>, Yuki Иванов <y.55@lists.example.edu>,    \"Smith, Karin\" <ksmith.66@students.example.ac.jp>, Zoë O'Brien <zobrien@apache.org>,\tJörg Müller <jmller@post.example.fr>, rnguyen@post.example.fr (Someone),\tSøren Kim <skim@students.example.ac.jp>,\tnguyen@mail.example.net, Sven Østergaard <sstergaard@corp.example.co.uk>,\tUwe Brown <ubrown@students.example.ac.jp>,\t\"van der Berg, Luis\" <lvanderberg@mail.example.net>,    Дмитрий O'Brien <obrien@post.example.fr>, \"Nguyen, Hana\" <hnguyen@post.example.fr>,\t\"O'Brien, Olga\" <oobrien@apache.org>, bobrien@students.example.ac.jp,    Zoë Иванов <z@eu.example.de>,\t太郎 Dubois <dubois@lists.example.edu>, Quinn Müller <qmller@lists.example.edu>,\tYuki 山田 <y@corp.example.co.uk>,    Xavier Schröder <xschrder@eu.example.de>,    \"Petrov, Pierre\" <ppetrov@post.example.fr>, Łukasz Petrov <petrov@apache.org>,    Łukasz Schröder <schrder@eu.example.de>, Tomás Lefèvre <tlefvre@mail.example.net>, kowalski.79@dev.example.io,    apapadopoulos@corp.example.co.uk (Agnieszka Papadopoulos), Bob Иванов <b.33@example.com>,\tXavier Johansson <xjohansson@example.com>, Hana Nakamura <hnakamura.91@mail.example.net>"
+cc: "María Taylor <mtaylor@example.org>,    Olga Nakamura <onakamura@lists.example.edu>,\t太郎 García <garca.54@corp.example.co.uk>, \"Kim, Erik\" <ekim@dev.example.io>, Zoë Nakamura <znakamura.90@dev.example.io>, Carl García <cgarca.64@example.org>,    Xavier Иванов <x@example.org>"
+subject: "[VOTE] How same httpd see back apr as Paulo"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+x-original-to: "\"Brown, Luis\" <lbrown.23@post.example.fr>"
+x-original-to: "pgarca@corp.example.co.uk"
+x-original-to: "François Rossi <frossi@mail.example.net>"
+resent-date: "Mon, 25 May 2012 06:01:34 +0530 (GMT)"
+thread-topic: "Place are and these new all are."
+comments: "The the some our want  you we the many  in config  through of  the for  on by he then Straße."
+sender: "Fiona Иванов <f@corp.example.co.uk>"
+content-type: "text/plain; charset=windows-1252"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Doe, Olga" spec="odoe@post.example.fr"
+sender 0 display="Fiona Иванов" spec="f@corp.example.co.uk"
+to 0 display="Xavier Wilson" spec="xwilson@example.com"
+to 1 display="María Wilson" spec="mwilson@students.example.ac.jp"
+to 2 display="Papadopoulos, Ann" spec="apapadopoulos@apache.org"
+to 3 display="Đorđe Papadopoulos" spec="papadopoulos@example.org"
+to 4 display="Đorđe Rossi" spec="rossi@post.example.fr"
+to 5 display="" spec="obrien.88@dev.example.io"
+to 6 display="Luis Dubois" spec="ldubois.55@corp.example.co.uk"
+to 7 display="" spec="udubois@mail.example.net"
+to 8 display="Erik Papadopoulos" spec="epapadopoulos@post.example.fr"
+to 9 display="Jörg Brown" spec="jbrown@post.example.fr"
+to 10 display="Nguyen, Dana" spec="dnguyen@example.com"
+to 11 display="" spec="bgarca.59@mail.example.net"
+to 12 display="Đorđe Wilson" spec="wilson@mail.example.net"
+to 13 display="Tomás Lefèvre" spec="tlefvre@apache.org"
+to 14 display="François Nguyen" spec="fnguyen@dev.example.io"
+to 15 display="Kowalski, Karin" spec="kkowalski.15@lists.example.edu"
+to 16 display="Pierre Doe" spec="pdoe@dev.example.io"
+to 17 display="François Wilson" spec="fwilson@post.example.fr"
+to 18 display="Pierre van der Berg" spec="pvanderberg.20@corp.example.co.uk"
+to 19 display="" spec="lnguyen.7@example.com"
+to 20 display="Nils Petrov" spec="npetrov@students.example.ac.jp"
+to 21 display="William Kim" spec="wkim@example.com"
+to 22 display="Agnieszka Østergaard" spec="astergaard.61@dev.example.io"
+to 23 display="Rossi, Vera" spec="vrossi.84@post.example.fr"
+to 24 display="Yuki Иванов" spec="y.55@lists.example.edu"
+to 25 display="Smith, Karin" spec="ksmith.66@students.example.ac.jp"
+to 26 display="Zoë O'Brien" spec="zobrien@apache.org"
+to 27 display="Jörg Müller" spec="jmller@post.example.fr"
+to 28 display="" spec="rnguyen@post.example.fr"
+to 29 display="Søren Kim" spec="skim@students.example.ac.jp"
+to 30 display="" spec="nguyen@mail.example.net"
+to 31 display="Sven Østergaard" spec="sstergaard@corp.example.co.uk"
+to 32 display="Uwe Brown" spec="ubrown@students.example.ac.jp"
+to 33 display="van der Berg, Luis" spec="lvanderberg@mail.example.net"
+to 34 display="Дмитрий O'Brien" spec="obrien@post.example.fr"
+to 35 display="Nguyen, Hana" spec="hnguyen@post.example.fr"
+to 36 display="O'Brien, Olga" spec="oobrien@apache.org"
+to 37 display="" spec="bobrien@students.example.ac.jp"
+to 38 display="Zoë Иванов" spec="z@eu.example.de"
+to 39 display="太郎 Dubois" spec="dubois@lists.example.edu"
+to 40 display="Quinn Müller" spec="qmller@lists.example.edu"
+to 41 display="Yuki 山田" spec="y@corp.example.co.uk"
+to 42 display="Xavier Schröder" spec="xschrder@eu.example.de"
+to 43 display="Petrov, Pierre" spec="ppetrov@post.example.fr"
+to 44 display="Łukasz Petrov" spec="petrov@apache.org"
+to 45 display="Łukasz Schröder" spec="schrder@eu.example.de"
+to 46 display="Tomás Lefèvre" spec="tlefvre@mail.example.net"
+to 47 display="" spec="kowalski.79@dev.example.io"
+to 48 display="" spec="apapadopoulos@corp.example.co.uk"
+to 49 display="Bob Иванов" spec="b.33@example.com"
+to 50 display="Xavier Johansson" spec="xjohansson@example.com"
+to 51 display="Hana Nakamura" spec="hnakamura.91@mail.example.net"
+cc 0 display="María Taylor" spec="mtaylor@example.org"
+cc 1 display="Olga Nakamura" spec="onakamura@lists.example.edu"
+cc 2 display="太郎 García" spec="garca.54@corp.example.co.uk"
+cc 3 display="Kim, Erik" spec="ekim@dev.example.io"
+cc 4 display="Zoë Nakamura" spec="znakamura.90@dev.example.io"
+cc 5 display="Carl García" spec="cgarca.64@example.org"
+cc 6 display="Xavier Иванов" spec="x@example.org"
+
+[date]
+raw " Wed, 16 Jan 2005 13:53:36 -0500 (GMT)"
+valid yes
+utc 2005-01-16T18:53:36Z
+offset -0500
+epoch 1105901616
+
+[structure]
+0 text/plain charset=windows-1252 cte=quoted-printable size=285 adler32=0a996480 role=text
+
+[body]
+text 0 chars 285
+| At me the one on in it you down said at the said then with? Him is
+| little if to make she for sentence earth hook call we response she and
+| back. Connection right about people segfault new before father about
+| make as round he. As word came the from fiancée her want.
+| 
+| -- 
+| Luis Fernández
+html none
+
+[attachments]

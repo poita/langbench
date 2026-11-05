@@ -1,0 +1,101 @@
+[message]
+id 0143
+source "mbox:143"
+
+[headers]
+received: "from students.example.ac.jp (mx5.post.example.fr [188.113.157.133]) by eu.example.de (Postfix) with ESMTP id E79A9AC7A6 for <ubrown@corp.example.co.uk>; sun,3 jan 2024 16:12:1 (comment (nested)) +1245"
+received: "from mail.example.net (mx6.corp.example.co.uk [90.148.253.165]) by students.example.ac.jp (Postfix) with ESMTP id 255A8CE7AB for <yjohansson.24@mail.example.net>; Sun, 17 Jun 2009 00:28:40 -0400"
+received: "from dev.example.io (mx6.corp.example.co.uk [2.3.13.29]) by corp.example.co.uk (Postfix) with ESMTP id 9D575E1501 for <bsmith.2@example.org>; Thu, 10 Dec 2012 00:46:28 GMT"
+received: "from mail.example.net (mx4.apache.org [253.30.104.212]) by lists.example.edu (Postfix) with ESMTP id 7D03E3D607 for <msmith.57@example.com>; Wed, 27 Nov 2003 06:41:34 -0700"
+return-path: "<apapadopoulos@dev.example.io>"
+message-id: "<951.003c7431.29524@lists.example.edu>"
+date: "Sat, 21 Dec 2025 12:16:43 +1000"
+from: "\"Pierre Papadopoulos\" <ppapadopoulos@lists.example.edu>"
+to: "ngarca@apache.org (Someone), \"Papadopoulos, Erik\" <epapadopoulos@example.com>"
+cc: "Ivan Иванов <i@eu.example.de>, 太郎 Rossi <rossi.78@post.example.fr>"
+subject: "[PATCH] Old and other his or said word went I hand"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"simple boundary 562\""
+
+[addresses]
+from 0 display="Pierre Papadopoulos" spec="ppapadopoulos@lists.example.edu"
+to 0 display="" spec="ngarca@apache.org"
+to 1 display="Papadopoulos, Erik" spec="epapadopoulos@example.com"
+cc 0 display="Ivan Иванов" spec="i@eu.example.de"
+cc 1 display="太郎 Rossi" spec="rossi.78@post.example.fr"
+
+[date]
+raw " Sat, 21 Dec 2025 12:16:43 +1000"
+valid yes
+utc 2025-12-21T02:16:43Z
+offset +1000
+epoch 1766283403
+
+[structure]
+0 multipart/alternative cte=7bit boundary="simple boundary 562" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=8bit size=1344 adler32=44f4d663 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1824 adler32=705376cf role=html
+
+[body]
+text 1 chars 1344
+| He you and we what the on near. Boy to so client word the no that
+| keepalive there again which they again word people for! These use than
+| it tell hook world who be you also the Málaga a up. Brigade call so with
+| from and trunk word vote a to about one most men branch pool. Way for a
+| move me the response does word form?
+| 
+| The we in most write little client father act header give one light you
+| you it. Thing the she for before other sentence well hot the way that
+| the? That I of all his new want it socket other thing a that?
+| 
+| Came hot the proxy they turn must? From man move the the as. Large be we
+| über and one big world. In do know who way are could try of side what
+| the follow the them.
+| 
+| Of out number and as them! Was port made the the much earth to before
+| move men they the and high. Are one of first add up the people say his
+| go he and when of light. Over most must as cache is your men they. A
+| hand only turn for air no too hand such land from than!
+| 
+| By such right thread log come would alias résumé with think backport by
+| such was. To and what then but socket? Make old look a act write at long
+| warning the will new change? Crash the I by on look the the they. And
+| look with the the and the people how. Were home has every right and than
+| is under at or module the? Hot the will and these year in him much land
+| again read?
+| 
+| -- 
+| Quinn Doe
+html 2 chars 1820
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">He you and we what the on near. Boy to so client word the no that<br>
+| keepalive there again which they again word people for! These use than<br>
+| it tell hook world who be you also the Málaga a up. Brigade call so with<br>
+| from and trunk word vote a to about one most men branch pool. Way for a<br>
+| move me the response does word form?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The we in most write little client father act header give one light you<br>
+| you it. Thing the she for before other sentence well hot the way that<br>
+| the? That I of all his new want it socket other thing a that?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Came hot the proxy they turn must? From man move the the as. Large be we<br>
+| über and one big world. In do know who way are could try of side what<br>
+| the follow the them.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Of out number and as them! Was port made the the much earth to before<br>
+| move men they the and high. Are one of first add up the people say his<br>
+| go he and when of light. Over most must as cache is your men they. A<br>
+| hand only turn for air no too hand such land from than!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">By such right thread log come would alias résumé with think backport by<br>
+| such was. To and what then but socket? Make old look a act write at long<br>
+| warning the will new change? Crash the I by on look the the they. And<br>
+| look with the the and the people how. Were home has every right and than<br>
+| is under at or module the? Hot the will and these year in him much land<br>
+| again read?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Quinn Doe<br>
+| </p>
+| </body></html>
+
+[attachments]

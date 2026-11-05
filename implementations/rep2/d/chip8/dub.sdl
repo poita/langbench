@@ -1,0 +1,25 @@
+name "chip8"
+description "Deterministic CHIP-8 interpreter library and command-line tool"
+authors "Peter Alexander"
+license "MIT"
+copyright "Copyright © 2026"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "chip8"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+    importPaths "source"
+}

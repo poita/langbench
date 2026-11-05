@@ -1,0 +1,6 @@
+step 1: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0
+step 2: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0

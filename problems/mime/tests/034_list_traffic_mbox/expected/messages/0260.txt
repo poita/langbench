@@ -1,0 +1,57 @@
+[message]
+id 0260
+source "mbox:260"
+
+[headers]
+received: "from eu.example.de (mx7.apache.org [117.120.232.245]) by eu.example.de (Postfix) with ESMTP id 6C91E92342 for <blefvre.32@mail.example.net>; Thu, 25 Feb 2025 11:58:33 -0700"
+received: "from example.org (mx9.students.example.ac.jp [69.2.157.235]) by dev.example.io (Postfix) with ESMTP id 3344BB9826 for <hnakamura@example.com>; Wed Aug 7 01:47:40 2005 -0000"
+received: "from students.example.ac.jp (mx9.eu.example.de [29.108.24.193]) by lists.example.edu (Postfix) with ESMTP id D3FC547DD for <htaylor.5@eu.example.de>; Wed, 2 Sep 2004 22:50:52 +0100"
+received: "from mail.example.net (mx8.post.example.fr [181.34.117.62]) by dev.example.io (Postfix) with ESMTP id F89DAC6F32 for <dpapadopoulos.11@example.org>; Tue, 13 Feb 2005 01:19:11 -0500"
+return-path: "<obrien.5@lists.example.edu>"
+message-id: "<1585.31be0881.32517@dev.example.io>"
+in-reply-to: "<1589.f72df850.78823@students.example.ac.jp>"
+references: "<1586.44d8e1a3.23393@post.example.fr> <1587.28f98fc4.31460@students.example.ac.jp> <1588.8b9b1548.25984@example.com> <1589.f72df850.78823@students.example.ac.jp>"
+date: "Thu, 28 Apr 2003 22:44:15 -0800 (CET)"
+from: "Olga van der Berg <ovanderberg@students.example.ac.jp>"
+to: "lnakamura@example.org (Luis Nakamura)"
+subject: "Re: In take add of pool day jalapeño the one the élan"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=us-ascii"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Olga van der Berg" spec="ovanderberg@students.example.ac.jp"
+to 0 display="" spec="lnakamura@example.org"
+
+[date]
+raw " Thu, 28 Apr 2003 22:44:15 -0800 (CET)"
+valid yes
+utc 2003-04-29T06:44:15Z
+offset -0800
+epoch 1051598655
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=569 adler32=76cbc2c4 role=text
+
+[body]
+text 0 chars 569
+| In a move and kind. Like through to is the I an in an. From way here
+| about of you of. All the fa?ade where the come side status vote self he
+| long would made. Good a the status said alias port point it put is
+| Krak?w brigade!
+| 
+| Port want ?lan day all act sentence. Them a be long men. Other the the
+| back I httpd went make jalape?o part old on to up! Bucket be the name
+| find good look my see! Know number time when try Z?rich hot add does the
+| play who. A that cr?me at his the that their all near. Would the we
+| bucket write the which back cause time that!
+| 
+| -- 
+| Tom?s Brown
+html none
+
+[attachments]

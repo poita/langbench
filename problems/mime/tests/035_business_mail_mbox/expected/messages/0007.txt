@@ -1,0 +1,114 @@
+[message]
+id 0007
+source "mbox:7"
+
+[headers]
+received: "from example.com (mx6.example.com [224.152.127.28]) by lists.example.edu (Postfix) with ESMTP id 18B1ED9297 for <ckowalski@dev.example.io>; Wed May 2 00:54:52 2012 EST"
+received: "from post.example.fr (mx3.corp.example.co.uk [18.130.151.151]) by students.example.ac.jp (Postfix) with ESMTP id 88B425DC28 for <doe@apache.org>; Sat Aug 19 02:41:26 2025 -0330"
+received: "from dev.example.io (mx8.mail.example.net [219.100.206.158]) by example.org (Postfix) with ESMTP id F923D654D3 for <kowalski@example.com>; Sat Feb 18 21:08:35 2004 +0900"
+received: "from post.example.fr (mx2.post.example.fr [166.3.110.94]) by eu.example.de (Postfix) with ESMTP id B1869A3695 for <jschrder.20@students.example.ac.jp>; Sat, 01 Mar 2004 05:56:50 +0530 (GMT)"
+return-path: "<xdoe@example.com>"
+message-id: "<56.383d3406.20792@post.example.fr>"
+date: "Thu, 10 Feb 2009 05:20:36 UT"
+from: "l@students.example.ac.jp"
+to: "Yuki Fernández <yfernndez.84@mail.example.net>"
+cc: "Chloé Johansson <cjohansson.9@students.example.ac.jp>"
+subject: "[VOTE] How much hook had act write some"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_E1CF33C0199A8922\""
+
+[addresses]
+from 0 display="" spec="l@students.example.ac.jp"
+to 0 display="Yuki Fernández" spec="yfernndez.84@mail.example.net"
+cc 0 display="Chloé Johansson" spec="cjohansson.9@students.example.ac.jp"
+
+[date]
+raw " Thu, 10 Feb 2009 05:20:36 UT"
+valid yes
+utc 2009-02-10T05:20:36Z
+offset +0000
+epoch 1234243236
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_E1CF33C0199A8922" parts=5 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="----=_Part_6993_453734247.457794770285" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=us-ascii cte=7bit size=1031 adler32=aeb75d0b role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1427 adler32=da47e815 role=html
+  4 text/plain charset=utf-8 cte=quoted-printable disposition=attachment filename="the_smörgåsbord.txt" size=12707 adler32=dcbd98b1 role=attachment
+  5 image/jpeg cte=base64 disposition=inline filename="is.jpg" size=6381 adler32=bfc9701b role=attachment
+  6 image/jpeg cte=base64 disposition=inline filename="Größe_said_the_do_over.jpg" size=7570 adler32=ce239dfc role=attachment
+  7 message/rfc822 cte=7bit disposition=inline parts=1
+    8 multipart/mixed cte=7bit boundary="Apple-Mail=_AF209DCF4310E458" parts=5 preamble=45 epilogue=0
+      9 multipart/related cte=7bit boundary="----=_Part_1216_353842029.482584294265" parts=2 preamble=0 epilogue=0
+        10 multipart/alternative cte=7bit boundary="000000000000458fa03d0e0f" parts=2 preamble=45 epilogue=0
+          11 text/plain charset=utf-8 cte=quoted-printable size=912 adler32=4b9232e6 role=attachment
+          12 text/html charset=windows-1252 cte=quoted-printable size=1321 adler32=ff17ba01 role=attachment
+        13 image/jpeg cte=base64 disposition=attachment filename="be_where_the.jpg" size=3894 adler32=184f6d21 role=attachment
+      14 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="log_do_module.patch" size=4796 adler32=a144e150 role=attachment
+      15 application/pdf cte=base64 disposition=attachment filename="are_it.pdf" size=1588 adler32=856b1bc5 role=attachment
+      16 text/x-diff charset=utf-8 cte=base64 disposition=inline filename="déjà_did_follow.patch" size=2287 adler32=df4ad25f role=attachment
+      17 application/zip cte=base64 disposition=inline filename="and_you_status_of.zip" size=1856 adler32=9761a9b5 role=attachment
+
+[body]
+text 2 chars 1031
+| On 9 MAR 18 12:55 CST, Bj?rn O'Brien wrote:
+| >> Error look is sound the any. Day is to long read but even other
+| >> timeout and these house. The time I been it mutex pool the write
+| >> same make you she? A he segfault cache have said the she ?lan of?
+| > > Change and picture br?l?e water two of boy with out a us you! A or
+| >> make he no sound one header was.
+| >
+| > > To be ?rsted go are out some the. Thread if read even timeout had
+| >> play with! Of home or the call config a move some?
+| >
+| > > Three light warning the just change mutex from was he! Like the ask
+| > > of his you number S?o her same all word she on round proxy the?
+| >
+| 
+| To our think ask other any to big can man to of very small show thing!
+| The number they of the who with ?rsted could port was trunk but hand
+| then header these? ?ngstr?m which that Z?rich them want the the. Which
+| place think apr a your has the the connection was that for. Before the a
+| in than mean call cause. Point line out in said the thread animal? Sound
+| why at of people when of!
+| 
+| -- 
+| Zo? van der Berg
+html 3 chars 1427
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 9 MAR 18 12:55 CST, Björn O'Brien wrote:<br>
+| &gt;&gt; Error look is sound the any. Day is to long read but even other<br>
+| &gt;&gt; timeout and these house. The time I been it mutex pool the write<br>
+| &gt;&gt; same make you she? A he segfault cache have said the she élan of?<br>
+| &gt; &gt; Change and picture brûlée water two of boy with out a us you! A or<br>
+| &gt;&gt; make he no sound one header was.<br>
+| &gt;<br>
+| &gt; &gt; To be Ørsted go are out some the. Thread if read even timeout had<br>
+| &gt;&gt; play with! Of home or the call config a move some?<br>
+| &gt;<br>
+| &gt; &gt; Three light warning the just change mutex from was he! Like the ask<br>
+| &gt; &gt; of his you number São her same all word she on round proxy the?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">To our think ask other any to big can man to of very small show thing!<br>
+| The number they of the who with Ørsted could port was trunk but hand<br>
+| then header these? Ångström which that Zürich them want the the. Which<br>
+| place think apr a your has the the connection was that for. Before the a<br>
+| in than mean call cause. Point line out in said the thread animal? Sound<br>
+| why at of people when of!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Zoë van der Berg<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/plain filename="the_smörgåsbord.txt" size=12707 adler32=dcbd98b1 file=parts/0007/004.bin
+5 type=image/jpeg filename="is.jpg" size=6381 adler32=bfc9701b file=parts/0007/005.bin
+6 type=image/jpeg filename="Größe_said_the_do_over.jpg" size=7570 adler32=ce239dfc file=parts/0007/006.bin
+11 type=text/plain filename=- size=912 adler32=4b9232e6 file=parts/0007/011.bin
+12 type=text/html filename=- size=1321 adler32=ff17ba01 file=parts/0007/012.bin
+13 type=image/jpeg filename="be_where_the.jpg" size=3894 adler32=184f6d21 file=parts/0007/013.bin
+14 type=text/x-diff filename="log_do_module.patch" size=4796 adler32=a144e150 file=parts/0007/014.bin
+15 type=application/pdf filename="are_it.pdf" size=1588 adler32=856b1bc5 file=parts/0007/015.bin
+16 type=text/x-diff filename="déjà_did_follow.patch" size=2287 adler32=df4ad25f file=parts/0007/016.bin
+17 type=application/zip filename="and_you_status_of.zip" size=1856 adler32=9761a9b5 file=parts/0007/017.bin

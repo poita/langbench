@@ -1,0 +1,18 @@
+{% macro chip(label, href) %}<a class="chip" href="{{ href }}">{{ label }}</a>{% endmacro -%}
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>{% block head %}{{ site.title }}{% endblock %}</title>
+</head>
+<body class="{% block bodyclass %}plain{% endblock %}">
+<h1 class="site"><a href="/">{{ site.title|upper }}</a></h1>
+<p class="sub">{{ site.subtitle|default("") }}</p>
+<p class="keywords">{{ site.keywords|sort|join(" &middot; ") }}</p>
+{% include "menu.html" %}
+<hr>
+{% block content %}{% endblock %}
+<hr>
+<p class="foot">{{ site.author }} &middot; est. {{ site.since|int }} &middot; <a href="{{ site.base_url }}/feed.xml">feed</a></p>
+</body>
+</html>

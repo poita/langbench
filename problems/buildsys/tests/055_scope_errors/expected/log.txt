@@ -1,0 +1,70 @@
+step 1: build (default) -j 1
+  error E_REDEFINE x
+step 2: edit main.kiln
+  ok size=32
+step 3: build (default) -j 1
+  error E_REDEFINE i
+step 4: edit main.kiln
+  ok size=26
+step 5: build (default) -j 1
+  error E_REDEFINE r
+step 6: edit main.kiln
+  ok size=10
+step 7: build (default) -j 1
+  error E_SET_UNDEFINED y
+step 8: edit main.kiln
+  ok size=28
+step 9: build (default) -j 1
+  error E_SET_UNDEFINED z
+step 10: edit main.kiln
+  ok size=48
+step 11: build (default) -j 1
+  error E_REDEFINE x
+step 12: edit main.kiln
+  ok size=13
+step 13: build (default) -j 1
+  error E_UNKNOWN_RULE nosuch
+step 14: edit main.kiln
+  ok size=26
+step 15: build (default) -j 1
+  error E_ARITY rule r: expected 1, got 2
+step 16: edit main.kiln
+  ok size=35
+step 17: build (default) -j 1
+  error E_ARG rule r: missing argument a
+step 18: edit main.kiln
+  ok size=33
+step 19: build (default) -j 1
+  error E_ARG rule r: duplicate argument a
+step 20: edit main.kiln
+  ok size=26
+step 21: build (default) -j 1
+  error E_ARG rule r: missing argument b
+step 22: edit main.kiln
+  ok size=39
+step 23: build (default) -j 1
+  error E_UNKNOWN_VAR undefined_name
+step 24: edit main.kiln
+  ok size=11
+step 25: build (default) -j 1
+  error E_TYPE when condition: expected bool, got int
+step 26: edit main.kiln
+  ok size=19
+step 27: build (default) -j 1
+  error E_TYPE each subject: expected list, got str
+step 28: edit main.kiln
+  ok size=10
+step 29: build (default) -j 1
+  error E_TYPE include path: expected str, got int
+step 30: edit main.kiln
+  ok size=8
+step 31: build (default) -j 1
+  error E_TYPE abort message: expected str, got int
+step 32: edit main.kiln
+  ok size=30
+step 33: build (default) -j 1
+  error E_ARG rule r: unknown argument b
+step 34: edit main.kiln
+  ok size=41
+step 35: build (default) -j 1
+  error E_NO_DEFAULT

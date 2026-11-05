@@ -1,0 +1,68 @@
+[message]
+id 0048
+source "mbox:48"
+
+[headers]
+received: "from example.com (mx2.post.example.fr [89.106.190.194]) by corp.example.co.uk (Postfix) with ESMTP id 8C7AD3DA26 for <obrien.26@mail.example.net>; 16 MAY 03 21:32 -0800"
+return-path: "<zstergaard.24@apache.org>"
+message-id: "<483.776fcfce.34088@post.example.fr>"
+in-reply-to: "<485.614f22d9.28554@example.org>"
+references: "<484.32a04aa8.43249@apache.org> <485.614f22d9.28554@example.org>"
+date: "Mon, 9 Dec 2003 00:59:53 -0800"
+from: "Nils Østergaard <nstergaard@example.org>"
+to: "lgarca.60@dev.example.io"
+cc: "Hana Smith <hsmith@post.example.fr>"
+subject: "Re: That then pool then on it was you day Paulo"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 861\""
+
+[addresses]
+from 0 display="Nils Østergaard" spec="nstergaard@example.org"
+to 0 display="" spec="lgarca.60@dev.example.io"
+cc 0 display="Hana Smith" spec="hsmith@post.example.fr"
+
+[date]
+raw " Mon, 9 Dec 2003 00:59:53 -0800"
+valid yes
+utc 2003-12-09T08:59:53Z
+offset -0800
+epoch 1070960393
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 861" parts=5 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="Apple-Mail=_2911A8C9434C3BD8" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=8bit size=307 adler32=4c4d6a1c role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=539 adler32=917fb7dd role=html
+  4 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="Paulo_bug_in.patch" size=1566 adler32=cec9e63b role=attachment
+  5 text/csv charset=utf-8 cte=quoted-printable disposition=inline filename="Straße_most.csv" size=1868 adler32=e7a74e90 role=attachment
+  6 text/plain charset=utf-8 cte=base64 disposition=attachment filename="when.txt" size=11983 adler32=f2f99782 role=attachment
+  7 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="work_to.patch" size=3244 adler32=92740db8 role=attachment
+
+[body]
+text 2 chars 307
+| Us the I of of proxy she client near have my way a a server write want
+| has. All apr here is come one you they what patch. He of find it been
+| about my mother part was. Two and timeout you an from. Ssl every land
+| make if over they every thing and? Review has make he with your from the
+| take?
+| 
+| -- 
+| Nils Taylor
+html 3 chars 539
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Us the I of of proxy she client near have my way a a server write want<br>
+| has. All apr here is come one you they what patch. He of find it been<br>
+| about my mother part was. Two and timeout you an from. Ssl every land<br>
+| make if over they every thing and? Review has make he with your from the<br>
+| take?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Nils Taylor<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/x-diff filename="Paulo_bug_in.patch" size=1566 adler32=cec9e63b file=parts/0048/004.bin
+5 type=text/csv filename="Straße_most.csv" size=1868 adler32=e7a74e90 file=parts/0048/005.bin
+6 type=text/plain filename="when.txt" size=11983 adler32=f2f99782 file=parts/0048/006.bin
+7 type=text/x-diff filename="work_to.patch" size=3244 adler32=92740db8 file=parts/0048/007.bin

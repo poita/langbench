@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Ünïcødé Blög</title>
+  <id>https://xn--u.example/</id>
+  <updated>2021-11-03T00:00:00Z</updated>
+  <link href="https://xn--u.example/" rel="alternate"/>
+  <link href="https://xn--u.example/feed.xml" rel="self"/>
+  <author>
+    <name>日本語 の 著者</name>
+  </author>
+  <entry>
+    <title>Emoji 🎉 party</title>
+    <id>https://xn--u.example/posts/emoji/</id>
+    <updated>2021-11-03T00:00:00Z</updated>
+    <link href="https://xn--u.example/posts/emoji/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Emoji in the body: 🎉 🚀 🐙.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>かなとカナ</title>
+    <id>https://xn--u.example/posts/kana/</id>
+    <updated>2021-11-02T00:00:00Z</updated>
+    <link href="https://xn--u.example/posts/kana/" rel="alternate"/>
+    <content type="html">&lt;p&gt;ひらがな と カタカナ の テスト。&lt;/p&gt;
+&lt;p&gt;段落が二つあります。&lt;/p&gt;
+</content>
+  </entry>
+</feed>

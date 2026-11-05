@@ -1,0 +1,5 @@
+kiln-state 1
+step out/g.txt
+cmd write(".dotfile|main.kiln|src/a.txt\n")
+out out/g.txt fe400bba53bab585
+end

@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} &middot; {{ site.title }}{% endblock %}
+{% block main %}
+<article class="post">
+<h1>{{ post.title }}</h1>
+<p class="meta">By {{ site.author }} on <time datetime="{{ post.date }}">{{ post.date_long }}</time></p>
+{{ post.content }}{% if post.tags %}<p class="tags">Tagged{% for t in post.tags %} <a href="{{ t.url }}">{{ t.name }}</a>{% endfor %}</p>
+{% endif %}</article>
+<nav class="adjacent">
+{%- if post.newer %}
+<a class="newer" rel="next" href="{{ post.newer.url }}">&larr; {{ post.newer.title }}</a>
+{%- endif %}
+{%- if post.older %}
+<a class="older" rel="prev" href="{{ post.older.url }}">{{ post.older.title }} &rarr;</a>
+{%- endif %}
+</nav>
+{% endblock %}

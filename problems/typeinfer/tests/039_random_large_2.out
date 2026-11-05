@@ -1,0 +1,600 @@
+error: unify
+error: unbound
+q : 'a list
+c : int
+error: unify
+error: unify
+error: unify
+y : 'a list
+z : bool
+error: unify
+error: unify
+- : unit
+error: unbound
+error: occurs
+q : 'a list -> int
+error: unify
+error: unify
+error: unbound
+r : 'a -> int
+error: unify
+error: unbound
+error: unbound
+error: unify
+error: unbound
+error: unbound
+error: unify
+error: unbound
+error: unify
+error: unify
+x : bool -> bool
+error: unify
+error: occurs
+error: unify
+error: unify
+error: unify
+error: unbound
+h : 'a -> int
+error: unbound
+error: unify
+fn : 'a -> 'b list
+error: occurs
+error: unify
+error: unify
+q : bool
+k : ('a -> ((('b -> 'c -> 'd -> bool) * ('e -> 'f -> 'g list)) * ('h -> int) * ('i -> 'j -> bool)) list) * bool * bool
+error: unify
+error: occurs
+error: unify
+x : 'a list
+a : 'a -> 'b list
+error: unbound
+error: unify
+y : 'a -> 'b -> 'c -> int
+z : 'a -> 'b -> 'c -> int
+error: unbound
+error: unify
+q : (('a -> 'b -> 'c -> int) list -> int * 'd list -> 'e) -> 'f -> 'g -> 'h -> 'i -> ('f -> 'j list -> int -> unit -> 'k) -> 'l -> 'k
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unbound
+fn : 'a list
+error: unify
+error: unbound
+z : 'a list
+error: unify
+error: unify
+error: unbound
+error: unify
+e : 'a list * 'b list * bool
+error: unify
+error: unify
+error: unbound
+error: unbound
+error: unify
+error: unify
+error: unbound
+u : 'a list
+error: unify
+error: unify
+t : int
+error: unify
+v : 'a -> 'b -> bool
+g : int * 'a list -> 'b
+d : ('a -> 'b -> bool) * unit * 'c list
+b : int list
+error: occurs
+error: unify
+error: unify
+error: unbound
+v : 'a -> 'b -> 'c -> int
+a : 'a list
+error: unify
+error: unify
+v : unit
+acc : 'a -> 'b -> 'b
+error: unbound
+error: unify
+error: unify
+l : 'a list
+a : 'a -> 'b -> 'c -> 'd -> 'e -> 'f list -> 'g -> 'h -> (('i * 'j -> 'i) -> 'f) -> 'k -> 'f list
+a : 'a list
+error: unbound
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+- : int
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: occurs
+q : 'a list -> 'a list
+- : int
+error: occurs
+error: unbound
+h : int
+b : int * 'a list -> 'b
+error: unify
+error: unify
+error: unify
+f : int
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unbound
+error: occurs
+f : 'a -> int
+error: unify
+error: unbound
+error: unbound
+error: unify
+error: unbound
+error: unbound
+error: unify
+error: occurs
+error: unify
+error: unify
+a : 'a -> 'b -> (int -> 'c) -> ('d -> 'c) * bool
+fn : 'a -> 'b -> (int -> 'c) -> ('d -> 'c) * bool
+- : int
+error: unify
+error: unbound
+x1 : 'a list -> 'a
+error: unify
+error: unify
+error: occurs
+b : ('a -> 'b -> 'c -> bool) list
+f : int
+error: unify
+error: unbound
+error: unify
+- : bool
+error: unify
+lst : bool
+error: unify
+f : bool
+error: unify
+error: unify
+s : 'a list -> 'b -> 'c -> 'd -> 'e -> bool
+error: unify
+- : 'a list -> 'a
+q : 'a -> 'b -> 'a
+error: unify
+c : ('a -> 'b) -> 'a list -> 'b list
+g : 'a -> int
+error: unify
+error: unbound
+z : 'a -> 'b -> 'c -> 'd list
+error: unify
+error: unbound
+error: unify
+error: unbound
+error: unify
+m : int
+g : 'a -> 'b -> bool * int
+x : 'a -> 'a
+error: unify
+error: unbound
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unify
+c : int
+error: unify
+error: unify
+p : 'a list
+error: unbound
+error: unify
+error: unify
+w : 'a list
+error: unify
+error: unify
+error: unify
+- : 'a list
+- : unit
+w : 'a -> 'b -> 'a
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unify
+l : int
+error: unbound
+error: unify
+t : 'a -> 'b list -> 'b
+error: unify
+x1 : 'a -> int
+error: unify
+error: unify
+l : int
+- : 'a -> 'b -> 'c -> 'd -> 'e -> 'd
+error: unify
+error: unify
+- : int
+error: unify
+e : bool
+p : int
+error: unify
+h : (('a -> ((('b -> 'c -> 'd -> bool) * ('e -> 'f -> 'g list)) * ('h -> int) * ('i -> 'j -> bool)) list) * bool * bool) * ('k -> 'l -> 'm -> 'n -> int) * ('o -> ('p list * ('q -> 'r -> 's -> int) * ('t -> 'u list)) * 'v list * 'o)
+error: occurs
+d : 'a -> 'b -> 'c -> 'd list
+c : int
+error: unbound
+error: unify
+error: occurs
+y : 'a -> 'b -> 'a
+error: unify
+u : int
+error: unify
+error: unify
+d : int * int
+error: unify
+x : 'a -> 'a
+error: unbound
+error: unify
+u : bool
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+u : 'a list
+error: occurs
+error: unify
+x1 : bool
+error: unbound
+error: unify
+error: unify
+l : 'a -> 'b -> bool
+g : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+error: unify
+error: unify
+- : bool
+acc : bool
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+g : 'a -> bool
+error: unbound
+b : 'a -> int
+error: unify
+error: unify
+fn : 'a -> 'b -> 'b
+error: occurs
+error: unify
+error: unbound
+b : bool
+error: unbound
+error: unify
+error: unify
+error: unify
+r : int
+error: unify
+- : int
+error: unify
+error: unify
+error: unify
+error: unify
+error: occurs
+error: unify
+c : 'a -> 'a
+lst : bool
+error: unify
+error: unbound
+error: unbound
+error: unify
+error: unify
+error: unify
+fn : int
+error: unbound
+error: unify
+error: unify
+error: unify
+g : bool
+error: unify
+a : 'a -> bool
+u : 'a list
+error: unify
+error: unbound
+error: unify
+u : 'a -> 'b -> 'a
+error: unify
+error: unify
+error: unify
+k : unit list
+error: unify
+z : 'a -> 'b list -> 'b
+error: unify
+fn : bool
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unbound
+error: unify
+error: unify
+error: occurs
+s : bool
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+u : bool
+error: unify
+error: unify
+error: unify
+m : bool
+p : int
+error: unify
+error: unify
+error: unify
+- : 'a -> 'b list
+error: unbound
+f : int
+error: unify
+fn : int
+v : int
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+- : bool
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+fn : bool
+error: unify
+error: unify
+lst : int
+- : int * 'a list * ('b -> 'c -> 'b)
+error: unbound
+error: unify
+- : bool
+error: unbound
+e : int
+error: unify
+b : unit list
+error: unify
+v : 'a -> 'b -> 'c list
+error: unify
+z : int
+error: unify
+lst : bool * int
+error: unify
+error: unify
+x1 : 'a -> (('b -> 'c -> 'd -> 'e -> 'f -> 'g list * bool) -> 'h) -> 'i -> 'h
+n : 'a -> 'b list
+error: unify
+- : 'a -> (('b -> 'c -> 'd -> 'e -> 'f -> 'g list * bool) -> 'h) -> 'i -> 'h
+x2 : bool
+y : unit list
+k : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> 'i -> int
+error: unify
+fn : int
+- : 'a -> bool -> int -> 'b -> int -> bool
+d : 'a -> bool
+n : bool
+error: occurs
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+x1 : 'a -> (('b -> 'c -> 'd -> 'e -> 'f -> 'g list * bool) -> 'h) -> 'i -> 'h
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+- : bool
+error: unbound
+c : int
+e : int
+p : ('a list * int * (('b -> 'c -> 'd -> ('e -> 'f -> 'g -> 'c) * bool * ('h -> 'i -> 'i)) * ('j -> 'k -> 'l -> int * 'l * 'm list) * ('n list * ('o -> bool * int) * ('p -> 'q -> 'p)))) list
+error: unify
+error: unbound
+acc : bool list
+n : unit list
+error: unify
+k : (('a -> ((('b -> 'c -> 'd -> bool) * ('e -> 'f -> 'g list)) * ('h -> int) * ('i -> 'j -> bool)) list) * bool * bool) * ('k -> 'l -> 'm -> 'n -> int) * ('o -> ('p list * ('q -> 'r -> 's -> int) * ('t -> 'u list)) * 'v list * 'o)
+- : 'a -> 'b -> int
+x : 'a -> 'b -> bool
+error: unify
+error: unify
+error: unify
+t : bool
+s : (('a -> int) -> 'b) -> 'c -> 'b
+error: unbound
+- : 'a -> bool
+error: unify
+error: unify
+error: unify
+error: unify
+n : int
+error: unify
+error: unify
+error: unify
+f : ('a list * int * (('b -> 'c -> 'd -> ('e -> 'f -> 'g -> 'c) * bool * ('h -> 'i -> 'i)) * ('j -> 'k -> 'l -> int * 'l * 'm list) * ('n list * ('o -> bool * int) * ('p -> 'q -> 'p)))) list
+c : 'a -> 'b -> 'c -> 'd list
+t : (('a -> ('b -> 'c -> 'd -> 'e list) * ('f -> 'g -> 'h -> int * int * int)) -> 'i) -> 'i
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unbound
+error: unify
+l : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> bool * bool
+error: unify
+error: unbound
+w : bool
+error: unify
+z : 'a list -> int
+x1 : 'a -> bool
+error: unify
+c : bool
+error: unify
+error: unify
+error: unify
+f : bool
+error: unbound
+- : int
+error: occurs
+error: unify
+q : int
+lst : int -> int
+error: unify
+error: unify
+v : bool -> bool
+error: unify
+q : bool
+error: unify
+error: unify
+error: unify
+error: unify
+f : int
+y : 'a -> 'b -> 'c -> 'd -> int * ('e list -> bool) * ('f -> 'g -> 'd)
+a : 'a -> bool
+error: unify
+error: unify
+- : 'a list -> int
+error: unify
+error: unify
+w : 'a -> 'b -> int
+error: unbound
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+a : 'a list
+- : ('a list -> 'b) -> 'c -> 'd -> 'b
+error: unbound
+x : bool
+error: occurs
+error: unify
+error: unify
+error: unify
+q : 'a -> (('b -> ('c -> 'd -> 'e -> 'f list) * ('g -> 'h -> 'i -> int * int * int)) -> 'j) -> 'j
+error: unify
+a : int
+error: unify
+b : bool
+error: unify
+error: unify
+- : bool
+q : int
+error: unify
+error: unify
+error: unify
+x1 : bool list
+error: unify
+error: unify
+- : 'a -> 'b -> 'c -> ('d -> 'e -> 'f -> 'g list) list
+error: unbound
+g : int
+error: unify
+error: unify
+error: unify
+error: unify
+z : 'a list
+s : int
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+error: occurs
+w : ((('a -> ('b -> 'c -> 'd -> 'e list) * ('f -> 'g -> 'h -> int * int * int)) -> 'i) -> 'i) list list
+y : int
+p : 'a list
+error: unify
+s : ('a -> 'b -> 'c -> bool -> bool list) * int
+a : 'a -> 'b -> 'c -> bool
+- : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> int -> int
+error: unify
+error: unify
+error: unify
+m : 'a -> 'b list
+w : ('a list -> 'b) -> 'c -> 'd -> 'e -> 'b
+error: unify
+error: unify
+error: occurs
+error: unify
+error: unify
+error: unbound
+w : bool list
+error: occurs
+error: unbound
+error: unify
+error: unify
+error: unify
+d : 'a -> (('b -> 'c -> 'd -> bool) * ('e -> 'f -> 'g list) -> unit -> int -> ('b -> 'c -> 'd -> bool) * ('e -> 'f -> 'g list)) -> (unit -> int -> ('b -> 'c -> 'd -> bool) * ('e -> 'f -> 'g list)) list
+error: unbound
+m : int
+n : 'a -> 'b -> 'c -> bool
+error: unify
+error: unify
+z : 'a -> 'a
+f : (('a -> 'b -> ('a -> 'a) -> 'a) -> 'c) -> 'd -> 'c
+y : 'a -> 'b -> 'c -> 'd list
+error: unify
+error: unify
+p : unit
+f : 'a -> 'b -> 'c -> int -> int
+error: unify
+error: unify
+error: unbound
+s : unit
+error: unify
+error: unify
+f : 'a -> 'b list
+error: unify
+- : 'a -> int -> 'b -> bool

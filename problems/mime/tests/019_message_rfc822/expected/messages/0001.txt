@@ -1,0 +1,26 @@
+[message]
+id 0001
+source "forwarded.eml"
+
+[headers]
+subject: "Fwd: original"
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=12 adler32=1d9c049c role=text
+  2 message/rfc822 cte=7bit parts=1
+    3 text/plain charset=utf-8 cte=7bit size=16 adler32=369206b0 role=attachment
+
+[body]
+text 1 chars 12
+| see attached
+html none
+
+[attachments]
+3 type=text/plain filename=- size=16 adler32=369206b0 file=parts/0001/003.bin

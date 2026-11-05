@@ -1,0 +1,13 @@
+kiln-state 1
+step out/a.txt
+cmd write("a=L1\n")
+out out/a.txt ca113731c7e0e7aa
+end
+step out/b.txt
+cmd write("b=L2\n")
+out out/b.txt 27e0f5101bee1eb0
+end
+step out/c.txt
+cmd write("c=T1\n")
+out out/c.txt 24e967305abe76ec
+end

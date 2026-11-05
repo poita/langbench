@@ -1,0 +1,61 @@
+[message]
+id 0010
+source "raw_email_encoded_stack_level_too_deep.eml"
+
+[headers]
+x-gmail-received: "220984aec4c4885e060987be043c9363cbef8551"
+received: "by 10.36.47.16; Tue, 28 Jun 2005 01:02:11 -0700 (PDT)"
+message-id: "<89d7557c0506280102495d555f@mail.gmail.com>"
+date: "Tue, 28 Jun 2005 01:02:11 -0700"
+from: "Gmail Team <gmail-noreply@google.com>"
+reply-to: "x.y@gmail.com"
+to: "Nicolas Fouché <a.b@gmail.com>"
+subject: "Nicolas Fouché has accepted your invitation to Gmail"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"----=_Part_976_15222032.1119945731186\""
+
+[addresses]
+from 0 display="Gmail Team" spec="gmail-noreply@google.com"
+reply-to 0 display="" spec="x.y@gmail.com"
+to 0 display="Nicolas Fouché" spec="a.b@gmail.com"
+
+[date]
+raw " Tue, 28 Jun 2005 01:02:11 -0700"
+valid yes
+utc 2005-06-28T08:02:11Z
+offset -0700
+epoch 1119945731
+
+[structure]
+0 multipart/alternative cte=7bit boundary="----=_Part_976_15222032.1119945731186" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=quoted-printable disposition=inline size=350 adler32=cba67a61 role=text
+  2 text/html charset=iso-8859-1 cte=quoted-printable disposition=inline size=448 adler32=63a99835 role=html
+
+[body]
+text 1 chars 350
+| Nicolas Fouché has accepted your invitation to Gmail and has chosen the 
+| brand new address x.y@gmail.com. Be one of the first to email Nicolas 
+| at this new Gmail address--just hit reply and send Nicolas a message. 
+| x.y@gmail.com has also been automatically added to your contact list 
+| so you can stay in touch with Gmail. 
+| 
+| 
+| Thanks, 
+| 
+| The Gmail Team
+html 2 chars 448
+| <html>
+| <font face=\"Arial, Helvetica, sans-serif\">
+| <p>Nicolas Fouché has accepted your invitation to Gmail and has
+|   chosen the brand new address x.y@gmail.com. Be one of the first to email 
+|   Nicolas at this new Gmail address--just hit reply and send 
+|   Nicolas a message. x.y@gmail.com has also been automatically added to
+|   your contact list so you can stay in touch with Gmail.
+| </p>
+| <p><br>
+|   Thanks, </p>
+| <p> The Gmail Team</p>
+| </font>
+| </html>
+
+[attachments]

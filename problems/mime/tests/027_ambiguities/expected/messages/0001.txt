@@ -1,0 +1,20 @@
+[message]
+id 0001
+source "boundary-bad-utf8.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"b�\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="b�" parts=0 preamble=44 epilogue=none
+
+[body]
+text none
+html none
+
+[attachments]

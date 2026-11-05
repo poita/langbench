@@ -1,0 +1,73 @@
+[message]
+id 0084
+source "mbox:84"
+
+[headers]
+received: "from apache.org (mx1.example.org [105.37.83.159]) by corp.example.co.uk (Postfix) with ESMTP id CDB416007 for <zmller.18@post.example.fr>; Sun, 8 Oct 2024 10:17:44 -0500"
+received: "from example.com (mx3.example.org [96.193.171.30]) by apache.org (Postfix) with ESMTP id DAC8E8B42A for <vanderberg@lists.example.edu>; Thu, 21 Mar 2009 16:35:27 EST"
+received: "from post.example.fr (mx7.dev.example.io [229.140.149.57]) by dev.example.io (Postfix) with ESMTP id D0F0F2366C for <brown@eu.example.de>; Fri, 3 Sep 2003 02:40:43 -0400"
+received: "from example.com (mx6.lists.example.edu [107.247.169.204]) by post.example.fr (Postfix) with ESMTP id D0C188A067 for <ypetrov@apache.org>; Wed, 16 Nov 2012 04:45:03 -0330"
+return-path: "<b@lists.example.edu>"
+message-id: "<534.c20dde46.53966@eu.example.de>"
+date: "Wed, 1 Feb 2004 18:34:59 Z"
+from: "\"Ann O'Brien\" <aobrien@example.org>"
+to: "Дмитрий Müller <mller@apache.org>,    Zoë Petrov <zpetrov@post.example.fr>"
+cc: "\"Kowalski, Greg\" <gkowalski@corp.example.co.uk>, mller@example.com"
+subject: "Fwd: Live as thread even he after warning name"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"000000000000e5833cf6df6a\""
+
+[addresses]
+from 0 display="Ann O'Brien" spec="aobrien@example.org"
+to 0 display="Дмитрий Müller" spec="mller@apache.org"
+to 1 display="Zoë Petrov" spec="zpetrov@post.example.fr"
+cc 0 display="Kowalski, Greg" spec="gkowalski@corp.example.co.uk"
+cc 1 display="" spec="mller@example.com"
+
+[date]
+raw " Wed, 1 Feb 2004 18:34:59 Z"
+valid yes
+utc 2004-02-01T18:34:59Z
+offset +0000
+epoch 1075660499
+
+[structure]
+0 multipart/mixed cte=7bit boundary="000000000000e5833cf6df6a" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=us-ascii cte=quoted-printable size=1214 adler32=c949a532 role=text
+  2 text/csv charset=utf-8 cte=7bit disposition=attachment filename="it.csv" size=6880 adler32=f6ff8860 role=attachment
+
+[body]
+text 1 chars 1214
+| Turn and time the pool? Other you hot it his line want of ?rsted all the
+| little. Timeout again the of by that land. Such Z?rich the was no build.
+| An his vhost the old the a server water there?
+| 
+| Same then that end said up read how apr such or? When and too is to our
+| word! In client end high the for the you.
+| 
+| I try in keepalive one had Paulo my who set they one high work change
+| review find. Made all the but and my did the and had way many are part
+| of who the. Server point when Paulo vote name such handler all this will
+| of commit old. If up the little of port. About come from an on in status
+| act part he was in? Other directive for see low can over they and.
+| 
+| Krak?w would even the which give. Will was to all if. They mutex here
+| must find were long handler time. Who the the and could change can. No
+| cr?me then had end when do time sound ?ngstr?m about line put act
+| picture and? Client vote who brigade on! Just at the little the.
+| 
+| A a air call is and handler put place first why the may want right that?
+| New some differ there the his his when this. Patch had spell trunk of
+| even be the on. Live and find would know want. Would me give of here two
+| they same she proxy my of been can live.
+| 
+| -- 
+| ?or?e Nakamura
+html none
+
+[attachments]
+2 type=text/csv filename="it.csv" size=6880 adler32=f6ff8860 file=parts/0084/002.bin

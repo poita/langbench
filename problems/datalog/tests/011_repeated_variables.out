@@ -1,0 +1,24 @@
+loop(2)
+loop(a)
+-- 2
+tri(1)
+tri(2)
+tri(3)
+tri(a)
+-- 4
+twin(1, 2)
+twin(2, 1)
+twin(3, 4)
+twin(3, 5)
+twin(4, 3)
+twin(4, 5)
+twin(5, 3)
+twin(5, 4)
+-- 8
+pair(1, 1)
+pair(2, 2)
+pair(a, a)
+-- 3
+both(2)
+both(a)
+-- 2

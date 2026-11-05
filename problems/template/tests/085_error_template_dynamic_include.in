@@ -1,0 +1,8 @@
+{
+  "which": "x"
+}
+--
+=== main
+{% include which %}
+=== y
+Y

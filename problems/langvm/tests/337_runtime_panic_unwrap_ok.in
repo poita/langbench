@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let r: Result<Int, Str> = Ok(1); print(unwrapErr(r));
+}

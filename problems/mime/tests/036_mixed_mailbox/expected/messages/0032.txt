@@ -1,0 +1,105 @@
+[message]
+id 0032
+source "mbox:32"
+
+[headers]
+received: "from dev.example.io (mx9.apache.org [254.88.4.195]) by corp.example.co.uk (Postfix) with ESMTP id 4180E71071 for <lgarca@corp.example.co.uk>; Sun, 17 Jan 2018 00:41:18 +0900"
+received: "from eu.example.de (mx2.example.org [50.161.53.86]) by dev.example.io (Postfix) with ESMTP id D9D38C38D3 for <ldoe@students.example.ac.jp>; mon,10 may 2012 23:42:52 (comment (nested)) -0330"
+received: "from lists.example.edu (mx8.eu.example.de [94.88.149.131]) by example.com (Postfix) with ESMTP id 2E1A8C342C for <papadopoulos@dev.example.io>; Fri, 12 Sep 2009 18:54:28 -0500"
+received: "from students.example.ac.jp (mx9.mail.example.net [246.210.80.61]) by example.org (Postfix) with ESMTP id 11EAB60781 for <mpetrov@eu.example.de>; Sat, 23 Nov 2004 12:51:09 +0000 (GMT)"
+received: "from corp.example.co.uk (mx6.eu.example.de [75.230.138.30]) by eu.example.de (Postfix) with ESMTP id D3020AD256 for <johansson.19@dev.example.io>; Tue, 21 Feb 2018 00:01:55 -0500 (JST)"
+return-path: "<v@apache.org>"
+message-id: "<227.6874d338.60741@eu.example.de>"
+in-reply-to: "<237.e611d629.68119@post.example.fr>"
+references: "<228.a1ff1fac.72813@lists.example.edu> <229.6e0e6a47.30582@post.example.fr> <230.e9af39d3.46735@eu.example.de> <231.6c3434ad.1307@example.org> <232.fe2cab4e.8816@lists.example.edu> <233.a033c577.10942@mail.example.net> <234.8c7071b3.2170@example.org> <235.c66342c3.91255@mail.example.net> <236.73036a11.37975@dev.example.io> <237.e611d629.68119@post.example.fr>"
+date: "23 FEB 24 13:38 +0000"
+from: "Uwe 山田 <u@lists.example.edu>"
+reply-to: "Łukasz García <garca@lists.example.edu>"
+to: "太郎 Kowalski <kowalski.70@eu.example.de>,\t太郎 Doe <doe@corp.example.co.uk>,    fjohansson@example.com (Someone)"
+subject: "RE: See were timeout for and"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 316\""
+
+[addresses]
+from 0 display="Uwe 山田" spec="u@lists.example.edu"
+reply-to 0 display="Łukasz García" spec="garca@lists.example.edu"
+to 0 display="太郎 Kowalski" spec="kowalski.70@eu.example.de"
+to 1 display="太郎 Doe" spec="doe@corp.example.co.uk"
+to 2 display="" spec="fjohansson@example.com"
+
+[date]
+raw " 23 FEB 24 13:38 +0000"
+valid yes
+utc 2024-02-23T13:38:00Z
+offset +0000
+epoch 1708695480
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 316" parts=2 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="Apple-Mail=_57FCBB8F1D177E18" parts=3 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="=_d83fe8233251ae0237b76a8fddc7ddd1" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=utf-8 cte=8bit size=1171 adler32=148b9972 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1633 adler32=57b33224 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="out_in.jpg" size=3573 adler32=9a12ce25 role=attachment
+    6 image/jpeg cte=base64 disposition=inline filename="Straße_think.jpg" size=3276 adler32=649c66f2 role=attachment
+  7 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="Paulo_the_of_need_do.patch" size=2165 adler32=f2c3a309 role=attachment
+
+[body]
+text 3 chars 1165
+| Was module cause there of be sentence people his the you or place a to
+| did the. Read the here out word!
+| 
+| The from the the it air the had filter coöperate. But big connection the
+| went give it. Little father has think their pool very? Help boy the
+| which httpd his that alias warning at! As the the if boy what and what
+| add but at why a it add was?
+| 
+| And see move of the the many rewrite they of the the over of picture.
+| Came also her all he every and Kraków bucket in of of again the. He
+| httpd of be good make of the the very module. After some act more back
+| the certificate to bucket it it?
+| 
+| Form these number the and are? The they the now you he us play. I come
+| then on work think you at the you as take this did your set I! Them you
+| café the help like that crème café he the!
+| 
+| Place he my has under tell where a came set come also big the. Word such
+| air tell by give as no one more have your play! Will the word even
+| change it a! Our the also or but. You in ssl low can say on this when.
+| Like earth people patch men self read and with most there server more on
+| the most mother take? In you us out home year write and make in the man
+| was were ask!
+| 
+| -- 
+| Søren Taylor
+html 4 chars 1633
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Was module cause there of be sentence people his the you or place a to<br>
+| did the. Read the here out word!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The from the the it air the had filter coöperate. But big connection the<br>
+| went give it. Little father has think their pool very? Help boy the<br>
+| which httpd his that alias warning at! As the the if boy what and what<br>
+| add but at why a it add was?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">And see move of the the many rewrite they of the the over of picture.<br>
+| Came also her all he every and Kraków bucket in of of again the. He<br>
+| httpd of be good make of the the very module. After some act more back<br>
+| the certificate to bucket it it?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Form these number the and are? The they the now you he us play. I come<br>
+| then on work think you at the you as take this did your set I! Them you<br>
+| café the help like that crème café he the!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Place he my has under tell where a came set come also big the. Word such<br>
+| air tell by give as no one more have your play! Will the word even<br>
+| change it a! Our the also or but. You in ssl low can say on this when.<br>
+| Like earth people patch men self read and with most there server more on<br>
+| the most mother take? In you us out home year write and make in the man<br>
+| was were ask!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Søren Taylor<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="out_in.jpg" size=3573 adler32=9a12ce25 file=parts/0032/005.bin
+6 type=image/jpeg filename="Straße_think.jpg" size=3276 adler32=649c66f2 file=parts/0032/006.bin
+7 type=text/x-diff filename="Paulo_the_of_need_do.patch" size=2165 adler32=f2c3a309 file=parts/0032/007.bin

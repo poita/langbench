@@ -1,0 +1,42 @@
+insert x
+  leading and trailing  
+\n is literal here \\
+print
+
+goto 0 0
+--
+cursor 1 2
+cursor 0 0
+--
+insert x
+  leading and trailing  
+\n is literal here \\\n
+print
+
+goto 0 0
+--
+cursor 1 2
+cursor 2 23
+--
+insert x
+  leading and trailing  
+\n is literal here \\\n
+print
+
+
+goto 0 0
+--
+cursor 1 2
+cursor 5 0
+--
+insert x
+   leading and trailing   
+\n is literal here \\\n
+print
+
+
+goto 0 0
+--
+cursor 1 2
+cursor 1 26
+--

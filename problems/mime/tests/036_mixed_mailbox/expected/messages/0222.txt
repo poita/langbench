@@ -1,0 +1,117 @@
+[message]
+id 0222
+source "mbox:222"
+
+[headers]
+received: "from dev.example.io (mx2.dev.example.io [229.151.8.16]) by students.example.ac.jp (Postfix) with ESMTP id B6119CD930 for <qbrown@example.com>; Sun Jan 18 10:49:57 2009 +0530"
+return-path: "<user3883@mail.example.net>"
+message-id: "<1567.6431a680.33829@lists.example.edu>"
+in-reply-to: "<1578.d12463cd.87171@apache.org>"
+references: "<1568.303408d3.4963@lists.example.edu> <1569.9d333bc5.2793@apache.org> <1570.12deef44.29311@students.example.ac.jp> <1571.a7b44a6b.30781@corp.example.co.uk> <1572.ed4e983e.62768@lists.example.edu> <1573.d14718bd.87372@mail.example.net> <1574.9d893544.17611@eu.example.de> <1575.e28bc456.75394@dev.example.io> <1576.c3e24ade.35688@lists.example.edu> <1577.678da696.16022@students.example.ac.jp> <1578.d12463cd.87171@apache.org>"
+date: "Wed, 05 Aug 2005 06:23:40 +0200 (EDT)"
+from: "Hana Wilson <hwilson.32@corp.example.co.uk>"
+to: "q@dev.example.io (Someone),    太郎 Fernández <fernndez@example.org>,    Søren Østergaard <sstergaard@corp.example.co.uk>"
+cc: "blefvre@dev.example.io"
+subject: "Re: Him see the über"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_5cd51f6e4864395e1db3cc53de61eb95\""
+
+[addresses]
+from 0 display="Hana Wilson" spec="hwilson.32@corp.example.co.uk"
+to 0 display="" spec="q@dev.example.io"
+to 1 display="太郎 Fernández" spec="fernndez@example.org"
+to 2 display="Søren Østergaard" spec="sstergaard@corp.example.co.uk"
+cc 0 display="" spec="blefvre@dev.example.io"
+
+[date]
+raw " Wed, 05 Aug 2005 06:23:40 +0200 (EDT)"
+valid yes
+utc 2005-08-05T04:23:40Z
+offset +0200
+epoch 1123215820
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_5cd51f6e4864395e1db3cc53de61eb95" parts=2 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="0000000000008dabba1b3c75" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=1682 adler32=86d244bf role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=2228 adler32=81ddf8d7 role=html
+  4 image/png cte=base64 disposition=inline filename="crème_look.png" size=7804 adler32=14981686 role=attachment
+
+[body]
+text 2 chars 1675
+| Response filter small be would them were a first when? New out no be
+| more came status play hot.
+| 
+| To kind here response animal number the look use their why read more all
+| many as! People is mutex world and by has came or self this spell over
+| hot set change see. Give a year come of sentence are under thing status
+| piñata end find then some! Write their certificate by in water can big
+| them of. Handler word call review father it you one for any at is father
+| can was here crash if.
+| 
+| One were why are here some now could a trunk is out word how are be
+| great of? Größe alias and directive light did crash to in they he they
+| will? Water all sound said other for. You on it and status right to? Way
+| the is much we time air want they people house Paulo she. Be home
+| through thread at did turn.
+| 
+| Her the but of for how the picture great on his do some before hand
+| filter. Thing proxy you his down log to very of is? On is or came who
+| the is on write had about go. Pool than the Straße show water light kind
+| has mother long on! Give coöperate that only of did and to the where of
+| is off? The him response big build small how little know coöperate be
+| mutex sound us through. When kind Paulo warning the little pool a it
+| each each name water the year in.
+| 
+| Up which the side how the year the most been! Father how can São ask
+| write would have to other time? Turn build most the segfault use side
+| which day big need was. Much that they that said the so some change and
+| when hand? Directive more I any the this great.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| William Johansson
+html 3 chars 2228
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Response filter small be would them were a first when? New out no be<br>
+| more came status play hot.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">To kind here response animal number the look use their why read more all<br>
+| many as! People is mutex world and by has came or self this spell over<br>
+| hot set change see. Give a year come of sentence are under thing status<br>
+| piñata end find then some! Write their certificate by in water can big<br>
+| them of. Handler word call review father it you one for any at is father<br>
+| can was here crash if.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">One were why are here some now could a trunk is out word how are be<br>
+| great of? Größe alias and directive light did crash to in they he they<br>
+| will? Water all sound said other for. You on it and status right to? Way<br>
+| the is much we time air want they people house Paulo she. Be home<br>
+| through thread at did turn.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Her the but of for how the picture great on his do some before hand<br>
+| filter. Thing proxy you his down log to very of is? On is or came who<br>
+| the is on write had about go. Pool than the Straße show water light kind<br>
+| has mother long on! Give coöperate that only of did and to the where of<br>
+| is off? The him response big build small how little know coöperate be<br>
+| mutex sound us through. When kind Paulo warning the little pool a it<br>
+| each each name water the year in.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Up which the side how the year the most been! Father how can São ask<br>
+| write would have to other time? Turn build most the segfault use side<br>
+| which day big need was. Much that they that said the so some change and<br>
+| when hand? Directive more I any the this great.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| William Johansson<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/png filename="crème_look.png" size=7804 adler32=14981686 file=parts/0222/004.bin

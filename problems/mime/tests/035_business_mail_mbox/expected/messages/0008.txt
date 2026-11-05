@@ -1,0 +1,96 @@
+[message]
+id 0008
+source "mbox:8"
+
+[headers]
+received: "from corp.example.co.uk (mx3.apache.org [106.160.81.147]) by example.org (Postfix) with ESMTP id BAA8139908 for <htaylor@example.com>; Tue, 22 Sep 2018 18:12:42 -0330"
+return-path: "<obrien@example.com>"
+message-id: "<59.a2e9f169.12016@students.example.ac.jp>"
+date: "Tue, 16 Aug 2009 20:32:56 GMT"
+from: "Karin Papadopoulos <kpapadopoulos@dev.example.io>"
+to: "Chloé Schröder <cschrder@example.org>, Đorđe Kowalski <kowalski.11@post.example.fr>,\tДмитрий Иванов <user1312.27@eu.example.de>"
+cc: "William 山田 <w.79@mail.example.net>"
+subject: "RE: This use all a said his what"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_15de9168448e6f6eaf2da7e0e50d7adb\""
+
+[addresses]
+from 0 display="Karin Papadopoulos" spec="kpapadopoulos@dev.example.io"
+to 0 display="Chloé Schröder" spec="cschrder@example.org"
+to 1 display="Đorđe Kowalski" spec="kowalski.11@post.example.fr"
+to 2 display="Дмитрий Иванов" spec="user1312.27@eu.example.de"
+cc 0 display="William 山田" spec="w.79@mail.example.net"
+
+[date]
+raw " Tue, 16 Aug 2009 20:32:56 GMT"
+valid yes
+utc 2009-08-16T20:32:56Z
+offset +0000
+epoch 1250454776
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_15de9168448e6f6eaf2da7e0e50d7adb" parts=3 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_9376_104310965.200155901623" parts=4 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_73E8369292443EA8" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=us-ascii cte=7bit size=896 adler32=95bc287e role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1307 adler32=438ab362 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="proxy_now_or.jpg" size=3193 adler32=04782cad role=attachment
+    6 image/png cte=base64 disposition=inline filename="was_when_after.png" size=2401 adler32=367c8ae3 role=attachment
+    7 image/png cte=base64 disposition=attachment filename="they_then.png" size=1876 adler32=52019903 role=attachment
+  8 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="if_see_light_and.patch" size=2796 adler32=cfda6f80 role=attachment
+  9 image/png cte=base64 disposition=inline filename="the.png" size=5533 adler32=cefea344 role=attachment
+
+[body]
+text 3 chars 896
+| You in from such have he. Which the how at on the work large will only
+| review! It too pool move release. See we little to call the. Father look
+| the earth said module word every is want is earth large the.
+| 
+| The has server the on the every backport the part boy? By as and when
+| look error had our the. The set at then sentence out your tell is take
+| high the the commit was cr?me must you. Ssl see light for a from.
+| 
+| Are on of again who mutex bucket one an of handler be alias trunk. On
+| went be if at through the use which all for small said could could?
+| Mutex proxy and jalape?o be build the of crash the are at. When for then
+| after and in at their big trunk act and there round find. As client may
+| a on too if land out look.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Chlo? Papadopoulos
+html 4 chars 1307
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">You in from such have he. Which the how at on the work large will only<br>
+| review! It too pool move release. See we little to call the. Father look<br>
+| the earth said module word every is want is earth large the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The has server the on the every backport the part boy? By as and when<br>
+| look error had our the. The set at then sentence out your tell is take<br>
+| high the the commit was crème must you. Ssl see light for a from.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Are on of again who mutex bucket one an of handler be alias trunk. On<br>
+| went be if at through the use which all for small said could could?<br>
+| Mutex proxy and jalapeño be build the of crash the are at. When for then<br>
+| after and in at their big trunk act and there round find. As client may<br>
+| a on too if land out look.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Chloé Papadopoulos<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="proxy_now_or.jpg" size=3193 adler32=04782cad file=parts/0008/005.bin
+6 type=image/png filename="was_when_after.png" size=2401 adler32=367c8ae3 file=parts/0008/006.bin
+7 type=image/png filename="they_then.png" size=1876 adler32=52019903 file=parts/0008/007.bin
+8 type=text/x-diff filename="if_see_light_and.patch" size=2796 adler32=cfda6f80 file=parts/0008/008.bin
+9 type=image/png filename="the.png" size=5533 adler32=cefea344 file=parts/0008/009.bin

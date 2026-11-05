@@ -1,0 +1,18 @@
+step {
+    out "out/doc.txt"
+    depfile "out/doc.d"
+    in "src/m.txt"
+    cmd preprocess()
+}
+step {
+    out "out/ok.txt"
+    cmd write("ok\n")
+    cost 1
+}
+step {
+    out "out/late.txt"
+    cmd write("late\n")
+    cost 30
+}
+phony all = ["out/doc.txt", "out/ok.txt", "out/late.txt"]
+default "@all"

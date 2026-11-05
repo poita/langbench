@@ -1,0 +1,48 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "not": {}
+  },
+  "tests": [
+    {
+      "description": "number is invalid",
+      "data": 1
+    },
+    {
+      "description": "string is invalid",
+      "data": "foo"
+    },
+    {
+      "description": "boolean true is invalid",
+      "data": true
+    },
+    {
+      "description": "boolean false is invalid",
+      "data": false
+    },
+    {
+      "description": "null is invalid",
+      "data": null
+    },
+    {
+      "description": "object is invalid",
+      "data": {
+        "foo": "bar"
+      }
+    },
+    {
+      "description": "empty object is invalid",
+      "data": {}
+    },
+    {
+      "description": "array is invalid",
+      "data": [
+        "foo"
+      ]
+    },
+    {
+      "description": "empty array is invalid",
+      "data": []
+    }
+  ]
+}

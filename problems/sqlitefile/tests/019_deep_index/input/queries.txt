@@ -1,0 +1,9 @@
+.schema ping
+COUNT ping
+INDEX ping_flag 'A'
+INDEX ping_flag 'B'
+INDEX ping_host 'h-000'
+INDEX ping_host 'h-249'
+INDEX ping_host 'h-999'
+SELECT id,flag FROM ping WHERE id > 7995
+SELECT id,host,ms FROM ping ORDER BY ms DESC LIMIT 10

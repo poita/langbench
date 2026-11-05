@@ -1,0 +1,4 @@
+decode
+# A terminating comma (also called trailing comma) is not permitted after the
+# last key/value pair in an inline table
+abc = { abc = 123, }

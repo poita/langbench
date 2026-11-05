@@ -1,0 +1,23 @@
+[message]
+id 0002
+source "empty-parts.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=0 adler32=00000001 role=text
+  2 text/plain charset=us-ascii cte=7bit size=0 adler32=00000001 role=attachment
+
+[body]
+text 1 chars 0
+html none
+
+[attachments]
+2 type=text/plain filename=- size=0 adler32=00000001 file=parts/0002/002.bin

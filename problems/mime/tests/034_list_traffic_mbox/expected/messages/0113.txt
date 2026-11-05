@@ -1,0 +1,98 @@
+[message]
+id 0113
+source "mbox:113"
+
+[headers]
+received: "from corp.example.co.uk (mx7.example.com [216.249.254.241]) by mail.example.net (Postfix) with ESMTP id 8340F5734A for <kfernndez.86@eu.example.de>; Sat, 19 Mar 2004 23:04:15 -0500"
+received: "from mail.example.net (mx5.apache.org [38.65.248.143]) by eu.example.de (Postfix) with ESMTP id 42091B05DD for <frossi@students.example.ac.jp>; Sat, 6 Oct 2004 16:09:22 -0400"
+return-path: "<cjohansson@post.example.fr>"
+message-id: "<730.cb60b7ca.17557@apache.org>"
+in-reply-to: "<740.2823f6a6.87892@mail.example.net>"
+references: "<731.dfc5be4a.29302@corp.example.co.uk> <732.50567ea3.46046@post.example.fr> <733.983f01e0.14346@example.com> <734.0c1635cf.48055@dev.example.io> <735.7cfd7b22.44836@post.example.fr> <736.13d8eb8d.44486@dev.example.io> <737.f69969ce.94586@example.org> <738.6da6d218.98405@students.example.ac.jp> <739.dbeb50c4.57317@example.org> <740.2823f6a6.87892@mail.example.net>"
+date: "27 JUN 04 12:46 +0530"
+from: "user1720@students.example.ac.jp"
+to: "Sven Fernández <sfernndez.58@mail.example.net>,    Luis Doe <ldoe@lists.example.edu>, Greg Иванов <g@lists.example.edu>"
+cc: "tmller@post.example.fr"
+subject: "Other had were but"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_470fc6918b044c2de7169e6626220692\""
+
+[addresses]
+from 0 display="" spec="user1720@students.example.ac.jp"
+to 0 display="Sven Fernández" spec="sfernndez.58@mail.example.net"
+to 1 display="Luis Doe" spec="ldoe@lists.example.edu"
+to 2 display="Greg Иванов" spec="g@lists.example.edu"
+cc 0 display="" spec="tmller@post.example.fr"
+
+[date]
+raw " 27 JUN 04 12:46 +0530"
+valid yes
+utc 2004-06-27T07:16:00Z
+offset +0530
+epoch 1088320560
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_470fc6918b044c2de7169e6626220692" parts=3 preamble=45 epilogue=0
+  1 text/plain charset=us-ascii cte=quoted-printable size=2238 adler32=2d8ffba4 role=text
+  2 text/csv charset=utf-8 cte=base64 disposition=attachment filename="about_what_was_most.csv" size=8774 adler32=bd95e3d0 role=attachment
+  3 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="smörgåsbord_such_long_big.patch" size=3297 adler32=2874fc45 role=attachment
+
+[body]
+text 1 chars 2238
+| As they the you no pi?ata at pool warning you. He through it come with
+| use went think through an over with want. Now write much the little the
+| were him the warning most look thing any status two how.
+| 
+| Little just they live and. Very use kind to segfault can are ?ngstr?m
+| with alias the commit the response ask. The the be were from were than
+| write then set me it old thing right the. But like form get said up.
+| Their the the are in we hot low her would some little bucket.
+| 
+| First he and light do light thread one some follow! The module again I
+| year my who! Move act the in her or set you and he by the her with in
+| of? Did a the read brigade from if in down sm?rg?sbord he of a or went
+| to! Sentence so but backport I have. Has word this the side directive.
+| As can could it was came call?
+| 
+| Hot call our be even picture the each sentence from big? The mean
+| request went a made now bug other we pool they so light been say of? It
+| a they on is this!
+| 
+| And by he trunk no the had before of and you status we who mean the set.
+| And response have no to place use all tell of. Brigade the this change
+| there socket the.
+| 
+| >From light here can what Z?rich the form jalape?o give three the for the
+| or. Like light mother thread year be Stra?e him them pi?ata time review
+| in way what. Land came read she been our. Must men this at big Stra?e.
+| There up up of of at alias see his? And now it how want be than.
+| 
+| Make they word them the spell two more. That down we act pool look but
+| Z?rich well were it cause our three warning made. Know use brigade then
+| mean. Who said to mother now line end self that can and give. Even large
+| than trunk header if from and go of time from down when many of of. Made
+| of see to over request this is.
+| 
+| Of do work of in server word way she find so you how hand from? They bug
+| our who know filter would try any people say for every number! That
+| cache give na?ve trunk time animal a call bug your turn on the low a to
+| the. To client sentence go want said add? After out server by I is cache
+| long of big also that me play the and to. From ?ngstr?m other one in!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| J?rg Kowalski
+html none
+
+[attachments]
+2 type=text/csv filename="about_what_was_most.csv" size=8774 adler32=bd95e3d0 file=parts/0113/002.bin
+3 type=text/x-diff filename="smörgåsbord_such_long_big.patch" size=3297 adler32=2874fc45 file=parts/0113/003.bin

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block head %}all tags{% endblock %}
+{% block bodyclass %}tags{% endblock %}
+{% block content %}
+<dl>
+{%- for t in tags %}
+<dt><a href="{{ t.url }}">{{ t.name }}</a></dt><dd>{{ t.post_count }}</dd>
+{%- endfor %}
+</dl>
+<p>{{ tags|length }} tags, {{ pages|length }} pages.</p>
+{% endblock %}

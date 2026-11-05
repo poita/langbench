@@ -1,0 +1,6 @@
+.dub/
+sqlitefile
+*.o
+*.a
+*-test-*
+dub.selections.json

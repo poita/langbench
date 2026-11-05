@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Tom &amp; Jerry &lt;Blog&gt;</title>
+  <id>https://amp.example/s?q="x"&amp;n=1/</id>
+  <updated>2021-03-02T00:00:00Z</updated>
+  <link href="https://amp.example/s?q=&quot;x&quot;&amp;n=1/" rel="alternate"/>
+  <link href="https://amp.example/s?q=&quot;x&quot;&amp;n=1/feed.xml" rel="self"/>
+  <author>
+    <name>A &amp; B "Co" &lt;team&gt;</name>
+  </author>
+  <entry>
+    <title>He said "hello"</title>
+    <id>https://amp.example/s?q="x"&amp;n=1/posts/quotes/</id>
+    <updated>2021-03-02T00:00:00Z</updated>
+    <link href="https://amp.example/s?q=&quot;x&quot;&amp;n=1/posts/quotes/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Straight &amp;quot;quotes&amp;quot; and an apostrophe’s worth of text.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Fish &amp; Chips &lt; Pie &gt; Mash</title>
+    <id>https://amp.example/s?q="x"&amp;n=1/posts/amp/</id>
+    <updated>2021-03-01T00:00:00Z</updated>
+    <link href="https://amp.example/s?q=&quot;x&quot;&amp;n=1/posts/amp/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Ampersands &amp;amp; angles &amp;lt;like this&amp;gt; and a &amp;quot;quoted&amp;quot; word.&lt;/p&gt;
+&lt;p&gt;A &lt;a href="https://example.com/?a=1&amp;amp;b=2"&gt;link&lt;/a&gt; with an escaped ampersand.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

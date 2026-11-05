@@ -1,0 +1,21 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "maxContains": 1
+  },
+  "tests": [
+    {
+      "description": "one item valid against lone maxContains",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "two items still valid against lone maxContains",
+      "data": [
+        1,
+        2
+      ]
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+base(1). base(2). base(3). base(4). base(5). base(6).
+s1(X) :- base(X), X > 2.
+s2(X) :- base(X), not s1(X).
+s3(X) :- base(X), not s2(X), X != 4.
+s4(X) :- base(X), not s3(X).
+s4(X) :- s2(X), not s3(X).
+top(X, Y) :- s4(X), s1(Y), not s3(Y), X < Y.
+?- s1(X).
+?- s2(X).
+?- s3(X).
+?- s4(X).
+?- top(X, Y).

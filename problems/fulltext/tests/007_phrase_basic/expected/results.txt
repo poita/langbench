@@ -1,0 +1,22 @@
+QUERY 1 "red fox"
+HITS 2
+1	a	0.4606	the red fox and the blue fox
+2	b	0.4606	the blue fox and the red fox
+QUERY 2 "blue fox"
+HITS 3
+1	c	0.1392	red and blue, fox and hound
+2	a	0.1309	the red fox and the blue fox
+3	b	0.1309	the blue fox and the red fox
+QUERY 3 red fox
+HITS 3
+1	a	0.3119	the red fox and the blue fox
+2	b	0.3119	the blue fox and the red fox
+3	c	0.2785	red and blue, fox and hound
+QUERY 4 "fox and hound"
+HITS 1
+1	c	1.0227	red and blue, fox and hound
+QUERY 5 "red fox" OR "blue fox"
+HITS 3
+1	a	0.5914	the red fox and the blue fox
+2	b	0.5914	the blue fox and the red fox
+3	c	0.1392	red and blue, fox and hound

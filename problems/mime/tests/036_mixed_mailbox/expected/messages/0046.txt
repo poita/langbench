@@ -1,0 +1,118 @@
+[message]
+id 0046
+source "mbox:46"
+
+[headers]
+received: "from mail.example.net (mx4.lists.example.edu [131.1.161.157]) by students.example.ac.jp (Postfix) with ESMTP id 6EEBEF98B4 for <dgarca@students.example.ac.jp>; Mon Jul 19 13:11:38 2009 -0400"
+received: "from example.org (mx3.dev.example.io [212.252.184.222]) by post.example.fr (Postfix) with ESMTP id 1623F05495 for <iwilson@dev.example.io>; Wed, 9 Feb 2025 16:45:01 +0200"
+received: "from lists.example.edu (mx9.corp.example.co.uk [67.228.231.220]) by apache.org (Postfix) with ESMTP id 65BDEE0127 for <fkowalski@eu.example.de>; 12 APR 24 23:08 -0000"
+return-path: "<papadopoulos@post.example.fr>"
+message-id: "<390.92f0ccf6.70536@example.com>"
+date: "Sun, 6 Jan 2012 08:42:27 GMT"
+from: "xjohansson@students.example.ac.jp (Xavier Johansson)"
+to: "bdubois.14@eu.example.de, Ann Kowalski <akowalski.88@lists.example.edu>,\tk.62@mail.example.net,    François Johansson <fjohansson.74@example.com>,\tBob Doe <bdoe@students.example.ac.jp>, s@eu.example.de,    sfernndez.92@dev.example.io, egarca@dev.example.io,\tNils Østergaard <nstergaard@students.example.ac.jp>,\tBjörn García <bgarca@dev.example.io>,\tJörg Schröder <jschrder@apache.org>, Søren O'Brien <sobrien@students.example.ac.jp>,    Chloé van der Berg <cvanderberg@dev.example.io>,    Zoë van der Berg <zvanderberg@eu.example.de>,    Jörg van der Berg <jvanderberg@lists.example.edu>,\tBob Dubois <bdubois@eu.example.de>,    \"Nakamura, Sven\" <snakamura@corp.example.co.uk>,\tMaría Dubois <mdubois.48@students.example.ac.jp>,    Greg Dubois <gdubois@apache.org>,\tAnn 山田 <a@example.com>,    María Johansson <mjohansson.21@corp.example.co.uk>, 太郎 Papadopoulos <papadopoulos@lists.example.edu>, Ελένη Kim <kim.67@lists.example.edu>,\tUwe Doe <udoe@example.com>, \"O'Brien, Fiona\" <fobrien.68@example.com>,    robrien@students.example.ac.jp (Someone),    Karin Lefèvre <klefvre@corp.example.co.uk>,\tfnakamura@corp.example.co.uk, cmller@eu.example.de (Someone), Fiona Müller <fmller@students.example.ac.jp>, Ελένη Dubois <dubois@example.org>, hobrien@lists.example.edu, Nils Johansson <njohansson@apache.org>, xsmith.73@apache.org (Xavier Smith), Søren Müller <smller@example.com>, Björn Kowalski <bkowalski@eu.example.de>,\t\"Petrov, Greg\" <gpetrov@example.com>,\tMaría Petrov <mpetrov@apache.org>, apapadopoulos@example.org (Agnieszka Papadopoulos), bsmith@corp.example.co.uk, csmith@lists.example.edu (Carl Smith),\tfmller@lists.example.edu, \"Nakamura, Vera\" <vnakamura@apache.org>, Erik Nakamura <enakamura@mail.example.net>,\tChloé Dubois <cdubois@post.example.fr>,\thbrown@students.example.ac.jp, Pierre Taylor <ptaylor.92@mail.example.net>,\tTomás Taylor <ttaylor@mail.example.net>, Luis Lefèvre <llefvre@post.example.fr>,    \"Petrov, Xavier\" <xpetrov.3@example.org>, cdoe@corp.example.co.uk, \"Wilson, Yuki\" <ywilson@eu.example.de>,\tBjörn Rossi <brossi@example.org>, Greg Schröder <gschrder.24@corp.example.co.uk>,\tJörg 山田 <j.89@students.example.ac.jp>,    Đorđe 山田 <user2021.79@mail.example.net>,    Uwe Nakamura <unakamura@corp.example.co.uk>"
+cc: "Đorđe Nguyen <nguyen@corp.example.co.uk>,\tIvan Wilson <iwilson.44@students.example.ac.jp>,    Bob Lefèvre <blefvre@students.example.ac.jp>,\tSøren Schröder <sschrder.93@corp.example.co.uk>"
+subject: "Alias Paulo earth the have like said take"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+resent-date: "Wed Feb 24 03:43:14 2009 +0200"
+resent-date: "20 OCT 24 21:28 CST"
+resent-date: "Thu, 8 Jan 2005 06:59:23 -0500"
+thread-topic: "Before even the keepalive all on from Größe."
+comments: "Of of it why  httpd round."
+sender: "Greg Dubois <gdubois@apache.org>"
+content-type: "text/plain; charset=\"windows-1252\""
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="" spec="xjohansson@students.example.ac.jp"
+sender 0 display="Greg Dubois" spec="gdubois@apache.org"
+to 0 display="" spec="bdubois.14@eu.example.de"
+to 1 display="Ann Kowalski" spec="akowalski.88@lists.example.edu"
+to 2 display="" spec="k.62@mail.example.net"
+to 3 display="François Johansson" spec="fjohansson.74@example.com"
+to 4 display="Bob Doe" spec="bdoe@students.example.ac.jp"
+to 5 display="" spec="s@eu.example.de"
+to 6 display="" spec="sfernndez.92@dev.example.io"
+to 7 display="" spec="egarca@dev.example.io"
+to 8 display="Nils Østergaard" spec="nstergaard@students.example.ac.jp"
+to 9 display="Björn García" spec="bgarca@dev.example.io"
+to 10 display="Jörg Schröder" spec="jschrder@apache.org"
+to 11 display="Søren O'Brien" spec="sobrien@students.example.ac.jp"
+to 12 display="Chloé van der Berg" spec="cvanderberg@dev.example.io"
+to 13 display="Zoë van der Berg" spec="zvanderberg@eu.example.de"
+to 14 display="Jörg van der Berg" spec="jvanderberg@lists.example.edu"
+to 15 display="Bob Dubois" spec="bdubois@eu.example.de"
+to 16 display="Nakamura, Sven" spec="snakamura@corp.example.co.uk"
+to 17 display="María Dubois" spec="mdubois.48@students.example.ac.jp"
+to 18 display="Greg Dubois" spec="gdubois@apache.org"
+to 19 display="Ann 山田" spec="a@example.com"
+to 20 display="María Johansson" spec="mjohansson.21@corp.example.co.uk"
+to 21 display="太郎 Papadopoulos" spec="papadopoulos@lists.example.edu"
+to 22 display="Ελένη Kim" spec="kim.67@lists.example.edu"
+to 23 display="Uwe Doe" spec="udoe@example.com"
+to 24 display="O'Brien, Fiona" spec="fobrien.68@example.com"
+to 25 display="" spec="robrien@students.example.ac.jp"
+to 26 display="Karin Lefèvre" spec="klefvre@corp.example.co.uk"
+to 27 display="" spec="fnakamura@corp.example.co.uk"
+to 28 display="" spec="cmller@eu.example.de"
+to 29 display="Fiona Müller" spec="fmller@students.example.ac.jp"
+to 30 display="Ελένη Dubois" spec="dubois@example.org"
+to 31 display="" spec="hobrien@lists.example.edu"
+to 32 display="Nils Johansson" spec="njohansson@apache.org"
+to 33 display="" spec="xsmith.73@apache.org"
+to 34 display="Søren Müller" spec="smller@example.com"
+to 35 display="Björn Kowalski" spec="bkowalski@eu.example.de"
+to 36 display="Petrov, Greg" spec="gpetrov@example.com"
+to 37 display="María Petrov" spec="mpetrov@apache.org"
+to 38 display="" spec="apapadopoulos@example.org"
+to 39 display="" spec="bsmith@corp.example.co.uk"
+to 40 display="" spec="csmith@lists.example.edu"
+to 41 display="" spec="fmller@lists.example.edu"
+to 42 display="Nakamura, Vera" spec="vnakamura@apache.org"
+to 43 display="Erik Nakamura" spec="enakamura@mail.example.net"
+to 44 display="Chloé Dubois" spec="cdubois@post.example.fr"
+to 45 display="" spec="hbrown@students.example.ac.jp"
+to 46 display="Pierre Taylor" spec="ptaylor.92@mail.example.net"
+to 47 display="Tomás Taylor" spec="ttaylor@mail.example.net"
+to 48 display="Luis Lefèvre" spec="llefvre@post.example.fr"
+to 49 display="Petrov, Xavier" spec="xpetrov.3@example.org"
+to 50 display="" spec="cdoe@corp.example.co.uk"
+to 51 display="Wilson, Yuki" spec="ywilson@eu.example.de"
+to 52 display="Björn Rossi" spec="brossi@example.org"
+to 53 display="Greg Schröder" spec="gschrder.24@corp.example.co.uk"
+to 54 display="Jörg 山田" spec="j.89@students.example.ac.jp"
+to 55 display="Đorđe 山田" spec="user2021.79@mail.example.net"
+to 56 display="Uwe Nakamura" spec="unakamura@corp.example.co.uk"
+cc 0 display="Đorđe Nguyen" spec="nguyen@corp.example.co.uk"
+cc 1 display="Ivan Wilson" spec="iwilson.44@students.example.ac.jp"
+cc 2 display="Bob Lefèvre" spec="blefvre@students.example.ac.jp"
+cc 3 display="Søren Schröder" spec="sschrder.93@corp.example.co.uk"
+
+[date]
+raw " Sun, 6 Jan 2012 08:42:27 GMT"
+valid yes
+utc 2012-01-06T08:42:27Z
+offset +0000
+epoch 1325839347
+
+[structure]
+0 text/plain charset=windows-1252 cte=quoted-printable size=541 adler32=8293bf13 role=text
+
+[body]
+text 0 chars 541
+| The you we act light way other up one vhost two of also is error from?
+| Fiancée came crash his new up it of he boy he in the mean? Very land the
+| a house. After hand warning I from get you down people side get about
+| mutex land it like as? Keepalive and the alias httpd the some only who
+| had mother connection have made good I.
+| 
+| Boy see a change near no the line hand you put some way be here spell?
+| Number his is round release very is then httpd smörgåsbord could of
+| great? Live off up any apr of that is set say these and.
+| 
+| -- 
+| Pierre Müller
+html none
+
+[attachments]

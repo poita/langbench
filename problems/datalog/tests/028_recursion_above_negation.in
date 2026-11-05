@@ -1,0 +1,12 @@
+node(1). node(2). node(3). node(4). node(5). node(6). node(7).
+edge(1, 2). edge(2, 3). edge(4, 5). edge(5, 6). edge(6, 4). edge(6, 7). edge(7, 3).
+reach(X) :- edge(1, X).
+reach(Y) :- reach(X), edge(X, Y).
+unreachable(X) :- node(X), not reach(X).
+chain(X, Y) :- unreachable(X), unreachable(Y), edge(X, Y).
+chain(X, Z) :- chain(X, Y), chain(Y, Z).
+lonely(X) :- unreachable(X), not chain(X, X).
+?- reach(X).
+?- unreachable(X).
+?- chain(X, Y).
+?- lonely(X).

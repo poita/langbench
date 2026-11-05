@@ -1,0 +1,25 @@
+[message]
+id 0004
+source "groups.eml"
+
+[headers]
+to: "Undisclosed recipients:;"
+cc: "friends: a@example.com, b@example.com;, c@example.com"
+
+[addresses]
+cc 0 display="" spec="a@example.com"
+cc 1 display="" spec="b@example.com"
+cc 2 display="" spec="c@example.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "bar": {
+        "type": "string",
+        "minLength": 4,
+        "default": "bad"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "valid when property is specified",
+      "data": {
+        "bar": "good"
+      }
+    },
+    {
+      "description": "still valid when the invalid default is used",
+      "data": {}
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "if": {
+      "const": 1
+    },
+    "then": false
+  },
+  "tests": [
+    {
+      "description": "matches if → then=false → invalid",
+      "data": 1
+    },
+    {
+      "description": "does not match if → then ignored → valid",
+      "data": 2
+    }
+  ]
+}

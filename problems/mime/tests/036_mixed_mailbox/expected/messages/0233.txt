@@ -1,0 +1,120 @@
+[message]
+id 0233
+source "mbox:233"
+
+[headers]
+received: "from example.org (mx1.mail.example.net [20.154.43.147]) by eu.example.de (Postfix) with ESMTP id 2C2FFACB1B for <ftaylor.27@post.example.fr>; Wed, 27 Aug 2005 20:12:37 UT (PST)"
+received: "from post.example.fr (mx7.students.example.ac.jp [80.33.28.91]) by students.example.ac.jp (Postfix) with ESMTP id AA7A207C71 for <ldoe.16@example.org>; yesterday"
+received: "from dev.example.io (mx1.students.example.ac.jp [118.195.36.187]) by students.example.ac.jp (Postfix) with ESMTP id 5CF8A0BC72 for <spapadopoulos@dev.example.io>; Tue, 24 Jun 2018 23:25:39 PDT"
+return-path: "<user4200@example.com>"
+message-id: "<1634.c9cd4a2d.97097@mail.example.net>"
+in-reply-to: "<1644.6a01731d.72696@students.example.ac.jp>"
+references: "<1635.1993413d.73005@mail.example.net> <1636.69b0ca71.85088@corp.example.co.uk> <1637.eb9d689b.92386@example.com> <1638.50dd02e2.86820@students.example.ac.jp> <1639.1780eafd.87820@example.org> <1640.32ae1d9b.85463@post.example.fr> <1641.3de959b4.14876@eu.example.de> <1642.f3a69642.12748@dev.example.io> <1643.b09231a3.45275@apache.org> <1644.6a01731d.72696@students.example.ac.jp>"
+date: "Sat, 17 Jul 2018 08:04:41 +0530"
+from: "Xavier Иванов <x@example.com>"
+to: "Uwe Kim <ukim@post.example.fr>, Chloé Smith <csmith@students.example.ac.jp>,\tErik Nguyen <enguyen@lists.example.edu>"
+cc: "\"Taylor, Ivan\" <itaylor.55@example.org>, Søren Nguyen <snguyen@mail.example.net>"
+subject: "Fwd: Jalapeño branch been at it the after he log"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_90470d7ced88d3d0ae612736a8cb4f66\""
+
+[addresses]
+from 0 display="Xavier Иванов" spec="x@example.com"
+to 0 display="Uwe Kim" spec="ukim@post.example.fr"
+to 1 display="Chloé Smith" spec="csmith@students.example.ac.jp"
+to 2 display="Erik Nguyen" spec="enguyen@lists.example.edu"
+cc 0 display="Taylor, Ivan" spec="itaylor.55@example.org"
+cc 1 display="Søren Nguyen" spec="snguyen@mail.example.net"
+
+[date]
+raw " Sat, 17 Jul 2018 08:04:41 +0530"
+valid yes
+utc 2018-07-17T02:34:41Z
+offset +0530
+epoch 1531794881
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_90470d7ced88d3d0ae612736a8cb4f66" parts=2 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="Apple-Mail=_4402E25CC681027C" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="----=_Part_5585_857602280.1094716731619" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=us-ascii cte=quoted-printable size=1566 adler32=1400118a role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=2077 adler32=dc8dc6f5 role=html
+    5 image/png cte=base64 disposition=attachment filename="Kraków_a_word_word.png" size=1860 adler32=d7447e75 role=attachment
+  6 text/csv charset=utf-8 cte=base64 disposition=attachment filename="have_they.csv" size=3086 adler32=c509d7a0 role=attachment
+
+[body]
+text 3 chars 1566
+| On tue,3 jan 2018 10:3:43 (comment (nested)) +0530, Bj?rn Doe wrote:
+| > > The ?rsted do year jalape?o. It the for out out year pool small and
+| >> crash home. Picture the near be where a. On small there client work
+| > him like like on point look have. In the it most must was and an
+| > much to add number well the show of?
+| >
+| > Of big which been the you of father directive now at that? Make with
+| > again from so has status the.
+| >
+| > > Me help port form word from the? Differ build people end the Paulo
+| >> show for to I in than much! Of with off must fianc?e how? For d?j?
+| >> socket the she of hot write of place the of release that they we I
+| >> year! As config some man small! The much it was form patch put big
+| >> year we all one place you is to no look?
+| >
+| > > A as of down me of little a cache was has we and header move what
+| > > review. All can word of and they? Kind write config to so land each
+| > > over apr mutex made mother line the one is the! R?sum? earth than as
+| >> this for with here does of father have ?ngstr?m of what no been
+| > said?
+| >
+| 
+| Said has in in hot module in through. Big how one act people but word
+| they Gr??e the. Call for vote was go turn d?j? what header the call
+| module.
+| 
+| In very we these like hand hot branch over been in. Old up who the he.
+| And when the word the help of work act say. When light day it up it find
+| near the na?ve the and even. Great place the would certificate even
+| house M?laga of he when other the from must keepalive and the. Work were
+| module water under port in the one have come came build small they!
+| 
+| -- 
+| Tom?s Fern?ndez
+html 4 chars 2077
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On tue,3 jan 2018 10:3:43 (comment (nested)) +0530, Björn Doe wrote:<br>
+| &gt; &gt; The Ørsted do year jalapeño. It the for out out year pool small and<br>
+| &gt;&gt; crash home. Picture the near be where a. On small there client work<br>
+| &gt; him like like on point look have. In the it most must was and an<br>
+| &gt; much to add number well the show of?<br>
+| &gt;<br>
+| &gt; Of big which been the you of father directive now at that? Make with<br>
+| &gt; again from so has status the.<br>
+| &gt;<br>
+| &gt; &gt; Me help port form word from the? Differ build people end the Paulo<br>
+| &gt;&gt; show for to I in than much! Of with off must fiancée how? For déjà<br>
+| &gt;&gt; socket the she of hot write of place the of release that they we I<br>
+| &gt;&gt; year! As config some man small! The much it was form patch put big<br>
+| &gt;&gt; year we all one place you is to no look?<br>
+| &gt;<br>
+| &gt; &gt; A as of down me of little a cache was has we and header move what<br>
+| &gt; &gt; review. All can word of and they? Kind write config to so land each<br>
+| &gt; &gt; over apr mutex made mother line the one is the! Résumé earth than as<br>
+| &gt;&gt; this for with here does of father have Ångström of what no been<br>
+| &gt; said?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Said has in in hot module in through. Big how one act people but word<br>
+| they Größe the. Call for vote was go turn déjà what header the call<br>
+| module.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">In very we these like hand hot branch over been in. Old up who the he.<br>
+| And when the word the help of work act say. When light day it up it find<br>
+| near the naïve the and even. Great place the would certificate even<br>
+| house Málaga of he when other the from must keepalive and the. Work were<br>
+| module water under port in the one have come came build small they!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Tomás Fernández<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="Kraków_a_word_word.png" size=1860 adler32=d7447e75 file=parts/0233/005.bin
+6 type=text/csv filename="have_they.csv" size=3086 adler32=c509d7a0 file=parts/0233/006.bin

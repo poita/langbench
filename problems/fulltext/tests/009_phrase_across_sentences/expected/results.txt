@@ -1,0 +1,12 @@
+QUERY 1 "river bank"
+HITS 2
+1	joined	0.4853	He walked along the river bank robbers avoided
+2	split	0.4627	He looked at the river. Bank robbers were waiting
+QUERY 2 "bank robbers"
+HITS 2
+1	joined	0.4853	He walked along the river bank robbers avoided
+2	split	0.4627	He looked at the river. Bank robbers were waiting
+QUERY 3 "river bank robbers"
+HITS 2
+1	joined	0.4853	He walked along the river bank robbers avoided
+2	split	0.4627	He looked at the river. Bank robbers were waiting

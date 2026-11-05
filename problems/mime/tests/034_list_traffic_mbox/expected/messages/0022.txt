@@ -1,0 +1,62 @@
+[message]
+id 0022
+source "mbox:22"
+
+[headers]
+received: "from mail.example.net (mx5.example.com [58.200.178.248]) by lists.example.edu (Postfix) with ESMTP id 1AFC1F0D2C for <gobrien.33@lists.example.edu>; Sun, 26 Dec 2003 11:22:11 MET (GMT)"
+return-path: "<qfernndez.87@eu.example.de>"
+message-id: "<178.31aec779.3506@students.example.ac.jp>"
+in-reply-to: "<190.48bcfcd0.49471@corp.example.co.uk>"
+references: "<179.4bda4b5c.8399@corp.example.co.uk> <180.c3c67d97.64640@dev.example.io> <181.50bbb234.99350@dev.example.io> <182.4d165700.29661@lists.example.edu> <183.fb422575.32427@mail.example.net> <184.6844c5d3.2280@dev.example.io> <185.7cd6762f.16026@example.org> <186.379b3f8b.63892@eu.example.de> <187.d188e996.31948@example.org> <188.9a244e07.46262@students.example.ac.jp> <189.9db58816.16761@example.org> <190.48bcfcd0.49471@corp.example.co.uk>"
+date: "4 APR 09 03:43 -0800"
+from: "太郎 Doe <doe@apache.org>"
+to: "jpapadopoulos@mail.example.net (Someone),    Đorđe Smith <smith.94@mail.example.net>, dubois@lists.example.edu"
+subject: "RE: From a high and he where the connection your"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 439\""
+
+[addresses]
+from 0 display="太郎 Doe" spec="doe@apache.org"
+to 0 display="" spec="jpapadopoulos@mail.example.net"
+to 1 display="Đorđe Smith" spec="smith.94@mail.example.net"
+to 2 display="" spec="dubois@lists.example.edu"
+
+[date]
+raw " 4 APR 09 03:43 -0800"
+valid yes
+utc 2009-04-04T11:43:00Z
+offset -0800
+epoch 1238845380
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 439" parts=3 preamble=45 epilogue=0
+  1 text/plain charset=utf-8 cte=base64 size=564 adler32=f448c61f role=text
+  2 text/x-diff charset=utf-8 cte=7bit disposition=inline filename="your_back_about_follow.patch" size=2515 adler32=5f530d67 role=attachment
+  3 text/csv charset=utf-8 cte=base64 disposition=attachment filename="she_a_more_the.csv" size=7152 adler32=d7a0e026 role=attachment
+
+[body]
+text 1 chars 560
+| Before in why every him to build have just can house under had which
+| made the but two. More Zürich this résumé vote word in this pool of
+| right patch to name of thing are! The word their or the so at an light
+| response large.
+| 
+| Of when who the that where a. His that with air is place water the in
+| make where number house and. A alias thing their São it hot is three a
+| and. They my why your him put.
+| 
+| World up went their was a right? Sentence way crash as she differ two
+| has had! Put use the segfault what from and he form. Other and when apr
+| then?
+| 
+| -- 
+| Olga Kim
+html none
+
+[attachments]
+2 type=text/x-diff filename="your_back_about_follow.patch" size=2515 adler32=5f530d67 file=parts/0022/002.bin
+3 type=text/csv filename="she_a_more_the.csv" size=7152 adler32=d7a0e026 file=parts/0022/003.bin

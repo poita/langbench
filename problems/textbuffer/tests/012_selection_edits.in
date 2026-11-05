@@ -1,0 +1,37 @@
+3
+one two three
+four five
+six
+goto 0 4
+move right select
+move right select
+move right select
+insert 2
+print
+goto 0 4
+move right select
+delete
+print
+move right select
+move right select
+delete-forward
+print
+goto 0 3
+move down select
+move down select
+print
+insert |
+print
+goto 0 2
+move down select
+move end select
+delete
+print
+move up select
+move up select
+delete-forward
+print
+goto 1 0
+move left select
+insert A\nB
+print

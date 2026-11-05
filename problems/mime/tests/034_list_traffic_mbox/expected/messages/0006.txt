@@ -1,0 +1,94 @@
+[message]
+id 0006
+source "mbox:6"
+
+[headers]
+received: "from example.com (mx6.example.org [47.197.92.236]) by apache.org (Postfix) with ESMTP id 12B795627F for <ksmith.21@post.example.fr>; Sat, 7 Apr 2004 15:56:39 +1000"
+received: "from post.example.fr (mx3.mail.example.net [241.50.216.192]) by mail.example.net (Postfix) with ESMTP id B977E807EE for <rmller@dev.example.io>; Fri, 11 Oct 2009 07:20:30 +0530 (JST)"
+received: "from apache.org (mx9.dev.example.io [90.165.138.34]) by example.org (Postfix) with ESMTP id 2973253D9C for <brossi.80@eu.example.de>; Thu, 09 Jun 2024 10:04:58 -0800 (CET)"
+return-path: "<wsmith@example.com>"
+message-id: "<72.dad9fdd4.99368@lists.example.edu>"
+in-reply-to: "<80.d1e8254e.80749@example.org>"
+references: "<73.b2080ca8.46091@corp.example.co.uk> <74.d7535861.43628@post.example.fr> <75.997460b5.33839@eu.example.de> <76.cbaaa616.35722@example.com> <77.aebc55e5.1230@post.example.fr> <78.5512eb7e.70896@corp.example.co.uk> <79.b1976185.97152@example.org> <80.d1e8254e.80749@example.org>"
+date: "Mon, 10 Nov 2018 08:50:25 +0100"
+from: "\"Vera Taylor\" <vtaylor@corp.example.co.uk>"
+to: "Дмитрий Doe <doe.94@dev.example.io>"
+cc: "Yuki Fernández <yfernndez.69@example.org>,\t\"Vera Kim\" <vkim@example.com>"
+subject: "[PATCH] What as act"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"000000000000fe4baf17121f\""
+
+[addresses]
+from 0 display="Vera Taylor" spec="vtaylor@corp.example.co.uk"
+to 0 display="Дмитрий Doe" spec="doe.94@dev.example.io"
+cc 0 display="Yuki Fernández" spec="yfernndez.69@example.org"
+cc 1 display="Vera Kim" spec="vkim@example.com"
+
+[date]
+raw " Mon, 10 Nov 2018 08:50:25 +0100"
+valid yes
+utc 2018-11-10T07:50:25Z
+offset +0100
+epoch 1541836225
+
+[structure]
+0 multipart/alternative cte=7bit boundary="000000000000fe4baf17121f" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=windows-1252 cte=quoted-printable size=1080 adler32=20517762 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1556 adler32=44b6187d role=html
+
+[body]
+text 1 chars 1080
+| On Sat, 1 Apr 2025 08:03:01 -0500, Nils García wrote:
+| >> Of élan side find will first we him you even Málaga will. May on
+| > > kind Zürich so. New piñata she was hot every new change two the each
+| >> timeout spell each or of. In than be form now a if same very place
+| > other a which when Ångström what man go. Before build the went why
+| > > vote read as other résumé call. Now of well day this piñata just
+| >> them when and of bucket part the great be. Are differ high can over
+| >> patch who off!
+| >
+| 
+| Vote no your of where with write this self he one give line with of you
+| it need. Kind them café long take hand our have about is of what other
+| that at give before that! See word back kind piñata and who façade I can
+| and! End be she that some too is you? Socket men any new brigade think
+| want the!
+| 
+| We under you the backport timeout of on as the of point who the to. Man
+| use to other when the would be spell her way off great but?
+| 
+| Know the his are live must call made from near are are über the are?
+| Picture way crash there call you water long name to an old came.
+| 
+| -- 
+| Fiona Schröder
+html 2 chars 1541
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sat, 1 Apr 2025 08:03:01 -0500, Nils García wrote:<br>
+| &gt;&gt; Of élan side find will first we him you even Málaga will. May on<br>
+| &gt; &gt; kind Zürich so. New piñata she was hot every new change two the each<br>
+| &gt;&gt; timeout spell each or of. In than be form now a if same very place<br>
+| &gt; other a which when Ångström what man go. Before build the went why<br>
+| &gt; &gt; vote read as other résumé call. Now of well day this piñata just<br>
+| &gt;&gt; them when and of bucket part the great be. Are differ high can over<br>
+| &gt;&gt; patch who off!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Vote no your of where with write this self he one give line with of you<br>
+| it need. Kind them café long take hand our have about is of what other<br>
+| that at give before that! See word back kind piñata and who façade I can<br>
+| and! End be she that some too is you? Socket men any new brigade think<br>
+| want the!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">We under you the backport timeout of on as the of point who the to. Man<br>
+| use to other when the would be spell her way off great but?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Know the his are live must call made from near are are über the are?<br>
+| Picture way crash there call you water long name to an old came.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Fiona Schröder<br>
+| </p>
+| </body></html>
+
+[attachments]

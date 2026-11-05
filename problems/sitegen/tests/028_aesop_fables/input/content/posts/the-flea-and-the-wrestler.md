@@ -1,0 +1,15 @@
++++
+title = "The Flea and the Wrestler"
+date = "2019-05-17"
+slug = "the-flea-and-the-wrestler"
+tags = ["Fables"]
++++
+A **FLEA** settled upon the bare foot of a Wrestler and bit him, causing
+the man to call loudly upon Hercules for help. When the Flea a second
+time hopped upon his foot, he groaned and said, “O Hercules! if you
+will not help me against a Flea, how can I hope for your assistance
+against greater antagonists?”
+
+Themes:
+
+- fables

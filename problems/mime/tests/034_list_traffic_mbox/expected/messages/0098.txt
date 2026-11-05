@@ -1,0 +1,71 @@
+[message]
+id 0098
+source "mbox:98"
+
+[headers]
+received: "from example.org (mx1.mail.example.net [195.10.201.20]) by students.example.ac.jp (Postfix) with ESMTP id 34DC98534E for <astergaard.38@post.example.fr>; Sat, 20 Mar 2003 02:33:45 -0700"
+received: "from example.com (mx5.lists.example.edu [47.40.118.166]) by eu.example.de (Postfix) with ESMTP id 623026DA3C for <fkim@post.example.fr>; Mon, 19 Dec 2009 03:05:02 CST (JST)"
+received: "from example.com (mx4.eu.example.de [10.25.142.88]) by dev.example.io (Postfix) with ESMTP id 7CD17CCB89 for <awilson@eu.example.de>; Sat, 22 Mar 2012 20:53:10 +1245 (EDT)"
+received: "from apache.org (mx4.apache.org [217.197.4.184]) by post.example.fr (Postfix) with ESMTP id 1D94B79AEE for <mller@mail.example.net>; Thu, 9 Jan 2024 16:18:24 -0330"
+received: "from example.org (mx5.eu.example.de [183.62.7.185]) by apache.org (Postfix) with ESMTP id D6BD06A6F4 for <mkowalski@corp.example.co.uk>; wed,24 mar 2024 13:5:47 (comment (nested)) MET"
+return-path: "<nstergaard@corp.example.co.uk>"
+message-id: "<624.20a18428.41314@dev.example.io>"
+in-reply-to: "<629.b2c58947.48190@post.example.fr>"
+references: "<625.659d4579.58150@corp.example.co.uk> <626.5016ba58.25466@apache.org> <627.ac099df7.75063@example.com> <628.2477efc2.37404@corp.example.co.uk> <629.b2c58947.48190@post.example.fr>"
+date: "Mon, 4 Jan 2004 17:48:30 +0000"
+from: "Łukasz Petrov <petrov@eu.example.de>"
+reply-to: "太郎 Taylor <taylor@mail.example.net>"
+to: "\"Nguyen, Fiona\" <fnguyen@corp.example.co.uk>"
+cc: "wilson@example.com (Someone), ustergaard@example.com (Someone)"
+subject: "[PATCH] Connection number in would of certificate"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=us-ascii"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Łukasz Petrov" spec="petrov@eu.example.de"
+reply-to 0 display="太郎 Taylor" spec="taylor@mail.example.net"
+to 0 display="Nguyen, Fiona" spec="fnguyen@corp.example.co.uk"
+cc 0 display="" spec="wilson@example.com"
+cc 1 display="" spec="ustergaard@example.com"
+
+[date]
+raw " Mon, 4 Jan 2004 17:48:30 +0000"
+valid yes
+utc 2004-01-04T17:48:30Z
+offset +0000
+epoch 1073238510
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=752 adler32=22f7f4a6 role=text
+
+[body]
+text 0 chars 752
+| An handler do up ssl you these from me. Review co?perate for ask people
+| in of them filter before some vote the fa?ade any round.
+| 
+| Many he be to was keepalive the part server is with. He by old are take
+| when time where again make module went get two where.
+| 
+| World through this his server than before the her before put be and I
+| why. Long off said he what your cache as long. Us this in too header may
+| build of in! The for word the the you error will cause who.
+| 
+| Large said the that in or hot animal as to bucket I the had? End but in
+| ssl kind only he went out take what house what.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| ??????? Fern?ndez
+html none
+
+[attachments]

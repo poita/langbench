@@ -1,0 +1,20 @@
+each i in range(2) {
+    step {
+        out "out/d{i}.txt"
+        depfile "out/d{i}.d"
+        in "src/m{i}.txt"
+        cmd preprocess()
+    }
+}
+step {
+    out "out/slow.txt"
+    cmd write("slow\n")
+    cost 20
+}
+step {
+    out "out/quick.txt"
+    cmd write("quick\n")
+    cost 1
+}
+phony all = ["out/d0.txt", "out/d1.txt", "out/slow.txt", "out/quick.txt"]
+default "@all"

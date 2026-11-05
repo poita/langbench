@@ -1,0 +1,74 @@
+[message]
+id 0074
+source "mbox:74"
+
+[headers]
+received: "from post.example.fr (mx8.eu.example.de [154.200.87.237]) by post.example.fr (Postfix) with ESMTP id 7D49BF85AF for <dkim@post.example.fr>; Sun, 8 Dec 2025 07:04:25 -0000"
+received: "from dev.example.io (mx3.apache.org [71.225.73.186]) by eu.example.de (Postfix) with ESMTP id D17955DED3 for <svanderberg@lists.example.edu>; Tue, 15 Oct 2012 21:30:00 -0400"
+received: "from example.com (mx6.post.example.fr [76.221.163.63]) by apache.org (Postfix) with ESMTP id 23A8B85754 for <omller@dev.example.io>; Sat Feb 19 11:23:34 2005 -0400"
+received: "from example.org (mx9.example.org [85.222.62.124]) by apache.org (Postfix) with ESMTP id A5CBEC7B1D for <htaylor@dev.example.io>; Sat, 14 Nov 2012 00:36:03 CST (PST)"
+return-path: "<fstergaard.81@apache.org>"
+message-id: "<724.cae3deb2.71308@corp.example.co.uk>"
+in-reply-to: "<730.738647af.4322@eu.example.de>"
+references: "<725.b2560368.13451@mail.example.net> <726.bb7d07d6.96803@lists.example.edu> <727.6e7b9325.72226@mail.example.net> <728.c96542c5.39291@example.org> <729.09f48f2f.83115@eu.example.de> <730.738647af.4322@eu.example.de>"
+date: "Thu, 19 Apr 2005 09:03:46 -0700"
+from: "Fiona Dubois <fdubois@mail.example.net>"
+reply-to: "b@example.com"
+to: "太郎 Østergaard <stergaard.79@dev.example.io>"
+cc: "epapadopoulos@mail.example.net, ewilson@mail.example.net (Erik Wilson)"
+subject: "[VOTE] Through when are was I through how that you men"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_81e3f55dc8377eab033a5bde2831a32c\""
+
+[addresses]
+from 0 display="Fiona Dubois" spec="fdubois@mail.example.net"
+reply-to 0 display="" spec="b@example.com"
+to 0 display="太郎 Østergaard" spec="stergaard.79@dev.example.io"
+cc 0 display="" spec="epapadopoulos@mail.example.net"
+cc 1 display="" spec="ewilson@mail.example.net"
+
+[date]
+raw " Thu, 19 Apr 2005 09:03:46 -0700"
+valid yes
+utc 2005-04-19T16:03:46Z
+offset -0700
+epoch 1113926626
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_81e3f55dc8377eab033a5bde2831a32c" parts=2 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="0000000000006056920fc91b" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=8bit size=418 adler32=8cc49122 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=748 adler32=6cceff57 role=html
+  4 application/pdf cte=base64 disposition=attachment filename="log.pdf" size=739 adler32=61ca67b7 role=attachment
+
+[body]
+text 2 chars 416
+| Does be the have word a. He part from or very what many down your too
+| you live where the he config of a! Them in year as every me were put of
+| we were one the his the some first.
+| 
+| Release Zürich a with only more about have mean say came boy. Was find
+| and number way been also and and some server work or.
+| 
+| Time act there a it in water. At no they them and have mother must the
+| even as the as them.
+| 
+| -- 
+| Jörg Nakamura
+html 3 chars 746
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Does be the have word a. He part from or very what many down your too<br>
+| you live where the he config of a! Them in year as every me were put of<br>
+| we were one the his the some first.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Release Zürich a with only more about have mean say came boy. Was find<br>
+| and number way been also and and some server work or.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Time act there a it in water. At no they them and have mother must the<br>
+| even as the as them.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Jörg Nakamura<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="log.pdf" size=739 adler32=61ca67b7 file=parts/0074/004.bin

@@ -1,0 +1,21 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "anyOf": [
+      {
+        "type": "number"
+      },
+      {}
+    ]
+  },
+  "tests": [
+    {
+      "description": "string is valid",
+      "data": "foo"
+    },
+    {
+      "description": "number is valid",
+      "data": 123
+    }
+  ]
+}

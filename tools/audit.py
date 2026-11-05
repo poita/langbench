@@ -1,0 +1,376 @@
+#!/usr/bin/env python3
+"""Audit a run: what its agents touched and what their implementations depend on.
+
+    tools/audit.py TRANSCRIPTS IMPLS [--forbidden PATH ...] [--json OUT]
+
+TRANSCRIPTS is a run directory (manifest.jsonl and sessions/, as `impl_run.py` writes), an older workflow run's
+transcript directory, or an archive of either (.tar.gz);
+IMPLS is the directory of <rep>/<lang>/<slug> implementations. Reported:
+
+- forbidden-path: a tool call that was not refused naming a forbidden path (the repository, the hidden tests, transcripts, the
+  sandbox outside the task's own workspace) or a reference implementation or test generator anywhere;
+- other-implementation: a tool call naming a file inside another agent's project;
+- blocked-attempt: a tool call naming forbidden paths, every one of which was refused (the sandbox's
+  "Operation not permitted" or a file tool's permission denial); reported, but nothing was read;
+- environment: instruction files (CLAUDE.md, memory) injected into an agent's context;
+- harness-modified (from impl_run.py finish): a test, spec or runner file changed in the sandbox;
+- dependency: a third-party dependency in an implementation's manifest or imports;
+- banned-facility: a standard-library facility that the problem's SPEC.md rules out (a regex engine for
+  regex, a JSON parser for json, an ordered map for ordered-map, ...);
+- build-flags: non-default optimisation settings in the build files.
+
+forbidden-path, other-implementation, environment and harness-modified are integrity findings: the run itself
+is suspect, `impl_run.py finish` will not record it, and the exit status is nonzero. The rest (blocked attempts
+and rule violations by individual agents) are reported as results.
+"""
+import argparse
+import glob
+import json
+import os
+import re
+import sys
+import tarfile
+import tempfile
+
+INTEGRITY = {"forbidden-path", "other-implementation", "environment", "harness-modified"}
+IMPORTS = {
+    "python": re.compile(r"^\s*(?:import\s+([\w.]+(?:\s*,\s*[\w.]+)*)|from\s+([\w.]+)\s+import)", re.M),
+    "go": re.compile(r'^\s*(?:import\s+)?(?:[\w.]+\s+)?"([\w/]+)"\s*$', re.M),
+    "d": re.compile(r"^\s*(?:public\s+|static\s+)*import\s+([\w.]+)", re.M),
+    "cpp": re.compile(r"^\s*#\s*include\s*(<\w+>)", re.M),
+    "rust": re.compile(r"\b(BTreeMap|BTreeSet)\b"),
+}
+# Standard-library facilities by category, as each language names the module, package or header.
+FACILITIES = {
+    "regex": {"python": r"re", "go": r"regexp(/syntax)?", "d": r"std\.regex(\.\w+)*", "cpp": r"<regex>"},
+    "json": {"python": r"json", "go": r"encoding/json", "d": r"std\.json"},
+    "zlib": {"python": r"zlib|gzip", "go": r"compress/\w+", "d": r"std\.zlib"},
+    "hash": {"python": r"hashlib|hmac", "go": r"crypto/\w+", "d": r"std\.digest(\.\w+)*"},
+    "base64": {"python": r"base64|binascii", "go": r"encoding/base64", "d": r"std\.base64"},
+    "bigint": {"python": r"decimal|fractions", "go": r"math/big", "d": r"std\.bigint"},
+    "sql": {"python": r"sqlite3", "go": r"database/sql"},
+    "email": {"python": r"email(\.\w+)*|quopri", "go": r"net/mail|mime(/\w+)?"},
+    "toml": {"python": r"tomllib"},
+    "diff": {"python": r"difflib"},
+    "date": {"python": r"datetime|calendar|zoneinfo", "go": r"time", "d": r"std\.datetime(\.\w+)*"},
+    "xml": {"python": r"xml(\.\w+)*", "go": r"encoding/xml", "d": r"std\.xml"},
+    "ordered": {"cpp": r"<map>|<set>", "rust": r"BTreeMap|BTreeSet", "d": r"std\.container\.rbtree"},
+}
+# The facilities each problem's SPEC.md rules out.
+PROBLEM_FACILITIES = {
+    "regex": ["regex"], "json": ["json"], "jq": ["json"], "jsonschema": ["json", "regex"], "inflate": ["zlib"],
+    "gitrepo": ["zlib", "hash"], "webhooks": ["hash", "base64"], "bigint": ["bigint"], "scheme": ["bigint"],
+    "minisql": ["sql"], "sqlitefile": ["sql"], "mime": ["email", "base64"], "toml": ["toml"], "sitegen": ["toml"],
+    "diff": ["diff"], "rrule": ["date"], "svgraster": ["xml"], "ordered-map": ["ordered"],
+}
+SOURCE_EXT = {"python": (".py",), "go": (".go",), "d": (".d",), "cpp": (".cpp", ".cc", ".cxx", ".hpp", ".h", ".hh"),
+              "rust": (".rs",)}
+ALWAYS_FORBIDDEN = re.compile(r"/reference/|/gen_tests\.py\b|/gen_bench\.py\b|/bench(-long)?/|langbench-hidden")
+SCRATCH_FILE = re.compile(r"\b(scratch/(rep\d+-[a-z]+-[A-Za-z0-9_-]+)/[^\s\"'*;|&]*)")
+PROJECT_FILE = re.compile(r"\b(out/(rep\d+)/([a-z]+)/([A-Za-z0-9_-]+)/[^\s\"'*;|&]+)")
+
+
+def tool_inputs(path):
+    """(tool name, input as text) for every tool call in a transcript."""
+    for line in open(path):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        if e.get("type") != "assistant":
+            continue
+        for c in (e.get("message") or {}).get("content") or []:
+            if isinstance(c, dict) and c.get("type") == "tool_use":
+                yield c.get("name"), json.dumps(c.get("input"))
+
+
+def tool_calls(path):
+    """(tool name, input as text, result as text) for every tool call in a transcript."""
+    calls, results = [], {}
+    for line in open(path):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        for c in (e.get("message") or {}).get("content") or [] if isinstance(e, dict) else []:
+            if not isinstance(c, dict):
+                continue
+            if c.get("type") == "tool_use" and e.get("type") == "assistant":
+                calls.append((c.get("id"), c.get("name"), json.dumps(c.get("input"))))
+            elif c.get("type") == "tool_result":
+                r = c.get("content")
+                results[c.get("tool_use_id")] = r if isinstance(r, str) else " ".join(
+                    x.get("text", "") for x in r or [] if isinstance(x, dict))
+    return [(name, text, results.get(tid, "")) for tid, name, text in calls]
+
+
+PATH_TOKEN = re.compile(r"/[^\s\"';|&<>()]+")
+REFUSED = re.compile(r"haven't granted it|denied by your permission|Permission to use \w+ has been denied")
+
+
+def refused(name, text, result, forbidden):
+    """Whether every forbidden path a tool call names was refused: the file tools' permission denial, or
+    the OS sandbox's "Operation not permitted" for each such path in a shell command."""
+    if name != "Bash":
+        return bool(REFUSED.search(result))
+    tokens = {t.rstrip("/\\") for t in PATH_TOKEN.findall(text) if any(t.startswith(p) for p in forbidden)}
+    return bool(tokens) and all(f"{t}: Operation not permitted" in result for t in tokens)
+
+
+def injected_files(path):
+    for line in open(path):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        a = e.get("attachment") or {}
+        if a.get("type") == "instructions":
+            for f in a.get("files") or []:
+                yield f.get("path")
+
+
+CLAUDE_TEMP = re.compile(r"/tmp/claude-\d+/(-[A-Za-z0-9-]+)/")
+
+
+def scan_agent(label, transcripts, forbidden, allowed=(), own_slug=None):
+    """Findings for one implementation task (label rep:lang:slug) from its transcripts. Text matching an
+    allowed pattern (such as the task's own spilled tool outputs) is not checked. With own_slug (the task's
+    transcript directory name), naming another project's directory under Claude Code's temporary directory,
+    where sessions keep their background-task outputs, is forbidden."""
+    rep, lang, slug = label.split(":")
+    findings = []
+    for transcript in transcripts:
+        for name, text, result in tool_calls(transcript):
+            for pattern in allowed:
+                text = re.sub(pattern, "<allowed>/", text)
+            foreign_temp = own_slug and any(m.group(1) != own_slug for m in CLAUDE_TEMP.finditer(text))
+            named = [p for p in forbidden if p in text]
+            if named or ALWAYS_FORBIDDEN.search(text) or foreign_temp:
+                blocked = named and not ALWAYS_FORBIDDEN.search(text) and not foreign_temp \
+                    and refused(name, text, result, named)
+                findings.append({"agent": label, "kind": "blocked-attempt" if blocked else "forbidden-path",
+                                 "detail": f"{name}: {text[:300]}"})
+            for m in PROJECT_FILE.finditer(text):
+                if (m.group(2), m.group(3), m.group(4)) != (rep, lang, slug):
+                    findings.append({"agent": label, "kind": "other-implementation", "detail": m.group(1)})
+            for m in SCRATCH_FILE.finditer(text):
+                if m.group(2) != f"{rep}-{lang}-{slug}":
+                    findings.append({"agent": label, "kind": "other-implementation", "detail": m.group(1)})
+        for p in sorted(set(injected_files(transcript))):
+            findings.append({"agent": label, "kind": "environment", "detail": f"instructions injected: {p}"})
+    return findings
+
+
+def scan_transcripts(wfdir, forbidden, allowed=()):
+    """Findings for every implementation agent of a workflow run (older runs: agent-*.jsonl with labels in
+    agent-*.meta.json)."""
+    findings = []
+    for meta in sorted(glob.glob(os.path.join(wfdir, "agent-*.meta.json"))):
+        label = json.load(open(meta)).get("description", "")
+        if len(label.split(":")) == 3:
+            findings += scan_agent(label, [meta[:-len(".meta.json")] + ".jsonl"], forbidden, allowed)
+    return findings
+
+
+def session_transcripts(rdir, sid):
+    """A session's main transcript and its subagents' transcripts, in a run directory's sessions/."""
+    main = os.path.join(rdir, "sessions", sid + ".jsonl")
+    subs = sorted(glob.glob(os.path.join(rdir, "sessions", sid, "subagents", "**", "*.jsonl"), recursive=True))
+    return ([main] if os.path.isfile(main) else []) + subs
+
+
+def scan_run(rdir, forbidden, own_project=None, workspaces=None, projects=None):
+    """Findings for every attempt of a run made by impl_run.py launch (manifest.jsonl plus sessions/).
+
+    With workspaces ({label: workspace path}) and projects (Claude Code's transcript root), a session may name
+    its own workspace and its own spilled tool outputs (<projects>/<workspace>/<session>/tool-results/);
+    otherwise own_project gives the transcript directory whose tool-results it may name."""
+    findings = []
+    for e in (json.loads(line) for line in open(os.path.join(rdir, "manifest.jsonl"))):
+        sid = e["session_id"]
+        allowed, own_slug = [], None
+        if workspaces:
+            ws = workspaces[e["label"]]
+            own_slug = re.sub(r"[^A-Za-z0-9]", "-", ws)
+            own_project = os.path.join(projects, re.sub(r"[^A-Za-z0-9]", "-", ws))
+            allowed.append(re.escape(ws) + r"(?![\w.-])")
+        if own_project:
+            allowed.insert(0, re.escape(os.path.join(own_project, sid, "tool-results")) + "/")
+        findings += scan_agent(e["label"], session_transcripts(rdir, sid), forbidden, allowed, own_slug)
+    return findings
+
+
+def scan_any(path, forbidden, allowed=(), own_project=None):
+    if os.path.isfile(os.path.join(path, "manifest.jsonl")):
+        return scan_run(path, forbidden, own_project)
+    return scan_transcripts(path, forbidden, allowed)
+
+
+def cargo_deps(text):
+    out, section = [], None
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("["):
+            section = s.strip("[]").strip()
+        elif s and not s.startswith("#") and section and re.fullmatch(r"(dev-|build-)?dependencies", section):
+            out.append(s.split("=")[0].strip())
+    return out
+
+
+def go_requires(text):
+    out, block = [], False
+    for line in text.splitlines():
+        s = line.strip()
+        if s.startswith("require ("):
+            block = True
+        elif block and s == ")":
+            block = False
+        elif block and s:
+            out.append(s.split()[0])
+        elif s.startswith("require "):
+            out.append(s.split()[1])
+    return out
+
+
+def python_imports(root):
+    """{module: first file importing it} for absolute imports in the project's Python files."""
+    found = {}
+    for path in sorted(glob.glob(os.path.join(root, "**", "*.py"), recursive=True)):
+        for line in open(path, errors="replace"):
+            m = re.match(r"\s*(?:import\s+([\w.]+(?:\s*,\s*[\w.]+)*)|from\s+([\w.]+)\s+import)", line)
+            if not m:
+                continue
+            names = [n.strip().split(" ")[0] for n in m.group(1).split(",")] if m.group(1) else [m.group(2)]
+            for n in names:
+                if n and not n.startswith("."):
+                    found.setdefault(n.split(".")[0], os.path.relpath(path, root))
+    return found
+
+
+def local_python_modules(root):
+    names = set()
+    for path in glob.glob(os.path.join(root, "**", "*.py"), recursive=True):
+        names.add(os.path.splitext(os.path.basename(path))[0])
+        names.update(os.path.relpath(path, root).split(os.sep)[:-1])
+    return names
+
+
+def scan_dependencies(project, lang):
+    """Third-party dependencies of one implementation project."""
+    deps = []
+
+    def read(rel):
+        p = os.path.join(project, rel)
+        return open(p, errors="replace").read() if os.path.isfile(p) else ""
+
+    if lang == "rust":
+        deps = [f"cargo: {d}" for d in cargo_deps(read("Cargo.toml"))]
+    elif lang == "go":
+        deps = [f"go.mod: {d}" for d in go_requires(read("go.mod"))]
+    elif lang == "d":
+        if read("dub.json"):
+            deps = [f"dub: {d}" for d in json.loads(read("dub.json")).get("dependencies", {})]
+        deps += [f"dub: {m}" for m in re.findall(r'^\s*dependency\s+"([^"]+)"', read("dub.sdl"), re.M)]
+    elif lang == "cpp":
+        text = "\n".join(open(p, errors="replace").read()
+                         for p in glob.glob(os.path.join(project, "**", "CMakeLists.txt"), recursive=True))
+        deps = [f"cmake: {m}" for m in sorted(set(re.findall(r"\b(FetchContent_Declare|ExternalProject_Add)\b", text)))]
+        deps += [f"cmake: find_package({m})" for m in re.findall(r"find_package\(\s*(\w+)", text) if m != "Threads"]
+    elif lang == "python":
+        local = local_python_modules(project)
+        deps = [f"{m} ({f})" for m, f in python_imports(project).items()
+                if m not in sys.stdlib_module_names and m not in local and m != "__future__"]
+    return [{"kind": "dependency", "detail": d} for d in deps]
+
+
+def scan_banned_facilities_text(lang, text, slug):
+    """Names of the standard-library facilities a source file imports that this problem's SPEC.md rules out,
+    in order."""
+    pattern = "|".join(FACILITIES[c][lang] for c in PROBLEM_FACILITIES.get(slug, []) if lang in FACILITIES[c])
+    if not pattern or lang not in IMPORTS:
+        return []
+    banned = re.compile(rf"(?:{pattern})$")
+    names = []
+    for m in IMPORTS[lang].finditer(text):
+        groups = [g for g in m.groups() if g]
+        for n in (x.strip().split(" ")[0] for g in groups for x in g.split(",")):
+            if n and banned.match(n) and n not in names:
+                names.append(n)
+    return names
+
+
+def scan_banned_facilities(project, lang, slug):
+    found = []
+    for path in sorted(glob.glob(os.path.join(project, "**", "*"), recursive=True)):
+        if os.path.isfile(path) and path.endswith(SOURCE_EXT.get(lang, ())):
+            for n in scan_banned_facilities_text(lang, open(path, errors="replace").read(), slug):
+                found.append({"kind": "banned-facility", "detail": f"{n} ({os.path.relpath(path, project)})"})
+    return found
+
+
+BUILD_FILES = ("CMakeLists.txt", "*.cmake", "Cargo.toml", ".cargo/config.toml", ".cargo/config", "dub.json",
+               "dub.sdl", "build.sh", "run.sh", "go.mod", "Makefile", "pyproject.toml")
+OPT_FLAGS = re.compile(r"-march=\S+|-mcpu=\S+|-mtune=\S+|-flto\S*|-fprofile-\S+|-ffast-math|-Ofast|"
+                       r"target-cpu=\S+|\blto\s*=\s*\S+|codegen-units\s*=\s*\d+|-gcflags\S*|-pgo=\S+|"
+                       r"--enable-cross-module-inlining|-fsave-optimization-record")
+
+
+def scan_build_flags(project, lang):
+    """Non-default optimisation settings in an implementation's build files: target-specific code generation,
+    link-time or profile-guided optimisation, fast-math, or compiler flags beyond the build tool's release
+    defaults."""
+    found = []
+    for pattern in BUILD_FILES:
+        for path in sorted(glob.glob(os.path.join(project, "**", pattern), recursive=True)):
+            rel = os.path.relpath(path, project)
+            if "/target/" in f"/{rel}" or "/build/" in f"/{rel}":
+                continue
+            for m in OPT_FLAGS.finditer(open(path, errors="replace").read()):
+                found.append({"kind": "build-flags", "detail": f"{m.group(0)} ({rel})"})
+    if lang == "go" and glob.glob(os.path.join(project, "**", "default.pgo"), recursive=True):
+        found.append({"kind": "build-flags", "detail": "default.pgo (profile-guided optimisation)"})
+    return found
+
+
+def scan_impls(impls):
+    findings = []
+    for project in sorted(glob.glob(os.path.join(impls, "rep*", "*", "*"))):
+        rep, lang, slug = project.split(os.sep)[-3:]
+        for f in scan_dependencies(project, lang) + scan_banned_facilities(project, lang, slug) + scan_build_flags(project, lang):
+            findings.append({"agent": f"{rep}:{lang}:{slug}", **f})
+    return findings
+
+
+def audit(transcripts, impls, forbidden, allowed=(), own_project=None):
+    """Findings for a run's transcripts (a run directory, workflow directory or .tar.gz of either) and its
+    implementations."""
+    if transcripts.endswith(".tar.gz"):
+        with tempfile.TemporaryDirectory() as d:
+            with tarfile.open(transcripts) as t:
+                t.extractall(d, filter="data")
+            (wf,) = [os.path.join(d, n) for n in os.listdir(d)]
+            findings = scan_any(wf, forbidden, allowed, own_project)
+    else:
+        findings = scan_any(transcripts, forbidden, allowed, own_project)
+    return findings + scan_impls(impls)
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("transcripts")
+    ap.add_argument("impls")
+    ap.add_argument("--forbidden", nargs="*", default=[], help="absolute paths agents must not name")
+    ap.add_argument("--json", help="also write the findings here")
+    a = ap.parse_args()
+    findings = audit(a.transcripts, a.impls, a.forbidden)
+    for f in findings:
+        print(f"{f['kind']:20s} {f['agent']:28s} {f['detail'][:160]}")
+    print(f"{len(findings)} findings")
+    if a.json:
+        with open(a.json, "w") as f:
+            json.dump(findings, f, indent=1)
+    sys.exit(1 if any(f["kind"] in INTEGRITY for f in findings) else 0)
+
+
+if __name__ == "__main__":
+    main()

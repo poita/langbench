@@ -1,0 +1,36 @@
+[message]
+id 0019
+source "raw_email_with_partially_quoted_subject.eml"
+
+[headers]
+mime-version: "1.0 (Apple Message framework v622)"
+content-transfer-encoding: "base64"
+message-id: "<d3b8cf8e49f04480850c28713a1f473e@37signals.com>"
+content-type: "text/plain; charset=EUC-KR; format=flowed"
+to: "jamis@37signals.com"
+from: "Jamis Buck <jamis@37signals.com>"
+subject: "Re: Test: \"漢字\" mid \"漢字\" tail"
+date: "Mon, 2 May 2005 16:07:05 -0600"
+
+[addresses]
+from 0 display="Jamis Buck" spec="jamis@37signals.com"
+to 0 display="" spec="jamis@37signals.com"
+
+[date]
+raw " Mon, 2 May 2005 16:07:05 -0600"
+valid yes
+utc 2005-05-02T22:07:05Z
+offset -0600
+epoch 1115071625
+
+[structure]
+0 text/plain charset=euc-kr cte=base64 size=72 adler32=b8192c5b role=text
+
+[body]
+text 0 chars 72
+| ´ëºÎºÐÀÇ ¸¶Âù°¡Áö·Î, ¿ì¸®´Â ÇÏ³ª´ÔÀ» ¹Ï½À´Ï´Ù.\r
+| \r
+| Á¦ ÀÌ¸§Àº JamisÀÔ´Ï´Ù.
+html none
+
+[attachments]

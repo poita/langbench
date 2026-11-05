@@ -1,0 +1,71 @@
+[message]
+id 0005
+source "raw_email2.eml"
+
+[headers]
+return-path: "<xxxxxxxxx.xxxxxxx@gmail.com>"
+x-original-to: "xxxxx@xxxxx.xxxxxxxxx.com"
+delivered-to: "xxxxx@xxxxx.xxxxxxxxx.com"
+received: "from localhost (localhost [127.0.0.1]) by xxxxx.xxxxxxxxx.com (Postfix) with ESMTP id 06C9DA98D for <xxxxx@xxxxx.xxxxxxxxx.com>; Sun, 8 May 2005 19:09:13 +0000 (GMT)"
+received: "from xxxxx.xxxxxxxxx.com ([127.0.0.1]) by localhost (xxxxx.xxxxxxxxx.com [127.0.0.1]) (amavisd-new, port 10024) with LMTP id 88783-08 for <xxxxx@xxxxx.xxxxxxxxx.com>; Sun, 8 May 2005 19:09:12 +0000 (GMT)"
+received: "from xxxxxxx.xxxxxxxxx.com (xxxxxxx.xxxxxxxxx.com [69.36.39.150]) by xxxxx.xxxxxxxxx.com (Postfix) with ESMTP id 10D8BA960 for <xxxxx@xxxxxxxxx.org>; Sun, 8 May 2005 19:09:12 +0000 (GMT)"
+received: "from zproxy.gmail.com (zproxy.gmail.com [64.233.162.199]) by xxxxxxx.xxxxxxxxx.com (Postfix) with ESMTP id 9EBC4148EAB for <xxxxx@xxxxxxxxx.com>; Sun, 8 May 2005 14:09:11 -0500 (CDT)"
+received: "by zproxy.gmail.com with SMTP id 13so1233405nzp for <xxxxx@xxxxxxxxx.com>; Sun, 08 May 2005 12:09:11 -0700 (PDT)"
+domainkey-signature: "a=rsa-sha1; q=dns; c=nofws;        s=beta; d=gmail.com;        h=received:message-id:date:from:reply-to:to:subject:in-reply-to:mime-version:content-type:references;        b=cid1mzGEFa3gtRa06oSrrEYfKca2CTKu9sLMkWxjbvCsWMtp9RGEILjUz0L5RySdH5iO661LyNUoHRFQIa57bylAbXM3g2DTEIIKmuASDG3x3rIQ4sHAKpNxP7Pul+mgTaOKBv+spcH7af++QEJ36gHFXD2O/kx9RePs3JNf/K8="
+received: "by 10.36.10.16 with SMTP id 16mr1012493nzj; Sun, 08 May 2005 12:09:11 -0700 (PDT)"
+received: "by 10.36.5.10 with HTTP; Sun, 8 May 2005 12:09:11 -0700 (PDT)"
+message-id: "<e85734b90505081209eaaa17b@mail.gmail.com>"
+date: "Sun, 8 May 2005 14:09:11 -0500"
+from: "xxxxxxxxx xxxxxxx <xxxxxxxxx.xxxxxxx@gmail.com>"
+reply-to: "xxxxxxxxx xxxxxxx <xxxxxxxxx.xxxxxxx@gmail.com>"
+to: "xxxxx xxxx <xxxxx@xxxxxxxxx.com>"
+subject: "Fwd: Signed email causes file attachments"
+in-reply-to: "<F6E2D0B4-CC35-4A91-BA4C-C7C712B10C13@mac.com>"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_5028_7368284.1115579351471\""
+references: "<F6E2D0B4-CC35-4A91-BA4C-C7C712B10C13@mac.com>"
+
+[addresses]
+from 0 display="xxxxxxxxx xxxxxxx" spec="xxxxxxxxx.xxxxxxx@gmail.com"
+reply-to 0 display="xxxxxxxxx xxxxxxx" spec="xxxxxxxxx.xxxxxxx@gmail.com"
+to 0 display="xxxxx xxxx" spec="xxxxx@xxxxxxxxx.com"
+
+[date]
+raw " Sun, 8 May 2005 14:09:11 -0500"
+valid yes
+utc 2005-05-08T19:09:11Z
+offset -0500
+epoch 1115579351
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_5028_7368284.1115579351471" parts=2 preamble=0 epilogue=1
+  1 text/plain charset=iso-8859-1 cte=quoted-printable disposition=inline size=664 adler32=dae8e520 role=text
+  2 application/pkcs7-signature cte=base64 disposition=attachment filename="smime.p7s" size=2361 adler32=45cf21c4 role=attachment
+
+[body]
+text 1 chars 664
+| We should not include these files or vcards as attachments.
+| 
+| ---------- Forwarded message ----------
+| From: xxxxx xxxxxx <xxxxxxxx@xxx.com>
+| Date: May 8, 2005 1:17 PM
+| Subject: Signed email causes file attachments
+| To: xxxxxxx@xxxxxxxxxx.com
+| 
+| 
+| Hi,
+| 
+| Just started to use my xxxxxxxx account (to set-up a GTD system,
+| natch) and noticed that when I send content via email the signature/
+| certificate from my email account gets added as a file (e.g.
+| \"smime.p7s\").
+| 
+| Obviously I can uncheck the signature option in the Mail compose
+| window but how often will I remember to do that?
+| 
+| Is there any way these kind of files could be ignored, e.g. via some
+| sort of exclusions list?
+html none
+
+[attachments]
+2 type=application/pkcs7-signature filename="smime.p7s" size=2361 adler32=45cf21c4 file=parts/0005/002.bin

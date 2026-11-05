@@ -1,0 +1,7 @@
+.dub/
+jtemplate
+*.o
+*.a
+dub.selections.json
+__test__*
+jtemplate-test-*

@@ -1,0 +1,43 @@
+build
+edit main.kiln
+phony a = []
+phony a = ["bad path"]
+---
+build
+edit main.kiln
+phony a = []
+phony a = ["ok.txt"]
+---
+build
+edit main.kiln
+let x = 5["a"]
+---
+build
+edit main.kiln
+let x = "a" + [1]
+---
+build
+edit main.kiln
+let x = [1] ++ "a"
+---
+build
+edit main.kiln
+let x = 1
+let x = y
+---
+build
+edit main.kiln
+step {
+    out ["out/a.txt", 1, [2]]
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+let x = [1][true]
+---
+build
+edit main.kiln
+let x = -"a" ~ 1
+---
+build

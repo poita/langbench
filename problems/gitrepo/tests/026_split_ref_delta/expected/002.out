@@ -1,0 +1,243 @@
+6f26484ce4ea037dbcfe07ba558f9c150c6feb19 Dominic Tarr 1504712879 Merge pull request #28 from EdwardBetts/spelling
+d69471390bffd2cc66fee9d0cb2e075a58836901 Edward Betts 1504293158 correct spelling mistake
+b567eb4768dfb1d2153e19702438626059ac9f37 Dominic Tarr 1501747413 1.0.1
+13b21fc2dfb5ef6590f142d1001f726f78febfd1 Dominic Tarr 1501746891 return on error
+17fb0f0b231e30d5465d399ff683102cdcb9274d Dominic Tarr 1475971742 Merge pull request #25 from frantz/fix-typo-readme
+4daa5672a0e5599e6f72ff88362aa96ec700403c Frantz Gauthier 1475960744 Fix typo in readme: `Array#split` > `String#split`
+953dc14e487d9d3a2bc65b755fb8921153570e47 Dominic Tarr 1464812152 Merge pull request #23 from wreckah/master
+47f138046bedda17f0d16d29e033acf9a05a3826 Alexander Pokatilov 1464794521 Fix misspelling
+290c796dfc609910eddb0f2452abd877de24b8c2 Dominic Tarr 1456031745 Merge pull request #21 from evanp/patch-1
+31ac74b01fdd094234a23572ca210382fd25d2ef Evan Prodromou 1455206146 Fix spelling errors in readme
+08b99aafdd40ec84aa88ac29eb808c70a2ecb549 Dominic Tarr 1432487151 1.0.0
+68577d2162b439b35a9a829571310c376a4c2590 Jason Campbell 1430874136 Change options.ignoreTrailing based on PR feedback.
+a344a088b426e2c44d58cf9deeea86ee4ab40687 Jason Campbell 1430869976 Adds `options.ignoreTrailing` which defaults to `false`.
+f150beaf6b4b4f19b44290f58d220599d3dbc8ff Dominic Tarr 1422871635 drop support for 0.8
+3fe392ef2aabce9db7abe8185ec48389ae224883 Dominic Tarr 1422871343 0.3.3
+8d3adea2963a611c3fce4a0c0562d049a8105db8 Dominic Tarr 1422871336 update deps
+cefd735750212988960cb9b56210fcfabae020b7 Tejesh Mehta 1422737250 patch: properly handle empty string chunks
+36b59384a9f4a6c4363ceae47b5ded1be988c700 Tejesh Mehta 1422737242 broken test: split adds 'undefined' when handling '' chunks
+d2ae5e25453c89181c7e53527f08eef416c5fdba Dominic Tarr 1417529136 0.3.2
+2405e8e9f36f4f48a82bb6d71486a929c4de567f Dominic Tarr 1417529131 document how to keep the separators
+93d5c8a04da1ca4acf040c1f08dc5f4316e09711 Dominic Tarr 1415032764 0.3.1
+34cff9d3c6fb18bddf77a51508cb185a9a366134 Dominic Tarr 1415032750 Merge pull request #10 from michaelsanford/master
+f07ada2b36bfb338917dafb257f8798bce656a96 Michael Sanford 1415032671 Add MIT license to package.json
+a0f053f20639527742da5928d7718296e44d4f24 Dominic Tarr 1391019115 0.3.0
+31168e4d945e0d71539dc71db6c738c328b996b5 Dominic Tarr 1391019101 explain what the feature does
+f20ec314a5cbe9616f27038e90ffb810e5a18b3a Ryan Phillips 1391016361 documentation tweaks and change to maxLength
+078f012a08254a40e88276f24fb194f1d1d39ccd Ryan Phillips 1391009010 camelCase and simplify the options logic
+fd214613a6b57faf10852e802497add5854044c3 Ryan Phillips 1390940947 add options and maximum_limit
+fa85b7562ce88eeae69e8c0932eae1ece7b8b4b5 Dominic Tarr 1375865311 0.2.10
+96f6327bb1f2ef8cb4eed9cecd39bedf7781050a Dominic Tarr 1375865306 travis badge
+500591040804c4cf3e889dc222735fb0087c3fd2 Dominic Tarr 1375865158 0.2.9
+a4b1e6516eb065576ef48790d0a4886ee12346d9 Dominic Tarr 1375865146 test on 0.8 and 0.10
+b267621443e8827404c0d63e903e0bd041eec5c2 Dominic Tarr 1375865125 work on 0.8
+3c06fa3e23e1a9480ed588a48a805b9c4b48df62 Dominic Tarr 1375805117 0.2.8
+4882f73adf3eec41b911d89d1c265387f6ea6eb7 Dominic Tarr 1375805115 check that utf8 splits the same as String#split
+1d5beb592c5671188849cbf1019fe5ac1291884c Dominic Tarr 1375805027 0.2.7
+56e6dedc3fbb5874694c8308672748ae2882ff23 Dominic Tarr 1375805023 handle utf8 characters
+623c9d4fbbb2abcf7d98ccdfc0db27e697e0fff8 Dominic Tarr 1375804537 Merge pull request #6 from mkronschnabl/master
+f17c246045d0daa27162172d23111bab7f129a7a mkronschnabl 1375802890 test for problem with partitioned unicode characters added
+ec5a64ae5a1bef5c8e847075fe8b5bb115d5e3bd Dominic Tarr 1373526717 0.2.6
+8b7576f810b659b2f41e53606a6bc232a18b4828 Dominic Tarr 1373526709 JSON example
+87ae61c83c45402dbc36fdfb1493edabe79f42cd Dominic Tarr 1373526413 Merge pull request #4 from substack/mapper-try-catch
+e3dffea62d1146dd35f708bd28492abc9d9b0056 James Halliday 1373526105 another passing test for trailing chunks
+7e8e4307ac46d98739a9d29cc6516305747c41ff James Halliday 1373526030 try/catch around the mapper to fix the test
+e31b46917779b917ab4be21c14ef17faa4cd3bf8 James Halliday 1373526014 fix the test to write a newline so that the error actually triggers, check more things
+829176733c5e97e4a3eadc96246eeffd0f624a80 James Halliday 1373525746 failing test for wrapping the mapper function in an exception
+9f1be11c53e8368327326f946ae1db526c35ac55 Dominic Tarr 1366906695 0.2.5
+d5125c3bf474527fc9e9a21ca2e66ab0ad2c2ed1 Dominic Tarr 1366906690 do not fail to map the trailing line (after the last newline!)
+2b61f042d667b898dac893f9767fb3faba0c5d0a Dominic Tarr 1365780424 0.2.4
+6aac2ea3eb739fe846913931c02d0abb25c8cab6 Dominic Tarr 1365780362 Merge pull request #2 from tellnes/matcher
+221a13a8d41dca13eda11a194e01009c11c7864f Dominic Tarr 1365670699 0.2.3
+90fc0bfc1883b441efb83a6a314dace0f835feae Dominic Tarr 1365670695 fix example
+f9651fd92e5d7a43be161db9fb353f740a41383b Dominic Tarr 1364038046 0.2.2
+078cfb4213c43f106fc439fb4358f95bef3a8bf6 Dominic Tarr 1364038043 fix bug with empty lines at end (where last char is a \n)
+002e45479d2b9b744cffe08baeb27a90785ae688 Dominic Tarr 1360884030 0.2.1
+c9c98e724a290dcecba69c53fe17ada486b1bc92 Christian Tellnes 1360326318 change default split matcher to `/\r?\n/`
+658912074385c7ef4d8f106ea41eb1a16c20986b Dominic Tarr 1360048576 0.2.0
+bc2447e8ddf280dacc3715e92a7fc4b35bb012f4 Dominic Tarr 1360048568 pausable
+a1e520d38a7cebcaa027ccd093a778f820fea3de Dominic Tarr 1360048559 use through@2
+ec651154c5195cbf3a84dcdc5ff5a41f7e1239f5 Dominic Tarr 1358899735 0.1.2
+fab5d7136fec0de1b6a892518d34971414242698 Dominic Tarr 1358899711 Merge pull request #1 from substack/master
+790244f5a9d2bf4f87c0533889636d7b26aa567e James Halliday 1358837224 for loop instead of forEach for ie<9
+f27a198bfe683aa8a37ebf70bd22ea783da6b778 Dominic Tarr 1357467962 0.1.1
+9147df168fb479de6cd89dbe6e2df90c31855c78 Dominic Tarr 1357467960 update through
+02446e6b078dec418c950652c06ddf1fd05118ba Dominic Tarr 1346337467 0.1.0
+7e18f666b7ebc9b7fef46e376b02451fb1c882b8 Dominic Tarr 1346337462 take mapper function
+8b6462488901228ee6e50914df48db607fb0ef26 Dominic Tarr 1346337438 split takes a mapper function.
+ab37c04402a00c57dd207839ab1f1879ab0a5450 Dominic Tarr 1346336497 remove last traces of event-stream
+4094612b8a8baee123aed5308170be70baa9aac4 Dominic Tarr 1346336397 refactor out of event-stream
+473d5a3a42c866053774646a7ca5b31b11d1cd49 Dominic Tarr 1345405466 3.0.2
+fbcac0600e94e6d90e0098a51a7cec373784dd01 Dominic Tarr 1345405458 use updated duplexer
+25feba33bff4298f2069c59508e94763d46fb721 Dominic Tarr 1345299473 3.0.1
+6c82f494025906bba755c323afd53eb2ee244c8e Dominic Tarr 1345299459 fix test for pause
+b19d3300a0f82e9172d057d6f2dff63c9df3f296 Dominic Tarr 1345299260 update pause-stream
+fe0d6350b50386d3ad62414167daa30b31032cce Dominic Tarr 1345297129 3.0.0
+95cdfbc2c53c20cac1e013f2f49883e0a33c3fd5 Dominic Tarr 1345297120 depend on pause-stream
+12cf43da2b93162ac85b2520580ab909968f10f9 Dominic Tarr 1345297109 use pause instead of gate
+f7766dc5ea629cbda9b8be670672879f7a17a04c Dominic Tarr 1345296930 use pause-stream instead of gate
+284b2097d035b72169f23f871b4da47e91af8370 Dominic Tarr 1345296708 Merge branch 'patch-5' of git://github.com/Raynos/event-stream
+ea32905d4cc346ba5b24f52371d85ab317e49d7e Dominic Tarr 1345296609 Merge branch 'patch-2' of git://github.com/Raynos/event-stream
+a8874b329621c83d140b64ffcfef4ee7566f6e0f Dominic Tarr 1345295435 2.2.3
+53c59a38da9ea58dc73085268c780234149b43c8 Dominic Tarr 1345295431 refactor out map
+9bb9c4537ee707081f7f68178dbec6b90acdd780 Dominic Tarr 1345033561 2.2.2
+2569f370f289f35a7b02160316202d87528472ca Dominic Tarr 1345033555 require("buffer") so that it works browserify
+216032cae1b4b96e08d297f28272f6365639d077 Dominic Tarr 1344908476 Merge branch 'patch-3' of git://github.com/Raynos/event-stream
+5d14bf6024ea527c3a8ff4426b6fbfc36d4465d4 Raynos 1344751267 deprecate es.gate
+4f59ed1c48c9bd6a7d4aa8a2f8757332c94253bc Raynos 1344751132 cleaned up dead code
+c6d6bcf4856b25c717b6bd583a195ea729072901 Raynos 1344750549 cleanup
+acb2f1f6b307eeed35bb58a99ae6c5291d7f71e3 Dominic Tarr 1344601873 2.2.1
+ff6192ad6c28184d1cc58acf0ec07456f250cc60 Raynos 1344578829 deprecate es.pipeable
+a5708529cacd0828271c8632092bd1877882d3e8 Raynos 1344571289 use duplexer
+0e2ddc0e081a88319bdd06ba751cc1b13ddcfdbd Dominic Tarr 1344351144 2.2.0
+5a7f395e54f5a338bfdda9ddb0bb6bb4ba345e8b Dominic Tarr 1344351135 document pipeline alias for connect
+bd944da653f2919a80b010fb7a3b52c58a6a56a2 Dominic Tarr 1344350855 add alias pipeline = connect, and depreciation warning for pipeable
+2492efaf24cda3ec5dcee700c25b8d1ecf8897c1 Dominic Tarr 1344085159 2.1.9
+771d1eb31a720c444e9959eb4a40f888e516f81d Dominic Tarr 1344085155 handle buffers in stringify
+9d7211c0eeeb251f69cd41fb4945199e410e1506 Dominic Tarr 1344085131 test buffers into stringify
+07f6098f437eea7a068ba86190147e65b6df62bc Dominic Tarr 1343641279 comment about split for parse
+5c52712610577fb996fc79ef3e2217df9340abb3 Dominic Tarr 1343039752 2.1.8
+f685002cf7bec8e5c658efaf50a1421925c69ae1 Dominic Tarr 1343039747 parse should ignore lines that where only whitespace
+f0fce8fc27813a1d97512947efcbe4a0a3b4a6de Dominic Tarr 1342716720 2.1.7
+9bf5f7982c6a5497e1dcf2efa90b99be40049af6 Dominic Tarr 1342716700 Merge branch 'patch-1' of git://github.com/Raynos/event-stream
+00ffe890282484fda27935703a79b2c8b9ff3580 Raynos 1342651906 Support IE9
+3fa5f0cf77c088ac0f0cc2d385cf78a445ae5d74 Dominic Tarr 1342640828 document parse and stringify
+15aa6e7a9f473167e931a20837396220e60a2711 Dominic Tarr 1342091945 2.1.6
+4261a59cd955fdb29aeb5d3704f7046bd5be5e3a Dominic Tarr 1342091939 precise version for through
+cbb2edee757b0b33f480823edc69b5a505485109 Dominic Tarr 1342008334 2.1.5
+296ced35f24260359105742b3feaa5b3b297b54c Dominic Tarr 1342008312 tighten implementation to stream-spec
+757fd8fc62f67b0b4850dfd2111f5ead54c0c80e Dominic Tarr 1342008291 get the last one
+b3f8729dd856c741f9839b272b84721f3b9b19a5 Dominic Tarr 1342008238 update simple-map to use new spec api
+e74a89312efb61d65ef81aa57c0de3fb4386bb65 Dominic Tarr 1342007954 update stream-spec
+77505fddac8dfaeb3b6d7ae35117026e279732bf Dominic Tarr 1341421939 2.1.4
+c7c46ee53f2b976477fbdfe9ed0c6fa1f05de23a Dominic Tarr 1341421929 oops, I mean ~0.1
+fc6511b37a32580a9b701a8be698cf800ef7d0a3 Dominic Tarr 1341421773 update range for stream-spec
+fd1beae303c286230e7941695e173409b5c7f560 Dominic Tarr 1341419467 2.1.3
+6dd3a903c248f1e1737975c3f3ec387f63bda4e6 Dominic Tarr 1341419451 the more tests the merrierer
+a95a1142a1cd85b1820319f87319f75e2ef7d364 Dominic Tarr 1341419394 refactor out through, and from
+68ebbe48327b78a849f94e3623dd377a2502b7e5 Dominic Tarr 1341419329 refactor tests
+7e72f8066e0751c3abf52e92c5feb5c98192dac4 Dominic Tarr 1341059999 2.1.2
+45dd6866eee2a8953dabd2e78243ff38a6a36648 Dominic Tarr 1341059995 update macgyver
+5fb29332f803dca8b70aeb91cf214b357978ac93 Dominic Tarr 1341059044 tidy up a little
+3f4f5cb57fb61144751ab5fe643b8974ab9007aa Dominic Tarr 1341059004 executable spec as a test
+f4abcb39661b891e35bd4c7118d0ce8891f3b2af Dominic Tarr 1341058981 use macgyver for tests
+8a16cab3b22ca70b6d9b7422396a201a46390c8d Dominic Tarr 1340904465 2.1.1
+2132e75243da96a380a9392d8e8d30ade5432d38 Dominic Tarr 1340904406 found some bugs! fixed them
+1466487f3d76392b2b11b18ac144e347a3032dcc Dominic Tarr 1340904386 experimenting with new test styles
+3b9fc1a1f1c2e4dc44d944877d13354d10d88606 Dominic Tarr 1340904351 use macgyver
+a43cdb193e71115ccc909c8052107d9e776243a2 Dominic Tarr 1340714693 no longer maintant for 0.4
+fe35db6c33ec7850c8831c6e2f5816f5d228aef5 Dominic Tarr 1340713562 2.1.0
+1a4890d660639cae7decfab486e2f80e2f203a73 Dominic Tarr 1340712292 simplify test
+c91576cd4106d786a00c34c220c1e8e38215cd20 Dominic Tarr 1340712220 add destroy to all streams, and call it nextTick in through
+58f844706b413b115f23d4e2a999e5104fdbdd0d Dominic Tarr 1340707646 2.0.10
+80fe547bc0b5d4e028820db0aec7b5fe0b076206 Dominic Tarr 1340707638 do not emit inside try {..} because a listener may throw
+d9f0fc3c28d1694f4de0a5c7d9213764f7df9cbb Dominic Tarr 1340652510 2.0.9
+8e64bf35d917d07413b7258e135fe52c599c6aeb Dominic Tarr 1340652503 set props before announcing the state has changed
+deb0c8bed7e06ac7401b2a576ee40ec3bb99284f Dominic Tarr 1340650559 2.0.8
+4968f7c077a36f6bd3a488b6a0dad1f8ef87e98d Dominic Tarr 1340650540 oops, copy paste error
+6db22988e6fd9b6b9ad159471d59b640c6138689 Dominic Tarr 1340650417 always listen for half duplex close
+0783f2b8b5423ba5d129b5c5f096045ca4f31f55 Dominic Tarr 1340649412 2.0.7
+1877859f8ab5441aef18397bd7a0c135bfd01091 Dominic Tarr 1340649400 add destroy to duplex
+80c497d8e7d0700dda1ab057554477f104543767 Dominic Tarr 1340647778 2.0.6
+9484034cd9b3030e21143ee8ce8f25607c650236 Dominic Tarr 1340647758 destroy when both sides is ended, (if one sided stream, destroy when that side is ended)
+0d6a9f1181ae1098ed4650afad07e588dbcd3f3b Dominic Tarr 1340645777 2.0.5
+bdec4a4172e99c9a82e0e6c34290075d16a1b18a Dominic Tarr 1340645763 destroy should set writable = readable = false
+ac19e8a253b18bce7dc574221a5a357e61960dcb Dominic Tarr 1339683613 2.0.4
+fe5d583c14c97004e7d153d76f8c48f78dfde4e5 Michael Hart 1339677732 Added map filter test for good measure
+070dfb664749e3a06d041643abd1a80779d6c3bf Michael Hart 1339677550 Added tests for mapSync filter
+4cbae9432a43cac7b4ac495fcc3418c224fdda2a Michael Hart 1339676863 Match mapSync filter behaviour to map
+393408bae76eb86f7b9231e62610931594b33ce7 Dominic Tarr 1339518965 2.0.3
+13d420b41f7547a2bcb9623a97e6f0947fd0ca42 Dominic Tarr 1339518948 ignore empty lines
+ad223b2d7634564f2aa4f1f22d6085d4fae9a1a3 Dominic Tarr 1339518249 2.0.2
+6b8df45dece7be6b779d0850270711579e932298 Dominic Tarr 1339518245 oops, reference error
+cdc855df6b3b738a86e7dcbef4d92a93a300641c Dominic Tarr 1339518062 2.0.1
+7d4c3ca12c330d85abf895127b57c2acd93ee663 Dominic Tarr 1339518058 log, but continue on data that failed to parse
+426f506f21e66e8c62fca5cbc831bf1200f93e77 Dominic Tarr 1338908220 2.0.0
+26605db16f702030c7057871ed2b323e797b4c74 Dominic Tarr 1338908141 update documentation. move most useful stuff to the top
+0fe27c17fde6871da9295ae1ea0843d937ecc6de Dominic Tarr 1338908117 start rewriting some sync streams with es.through
+83c3d67869fde30ec7e0c8330b7f09a8dcddae4a Dominic Tarr 1338880537 1.3.1
+1fbd7e2e3892902abbd3966e00862ccac84b255e Dominic Tarr 1338880522 through should emit close
+d08019e556363a6df6d7e524ec1063b9b5a94421 Dominic Tarr 1338003667 1.3.0
+13f29efb0057ebcd76890392b4cf9cdb0442e850 Dominic Tarr 1338003616 through may take custom write function
+eaae9582cd869661316c36690b8a23cd30d76808 Dominic Tarr 1337970067 1.2.0
+961b2433914422431aa4eb774eb725697cdfc50d Dominic Tarr 1337970051 through now has pause/resume
+6a6acb5988fcfd0d60037809eccdfe05c1532062 Dominic Tarr 1337580338 1.1.0
+901ee597e5fb99b89456e0285f60b4e61e894f07 Dominic Tarr 1337580319 update readme on join, replace, wait
+ae64b0ec8c84f854c9682721635eae04f4306a17 Dominic Tarr 1337579747 join now matches Array#join and replace is streaming.
+5dcb680a1dbcc1adc114494e6c1a0f06506b878b Dominic Tarr 1337578564 update documentation for split
+9981c9f9d9e948c137043f07c8a19c568e8348b1 Dominic Tarr 1337578058 1.0.0
+3ac501c5837a191b1213186a50b292f4dbfcbfbb Dominic Tarr 1337578040 split with regexp, thanks to @mhart
+a3f4e66bbdfc67cd588e9a8391b16c3d55e2cb63 Dominic Tarr 1337577998 split with regexp, compat with v1 api
+0150bc981ea6fbbb55592bf3777b9599509360fc Michael Hart 1337573548 Clean up (and speed up) es.split()
+3dc6621d180afbab126c78b76759ee1a3964b4cd Dominic Tarr 1337266660 0.10.0
+00d0d28500634d044ec5e10e6f56e63e39c37bbb Dominic Tarr 1337266617 merge function
+6a3e3a6f2261435e3132c955cc3c96bb7b7f8e5d Dominic Tarr 1337266604 test for merge function
+8430309ba58f27ff5d1941a0ca2be574b8817f22 Dominic Tarr 1336013238 0.9.8
+44c0574406e2aa3bc0db0eff53add9500afdbb25 Dominic Tarr 1336013223 updated documentation
+1c480e60feda892b42d0de78eb239426f2883ec6 Dominic Tarr 1335346134 0.9.7
+af3a2820eba15039d8a5879845a23bb3247a493b Dominic Tarr 1335346093 console.error must be called with console as context in browser
+96b0dc5a9d0598edbba1297d96d36b76c8acaead Dominic Tarr 1335345499 0.9.6
+4655e13fcc6bf12f5fc7ee49645b9bb85cb392f9 Dominic Tarr 1335339964 0.9.3
+53699f94c3b4d691ec82250f5e8c302543755491 Dominic Tarr 1335339948 some small changes to play with browserify more nicely
+294f19f2451cf3c392ab11b3e463a7c687eef805 Dominic Tarr 1335001485 0.9.2
+663f8b83cdfb125ff5dbc99b2e1b264df5b004ff Dominic Tarr 1335001470 can pass name to es.log(name)
+dc86024af8ad0741fa847d05c8e727be229c86d0 Dominic Tarr 1334996774 0.9.1
+3f9ee36dfd6790dc24d46371f4c7c706d92c721a Dominic Tarr 1334996685 fix asyncThrough
+31ed3bb0cdc59942c3d5308fe4c40614032d3a5e Dominic Tarr 1334996178 0.9.0
+7e3279cbc94a707f924a4c0d7d45e9d28ea26310 Dominic Tarr 1334996146 added asyncThrough
+641fb82d0ae9d2741d129105bc1368895947f0c8 Dominic Tarr 1333769506 0.8.2
+a73d754138731560a29794508f7db89a3d866df9 Dominic Tarr 1333769469 remove unnecessary files liing about
+6a8a1decbb901689a7b6907cdaa33e1a6768970c Dominic Tarr 1333768401 add travisci sticker
+b7048ed8c532c23fed508382beae63533689cce9 Dominic Tarr 1333768157 git thought this file had changed. commit just to shut it up
+ebd43c873f35e4a67b7945281e863dbf0460f92c Dominic Tarr 1333768109 unbroke test, considering making split behave like String.split with regards to streams that end in a split character
+2081e1fd9ec2d220d0baf1c060843f1afc51395a Dominic Tarr 1333767917 fixed handling of drain events
+f0f2e35f1e2b82e27d70bc9732e7d4f8ae0e6b30 Dominic Tarr 1333765610 fix package.json
+c511eec86bcff6f3d6fb413a5b2a495ec60ca889 Dominic Tarr 1333765584 tests into this repo
+d27f2245980e47df1cb5c4ffb4bb2ad17ea3c824 Dominic Tarr 1333765112 trying to rework the test
+b3cdd96a8399d8958845b6fd634e04ce0b87e37d Dominic Tarr 1333764384 oops, mistake c/p into vim
+9edde1fd5c0ff5f02ae88b5f07ca2b478c257478 Dominic Tarr 1333764270 travis.ci integration
+bce55e1f427b2b2992ddae4083c89c6f1a0839f2 Dominic Tarr 1333764251 updated devDeps and test script
+db67da16a0efe76bf7eefb687911454b145c5329 Dominic Tarr 1333764226 moved tests into this repo
+67d2b34a159d47026715bdff76e83187f3c51ec4 Dominic Tarr 1333760340 0.8.1
+5bd67ee195266e8b0a4271a3c37f59d4d56a59c6 Dominic Tarr 1333760190 sorry everyone, fucked up a 3-way-merge. fixed.
+ec831f013d30667f460980c1a35c64f5e27c2410 Dominic Tarr 1332715175 0.8.0
+06ed2134eb59bbff9cc33732744fe11ebf1e47d8 Dominic Tarr 1332714785 0.7.0
+29eebf18adfdef2d7df5b69dfd57863925e75454 Dominic Tarr 1332714757 add through
+b5cfae7b257dee2298bc83e2a247cb109603a937 Dominic Tarr 1320655191 added .join and .replace, and bumped version 0.6.0
+c8bbd1a78a7c77bab7e974ff26d4af2fc506b449 Jeff Barczewski 1320178308 write should return true to indicate data was written
+40f8d2a3fd218ffb5c2026a53923012d8a63fc90 Jeff Barczewski 1320177532 add stream.readable to split, so that it will continue to get data events. On larger files that need more than one data event, without having this set to true, only the first packet is delivered and the stream stops reading as if data is not ready. Also the end and close events are never delivered either.
+f2b141606bb4185c3cc793acba71a1861ba8c7ab Dominic Tarr 1320110189 bump version 0.5.3
+3fe65e20e8ce3418e70bb2fd33608e24fe3b4459 Dominic Tarr 1320110161 map should not emit drain unless the stream is paused
+33777812df05e25c7769763faded7d51fa2375fc Dominic Tarr 1320107568 bump version 0.5.2
+e860a59c7dcdc2665030cea65e3a5cee295ab09b Dominic Tarr 1320107547 fix issue one: readable(func) : func being called concurrently
+64468f22d376f6d6943d704c88c2a95deced8b0d Dominic Tarr 1316577404 fix deps, bump versios 0.5.1
+791c72ad68cdfca36199661deb77be68e7169dbb Dominic Tarr 1316575429 add readable to readme
+7e5066f12a208ce23d779f7835d0eb1f08815696 Dominic Tarr 1316526210 Merge branch 'master' of github.com:dominictarr/event-stream
+2a7c720b988c2e5fed4c6bc2afcd0181a256731f Dominic Tarr 1316524091 bump version 0.4
+e4b834e54e62e5f60e937a78b9c0d3dd96cc4a14 Dominic Tarr 1316524050 add `readable`: helper to make readable stream
+d11a2aeac5e7086cbefd58ae66f3a6a1330bab18 Dominic Tarr 1316490663 Merge pull request #1 from holdinghandsfeedingducks/master
+20a776018cd0527736e2d0db2b9af1d44b21976d Dominic Tarr 1316489564 add mapSync, bump version 0.4
+96fe144051ef8f0e76a60a8d9891068a081af8d9 holdinghandsfeedingducks 1316486791 Did a gentle copy edit. Fixed egregious errors.
+b4723d1579c0b0be323880d35ade8a33a09a1c93 Dominic Tarr 1316442275 bump version 0.3
+c552db13ac53ecc4b565208d07634c65c65a54e4 Dominic Tarr 1316442253 add some docs for gate
+93c460b3dacf0f426de1b3bd27ca7d999d7c531c Dominic Tarr 1316441685 add gate (buffer if shut, stream if open)
+ed1637567f213b8dbd02b1df3ce9948bf05f10d6 Dominic Tarr 1316420279 bump version, oops, forgot to mention fixed map error bug in last commit
+d8e06ad3fda0d1f5bfcbc53b5e33ec76c8f2405b Dominic Tarr 1316420193 add more compatible modules
+6d7a78f1d3b870e4aa43dda57ffa231c0210945a Dominic Tarr 1316409290 updated readme
+9a095ca3be7bc5f183f89d839683d6e3a5f62e40 Dominic Tarr 1316403224 add more compatible modules
+4a449f0e19a52b829b37ef5b1f5da9a34c0355e8 Dominic Tarr 1316392892 compatible libraries
+8b25bb35ba09791e6e3bcb25f55474c438dbb065 Dominic Tarr 1316334494 added pipeable to readme
+03ccd79754a100890d37da0165d888617f11de2a Dominic Tarr 1316332607 added tests as submodule
+f7521fa88a1713c8d532802f7077b139f7dd3473 Dominic Tarr 1316331724 edit readme
+7fd0212478e1e12ffaf9170ef9f2bbe33410e185 Dominic Tarr 1316328365 add to readme
+ded529701c614005e26305fa254b8d020c626c4b Dominic Tarr 1316320392 add duplex, and child
+b0333ed89207eae7dd1516bf0f36b6c840ecb8c7 Dominic Tarr 1316240493 add pipable, and improve readme
+42b5c5c4b8c99da198e06da05fa26e144a4ea65d Dominic Tarr 1316172177 changed read to readArray, add writeArray, and split
+9b9e2aaaa440690ee20f8e464cd13b099886d90c Dominic Tarr 1315551560 pipe
+2b80fb60f2865aabdc7b88114493e5baa88b622c Dominic Tarr 1314176655 fix `code quotes`
+49fe69a1e3bac03638cebdf9cc3e07fe588b821e Dominic Tarr 1313990775 bump version 0.1
+2545deae26a7a364f2a034fea9d510153ccbf815 Dominic Tarr 1313990711 implement reader, and fix bug with .end()
+5774e3168083aed5d25a7cf9ce5019a45fc7a1d4 Dominic Tarr 1313934869 add to readme
+14bd77e4985189ff88106b99a86999628f76711c Dominic Tarr 1313900128 fix
+c8f0d36e69fd3ba0716693bcb0337a765d9f54a2 Dominic Tarr 1313899812 initial
+970993ccc594c606d439a9fa22715d311e1b9fa2 Dominic Tarr 1313804282 inital. first implementation of a map function (takes async callback function and turns it into readible & writable stream

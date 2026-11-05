@@ -1,0 +1,4 @@
+decode
+a.b=0
+# Since table "a" is already defined, it can't be replaced by an inline table.
+a={}

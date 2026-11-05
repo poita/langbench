@@ -1,0 +1,10 @@
+{
+  "empty": [],
+  "full": [
+    1
+  ],
+  "d": {}
+}
+--
+=== main
+{% for x in empty %}never{% else %}EMPTY{% endfor %}|{% for x in full %}{{ x }}{% else %}nope{% endfor %}|{% for k in d %}k{% else %}no keys{% endfor %}|{% for x in "" %}c{% else %}no chars{% endfor %}|{% for x in empty %}x{% endfor %}[end]

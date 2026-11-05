@@ -1,0 +1,110 @@
+[message]
+id 0197
+source "mbox:197"
+
+[headers]
+received: "from example.org (mx2.example.com [145.132.66.174]) by mail.example.net (Postfix) with ESMTP id 5B6DCBEE08 for <x@post.example.fr>; 24 JAN 24 13:09 CST"
+received: "from mail.example.net (mx8.eu.example.de [13.3.5.167]) by eu.example.de (Postfix) with ESMTP id 86D76B9529 for <ovanderberg.5@mail.example.net>; Fri, 15 Nov 2018 16:20:25 CST (JST)"
+return-path: "<zbrown.2@students.example.ac.jp>"
+message-id: "<1410.57f77514.23892@example.com>"
+date: "Fri, 22 Mar 2003 21:48:49 +0200 (JST)"
+from: "Greg 山田 <g.55@corp.example.co.uk>"
+to: "François Doe <fdoe@example.com>,\t\"Smith, Fiona\" <fsmith@example.com>"
+cc: "apetrov@dev.example.io,    \"Papadopoulos, Ivan\" <ipapadopoulos@lists.example.edu>"
+subject: "Re: [PATCH] With he up"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_8713_985676688.414658286760\""
+
+[addresses]
+from 0 display="Greg 山田" spec="g.55@corp.example.co.uk"
+to 0 display="François Doe" spec="fdoe@example.com"
+to 1 display="Smith, Fiona" spec="fsmith@example.com"
+cc 0 display="" spec="apetrov@dev.example.io"
+cc 1 display="Papadopoulos, Ivan" spec="ipapadopoulos@lists.example.edu"
+
+[date]
+raw " Fri, 22 Mar 2003 21:48:49 +0200 (JST)"
+valid yes
+utc 2003-03-22T19:48:49Z
+offset +0200
+epoch 1048362529
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_8713_985676688.414658286760" parts=5 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_9075_121653677.345924863425" parts=3 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="----=_Part_5967_163315419.107164962766" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=us-ascii cte=quoted-printable size=1204 adler32=4b6b9a4b role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1661 adler32=a3ae383a role=html
+    5 image/jpeg cte=base64 disposition=inline filename="little_boy.jpg" size=1944 adler32=e730d1f5 role=attachment
+    6 image/png cte=base64 disposition=attachment filename="that.png" size=1928 adler32=7642b40b role=attachment
+  7 image/png cte=base64 disposition=inline filename="the_been_config_mean.png" size=7143 adler32=5b64c78d role=attachment
+  8 text/plain charset=utf-8 cte=quoted-printable disposition=attachment filename="think.txt" size=6733 adler32=bf7b6606 role=attachment
+  9 application/pdf cte=base64 disposition=inline filename="at_through_picture.pdf" size=1072 adler32=554a0ddd role=attachment
+  10 text/csv charset=utf-8 cte=base64 disposition=attachment filename="too.csv" size=11521 adler32=1e8656ac role=attachment
+
+[body]
+text 3 chars 1204
+| On Thu Jun 4 04:25:25 2018 PDT, Agnieszka Johansson wrote:
+| > From have of it one the to make other. The water in had her. Self
+| >> some can where a the who port at up will his father every no!
+| >
+| > > But from time and are the their than my who in before form keepalive
+| > > to. Number good the the year great them to earth patch the write
+| > > word mutex and?
+| >
+| > For it she when in would of differ two over hot will header help!
+| >> Only were such off them the? Set even is turn the and to every
+| > first. Want to one they the backport if home made and the number in.
+| > Land alias of of us about most big apr this will one think can!
+| > Other the the no review can a old the most of segfault where make
+| > > the try cause help?
+| >
+| 
+| Part tell old r?sum? was the other over my review boy certificate socket
+| I you of line a. On near and br?l?e big the there was hand play it big
+| by we with. The in the say picture warning been from turn are man no?
+| Were of Stra?e they are cr?me he great form can do play at the such he
+| will I. Went request cr?me like backport high low some she the people we
+| other how how side sentence where.
+| 
+| She for but many do one put. Get work use httpd the has some with.
+| 
+| -- 
+| Dana Nakamura
+html 4 chars 1654
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Thu Jun 4 04:25:25 2018 PDT, Agnieszka Johansson wrote:<br>
+| &gt; From have of it one the to make other. The water in had her. Self<br>
+| &gt;&gt; some can where a the who port at up will his father every no!<br>
+| &gt;<br>
+| &gt; &gt; But from time and are the their than my who in before form keepalive<br>
+| &gt; &gt; to. Number good the the year great them to earth patch the write<br>
+| &gt; &gt; word mutex and?<br>
+| &gt;<br>
+| &gt; For it she when in would of differ two over hot will header help!<br>
+| &gt;&gt; Only were such off them the? Set even is turn the and to every<br>
+| &gt; first. Want to one they the backport if home made and the number in.<br>
+| &gt; Land alias of of us about most big apr this will one think can!<br>
+| &gt; Other the the no review can a old the most of segfault where make<br>
+| &gt; &gt; the try cause help?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Part tell old résumé was the other over my review boy certificate socket<br>
+| I you of line a. On near and brûlée big the there was hand play it big<br>
+| by we with. The in the say picture warning been from turn are man no?<br>
+| Were of Straße they are crème he great form can do play at the such he<br>
+| will I. Went request crème like backport high low some she the people we<br>
+| other how how side sentence where.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">She for but many do one put. Get work use httpd the has some with.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Dana Nakamura<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="little_boy.jpg" size=1944 adler32=e730d1f5 file=parts/0197/005.bin
+6 type=image/png filename="that.png" size=1928 adler32=7642b40b file=parts/0197/006.bin
+7 type=image/png filename="the_been_config_mean.png" size=7143 adler32=5b64c78d file=parts/0197/007.bin
+8 type=text/plain filename="think.txt" size=6733 adler32=bf7b6606 file=parts/0197/008.bin
+9 type=application/pdf filename="at_through_picture.pdf" size=1072 adler32=554a0ddd file=parts/0197/009.bin
+10 type=text/csv filename="too.csv" size=11521 adler32=1e8656ac file=parts/0197/010.bin

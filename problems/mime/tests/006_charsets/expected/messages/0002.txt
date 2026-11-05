@@ -1,0 +1,21 @@
+[message]
+id 0002
+source "cp1252.eml"
+
+[headers]
+content-type: "text/plain; charset=windows-1252"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=windows-1252 cte=7bit size=20 adler32=572f0780 role=text
+
+[body]
+text 0 chars 20
+| “quoted” — dash … €
+html none
+
+[attachments]

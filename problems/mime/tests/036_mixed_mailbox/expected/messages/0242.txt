@@ -1,0 +1,117 @@
+[message]
+id 0242
+source "mbox:242"
+
+[headers]
+received: "from apache.org (mx5.example.com [112.68.157.153]) by dev.example.io (Postfix) with ESMTP id C8B7A7E2F8 for <qpapadopoulos@eu.example.de>; Wed, 04 Jan 2005 19:45:10 GMT (CET)"
+received: "from post.example.fr (mx8.example.com [197.170.197.137]) by dev.example.io (Postfix) with ESMTP id 32C908845C for <fdoe.70@students.example.ac.jp>; Wed, 1 Dec 2003 14:27:36 +0000"
+return-path: "<wdubois@apache.org>"
+message-id: "<1731.e74037a6.90043@corp.example.co.uk>"
+in-reply-to: "<1739.3976a9d8.90959@apache.org>"
+references: "<1732.7430b1ea.39088@dev.example.io> <1733.938d0aa3.44038@example.com> <1734.ea286a7a.54033@mail.example.net> <1735.af317f6e.93984@corp.example.co.uk> <1736.6d471616.17422@apache.org> <1737.7960b476.31162@eu.example.de> <1738.9508d849.15783@students.example.ac.jp> <1739.3976a9d8.90959@apache.org>"
+date: "Fri, 21 Sep 2003 03:59:15 +1000"
+from: "ssmith@example.com"
+to: "\"Papadopoulos, Fiona\" <fpapadopoulos.72@eu.example.de>"
+cc: "upapadopoulos@dev.example.io, Olga Petrov <opetrov.91@mail.example.net>"
+subject: "The you act put small said want of even rewrite"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_2fbc744899f0c2ae0d70c347ac6fb2ee\""
+
+[addresses]
+from 0 display="" spec="ssmith@example.com"
+to 0 display="Papadopoulos, Fiona" spec="fpapadopoulos.72@eu.example.de"
+cc 0 display="" spec="upapadopoulos@dev.example.io"
+cc 1 display="Olga Petrov" spec="opetrov.91@mail.example.net"
+
+[date]
+raw " Fri, 21 Sep 2003 03:59:15 +1000"
+valid yes
+utc 2003-09-20T17:59:15Z
+offset +1000
+epoch 1064080755
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_2fbc744899f0c2ae0d70c347ac6fb2ee" parts=5 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_3775_794203769.541492449124" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 734" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=quoted-printable size=1174 adler32=007d869e role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1698 adler32=940c37c9 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="then_is.jpg" size=1019 adler32=bae9f610 role=attachment
+    6 image/jpeg cte=base64 disposition=inline filename="Ångström_the_had_water.jpg" size=2904 adler32=183698a8 role=attachment
+    7 image/png cte=base64 disposition=attachment filename="brûlée_you.png" size=1914 adler32=3819a340 role=attachment
+  8 image/png cte=base64 disposition=inline filename="why.png" size=3915 adler32=9cc989f5 role=attachment
+  9 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="the_like_one_or.csv" size=10836 adler32=86e078ef role=attachment
+  10 image/png cte=base64 disposition=attachment filename="light_year_Ørsted_picture.png" size=4729 adler32=46360a8f role=attachment
+  11 application/zip cte=base64 disposition=inline filename="the_play.zip" size=5532 adler32=d587aae5 role=attachment
+
+[body]
+text 3 chars 1174
+| On Thu Mar 12 09:36:34 2003 +1245, Xavier Kowalski wrote:
+| > > Review the place déjà work up of is back server turn the fiancée
+| > > would I one. Day to the will picture right and. These you get part
+| >> he want your one Paulo had our keepalive play as find the! Number
+| >> the like now same a. For a before where out and an a of with the
+| > filter a and?
+| >
+| 
+| The find down this Paulo long request is light. Be house review is in
+| São came his use.
+| 
+| Long it the high it long been write port. Commit great then in directive
+| like round up read do? The bug from go trunk after the the for after
+| think you very have them he end? Of the each you sound the the branch
+| each turn be résumé had here other ask are. Error under work hook
+| fiancée patch module in ssl but out can cache the.
+| 
+| With the status connection it them on over! Some after in but is his the
+| have kind I a said want other place! Only people log they right come or
+| of the. Help get set release cause by the the here then just of tell
+| said old home was.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| ?or?e Schröder
+html 4 chars 1688
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Thu Mar 12 09:36:34 2003 +1245, Xavier Kowalski wrote:<br>
+| &gt; &gt; Review the place déjà work up of is back server turn the fiancée<br>
+| &gt; &gt; would I one. Day to the will picture right and. These you get part<br>
+| &gt;&gt; he want your one Paulo had our keepalive play as find the! Number<br>
+| &gt;&gt; the like now same a. For a before where out and an a of with the<br>
+| &gt; filter a and?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The find down this Paulo long request is light. Be house review is in<br>
+| São came his use.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Long it the high it long been write port. Commit great then in directive<br>
+| like round up read do? The bug from go trunk after the the for after<br>
+| think you very have them he end? Of the each you sound the the branch<br>
+| each turn be résumé had here other ask are. Error under work hook<br>
+| fiancée patch module in ssl but out can cache the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">With the status connection it them on over! Some after in but is his the<br>
+| have kind I a said want other place! Only people log they right come or<br>
+| of the. Help get set release cause by the the here then just of tell<br>
+| said old home was.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Đorđe Schröder<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="then_is.jpg" size=1019 adler32=bae9f610 file=parts/0242/005.bin
+6 type=image/jpeg filename="Ångström_the_had_water.jpg" size=2904 adler32=183698a8 file=parts/0242/006.bin
+7 type=image/png filename="brûlée_you.png" size=1914 adler32=3819a340 file=parts/0242/007.bin
+8 type=image/png filename="why.png" size=3915 adler32=9cc989f5 file=parts/0242/008.bin
+9 type=text/csv filename="the_like_one_or.csv" size=10836 adler32=86e078ef file=parts/0242/009.bin
+10 type=image/png filename="light_year_Ørsted_picture.png" size=4729 adler32=46360a8f file=parts/0242/010.bin
+11 type=application/zip filename="the_play.zip" size=5532 adler32=d587aae5 file=parts/0242/011.bin

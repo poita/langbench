@@ -1,0 +1,20 @@
+<p><a href="http://foo.bar.baz">http://foo.bar.baz</a>
+<a href="http://foo.bar.baz/test?q=hello&amp;id=22&amp;boolean">http://foo.bar.baz/test?q=hello&amp;id=22&amp;boolean</a>
+<a href="irc://foo.bar:2233/baz">irc://foo.bar:2233/baz</a>
+<a href="MAILTO:FOO@BAR.BAZ">MAILTO:FOO@BAR.BAZ</a>
+<a href="a+b+c:d">a+b+c:d</a>
+<a href="made-up-scheme://foo,bar">made-up-scheme://foo,bar</a>
+<a href="http://../">http://../</a>
+<a href="localhost:5001/foo">localhost:5001/foo</a>
+<a href="http://example.com/%5C%5B%5C">http://example.com/\[\</a>
+<a href="mailto:foo@bar.example.com">foo@bar.example.com</a>
+<a href="mailto:foo+special@Bar.baz-bar0.com">foo+special@Bar.baz-bar0.com</a>
+&lt;&gt;
+&lt; http://foo.bar &gt;
+&lt;3:abc&gt; &lt;-x:y&gt;
+http://example.com
+foo@bar.example.com
+<a href="http://a.b/A%3C&amp;">http://a.b/A&lt;&amp;</a> <a href="mailto:x@y.z">x@y.z</a> <a href="">file:///etc</a> <a href="mailto:a@b">a@b</a>
+<a href="abcdefghijklmnopqrstuvwxyzabcdef:x">abcdefghijklmnopqrstuvwxyzabcdef:x</a>
+<a href="mailto:a@b.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc">a@b.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc</a> <a href="mailto:a@b.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd">a@b.ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc.ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd</a>
+*<a href="http://a.b/*">http://a.b/*</a> <em><a href="mailto:x@y.z">x@y.z</a></em> <code>&lt;http://c.d&gt;</code> <a href="/g"><a href="http://e.f">http://e.f</a></a> <a href="http://%C3%BC.example/%C3%BC?%C3%BC">http://ü.example/ü?ü</a></p>

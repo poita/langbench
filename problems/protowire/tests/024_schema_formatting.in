@@ -1,0 +1,8 @@
+message A{int32 x=1;repeated B ys=3;string name=2;}
+message B{sint64 v=2;A back=1;}
+message Unused { int32 q = 1; }
+--
+encode A {x: 1, ys: [{v: -1, back: {name: "n"}}], name: "a"}
+decode A 08011202611a0808011002120161
+encode B {back: {ys: [{back: {ys: [{}]}}]}}
+encode Unused {q: 1}

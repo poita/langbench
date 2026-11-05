@@ -1,0 +1,162 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put created
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok put created
+[21] ok put created
+[22] ok put created
+[23] ok put created
+[24] ok put created
+[25] ok put created
+[26] ok put created
+[27] ok put created
+[28] ok put created
+[29] ok put created
+[30] ok put created
+[31] ok put created
+[32] ok put created
+[33] ok put created
+[34] ok put created
+[35] ok put created
+[36] ok put created
+[37] ok put created
+[38] ok put created
+[39] ok put created
+[40] ok put created
+[41] ok scan 40
+  "k0000"
+  "k0001"
+  "k0002"
+  "k0003"
+  "k0004"
+  "k0005"
+  "k0006"
+  "k0007"
+  "k0008"
+  "k0009"
+  "k0010"
+  "k0011"
+  "k0012"
+  "k0013"
+  "k0014"
+  "k0015"
+  "k0016"
+  "k0017"
+  "k0018"
+  "k0019"
+  "k0020"
+  "k0021"
+  "k0022"
+  "k0023"
+  "k0024"
+  "k0025"
+  "k0026"
+  "k0027"
+  "k0028"
+  "k0029"
+  "k0030"
+  "k0031"
+  "k0032"
+  "k0033"
+  "k0034"
+  "k0035"
+  "k0036"
+  "k0037"
+  "k0038"
+  "k0039"
+[42] ok scan 40
+  "k0039"
+  "k0038"
+  "k0037"
+  "k0036"
+  "k0035"
+  "k0034"
+  "k0033"
+  "k0032"
+  "k0031"
+  "k0030"
+  "k0029"
+  "k0028"
+  "k0027"
+  "k0026"
+  "k0025"
+  "k0024"
+  "k0023"
+  "k0022"
+  "k0021"
+  "k0020"
+  "k0019"
+  "k0018"
+  "k0017"
+  "k0016"
+  "k0015"
+  "k0014"
+  "k0013"
+  "k0012"
+  "k0011"
+  "k0010"
+  "k0009"
+  "k0008"
+  "k0007"
+  "k0006"
+  "k0005"
+  "k0004"
+  "k0003"
+  "k0002"
+  "k0001"
+  "k0000"
+[43] ok scan 7
+  "k0000"
+  "k0001"
+  "k0002"
+  "k0003"
+  "k0004"
+  "k0005"
+  "k0006"
+[44] ok scan 7
+  "k0039"
+  "k0038"
+  "k0037"
+  "k0036"
+  "k0035"
+  "k0034"
+  "k0033"
+[45] ok scan 10
+  "k0010"
+  "k0011"
+  "k0012"
+  "k0013"
+  "k0014"
+  "k0015"
+  "k0016"
+  "k0017"
+  "k0018"
+  "k0019"
+[46] ok scan 2
+  "k0000" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+  "k0001" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+[47] ok stat
+  pages 15
+  free 0
+  freehead 0
+  docs 40
+  root 4
+  height 2
+  commits 40
+  indexes 0
+  wal 109984

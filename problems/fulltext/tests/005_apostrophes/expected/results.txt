@@ -1,0 +1,21 @@
+QUERY 1 dont
+HITS 2
+1	curly	0.7754	Don’t stop. It’s John’s book
+2	talk	0.6828	Don't stop. It's John's book, isn't it
+QUERY 2 johns
+HITS 2
+1	curly	0.7754	Don’t stop. It’s John’s book
+2	talk	0.6828	Don't stop. It's John's book, isn't it
+QUERY 3 oclock
+HITS 1
+1	clock	1.0059	At six o'clock the ship's bell rang; the bells ring
+QUERY 4 quoted
+HITS 1
+1	quote	1.3468	quoted' and ''double'' and rock'n'roll
+QUERY 5 rocknroll
+HITS 1
+1	quote	1.3468	quoted' and ''double'' and rock'n'roll
+QUERY 6 "johns book"
+HITS 2
+1	curly	0.7754	Don’t stop. It’s John’s book
+2	talk	0.6828	Don't stop. It's John's book, isn't it

@@ -1,0 +1,5 @@
+{% macro badge(text, kind="plain") %}[{{ kind }}:{{ text }}]{% endmacro -%}
+{{ post.title|escape }}
+{{ badge(post.slug) }} {{ badge(post.date, "date") }} {{ badge(kind="tags", text=post.tags|length) }}
+{% set names = post.tags %}{% for t in names %}{{ t.name|lower }}{% if not loop.last %}+{% endif %}{% endfor %}
+{{ post.content }}

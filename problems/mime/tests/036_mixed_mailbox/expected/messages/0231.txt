@@ -1,0 +1,101 @@
+[message]
+id 0231
+source "mbox:231"
+
+[headers]
+received: "from students.example.ac.jp (mx6.example.com [64.106.139.16]) by post.example.fr (Postfix) with ESMTP id 692783647D for <xschrder@post.example.fr>; tue,15 dec 2012 10:40:35 (comment (nested)) +0200"
+received: "from apache.org (mx5.corp.example.co.uk [162.74.16.115]) by students.example.ac.jp (Postfix) with ESMTP id 651390739F for <jnakamura@example.org>; Sun, 24 Dec 2009 10:10:19 +0000"
+received: "from apache.org (mx9.lists.example.edu [119.5.170.94]) by example.com (Postfix) with ESMTP id BE8E56DB90 for <lbrown.4@eu.example.de>; Fri, 19 Aug 2003 20:59:31 +0900"
+received: "from example.com (mx8.apache.org [187.189.174.250]) by corp.example.co.uk (Postfix) with ESMTP id 36ACDC8063 for <d.34@dev.example.io>; Sun, 2 Mar 2012 22:15:53 -0000"
+return-path: "<ngarca@corp.example.co.uk>"
+message-id: "<1623.b74208b4.87126@example.com>"
+date: "Wed, 8 Sep 2005 18:31:59 +0530"
+from: "enakamura@example.com"
+to: "Hana Schröder <hschrder@lists.example.edu>,\t\"Wilson, Erik\" <ewilson.33@post.example.fr>, csmith.49@mail.example.net,\tRémi Johansson <rjohansson.30@example.org>,\tOlga Østergaard <ostergaard@eu.example.de>, Ann Wilson <awilson@mail.example.net>, Erik Schröder <eschrder@mail.example.net>,\tSven Иванов <s.45@lists.example.edu>,\t\"Agnieszka Kowalski\" <akowalski@mail.example.net>,\tOlga Johansson <ojohansson@dev.example.io>,    Björn Papadopoulos <bpapadopoulos@post.example.fr>, Zoë Johansson <zjohansson@students.example.ac.jp>,\tkim@post.example.fr, Yuki García <ygarca@example.org>,\tNils Petrov <npetrov@apache.org>"
+cc: "nlefvre@dev.example.io, Đorđe Nguyen <nguyen@dev.example.io>,    Erik Doe <edoe@apache.org>,\tSøren Schröder <sschrder@mail.example.net>, William Иванов <w@eu.example.de>, xdubois.97@post.example.fr, Søren Müller <smller@lists.example.edu>,    xbrown@mail.example.net, Pierre Smith <psmith@lists.example.edu>, Vera García <vgarca@dev.example.io>,\tFrançois Petrov <fpetrov@apache.org>,    Zoë Nguyen <znguyen.40@example.com>, \"van der Berg, Ann\" <avanderberg@eu.example.de>,    \"Wilson, Carl\" <cwilson.35@example.com>, Sven Wilson <swilson@example.org>"
+subject: "Fwd: Of under the him"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+x-original-to: "fdoe@example.org"
+resent-date: "Fri, 22 Jun 2018 15:07:32 +0200"
+resent-date: "sun,19 jun 2012 15:47:2 (comment (nested)) UT"
+bcc: "xjohansson.61@mail.example.net (Xavier Johansson),\tSøren García <sgarca.17@eu.example.de>, Karin Brown <kbrown.52@apache.org>, m@corp.example.co.uk,    Tomás Nakamura <tnakamura@apache.org>,    Hana Wilson <hwilson.38@mail.example.net>,\tcbrown.62@students.example.ac.jp"
+bcc: "johansson@lists.example.edu, Sven Smith <ssmith.76@corp.example.co.uk>,\tWilliam Rossi <wrossi.68@example.org>,    afernndez.37@eu.example.de (Someone), Vera Kim <vkim@eu.example.de>,\tMaría Dubois <mdubois.77@eu.example.de>, zdubois@post.example.fr, Karin Wilson <kwilson@lists.example.edu>,    François Иванов <f@post.example.fr>,    Łukasz Lefèvre <lefvre@eu.example.de>,    b.13@post.example.fr"
+thread-topic: "To would try self has see made this!"
+comments: "Certificate she and  is know word  small."
+sender: "Łukasz Østergaard <stergaard@students.example.ac.jp>"
+content-type: "text/plain; charset=ISO-8859-1"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="" spec="enakamura@example.com"
+sender 0 display="Łukasz Østergaard" spec="stergaard@students.example.ac.jp"
+to 0 display="Hana Schröder" spec="hschrder@lists.example.edu"
+to 1 display="Wilson, Erik" spec="ewilson.33@post.example.fr"
+to 2 display="" spec="csmith.49@mail.example.net"
+to 3 display="Rémi Johansson" spec="rjohansson.30@example.org"
+to 4 display="Olga Østergaard" spec="ostergaard@eu.example.de"
+to 5 display="Ann Wilson" spec="awilson@mail.example.net"
+to 6 display="Erik Schröder" spec="eschrder@mail.example.net"
+to 7 display="Sven Иванов" spec="s.45@lists.example.edu"
+to 8 display="Agnieszka Kowalski" spec="akowalski@mail.example.net"
+to 9 display="Olga Johansson" spec="ojohansson@dev.example.io"
+to 10 display="Björn Papadopoulos" spec="bpapadopoulos@post.example.fr"
+to 11 display="Zoë Johansson" spec="zjohansson@students.example.ac.jp"
+to 12 display="" spec="kim@post.example.fr"
+to 13 display="Yuki García" spec="ygarca@example.org"
+to 14 display="Nils Petrov" spec="npetrov@apache.org"
+cc 0 display="" spec="nlefvre@dev.example.io"
+cc 1 display="Đorđe Nguyen" spec="nguyen@dev.example.io"
+cc 2 display="Erik Doe" spec="edoe@apache.org"
+cc 3 display="Søren Schröder" spec="sschrder@mail.example.net"
+cc 4 display="William Иванов" spec="w@eu.example.de"
+cc 5 display="" spec="xdubois.97@post.example.fr"
+cc 6 display="Søren Müller" spec="smller@lists.example.edu"
+cc 7 display="" spec="xbrown@mail.example.net"
+cc 8 display="Pierre Smith" spec="psmith@lists.example.edu"
+cc 9 display="Vera García" spec="vgarca@dev.example.io"
+cc 10 display="François Petrov" spec="fpetrov@apache.org"
+cc 11 display="Zoë Nguyen" spec="znguyen.40@example.com"
+cc 12 display="van der Berg, Ann" spec="avanderberg@eu.example.de"
+cc 13 display="Wilson, Carl" spec="cwilson.35@example.com"
+cc 14 display="Sven Wilson" spec="swilson@example.org"
+bcc 0 display="" spec="xjohansson.61@mail.example.net"
+bcc 1 display="Søren García" spec="sgarca.17@eu.example.de"
+bcc 2 display="Karin Brown" spec="kbrown.52@apache.org"
+bcc 3 display="" spec="m@corp.example.co.uk"
+bcc 4 display="Tomás Nakamura" spec="tnakamura@apache.org"
+bcc 5 display="Hana Wilson" spec="hwilson.38@mail.example.net"
+bcc 6 display="" spec="cbrown.62@students.example.ac.jp"
+bcc 7 display="" spec="johansson@lists.example.edu"
+bcc 8 display="Sven Smith" spec="ssmith.76@corp.example.co.uk"
+bcc 9 display="William Rossi" spec="wrossi.68@example.org"
+bcc 10 display="" spec="afernndez.37@eu.example.de"
+bcc 11 display="Vera Kim" spec="vkim@eu.example.de"
+bcc 12 display="María Dubois" spec="mdubois.77@eu.example.de"
+bcc 13 display="" spec="zdubois@post.example.fr"
+bcc 14 display="Karin Wilson" spec="kwilson@lists.example.edu"
+bcc 15 display="François Иванов" spec="f@post.example.fr"
+bcc 16 display="Łukasz Lefèvre" spec="lefvre@eu.example.de"
+bcc 17 display="" spec="b.13@post.example.fr"
+
+[date]
+raw " Wed, 8 Sep 2005 18:31:59 +0530"
+valid yes
+utc 2005-09-08T13:01:59Z
+offset +0530
+epoch 1126184519
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=7bit size=156 adler32=d1e53539 role=text
+
+[body]
+text 0 chars 156
+| On part think help the header low high of from him with kind thing move
+| the! She new in was such backport how it! Now build which them the.
+| 
+| -- 
+| Dana Rossi
+html none
+
+[attachments]

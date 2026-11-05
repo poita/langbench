@@ -1,0 +1,41 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contains": {
+      "const": 1
+    },
+    "minContains": 1
+  },
+  "tests": [
+    {
+      "description": "empty data",
+      "data": []
+    },
+    {
+      "description": "no elements match",
+      "data": [
+        2
+      ]
+    },
+    {
+      "description": "single element matches, valid minContains",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "some elements match, valid minContains",
+      "data": [
+        1,
+        2
+      ]
+    },
+    {
+      "description": "all elements match, valid minContains",
+      "data": [
+        1,
+        1
+      ]
+    }
+  ]
+}

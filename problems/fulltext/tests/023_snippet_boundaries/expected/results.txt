@@ -1,0 +1,28 @@
+QUERY 1 needle
+HITS 4
+1	spaced	0.6457	alpha beta gamma delta epsilon needle omega
+2	exact	0.4399	w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 needle
+3	padded	0.3146	needle w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28
+4	long	0.2800	q05 q06 q07 q08 q09 q10 q11 q12 q13 q14 q15 q16 q17 q18 q19 q20 q21 q22 q23 q24 q25 q26 q27 q28 q29 q30 q31 q32 q33 needle
+QUERY 2 three
+HITS 2
+1	tiny	1.6319	one two three
+2	wrapped	1.4759	line one line two line three line four
+QUERY 3 line
+HITS 1
+1	wrapped	2.9893	line one line two line three line four
+QUERY 4 "line two"
+HITS 1
+1	wrapped	2.2081	line one line two line three line four
+QUERY 5 omega
+HITS 1
+1	spaced	2.2512	alpha beta gamma delta epsilon needle omega
+QUERY 6 "q00 q01 q02 q03 q04 q05 q06 q07 q08 q09 q10 q11 q12 q13 q14 q15 q16 q17 q18 q19 q20 q21 q22 q23 q24 q25 q26 q27 q28 q29 q30 q31 q32 q33"
+HITS 1
+1	long	0.9762	f00 f01 f02 f03 f04 f05 f06 f07 f08 f09 f10 f11 f12 f13 f14 f15 f16 f17 f18 q00 q01 q02 q03 q04 q05 q06 q07 q08 q09 q10
+QUERY 7 "q00 q01 q02 q03 q04 q05 q06 q07 q08 q09 q10 q11 q12 q13 q14 q15 q16 q17 q18 q19 q20 q21 q22 q23 q24 q25 q26 q27 q28 q29 q30 q31 q32 q33" OR needle
+HITS 4
+1	long	1.2561	q05 q06 q07 q08 q09 q10 q11 q12 q13 q14 q15 q16 q17 q18 q19 q20 q21 q22 q23 q24 q25 q26 q27 q28 q29 q30 q31 q32 q33 needle
+2	spaced	0.6457	alpha beta gamma delta epsilon needle omega
+3	exact	0.4399	w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28 w29 needle
+4	padded	0.3146	needle w0 w1 w2 w3 w4 w5 w6 w7 w8 w9 w10 w11 w12 w13 w14 w15 w16 w17 w18 w19 w20 w21 w22 w23 w24 w25 w26 w27 w28

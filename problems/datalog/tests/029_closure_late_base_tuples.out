@@ -1,0 +1,10 @@
+link(1, 2)
+link(1, 3)
+link(1, 4)
+link(2, 3)
+link(2, 4)
+link(3, 4)
+-- 6
+unlocked(2, 3)
+unlocked(3, 4)
+-- 2

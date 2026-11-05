@@ -1,0 +1,40 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "patternProperties": {
+      "f.*": true,
+      "b.*": false
+    }
+  },
+  "tests": [
+    {
+      "description": "object with property matching schema true is valid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "object with property matching schema false is invalid",
+      "data": {
+        "bar": 2
+      }
+    },
+    {
+      "description": "object with both properties is invalid",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "object with a property matching both true and false is invalid",
+      "data": {
+        "foobar": 1
+      }
+    },
+    {
+      "description": "empty object is valid",
+      "data": {}
+    }
+  ]
+}

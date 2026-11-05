@@ -1,0 +1,42 @@
+[message]
+id 0018
+source "raw_email_with_nested_attachment.eml"
+
+[headers]
+mime-version: "1.0 (Apple Message framework v752.3)"
+message-id: "<2CCE0408-10C7-4045-9B16-A1C11C31469B@37signals.com>"
+content-type: "multipart/signed; micalg=sha1; boundary=Apple-Mail-42-587703407; protocol=\"application/pkcs7-signature\""
+to: "Jamis Buck <jamis@jamisbuck.org>"
+subject: "Testing attachments"
+from: "Jamis Buck <jamis@37signals.com>"
+date: "Thu, 22 Feb 2007 11:20:31 -0700"
+
+[addresses]
+from 0 display="Jamis Buck" spec="jamis@37signals.com"
+to 0 display="Jamis Buck" spec="jamis@jamisbuck.org"
+
+[date]
+raw " Thu, 22 Feb 2007 11:20:31 -0700"
+valid yes
+utc 2007-02-22T18:20:31Z
+offset -0700
+epoch 1172168431
+
+[structure]
+0 multipart/signed cte=7bit boundary="Apple-Mail-42-587703407" parts=2 preamble=0 epilogue=0
+  1 multipart/mixed cte=7bit boundary="Apple-Mail-41-587703287" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=us-ascii cte=7bit size=53 adler32=e85c112e role=text
+    3 image/png cte=base64 disposition=inline filename="truncated.png" size=1902 adler32=68de0abf role=attachment
+  4 application/pkcs7-signature cte=base64 disposition=attachment filename="smime.p7s" size=939 adler32=e09160ad role=attachment
+
+[body]
+text 2 chars 53
+| Here is a test of an attachment via email.
+| 
+| - Jamis
+| 
+html none
+
+[attachments]
+3 type=image/png filename="truncated.png" size=1902 adler32=68de0abf file=parts/0018/003.bin
+4 type=application/pkcs7-signature filename="smime.p7s" size=939 adler32=e09160ad file=parts/0018/004.bin

@@ -1,0 +1,38 @@
+{
+	"name": "rrule",
+	"description": "RFC 5545 recurrence rule (RRULE) expansion library and command-line tool",
+	"authors": ["Peter Alexander"],
+	"license": "MIT",
+	"copyright": "Copyright © 2026, Peter Alexander",
+	"targetType": "executable",
+	"targetName": "rrule",
+	"targetPath": "bin",
+	"sourcePaths": ["source"],
+	"importPaths": ["source"],
+	"mainSourceFile": "source/app.d",
+	"configurations": [
+		{
+			"name": "cli",
+			"targetType": "executable"
+		},
+		{
+			"name": "library",
+			"targetType": "library",
+			"targetName": "rrule",
+			"excludedSourceFiles": ["source/app.d"]
+		},
+		{
+			"name": "unittest",
+			"targetType": "library",
+			"sourcePaths": ["source", "tests"],
+			"importPaths": ["source", "tests"],
+			"excludedSourceFiles": ["source/app.d"]
+		}
+	],
+	"buildTypes": {
+		"release": {
+			"buildOptions": ["releaseMode", "optimize", "inline"],
+			"dflags-ldc": ["-O3"]
+		}
+	}
+}

@@ -1,0 +1,26 @@
+[1] ok scan 1
+  "a" = 1
+[2] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 1
+  indexes 0
+  wal 2152
+[3] ok put created
+[4] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 4272
+[5] ok scan 2
+  "a"
+  "c"

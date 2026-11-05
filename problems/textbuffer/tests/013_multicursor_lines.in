@@ -1,0 +1,25 @@
+4
+first
+second
+third
+fourth
+add-cursor 1 0
+add-cursor 2 0
+add-cursor 3 0
+insert // 
+print
+move end
+insert ;
+print
+move home
+delete-forward
+delete-forward
+delete-forward
+print
+move end
+delete
+print
+insert \n
+print
+delete
+print

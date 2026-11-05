@@ -1,0 +1,2 @@
+sort_by(.a), sort_by(.a, .b), sort_by(.b) , group_by(.a), (group_by(.a) | map(length)), sort_by(-.b), (group_by(.b > 1) | map(map(.i)))
+[{"a":1,"b":2,"i":0},{"a":null,"b":1,"i":1},{"b":3,"i":2},{"a":1,"b":1,"i":3},{"a":"1","b":2,"i":4},{"a":[0],"b":0,"i":5},{"a":0,"b":2,"i":6}]

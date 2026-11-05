@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(sb(true) ++ " " ++ sb(false) ++ " " ++ sb(1 == 1));
+    print(si(ord('a')) ++ " " ++ si(ord('\u{0}')) ++ " " ++ si(ord('\u{10ffff}')) ++ " " ++ si(ord('é')));
+    print(sc(chr(97)) ++ " " ++ sc(chr(0x10ffff)) ++ " " ++ si(ord(chr(55295))) ++ " " ++ si(ord(chr(57344))));
+    print(sb(isDigit('5')) ++ sb(isDigit('a')) ++ sb(isAlpha('Z')) ++ sb(isAlpha('é')) ++ sb(isAlnum('_')) ++ sb(isAlnum('9')));
+    print(sb(isSpace(' ')) ++ sb(isSpace('\t')) ++ sb(isSpace('\n')) ++ sb(isSpace('\u{b}')) ++ sb(isSpace('\u{c}')) ++ sb(isSpace('\r')) ++ sb(isSpace('x')));
+    print(sb(isUpper('A')) ++ sb(isUpper('a')) ++ sb(isLower('a')) ++ sb(isLower('A')));
+    print(sc(toUpperC('a')) ++ sc(toUpperC('A')) ++ sc(toUpperC('1')) ++ sc(toLowerC('Z')) ++ sc(toLowerC('z')) ++ sc(toUpperC('é')));
+}

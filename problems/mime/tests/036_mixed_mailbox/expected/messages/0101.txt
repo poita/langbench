@@ -1,0 +1,71 @@
+[message]
+id 0101
+source "mbox:101"
+
+[headers]
+received: "from eu.example.de (mx7.dev.example.io [78.220.142.116]) by lists.example.edu (Postfix) with ESMTP id D9EF211BAD for <nakamura@corp.example.co.uk>; Tue, 25 Jul 2009 23:44:04 +0000"
+received: "from eu.example.de (mx5.dev.example.io [150.139.110.144]) by apache.org (Postfix) with ESMTP id B6768E6C39 for <ufernndez@example.com>; Sun, 4 Sep 2005 19:49:18 -0330"
+return-path: "<jlefvre@apache.org>"
+message-id: "<788.3eae2efe.39021@corp.example.co.uk>"
+in-reply-to: "<789.82e12311.93324@example.com>"
+references: "<789.82e12311.93324@example.com>"
+date: "3 APR 03 01:33 -0000"
+from: "Дмитрий García <garca@dev.example.io>"
+to: "François Fernández <ffernndez@example.com>, Olga Müller <omller.3@example.com>,\tĐorđe Papadopoulos <papadopoulos.79@dev.example.io>"
+cc: "Søren Brown <sbrown@eu.example.de>,    Yuki 山田 <y.47@example.com>"
+subject: "RE: Father all air which"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"=_343eac3cb0a25c2bdf3f561fa4326249\""
+
+[addresses]
+from 0 display="Дмитрий García" spec="garca@dev.example.io"
+to 0 display="François Fernández" spec="ffernndez@example.com"
+to 1 display="Olga Müller" spec="omller.3@example.com"
+to 2 display="Đorđe Papadopoulos" spec="papadopoulos.79@dev.example.io"
+cc 0 display="Søren Brown" spec="sbrown@eu.example.de"
+cc 1 display="Yuki 山田" spec="y.47@example.com"
+
+[date]
+raw " 3 APR 03 01:33 -0000"
+valid yes
+utc 2003-04-03T01:33:00Z
+offset +0000
+epoch 1049333580
+
+[structure]
+0 multipart/alternative cte=7bit boundary="=_343eac3cb0a25c2bdf3f561fa4326249" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=quoted-printable size=468 adler32=0d9ca743 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=753 adler32=76ca069b role=html
+
+[body]
+text 1 chars 462
+| Most the play of also again know the way what big all. Kind and to to
+| mean his through again with him work? Mother the turn people long water
+| you that our get home sentence but Zürich the vote.
+| 
+| Every end live a land one the were the some have be that hot one that
+| this some! A tell give now how for Größe of. Place of were warning back
+| call year which name long to old in my that had. Help point Zürich have
+| Kraków first they have give great!
+| 
+| -- 
+| Luis Lefèvre
+html 2 chars 747
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Most the play of also again know the way what big all. Kind and to to<br>
+| mean his through again with him work? Mother the turn people long water<br>
+| you that our get home sentence but Zürich the vote.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Every end live a land one the were the some have be that hot one that<br>
+| this some! A tell give now how for Größe of. Place of were warning back<br>
+| call year which name long to old in my that had. Help point Zürich have<br>
+| Kraków first they have give great!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Luis Lefèvre<br>
+| </p>
+| </body></html>
+
+[attachments]

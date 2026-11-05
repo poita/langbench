@@ -1,0 +1,16 @@
+put "a" {u:{v:1,w:{x:2}}}
+put "b" {u:{v:2}}
+put "c" {u:1}
+create index u.v
+create index u.w.x
+indexes
+find u.v == 1
+find u.w.x == 2
+update "a" u.v 5
+indexes
+find u.v == 5
+unset "a" u.w
+indexes
+drop index u.w.x
+indexes
+stat

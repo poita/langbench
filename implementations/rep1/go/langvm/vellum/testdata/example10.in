@@ -1,0 +1,19 @@
+@module main
+fn main() {
+    let s = "héllo, wörld";
+    print(showInt(strLen(s)));
+    print(showChar(charAt(s, 1)) ++ showChar(charAt(s, 8)));
+    print(substr(s, 7, 12));
+    print(upper(s));
+    print(strJoin(strSplit("a,,b,", ","), "|"));
+    print(strReplace("aaa", "aa", "b"));
+    print(fmt("[{}] [{}]", [padLeft("7", 3, '0'), padRight("x", 3, '-')]));
+    print(quoteStr("tab\there\n"));
+    print(showInt(strIndexOf(s, "l")) ++ " " ++ showInt(strLastIndexOf(s, "l"))
+          ++ " " ++ showInt(strIndexOf(s, "z")));
+    print(strReverse("abc") ++ " " ++ trim("  pad  ") ++ "!");
+    print(strOfChars([chr(86), 'e', 'l']));
+    print(showInt(strCmp("abc", "abd")) ++ showInt(strCmp("ab", "ab"))
+          ++ showInt(strCmp("b", "ab")));
+    print(showBool(isSpace('\t')) ++ " " ++ quoteChar('\''));
+}

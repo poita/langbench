@@ -1,0 +1,16 @@
+message R { repeated int32 a = 1; repeated sint64 b = 2; repeated bool c = 3; repeated fixed32 d = 4;
+  repeated sfixed64 e = 5; repeated string s = 6; }
+--
+decode R 080108020803
+decode R 08010a02020308040a00
+decode R 10011003
+decode R 18011800187f
+decode R 25010000002500000080
+decode R 29ffffffffffffffff
+decode R 320161320162
+decode R 3200
+decode R 08ffffffffffffffffff0108ffffffff0f
+decode R 0801080208
+decode R 250100
+decode R 3201
+decode R 3202616232

@@ -1,0 +1,35 @@
+[message]
+id 0021
+source "ks_c_5601-1987.eml"
+
+[headers]
+delivered-to: "unknown@example.com"
+date: "Wed, 28 May 2014 17:18:19 +0900 (JST)"
+from: "from@example.com"
+to: "unknown@example.com"
+subject: "test"
+message-id: "<from@example.com>"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"ks_c_5601-1987\""
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="" spec="from@example.com"
+to 0 display="" spec="unknown@example.com"
+
+[date]
+raw " Wed, 28 May 2014 17:18:19 +0900 (JST)"
+valid yes
+utc 2014-05-28T08:18:19Z
+offset +0900
+epoch 1401265099
+
+[structure]
+0 text/plain charset=ks_c_5601-1987 cte=8bit size=7 adler32=146b04a3 role=text
+
+[body]
+text 0 chars 7
+| ½ºÆ¼ÇØ
+html none
+
+[attachments]

@@ -1,0 +1,143 @@
+[message]
+id 0188
+source "mbox:188"
+
+[headers]
+received: "from example.org (mx2.example.org [27.178.103.59]) by dev.example.io (Postfix) with ESMTP id 8327B7D95F for <mrossi.49@corp.example.co.uk>; 15 AUG 12 19:04 +0900"
+received: "from dev.example.io (mx7.mail.example.net [66.38.37.105]) by example.org (Postfix) with ESMTP id 1E66261535 for <nlefvre.74@corp.example.co.uk>; Fri, 22 Jan 2004 13:51:07 +1245"
+return-path: "<mrossi.17@eu.example.de>"
+message-id: "<1323.32f96dd6.44405@post.example.fr>"
+in-reply-to: "<1325.42d9b0fa.53224@example.com>"
+references: "<1324.b39309dd.16891@mail.example.net> <1325.42d9b0fa.53224@example.com>"
+date: "Wed, 6 Oct 2009 18:44:06 -0500"
+from: "\"Wilson, Hana\" <hwilson.88@students.example.ac.jp>"
+to: "Zoë Taylor <ztaylor@example.com>,    \"Brown, Olga\" <obrown@lists.example.edu>,\t\"O'Brien, Vera\" <vobrien@dev.example.io>,\tBob Schröder <bschrder.14@lists.example.edu>,\tGreg 山田 <g.81@lists.example.edu>,    Ivan Иванов <i.72@example.com>, Ivan Müller <imller@example.org>, a@post.example.fr,\t太郎 Wilson <wilson@eu.example.de>,    Uwe Nakamura <unakamura@corp.example.co.uk>,\tIvan Schröder <ischrder@lists.example.edu>, Björn Fernández <bfernndez@corp.example.co.uk>,\t\"Agnieszka Dubois\" <adubois@eu.example.de>,\t\"Yuki Papadopoulos\" <ypapadopoulos.95@mail.example.net>,    Quinn Nakamura <qnakamura@example.org>,\tGreg Schröder <gschrder@example.com>, Björn Smith <bsmith@example.com>,    Đorđe Wilson <wilson@students.example.ac.jp>,\tAgnieszka García <agarca@students.example.ac.jp>,    Ann Fernández <afernndez@example.com>,\tBjörn Østergaard <bstergaard@example.org>,\tpjohansson@example.com, Quinn Brown <qbrown.73@example.com>, Đorđe García <garca.14@mail.example.net>,    Agnieszka Østergaard <astergaard@eu.example.de>, \"Doe, Ivan\" <idoe.73@post.example.fr>, wilson@dev.example.io (Someone),\t\"Dana Johansson\" <djohansson@example.org>,\t\"Kowalski, Sven\" <skowalski.51@students.example.ac.jp>, Olga Müller <omller.8@students.example.ac.jp>,\tmpetrov.67@dev.example.io (Someone), u@lists.example.edu, Björn Smith <bsmith.63@corp.example.co.uk>,\tYuki Rossi <yrossi.60@example.org>, \"Wilson, Hana\" <hwilson@corp.example.co.uk>, \"Doe, William\" <wdoe@students.example.ac.jp>, Erik Østergaard <estergaard@dev.example.io>,\tCarl Wilson <cwilson@eu.example.de>,    Agnieszka Müller <amller@students.example.ac.jp>,\tBjörn Schröder <bschrder.6@students.example.ac.jp>,\ttsmith.45@apache.org, Vera 山田 <v@apache.org>, Greg Müller <gmller@eu.example.de>, Søren Papadopoulos <spapadopoulos.8@post.example.fr>, Luis Johansson <ljohansson.86@lists.example.edu>,\tfschrder@students.example.ac.jp, avanderberg@example.org,\tSøren Johansson <sjohansson@eu.example.de>,\tSøren Lefèvre <slefvre.89@example.com>,\tRémi Müller <rmller@corp.example.co.uk>,\tOlga Brown <obrown.93@post.example.fr>,    Hana García <hgarca@dev.example.io>,\t\"Fiona O'Brien\" <fobrien.34@example.org>"
+cc: "tsmith.5@eu.example.de (Someone), idoe.44@apache.org,    \"Papadopoulos, Agnieszka\" <apapadopoulos.56@corp.example.co.uk>,    rnakamura.46@students.example.ac.jp, Zoë Østergaard <zstergaard@dev.example.io>,\tYuki Doe <ydoe@mail.example.net>, fschrder@example.com,\t\"Agnieszka Kowalski\" <akowalski@students.example.ac.jp>, Zoë Fernández <zfernndez@dev.example.io>, Sven Lefèvre <slefvre@students.example.ac.jp>, mkowalski@example.com,    María Kim <mkim.36@post.example.fr>,\tHana Lefèvre <hlefvre.31@students.example.ac.jp>,    Ελένη Kim <kim.41@students.example.ac.jp>, William Lefèvre <wlefvre.87@students.example.ac.jp>,    Søren Müller <smller.99@lists.example.edu>, Jörg van der Berg <jvanderberg@post.example.fr>, zpapadopoulos@post.example.fr (Someone),\twpetrov.22@example.com (William Petrov),\tSven Kowalski <skowalski@mail.example.net>,    gwilson@mail.example.net (Greg Wilson), \"Luis O'Brien\" <lobrien@post.example.fr>, Ελένη Fernández <fernndez@post.example.fr>,    \"Brown, Xavier\" <xbrown.11@post.example.fr>, Quinn Müller <qmller.82@corp.example.co.uk>"
+subject: "[PATCH] Cause home about does"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+x-original-to: "Karin Иванов <k@mail.example.net>"
+resent-date: "Tue, 3 Jan 2025 22:12:36 -0800"
+resent-date: "Sat, 14 Jun 2005 23:27:16 MET (EDT)"
+resent-date: "Mon, 5 Jun 2009 07:47:45 +0900"
+thread-topic: "The thing I use a move?"
+comments: "Good end men made is  with the make  be are  most cache would  way other when ssl time?"
+sender: "\"Petrov, Vera\" <vpetrov@lists.example.edu>"
+content-type: "text/plain; charset=\"utf-8\""
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="Wilson, Hana" spec="hwilson.88@students.example.ac.jp"
+sender 0 display="Petrov, Vera" spec="vpetrov@lists.example.edu"
+to 0 display="Zoë Taylor" spec="ztaylor@example.com"
+to 1 display="Brown, Olga" spec="obrown@lists.example.edu"
+to 2 display="O'Brien, Vera" spec="vobrien@dev.example.io"
+to 3 display="Bob Schröder" spec="bschrder.14@lists.example.edu"
+to 4 display="Greg 山田" spec="g.81@lists.example.edu"
+to 5 display="Ivan Иванов" spec="i.72@example.com"
+to 6 display="Ivan Müller" spec="imller@example.org"
+to 7 display="" spec="a@post.example.fr"
+to 8 display="太郎 Wilson" spec="wilson@eu.example.de"
+to 9 display="Uwe Nakamura" spec="unakamura@corp.example.co.uk"
+to 10 display="Ivan Schröder" spec="ischrder@lists.example.edu"
+to 11 display="Björn Fernández" spec="bfernndez@corp.example.co.uk"
+to 12 display="Agnieszka Dubois" spec="adubois@eu.example.de"
+to 13 display="Yuki Papadopoulos" spec="ypapadopoulos.95@mail.example.net"
+to 14 display="Quinn Nakamura" spec="qnakamura@example.org"
+to 15 display="Greg Schröder" spec="gschrder@example.com"
+to 16 display="Björn Smith" spec="bsmith@example.com"
+to 17 display="Đorđe Wilson" spec="wilson@students.example.ac.jp"
+to 18 display="Agnieszka García" spec="agarca@students.example.ac.jp"
+to 19 display="Ann Fernández" spec="afernndez@example.com"
+to 20 display="Björn Østergaard" spec="bstergaard@example.org"
+to 21 display="" spec="pjohansson@example.com"
+to 22 display="Quinn Brown" spec="qbrown.73@example.com"
+to 23 display="Đorđe García" spec="garca.14@mail.example.net"
+to 24 display="Agnieszka Østergaard" spec="astergaard@eu.example.de"
+to 25 display="Doe, Ivan" spec="idoe.73@post.example.fr"
+to 26 display="" spec="wilson@dev.example.io"
+to 27 display="Dana Johansson" spec="djohansson@example.org"
+to 28 display="Kowalski, Sven" spec="skowalski.51@students.example.ac.jp"
+to 29 display="Olga Müller" spec="omller.8@students.example.ac.jp"
+to 30 display="" spec="mpetrov.67@dev.example.io"
+to 31 display="" spec="u@lists.example.edu"
+to 32 display="Björn Smith" spec="bsmith.63@corp.example.co.uk"
+to 33 display="Yuki Rossi" spec="yrossi.60@example.org"
+to 34 display="Wilson, Hana" spec="hwilson@corp.example.co.uk"
+to 35 display="Doe, William" spec="wdoe@students.example.ac.jp"
+to 36 display="Erik Østergaard" spec="estergaard@dev.example.io"
+to 37 display="Carl Wilson" spec="cwilson@eu.example.de"
+to 38 display="Agnieszka Müller" spec="amller@students.example.ac.jp"
+to 39 display="Björn Schröder" spec="bschrder.6@students.example.ac.jp"
+to 40 display="" spec="tsmith.45@apache.org"
+to 41 display="Vera 山田" spec="v@apache.org"
+to 42 display="Greg Müller" spec="gmller@eu.example.de"
+to 43 display="Søren Papadopoulos" spec="spapadopoulos.8@post.example.fr"
+to 44 display="Luis Johansson" spec="ljohansson.86@lists.example.edu"
+to 45 display="" spec="fschrder@students.example.ac.jp"
+to 46 display="" spec="avanderberg@example.org"
+to 47 display="Søren Johansson" spec="sjohansson@eu.example.de"
+to 48 display="Søren Lefèvre" spec="slefvre.89@example.com"
+to 49 display="Rémi Müller" spec="rmller@corp.example.co.uk"
+to 50 display="Olga Brown" spec="obrown.93@post.example.fr"
+to 51 display="Hana García" spec="hgarca@dev.example.io"
+to 52 display="Fiona O'Brien" spec="fobrien.34@example.org"
+cc 0 display="" spec="tsmith.5@eu.example.de"
+cc 1 display="" spec="idoe.44@apache.org"
+cc 2 display="Papadopoulos, Agnieszka" spec="apapadopoulos.56@corp.example.co.uk"
+cc 3 display="" spec="rnakamura.46@students.example.ac.jp"
+cc 4 display="Zoë Østergaard" spec="zstergaard@dev.example.io"
+cc 5 display="Yuki Doe" spec="ydoe@mail.example.net"
+cc 6 display="" spec="fschrder@example.com"
+cc 7 display="Agnieszka Kowalski" spec="akowalski@students.example.ac.jp"
+cc 8 display="Zoë Fernández" spec="zfernndez@dev.example.io"
+cc 9 display="Sven Lefèvre" spec="slefvre@students.example.ac.jp"
+cc 10 display="" spec="mkowalski@example.com"
+cc 11 display="María Kim" spec="mkim.36@post.example.fr"
+cc 12 display="Hana Lefèvre" spec="hlefvre.31@students.example.ac.jp"
+cc 13 display="Ελένη Kim" spec="kim.41@students.example.ac.jp"
+cc 14 display="William Lefèvre" spec="wlefvre.87@students.example.ac.jp"
+cc 15 display="Søren Müller" spec="smller.99@lists.example.edu"
+cc 16 display="Jörg van der Berg" spec="jvanderberg@post.example.fr"
+cc 17 display="" spec="zpapadopoulos@post.example.fr"
+cc 18 display="" spec="wpetrov.22@example.com"
+cc 19 display="Sven Kowalski" spec="skowalski@mail.example.net"
+cc 20 display="" spec="gwilson@mail.example.net"
+cc 21 display="Luis O'Brien" spec="lobrien@post.example.fr"
+cc 22 display="Ελένη Fernández" spec="fernndez@post.example.fr"
+cc 23 display="Brown, Xavier" spec="xbrown.11@post.example.fr"
+cc 24 display="Quinn Müller" spec="qmller.82@corp.example.co.uk"
+
+[date]
+raw " Wed, 6 Oct 2009 18:44:06 -0500"
+valid yes
+utc 2009-10-06T23:44:06Z
+offset -0500
+epoch 1254872646
+
+[structure]
+0 text/plain charset=utf-8 cte=base64 size=646 adler32=b098d1c1 role=text
+
+[body]
+text 0 chars 646
+| Segfault will can would give see you other the need the other of out
+| look the up to? Sentence again than try it for mutex bug certificate and
+| that of. Line response have people the help will for through on thing
+| warning? Set and brigade come on in! Word of I their for now first we
+| the your?
+| 
+| The went his people man. Have was man is a ask from and as. Other be of
+| show air for of you to but be up most commit mother! Right boy that man
+| end way had again differ take she use must.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Nils Petrov
+html none
+
+[attachments]

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block head %}{{ post.title }} ({{ site.title }}){% endblock %}
+{% block bodyclass %}essay{% endblock %}
+{% block content %}
+<article>
+<h2>{{ post.title }}</h2>
+<p class="meta">{{ post.date|replace("-", "/") }} &middot; {{ post.tags|length }} tags &middot; slug {{ post.slug|upper }}</p>
+{{ post.content }}</article>
+<p class="chips">{% for t in post.tags %}{{ chip(t.name, t.url) }} {% endfor %}</p>
+<p class="nav">{% if post.newer %}<a href="{{ post.newer.url }}">{{ post.newer.title }}</a>{% else %}(newest){% endif %} / {% if post.older %}<a href="{{ post.older.url }}">{{ post.older.title }}</a>{% else %}(oldest){% endif %}</p>
+{% endblock %}

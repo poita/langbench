@@ -1,0 +1,32 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "ignores booleans",
+      "data": true
+    },
+    {
+      "description": "ignores integers",
+      "data": 123
+    },
+    {
+      "description": "ignores floats",
+      "data": 1.0
+    },
+    {
+      "description": "ignores objects",
+      "data": {}
+    },
+    {
+      "description": "ignores strings",
+      "data": "foo"
+    },
+    {
+      "description": "ignores null",
+      "data": null
+    }
+  ]
+}

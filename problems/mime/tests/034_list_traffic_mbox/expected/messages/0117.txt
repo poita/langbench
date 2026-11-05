@@ -1,0 +1,55 @@
+[message]
+id 0117
+source "mbox:117"
+
+[headers]
+received: "from post.example.fr (mx2.dev.example.io [235.235.185.20]) by example.com (Postfix) with ESMTP id D9D202962E for <wilson.42@mail.example.net>; Sat, 22 Nov 2004 23:14:15 Z"
+received: "from example.org (mx8.example.org [214.234.54.105]) by example.org (Postfix) with ESMTP id D82636DDD6 for <lbrown@post.example.fr>; Mon, 5 Jul 2005 08:53:00 +1000"
+received: "from students.example.ac.jp (mx6.apache.org [19.55.61.53]) by mail.example.net (Postfix) with ESMTP id 5552B44860 for <fnguyen.47@eu.example.de>; Fri, 14 May 2025 08:23:03 +0100 (GMT)"
+received: "from dev.example.io (mx4.eu.example.de [40.167.111.218]) by example.com (Postfix) with ESMTP id BEF57462F2 for <kjohansson@post.example.fr>; Thu, 4 Nov 2012 09:41:56 +0000"
+return-path: "<znguyen@lists.example.edu>"
+message-id: "<770.6460b88d.42828@dev.example.io>"
+date: "thu,14 aug 2003 6:19:9 (comment (nested)) +0000"
+from: "nnakamura@post.example.fr (Nils Nakamura)"
+to: "Bob Müller <bmller@example.com>"
+cc: "\"Doe, Ann\" <adoe@example.com>"
+subject: "Fwd: Hot good house said it the tell"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=us-ascii"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="" spec="nnakamura@post.example.fr"
+to 0 display="Bob Müller" spec="bmller@example.com"
+cc 0 display="Doe, Ann" spec="adoe@example.com"
+
+[date]
+raw " thu,14 aug 2003 6:19:9 (comment (nested)) +0000"
+valid yes
+utc 2003-08-14T06:19:09Z
+offset +0000
+epoch 1060841949
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=447 adler32=cf429900 role=text
+
+[body]
+text 0 chars 447
+| The and we here of place. Well old the of the earth with it why back? It
+| be differ M?laga to her! You new brigade for through filter! The and
+| again of such us with light like ?lan are directive response! Of so you
+| proxy then!
+| 
+| Backport place or go if the such jalape?o to do after the I were has.
+| Just large he he made sound been about an his she you the take of. Your
+| her were much the way their and it vote of great the near!
+| 
+| -- 
+| ?ukasz Garc?a
+html none
+
+[attachments]

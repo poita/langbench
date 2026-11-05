@@ -1,0 +1,13 @@
+% Two mutually recursive predicates joined in one body: ab = a . b, and both
+% a and b absorb ab, so new b tuples must be joined with old a tuples.
+stepa(0, 1). stepa(1, 2). stepa(5, 6).
+stepb(2, 3). stepb(3, 4). stepb(4, 5). stepb(6, 7).
+a(X, Y) :- stepa(X, Y).
+b(X, Y) :- stepb(X, Y).
+ab(X, Z) :- a(X, Y), b(Y, Z).
+a(X, Y) :- ab(X, Y).
+b(X, Y) :- ab(X, Y).
+?- ab(X, Y).
+?- ab(0, X).
+?- a(X, Y).
+?- b(X, Y).

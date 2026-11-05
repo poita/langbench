@@ -1,0 +1,7 @@
+.dub/
+buildsys
+buildsys-test
+*.o
+*.a
+dub.selections.json
+scratch/

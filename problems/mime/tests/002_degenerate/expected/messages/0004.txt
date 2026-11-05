@@ -1,0 +1,20 @@
+[message]
+id 0004
+source "headers-only-blank.eml"
+
+[headers]
+subject: "no body"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=0 adler32=00000001 role=text
+
+[body]
+text 0 chars 0
+html none
+
+[attachments]

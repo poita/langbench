@@ -1,0 +1,31 @@
+30
+insert -3 v
+insert 0 v
+insert 3 v
+succ -4
+pred -4
+succ -3
+pred -3
+succ -2
+pred -2
+succ -1
+pred -1
+succ 0
+pred 0
+succ 1
+pred 1
+succ 2
+pred 2
+succ 3
+pred 3
+succ 4
+pred 4
+delete 0
+succ -3
+pred 3
+succ -1
+pred 1
+delete -3
+delete 3
+succ 0
+pred 0

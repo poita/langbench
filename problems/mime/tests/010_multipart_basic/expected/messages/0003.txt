@@ -1,0 +1,24 @@
+[message]
+id 0003
+source "mixed.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=simple"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=20 adler32=4ffd079f role=text
+  2 image/png cte=base64 size=4 adler32=03fb016f role=attachment
+
+[body]
+text 1 chars 20
+| no content type here
+html none
+
+[attachments]
+2 type=image/png filename=- size=4 adler32=03fb016f file=parts/0003/002.bin

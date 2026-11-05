@@ -1,0 +1,2 @@
+@module main
+fn main() { var x = 1; let f = || { x = 2; }; }

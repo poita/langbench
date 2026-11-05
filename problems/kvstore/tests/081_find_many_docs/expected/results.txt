@@ -1,0 +1,132 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put created
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok put created
+[21] ok put created
+[22] ok put created
+[23] ok put created
+[24] ok put created
+[25] ok put created
+[26] ok put created
+[27] ok put created
+[28] ok put created
+[29] ok put created
+[30] ok put created
+[31] ok put created
+[32] ok put created
+[33] ok put created
+[34] ok put created
+[35] ok put created
+[36] ok put created
+[37] ok put created
+[38] ok put created
+[39] ok put created
+[40] ok put created
+[41] ok put created
+[42] ok put created
+[43] ok put created
+[44] ok put created
+[45] ok put created
+[46] ok put created
+[47] ok put created
+[48] ok put created
+[49] ok put created
+[50] ok put created
+[51] ok put created
+[52] ok put created
+[53] ok put created
+[54] ok put created
+[55] ok put created
+[56] ok put created
+[57] ok put created
+[58] ok put created
+[59] ok put created
+[60] ok put created
+[61] ok create index m entries 60
+[62] ok find 9 plan index m
+  "k003" = {"m":3,"s":"s003"}
+  "k010" = {"m":3,"s":"s010"}
+  "k017" = {"m":3,"s":"s017"}
+  "k024" = {"m":3,"s":"s024"}
+  "k031" = {"m":3,"s":"s031"}
+  "k038" = {"m":3,"s":"s038"}
+  "k045" = {"m":3,"s":"s045"}
+  "k052" = {"m":3,"s":"s052"}
+  "k059" = {"m":3,"s":"s059"}
+[63] ok find 24 plan index m
+  "k004" = {"m":4,"s":"s004"}
+  "k005" = {"m":5,"s":"s005"}
+  "k006" = {"m":6,"s":"s006"}
+  "k011" = {"m":4,"s":"s011"}
+  "k012" = {"m":5,"s":"s012"}
+  "k013" = {"m":6,"s":"s013"}
+  "k018" = {"m":4,"s":"s018"}
+  "k019" = {"m":5,"s":"s019"}
+  "k020" = {"m":6,"s":"s020"}
+  "k025" = {"m":4,"s":"s025"}
+  "k026" = {"m":5,"s":"s026"}
+  "k027" = {"m":6,"s":"s027"}
+  "k032" = {"m":4,"s":"s032"}
+  "k033" = {"m":5,"s":"s033"}
+  "k034" = {"m":6,"s":"s034"}
+  "k039" = {"m":4,"s":"s039"}
+  "k040" = {"m":5,"s":"s040"}
+  "k041" = {"m":6,"s":"s041"}
+  "k046" = {"m":4,"s":"s046"}
+  "k047" = {"m":5,"s":"s047"}
+  "k048" = {"m":6,"s":"s048"}
+  "k053" = {"m":4,"s":"s053"}
+  "k054" = {"m":5,"s":"s054"}
+  "k055" = {"m":6,"s":"s055"}
+[64] ok find 5 plan index m
+  "k000" = {"m":0,"s":"s000"}
+  "k001" = {"m":1,"s":"s001"}
+  "k007" = {"m":0,"s":"s007"}
+  "k008" = {"m":1,"s":"s008"}
+  "k014" = {"m":0,"s":"s014"}
+[65] ok find 5 plan index m
+  "k031" = {"m":3,"s":"s031"}
+  "k038" = {"m":3,"s":"s038"}
+  "k045" = {"m":3,"s":"s045"}
+  "k052" = {"m":3,"s":"s052"}
+  "k059" = {"m":3,"s":"s059"}
+[66] ok create index s entries 60
+[67] ok find 1 plan index s
+  "k042" = {"m":0,"s":"s042"}
+[68] ok find 5 plan index s
+  "k055" = {"m":6,"s":"s055"}
+  "k056" = {"m":0,"s":"s056"}
+  "k057" = {"m":1,"s":"s057"}
+  "k058" = {"m":2,"s":"s058"}
+  "k059" = {"m":3,"s":"s059"}
+[69] ok find 1 plan index m
+  "k003" = {"m":3,"s":"s003"}
+[70] ok indexes 2
+  0 m root 11 entries 60
+  1 s root 12 entries 60
+[71] ok stat
+  pages 12
+  free 0
+  freehead 0
+  docs 60
+  root 4
+  height 2
+  commits 62
+  indexes 2
+  wal 144048

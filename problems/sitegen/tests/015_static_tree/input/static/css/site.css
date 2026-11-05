@@ -1,0 +1,3 @@
+:root { --ink: #1b1b1b; --paper: #fbfaf7; }
+body { margin: 0 auto; max-width: 42rem; color: var(--ink); background: var(--paper); }
+a.tag, a.chip { font-size: 0.85em; }

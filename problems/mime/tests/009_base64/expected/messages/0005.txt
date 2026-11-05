@@ -1,0 +1,22 @@
+[message]
+id 0005
+source "unknown-cte.eml"
+
+[headers]
+content-type: "text/plain; charset=us-ascii"
+content-transfer-encoding: "x-uuencode"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=x-uuencode size=11 adler32=18f303e5 role=text
+
+[body]
+text 0 chars 11
+| left alone
+html none
+
+[attachments]

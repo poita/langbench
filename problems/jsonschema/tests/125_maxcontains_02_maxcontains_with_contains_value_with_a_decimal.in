@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contains": {
+      "const": 1
+    },
+    "maxContains": 1.0
+  },
+  "tests": [
+    {
+      "description": "one element matches, valid maxContains",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "too many elements match, invalid maxContains",
+      "data": [
+        1,
+        1
+      ]
+    }
+  ]
+}

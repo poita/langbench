@@ -1,0 +1,75 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 5 5
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #7 CIN-011 #10
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 BUFF #10 2 0
+14 GRANT #10 pierce
+15 SPENT #7 CIN-011
+16 PLAY A ~2 #8 NEU-009 #10
+17 PAY A ember 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 GRANT #10 provoke
+22 BUFF #10 0 2
+23 SPENT #8 NEU-009
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 20 ember 3 cap 5 vault 6 hand 1 ash 2 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 0 rift 0
+hand A 1 #9 LOM-003
+field A #10 TOK-007 3/4 w0 c0 ready - kw pierce,provoke,skyhook
+field A #11 NEU-029 -/- w0 c0 ready - kw -
+field B #18 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #7 CIN-011
+ash A 2 #8 NEU-009
+effect 1 ts3 A aura grant plating:2 on -
+effect 2 ts5 B aura grant shackled on -
+effect 3 ts6 A turn modify 2 0 on #10
+effect 4 ts7 A turn grant pierce on #10
+effect 5 ts8 A turn grant provoke on #10
+effect 6 ts9 A turn modify 0 2 on #10
+STATE END
+LEGAL BEGIN A priority
+PASS
+PLAY 1 LOM-003 #10
+LEGAL END
+24 PLAY A ~3 #9 LOM-003 #10
+25 PAY A ember 2
+26 PASS A
+27 PASS B
+28 RESOLVE ~3
+29 COUNTERS #10 +2 2
+30 SPENT #9 LOM-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 20 ember 1 cap 5 vault 6 hand 0 ash 3 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 0 rift 0
+field A #10 TOK-007 5/6 w0 c2 ready - kw pierce,plating:2,provoke,skyhook
+field A #11 NEU-029 -/- w0 c0 ready - kw -
+field B #18 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #7 CIN-011
+ash A 2 #8 NEU-009
+ash A 3 #9 LOM-003
+effect 1 ts3 A aura grant plating:2 on #10
+effect 2 ts5 B aura grant shackled on -
+effect 3 ts6 A turn modify 2 0 on #10
+effect 4 ts7 A turn grant pierce on #10
+effect 5 ts8 A turn grant provoke on #10
+effect 6 ts9 A turn modify 0 2 on #10
+STATE END
+31 PASS A
+32 PASS B
+33 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #10
+LEGAL END
+34 RESULT pending none

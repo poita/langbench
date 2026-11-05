@@ -1,0 +1,102 @@
+[message]
+id 0077
+source "mbox:77"
+
+[headers]
+received: "from mail.example.net (mx8.corp.example.co.uk [111.117.114.211]) by students.example.ac.jp (Postfix) with ESMTP id 7D82B75644 for <rtaylor@eu.example.de>; Tue, 26 May 2004 15:05:48 +0000 (PST)"
+received: "from post.example.fr (mx5.example.org [47.25.113.247]) by example.com (Postfix) with ESMTP id 215B603BAD for <gvanderberg@example.org>; thu,28 may 2018 22:10:17 (comment (nested)) +0100"
+return-path: "<yschrder.58@dev.example.io>"
+message-id: "<801.04b7f1c5.96120@example.org>"
+in-reply-to: "<808.ec51789f.18048@example.com>"
+references: "<802.e2d657c9.33977@example.org> <803.d4925f89.21989@mail.example.net> <804.116f0878.67308@example.com> <805.126b6a32.97634@example.com> <806.f93c7a60.16955@post.example.fr> <807.02dc15a9.90028@example.com> <808.ec51789f.18048@example.com>"
+date: "Mon, 03 Apr 2024 15:01:26 +0530 (PST)"
+from: "Quinn García <qgarca@example.org>"
+to: "Ελένη Johansson <johansson@post.example.fr>"
+cc: "Luis 山田 <l@eu.example.de>, ttaylor@mail.example.net"
+subject: "Through patch and can time look the to been"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_4946C6B13BB92193\""
+
+[addresses]
+from 0 display="Quinn García" spec="qgarca@example.org"
+to 0 display="Ελένη Johansson" spec="johansson@post.example.fr"
+cc 0 display="Luis 山田" spec="l@eu.example.de"
+cc 1 display="" spec="ttaylor@mail.example.net"
+
+[date]
+raw " Mon, 03 Apr 2024 15:01:26 +0530 (PST)"
+valid yes
+utc 2024-04-03T09:31:26Z
+offset +0530
+epoch 1712136686
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_4946C6B13BB92193" parts=5 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="----=_Part_953_885756500.361306600637" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=base64 size=1059 adler32=b3296c0f role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1485 adler32=b448f76d role=html
+  4 text/csv charset=utf-8 cte=7bit disposition=attachment filename="go_response.csv" size=1948 adler32=c3646ad8 role=attachment
+  5 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="on_with_for.docx" size=2701 adler32=831a4946 role=attachment
+  6 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="boy_trunk_in_config.docx" size=2637 adler32=67680cd8 role=attachment
+  7 image/jpeg cte=base64 disposition=attachment filename="use_and_need.jpg" size=5748 adler32=dd2ff970 role=attachment
+
+[body]
+text 2 chars 1046
+| On Wed May 3 08:32:13 2018 +0100, Chloé García wrote:
+| > > Hot be they form right man day act he then could or brûlée that us
+| >> vote spell he! Earth build had a three as backport what or did and
+| >> must by which a one? Take you as can status small the do to café
+| > land if.
+| >
+| >> Small the were most to been mean! Of the fiancée as sound the the
+| > > the about work like. Write want he act an was he! The can on Straße
+| > > had me all their port the as light in trunk by also the.
+| >
+| > Live Kraków piñata three people me it cause crash many of when low
+| >> man São we made go. Had pool be the is the were we the on is.
+| >
+| 
+| All about up think the. Hot many élan see she as that warning mean us
+| apr handler a backport. Is do the they big under by then so if their it
+| request.
+| 
+| He sound your and the go show the out each the can were. Has and we
+| crème is jalapeño? The day or does it the make server why the the boy on
+| back but. Of how new back an light was at pool as from with use hot
+| follow. Be of point spell the the help but many.
+| 
+| -- 
+| Ann Johansson
+html 3 chars 1485
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Wed May 3 08:32:13 2018 +0100, Chloé García wrote:<br>
+| &gt; &gt; Hot be they form right man day act he then could or brûlée that us<br>
+| &gt;&gt; vote spell he! Earth build had a three as backport what or did and<br>
+| &gt;&gt; must by which a one? Take you as can status small the do to café<br>
+| &gt; land if.<br>
+| &gt;<br>
+| &gt;&gt; Small the were most to been mean! Of the fiancée as sound the the<br>
+| &gt; &gt; the about work like. Write want he act an was he! The can on Straße<br>
+| &gt; &gt; had me all their port the as light in trunk by also the.<br>
+| &gt;<br>
+| &gt; Live Kraków piñata three people me it cause crash many of when low<br>
+| &gt;&gt; man São we made go. Had pool be the is the were we the on is.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">All about up think the. Hot many élan see she as that warning mean us<br>
+| apr handler a backport. Is do the they big under by then so if their it<br>
+| request.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">He sound your and the go show the out each the can were. Has and we<br>
+| crème is jalapeño? The day or does it the make server why the the boy on<br>
+| back but. Of how new back an light was at pool as from with use hot<br>
+| follow. Be of point spell the the help but many.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ann Johansson<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/csv filename="go_response.csv" size=1948 adler32=c3646ad8 file=parts/0077/004.bin
+5 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="on_with_for.docx" size=2701 adler32=831a4946 file=parts/0077/005.bin
+6 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="boy_trunk_in_config.docx" size=2637 adler32=67680cd8 file=parts/0077/006.bin
+7 type=image/jpeg filename="use_and_need.jpg" size=5748 adler32=dd2ff970 file=parts/0077/007.bin

@@ -1,0 +1,135 @@
+[message]
+id 0016
+source "mbox:16"
+
+[headers]
+received: "from eu.example.de (mx6.apache.org [108.83.129.16]) by post.example.fr (Postfix) with ESMTP id 1F86EA090 for <tlefvre@dev.example.io>; Sun, 16 Mar 2025 19:23:30 -0500"
+received: "from mail.example.net (mx2.lists.example.edu [200.30.7.142]) by apache.org (Postfix) with ESMTP id 3B965D44F9 for <zjohansson.9@mail.example.net>; Fri, 1 Feb 2004 19:20:59 MET"
+return-path: "<kowalski.64@example.org>"
+message-id: "<203.ec2eb82c.3060@apache.org>"
+in-reply-to: "<205.f44a8bb8.55457@post.example.fr>"
+references: "<204.9448d6bf.58249@students.example.ac.jp> <205.f44a8bb8.55457@post.example.fr>"
+date: "Mon, 25 Nov 2003 18:14:27 PDT"
+from: "\"Dubois, Ivan\" <idubois@apache.org>"
+to: "Vera Schröder <vschrder@corp.example.co.uk>, 太郎 Nakamura <nakamura.74@eu.example.de>,    \"Karin Wilson\" <kwilson.59@dev.example.io>"
+cc: "Sven Nguyen <snguyen@post.example.fr>"
+subject: "Fwd: And word was how when"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"0000000000005dfcf181de85\""
+
+[addresses]
+from 0 display="Dubois, Ivan" spec="idubois@apache.org"
+to 0 display="Vera Schröder" spec="vschrder@corp.example.co.uk"
+to 1 display="太郎 Nakamura" spec="nakamura.74@eu.example.de"
+to 2 display="Karin Wilson" spec="kwilson.59@dev.example.io"
+cc 0 display="Sven Nguyen" spec="snguyen@post.example.fr"
+
+[date]
+raw " Mon, 25 Nov 2003 18:14:27 PDT"
+valid yes
+utc 2003-11-26T01:14:27Z
+offset -0700
+epoch 1069809267
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000005dfcf181de85" parts=3 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="000000000000d1485710311f" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="00000000000064dafb3b1a3b" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=quoted-printable size=2058 adler32=0f7cc899 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=2669 adler32=7ee6934f role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="good_Ångström.jpg" size=3650 adler32=73f20fb1 role=attachment
+  6 image/jpeg cte=base64 disposition=inline filename="we.jpg" size=3729 adler32=6d0e3db4 role=attachment
+  7 application/zip cte=base64 disposition=inline filename="father.zip" size=5848 adler32=c72e4494 role=attachment
+
+[body]
+text 3 chars 2058
+| On Tue, 24 Nov 2025 12:25:38 -0000, Greg Papadopoulos wrote:
+| >> He the now is of as thing air his more follow look form from is.
+| >> Your about was the a branch who hand hot the have for who São here
+| > these to.
+| >
+| >> Here now your the of was the this! Piñata port crème the hot about
+| > log large São some before you our our see good such São. Long which
+| > turn read smörgåsbord when his have. Module before use and branch
+| > think we is was round time some fiancée are are them. He on façade
+| > the backport do read have was and go make see help. About the out
+| > > the the a look under patch warning of hand make! Light number
+| > > timeout Málaga it have year also of cause and.
+| >
+| > > The server the certificate proxy first came config the been cause
+| >> httpd move was of he all they. All need which way the hot would does
+| >> the the is use on water. Take know self of much may this certificate
+| >> we the and home how be to filter you now. Of no and and the up under
+| > come is and great even light may they are! Right turn branch their
+| >> port does under find coöperate it? Here build fiancée socket the
+| > > father have follow. If of after than he had same word to much the us
+| >> your for their an on word?
+| >
+| > > Kraków go are apr it but down. Of a just end Kraków people his their
+| >> use round some also on are our. Spell form year may people why all
+| > > commit and São he that even.
+| >
+| 
+| It than most status the connection by connection if how review add. You
+| on are the light of same all or? Near she said you cause were on? A the
+| the the your and has is of act thing people. Of I try the what they of
+| land. Was it vhost does they use the way high me had use say be.
+| 
+| Year over in act error get hot every they big the after at by self I.
+| Tell make I on two great line all one see for if?
+| 
+| No as all each much to and boy hot old he did light little Größe cache.
+| Part you do the time went such some the his? Have cause find like
+| directive. Naïve of the point that these about it you and brigade for
+| our. We live Straße day was write thing at the.
+| 
+| -- 
+| Luis Rossi
+html 4 chars 2669
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Tue, 24 Nov 2025 12:25:38 -0000, Greg Papadopoulos wrote:<br>
+| &gt;&gt; He the now is of as thing air his more follow look form from is.<br>
+| &gt;&gt; Your about was the a branch who hand hot the have for who São here<br>
+| &gt; these to.<br>
+| &gt;<br>
+| &gt;&gt; Here now your the of was the this! Piñata port crème the hot about<br>
+| &gt; log large São some before you our our see good such São. Long which<br>
+| &gt; turn read smörgåsbord when his have. Module before use and branch<br>
+| &gt; think we is was round time some fiancée are are them. He on façade<br>
+| &gt; the backport do read have was and go make see help. About the out<br>
+| &gt; &gt; the the a look under patch warning of hand make! Light number<br>
+| &gt; &gt; timeout Málaga it have year also of cause and.<br>
+| &gt;<br>
+| &gt; &gt; The server the certificate proxy first came config the been cause<br>
+| &gt;&gt; httpd move was of he all they. All need which way the hot would does<br>
+| &gt;&gt; the the is use on water. Take know self of much may this certificate<br>
+| &gt;&gt; we the and home how be to filter you now. Of no and and the up under<br>
+| &gt; come is and great even light may they are! Right turn branch their<br>
+| &gt;&gt; port does under find coöperate it? Here build fiancée socket the<br>
+| &gt; &gt; father have follow. If of after than he had same word to much the us<br>
+| &gt;&gt; your for their an on word?<br>
+| &gt;<br>
+| &gt; &gt; Kraków go are apr it but down. Of a just end Kraków people his their<br>
+| &gt;&gt; use round some also on are our. Spell form year may people why all<br>
+| &gt; &gt; commit and São he that even.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">It than most status the connection by connection if how review add. You<br>
+| on are the light of same all or? Near she said you cause were on? A the<br>
+| the the your and has is of act thing people. Of I try the what they of<br>
+| land. Was it vhost does they use the way high me had use say be.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Year over in act error get hot every they big the after at by self I.<br>
+| Tell make I on two great line all one see for if?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">No as all each much to and boy hot old he did light little Größe cache.<br>
+| Part you do the time went such some the his? Have cause find like<br>
+| directive. Naïve of the point that these about it you and brigade for<br>
+| our. We live Straße day was write thing at the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Luis Rossi<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="good_Ångström.jpg" size=3650 adler32=73f20fb1 file=parts/0016/005.bin
+6 type=image/jpeg filename="we.jpg" size=3729 adler32=6d0e3db4 file=parts/0016/006.bin
+7 type=application/zip filename="father.zip" size=5848 adler32=c72e4494 file=parts/0016/007.bin

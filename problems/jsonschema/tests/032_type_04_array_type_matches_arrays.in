@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "array"
+  },
+  "tests": [
+    {
+      "description": "an integer is not an array",
+      "data": 1
+    },
+    {
+      "description": "a float is not an array",
+      "data": 1.1
+    },
+    {
+      "description": "a string is not an array",
+      "data": "foo"
+    },
+    {
+      "description": "an object is not an array",
+      "data": {}
+    },
+    {
+      "description": "an array is an array",
+      "data": []
+    },
+    {
+      "description": "a boolean is not an array",
+      "data": true
+    },
+    {
+      "description": "null is not an array",
+      "data": null
+    }
+  ]
+}

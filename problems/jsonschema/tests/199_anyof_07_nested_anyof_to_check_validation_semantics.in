@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "anyOf": [
+      {
+        "anyOf": [
+          {
+            "type": "null"
+          }
+        ]
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "null is valid",
+      "data": null
+    },
+    {
+      "description": "anything non-null is invalid",
+      "data": 123
+    }
+  ]
+}

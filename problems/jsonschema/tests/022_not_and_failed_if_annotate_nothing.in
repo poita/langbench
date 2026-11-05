@@ -1,0 +1,66 @@
+{
+  "schema": {
+    "not": {
+      "properties": {
+        "a": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "never"
+      ]
+    },
+    "if": {
+      "properties": {
+        "b": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "never"
+      ]
+    },
+    "then": {
+      "properties": {
+        "c": {}
+      }
+    },
+    "else": {
+      "properties": {
+        "d": {
+          "type": "integer"
+        }
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "else applies and evaluates d",
+      "data": {
+        "d": 1
+      }
+    },
+    {
+      "description": "a is named only inside not",
+      "data": {
+        "a": 1,
+        "d": 1
+      }
+    },
+    {
+      "description": "b is named only by the if that failed",
+      "data": {
+        "b": 1,
+        "d": 1
+      }
+    },
+    {
+      "description": "then was never applied",
+      "data": {
+        "c": 1,
+        "d": 1
+      }
+    }
+  ]
+}

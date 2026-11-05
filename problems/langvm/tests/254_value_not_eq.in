@@ -1,0 +1,2 @@
+@module main
+fn main() { let f = |x: Int| x; print(showBool(f == f)); }

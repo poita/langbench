@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "true": true,
+      "false": false
+    },
+    "properties": {
+      "true": {
+        "$dynamicRef": "#/$defs/true"
+      },
+      "false": {
+        "$dynamicRef": "#/$defs/false"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "follow $dynamicRef to a true schema",
+      "data": {
+        "true": 1
+      }
+    },
+    {
+      "description": "follow $dynamicRef to a false schema",
+      "data": {
+        "false": 1
+      }
+    }
+  ]
+}

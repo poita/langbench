@@ -1,0 +1,6 @@
+norm1 lund_a.mtx
+norminf lund_a.mtx
+normfro lund_a.mtx
+chol lund_a.mtx
+lu lund_a.mtx
+solve lund_a.mtx rhs.mtx

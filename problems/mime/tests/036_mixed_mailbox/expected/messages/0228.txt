@@ -1,0 +1,71 @@
+[message]
+id 0228
+source "mbox:228"
+
+[headers]
+received: "from lists.example.edu (mx7.apache.org [92.112.184.118]) by example.org (Postfix) with ESMTP id FE5C65472E for <cnakamura@example.org>; 12 AUG 03 14:03 Z"
+received: "from corp.example.co.uk (mx2.apache.org [65.117.75.32]) by lists.example.edu (Postfix) with ESMTP id 7BCE2E3A35 for <fgarca@apache.org>; Fri Jan 20 21:35:57 2009 +0200"
+received: "from example.org (mx7.dev.example.io [39.14.181.152]) by post.example.fr (Postfix) with ESMTP id 7DB9177890 for <vpapadopoulos.24@eu.example.de>; tue,9 apr 2009 1:29:30 (comment (nested)) +1245"
+return-path: "<qobrien.51@students.example.ac.jp>"
+message-id: "<1589.ceb7a014.60812@eu.example.de>"
+in-reply-to: "<1597.6feabaf1.11285@mail.example.net>"
+references: "<1590.b0ea8370.37644@corp.example.co.uk> <1591.3e97b4a3.75172@mail.example.net> <1592.cc4f73b3.24056@students.example.ac.jp> <1593.15160043.30589@apache.org> <1594.e5998b59.57040@corp.example.co.uk> <1595.4d4c2075.29372@example.org> <1596.8cfb80b8.94734@students.example.ac.jp> <1597.6feabaf1.11285@mail.example.net>"
+date: "sun,16 may 2003 1:24:48 (comment (nested)) -0000"
+from: "Chloé 山田 <c@mail.example.net>"
+to: "\"Nakamura, Luis\" <lnakamura@students.example.ac.jp>,    Rémi Østergaard <rstergaard@mail.example.net>,    Ελένη Rossi <rossi.84@example.com>"
+subject: "I to more all what in"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"Apple-Mail=_3B5F9AB81CEC85FD\""
+
+[addresses]
+from 0 display="Chloé 山田" spec="c@mail.example.net"
+to 0 display="Nakamura, Luis" spec="lnakamura@students.example.ac.jp"
+to 1 display="Rémi Østergaard" spec="rstergaard@mail.example.net"
+to 2 display="Ελένη Rossi" spec="rossi.84@example.com"
+
+[date]
+raw " sun,16 may 2003 1:24:48 (comment (nested)) -0000"
+valid yes
+utc 2003-05-16T01:24:48Z
+offset +0000
+epoch 1053048288
+
+[structure]
+0 multipart/alternative cte=7bit boundary="Apple-Mail=_3B5F9AB81CEC85FD" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=quoted-printable size=540 adler32=ceeec123 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=829 adler32=232521c9 role=html
+
+[body]
+text 1 chars 533
+| The write they the other and or my header did more. For our over low
+| year? It your and this by the response live change trunk a time time by
+| would keepalive more?
+| 
+| Was of do each know live you the see. It him it log change boy a are
+| follow request boy and. At give status the but from thread made how by
+| play this you and about what could tell. High live near the as for a
+| when at was do of your when large? By the of live the the it of. The
+| they port world write the low and take keepalive be the résumé of and?
+| 
+| -- 
+| Ελένη Kowalski
+html 2 chars 822
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The write they the other and or my header did more. For our over low<br>
+| year? It your and this by the response live change trunk a time time by<br>
+| would keepalive more?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Was of do each know live you the see. It him it log change boy a are<br>
+| follow request boy and. At give status the but from thread made how by<br>
+| play this you and about what could tell. High live near the as for a<br>
+| when at was do of your when large? By the of live the the it of. The<br>
+| they port world write the low and take keepalive be the résumé of and?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ελένη Kowalski<br>
+| </p>
+| </body></html>
+
+[attachments]

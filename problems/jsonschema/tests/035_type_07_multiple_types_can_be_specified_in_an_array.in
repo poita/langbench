@@ -1,0 +1,39 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": [
+      "integer",
+      "string"
+    ]
+  },
+  "tests": [
+    {
+      "description": "an integer is valid",
+      "data": 1
+    },
+    {
+      "description": "a string is valid",
+      "data": "foo"
+    },
+    {
+      "description": "a float is invalid",
+      "data": 1.1
+    },
+    {
+      "description": "an object is invalid",
+      "data": {}
+    },
+    {
+      "description": "an array is invalid",
+      "data": []
+    },
+    {
+      "description": "a boolean is invalid",
+      "data": true
+    },
+    {
+      "description": "null is invalid",
+      "data": null
+    }
+  ]
+}

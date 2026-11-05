@@ -1,0 +1,21 @@
+From nobody Mon Sep  1 00:00:00 2025
+Subject: =?utf-8?Q?Caf=C3=A9?= report
+From: Ann Example <ann@example.com>
+To: bob@example.org, Carl <carl@example.org>
+Date: Mon, 1 Sep 2025 12:30:00 +0200
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="X"
+
+ignore me
+--X
+Content-Type: text/plain; charset=iso-8859-1
+
+café
+--X
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="a.bin"
+Content-Transfer-Encoding: base64
+
+AAECAw==
+--X--
+

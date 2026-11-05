@@ -1,0 +1,49 @@
+48
+insert 5 k5
+insert 3 k3
+insert 8 k8
+insert 1 k1
+insert 9 k9
+insert 2 k2
+insert 7 k7
+insert 4 k4
+insert 6 k6
+insert 10 k10
+size
+min
+max
+delete 1
+min
+size
+delete 2
+min
+size
+delete 3
+min
+size
+delete 4
+min
+size
+delete 5
+min
+size
+delete 10
+max
+size
+delete 9
+max
+size
+delete 8
+max
+size
+delete 7
+max
+size
+delete 6
+max
+size
+min
+max
+select 0
+rank 100
+range 1 10

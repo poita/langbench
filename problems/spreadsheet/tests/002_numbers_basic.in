@@ -1,0 +1,19 @@
+set A1 5
+set A2 -3
+set A3 4.50
+set A4 007
+set A5 -0
+set A6 0.5
+set A7 -3.25
+set A8 123456789012345
+set A9 100000000000000000000
+get A1
+get A2
+get A3
+get A4
+get A5
+get A6
+get A7
+get A8
+get A9
+dump

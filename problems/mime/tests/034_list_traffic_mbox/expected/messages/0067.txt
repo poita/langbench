@@ -1,0 +1,73 @@
+[message]
+id 0067
+source "mbox:67"
+
+[headers]
+received: "from example.com (mx4.eu.example.de [115.155.248.185]) by students.example.ac.jp (Postfix) with ESMTP id C7C520F3EE for <aschrder@example.com>; Sat, 23 Jan 2005 00:21:58 -0500"
+received: "from mail.example.net (mx6.eu.example.de [252.229.154.92]) by mail.example.net (Postfix) with ESMTP id 51CB2B6748 for <awilson@students.example.ac.jp>; Sat Mar 10 05:06:51 2024 Z"
+received: "from students.example.ac.jp (mx1.dev.example.io [152.6.18.89]) by eu.example.de (Postfix) with ESMTP id 820C3A59FD for <abrown@students.example.ac.jp>; Tue, 21 Apr 2012 12:16:48 +0000 (PST)"
+return-path: "<llefvre@example.org>"
+message-id: "<443.3af2c00b.87640@students.example.ac.jp>"
+in-reply-to: "<452.4f192975.55405@mail.example.net>"
+references: "<444.fc3d6028.76510@lists.example.edu> <445.74471f9d.20010@example.org> <446.0c74cf8b.99733@students.example.ac.jp> <447.3d00a9db.63360@dev.example.io> <448.d6be3fd9.23255@example.org> <449.62b45bf3.72032@corp.example.co.uk> <450.64241cf1.80366@corp.example.co.uk> <451.d155ef47.43550@mail.example.net> <452.4f192975.55405@mail.example.net>"
+date: "Sat, 1 May 2018 06:13:10 EST"
+from: "dubois@eu.example.de (Someone)"
+to: "\"Hana Nguyen\" <hnguyen@mail.example.net>"
+cc: "Quinn García <qgarca@dev.example.io>,\t\"Ann Papadopoulos\" <apapadopoulos.22@lists.example.edu>"
+subject: "Fwd: But more are crème"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"utf-8\""
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="" spec="dubois@eu.example.de"
+to 0 display="Hana Nguyen" spec="hnguyen@mail.example.net"
+cc 0 display="Quinn García" spec="qgarca@dev.example.io"
+cc 1 display="Ann Papadopoulos" spec="apapadopoulos.22@lists.example.edu"
+
+[date]
+raw " Sat, 1 May 2018 06:13:10 EST"
+valid yes
+utc 2018-05-01T11:13:10Z
+offset -0500
+epoch 1525173190
+
+[structure]
+0 text/plain charset=utf-8 cte=quoted-printable size=1222 adler32=036eac1b role=text
+
+[body]
+text 0 chars 1217
+| Client here help again in way great bug now think thread act. All about
+| want your piñata branch pool piñata! Much come who a which one request
+| that review some.
+| 
+| Self hot with was the or is the year Zürich bug he the try name was each
+| some. Like your of port will in can them live mean a house all at? That
+| the every put was bug the see set if at work! The jalapeño but may he
+| header the word back? You it you with many the over the with must in the
+| bucket small the self come! Bucket you large the in branch as such the
+| move time!
+| 
+| Follow back also be add was or hand before can old could is way same him
+| even has? Line back he day call her and other first near boy this sound
+| every at where. Of in the client down year of number request is change
+| the her backport?
+| 
+| Response and turn two is live brigade want the word home when be I? Also
+| old the of the the. Of keepalive differ is to in a as of apr tell
+| through live ask them. The move like a be and good must an. These as
+| line to water high? Will large from piñata from. The my you the just
+| been part point her in men than can come we sentence a?
+| 
+| If low to were on do of only of turn time it said of the such. Was see
+| out low crash world came see?
+| 
+| -- 
+| Vera Kim
+html none
+
+[attachments]

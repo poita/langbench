@@ -1,0 +1,64 @@
+[message]
+id 0189
+source "mbox:189"
+
+[headers]
+received: "from example.com (mx8.dev.example.io [122.13.108.182]) by example.org (Postfix) with ESMTP id D9B5A7B010 for <wilson@mail.example.net>; Wed, 23 Sep 2025 16:17:37 +0100 (EDT)"
+return-path: "<vsmith@apache.org>"
+message-id: "<1327.ad2c650b.72598@mail.example.net>"
+in-reply-to: "<1333.023babc6.72523@example.org>"
+references: "<1328.4c7b1d72.73672@example.com> <1329.f6fd61e7.40719@lists.example.edu> <1330.1c322431.81475@corp.example.co.uk> <1331.e8820260.83034@apache.org> <1332.2b31d895.78051@lists.example.edu> <1333.023babc6.72523@example.org>"
+date: "Thu, 13 May 2012 06:29:37 -0000"
+from: "Fiona Brown <fbrown@eu.example.de>"
+to: "Jörg Petrov <jpetrov.84@lists.example.edu>,    Xavier Schröder <xschrder@apache.org>, William Müller <wmller.54@apache.org>"
+cc: "Olga Müller <omller.42@lists.example.edu>"
+subject: "RE: After for he in"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 657\""
+
+[addresses]
+from 0 display="Fiona Brown" spec="fbrown@eu.example.de"
+to 0 display="Jörg Petrov" spec="jpetrov.84@lists.example.edu"
+to 1 display="Xavier Schröder" spec="xschrder@apache.org"
+to 2 display="William Müller" spec="wmller.54@apache.org"
+cc 0 display="Olga Müller" spec="omller.42@lists.example.edu"
+
+[date]
+raw " Thu, 13 May 2012 06:29:37 -0000"
+valid yes
+utc 2012-05-13T06:29:37Z
+offset +0000
+epoch 1336890577
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 657" parts=3 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="simple boundary 754" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=8bit size=294 adler32=eee867b2 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=525 adler32=b1ceb5ae role=html
+  4 text/plain charset=utf-8 cte=quoted-printable disposition=attachment filename="play.txt" size=8157 adler32=7b0d592f role=attachment
+  5 image/png cte=base64 disposition=attachment filename="word.png" size=5265 adler32=411e21a0 role=attachment
+
+[body]
+text 2 chars 294
+| Like sound look over we side them his httpd it too when the she segfault
+| déjà of? The and he his thread. Three take must know request? I on
+| client two she little for which and Málaga but for. One went so by new
+| the said animal the rewrite work this place and log had all she.
+| 
+| -- 
+| Xavier Brown
+html 3 chars 522
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Like sound look over we side them his httpd it too when the she segfault<br>
+| déjà of? The and he his thread. Three take must know request? I on<br>
+| client two she little for which and Málaga but for. One went so by new<br>
+| the said animal the rewrite work this place and log had all she.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Xavier Brown<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/plain filename="play.txt" size=8157 adler32=7b0d592f file=parts/0189/004.bin
+5 type=image/png filename="word.png" size=5265 adler32=411e21a0 file=parts/0189/005.bin

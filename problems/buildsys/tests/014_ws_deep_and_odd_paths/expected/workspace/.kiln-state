@@ -1,0 +1,9 @@
+kiln-state 1
+step out/deep/sub/list.txt
+cmd count_lines()
+in a/b/c/d/e/f/g/h/i/j/k.txt 147e0675c8f776df
+in dir.with.dots/file+plus-minus.v2.txt 5d95e5b49bd1629c
+in nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn/x.txt b3f5eab6b3d265db
+in src/_under/.hidden.txt f6773a289cf42829
+out out/deep/sub/list.txt 14d7e6ba2b8ea017
+end

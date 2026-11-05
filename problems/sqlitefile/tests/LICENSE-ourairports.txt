@@ -1,0 +1,14 @@
+OurAirports open data
+=====================
+
+Source: https://ourairports.com/data/
+Repository: https://github.com/davidmegginson/ourairports-data
+
+Terms of use, quoted from https://ourairports.com/data/ :
+
+    All data is released to the Public Domain, and comes with no guarantee
+    of accuracy or fitness for use.
+
+The files vendored here (airports.csv.gz, runways.csv.gz) are gzip-compressed
+copies of airports.csv and runways.csv with a subset of the original columns
+retained; no values were altered.

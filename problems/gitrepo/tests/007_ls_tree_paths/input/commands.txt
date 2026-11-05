@@ -1,0 +1,24 @@
+ls-tree HEAD src
+ls-tree HEAD src/deep
+ls-tree HEAD src/deep/nested
+ls-tree HEAD data
+ls-tree HEAD scripts
+ls-tree HEAD vendor
+ls-tree HEAD nosuchdir
+ls-tree HEAD README.md
+ls-tree HEAD src/main.c
+ls-tree HEAD vendor/sub
+ls-tree HEAD src/nosuch
+ls-tree HEAD data/blob.bin
+ls-tree HEAD .
+ls-tree HEAD ..
+ls-tree HEAD src/.
+ls-tree HEAD src/..
+ls-tree HEAD src/deep/
+ls-tree HEAD /src
+ls-tree HEAD src//deep
+ls-tree HEAD~18 scripts
+ls-tree v1.0 src
+ls-tree HEAD 
+ls-tree HEAD src src
+ls-tree  HEAD

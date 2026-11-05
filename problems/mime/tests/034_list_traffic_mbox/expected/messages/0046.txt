@@ -1,0 +1,80 @@
+[message]
+id 0046
+source "mbox:46"
+
+[headers]
+received: "from mail.example.net (mx8.corp.example.co.uk [179.79.28.207]) by example.com (Postfix) with ESMTP id 4A228FCDDB for <psmith@mail.example.net>; 4 MAY 09 13:07 +0530"
+received: "from eu.example.de (mx4.mail.example.net [157.179.177.211]) by post.example.fr (Postfix) with ESMTP id 728A924D72 for <crossi.22@apache.org>; Sun, 19 Sep 2025 12:48:30 CST"
+return-path: "<igarca@example.com>"
+message-id: "<356.a445ff23.38787@post.example.fr>"
+in-reply-to: "<360.36379724.86833@post.example.fr>"
+references: "<357.d3393e6d.20490@post.example.fr> <358.da35b705.90914@example.com> <359.3b6019d4.95437@students.example.ac.jp> <360.36379724.86833@post.example.fr>"
+date: "Mon, 20 Jul 2025 09:52:25 +0100"
+from: "Ivan 山田 <i@mail.example.net>"
+to: "skim@mail.example.net (Someone),    \"Petrov, Erik\" <epetrov.98@lists.example.edu>"
+cc: "Quinn Lefèvre <qlefvre.31@post.example.fr>"
+subject: "A the came build men the thing"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"----=_Part_1312_101040774.777725921859\""
+
+[addresses]
+from 0 display="Ivan 山田" spec="i@mail.example.net"
+to 0 display="" spec="skim@mail.example.net"
+to 1 display="Petrov, Erik" spec="epetrov.98@lists.example.edu"
+cc 0 display="Quinn Lefèvre" spec="qlefvre.31@post.example.fr"
+
+[date]
+raw " Mon, 20 Jul 2025 09:52:25 +0100"
+valid yes
+utc 2025-07-20T08:52:25Z
+offset +0100
+epoch 1753001545
+
+[structure]
+0 multipart/alternative cte=7bit boundary="----=_Part_1312_101040774.777725921859" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=utf-8 cte=base64 size=828 adler32=809126e3 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1178 adler32=4f359b9e role=html
+
+[body]
+text 1 chars 819
+| São what about the so. Up long went have sound from. We all the façade
+| boy you place way every as and self here. That said the you in this of
+| and right? New cause in at home the me the build socket. Their water and
+| new when a he. Of end Straße where has sentence directive great build
+| than people could the your us when handler it!
+| 
+| After what the try that well went of great. Kind for to the the
+| connection be make this our well differ look? Me I to bug you has way he
+| most after would much vote how? Must again live Größe name.
+| 
+| Self from round response the time! Piñata déjà want about mean he to
+| large had the. Then with what the the he earth people there she! Need
+| crème review line also follow an each in went how of off to! She the
+| over you the on also the there find people his even that?
+| 
+| -- 
+| Ann Papadopoulos
+html 2 chars 1169
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">São what about the so. Up long went have sound from. We all the façade<br>
+| boy you place way every as and self here. That said the you in this of<br>
+| and right? New cause in at home the me the build socket. Their water and<br>
+| new when a he. Of end Straße where has sentence directive great build<br>
+| than people could the your us when handler it!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">After what the try that well went of great. Kind for to the the<br>
+| connection be make this our well differ look? Me I to bug you has way he<br>
+| most after would much vote how? Must again live Größe name.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Self from round response the time! Piñata déjà want about mean he to<br>
+| large had the. Then with what the the he earth people there she! Need<br>
+| crème review line also follow an each in went how of off to! She the<br>
+| over you the on also the there find people his even that?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ann Papadopoulos<br>
+| </p>
+| </body></html>
+
+[attachments]

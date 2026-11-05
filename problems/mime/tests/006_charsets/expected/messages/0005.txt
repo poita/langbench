@@ -1,0 +1,21 @@
+[message]
+id 0005
+source "quoted-charset.eml"
+
+[headers]
+content-type: "text/plain; charset=\"ISO-8859-1\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=7bit size=5 adler32=0686021e role=text
+
+[body]
+text 0 chars 5
+| café
+html none
+
+[attachments]

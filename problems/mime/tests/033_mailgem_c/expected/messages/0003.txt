@@ -1,0 +1,37 @@
+[message]
+id 0003
+source "raw_email11.eml"
+
+[headers]
+mime-version: "1.0 (Apple Message framework v619.2)"
+to: "\"xxxxx@xxxxx\" <matmail>"
+message-id: "<416eaebec6d333ec6939eaf8a7d80724@xxxxx>"
+content-type: "multipart/alternative; boundary=Apple-Mail-5-1037861608"
+from: "\"xxxxx@xxxxx\" <xxxxx@xxxxx>"
+subject: "worse when you use them."
+date: "Wed, 27 Apr 2005 14:15:31 -0700"
+
+[addresses]
+from 0 display="xxxxx@xxxxx" spec="xxxxx@xxxxx"
+to 0 display="xxxxx@xxxxx" spec="matmail"
+
+[date]
+raw " Wed, 27 Apr 2005 14:15:31 -0700"
+valid yes
+utc 2005-04-27T21:15:31Z
+offset -0700
+epoch 1114636531
+
+[structure]
+0 multipart/alternative cte=7bit boundary="Apple-Mail-5-1037861608" parts=2 preamble=2 epilogue=1
+  1 text/plain charset=us-ascii cte=7bit size=13 adler32=1b490425 role=text
+  2 text/enriched charset=us-ascii cte=7bit size=28 adler32=7c46089e role=attachment
+
+[body]
+text 1 chars 13
+| 
+| XXXXX Xxxxx
+html none
+
+[attachments]
+2 type=text/enriched filename=- size=28 adler32=7c46089e file=parts/0003/002.bin

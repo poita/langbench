@@ -1,0 +1,42 @@
+@module main
+fn nz(x: Int) -> Int { if x == 0 { 1 } else { x } }
+pub fn f0(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = snd(((b & c), (-d)));
+    for v1 in 0 .. 2 { acc = acc + snd((unwrapOr(parseInt(showInt(d)), 0), d)); }
+    let v2 = (match snd((a, acc)) { v3 -> (if (9 >= v3) { d } else { a }) });
+    acc + (c - acc)
+}
+pub fn f1() -> Int {
+    var acc = listFold([93, 83, 21], 65, |acc, x| acc - x);
+    for v4 in listMap([5, -5], |t| t * 2) {
+        if v4 > 0 { continue; }
+        acc = acc ^ (v4 + v4);
+        if acc < 0 { break; }
+    }
+    for v5 in listMap([-7, -5, 0], |t| t * 2) {
+        if v5 > 0 { continue; }
+        acc = acc ^ absI(57);
+        if acc < 0 { break; }
+    }
+    acc ^ f0(acc, acc, acc, acc)
+}
+pub fn f2() -> Int {
+    var acc = f0(((if (22 >= 0xdead_beef) { 58 } else { 5 }) * f0(60, 70, 40, 17)), f1(), listFold([listFold([95, 8, 85], intMin(), |acc, x| acc - x), (85 ^ 85), f0(intMax(), 86, 32, 55)], (~38), |acc, x| acc ^ x), (f1() & fst((34, 26))));
+    let v6 = (match fst(((if (81 == acc) { acc } else { 43 }), (match |y: Int| y * 3 + intMax() { v8 -> v8(acc) }))) { v7 -> minI(f0(acc, 83, acc, acc), signI(87)) });
+    acc + (match |y: Int| y * 3 + (f0(v6, intMax(), acc, 17) ^ (acc - 30)) { v9 -> v9(listFold([unwrapOr(parseInt(showInt(v6)), 0), (v6 & 25), divFloor(v6, nz(acc))], (intMax() + v6), |acc, x| acc | x)) })
+}
+fn f3(a: Int, b: Int, c: Int) -> Int {
+    var acc = (if (b < c) { f1() } else { (listFold([a, b, b], 23, |acc, x| acc | x) & snd((c, c))) });
+    for v10 in 0 .. 8 { acc = acc + (match minI((match 6 { v11 -> v11 }), (58 * v10)) & 3 { 0 -> f1(), 1 -> maxI((49 / nz(acc)), unwrapOr(parseInt(showInt(acc)), 0)), v12 -> f1() }); }
+    let v13 = unwrapOr(parseInt(showInt(minI(unwrapOr(parseInt(showInt(acc)), 0), (match 6 { v14 -> v14 })))), 0);
+    acc + (((if (b == c) { b } else { a }) >> (signI(v13) & 63)) + ((c % nz(b)) ^ [a, a][b & 1]))
+}
+fn main() {
+    print("f0 = " ++ showInt(f0(-46, -31, -16, -21)));
+    print("f1 = " ++ showInt(f1()));
+    print("f2 = " ++ showInt(f2()));
+    print("f3 = " ++ showInt(f3(31, -30, 42)));
+    var check = 0;
+    for k in 0 .. 20 { check = check * 31 + f1(); }
+    print("check " ++ showInt(check));
+}

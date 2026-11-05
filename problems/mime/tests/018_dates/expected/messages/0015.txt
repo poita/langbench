@@ -1,0 +1,26 @@
+[message]
+id 0015
+source "unknown-zone.eml"
+
+[headers]
+subject: "date test"
+date: "Sun, 29 Feb 2004 22:03:22 XYZ"
+
+[addresses]
+
+[date]
+raw " Sun, 29 Feb 2004 22:03:22 XYZ"
+valid yes
+utc 2004-02-29T22:03:22Z
+offset +0000
+epoch 1078092202
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

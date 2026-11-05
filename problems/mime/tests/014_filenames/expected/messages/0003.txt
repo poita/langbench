@@ -1,0 +1,24 @@
+[message]
+id 0003
+source "inline.eml"
+
+[headers]
+content-type: "multipart/related; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/related cte=7bit boundary="B" parts=2 preamble=0 epilogue=0
+  1 text/html charset=us-ascii cte=7bit size=17 adler32=33900583 role=html
+  2 image/gif cte=base64 disposition=inline filename="pic.gif" size=6 adler32=05b001a9 role=attachment
+
+[body]
+text none
+html 1 chars 17
+| <img src=\"cid:x\">
+
+[attachments]
+2 type=image/gif filename="pic.gif" size=6 adler32=05b001a9 file=parts/0003/002.bin

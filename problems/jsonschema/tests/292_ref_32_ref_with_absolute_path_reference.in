@@ -1,0 +1,27 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "http://example.com/ref/absref.json",
+    "$defs": {
+      "a": {
+        "$id": "http://example.com/ref/absref/foobar.json",
+        "type": "number"
+      },
+      "b": {
+        "$id": "http://example.com/absref/foobar.json",
+        "type": "string"
+      }
+    },
+    "$ref": "/absref/foobar.json"
+  },
+  "tests": [
+    {
+      "description": "a string is valid",
+      "data": "foo"
+    },
+    {
+      "description": "an integer is invalid",
+      "data": 12
+    }
+  ]
+}

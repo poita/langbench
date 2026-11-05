@@ -1,0 +1,53 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "patternProperties": {
+      "f.*o": {
+        "type": "integer"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "a single valid match is valid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "multiple valid matches is valid",
+      "data": {
+        "foo": 1,
+        "foooooo": 2
+      }
+    },
+    {
+      "description": "a single invalid match is invalid",
+      "data": {
+        "foo": "bar",
+        "fooooo": 2
+      }
+    },
+    {
+      "description": "multiple invalid matches is invalid",
+      "data": {
+        "foo": "bar",
+        "foooooo": "baz"
+      }
+    },
+    {
+      "description": "ignores arrays",
+      "data": [
+        "foo"
+      ]
+    },
+    {
+      "description": "ignores strings",
+      "data": "foo"
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    }
+  ]
+}

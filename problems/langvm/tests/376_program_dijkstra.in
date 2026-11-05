@@ -1,0 +1,124 @@
+@module main
+use heap;
+use graph as g;
+
+fn main() {
+    let gr = g::grid(12, 9, 7);
+    let dist = g::shortest(gr, 0);
+    for row in 0 .. 9 {
+        var parts: [Str] = listNew();
+        for col in 0 .. 12 {
+            push(parts, padLeft(showInt(dist[row * 12 + col]), 4, ' '));
+        }
+        print(strJoin(parts, ""));
+    }
+    let far = listFold(dist, 0, |a, d| maxI(a, d));
+    print(fmt("farthest={} edges={}", [showInt(far), showInt(g::edgeCount(gr))]));
+    var h: heap::Heap<Str> = heap::new(|a: Str, b: Str| strLen(a) < strLen(b) || (strLen(a) == strLen(b) && a < b));
+    for w in strSplit("pear fig apple kiwi banana date plum", " ") {
+        heap::add(h, w);
+    }
+    var order: [Str] = listNew();
+    while !heap::isEmpty(h) {
+        push(order, heap::take(h));
+    }
+    print(strJoin(order, " "));
+}
+@module heap
+pub struct Heap<T> { items: [T], less: fn(T, T) -> Bool }
+
+pub fn new<T>(less: fn(T, T) -> Bool) -> Heap<T> {
+    Heap.{ items: listNew(), less: less }
+}
+
+pub fn isEmpty<T>(h: Heap<T>) -> Bool { listLen(h.items) == 0 }
+
+pub fn add<T>(h: Heap<T>, x: T) {
+    let xs = h.items;
+    push(xs, x);
+    var i = listLen(xs) - 1;
+    while i > 0 {
+        let p = (i - 1) / 2;
+        let lt = h.less;
+        if lt(xs[i], xs[p]) {
+            let t = xs[i];
+            xs[i] = xs[p];
+            xs[p] = t;
+            i = p;
+        } else {
+            break;
+        }
+    }
+}
+
+pub fn take<T>(h: Heap<T>) -> T {
+    let xs = h.items;
+    let top = xs[0];
+    let last = pop(xs);
+    if listLen(xs) > 0 {
+        xs[0] = last;
+        var i = 0;
+        let n = listLen(xs);
+        let lt = h.less;
+        while true {
+            let l = 2 * i + 1;
+            let r = l + 1;
+            var m = i;
+            if l < n && lt(xs[l], xs[m]) { m = l; }
+            if r < n && lt(xs[r], xs[m]) { m = r; }
+            if m == i { break; }
+            let t = xs[i];
+            xs[i] = xs[m];
+            xs[m] = t;
+            i = m;
+        }
+    }
+    top
+}
+@module graph
+use heap;
+
+pub struct Graph { n: Int, adj: [[(Int, Int)]] }
+
+pub fn grid(w: Int, h: Int, seed: Int) -> Graph {
+    var adj: [[(Int, Int)]] = listNew();
+    for i in 0 .. w * h { push(adj, listNew()); }
+    var s = seed;
+    for y in 0 .. h {
+        for x in 0 .. w {
+            let v = y * w + x;
+            if x + 1 < w {
+                s = (s * 1103515245 + 12345) % 2147483648;
+                let c = 1 + s % 9;
+                push(adj[v], (v + 1, c));
+                push(adj[v + 1], (v, c));
+            }
+            if y + 1 < h {
+                s = (s * 1103515245 + 12345) % 2147483648;
+                let c = 1 + s % 9;
+                push(adj[v], (v + w, c));
+                push(adj[v + w], (v, c));
+            }
+        }
+    }
+    Graph.{ n: w * h, adj: adj }
+}
+
+pub fn edgeCount(g: Graph) -> Int {
+    listFold(g.adj, 0, |a, es| a + listLen(es)) / 2
+}
+
+pub fn shortest(g: Graph, src: Int) -> [Int] {
+    var dist = listRepeat(-1, g.n);
+    var h = heap::new(|a: (Int, Int), b: (Int, Int)| fst(a) < fst(b) || (fst(a) == fst(b) && snd(a) < snd(b)));
+    heap::add(h, (0, src));
+    while !heap::isEmpty(h) {
+        let (d, v) = heap::take(h);
+        if dist[v] >= 0 { continue; }
+        dist[v] = d;
+        for (u, c) in g.adj[v] {
+            if dist[u] < 0 { heap::add(h, (d + c, u)); }
+        }
+    }
+    dist
+}

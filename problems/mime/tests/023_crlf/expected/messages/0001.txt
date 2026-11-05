@@ -1,0 +1,26 @@
+[message]
+id 0001
+source "crlf.eml"
+
+[headers]
+subject: "crlf message"
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=2 preamble=8 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=17 adler32=37a40637 role=text
+  2 application/octet-stream cte=base64 size=4 adler32=007a002f role=attachment
+
+[body]
+text 1 chars 17
+| line one
+| line two
+html none
+
+[attachments]
+2 type=application/octet-stream filename=- size=4 adler32=007a002f file=parts/0001/002.bin

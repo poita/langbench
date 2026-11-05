@@ -1,0 +1,36 @@
+let l = [3, 1, 2, 1]
+step {
+    out "out/l0.txt"
+    cmd write("{count(l)}|{len(l)}|{join(sort(l), ",")}|{join(uniq(l), ",")}|{join(reverse(l), ",")}|{first(l)}|{last(l)}\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{join(slice(l, 1, 2), ",")}|{join(slice(l, -2, 9), ",")}|{count(slice(l, 9, 1))}|{count(slice(l, 0, -1))}\n")
+}
+default "out/l1.txt"
+step {
+    out "out/l2.txt"
+    cmd write("{has(l, 1)}|{has(l, 9)}|{has(l, "1")}|{indexof(l, 2)}|{indexof(l, 9)}|{indexof([[1], [2]], [2])}\n")
+}
+default "out/l2.txt"
+step {
+    out "out/l3.txt"
+    cmd write("{join(range(4), ",")}|{count(range(0))}|{sum(l)}|{sum([])}|{count(flatten([[1, 2], 3, [4], []]))}|{count(flatten([]))}\n")
+}
+default "out/l3.txt"
+step {
+    out "out/l4.txt"
+    cmd write("{count(zip([1, 2, 3], [4, 5]))}|{zip([1, 2], [3, 4])[1][0]}|{count(zip([], [1]))}|{count(uniq([[1], [1], 1, "1"]))}\n")
+}
+default "out/l4.txt"
+step {
+    out "out/l5.txt"
+    cmd write("{is_str("a")}{is_int(1)}{is_bool(true)}{is_list([])}|{is_str(1)}{is_int("a")}{is_bool(1)}{is_list(1)}\n")
+}
+default "out/l5.txt"
+step {
+    out "out/l6.txt"
+    cmd write("{join(map(["a", "b"], "out/%.o"), ",")}|{join(map(["a"], "100%%-%"), ",")}|{count(map([], "%"))}|{join(map(["x"], "no-marker"), ",")}\n")
+}
+default "out/l6.txt"

@@ -1,0 +1,25 @@
+[message]
+id 0002
+source "encoded-names.eml"
+
+[headers]
+from: "Jörg <joerg@example.de>"
+to: "AB <ab@example.com>, René <rene@example.fr>"
+
+[addresses]
+from 0 display="Jörg" spec="joerg@example.de"
+to 0 display="AB" spec="ab@example.com"
+to 1 display="René" spec="rene@example.fr"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

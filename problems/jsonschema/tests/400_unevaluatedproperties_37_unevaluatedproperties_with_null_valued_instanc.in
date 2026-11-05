@@ -1,0 +1,16 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "unevaluatedProperties": {
+      "type": "null"
+    }
+  },
+  "tests": [
+    {
+      "description": "allows null valued properties",
+      "data": {
+        "foo": null
+      }
+    }
+  ]
+}

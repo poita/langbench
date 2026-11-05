@@ -1,0 +1,80 @@
+@module main
+struct Board { w: Int, h: Int, cells: [Bool] }
+
+fn at(b: Board, x: Int, y: Int) -> Bool {
+    b.cells[modFloor(y, b.h) * b.w + modFloor(x, b.w)]
+}
+
+fn step(b: Board) -> Board {
+    var next: [Bool] = listNew();
+    for y in 0 .. b.h {
+        for x in 0 .. b.w {
+            var n = 0;
+            for (dx, dy) in [(-1, -1), (0, -1), (1, -1), (-1, 0), (1, 0), (-1, 1), (0, 1), (1, 1)] {
+                if at(b, x + dx, y + dy) { n = n + 1; }
+            }
+            let alive = at(b, x, y);
+            push(next, match (alive, n) {
+                (true, 2) -> true,
+                (_, 3) -> true,
+                _ -> false,
+            });
+        }
+    }
+    Board.{ w: b.w, h: b.h, cells: next }
+}
+
+fn render(b: Board) -> Str {
+    var rows: [Str] = listNew();
+    for y in 0 .. b.h {
+        var cs: [Char] = listNew();
+        for x in 0 .. b.w { push(cs, if at(b, x, y) { '#' } else { '.' }); }
+        push(rows, strOfChars(cs));
+    }
+    strJoin(rows, "\n")
+}
+
+fn population(b: Board) -> Int { listLen(listFilter(b.cells, |c| c)) }
+
+fn fromRows(rows: [Str]) -> Board {
+    let h = listLen(rows);
+    let w = strLen(rows[0]);
+    var cells: [Bool] = listNew();
+    for r in rows { for c in r { push(cells, c == '#'); } }
+    Board.{ w: w, h: h, cells: cells }
+}
+
+fn main() {
+    var b = fromRows([
+        "....................",
+        "..#.................",
+        "...#................",
+        ".###................",
+        "....................",
+        "..........###.......",
+        "....................",
+        "..............##....",
+        "..............##....",
+        "....................",
+        "......#.............",
+        ".....###............",
+        "....................",
+        "....................",
+    ]);
+    var pops: [Str] = listNew();
+    var seen: #[Str: Int] = mapNew();
+    var firstRepeat = -1;
+    for gen in 0 .. 60 {
+        push(pops, showInt(population(b)));
+        let key = render(b);
+        if mapHas(seen, key) && firstRepeat < 0 {
+            firstRepeat = gen;
+            print(fmt("state of gen {} repeats gen {}", [showInt(gen), showInt(seen[key])]));
+        }
+        seen[key] = gen;
+        b = step(b);
+    }
+    print(strJoin(pops, " "));
+    print(render(b));
+    print("distinct states: " ++ showInt(mapLen(seen)));
+}

@@ -1,0 +1,114 @@
+[1] ok put created
+[2] ok begin
+[3] ok find 0 plan scan
+[4] ok scan 2
+  "k00000"
+  "k00002"
+[5] ok put created
+[6] ok delete removed
+[7] error not-object
+[8] ok update updated
+[9] ok scan 0
+[10] error not-found
+[11] ok scan 1
+  "k00007" = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+[12] error not-found
+[13] ok find 0 plan scan
+[14] ok scan 2
+  "k00023"
+  "k00020"
+[15] ok delete removed
+[16] error not-object
+[17] ok put replaced
+[18] ok scan 3
+  "k00023"
+  "k00020"
+  "k00018"
+[19] ok put replaced
+[20] ok stat
+  pages 9
+  free 1
+  freehead 4
+  docs 10
+  root 8
+  height 2
+  commits 14
+  indexes 1
+  wal 43336
+[21] ok put created
+[22] ok create index age entries 5
+[23] ok get value
+  9223372036854775807
+[24] ok update updated
+[25] error not-found
+[26] ok put replaced
+[27] ok scan 0
+[28] ok rollback
+[29] ok put replaced
+[30] ok put created
+[31] ok create index age entries 5
+[32] ok put replaced
+[33] ok put replaced
+[34] ok begin
+[35] error not-object
+[36] ok unset updated
+[37] ok find 0 plan index name
+[38] ok commit 20 frames 2
+[39] ok find 0 plan scan
+[40] ok indexes 2
+  0 name root 3 entries 5
+  1 age root 6 entries 5
+[41] ok indexes 2
+  0 name root 3 entries 5
+  1 age root 6 entries 5
+[42] ok put created
+[43] ok unset updated
+[44] ok scan 1
+  "k00023"
+[45] ok put created
+[46] ok put created
+[47] ok put replaced
+[48] ok put replaced
+[49] ok put created
+[50] error not-found
+[51] ok put replaced
+[52] ok stat
+  pages 11
+  free 2
+  freehead 10
+  docs 16
+  root 8
+  height 2
+  commits 28
+  indexes 2
+  wal 89784
+[53] ok put created
+[54] ok scan 1
+  "k00017"
+[55] ok find 2 plan scan
+  "k00000" = {"age":22,"name":"n00"}
+  "k00002" = -275
+[56] ok update updated
+[57] ok checkpoint pages 11
+[58] ok find 0 plan scan
+[59] error not-found
+[60] ok put created
+[61] ok stat
+  pages 11
+  free 0
+  freehead 0
+  docs 18
+  root 8
+  height 2
+  commits 31
+  indexes 2
+  wal 4248
+[62] ok indexes 2
+  0 name root 3 entries 8
+  1 age root 6 entries 8
+[63] ok scan 5
+  "k00000"
+  "k00002"
+  "k00003"
+  "k00004"
+  "k00005"

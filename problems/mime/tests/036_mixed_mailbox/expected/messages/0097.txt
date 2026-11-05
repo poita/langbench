@@ -1,0 +1,67 @@
+[message]
+id 0097
+source "mbox:97"
+
+[headers]
+received: "from mail.example.net (mx8.eu.example.de [53.0.104.227]) by apache.org (Postfix) with ESMTP id 1CEA6CC5D4 for <ekim@lists.example.edu>; Sun, 25 Feb 2003 11:38:00 +0200"
+received: "from mail.example.net (mx3.dev.example.io [128.18.243.213]) by lists.example.edu (Postfix) with ESMTP id 2E95B80EC2 for <nbrown@lists.example.edu>; 12 MAY 03 19:52 +0200"
+received: "from corp.example.co.uk (mx1.example.org [11.64.127.253]) by apache.org (Postfix) with ESMTP id 161585F08B for <user9232@apache.org>; Sun, 3 May 2003 13:02:52 +0200"
+received: "from eu.example.de (mx4.corp.example.co.uk [193.100.99.130]) by mail.example.net (Postfix) with ESMTP id 29D621DA3 for <dobrien@students.example.ac.jp>; fri,25 jun 2025 19:30:25 (comment (nested)) +0530"
+received: "from example.com (mx3.corp.example.co.uk [20.52.238.115]) by example.com (Postfix) with ESMTP id AFEB1C82EC for <ikowalski@post.example.fr>; Wed, 22 Oct 2018 13:13:06 UT"
+return-path: "<astergaard@eu.example.de>"
+message-id: "<772.e44f9da2.86624@example.org>"
+date: "Wed, 26 Jul 2009 22:18:43 -0500"
+from: "rtaylor@post.example.fr"
+to: "Đorđe Kowalski <kowalski@eu.example.de>"
+cc: "Ivan Wilson <iwilson@example.org>, Quinn Petrov <qpetrov@students.example.ac.jp>"
+subject: "Take call his from place"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_2888_572187674.625439607883\""
+
+[addresses]
+from 0 display="" spec="rtaylor@post.example.fr"
+to 0 display="Đorđe Kowalski" spec="kowalski@eu.example.de"
+cc 0 display="Ivan Wilson" spec="iwilson@example.org"
+cc 1 display="Quinn Petrov" spec="qpetrov@students.example.ac.jp"
+
+[date]
+raw " Wed, 26 Jul 2009 22:18:43 -0500"
+valid yes
+utc 2009-07-27T03:18:43Z
+offset -0500
+epoch 1248664723
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_2888_572187674.625439607883" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=8bit size=784 adler32=aaac06b0 role=text
+  2 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="fiancée_the_and.patch" size=3153 adler32=0ac2e15f role=attachment
+
+[body]
+text 1 chars 784
+| That the animal apr water animal move every as were show such one of
+| what look! Ask response be naïve long about have?
+| 
+| Server the of cause will and no handler about have made a are why the
+| his. Down that out sound hot how. Us with that say had by brigade have
+| he there show her log you some turn their! Smörgåsbord use I socket
+| backport out good some look his would about other which than great find
+| can! Way a come then the mother with follow he tell is of his small? How
+| will been mother mother first they connection tell my bug? Was thread
+| low had follow tell are from hot good status right try spell way or.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Olga van der Berg
+html none
+
+[attachments]
+2 type=text/x-diff filename="fiancée_the_and.patch" size=3153 adler32=0ac2e15f file=parts/0097/002.bin

@@ -1,0 +1,69 @@
+[message]
+id 0250
+source "mbox:250"
+
+[headers]
+received: "from example.com (mx3.post.example.fr [123.11.167.165]) by corp.example.co.uk (Postfix) with ESMTP id DD7FC1E863 for <dmller@post.example.fr>; Mon, 19 Jul 2025 01:40:18 +0000"
+received: "from corp.example.co.uk (mx3.lists.example.edu [144.171.174.70]) by students.example.ac.jp (Postfix) with ESMTP id 2C8B5770C8 for <vwilson@post.example.fr>; Mon, 14 Feb 2024 03:12:33 -0500"
+received: "from example.com (mx2.dev.example.io [6.104.187.14]) by example.org (Postfix) with ESMTP id 2270D7963B for <btaylor@dev.example.io>; Thu May 1 15:43:23 2018 Z"
+received: "from mail.example.net (mx9.apache.org [180.34.72.47]) by apache.org (Postfix) with ESMTP id F1A8F1B36 for <msmith.56@mail.example.net>; Thu, 5 Jul 2024 01:03:55 PDT"
+return-path: "<mbrown@post.example.fr>"
+message-id: "<1807.1d0e01ba.87917@post.example.fr>"
+in-reply-to: "<1808.975feeb4.47177@example.com>"
+references: "<1808.975feeb4.47177@example.com>"
+date: "Fri, 05 Jan 2005 11:53:22 Z (JST)"
+from: "Dana Fernández <dfernndez.10@dev.example.io>"
+to: "Uwe Papadopoulos <upapadopoulos.29@apache.org>,    Đorđe Schröder <schrder.3@example.com>"
+cc: "\"Smith, Dana\" <dsmith@apache.org>, mller@mail.example.net (Someone)"
+subject: "Fwd: And in was man and animal call"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"0000000000004dbe8cd82f76\""
+
+[addresses]
+from 0 display="Dana Fernández" spec="dfernndez.10@dev.example.io"
+to 0 display="Uwe Papadopoulos" spec="upapadopoulos.29@apache.org"
+to 1 display="Đorđe Schröder" spec="schrder.3@example.com"
+cc 0 display="Smith, Dana" spec="dsmith@apache.org"
+cc 1 display="" spec="mller@mail.example.net"
+
+[date]
+raw " Fri, 05 Jan 2005 11:53:22 Z (JST)"
+valid yes
+utc 2005-01-05T11:53:22Z
+offset +0000
+epoch 1104926002
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000004dbe8cd82f76" parts=3 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=quoted-printable size=750 adler32=905f0206 role=text
+  2 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="the_will_who_a.patch" size=3364 adler32=d0d41a72 role=attachment
+  3 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="of_light_little.patch" size=3468 adler32=4afe4955 role=attachment
+
+[body]
+text 1 chars 750
+| A the live in line them is to he of put find work where through from be.
+| Release were no that to each this too home and set three take it! Made
+| round give we must port such and have an try point of the! And you made
+| been the ssl the other we for a.
+| 
+| With and great your some her write in good this or branch to. The has we
+| spell this he but apr on build cause was the said. Of were can also in
+| keepalive a part are it said before. Low the much the and have he an
+| alias? Commit way I out of then the a? The if will old I I on of had be
+| to there you small!
+| 
+| The one Paulo I of and were air has one he than every find crash. Many
+| sentence rewrite pi?ata day connection cause? Port these small timeout
+| her spell act the think his do.
+| 
+| -- 
+| R?mi Fern?ndez
+html none
+
+[attachments]
+2 type=text/x-diff filename="the_will_who_a.patch" size=3364 adler32=d0d41a72 file=parts/0250/002.bin
+3 type=text/x-diff filename="of_light_little.patch" size=3468 adler32=4afe4955 file=parts/0250/003.bin

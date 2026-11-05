@@ -1,0 +1,806 @@
+
+
+zz
+10
+
+
+
+abc
+52.68
+A1 a
+B1 0
+C1 10
+D1 4
+E1 57.48
+A2 3
+B2 hello world
+C2 #VALUE!
+E2 0
+B3 abc
+C3 #VALUE!
+D3 zz
+C4 52.68
+D4 3.14159
+E4 #VALUE!
+A5 100.93
+B5 a
+C5 B
+D5 hello world
+#VALUE!
+52.68
+zz
+A1 a
+B1 hello world
+C1 19.12
+D1 4
+E1 79
+A2 #CYCLE!
+B2 hello world
+C2 #VALUE!
+E2 0
+A3 #CYCLE!
+B3 abc
+C3 #VALUE!
+D3 zz
+E3 hello world
+C4 #VALUE!
+D4 3.14159
+E4 18
+A5 100.93
+B5 a
+C5 B
+D5 hello world
+E5 #CYCLE!
+4
+#VALUE!
+a
+
+100.93
+19
+100.93
+10
+#CYCLE!
+19
+A1 
+B1 hello world
+C1 19.12
+D1 
+E1 10
+A2 6
+C2 20
+D2 19
+E2 19
+A3 1
+B3 x y
+C3 11
+D3 #VALUE!
+E3 hello world
+A4 18
+C4 #VALUE!
+D4 #CYCLE!
+A5 #VALUE!
+B5 53.38
+C5 #VALUE!
+D5 6
+E5 #CYCLE!
+6
+10
+19.12
+#CYCLE!
+A1 #CYCLE!
+B1 #CYCLE!
+C1 #DIV/0!
+D1 
+E1 10
+A2 6
+B2 #CYCLE!
+C2 20
+D2 x y
+E2 x y
+A3 #CYCLE!
+B3 x y
+C3 #CYCLE!
+D3 #CYCLE!
+E3 #CYCLE!
+A4 B
+C4 #VALUE!
+D4 #CYCLE!
+A5 #VALUE!
+B5 53.38
+C5 #CYCLE!
+D5 6
+E5 #CYCLE!
+#CYCLE!
+#CYCLE!
+10
+A1 #CYCLE!
+B1 #CYCLE!
+C1 #DIV/0!
+D1 
+E1 10
+A2 6
+B2 #CYCLE!
+C2 20
+D2 0
+E2 0
+A3 #CYCLE!
+B3 98.71
+C3 #CYCLE!
+D3 #CYCLE!
+E3 #CYCLE!
+A4 B
+C4 3.14159
+D4 0
+A5 #VALUE!
+B5 53.38
+C5 #CYCLE!
+D5 6
+E5 B
+A1 #CYCLE!
+B1 #CYCLE!
+C1 #DIV/0!
+D1 
+E1 10
+A2 6
+B2 #CYCLE!
+C2 20
+D2 0
+E2 0
+A3 #CYCLE!
+B3 98.71
+C3 #CYCLE!
+D3 #CYCLE!
+E3 #CYCLE!
+A4 B
+C4 3.14159
+D4 0
+A5 #VALUE!
+B5 53.38
+C5 #CYCLE!
+D5 6
+E5 B
+#CYCLE!
+#VALUE!
+A1 #CYCLE!
+B1 #VALUE!
+C1 #CYCLE!
+D1 
+E1 10
+A2 #CYCLE!
+B2 
+C2 20
+D2 0
+E2 #VALUE!
+A3 #CYCLE!
+B3 B
+C3 #VALUE!
+D3 #VALUE!
+E3 #CYCLE!
+A4 
+C4 
+D4 0
+A5 55.45
+B5 53.38
+C5 #CYCLE!
+D5 #CYCLE!
+E5 
+#CYCLE!
+A1 #CYCLE!
+B1 #VALUE!
+C1 #CYCLE!
+D1 
+E1 10
+A2 #CYCLE!
+B2 
+C2 20
+D2 0
+E2 #VALUE!
+A3 #CYCLE!
+B3 B
+C3 #VALUE!
+D3 #VALUE!
+E3 #CYCLE!
+A4 
+C4 
+D4 0
+A5 55.45
+B5 #VALUE!
+C5 #CYCLE!
+D5 #CYCLE!
+E5 
+#CYCLE!
+#CYCLE!
+#CYCLE!
+
+#VALUE!
+B
+
+#CYCLE!
+#VALUE!
+B
+
+#CYCLE!
+hello world
+#CYCLE!
+#VALUE!
+hello world
+#CYCLE!
+#CYCLE!
+#CYCLE!
+#VALUE!
+10
+#CYCLE!
+A1 #CYCLE!
+B1 #CYCLE!
+D1 #VALUE!
+E1 B
+A2 #VALUE!
+B2 hello world
+C2 #CYCLE!
+D2 #CYCLE!
+E2 #CYCLE!
+A3 hello world
+B3 B
+C3 10
+D3 #CYCLE!
+E3 zz
+A4 #CYCLE!
+B4 #CYCLE!
+C4 
+D4 0
+A5 10
+B5 #CYCLE!
+C5 #VALUE!
+D5 abc
+E5 
+#CYCLE!
+B
+A1 
+B1 #CYCLE!
+D1 #VALUE!
+E1 B
+A2 #CYCLE!
+B2 hello world
+C2 #CYCLE!
+D2 #CYCLE!
+E2 #CYCLE!
+A3 hello world
+B3 #CYCLE!
+C3 10
+D3 #CYCLE!
+E3 zz
+A4 #CYCLE!
+B4 zz
+C4 
+D4 0
+A5 10
+B5 #VALUE!
+C5 #VALUE!
+D5 x y
+E5 
+B
+hello world
+x y
+#CYCLE!
+
+A1 
+B1 #CYCLE!
+D1 #VALUE!
+E1 B
+A2 #CYCLE!
+B2 hello world
+C2 #CYCLE!
+D2 #CYCLE!
+E2 #CYCLE!
+A3 #CYCLE!
+B3 #CYCLE!
+C3 10
+D3 #CYCLE!
+E3 zz
+A4 #CYCLE!
+B4 zz
+C4 
+D4 4
+A5 10
+B5 #VALUE!
+C5 #VALUE!
+D5 x y
+E5 
+hello world
+#CYCLE!
+4
+B
+B
+#VALUE!
+
+B
+zz
+#VALUE!
+#VALUE!
+
+#VALUE!
+#CYCLE!
+#VALUE!
+#CYCLE!
+#VALUE!
+#CYCLE!
+a
+a
+#VALUE!
+A1 66.84
+B1 a
+C1 90.28
+D1 a
+E1 10
+A2 #VALUE!
+B2 81.84
+C2 #VALUE!
+D2 
+E2 zz
+A3 11
+B3 16
+D3 hello world
+E3 #VALUE!
+A4 10
+B4 zz
+C4 14
+D4 13
+E4 #VALUE!
+A5 hello world
+C5 #VALUE!
+D5 
+E5 #VALUE!
+zz
+10
+#VALUE!
+#CYCLE!
+#VALUE!
+
+A1 66.84
+B1 a
+C1 14
+D1 19
+E1 10
+A2 #VALUE!
+B2 #CYCLE!
+C2 #CYCLE!
+D2 
+E2 15.15
+A3 4
+B3 #CYCLE!
+C3 abc
+D3 hello world
+E3 zz13
+A4 10
+B4 zz
+C4 14
+D4 13
+E4 #VALUE!
+A5 hello world
+C5 #VALUE!
+D5 
+E5 4
+
+#CYCLE!
+A1 66.84
+B1 #CYCLE!
+C1 x y
+D1 0
+E1 10
+A2 a
+B2 #CYCLE!
+C2 #CYCLE!
+D2 
+E2 15.15
+A3 hello world
+B3 #CYCLE!
+C3 abc
+D3 hello world
+E3 #CYCLE!
+A4 #CYCLE!
+B4 zz
+C4 14
+D4 #CYCLE!
+E4 #VALUE!
+A5 0
+B5 87.57
+C5 #VALUE!
+D5 
+E5 4
+B
+4
+hello world
+#CYCLE!
+A1 66.84
+B1 100
+C1 x y
+D1 98.69
+E1 #VALUE!
+B2 #CYCLE!
+C2 #CYCLE!
+D2 
+E2 15.15
+A3 hello world
+B3 #CYCLE!
+C3 #CYCLE!
+D3 hello world
+E3 
+B4 zz
+C4 14
+D4 #CYCLE!
+E4 #VALUE!
+A5 0
+B5 87.57
+C5 #VALUE!
+D5 
+E5 4
+A1 66.84
+B1 100
+C1 x y
+D1 98.69
+E1 #VALUE!
+B2 #CYCLE!
+C2 #CYCLE!
+D2 
+E2 15.15
+A3 hello world
+B3 #CYCLE!
+C3 #CYCLE!
+D3 hello world
+E3 
+B4 zz
+C4 14
+D4 #CYCLE!
+E4 #VALUE!
+A5 0
+B5 #VALUE!
+C5 #VALUE!
+D5 
+E5 4
+x y
+#CYCLE!
+#VALUE!
+A1 66.84
+B1 100
+C1 #VALUE!
+D1 98.69
+E1 #VALUE!
+B2 10
+C2 #VALUE!
+D2 
+E2 15.15
+A3 x y
+C3 
+D3 hello world
+E3 5
+A4 B
+B4 zz
+C4 14
+D4 #CYCLE!
+E4 #VALUE!
+A5 0
+B5 #VALUE!
+C5 #VALUE!
+D5 14
+E5 4
+100
+A1 B
+B1 100
+C1 #VALUE!
+D1 98.69
+E1 #VALUE!
+A2 10
+B2 10
+C2 #VALUE!
+D2 19.24
+E2 15.15
+A3 x y
+C3 
+D3 hello world
+E3 5
+A4 zz
+B4 zz
+C4 14
+D4 #VALUE!
+E4 #VALUE!
+A5 
+B5 #VALUE!
+C5 #VALUE!
+D5 14
+E5 4
+zz
+#CYCLE!
+5
+#VALUE!
+zz
+5
+0
+72.43
+A1 84.95
+B1 #VALUE!
+D1 98.69
+E1 5
+A2 10
+B2 abc
+C2 B
+D2 19
+E2 hello world
+B3 3.14159
+C3 
+D3 10
+E3 5
+A4 -10.22
+C4 hello world
+D4 0
+E4 #CYCLE!
+A5 17
+B5 #VALUE!
+C5 4
+D5 3.14159
+E5 #VALUE!
+
+x y
+84.95
+9
+x y
+B1 9
+C1 
+D1 x y
+E1 zz
+A2 B
+B2 abc
+C2 #VALUE!
+B3 x y
+E3 5
+A4 1
+C4 hello world
+D4 0
+E4 #CYCLE!
+A5 17
+B5 #VALUE!
+C5 10
+D5 0
+E5 27.22
+hello world
+74.17
+#CYCLE!
+B1 -4.47
+C1 x y
+D1 x y
+E1 #CYCLE!
+A2 B
+B2 #CYCLE!
+C2 #VALUE!
+D2 abc
+E2 #CYCLE!
+A3 4
+B3 #CYCLE!
+C3 #CYCLE!
+E3 #CYCLE!
+A4 3.14159
+C4 hello world
+D4 0
+E4 #CYCLE!
+A5 17
+B5 abc
+C5 #CYCLE!
+D5 hello world
+E5 27.22
+17
+B1 -4.47
+C1 x y
+D1 x y
+E1 #CYCLE!
+A2 B
+B2 #CYCLE!
+C2 #VALUE!
+D2 abc
+E2 #CYCLE!
+A3 4
+B3 #CYCLE!
+C3 #CYCLE!
+E3 #CYCLE!
+A4 3.14159
+C4 hello world
+D4 0
+E4 #CYCLE!
+A5 17
+B5 abc
+C5 #CYCLE!
+D5 hello world
+E5 27.22
+9
+27.22
+x y
+hello world
+abc
+B1 -4.47
+C1 x y
+D1 #VALUE!
+E1 abc
+A2 B
+C2 #VALUE!
+D2 abc
+E2 #CYCLE!
+A3 4
+B3 #VALUE!
+C3 9
+D3 #VALUE!
+E3 hello world
+A4 3.14159
+B4 
+C4 hello world
+D4 abc
+E4 #CYCLE!
+A5 17
+C5 10
+D5 hello world
+E5 27.22
+x y
+
+3.14159
+#CYCLE!
+#CYCLE!
+abc
+
+zz
+zz
+#CYCLE!
+B1 -4.47
+C1 abc
+A2 #VALUE!
+B2 hello world12
+C2 #VALUE!
+E2 #CYCLE!
+A3 12
+B3 #VALUE!
+C3 #CYCLE!
+D3 #VALUE!
+E3 hello world
+A4 3.14159
+B4 #VALUE!
+C4 hello world
+D4 x y
+E4 #CYCLE!
+A5 17
+B5 #CYCLE!
+C5 #VALUE!
+D5 20
+4
+
+B1 -4.47
+C1 abc
+A2 B
+B2 hello world12
+C2 hello world
+E2 #CYCLE!
+A3 12
+B3 #VALUE!
+C3 6
+D3 18
+E3 hello world
+A4 a
+B4 #VALUE!
+C4 hello world
+D4 4
+E4 -6
+A5 17
+B5 #CYCLE!
+C5 -11
+D5 20
+-6
+-4.47
+
+hello world
+a
+A1 83.72
+B1 -4.47
+C1 abc
+E1 #VALUE!
+A2 B
+B2 hello world12
+C2 hello world
+E2 #CYCLE!
+A3 12
+B3 #VALUE!
+D3 abc
+E3 hello world
+A4 a
+B4 #VALUE!
+C4 x y
+D4 hello world12
+E4 0
+A5 hello world
+B5 #CYCLE!
+C5 #VALUE!
+D5 #VALUE!
+A1 83.72
+B1 -4.47
+C1 abc
+E1 #VALUE!
+A2 B
+B2 hello world12
+C2 hello world
+E2 19.99
+A3 12
+B3 #VALUE!
+D3 abc
+E3 zz
+A4 a
+B4 #VALUE!
+C4 x y
+D4 hello world12
+E4 0
+A5 zz
+B5 #CYCLE!
+C5 #VALUE!
+D5 13
+hello world12
+A1 83.72
+B1 -4.47
+C1 abc
+E1 #VALUE!
+A2 B
+B2 hello world12
+C2 #CYCLE!
+E2 19.99
+A3 12
+B3 #VALUE!
+D3 abc
+E3 zz
+A4 a
+B4 #VALUE!
+C4 x y
+D4 hello world12
+E4 0
+A5 zz
+B5 #CYCLE!
+C5 #VALUE!
+D5 13
+#CYCLE!
+A1 83.72
+B1 -4.47
+C1 abc
+E1 #CYCLE!
+A2 B
+B2 hello world12
+C2 #CYCLE!
+D2 abc
+E2 19.99
+A3 12
+B3 #CYCLE!
+D3 abc
+E3 zz
+A4 a
+B4 #CYCLE!
+C4 x y
+D4 hello world12
+E4 0
+B5 #CYCLE!
+C5 #VALUE!
+D5 95.89
+#CYCLE!
+
+
+#CYCLE!
+2
+hello world12
+A1 #CYCLE!
+B1 -4.47
+C1 abc
+E1 #CYCLE!
+A2 x y
+B2 hello world12
+C2 #CYCLE!
+D2 abc
+E2 19.99
+A3 12
+D3 #CYCLE!
+E3 zz
+A4 #VALUE!
+C4 2
+D4 hello world12
+E4 0
+B5 #CYCLE!
+C5 18
+D5 95.89

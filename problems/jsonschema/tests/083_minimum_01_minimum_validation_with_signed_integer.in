@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "minimum": -2
+  },
+  "tests": [
+    {
+      "description": "negative above the minimum is valid",
+      "data": -1
+    },
+    {
+      "description": "positive above the minimum is valid",
+      "data": 0
+    },
+    {
+      "description": "boundary point is valid",
+      "data": -2
+    },
+    {
+      "description": "boundary point with float is valid",
+      "data": -2.0
+    },
+    {
+      "description": "float below the minimum is invalid",
+      "data": -2.0001
+    },
+    {
+      "description": "int below the minimum is invalid",
+      "data": -3
+    },
+    {
+      "description": "ignores non-numbers",
+      "data": "x"
+    }
+  ]
+}

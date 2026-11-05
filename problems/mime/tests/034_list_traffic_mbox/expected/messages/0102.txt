@@ -1,0 +1,95 @@
+[message]
+id 0102
+source "mbox:102"
+
+[headers]
+received: "from eu.example.de (mx2.example.org [46.191.243.216]) by example.org (Postfix) with ESMTP id E36EBAADDE for <vbrown@lists.example.edu>; sun,15 jan 2018 21:6:15 (comment (nested)) +0000"
+received: "from example.com (mx5.corp.example.co.uk [52.193.22.132]) by example.com (Postfix) with ESMTP id EB425E5709 for <ttaylor@post.example.fr>; Sat, 15 Feb 2024 20:21:36 +1245"
+received: "from corp.example.co.uk (mx9.students.example.ac.jp [84.63.8.74]) by example.org (Postfix) with ESMTP id F39041266E for <brown.76@example.com>; 21 DEC 24 11:21 MET"
+return-path: "<a@mail.example.net>"
+message-id: "<649.00b868d2.83693@dev.example.io>"
+in-reply-to: "<652.0deb595b.35872@dev.example.io>"
+references: "<650.07d29dc0.49550@dev.example.io> <651.396729ea.6176@corp.example.co.uk> <652.0deb595b.35872@dev.example.io>"
+date: "Fri, 16 Apr 2005 22:28:59 Z"
+from: "Rémi Kim <rkim.49@lists.example.edu>"
+reply-to: "Đorđe Kim <kim@post.example.fr>"
+to: "Xavier Papadopoulos <xpapadopoulos@example.com>, \"Olga Papadopoulos\" <opapadopoulos.88@post.example.fr>"
+cc: "irossi@dev.example.io, fmller.65@eu.example.de"
+subject: "Re: [PATCH] Put it mother in up is"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"=_937effae866e504a8f0406ba869ade8a\""
+
+[addresses]
+from 0 display="Rémi Kim" spec="rkim.49@lists.example.edu"
+reply-to 0 display="Đorđe Kim" spec="kim@post.example.fr"
+to 0 display="Xavier Papadopoulos" spec="xpapadopoulos@example.com"
+to 1 display="Olga Papadopoulos" spec="opapadopoulos.88@post.example.fr"
+cc 0 display="" spec="irossi@dev.example.io"
+cc 1 display="" spec="fmller.65@eu.example.de"
+
+[date]
+raw " Fri, 16 Apr 2005 22:28:59 Z"
+valid yes
+utc 2005-04-16T22:28:59Z
+offset +0000
+epoch 1113690539
+
+[structure]
+0 multipart/alternative cte=7bit boundary="=_937effae866e504a8f0406ba869ade8a" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=7bit size=1102 adler32=daa686c7 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1517 adler32=46901103 role=html
+
+[body]
+text 1 chars 1092
+| Is to has each made status said every who. There every this the move
+| people land to client São façade had self many or in have!
+| 
+| Some try through the an set! Year after the patch did and write any with
+| the hand men! On change for are like part hot he to the made act of an.
+| Be year big been when have my are way to out piñata? That out that his
+| ask.
+| 
+| Say was each just cache config line brûlée form the to set. Can also no
+| you low what see from come right the does a your and side people! Paulo
+| side was under say to he all every bucket and. Off an find people how.
+| Like very the we them they will and the crème build out show father to
+| then of one. Use find high move use were on the side are time an the
+| find new.
+| 
+| Crème out about commit word write the to it just what client is year.
+| Year from your right place cause Straße they the for the naïve part it
+| this httpd be too. Branch bucket follow which out that if thing of could
+| part make. New header the the had can branch does more hot must hot
+| filter! And config the there is that and how patch who more came is hot.
+| 
+| -- 
+| Uwe Østergaard
+html 2 chars 1507
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Is to has each made status said every who. There every this the move<br>
+| people land to client São façade had self many or in have!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Some try through the an set! Year after the patch did and write any with<br>
+| the hand men! On change for are like part hot he to the made act of an.<br>
+| Be year big been when have my are way to out piñata? That out that his<br>
+| ask.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Say was each just cache config line brûlée form the to set. Can also no<br>
+| you low what see from come right the does a your and side people! Paulo<br>
+| side was under say to he all every bucket and. Off an find people how.<br>
+| Like very the we them they will and the crème build out show father to<br>
+| then of one. Use find high move use were on the side are time an the<br>
+| find new.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Crème out about commit word write the to it just what client is year.<br>
+| Year from your right place cause Straße they the for the naïve part it<br>
+| this httpd be too. Branch bucket follow which out that if thing of could<br>
+| part make. New header the the had can branch does more hot must hot<br>
+| filter! And config the there is that and how patch who more came is hot.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Uwe Østergaard<br>
+| </p>
+| </body></html>
+
+[attachments]

@@ -1,0 +1,93 @@
+[message]
+id 0058
+source "mbox:58"
+
+[headers]
+received: "from students.example.ac.jp (mx2.dev.example.io [54.196.27.133]) by dev.example.io (Postfix) with ESMTP id 227EB321C0 for <xstergaard@post.example.fr>; Sat, 01 Jun 2005 11:19:51 MET (GMT)"
+received: "from example.com (mx9.example.com [243.126.146.231]) by lists.example.edu (Postfix) with ESMTP id DFB473E55E for <k@mail.example.net>; Tue, 3 Sep 2012 06:26:13 GMT"
+return-path: "<sstergaard@example.org>"
+message-id: "<584.866a5ed9.69883@example.org>"
+in-reply-to: "<596.4d611e10.76171@students.example.ac.jp>"
+references: "<585.3d436d12.34031@example.com> <586.2da6dd10.41690@example.org> <587.a6bc7226.8731@apache.org> <588.3d5a229f.95550@example.org> <589.473d791a.69338@students.example.ac.jp> <590.df18a17c.1230@students.example.ac.jp> <591.05a22fee.6256@students.example.ac.jp> <592.5aa33109.56720@mail.example.net> <593.3799e501.55663@lists.example.edu> <594.d4509aa2.7619@eu.example.de> <595.828d2e83.34475@mail.example.net> <596.4d611e10.76171@students.example.ac.jp>"
+date: "Tue, 13 Feb 2018 14:56:23 +0000"
+from: "Zoë Kim <zkim.41@dev.example.io>"
+to: "\"Johansson, Sven\" <sjohansson.37@corp.example.co.uk>"
+subject: "[VOTE] Add Ørsted to"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_5283_694952911.130013394757\""
+
+[addresses]
+from 0 display="Zoë Kim" spec="zkim.41@dev.example.io"
+to 0 display="Johansson, Sven" spec="sjohansson.37@corp.example.co.uk"
+
+[date]
+raw " Tue, 13 Feb 2018 14:56:23 +0000"
+valid yes
+utc 2018-02-13T14:56:23Z
+offset +0000
+epoch 1518533783
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_5283_694952911.130013394757" parts=5 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="simple boundary 77" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=492 adler32=759e9f0f role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=825 adler32=d98f0ca2 role=html
+  4 image/png cte=base64 disposition=attachment filename="if_mother_what.png" size=5633 adler32=e0b2b3cf role=attachment
+  5 application/pdf cte=base64 disposition=attachment filename="Kraków_we.pdf" size=1895 adler32=f241bba0 role=attachment
+  6 text/x-diff charset=utf-8 cte=quoted-printable disposition=inline filename="pool_all_Kraków.patch" size=5220 adler32=e09b7ba7 role=attachment
+  7 message/rfc822 cte=7bit disposition=inline parts=1
+    8 multipart/mixed cte=7bit boundary="----=_Part_1336_658359594.347159340365" parts=2 preamble=45 epilogue=0
+      9 multipart/related cte=7bit boundary="----=_Part_2349_914452460.1026489273744" parts=4 preamble=45 epilogue=0
+        10 multipart/alternative cte=7bit boundary="simple boundary 737" parts=2 preamble=45 epilogue=0
+          11 text/plain charset=utf-8 cte=quoted-printable size=2178 adler32=f98ef8e5 role=attachment
+          12 text/html charset=utf-8 cte=quoted-printable size=2781 adler32=383ac0f1 role=attachment
+        13 image/jpeg cte=base64 disposition=attachment filename="Kraków_config_Málaga.jpg" size=1563 adler32=e7b910a5 role=attachment
+        14 image/png cte=base64 disposition=attachment filename="log.png" size=2073 adler32=9bd20569 role=attachment
+        15 image/png cte=base64 disposition=inline filename="Málaga_how_or_too.png" size=1500 adler32=6dd6dc18 role=attachment
+      16 image/png cte=base64 disposition=attachment filename="we.png" size=3677 adler32=d5fc104b role=attachment
+
+[body]
+text 2 chars 483
+| New to a play long. Other what form bug father are résumé déjà! Can the
+| and only vote all that cause picture Ångström had São for where is? She
+| land one naïve part up she were! Her as to were so it!
+| 
+| Take hot to the a than a number them be the where back you? Of may great
+| the then! As do back water are a made about?
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Ivan Müller
+html 3 chars 825
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">New to a play long. Other what form bug father are résumé déjà! Can the<br>
+| and only vote all that cause picture Ångström had São for where is? She<br>
+| land one naïve part up she were! Her as to were so it!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Take hot to the a than a number them be the where back you? Of may great<br>
+| the then! As do back water are a made about?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ivan Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/png filename="if_mother_what.png" size=5633 adler32=e0b2b3cf file=parts/0058/004.bin
+5 type=application/pdf filename="Kraków_we.pdf" size=1895 adler32=f241bba0 file=parts/0058/005.bin
+6 type=text/x-diff filename="pool_all_Kraków.patch" size=5220 adler32=e09b7ba7 file=parts/0058/006.bin
+11 type=text/plain filename=- size=2178 adler32=f98ef8e5 file=parts/0058/011.bin
+12 type=text/html filename=- size=2781 adler32=383ac0f1 file=parts/0058/012.bin
+13 type=image/jpeg filename="Kraków_config_Málaga.jpg" size=1563 adler32=e7b910a5 file=parts/0058/013.bin
+14 type=image/png filename="log.png" size=2073 adler32=9bd20569 file=parts/0058/014.bin
+15 type=image/png filename="Málaga_how_or_too.png" size=1500 adler32=6dd6dc18 file=parts/0058/015.bin
+16 type=image/png filename="we.png" size=3677 adler32=d5fc104b file=parts/0058/016.bin

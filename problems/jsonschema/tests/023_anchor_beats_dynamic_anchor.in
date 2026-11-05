@@ -1,0 +1,26 @@
+{
+  "schema": {
+    "$id": "https://example.test/a",
+    "$defs": {
+      "plain": {
+        "$anchor": "x",
+        "type": "integer"
+      },
+      "dyn": {
+        "$dynamicAnchor": "x",
+        "type": "string"
+      }
+    },
+    "$ref": "#x"
+  },
+  "tests": [
+    {
+      "description": "the $anchor is the plain-name target",
+      "data": 1
+    },
+    {
+      "description": "the $dynamicAnchor is not",
+      "data": "s"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+INDEX reading_station 'ST-0007'
+INDEX reading_station 'ST-0399'
+INDEX reading_station 'ST-9999'
+INDEX reading_quality 0
+SELECT id,quality FROM reading WHERE quality = 3 AND id < 200
+SELECT id,station,quality FROM reading WHERE station = 'ST-0123' ORDER BY quality

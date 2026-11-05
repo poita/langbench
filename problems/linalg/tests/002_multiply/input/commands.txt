@@ -1,0 +1,6 @@
+mul a.mtx b.mtx
+mul b.mtx a.mtx
+mul a.mtx i3.mtx
+mul i3.mtx b.mtx
+mul z.mtx i3.mtx
+mul col.mtx rowv.mtx

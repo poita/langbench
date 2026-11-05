@@ -1,0 +1,10 @@
+{
+  "x": 1
+}
+--
+=== main
+{{ x }} {% if x %}{% include "good" %}{% else %}{% include "bad" %}{% endif %}
+=== good
+G
+=== bad
+{% for %}

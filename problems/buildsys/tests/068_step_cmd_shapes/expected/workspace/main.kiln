@@ -1,0 +1,8 @@
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    depfile "out/z.d"
+    cmd preprocess()
+    cost 0
+}
+default "out/z.txt"

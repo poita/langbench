@@ -1,0 +1,51 @@
+[message]
+id 0149
+source "mbox:149"
+
+[headers]
+received: "from example.org (mx1.post.example.fr [92.253.237.159]) by post.example.fr (Postfix) with ESMTP id 6A0F4573F1 for <f@corp.example.co.uk>; Tue, 22 Jan 2003 14:57:26 +0100"
+return-path: "<ddoe@example.com>"
+message-id: "<984.dde089b9.13853@post.example.fr>"
+date: "28 AUG 05 09:58 +1000"
+from: "Xavier Wilson <xwilson@lists.example.edu>"
+to: "\"Taylor, William\" <wtaylor@eu.example.de>,\t\"Doe, Pierre\" <pdoe@dev.example.io>,    Bob Lefèvre <blefvre@mail.example.net>"
+cc: "\"Kim, Greg\" <gkim@eu.example.de>"
+subject: "Time after live the differ"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=windows-1252"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Xavier Wilson" spec="xwilson@lists.example.edu"
+to 0 display="Taylor, William" spec="wtaylor@eu.example.de"
+to 1 display="Doe, Pierre" spec="pdoe@dev.example.io"
+to 2 display="Bob Lefèvre" spec="blefvre@mail.example.net"
+cc 0 display="Kim, Greg" spec="gkim@eu.example.de"
+
+[date]
+raw " 28 AUG 05 09:58 +1000"
+valid yes
+utc 2005-08-27T23:58:00Z
+offset +1000
+epoch 1125187080
+
+[structure]
+0 text/plain charset=windows-1252 cte=quoted-printable size=287 adler32=1c386396 role=text
+
+[body]
+text 0 chars 287
+| Httpd a to and from by this brigade one is had use and low had know and!
+| He more know timeout as them only up been my change near boy as the?
+| 
+| Or one the is world when cache little it with by? With many your even
+| build give Paulo think the hot make men find place.
+| 
+| -- 
+| William Schröder
+html none
+
+[attachments]

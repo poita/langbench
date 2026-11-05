@@ -1,0 +1,68 @@
+[message]
+id 0218
+source "mbox:218"
+
+[headers]
+received: "from dev.example.io (mx1.students.example.ac.jp [134.69.105.6]) by mail.example.net (Postfix) with ESMTP id 1E42FEC17E for <svanderberg@example.org>; Thu, 19 Aug 2004 14:47:49 Z"
+received: "from post.example.fr (mx8.example.org [180.110.75.82]) by eu.example.de (Postfix) with ESMTP id EB08BB2AC5 for <nguyen.27@post.example.fr>; Fri, 20 May 2005 12:04:19 +0000 (GMT)"
+return-path: "<sjohansson@example.com>"
+message-id: "<1556.87bd365c.8895@example.com>"
+date: "Mon, 3 Mar 2004 25:00:00 +0000"
+from: "Jörg Taylor <jtaylor@students.example.ac.jp>"
+to: "\"Erik O'Brien\" <eobrien@apache.org>, hschrder.42@example.com"
+subject: "[VOTE] As way side"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 581\""
+
+[addresses]
+from 0 display="Jörg Taylor" spec="jtaylor@students.example.ac.jp"
+to 0 display="Erik O'Brien" spec="eobrien@apache.org"
+to 1 display="" spec="hschrder.42@example.com"
+
+[date]
+raw " Mon, 3 Mar 2004 25:00:00 +0000"
+valid no
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 581" parts=5 preamble=45 epilogue=1
+  1 multipart/alternative cte=7bit boundary="Apple-Mail=_93B1655DD386C7F5" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=windows-1252 cte=7bit size=310 adler32=d86e5cdb role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=598 adler32=8c8abdad role=html
+  4 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="hot.patch" size=5689 adler32=946a26c0 role=attachment
+  5 application/zip cte=base64 disposition=attachment filename="and.zip" size=5332 adler32=46352023 role=attachment
+  6 text/plain charset=utf-8 cte=7bit disposition=inline filename="brûlée_the_will_need_directive.txt" size=5493 adler32=727fa175 role=attachment
+  7 application/zip cte=base64 disposition=attachment filename="smörgåsbord_the_the_was.zip" size=3633 adler32=16812369 role=attachment
+
+[body]
+text 2 chars 310
+| Proxy earth land would use out set of São to every did up. Him house the
+| them for get with could use side air they said hot. Do but a has the.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Tomás Lefèvre
+html 3 chars 595
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Proxy earth land would use out set of São to every did up. Him house the<br>
+| them for get with could use side air they said hot. Do but a has the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Tomás Lefèvre<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/x-diff filename="hot.patch" size=5689 adler32=946a26c0 file=parts/0218/004.bin
+5 type=application/zip filename="and.zip" size=5332 adler32=46352023 file=parts/0218/005.bin
+6 type=text/plain filename="brûlée_the_will_need_directive.txt" size=5493 adler32=727fa175 file=parts/0218/006.bin
+7 type=application/zip filename="smörgåsbord_the_the_was.zip" size=3633 adler32=16812369 file=parts/0218/007.bin

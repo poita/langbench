@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 200 100" width="200" height="100">
+  <defs>
+    <circle id="dot" cx="0" cy="0" r="8" fill="#d35400"/>
+    <g id="pair">
+      <rect x="-10" y="-6" width="20" height="12" fill="#2c3e50"/>
+      <rect x="-4" y="-14" width="8" height="8" fill="#e74c3c"/>
+    </g>
+    <path id="tick" d="M-6 0 L-2 5 L6 -6" fill="none" stroke="#27ae60" stroke-width="3"
+          stroke-linecap="round"/>
+    <rect id="plain" x="-8" y="-8" width="16" height="16"/>
+  </defs>
+  <use href="#dot" x="20" y="20"/>
+  <use href="#dot" x="50" y="20" fill="#3498db"/>
+  <use xlink:href="#pair" x="100" y="30"/>
+  <use href="#pair" x="160" y="30" transform="rotate(20 160 30)"/>
+  <use href="#tick" x="40" y="70"/>
+  <use href="#tick" x="120" y="70" transform="scale(2 2) translate(-30 0)"/>
+  <use href="#plain" x="80" y="80" fill="#9b59b6"/>
+  <use href="#missing" x="10" y="90"/>
+</svg>

@@ -1,0 +1,6 @@
+CREATE TABLE r(
+        label TEXT,
+        id INTEGER PRIMARY KEY,
+        weight REAL);
+CREATE INDEX r_label ON r(label);
+CREATE INDEX r_id ON r(id);

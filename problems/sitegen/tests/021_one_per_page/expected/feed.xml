@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Slow Reader</title>
+  <id>https://slow.example/</id>
+  <updated>2020-08-05T00:00:00Z</updated>
+  <link href="https://slow.example/" rel="alternate"/>
+  <link href="https://slow.example/feed.xml" rel="self"/>
+  <author>
+    <name>S. Lowe</name>
+  </author>
+  <entry>
+    <title>Step 4</title>
+    <id>https://slow.example/posts/s4/</id>
+    <updated>2020-08-05T00:00:00Z</updated>
+    <link href="https://slow.example/posts/s4/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Step number 4.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

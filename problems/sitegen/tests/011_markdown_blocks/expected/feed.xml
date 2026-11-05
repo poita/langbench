@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Test Site</title>
+  <id>https://example.com/</id>
+  <updated>2020-03-02T00:00:00Z</updated>
+  <link href="https://example.com/" rel="alternate"/>
+  <link href="https://example.com/feed.xml" rel="self"/>
+  <author>
+    <name>A. Author</name>
+  </author>
+  <entry>
+    <title>Loose and tight lists</title>
+    <id>https://example.com/posts/lists/</id>
+    <updated>2020-03-02T00:00:00Z</updated>
+    <link href="https://example.com/posts/lists/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Tight:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;one&lt;/li&gt;
+&lt;li&gt;two&lt;/li&gt;
+&lt;li&gt;three&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Loose:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;one&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;two&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Mixed markers restart lists:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;plus one&lt;/li&gt;
+&lt;li&gt;plus two&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ul&gt;
+&lt;li&gt;dash one&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Ordered starting at 5:&lt;/p&gt;
+&lt;ol start="5"&gt;
+&lt;li&gt;five&lt;/li&gt;
+&lt;li&gt;six&lt;/li&gt;
+&lt;/ol&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Block structure</title>
+    <id>https://example.com/posts/blocks/</id>
+    <updated>2020-03-01T00:00:00Z</updated>
+    <link href="https://example.com/posts/blocks/" rel="alternate"/>
+    <content type="html">&lt;h1&gt;A heading&lt;/h1&gt;
+&lt;h1&gt;Setext heading&lt;/h1&gt;
+&lt;h2&gt;Another one&lt;/h2&gt;
+&lt;p&gt;A paragraph with
+a soft line break.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;a bullet&lt;/li&gt;
+&lt;li&gt;another bullet
+with a continuation line&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ol&gt;
+&lt;li&gt;first&lt;/li&gt;
+&lt;li&gt;second
+&lt;ol&gt;
+&lt;li&gt;nested&lt;/li&gt;
+&lt;li&gt;also nested&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A block quote
+spanning lines.&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;Nested quote.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;/blockquote&gt;
+&lt;pre&gt;&lt;code class="language-python"&gt;def f(x):
+    return x * 2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;pre&gt;&lt;code&gt;an indented code block
+second line
+&lt;/code&gt;&lt;/pre&gt;
+&lt;hr /&gt;
+&lt;h2&gt;Heading with closing hashes&lt;/h2&gt;
+</content>
+  </entry>
+</feed>

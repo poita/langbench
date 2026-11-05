@@ -1,0 +1,123 @@
+[message]
+id 0080
+source "mbox:80"
+
+[headers]
+received: "from example.com (mx2.mail.example.net [98.57.39.117]) by example.org (Postfix) with ESMTP id 3C9D6ECE5B for <bobrien@post.example.fr>; Thu, 7 May 2025 03:57:50 GMT"
+return-path: "<taylor.60@dev.example.io>"
+message-id: "<655.619a731b.28838@dev.example.io>"
+in-reply-to: "<663.4d690dcb.87530@lists.example.edu>"
+references: "<656.4250ed79.96687@mail.example.net> <657.b56f310c.77798@post.example.fr> <658.6aefe848.69708@apache.org> <659.82f710cc.94972@students.example.ac.jp> <660.ef7c60c3.15072@mail.example.net> <661.ae865eeb.58961@mail.example.net> <662.50fc5414.39484@lists.example.edu> <663.4d690dcb.87530@lists.example.edu>"
+date: "Fri, 4 Aug 2024 23:21:30 -0330"
+from: "johansson@mail.example.net"
+to: "Fiona Иванов <f@apache.org>, Nils Müller <nmller@post.example.fr>, nguyen@post.example.fr,\tOlga 山田 <o@students.example.ac.jp>,    s@corp.example.co.uk"
+cc: "Dana Schröder <dschrder@corp.example.co.uk>,    Zoë Nakamura <znakamura@eu.example.de>,    Nils Petrov <npetrov@dev.example.io>,\t\"Hana Dubois\" <hdubois@lists.example.edu>,\tLuis García <lgarca.91@mail.example.net>,\tAgnieszka Kowalski <akowalski@students.example.ac.jp>,\tNils Smith <nsmith@post.example.fr>,\tŁukasz Rossi <rossi@mail.example.net>, ujohansson.81@lists.example.edu,\tFrançois Johansson <fjohansson@eu.example.de>,    Đorđe Müller <mller@mail.example.net>,    Greg Wilson <gwilson@corp.example.co.uk>,\tztaylor.51@students.example.ac.jp, Xavier Kim <xkim@example.com>,    vstergaard@students.example.ac.jp,    Jörg Petrov <jpetrov@mail.example.net>,    Greg Rossi <grossi@post.example.fr>, Łukasz Kowalski <kowalski@dev.example.io>,    Agnieszka Smith <asmith@apache.org>, Nils Smith <nsmith@example.com>,\tHana Rossi <hrossi@post.example.fr>,    \"Dubois, Olga\" <odubois.1@post.example.fr>, pgarca@eu.example.de,    brown@lists.example.edu,    Rémi Wilson <rwilson.12@post.example.fr>, Łukasz Papadopoulos <papadopoulos@corp.example.co.uk>, Olga Müller <omller@apache.org>,\tPierre Papadopoulos <ppapadopoulos@example.org>,    \"William Papadopoulos\" <wpapadopoulos@lists.example.edu>,    snguyen@students.example.ac.jp (Someone), Quinn Schröder <qschrder@corp.example.co.uk>,\tĐorđe Petrov <petrov.29@example.com>,\tBob Fernández <bfernndez@corp.example.co.uk>,    Pierre Иванов <p.80@post.example.fr>,    Björn Nguyen <bnguyen.6@mail.example.net>,    Ελένη Papadopoulos <papadopoulos@eu.example.de>,\tDana Nakamura <dnakamura@corp.example.co.uk>,\tΕλένη Nguyen <nguyen.17@dev.example.io>, Carl Иванов <c@post.example.fr>, Tomás García <tgarca.29@dev.example.io>, Zoë Fernández <zfernndez.24@post.example.fr>,\t\"Smith, William\" <wsmith.98@post.example.fr>,    \"Nguyen, Agnieszka\" <anguyen.44@lists.example.edu>,    Łukasz Johansson <johansson@students.example.ac.jp>,\tgjohansson@eu.example.de (Greg Johansson),\tIvan van der Berg <ivanderberg@example.com>, Zoë Wilson <zwilson@example.com>,\tRémi Papadopoulos <rpapadopoulos@students.example.ac.jp>,    \"Nakamura, Olga\" <onakamura@example.com>,\tbrossi.99@corp.example.co.uk (Bob Rossi),    Rémi Petrov <rpetrov@eu.example.de>, \"van der Berg, Agnieszka\" <avanderberg.69@apache.org>,\tZoë Lefèvre <zlefvre.37@eu.example.de>, ukim.36@eu.example.de (Uwe Kim),\tCarl 山田 <c.32@dev.example.io>,    Łukasz Nakamura <nakamura@post.example.fr>,\ttnakamura.12@example.com, Carl Taylor <ctaylor@apache.org>, cschrder.73@example.com (Someone), vsmith.76@apache.org,\tLuis Lefèvre <llefvre@apache.org>,\t\"Smith, Sven\" <ssmith.53@mail.example.net>,    \"Wilson, William\" <wwilson.59@post.example.fr>"
+subject: "RE: Be or down has the find good patch backport"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+resent-date: "Mon, 22 Oct 2004 07:38:22 +0100"
+resent-date: "27 JUN 24 22:54 -0000"
+resent-date: "Thu, 26 Jun 2005 01:48:54 MET"
+thread-topic: "The went be httpd word me look Ångström!"
+comments: "One so on may  earth the  new."
+sender: "cbrown@example.com"
+content-type: "text/plain; CHARSET=utf-8"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="" spec="johansson@mail.example.net"
+sender 0 display="" spec="cbrown@example.com"
+to 0 display="Fiona Иванов" spec="f@apache.org"
+to 1 display="Nils Müller" spec="nmller@post.example.fr"
+to 2 display="" spec="nguyen@post.example.fr"
+to 3 display="Olga 山田" spec="o@students.example.ac.jp"
+to 4 display="" spec="s@corp.example.co.uk"
+cc 0 display="Dana Schröder" spec="dschrder@corp.example.co.uk"
+cc 1 display="Zoë Nakamura" spec="znakamura@eu.example.de"
+cc 2 display="Nils Petrov" spec="npetrov@dev.example.io"
+cc 3 display="Hana Dubois" spec="hdubois@lists.example.edu"
+cc 4 display="Luis García" spec="lgarca.91@mail.example.net"
+cc 5 display="Agnieszka Kowalski" spec="akowalski@students.example.ac.jp"
+cc 6 display="Nils Smith" spec="nsmith@post.example.fr"
+cc 7 display="Łukasz Rossi" spec="rossi@mail.example.net"
+cc 8 display="" spec="ujohansson.81@lists.example.edu"
+cc 9 display="François Johansson" spec="fjohansson@eu.example.de"
+cc 10 display="Đorđe Müller" spec="mller@mail.example.net"
+cc 11 display="Greg Wilson" spec="gwilson@corp.example.co.uk"
+cc 12 display="" spec="ztaylor.51@students.example.ac.jp"
+cc 13 display="Xavier Kim" spec="xkim@example.com"
+cc 14 display="" spec="vstergaard@students.example.ac.jp"
+cc 15 display="Jörg Petrov" spec="jpetrov@mail.example.net"
+cc 16 display="Greg Rossi" spec="grossi@post.example.fr"
+cc 17 display="Łukasz Kowalski" spec="kowalski@dev.example.io"
+cc 18 display="Agnieszka Smith" spec="asmith@apache.org"
+cc 19 display="Nils Smith" spec="nsmith@example.com"
+cc 20 display="Hana Rossi" spec="hrossi@post.example.fr"
+cc 21 display="Dubois, Olga" spec="odubois.1@post.example.fr"
+cc 22 display="" spec="pgarca@eu.example.de"
+cc 23 display="" spec="brown@lists.example.edu"
+cc 24 display="Rémi Wilson" spec="rwilson.12@post.example.fr"
+cc 25 display="Łukasz Papadopoulos" spec="papadopoulos@corp.example.co.uk"
+cc 26 display="Olga Müller" spec="omller@apache.org"
+cc 27 display="Pierre Papadopoulos" spec="ppapadopoulos@example.org"
+cc 28 display="William Papadopoulos" spec="wpapadopoulos@lists.example.edu"
+cc 29 display="" spec="snguyen@students.example.ac.jp"
+cc 30 display="Quinn Schröder" spec="qschrder@corp.example.co.uk"
+cc 31 display="Đorđe Petrov" spec="petrov.29@example.com"
+cc 32 display="Bob Fernández" spec="bfernndez@corp.example.co.uk"
+cc 33 display="Pierre Иванов" spec="p.80@post.example.fr"
+cc 34 display="Björn Nguyen" spec="bnguyen.6@mail.example.net"
+cc 35 display="Ελένη Papadopoulos" spec="papadopoulos@eu.example.de"
+cc 36 display="Dana Nakamura" spec="dnakamura@corp.example.co.uk"
+cc 37 display="Ελένη Nguyen" spec="nguyen.17@dev.example.io"
+cc 38 display="Carl Иванов" spec="c@post.example.fr"
+cc 39 display="Tomás García" spec="tgarca.29@dev.example.io"
+cc 40 display="Zoë Fernández" spec="zfernndez.24@post.example.fr"
+cc 41 display="Smith, William" spec="wsmith.98@post.example.fr"
+cc 42 display="Nguyen, Agnieszka" spec="anguyen.44@lists.example.edu"
+cc 43 display="Łukasz Johansson" spec="johansson@students.example.ac.jp"
+cc 44 display="" spec="gjohansson@eu.example.de"
+cc 45 display="Ivan van der Berg" spec="ivanderberg@example.com"
+cc 46 display="Zoë Wilson" spec="zwilson@example.com"
+cc 47 display="Rémi Papadopoulos" spec="rpapadopoulos@students.example.ac.jp"
+cc 48 display="Nakamura, Olga" spec="onakamura@example.com"
+cc 49 display="" spec="brossi.99@corp.example.co.uk"
+cc 50 display="Rémi Petrov" spec="rpetrov@eu.example.de"
+cc 51 display="van der Berg, Agnieszka" spec="avanderberg.69@apache.org"
+cc 52 display="Zoë Lefèvre" spec="zlefvre.37@eu.example.de"
+cc 53 display="" spec="ukim.36@eu.example.de"
+cc 54 display="Carl 山田" spec="c.32@dev.example.io"
+cc 55 display="Łukasz Nakamura" spec="nakamura@post.example.fr"
+cc 56 display="" spec="tnakamura.12@example.com"
+cc 57 display="Carl Taylor" spec="ctaylor@apache.org"
+cc 58 display="" spec="cschrder.73@example.com"
+cc 59 display="" spec="vsmith.76@apache.org"
+cc 60 display="Luis Lefèvre" spec="llefvre@apache.org"
+cc 61 display="Smith, Sven" spec="ssmith.53@mail.example.net"
+cc 62 display="Wilson, William" spec="wwilson.59@post.example.fr"
+
+[date]
+raw " Fri, 4 Aug 2024 23:21:30 -0330"
+valid yes
+utc 2024-08-05T02:51:30Z
+offset -0330
+epoch 1722826290
+
+[structure]
+0 text/plain charset=utf-8 cte=quoted-printable size=481 adler32=ff96ab83 role=text
+
+[body]
+text 0 chars 476
+| Bucket set many them the be segfault call round the more a httpd his the
+| the of were. With it in write which is the when what that they! They in
+| to small as animal coöperate add word three it I sentence on. Place
+| other of him water of move that a will branch Größe light number client!
+| They water does set to in how right the old from were mean. The now in
+| spell them she after large about that his. Connection as to set his air
+| the that but great piñata man!
+| 
+| -- 
+| Rémi Smith
+html none
+
+[attachments]

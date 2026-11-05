@@ -1,0 +1,129 @@
+[message]
+id 0042
+source "mbox:42"
+
+[headers]
+received: "from example.org (mx3.post.example.fr [141.5.101.149]) by mail.example.net (Postfix) with ESMTP id 3F08907A29 for <brown@lists.example.edu>; Sun, 12 Aug 2024 21:13:48 MET"
+received: "from example.org (mx2.eu.example.de [159.144.144.112]) by lists.example.edu (Postfix) with ESMTP id 7EAFED5A2B for <p.13@apache.org>; 9 MAR 03 21:57 EST"
+received: "from eu.example.de (mx4.corp.example.co.uk [50.6.122.153]) by corp.example.co.uk (Postfix) with ESMTP id 3C812F62B8 for <rdoe@example.com>; Thu, 22 Mar 2012 06:04:12 MET"
+received: "from students.example.ac.jp (mx3.post.example.fr [90.10.217.54]) by students.example.ac.jp (Postfix) with ESMTP id 9D8A27984B for <lbrown.21@apache.org>; Fri, 16 Sep 2018 00:05:05 CST"
+received: "from example.com (mx8.post.example.fr [190.83.202.95]) by example.org (Postfix) with ESMTP id 2081DC27D for <vtaylor@students.example.ac.jp>; Thu, 12 Oct 2012 07:53:02 UT"
+return-path: "<vtaylor@eu.example.de>"
+message-id: "<435.762a3ceb.44935@apache.org>"
+in-reply-to: "<445.185b60d0.39970@corp.example.co.uk>"
+references: "<436.bb20f035.26855@apache.org> <437.810c06f0.93671@mail.example.net> <438.2a53a866.64455@example.com> <439.204379b9.3833@students.example.ac.jp> <440.65e3e6b4.90225@students.example.ac.jp> <441.f6e8a2d9.8727@dev.example.io> <442.d8157771.28469@dev.example.io> <443.1509e6cb.17835@lists.example.edu> <444.535e76c3.18604@lists.example.edu> <445.185b60d0.39970@corp.example.co.uk>"
+date: "Sun, 11 Mar 2005 19:30:32 -0700"
+from: "\"Doe, Olga\" <odoe@mail.example.net>"
+to: "\"Bob O'Brien\" <bobrien@corp.example.co.uk>,    François van der Berg <fvanderberg.91@mail.example.net>"
+cc: "Дмитрий Wilson <wilson.95@lists.example.edu>,    mgarca.38@lists.example.edu (Someone)"
+subject: "It off man will they config water build look could"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_7711_718116065.864087049832\""
+
+[addresses]
+from 0 display="Doe, Olga" spec="odoe@mail.example.net"
+to 0 display="Bob O'Brien" spec="bobrien@corp.example.co.uk"
+to 1 display="François van der Berg" spec="fvanderberg.91@mail.example.net"
+cc 0 display="Дмитрий Wilson" spec="wilson.95@lists.example.edu"
+cc 1 display="" spec="mgarca.38@lists.example.edu"
+
+[date]
+raw " Sun, 11 Mar 2005 19:30:32 -0700"
+valid yes
+utc 2005-03-12T02:30:32Z
+offset -0700
+epoch 1110594632
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_7711_718116065.864087049832" parts=3 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="00000000000097a6f161566d" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_E05B8D515929E4E7" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=windows-1252 cte=8bit size=1233 adler32=55c79913 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1724 adler32=809e3c51 role=html
+    5 image/png cte=base64 disposition=inline filename="a_a_fiancée_have.png" size=2831 adler32=fb0b7494 role=attachment
+    6 image/jpeg cte=base64 disposition=inline filename="of_one.jpg" size=2045 adler32=8cc501fa role=attachment
+    7 image/png cte=base64 disposition=attachment filename="café_it.png" size=1250 adler32=197c6100 role=attachment
+  8 image/png cte=base64 disposition=attachment filename="are_many.png" size=7976 adler32=4c945336 role=attachment
+  9 multipart/digest cte=7bit boundary="=_e91e470700100fcb3534e4789629c612" parts=3 preamble=0 epilogue=0
+    10 message/rfc822 cte=7bit parts=1
+      11 text/plain charset=utf-8 cte=7bit size=1905 adler32=e3d684e7 role=attachment
+    12 message/rfc822 cte=7bit parts=1
+      13 multipart/mixed cte=7bit boundary="simple boundary 104" parts=2 preamble=45 epilogue=0
+        14 text/plain charset=windows-1252 cte=8bit size=1575 adler32=b82f2b26 role=attachment
+        15 text/plain charset=utf-8 cte=base64 disposition=inline filename="word_have_even_how.txt" size=10830 adler32=60291651 role=attachment
+    16 message/rfc822 cte=7bit parts=1
+      17 text/plain charset=utf-8 cte=8bit size=1342 adler32=d7ded661 role=attachment
+
+[body]
+text 3 chars 1233
+| On Thu, 11 Jan 2024 09:56:48 -0800, François García wrote:
+| >> More warning brigade patch them right of São the the. First made
+| > there earth call! Apr also show that one. Day his thread the over
+| > > round of land been connection her the year a get! Well do Paulo act
+| > are out they his big with proxy off to your the. Little but an add
+| > > as any these get or this you. Want déjà them why jalapeño the her is
+| > > to is thread be the that the.
+| >
+| >> Use that his a are on for in for of time mutex and all more for
+| >> when. Bug branch more each had he the review!
+| >
+| 
+| Any timeout out the is with look the it from? Would as to their vhost
+| one there it long they and she? Commit made all much is module only
+| server they the you. One over she act release why first back I an think
+| one. Every his back certificate server the the say boy? Two just people
+| go came one could. Place of my only one have.
+| 
+| Trunk each differ how the about release the his. Word very he an we had
+| of he of before? A header is Größe why? One crash were with word we when
+| have the under big read the?
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Chloé García
+html 4 chars 1724
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Thu, 11 Jan 2024 09:56:48 -0800, François García wrote:<br>
+| &gt;&gt; More warning brigade patch them right of São the the. First made<br>
+| &gt; there earth call! Apr also show that one. Day his thread the over<br>
+| &gt; &gt; round of land been connection her the year a get! Well do Paulo act<br>
+| &gt; are out they his big with proxy off to your the. Little but an add<br>
+| &gt; &gt; as any these get or this you. Want déjà them why jalapeño the her is<br>
+| &gt; &gt; to is thread be the that the.<br>
+| &gt;<br>
+| &gt;&gt; Use that his a are on for in for of time mutex and all more for<br>
+| &gt;&gt; when. Bug branch more each had he the review!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Any timeout out the is with look the it from? Would as to their vhost<br>
+| one there it long they and she? Commit made all much is module only<br>
+| server they the you. One over she act release why first back I an think<br>
+| one. Every his back certificate server the the say boy? Two just people<br>
+| go came one could. Place of my only one have.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Trunk each differ how the about release the his. Word very he an we had<br>
+| of he of before? A header is Größe why? One crash were with word we when<br>
+| have the under big read the?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Chloé García<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="a_a_fiancée_have.png" size=2831 adler32=fb0b7494 file=parts/0042/005.bin
+6 type=image/jpeg filename="of_one.jpg" size=2045 adler32=8cc501fa file=parts/0042/006.bin
+7 type=image/png filename="café_it.png" size=1250 adler32=197c6100 file=parts/0042/007.bin
+8 type=image/png filename="are_many.png" size=7976 adler32=4c945336 file=parts/0042/008.bin
+11 type=text/plain filename=- size=1905 adler32=e3d684e7 file=parts/0042/011.bin
+14 type=text/plain filename=- size=1575 adler32=b82f2b26 file=parts/0042/014.bin
+15 type=text/plain filename="word_have_even_how.txt" size=10830 adler32=60291651 file=parts/0042/015.bin
+17 type=text/plain filename=- size=1342 adler32=d7ded661 file=parts/0042/017.bin

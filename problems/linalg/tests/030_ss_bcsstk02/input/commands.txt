@@ -1,0 +1,7 @@
+norm1 bcsstk02.mtx
+normfro bcsstk02.mtx
+chol bcsstk02.mtx
+det bcsstk02.mtx
+inv bcsstk02.mtx
+cond bcsstk02.mtx
+solve bcsstk02.mtx rhs.mtx

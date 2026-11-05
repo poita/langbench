@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "if": false,
+    "then": {
+      "const": "then"
+    },
+    "else": {
+      "const": "else"
+    }
+  },
+  "tests": [
+    {
+      "description": "boolean schema false in if always chooses the else path (invalid)",
+      "data": "then"
+    },
+    {
+      "description": "boolean schema false in if always chooses the else path (valid)",
+      "data": "else"
+    }
+  ]
+}

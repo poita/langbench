@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      true
+    ],
+    "contains": {
+      "type": "string"
+    },
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "second item is evaluated by contains",
+      "data": [
+        1,
+        "foo"
+      ]
+    },
+    {
+      "description": "contains fails, second item is not evaluated",
+      "data": [
+        1,
+        2
+      ]
+    },
+    {
+      "description": "contains passes, second item is not evaluated",
+      "data": [
+        1,
+        2,
+        "foo"
+      ]
+    }
+  ]
+}

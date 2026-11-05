@@ -1,0 +1,15 @@
+kiln-state 1
+step out/e.txt
+cmd write("")
+out out/e.txt cbf29ce484222325
+end
+step out/h.txt
+cmd hash()
+in out/w.txt f34236af3bf1d8cb
+in out/e.txt cbf29ce484222325
+out out/h.txt 4f4d5753b5685203
+end
+step out/w.txt
+cmd write("a\\b\"c\nd\te\r\x00ü\n")
+out out/w.txt f34236af3bf1d8cb
+end

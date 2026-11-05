@@ -1,0 +1,6 @@
+c 64 variables, few clauses: the assignment line must still list all 64
+p cnf 64 4
+-64 0
+1 0
+1 64 0
+-1 -64 33 0

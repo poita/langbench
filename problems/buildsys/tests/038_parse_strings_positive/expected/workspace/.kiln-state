@@ -1,0 +1,15 @@
+kiln-state 1
+step out/h.txt
+cmd hash()
+in out/s.txt 2172e701c729c5cd
+in out/t.txt 8ec352c06acfab19
+out out/h.txt b1437138a90357f1
+end
+step out/s.txt
+cmd write("{literal} 7 15 a-b true a, b raw\\nand{x} # not a comment\n")
+out out/s.txt 2172e701c729c5cd
+end
+step out/t.txt
+cmd write("tab:\there\x00nl:\ndq:\" bs:\\ cr:\r done\n")
+out out/t.txt 8ec352c06acfab19
+end

@@ -1,0 +1,35 @@
+Corpus provenance and licence
+=============================
+
+The three text files in this directory are excerpts of public-domain works
+obtained from Project Gutenberg (https://www.gutenberg.org/).  Each file
+contains only the body of the work: the Project Gutenberg header, footer,
+licence text, front matter and editorial apparatus have been removed, so the
+files carry no Project Gutenberg trademark or licence obligations.  The
+underlying works are in the public domain in the United States and in most
+other jurisdictions because their authors died long before 1900.
+
+  aesop.txt
+      "Three Hundred Aesop's Fables", by Aesop, literally translated from the
+      Greek by the Rev. George Fyler Townsend (d. 1900).
+      Project Gutenberg eBook #21 (https://www.gutenberg.org/ebooks/21).
+      Extract: the 313 fables, from the "AESOP'S FABLES" heading to the
+      "FOOTNOTES" section.
+
+  bacon.txt
+      "The Essays or Counsels, Civil and Moral", by Francis Bacon (d. 1626).
+      Project Gutenberg eBook #575 (https://www.gutenberg.org/ebooks/575).
+      Extract: the 59 essays, from "Of Truth" to "Of Fame", without the
+      glossary of archaic words.
+
+  federalist.txt
+      "The Federalist Papers", by Alexander Hamilton, John Jay and James
+      Madison (published 1787-1788).
+      Project Gutenberg eBook #1404 (https://www.gutenberg.org/ebooks/1404).
+      Extract: the 85 papers, from "FEDERALIST No. 1" to the end.
+
+gen_tests.py converts these texts into the Markdown content of the
+corresponding test sites.  Project Gutenberg's own note applies to the
+originals: "This eBook is for the use of anyone anywhere in the United States
+and most other parts of the world at no cost and with almost no restrictions
+whatsoever."

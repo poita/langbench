@@ -1,0 +1,4 @@
+{{ tag.name }} = {{ tag.post_count }}
+{%- for post in posts %}
+{{ loop.index0 }} {{ post.title|replace(" ", "_") }}
+{%- endfor %}

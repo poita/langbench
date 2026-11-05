@@ -1,0 +1,3 @@
+(define (safe-div a b) (if (= b 0) 'inf (quotient a b)))
+(safe-div 1 0)
+(quotient 1 0)

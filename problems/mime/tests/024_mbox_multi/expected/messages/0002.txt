@@ -1,0 +1,24 @@
+[message]
+id 0002
+source "mbox:2"
+
+[headers]
+subject: "second"
+from: "b@example.com"
+
+[addresses]
+from 0 display="" spec="b@example.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=74 adler32=dba51a15 role=text
+
+[body]
+text 0 chars 74
+| a body line that mentions From at the start:
+| From here on it is just text
+html none
+
+[attachments]

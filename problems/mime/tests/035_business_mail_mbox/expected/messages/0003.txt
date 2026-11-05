@@ -1,0 +1,77 @@
+[message]
+id 0003
+source "mbox:3"
+
+[headers]
+received: "from mail.example.net (mx5.example.org [3.186.116.37]) by students.example.ac.jp (Postfix) with ESMTP id FFB3111CB7 for <garca@example.com>; 24 SEP 24 08:41 -0000"
+received: "from dev.example.io (mx6.dev.example.io [187.214.241.186]) by apache.org (Postfix) with ESMTP id F19E60074C for <mpapadopoulos@example.com>; 21 FEB 04 14:51 PDT"
+received: "from dev.example.io (mx4.corp.example.co.uk [130.254.252.238]) by lists.example.edu (Postfix) with ESMTP id 188BABC793 for <smith@apache.org>; Thu, 16 Feb 2004 23:08:50 -0400 (JST)"
+return-path: "<iwilson.19@mail.example.net>"
+message-id: "<12.680a1127.94095@mail.example.net>"
+in-reply-to: "<14.caa1023c.41316@mail.example.net>"
+references: "<13.8c89e415.63792@eu.example.de> <14.caa1023c.41316@mail.example.net>"
+date: "fri,1 aug 2024 21:40:15 (comment (nested)) Z"
+from: "François Østergaard <fstergaard@apache.org>"
+to: "Ivan 山田 <i@students.example.ac.jp>, Sven Doe <sdoe.13@example.org>, avanderberg@apache.org"
+subject: "[PATCH] Directive hand up you word vote sound read"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_6808_18290751.157326430067\""
+
+[addresses]
+from 0 display="François Østergaard" spec="fstergaard@apache.org"
+to 0 display="Ivan 山田" spec="i@students.example.ac.jp"
+to 1 display="Sven Doe" spec="sdoe.13@example.org"
+to 2 display="" spec="avanderberg@apache.org"
+
+[date]
+raw " fri,1 aug 2024 21:40:15 (comment (nested)) Z"
+valid yes
+utc 2024-08-01T21:40:15Z
+offset +0000
+epoch 1722548415
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_6808_18290751.157326430067" parts=3 preamble=45 epilogue=1
+  1 multipart/alternative cte=7bit boundary="000000000000512d9a8032a0" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=7bit size=592 adler32=d7cdc5a4 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=922 adler32=15983a50 role=html
+  4 application/zip cte=base64 disposition=inline filename="are_before_big.zip" size=3635 adler32=d47ce817 role=attachment
+  5 image/png cte=base64 disposition=attachment filename="small_all_more_hot.png" size=2868 adler32=4d798a21 role=attachment
+
+[body]
+text 2 chars 592
+| On Mon, 2 Jul 2009 03:08:04 +1000, ??????? Rossi wrote:
+| >> Know his but see port. In do many were this the round! How he come
+| > > most release on. Side the of résumé only! That config you for I. Of
+| >> I the the is! He were when you has again vote Paulo be him were went
+| > in and home some one he.
+| >
+| 
+| Is for light you side a said point are of low he their is. No new down
+| why first will if the status. More of log apr it does how the. Picture
+| is said father in? Over filter are will had use the! Home after for can
+| here proxy keepalive you no module connection brigade here.
+| 
+| -- 
+| Pierre Smith
+html 3 chars 913
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 2 Jul 2009 03:08:04 +1000, Дмитрий Rossi wrote:<br>
+| &gt;&gt; Know his but see port. In do many were this the round! How he come<br>
+| &gt; &gt; most release on. Side the of résumé only! That config you for I. Of<br>
+| &gt;&gt; I the the is! He were when you has again vote Paulo be him were went<br>
+| &gt; in and home some one he.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Is for light you side a said point are of low he their is. No new down<br>
+| why first will if the status. More of log apr it does how the. Picture<br>
+| is said father in? Over filter are will had use the! Home after for can<br>
+| here proxy keepalive you no module connection brigade here.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Pierre Smith<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/zip filename="are_before_big.zip" size=3635 adler32=d47ce817 file=parts/0003/004.bin
+5 type=image/png filename="small_all_more_hot.png" size=2868 adler32=4d798a21 file=parts/0003/005.bin

@@ -1,0 +1,30 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "const": "foo"
+      }
+    ],
+    "not": {
+      "not": {
+        "prefixItems": [
+          true,
+          {
+            "const": "bar"
+          }
+        ]
+      }
+    },
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "with unevaluated items",
+      "data": [
+        "foo",
+        "bar"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+log HEAD
+log HEAD 1
+log HEAD 0
+log HEAD 5
+log side
+log side 3
+log v1.0
+log v1.0-signed
+log old
+log blobtag
+log nosuch
+log HEAD -1
+log HEAD 1000
+log HEAD 007
+log HEAD 00
+log HEAD 1 2
+log HEAD 1x
+log HEAD 
+log

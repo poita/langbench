@@ -1,0 +1,11 @@
+step {
+    out "out/mid.txt"
+    in "src/a.txt"
+    cmd upper()
+}
+step {
+    out "out/final.txt"
+    in "out/mid.txt"
+    cmd number()
+}
+default "out/final.txt"

@@ -1,0 +1,19 @@
+kiln-state 1
+step out/z0.txt
+cmd write("0\n")
+out out/z0.txt 07fc1e07b4bd2c5f
+end
+step out/z1.txt
+cmd copy()
+in out/z0.txt 07fc1e07b4bd2c5f
+out out/z1.txt 07fc1e07b4bd2c5f
+end
+step out/z2.txt
+cmd copy()
+in out/z1.txt 07fc1e07b4bd2c5f
+out out/z2.txt 07fc1e07b4bd2c5f
+end
+step out/z3.txt
+cmd write("3\n")
+out out/z3.txt 07ff9407b4c02ab8
+end

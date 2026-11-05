@@ -1,0 +1,37 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contains": {
+      "const": 1
+    },
+    "maxContains": 1,
+    "minContains": 3
+  },
+  "tests": [
+    {
+      "description": "empty data",
+      "data": []
+    },
+    {
+      "description": "invalid minContains",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "invalid maxContains",
+      "data": [
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "description": "invalid maxContains and minContains",
+      "data": [
+        1,
+        1
+      ]
+    }
+  ]
+}

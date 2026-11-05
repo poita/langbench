@@ -1,0 +1,21 @@
+[message]
+id 0002
+source "empty-part-then-close.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=1 preamble=0 epilogue=10
+  1 text/plain charset=us-ascii cte=7bit size=0 adler32=00000001 role=text
+
+[body]
+text 1 chars 0
+html none
+
+[attachments]

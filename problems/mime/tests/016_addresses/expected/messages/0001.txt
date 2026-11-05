@@ -1,0 +1,25 @@
+[message]
+id 0001
+source "dots-and-quotes.eml"
+
+[headers]
+from: "John Q. Public <jqp@example.com>"
+to: "\"quoted name\" <qn@example.com>, plain.name@example.com"
+
+[addresses]
+from 0 display="John Q. Public" spec="jqp@example.com"
+to 0 display="quoted name" spec="qn@example.com"
+to 1 display="" spec="plain.name@example.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

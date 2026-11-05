@@ -1,0 +1,19 @@
+put "k00" 0
+put "k01" 1
+put "k02" 2
+put "k03" 3
+put "k04" 4
+put "k05" 5
+put "k06" 6
+put "k07" 7
+put "k08" 8
+put "k09" 9
+put "k10" 10
+put "k11" 11
+scan limit 3
+scan reverse limit 3
+scan from "k03" limit 3
+scan from "k03" reverse limit 3
+scan to "k05" reverse limit 2
+scan keys limit 100
+scan limit 2147483647

@@ -1,0 +1,105 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "one": {
+        "properties": {
+          "a": true
+        }
+      },
+      "two": {
+        "required": [
+          "x"
+        ],
+        "properties": {
+          "x": true
+        }
+      }
+    },
+    "allOf": [
+      {
+        "$ref": "#/$defs/one"
+      },
+      {
+        "properties": {
+          "b": true
+        }
+      },
+      {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/two"
+          },
+          {
+            "required": [
+              "y"
+            ],
+            "properties": {
+              "y": true
+            }
+          }
+        ]
+      }
+    ],
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "Empty is invalid (no x or y)",
+      "data": {}
+    },
+    {
+      "description": "a and b are invalid (no x or y)",
+      "data": {
+        "a": 1,
+        "b": 1
+      }
+    },
+    {
+      "description": "x and y are invalid",
+      "data": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "description": "a and x are valid",
+      "data": {
+        "a": 1,
+        "x": 1
+      }
+    },
+    {
+      "description": "a and y are valid",
+      "data": {
+        "a": 1,
+        "y": 1
+      }
+    },
+    {
+      "description": "a and b and x are valid",
+      "data": {
+        "a": 1,
+        "b": 1,
+        "x": 1
+      }
+    },
+    {
+      "description": "a and b and y are valid",
+      "data": {
+        "a": 1,
+        "b": 1,
+        "y": 1
+      }
+    },
+    {
+      "description": "a and b and x and y are invalid",
+      "data": {
+        "a": 1,
+        "b": 1,
+        "x": 1,
+        "y": 1
+      }
+    }
+  ]
+}

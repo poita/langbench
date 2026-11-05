@@ -1,0 +1,70 @@
+[message]
+id 0080
+source "mbox:80"
+
+[headers]
+received: "from students.example.ac.jp (mx6.corp.example.co.uk [115.30.116.131]) by students.example.ac.jp (Postfix) with ESMTP id FC03815865 for <abrown.74@example.com>; Sat, 4 Sep 2018 00:28:16 +0000"
+received: "from lists.example.edu (mx5.example.org [252.37.241.215]) by lists.example.edu (Postfix) with ESMTP id 2394519575 for <nrossi@example.com>; Fri, 5 Aug 2005 19:56:37 +0900"
+received: "from apache.org (mx3.corp.example.co.uk [249.50.245.196]) by corp.example.co.uk (Postfix) with ESMTP id F57AE87C19 for <qdubois.26@eu.example.de>; Tue, 26 Jan 2004 04:48:02 Z"
+return-path: "<qschrder@post.example.fr>"
+message-id: "<510.40aa4ecc.69794@example.com>"
+date: "9 AUG 18 07:18 MET"
+from: "\"Papadopoulos, Dana\" <dpapadopoulos@mail.example.net>"
+to: "Greg Fernández <gfernndez@example.org>,    w@corp.example.co.uk (Someone)"
+subject: "Re: [PATCH] I coöperate find warning three differ the be"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"----=_Part_6060_528642880.216968089164\""
+
+[addresses]
+from 0 display="Papadopoulos, Dana" spec="dpapadopoulos@mail.example.net"
+to 0 display="Greg Fernández" spec="gfernndez@example.org"
+to 1 display="" spec="w@corp.example.co.uk"
+
+[date]
+raw " 9 AUG 18 07:18 MET"
+valid yes
+utc 2018-08-09T07:18:00Z
+offset +0000
+epoch 1533799080
+
+[structure]
+0 multipart/alternative cte=7bit boundary="----=_Part_6060_528642880.216968089164" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=8bit size=589 adler32=a9f6cd46 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=882 adler32=200c2f3a role=html
+
+[body]
+text 1 chars 583
+| Go of set one make and are you been? Call other no high she that. As
+| must turn brigade them. The of a that you any over home is! Log a her
+| some made she old filter a bug land picture of. Said or but the even
+| down segfault or we first crash?
+| 
+| To patch first very have I form been connection you us may had too large
+| did my was. I Zürich the of give the play and is the then have has near!
+| Me do to it hot a that tell had handler make earth bug day or have was.
+| Were had or make my if come of one Paulo trunk it but! Of know put land
+| picture help the come with was the or.
+| 
+| -- 
+| Zoë 山田
+html 2 chars 876
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Go of set one make and are you been? Call other no high she that. As<br>
+| must turn brigade them. The of a that you any over home is! Log a her<br>
+| some made she old filter a bug land picture of. Said or but the even<br>
+| down segfault or we first crash?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">To patch first very have I form been connection you us may had too large<br>
+| did my was. I Zürich the of give the play and is the then have has near!<br>
+| Me do to it hot a that tell had handler make earth bug day or have was.<br>
+| Were had or make my if come of one Paulo trunk it but! Of know put land<br>
+| picture help the come with was the or.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Zoë 山田<br>
+| </p>
+| </body></html>
+
+[attachments]

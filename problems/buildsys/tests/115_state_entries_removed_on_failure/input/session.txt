@@ -1,0 +1,4 @@
+build -j 3
+delete src/p.txt
+build -j 3
+build -j 3

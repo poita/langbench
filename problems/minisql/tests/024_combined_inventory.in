@@ -1,0 +1,22 @@
+
+CREATE TABLE items (sku TEXT, cat TEXT, price INTEGER, stock INTEGER);
+CREATE TABLE cats (cat TEXT, taxpct INTEGER, mgr TEXT);
+INSERT INTO items VALUES ('A1', 'tools', 1500, 3), ('A2', 'tools', 250, 0), ('B1', 'toys', 999, 12), ('B2', 'toys', 1999, 1), ('B3', 'toys', NULL, 5), ('C1', 'food', 5, 200), ('C2', 'food', 12, 150), ('D1', NULL, 100, 1), ('E1', 'garden', 4500, 2);
+INSERT INTO cats VALUES ('tools', 20, 'ann'), ('toys', 5, 'bob'), ('food', 0, 'ann'), ('misc', 10, NULL);
+SELECT c.mgr, COUNT(*), SUM(i.price * i.stock) FROM items i JOIN cats c ON i.cat = c.cat GROUP BY c.mgr ORDER BY 3 DESC;
+SELECT i.sku, i.price + i.price * c.taxpct / 100 AS gross FROM items i, cats c WHERE i.cat = c.cat AND i.stock > 0 ORDER BY gross DESC, i.sku LIMIT 3;
+SELECT cat, COUNT(*) AS n, MIN(price), MAX(price), AVG(price) FROM items WHERE price IS NOT NULL GROUP BY cat HAVING COUNT(*) >= 2 ORDER BY AVG(price) DESC;
+SELECT sku FROM items WHERE cat LIKE 't%' AND (price < 1000 OR stock = 0) ORDER BY price DESC;
+UPDATE items SET price = price * 9 / 10 WHERE cat = 'toys' AND price > 500;
+SELECT sku, price FROM items WHERE cat = 'toys' ORDER BY sku;
+DELETE FROM items WHERE stock = 0 OR price IS NULL;
+SELECT COUNT(*), SUM(stock) FROM items;
+SELECT c.cat, c.mgr FROM cats c WHERE NOT c.cat LIKE '%o%' OR c.mgr IS NULL ORDER BY c.cat;
+SELECT i.cat, c.taxpct, COUNT(i.sku) FROM items i INNER JOIN cats c ON c.cat = i.cat WHERE c.taxpct > 0 GROUP BY i.cat, c.taxpct;
+SELECT a.sku, b.sku FROM items a, items b WHERE a.cat = b.cat AND a.sku < b.sku AND a.price > b.price ORDER BY a.sku, b.sku;
+SELECT sku, stock FROM items ORDER BY stock DESC, sku LIMIT 2 OFFSET 1;
+SELECT COUNT(*) FROM items i, cats c WHERE i.cat = c.cat AND i.price * (100 + c.taxpct) % 100 = 0;
+SELECT cat, SUM(price * stock) FROM items GROUP BY cat HAVING SUM(price * stock) > 2000 ORDER BY cat DESC;
+INSERT INTO items VALUES ('F1', 'misc', 1, 1);
+SELECT c.cat, COUNT(*) FROM cats c JOIN items i ON i.cat = c.cat GROUP BY c.cat ORDER BY c.cat;
+SELECT c.mgr, i.sku FROM cats c INNER JOIN items i ON c.cat = i.cat WHERE c.mgr IS NULL OR i.stock > 100 ORDER BY 1 DESC, 2;

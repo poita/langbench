@@ -1,0 +1,56 @@
+<ul>
+<li>
+<pre><code>code
+</code></pre>
+</li>
+<li>item</li>
+</ul>
+<ol>
+<li>
+<pre><code class="language-py">x = 1
+
+y = 2
+</code></pre>
+</li>
+<li>next</li>
+</ol>
+<ul>
+<li>
+<p>a</p>
+<pre><code>b
+</code></pre>
+</li>
+<li>
+<p>c</p>
+<ul>
+<li>
+<pre><code>nested
+```
+still
+</code></pre>
+</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<ul>
+<li>
+<pre><code>in quote
+</code></pre>
+</li>
+</ul>
+</blockquote>
+<ul>
+<li>
+<pre><code>unclosed
+</code></pre>
+</li>
+<li>
+<p>next item</p>
+</li>
+<li>
+<p>text</p>
+<pre><code>fence after text
+</code></pre>
+</li>
+</ul>

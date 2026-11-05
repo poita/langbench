@@ -1,0 +1,24 @@
+[message]
+id 0001
+source "deep.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"a\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="a" parts=1 preamble=0 epilogue=0
+  1 multipart/mixed cte=7bit boundary="b" parts=1 preamble=0 epilogue=0
+    2 multipart/mixed cte=7bit boundary="c" parts=1 preamble=0 epilogue=0
+      3 text/plain charset=us-ascii cte=7bit size=4 adler32=03fd019f role=text
+
+[body]
+text 3 chars 4
+| deep
+html none
+
+[attachments]

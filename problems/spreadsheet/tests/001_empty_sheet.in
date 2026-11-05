@@ -1,0 +1,8 @@
+get A1
+dump
+get ZZ9999
+set A1 0
+get A1
+dump
+clear A1
+dump

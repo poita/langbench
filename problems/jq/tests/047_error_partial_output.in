@@ -1,0 +1,2 @@
+.[] | if . == 2 then error else . end
+[1,2,3]

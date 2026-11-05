@@ -1,0 +1,9 @@
+kiln-state 1
+step out/l0.txt
+cmd write(".hidden||.x|.y\n")
+out out/l0.txt 5afcec4c1ab5eae6
+end
+step out/l1.txt
+cmd write(".|.|.|\n")
+out out/l1.txt 05a3b1b9656f4527
+end

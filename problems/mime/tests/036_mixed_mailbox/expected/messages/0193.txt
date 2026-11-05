@@ -1,0 +1,129 @@
+[message]
+id 0193
+source "mbox:193"
+
+[headers]
+received: "from example.org (mx1.dev.example.io [177.197.253.118]) by apache.org (Postfix) with ESMTP id A53AFFED00 for <fjohansson@mail.example.net>; Mon, 28 Sep 2025 09:35:11 +0530"
+received: "from example.org (mx6.lists.example.edu [16.182.231.18]) by mail.example.net (Postfix) with ESMTP id 893A271B3B for <wlefvre@post.example.fr>; Fri, 12 Feb 2012 08:41:10 PDT"
+received: "from eu.example.de (mx6.example.org [115.202.194.251]) by dev.example.io (Postfix) with ESMTP id 7A884B7AC3 for <avanderberg@students.example.ac.jp>; Sun, 26 Feb 2005 09:01:55 +1000"
+received: "from corp.example.co.uk (mx3.dev.example.io [68.255.49.55]) by corp.example.co.uk (Postfix) with ESMTP id B54F17496F for <dmller.3@corp.example.co.uk>; tue,27 feb 2004 18:50:7 (comment (nested)) +0200"
+return-path: "<ifernndez.12@corp.example.co.uk>"
+message-id: "<1380.d0d79e19.41057@corp.example.co.uk>"
+in-reply-to: "<1381.0a33daac.44864@apache.org>"
+references: "<1381.0a33daac.44864@apache.org>"
+date: "Tue, 4 Jul 2018 21:19:48 -0800"
+from: "\"Smith, Bob\" <bsmith@lists.example.edu>"
+reply-to: "zpetrov@mail.example.net"
+to: "Erik Nguyen <enguyen@example.com>, bnguyen.55@dev.example.io,\tBjörn Taylor <btaylor@post.example.fr>"
+subject: "[PATCH] The boy your Paulo your brigade at certificate of apr"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_3984_579242633.811400499087\""
+
+[addresses]
+from 0 display="Smith, Bob" spec="bsmith@lists.example.edu"
+reply-to 0 display="" spec="zpetrov@mail.example.net"
+to 0 display="Erik Nguyen" spec="enguyen@example.com"
+to 1 display="" spec="bnguyen.55@dev.example.io"
+to 2 display="Björn Taylor" spec="btaylor@post.example.fr"
+
+[date]
+raw " Tue, 4 Jul 2018 21:19:48 -0800"
+valid yes
+utc 2018-07-05T05:19:48Z
+offset -0800
+epoch 1530767988
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_3984_579242633.811400499087" parts=5 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="----=_Part_8433_261470714.646810468418" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=quoted-printable size=895 adler32=5d612ed6 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1306 adler32=c9d5b7b5 role=html
+  4 text/csv charset=utf-8 cte=base64 disposition=attachment filename="hook_ssl_of.csv" size=4337 adler32=f2916379 role=attachment
+  5 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="Ångström_warning_could.patch" size=2032 adler32=097c7b22 role=attachment
+  6 message/rfc822 cte=7bit disposition=inline parts=1
+    7 multipart/mixed cte=7bit boundary="Apple-Mail=_D6A80CCC8CD12C55" parts=5 preamble=0 epilogue=0
+      8 multipart/related cte=7bit boundary="Apple-Mail=_F9683A3BCD63DBB0" parts=3 preamble=0 epilogue=0
+        9 multipart/alternative cte=7bit boundary="=_7d746d7438163461ce677ec87f1dea78" parts=2 preamble=0 epilogue=0
+          10 text/plain charset=utf-8 cte=quoted-printable size=359 adler32=10ad7d6c role=attachment
+          11 text/html charset=windows-1252 cte=quoted-printable size=587 adler32=223ac921 role=attachment
+        12 image/jpeg cte=base64 disposition=attachment filename="Straße_have_the.jpg" size=3306 adler32=b56c6da0 role=attachment
+        13 image/jpeg cte=base64 disposition=inline filename="is_part_that_that.jpg" size=2338 adler32=3b7c8488 role=attachment
+      14 application/pdf cte=base64 disposition=attachment filename="but_and.pdf" size=3068 adler32=b38adc11 role=attachment
+      15 text/plain charset=utf-8 cte=base64 disposition=inline filename="back_is_year_but.txt" size=14144 adler32=8452b3ff role=attachment
+      16 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="connection_see_very.docx" size=1665 adler32=d4f1475e role=attachment
+      17 text/csv charset=utf-8 cte=7bit disposition=attachment filename="of.csv" size=12210 adler32=ef3b2a10 role=attachment
+  18 multipart/digest cte=7bit boundary="----=_Part_915_759381383.1000500011404" parts=3 preamble=45 epilogue=0
+    19 message/rfc822 cte=7bit parts=1
+      20 multipart/mixed cte=7bit boundary="0000000000001c579287c4df" parts=3 preamble=45 epilogue=0
+        21 text/plain charset=windows-1252 cte=quoted-printable size=1508 adler32=bc68123c role=attachment
+        22 text/x-diff charset=utf-8 cte=7bit disposition=inline filename="word_one.patch" size=2340 adler32=d0fed751 role=attachment
+        23 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="when_a_or_right.patch" size=4960 adler32=707b2ea6 role=attachment
+    24 message/rfc822 cte=7bit parts=1
+      25 text/plain charset=utf-8 cte=base64 size=3947 adler32=91736652 role=attachment
+    26 message/rfc822 cte=7bit parts=1
+      27 text/plain charset=utf-8 cte=7bit size=847 adler32=85332a38 role=attachment
+
+[body]
+text 2 chars 895
+| Review one was after show live about think home the some. There each
+| crash he from and are the that keepalive of small warning you for.
+| 
+| End make off time home on response men each try their they no and spell?
+| As pool Kraków über went the to write and if timeout hand help play.
+| Again Ørsted it by same were change the may father men get that the
+| server! The made mother one the end on in round the it the with the
+| their façade him the. May the were now want people!
+| 
+| For piñata as at the were you. Were vhost a about the filter at ssl for
+| review branch round! Say every from the these if was to the brûlée some
+| to. Error there use other in world which to crash vhost what why was
+| out. They on small that the be connection has.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Xavier Müller
+html 3 chars 1306
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Review one was after show live about think home the some. There each<br>
+| crash he from and are the that keepalive of small warning you for.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">End make off time home on response men each try their they no and spell?<br>
+| As pool Kraków über went the to write and if timeout hand help play.<br>
+| Again Ørsted it by same were change the may father men get that the<br>
+| server! The made mother one the end on in round the it the with the<br>
+| their façade him the. May the were now want people!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">For piñata as at the were you. Were vhost a about the filter at ssl for<br>
+| review branch round! Say every from the these if was to the brûlée some<br>
+| to. Error there use other in world which to crash vhost what why was<br>
+| out. They on small that the be connection has.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Xavier Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/csv filename="hook_ssl_of.csv" size=4337 adler32=f2916379 file=parts/0193/004.bin
+5 type=text/x-diff filename="Ångström_warning_could.patch" size=2032 adler32=097c7b22 file=parts/0193/005.bin
+10 type=text/plain filename=- size=359 adler32=10ad7d6c file=parts/0193/010.bin
+11 type=text/html filename=- size=587 adler32=223ac921 file=parts/0193/011.bin
+12 type=image/jpeg filename="Straße_have_the.jpg" size=3306 adler32=b56c6da0 file=parts/0193/012.bin
+13 type=image/jpeg filename="is_part_that_that.jpg" size=2338 adler32=3b7c8488 file=parts/0193/013.bin
+14 type=application/pdf filename="but_and.pdf" size=3068 adler32=b38adc11 file=parts/0193/014.bin
+15 type=text/plain filename="back_is_year_but.txt" size=14144 adler32=8452b3ff file=parts/0193/015.bin
+16 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="connection_see_very.docx" size=1665 adler32=d4f1475e file=parts/0193/016.bin
+17 type=text/csv filename="of.csv" size=12210 adler32=ef3b2a10 file=parts/0193/017.bin
+21 type=text/plain filename=- size=1508 adler32=bc68123c file=parts/0193/021.bin
+22 type=text/x-diff filename="word_one.patch" size=2340 adler32=d0fed751 file=parts/0193/022.bin
+23 type=text/x-diff filename="when_a_or_right.patch" size=4960 adler32=707b2ea6 file=parts/0193/023.bin
+25 type=text/plain filename=- size=3947 adler32=91736652 file=parts/0193/025.bin
+27 type=text/plain filename=- size=847 adler32=85332a38 file=parts/0193/027.bin

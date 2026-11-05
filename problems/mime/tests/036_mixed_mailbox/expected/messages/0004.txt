@@ -1,0 +1,128 @@
+[message]
+id 0004
+source "mbox:4"
+
+[headers]
+received: "from example.org (mx3.mail.example.net [52.63.120.191]) by lists.example.edu (Postfix) with ESMTP id 7A16E2D6BF for <obrown@dev.example.io>; Thu, 05 Nov 2003 09:19:41 -0800 (CET)"
+received: "from students.example.ac.jp (mx7.post.example.fr [27.154.7.11]) by lists.example.edu (Postfix) with ESMTP id 6BE2D4021D for <xstergaard.3@dev.example.io>; Fri, 5 Sep 2009 01:22:14 +0900"
+return-path: "<kmller.54@lists.example.edu>"
+message-id: "<34.0cb3d0c2.58371@lists.example.edu>"
+in-reply-to: "<45.124de3f6.97805@students.example.ac.jp>"
+references: "<35.a5c1e8fe.79965@corp.example.co.uk> <36.583fd3db.18870@mail.example.net> <37.92f6895e.92661@example.org> <38.44eed48e.23765@students.example.ac.jp> <39.bf98a0f5.47379@corp.example.co.uk> <40.df4cc8b0.66039@apache.org> <41.bb377843.35401@example.org> <42.0038545e.83345@example.org> <43.308485f6.63575@lists.example.edu> <44.e8a29b02.4991@example.org> <45.124de3f6.97805@students.example.ac.jp>"
+date: "Mon, 1 May 2005 02:43:41 +0200"
+from: "\"O'Brien, Fiona\" <fobrien@apache.org>"
+to: "z@mail.example.net, bvanderberg@example.org"
+cc: "sschrder@example.org (Someone)"
+subject: "Re: [PATCH] Very by the about his"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=00000000000096341ebf03ee"
+
+[addresses]
+from 0 display="O'Brien, Fiona" spec="fobrien@apache.org"
+to 0 display="" spec="z@mail.example.net"
+to 1 display="" spec="bvanderberg@example.org"
+cc 0 display="" spec="sschrder@example.org"
+
+[date]
+raw " Mon, 1 May 2005 02:43:41 +0200"
+valid yes
+utc 2005-05-01T00:43:41Z
+offset +0200
+epoch 1114908221
+
+[structure]
+0 multipart/mixed cte=7bit boundary="00000000000096341ebf03ee" parts=6 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_8650_290740156.86843144846" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_C5071A0E94E8ECA9" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=utf-8 cte=7bit size=1092 adler32=d3fe6a82 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1527 adler32=29dafb2b role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="you.jpg" size=1737 adler32=90065eb2 role=attachment
+  6 application/zip cte=base64 disposition=inline filename="hot_will_ask_great.zip" size=1806 adler32=e2427487 role=attachment
+  7 image/png cte=base64 disposition=attachment filename="coöperate_error_how.png" size=2860 adler32=e7b9818c role=attachment
+  8 application/pdf cte=base64 disposition=attachment filename="as.pdf" size=7096 adler32=6493b2f9 role=attachment
+  9 application/zip cte=base64 disposition=attachment filename="directive.zip" size=2061 adler32=0af4f443 role=attachment
+  10 multipart/digest cte=7bit boundary="=_19741595c43dd0788ed3b0c4358eb9eb" parts=4 preamble=0 epilogue=0
+    11 message/rfc822 cte=7bit parts=1
+      12 text/plain charset=iso-8859-1 cte=quoted-printable size=595 adler32=2b50d309 role=attachment
+    13 message/rfc822 cte=7bit parts=1
+      14 multipart/alternative cte=7bit boundary="Apple-Mail=_1364EA2FF58C7440" parts=2 preamble=0 epilogue=0
+        15 text/plain charset=windows-1252 cte=7bit size=1871 adler32=8bac980b role=attachment
+        16 text/html charset=utf-8 cte=quoted-printable size=2544 adler32=55f17d60 role=attachment
+    17 message/rfc822 cte=7bit parts=1
+      18 text/plain charset=us-ascii cte=quoted-printable size=2342 adler32=dd092056 role=attachment
+    19 message/rfc822 cte=7bit parts=1
+      20 multipart/alternative cte=7bit boundary="----=_Part_6004_746707224.540492257968" parts=2 preamble=0 epilogue=0
+        21 text/plain charset=windows-1252 cte=base64 size=1049 adler32=c9ad68ab role=attachment
+        22 text/html charset=utf-8 cte=quoted-printable size=1480 adler32=deabf92a role=attachment
+
+[body]
+text 3 chars 1086
+| On sat,3 oct 2025 21:23:41 (comment (nested)) UT, Bob Taylor wrote:
+| > Old for then as sentence with the now of. House are of take off. The
+| > first to the the may of why of play their time? Are of the again no
+| > > the you by line her more for café out high by the.
+| >
+| > Move request client then any the about bucket people word round
+| > > directive year. More just is with two then they we can back. How of
+| >> many is what that every brûlée and act or are are!
+| >
+| >> The the he brûlée land from with and this response they must there
+| > an man out. This had had release where on.
+| >
+| 
+| Turn us crash release as he for than a segfault the side. Write people
+| the picture to no had ask to through where no! The our little man differ
+| go could brigade out but. Config very change were end they have! A in
+| but land would work can can will then. Is it which down it just trunk
+| word by turn segfault was cause here had first she round.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Quinn García
+html 4 chars 1521
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On sat,3 oct 2025 21:23:41 (comment (nested)) UT, Bob Taylor wrote:<br>
+| &gt; Old for then as sentence with the now of. House are of take off. The<br>
+| &gt; first to the the may of why of play their time? Are of the again no<br>
+| &gt; &gt; the you by line her more for café out high by the.<br>
+| &gt;<br>
+| &gt; Move request client then any the about bucket people word round<br>
+| &gt; &gt; directive year. More just is with two then they we can back. How of<br>
+| &gt;&gt; many is what that every brûlée and act or are are!<br>
+| &gt;<br>
+| &gt;&gt; The the he brûlée land from with and this response they must there<br>
+| &gt; an man out. This had had release where on.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Turn us crash release as he for than a segfault the side. Write people<br>
+| the picture to no had ask to through where no! The our little man differ<br>
+| go could brigade out but. Config very change were end they have! A in<br>
+| but land would work can can will then. Is it which down it just trunk<br>
+| word by turn segfault was cause here had first she round.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Quinn García<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="you.jpg" size=1737 adler32=90065eb2 file=parts/0004/005.bin
+6 type=application/zip filename="hot_will_ask_great.zip" size=1806 adler32=e2427487 file=parts/0004/006.bin
+7 type=image/png filename="coöperate_error_how.png" size=2860 adler32=e7b9818c file=parts/0004/007.bin
+8 type=application/pdf filename="as.pdf" size=7096 adler32=6493b2f9 file=parts/0004/008.bin
+9 type=application/zip filename="directive.zip" size=2061 adler32=0af4f443 file=parts/0004/009.bin
+12 type=text/plain filename=- size=595 adler32=2b50d309 file=parts/0004/012.bin
+15 type=text/plain filename=- size=1871 adler32=8bac980b file=parts/0004/015.bin
+16 type=text/html filename=- size=2544 adler32=55f17d60 file=parts/0004/016.bin
+18 type=text/plain filename=- size=2342 adler32=dd092056 file=parts/0004/018.bin
+21 type=text/plain filename=- size=1049 adler32=c9ad68ab file=parts/0004/021.bin
+22 type=text/html filename=- size=1480 adler32=deabf92a file=parts/0004/022.bin

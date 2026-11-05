@@ -1,0 +1,19 @@
+QUERY 1 1984
+HITS 1
+1	years	1.3486	In 1984 and in 2024 the numbers 42 and 1984 recur
+QUERY 2 42
+HITS 2
+1	versions	0.4700	Version 1.2.3 released in 2024; build 42 and 007
+2	years	0.4700	In 1984 and in 2024 the numbers 42 and 1984 recur
+QUERY 3 x1
+HITS 1
+1	codes	1.3486	Model X1 and model x1 and X 1 differ from XY2Z
+QUERY 4 "1 2 3"
+HITS 1
+1	versions	0.9808	Version 1.2.3 released in 2024; build 42 and 007
+QUERY 5 version
+HITS 1
+1	versions	0.9808	Version 1.2.3 released in 2024; build 42 and 007
+QUERY 6 xy2z
+HITS 1
+1	codes	0.9808	Model X1 and model x1 and X 1 differ from XY2Z

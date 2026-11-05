@@ -1,0 +1,39 @@
+[message]
+id 0008
+source "basic-plain-with-bad-header-separator.eml"
+
+[headers]
+return-path: "foo@example.com"
+subject: "Simple Subject"
+from: "foo@example.com"
+to: "bar@example.com"
+cc: "recipient1@example.com,recipient2@example.com, localrecipient"
+date: "Wed, 11 Feb 98 11:51 CST"
+
+[addresses]
+from 0 display="" spec="foo@example.com"
+to 0 display="" spec="bar@example.com"
+cc 0 display="" spec="recipient1@example.com"
+cc 1 display="" spec="recipient2@example.com"
+cc 2 display="" spec="localrecipient"
+
+[date]
+raw " Wed, 11 Feb 98 11:51 CST "
+valid yes
+utc 1998-02-11T17:51:00Z
+offset -0600
+epoch 887219460
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=172 adler32=e0d53c6b role=text
+
+[body]
+text 0 chars 172
+| This is a very simple message with a simple body but the separator
+| between header and body contains an additional space: 
+| CRLF<space>CRLF.
+| 
+| This results in a bogus header.
+html none
+
+[attachments]

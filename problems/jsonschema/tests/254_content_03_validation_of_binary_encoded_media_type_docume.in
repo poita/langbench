@@ -1,0 +1,52 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contentMediaType": "application/json",
+    "contentEncoding": "base64",
+    "contentSchema": {
+      "type": "object",
+      "required": [
+        "foo"
+      ],
+      "properties": {
+        "foo": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "a valid base64-encoded JSON document",
+      "data": "eyJmb28iOiAiYmFyIn0K"
+    },
+    {
+      "description": "another valid base64-encoded JSON document",
+      "data": "eyJib28iOiAyMCwgImZvbyI6ICJiYXoifQ=="
+    },
+    {
+      "description": "an invalid base64-encoded JSON document; validates true",
+      "data": "eyJib28iOiAyMH0="
+    },
+    {
+      "description": "an empty object as a base64-encoded JSON document; validates true",
+      "data": "e30="
+    },
+    {
+      "description": "an empty array as a base64-encoded JSON document",
+      "data": "W10="
+    },
+    {
+      "description": "a validly-encoded invalid JSON document; validates true",
+      "data": "ezp9Cg=="
+    },
+    {
+      "description": "an invalid base64 string that is valid JSON; validates true",
+      "data": "{}"
+    },
+    {
+      "description": "ignores non-strings",
+      "data": 100
+    }
+  ]
+}

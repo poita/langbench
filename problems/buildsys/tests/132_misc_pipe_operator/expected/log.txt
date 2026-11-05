@@ -1,0 +1,14 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/l0.txt write("1|1,2,3\n")
+  run 1 2 w0 out/l1.txt write("ABC|3\n")
+  run 2 3 w0 out/l2.txt write("x/y/z|3\n")
+  run 3 4 w0 out/l3.txt write("4-3-2-1-0|3\n")
+  run 4 5 w0 out/l4.txt write("3|PAD\n")
+  ok ran=5 hit=0 time=5
+step 2: build (default) -j 1
+  hit 0 out/l0.txt
+  hit 0 out/l1.txt
+  hit 0 out/l2.txt
+  hit 0 out/l3.txt
+  hit 0 out/l4.txt
+  ok ran=0 hit=5 time=0

@@ -1,0 +1,92 @@
+[message]
+id 0027
+source "mbox:27"
+
+[headers]
+received: "from corp.example.co.uk (mx5.apache.org [146.142.54.214]) by example.org (Postfix) with ESMTP id FD7AC627E6 for <cdubois@dev.example.io>; Mon, 3 Mar 2004 25:00:00 +0000"
+received: "from example.org (mx7.post.example.fr [164.107.33.106]) by apache.org (Postfix) with ESMTP id 3F95F7E602 for <z@example.com>; mon,24 jan 2009 13:8:45 (comment (nested)) UT"
+return-path: "<bsmith@example.org>"
+message-id: "<340.741d6217.81191@example.com>"
+date: "Tue, 23 Feb 2009 17:45:28 GMT"
+from: "Agnieszka Nakamura <anakamura@corp.example.co.uk>"
+to: "Ελένη Doe <doe@post.example.fr>,\tErik Brown <ebrown.5@students.example.ac.jp>,    Đorđe Wilson <wilson@mail.example.net>"
+subject: "Re: Segfault status release or of module"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 105\""
+
+[addresses]
+from 0 display="Agnieszka Nakamura" spec="anakamura@corp.example.co.uk"
+to 0 display="Ελένη Doe" spec="doe@post.example.fr"
+to 1 display="Erik Brown" spec="ebrown.5@students.example.ac.jp"
+to 2 display="Đorđe Wilson" spec="wilson@mail.example.net"
+
+[date]
+raw " Tue, 23 Feb 2009 17:45:28 GMT"
+valid yes
+utc 2009-02-23T17:45:28Z
+offset +0000
+epoch 1235411128
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 105" parts=4 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="000000000000324998c2fbc6" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=base64 size=1131 adler32=fce89257 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1546 adler32=dcef1c93 role=html
+  4 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="back_if_your_when.docx" size=5482 adler32=26d5804b role=attachment
+  5 application/pdf cte=base64 disposition=attachment filename="build.pdf" size=3079 adler32=7283e4f7 role=attachment
+  6 text/csv charset=utf-8 cte=base64 disposition=attachment filename="of_apr.csv" size=4222 adler32=bb144407 role=attachment
+
+[body]
+text 2 chars 1122
+| Part he some their mother which with the we a. A the hot cause apr? Only
+| of all by were. Spell out find good low to his they coöperate we boy!
+| Vhost this socket make two many say no this of how by it help me was.
+| Are and the add turn right that client back for of of that want.
+| 
+| Over think this men you how is crème with add. Fiancée is again sentence
+| time and a all each one the hook old spell a she that! Long on do sound
+| connection more after. To work each new see in. Our some but the and a
+| any use our. A their kind you these first.
+| 
+| Have play line side way to what the déjà was backport is down all
+| client. Very to under Ångström differ that of bucket so the! One who the
+| I side over change of hot your cause live here the up ssl certificate?
+| Proxy which they house three? Right to pool were port Málaga then one be
+| that more backport. Coöperate the here said many some he she hand place
+| write is to they word. Our how like are the keepalive point will must
+| down to the it thing.
+| 
+| Most request trunk him a the patch the the your vote! Just must is my
+| cause which httpd well for to three time?
+| 
+| -- 
+| Olga Papadopoulos
+html 3 chars 1537
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Part he some their mother which with the we a. A the hot cause apr? Only<br>
+| of all by were. Spell out find good low to his they coöperate we boy!<br>
+| Vhost this socket make two many say no this of how by it help me was.<br>
+| Are and the add turn right that client back for of of that want.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Over think this men you how is crème with add. Fiancée is again sentence<br>
+| time and a all each one the hook old spell a she that! Long on do sound<br>
+| connection more after. To work each new see in. Our some but the and a<br>
+| any use our. A their kind you these first.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Have play line side way to what the déjà was backport is down all<br>
+| client. Very to under Ångström differ that of bucket so the! One who the<br>
+| I side over change of hot your cause live here the up ssl certificate?<br>
+| Proxy which they house three? Right to pool were port Málaga then one be<br>
+| that more backport. Coöperate the here said many some he she hand place<br>
+| write is to they word. Our how like are the keepalive point will must<br>
+| down to the it thing.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Most request trunk him a the patch the the your vote! Just must is my<br>
+| cause which httpd well for to three time?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Olga Papadopoulos<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="back_if_your_when.docx" size=5482 adler32=26d5804b file=parts/0027/004.bin
+5 type=application/pdf filename="build.pdf" size=3079 adler32=7283e4f7 file=parts/0027/005.bin
+6 type=text/csv filename="of_apr.csv" size=4222 adler32=bb144407 file=parts/0027/006.bin

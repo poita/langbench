@@ -1,0 +1,28 @@
+message R { repeated int32 a = 1; repeated int64 b = 2; repeated uint32 c = 3; repeated uint64 d = 4;
+  repeated sint32 e = 5; repeated sint64 f = 6; repeated bool g = 7; repeated fixed32 h = 8;
+  repeated fixed64 i = 9; repeated sfixed32 j = 10; repeated sfixed64 k = 11; }
+--
+decode R 0a03010203
+decode R 0a0bffffffffffffffffff0100
+decode R 120bffffffffffffffffff0101
+decode R 1a05ffffffff0f
+decode R 220affffffffffffffffff01
+decode R 2a04010203ff01
+decode R 320bffffffffffffffffff0101
+decode R 3a0400010200
+decode R 42080100000002000000
+decode R 4a1001000000000000000200000000000000
+decode R 5208ffffffff00000080
+decode R 5a10ffffffffffffffff0000000000000080
+decode R 0a0201020a0003040a0105
+decode R 0a00
+decode R 4200
+decode R 0a0281
+decode R 0a0bffffffffffffffffffff01
+decode R 4203010000
+decode R 42050100000002
+decode R 4a07010000000000
+decode R 5205ffffffff00
+decode R 5a09ffffffffffffffff00
+decode R 0a
+decode R 0a05010203

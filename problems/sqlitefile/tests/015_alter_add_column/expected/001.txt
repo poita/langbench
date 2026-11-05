@@ -1,0 +1,1 @@
+CREATE TABLE item(id INTEGER PRIMARY KEY, name TEXT, qty INTEGER, tag TEXT);

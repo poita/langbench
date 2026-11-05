@@ -1,0 +1,17 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "const": "μ",
+    "$comment": "U+03BC"
+  },
+  "tests": [
+    {
+      "description": "character uses the same codepoint",
+      "data": "μ"
+    },
+    {
+      "description": "character looks the same but uses a different codepoint",
+      "data": "µ"
+    }
+  ]
+}

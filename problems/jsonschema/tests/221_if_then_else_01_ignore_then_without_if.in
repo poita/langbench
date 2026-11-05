@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "then": {
+      "const": 0
+    }
+  },
+  "tests": [
+    {
+      "description": "valid when valid against lone then",
+      "data": 0
+    },
+    {
+      "description": "valid when invalid against lone then",
+      "data": "hello"
+    }
+  ]
+}

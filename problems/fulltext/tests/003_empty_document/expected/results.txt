@@ -1,0 +1,11 @@
+QUERY 1 hello
+HITS 1
+1	hello	0.5395	Hello world
+QUERY 2 NOT zebra
+HITS 3
+1	blank	0.0000	
+2	hello	0.0000	Hello world
+3	spaces	0.0000	
+QUERY 3 world OR hello
+HITS 1
+1	hello	1.0789	Hello world

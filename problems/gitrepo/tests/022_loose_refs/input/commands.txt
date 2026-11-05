@@ -1,0 +1,12 @@
+count-objects
+rev-parse HEAD
+rev-parse main
+rev-parse side
+rev-parse old
+rev-parse origin/main
+rev-parse v0.1
+rev-parse v1.0
+rev-parse v1.0-signed
+rev-parse blobtag
+rev-parse refs/heads/main
+rev-parse refs/tags/v1.0

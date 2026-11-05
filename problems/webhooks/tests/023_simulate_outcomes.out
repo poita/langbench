@@ -1,0 +1,16 @@
+sim 11 4
+attempt 1 ev_1 ep_a 1 0 success 200
+attempt 2 ev_2 ep_a 1 1000000 success 201
+attempt 3 ev_3 ep_a 1 2000000 success 299
+attempt 4 ev_4 ep_a 1 3000000 failure 300
+attempt 5 ev_4 ep_a 2 3000005 failure 400
+attempt 6 ev_4 ep_a 3 3000305 failure 404
+attempt 7 ev_4 ep_a 4 3002105 failure 429
+attempt 8 ev_4 ep_a 5 3009305 failure 500
+attempt 9 ev_4 ep_a 6 3027305 failure 503
+attempt 10 ev_4 ep_a 7 3063305 failure 100
+attempt 11 ev_4 ep_a 8 3099305 failure 199
+delivery ev_1 ep_a delivered 1 0 v1,DhTm5zycfKV2XZ0ffXuzpnWJIvSGO2kaG9SpwMtxBYI=
+delivery ev_2 ep_a delivered 1 1000000 v1,h9tR1uRQTJs4t14LTihvv+HZHooegSeHVKMx2+F28XQ=
+delivery ev_3 ep_a delivered 1 2000000 v1,4kQWbxZNe8xt6Hgs6ALwg1nXi+bSDNlBSH/sMbNfOkw=
+delivery ev_4 ep_a failed 8 3099305 v1,a6acJh5L3Ns3v4PNfw8249eLFWJra0UBLlPh3mcBpmk=

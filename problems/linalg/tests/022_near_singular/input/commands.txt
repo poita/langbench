@@ -1,0 +1,9 @@
+cond a.mtx
+det a.mtx
+lu a.mtx
+inv a.mtx
+solve a.mtx b.mtx
+svd a.mtx
+cond d.mtx
+inv d.mtx
+normfro d.mtx

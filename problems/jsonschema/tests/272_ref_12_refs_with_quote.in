@@ -1,0 +1,29 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo\"bar": {
+        "$ref": "#/$defs/foo%22bar"
+      }
+    },
+    "$defs": {
+      "foo\"bar": {
+        "type": "number"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "object with numbers is valid",
+      "data": {
+        "foo\"bar": 1
+      }
+    },
+    {
+      "description": "object with strings is invalid",
+      "data": {
+        "foo\"bar": "1"
+      }
+    }
+  ]
+}

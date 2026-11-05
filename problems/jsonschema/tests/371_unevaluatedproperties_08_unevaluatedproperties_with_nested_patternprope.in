@@ -1,0 +1,37 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "type": "string"
+      }
+    },
+    "allOf": [
+      {
+        "patternProperties": {
+          "^bar": {
+            "type": "string"
+          }
+        }
+      }
+    ],
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "with no additional properties",
+      "data": {
+        "foo": "foo",
+        "bar": "bar"
+      }
+    },
+    {
+      "description": "with additional properties",
+      "data": {
+        "foo": "foo",
+        "bar": "bar",
+        "baz": "baz"
+      }
+    }
+  ]
+}

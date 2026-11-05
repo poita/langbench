@@ -1,0 +1,27 @@
+
+CREATE TABLE a (x INTEGER, y INTEGER);
+CREATE TABLE b (y INTEGER, z TEXT);
+INSERT INTO a VALUES (1, 10), (2, 20), (3, 30);
+INSERT INTO b VALUES (10, 'ten'), (30, 'thirty'), (40, 'forty');
+SELECT * FROM a;
+SELECT *, x FROM a;
+SELECT x, * FROM a;
+SELECT *, * FROM a WHERE x = 2;
+SELECT * FROM a, b WHERE a.y = b.y;
+SELECT * FROM a INNER JOIN b ON a.y = b.y ORDER BY z;
+SELECT x AS a, y AS b FROM a ORDER BY b DESC;
+SELECT x AS y, y AS x FROM a ORDER BY x;
+SELECT x AS y, y AS x FROM a ORDER BY y DESC;
+SELECT x + y AS total, x AS x FROM a ORDER BY total DESC;
+SELECT a.x AS ax, b.z AS bz FROM a, b WHERE a.y = b.y ORDER BY bz;
+SELECT x AS n FROM a ORDER BY n DESC, x;
+SELECT x AS n, y AS n FROM a ORDER BY n DESC;
+SELECT COUNT(*) AS c, x FROM a GROUP BY x ORDER BY c, x DESC;
+SELECT a.y, z FROM a, b WHERE a.y = b.y;
+SELECT y FROM a, b WHERE x = 1;
+SELECT z, y FROM b, a WHERE a.y = b.y;
+SELECT x AS star FROM a WHERE x > 1;
+SELECT *, x FROM a ORDER BY 2 DESC;
+SELECT *, x + 100 FROM a ORDER BY 3 DESC, 1;
+SELECT * FROM a, b WHERE a.y = b.y ORDER BY 4 DESC;
+SELECT *, * FROM a ORDER BY 4 DESC, 1;

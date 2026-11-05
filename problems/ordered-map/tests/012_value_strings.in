@@ -1,0 +1,50 @@
+49
+insert 1 missing
+insert 2 empty
+insert 3 ok
+insert 4 updated
+insert 5 !#$%&*+-./:=?@^_~
+insert 6 xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+insert 7 0
+insert 8 -1
+insert 9 9223372036854775807
+insert 10 a
+get 1
+get 2
+get 3
+get 4
+get 5
+get 6
+get 7
+get 8
+get 9
+get 10
+get 11
+insert 10 b
+get 10
+insert 6 yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+get 6
+delete 1
+get 1
+size
+insert 20 !"#$%&'()*+,-./0123456789:;<=>?@
+get 20
+insert 21 ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`
+get 21
+insert 22 abcdefghijklmnopqrstuvwxyz{|}~
+get 22
+insert 20 @?>=<;:9876543210/.-,+*)('&%$#"!
+get 20
+insert 21 `_^]\[ZYXWVUTSRQPONMLKJIHGFEDCBA
+get 21
+insert 22 ~}|{zyxwvutsrqponmlkjihgfedcba
+get 22
+insert 30 \
+get 30
+insert 31 "
+get 31
+insert 32 '
+get 32
+insert 33 "'\
+get 33
+size

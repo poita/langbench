@@ -1,0 +1,48 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "null"
+  },
+  "tests": [
+    {
+      "description": "an integer is not null",
+      "data": 1
+    },
+    {
+      "description": "a float is not null",
+      "data": 1.1
+    },
+    {
+      "description": "zero is not null",
+      "data": 0
+    },
+    {
+      "description": "a string is not null",
+      "data": "foo"
+    },
+    {
+      "description": "an empty string is not null",
+      "data": ""
+    },
+    {
+      "description": "an object is not null",
+      "data": {}
+    },
+    {
+      "description": "an array is not null",
+      "data": []
+    },
+    {
+      "description": "true is not null",
+      "data": true
+    },
+    {
+      "description": "false is not null",
+      "data": false
+    },
+    {
+      "description": "null is null",
+      "data": null
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+INDEX IFK_TrackAlbumId 89
+INDEX IFK_TrackGenreId 24
+INDEX IFK_AlbumArtistId 22
+INDEX IFK_InvoiceCustomerId 42
+INDEX IFK_PlaylistTrackPlaylistId 17
+INDEX IFK_EmployeeReportsTo 2
+INDEX IFK_TrackAlbumId NULL
+INDEX IFK_TrackAlbumId 100000
+INDEX sqlite_autoindex_PlaylistTrack_1 1

@@ -1,0 +1,17 @@
+[1; 2; 3];;
+[true];;
+[[]];;
+[[1]; []];;
+1 :: [];;
+1 :: 2 :: [];;
+fun x -> x :: [];;
+fun x l -> x :: l;;
+fun l -> hd l :: tl l;;
+[fun x -> x];;
+[fun x -> x; fun y -> y + 1];;
+fun x -> [x; x];;
+fun x y -> [x; y];;
+[[]] :: [];;
+fun l -> if null l then 0 else length l;;
+[(1, true); (2, false)];;
+[] :: [] :: [];;

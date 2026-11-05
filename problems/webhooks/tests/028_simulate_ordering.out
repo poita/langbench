@@ -1,0 +1,19 @@
+sim 10 8
+attempt 1 ev_neg ep_a 1 -10000 failure 500
+attempt 2 ev_neg ep_b 1 -10000 success 200
+attempt 3 ev_neg ep_a 2 -9995 failure 500
+attempt 4 ev_neg ep_a 3 -9695 success 200
+attempt 5 ev_early ep_a 1 0 success 200
+attempt 6 ev_early ep_b 1 0 success 200
+attempt 7 ev_same ep_a 1 0 success 200
+attempt 8 ev_same ep_b 1 0 success 200
+attempt 9 ev_late ep_a 1 5000 success 200
+attempt 10 ev_late ep_b 1 5000 success 200
+delivery ev_late ep_a delivered 1 5000 v1,lfTHLE+k/S1qv+5eDL4bH3cpA67Z86afcM9qIaiq6gI=
+delivery ev_late ep_b delivered 1 5000 v1,iTZiMagLsmI1mq5mhgLLzhw+uuqGH8fX78GGjncDg3U=
+delivery ev_early ep_a delivered 1 0 v1,uVfaIAh0czw7oaFz1q8/opsRBOUmIVKI74iKnMz2kx8=
+delivery ev_early ep_b delivered 1 0 v1,fzPxHnUxTu5xRNNQHMrnQKFJdb1X579UHi7zZiSCZYo=
+delivery ev_same ep_a delivered 1 0 v1,n2CueReVdcaeEOdKpkzYEcHDsdsDGP0g20iinsr14bA=
+delivery ev_same ep_b delivered 1 0 v1,pakGJTKvAL8afzRBOvF8P9H3GC63Va7WWzRjqqKVVrI=
+delivery ev_neg ep_a delivered 3 -9695 v1,byYAKKDlhIdV7z+EGYCfUdvuJ/yck71DzOWNaIFlFO8=
+delivery ev_neg ep_b delivered 1 -10000 v1,b/hdlLrkgz7nBWFvaNXwcZ1yeIh3fCGHuAXBPNcU/lY=

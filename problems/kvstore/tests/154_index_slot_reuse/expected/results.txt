@@ -1,0 +1,31 @@
+[1] ok create index a entries 0
+[2] ok create index b entries 0
+[3] ok indexes 2
+  0 a root 0 entries 0
+  1 b root 0 entries 0
+[4] ok drop index a pages 0
+[5] ok indexes 1
+  1 b root 0 entries 0
+[6] ok create index c entries 0
+[7] ok indexes 2
+  0 c root 0 entries 0
+  1 b root 0 entries 0
+[8] ok drop index b pages 0
+[9] ok indexes 1
+  0 c root 0 entries 0
+[10] ok create index d entries 0
+[11] ok create index e entries 0
+[12] ok indexes 3
+  0 c root 0 entries 0
+  1 d root 0 entries 0
+  2 e root 0 entries 0
+[13] ok stat
+  pages 1
+  free 0
+  freehead 0
+  docs 0
+  root 0
+  height 0
+  commits 7
+  indexes 3
+  wal 7536

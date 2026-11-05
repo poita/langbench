@@ -1,0 +1,31 @@
+name "commonmark"
+description "A CommonMark (subset) to HTML converter: reusable library plus command-line tool"
+authors "Peter Alexander"
+copyright "Copyright © 2026"
+license "MIT"
+
+targetPath "bin"
+
+# Default: the command-line tool (links the library sources directly).
+configuration "application" {
+    targetType "executable"
+    targetName "commonmark"
+    mainSourceFile "source/app.d"
+}
+
+# Use this configuration when depending on the package as a library.
+configuration "library" {
+    targetType "library"
+    targetName "commonmark"
+    excludedSourceFiles "source/app.d"
+}
+
+# `dub test` picks this configuration up automatically.
+configuration "unittest" {
+    targetType "executable"
+    targetName "commonmark-test"
+    mainSourceFile "tests/test_main.d"
+    excludedSourceFiles "source/app.d"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

@@ -1,0 +1,119 @@
+[message]
+id 0005
+source "mbox:5"
+
+[headers]
+received: "from lists.example.edu (mx1.lists.example.edu [104.70.159.35]) by students.example.ac.jp (Postfix) with ESMTP id 3F72589E7F for <ckim.54@example.org>; Fri, 11 Nov 2005 03:16:30 -0700 (JST)"
+received: "from apache.org (mx3.apache.org [74.54.144.166]) by students.example.ac.jp (Postfix) with ESMTP id 7FD6DB52FF for <bsmith.98@lists.example.edu>; Sat, 06 Aug 2009 19:11:02 UT (PST)"
+received: "from lists.example.edu (mx3.students.example.ac.jp [44.186.149.22]) by example.com (Postfix) with ESMTP id 7EC4AAB50F for <sgarca.90@mail.example.net>; Tue, 13 Dec 2012 20:11:01 PDT"
+received: "from corp.example.co.uk (mx7.apache.org [77.253.248.223]) by dev.example.io (Postfix) with ESMTP id 69BC284BF for <lrossi@apache.org>; Thu, 02 Feb 2003 08:19:49 GMT (JST)"
+received: "from post.example.fr (mx2.mail.example.net [94.11.206.139]) by example.org (Postfix) with ESMTP id 2757002F4F for <srossi@dev.example.io>; Fri, 15 Feb 2025 14:56:59 CST"
+return-path: "<vkim@students.example.ac.jp>"
+message-id: "<46.2e8dc9ee.72797@mail.example.net>"
+in-reply-to: "<58.60aed1c2.68590@apache.org>"
+references: "<47.98c3fcb6.42640@example.com> <48.40d0b8c5.87978@mail.example.net> <49.8e5c1f4b.47866@mail.example.net> <50.dd16cd2e.80703@students.example.ac.jp> <51.dd196f34.88636@apache.org> <52.5217608a.86561@dev.example.io> <53.558f5ea5.14614@mail.example.net> <54.058241c1.48092@corp.example.co.uk> <55.7c1ea44a.42169@corp.example.co.uk> <56.e62eb950.86441@lists.example.edu> <57.bf1e9f7a.14984@dev.example.io> <58.60aed1c2.68590@apache.org>"
+date: "6 JUL 04 23:31 +0900"
+from: "Chloé Schröder <cschrder.96@dev.example.io>"
+to: "\"Doe, Ann\" <adoe.20@lists.example.edu>"
+subject: "Re: Header a one socket"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"=_b095cbdbc2ef0358985db68442a20aa7\""
+
+[addresses]
+from 0 display="Chloé Schröder" spec="cschrder.96@dev.example.io"
+to 0 display="Doe, Ann" spec="adoe.20@lists.example.edu"
+
+[date]
+raw " 6 JUL 04 23:31 +0900"
+valid yes
+utc 2004-07-06T14:31:00Z
+offset +0900
+epoch 1089124260
+
+[structure]
+0 multipart/alternative cte=7bit boundary="=_b095cbdbc2ef0358985db68442a20aa7" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=base64 size=1743 adler32=0f005cf6 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=2354 adler32=b12c2a93 role=html
+
+[body]
+text 1 chars 1743
+| On 14 SEP 12 23:11 -0700, Karin Kim wrote:
+| > Is that the coöperate number for here would round of is was side it
+| > > the did of? To an for most go. Of the of low his over and about the.
+| >
+| > > For house the élan what how have well one first off under. A form
+| > > earth in each here that at can man at he under no at! My the more
+| >> three who to I time an came like picture one and only by. The are
+| >> that it said great piñata what Ørsted from Málaga.
+| >
+| 
+| Number two bucket will is you water how each from! This Ørsted only
+| other build they a long café of the side by with be place the. Day many
+| you build our Kraków! And how two with I other about was where here
+| build were again we did alias be. An had they show from and of that
+| module is! Kind connection hook in must module came.
+| 
+| Paulo the all round word have was no had their mean has very go. Had at
+| come coöperate I httpd of error the their before that hot where time! My
+| name can mother of but. Your and does we first build error some I thing
+| well is way write Kraków.
+| 
+| Of any take apr sentence long light a to. The way socket time big thing
+| side day that two Straße. His year in of said in of man they but so take
+| when that their.
+| 
+| And segfault land the httpd came said hot small one patch! Too write of
+| three we a mean by élan all how it the the way release. See him client
+| his take are of hot long you to hot he air he tell handler be? Go to apr
+| end façade.
+| 
+| Have come before São have that through commit went live with that. Any
+| will other log one vote of set he over the! Is day it more call the a
+| made go our give as warning same. More near of way after day I was some
+| module of day home his ssl good after. Thing filter why and the that you
+| warning will of.
+| 
+| -- 
+| Tomás Kowalski
+html 2 chars 2339
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 14 SEP 12 23:11 -0700, Karin Kim wrote:<br>
+| &gt; Is that the coöperate number for here would round of is was side it<br>
+| &gt; &gt; the did of? To an for most go. Of the of low his over and about the.<br>
+| &gt;<br>
+| &gt; &gt; For house the élan what how have well one first off under. A form<br>
+| &gt; &gt; earth in each here that at can man at he under no at! My the more<br>
+| &gt;&gt; three who to I time an came like picture one and only by. The are<br>
+| &gt;&gt; that it said great piñata what Ørsted from Málaga.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Number two bucket will is you water how each from! This Ørsted only<br>
+| other build they a long café of the side by with be place the. Day many<br>
+| you build our Kraków! And how two with I other about was where here<br>
+| build were again we did alias be. An had they show from and of that<br>
+| module is! Kind connection hook in must module came.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Paulo the all round word have was no had their mean has very go. Had at<br>
+| come coöperate I httpd of error the their before that hot where time! My<br>
+| name can mother of but. Your and does we first build error some I thing<br>
+| well is way write Kraków.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Of any take apr sentence long light a to. The way socket time big thing<br>
+| side day that two Straße. His year in of said in of man they but so take<br>
+| when that their.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">And segfault land the httpd came said hot small one patch! Too write of<br>
+| three we a mean by élan all how it the the way release. See him client<br>
+| his take are of hot long you to hot he air he tell handler be? Go to apr<br>
+| end façade.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Have come before São have that through commit went live with that. Any<br>
+| will other log one vote of set he over the! Is day it more call the a<br>
+| made go our give as warning same. More near of way after day I was some<br>
+| module of day home his ssl good after. Thing filter why and the that you<br>
+| warning will of.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Tomás Kowalski<br>
+| </p>
+| </body></html>
+
+[attachments]

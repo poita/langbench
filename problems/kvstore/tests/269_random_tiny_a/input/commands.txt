@@ -1,0 +1,43 @@
+find age != 5 limit 2
+find name > [1,2] limit 2
+delete "k00003"
+checkpoint
+scan to "k00001" keys limit 3
+update "k00001" nest.deep null
+put "k00001" {age:37,tag:7}
+drop index nest.deep
+put "k00000" -9223372036854775808
+put "k00003" "sss"
+put "k00000" {age:28,name:"n04",tag:{z:1}}
+get "k00001"
+create index age
+put "k00003" {age:23,name:"n19",tag:false}
+find tag < false limit 0
+checkpoint
+put "k00002" "ssssssssssss"
+begin
+commit
+put "k00001" [1,2,3,4,5,6,7]
+begin
+put "k00001" "ssssss"
+commit
+put "k00005" {age:4,name:"n07",tag:{z:1}}
+delete "k00002"
+update "k00005" tag {age:40,name:"n25",nest:{deep:6}}
+indexes
+delete "k00002"
+delete "k00002"
+delete "k00004"
+checkpoint
+get "k00001"
+begin
+stat
+delete "k00005"
+scan reverse keys limit 3
+put "k00004" ""
+commit
+put "k00004" ""
+scan to "k00004" limit 4 keys reverse
+stat
+indexes
+scan keys limit 5

@@ -1,0 +1,29 @@
+[message]
+id 0005
+source "simple.eml"
+
+[headers]
+from: "Ann Example <ann@example.com>"
+to: "bob@example.org"
+cc: "Carl <carl@example.org>, \"Doe, John\" <jd@example.net>"
+reply-to: "list@example.org"
+
+[addresses]
+from 0 display="Ann Example" spec="ann@example.com"
+reply-to 0 display="" spec="list@example.org"
+to 0 display="" spec="bob@example.org"
+cc 0 display="Carl" spec="carl@example.org"
+cc 1 display="Doe, John" spec="jd@example.net"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

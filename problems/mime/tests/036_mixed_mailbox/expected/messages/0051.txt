@@ -1,0 +1,75 @@
+[message]
+id 0051
+source "mbox:51"
+
+[headers]
+received: "from example.org (mx8.dev.example.io [232.108.119.65]) by example.com (Postfix) with ESMTP id D3E186C7CA for <cpapadopoulos.12@post.example.fr>; Thu, 1 Sep 2005 11:18:57 +0100"
+received: "from example.com (mx6.dev.example.io [105.139.51.228]) by eu.example.de (Postfix) with ESMTP id A7D4F813D8 for <rvanderberg@eu.example.de>; Tue, 01 Jan 2018 09:20:06 CST (JST)"
+received: "from corp.example.co.uk (mx4.eu.example.de [235.248.12.248]) by lists.example.edu (Postfix) with ESMTP id 9B41C4A74 for <mpapadopoulos@corp.example.co.uk>; Fri, 24 Oct 2003 13:09:22 +0900 (PST)"
+received: "from apache.org (mx7.mail.example.net [102.25.41.8]) by post.example.fr (Postfix) with ESMTP id 2DAEA83700 for <vpapadopoulos@eu.example.de>; Sat, 23 Jun 2003 10:30:40 PDT"
+return-path: "<mvanderberg.27@dev.example.io>"
+message-id: "<420.ad2334bf.58033@dev.example.io>"
+date: "Wed, 14 Jun 2012 22:56:21 Z"
+from: "\"Johansson, Xavier\" <xjohansson@apache.org>"
+to: "Erik Smith <esmith@example.org>, Ελένη Doe <doe@students.example.ac.jp>"
+subject: "Fwd: Take animal write"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 993\""
+
+[addresses]
+from 0 display="Johansson, Xavier" spec="xjohansson@apache.org"
+to 0 display="Erik Smith" spec="esmith@example.org"
+to 1 display="Ελένη Doe" spec="doe@students.example.ac.jp"
+
+[date]
+raw " Wed, 14 Jun 2012 22:56:21 Z"
+valid yes
+utc 2012-06-14T22:56:21Z
+offset +0000
+epoch 1339714581
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 993" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=utf-8 cte=7bit size=1315 adler32=6e17c183 role=text
+  2 text/plain charset=utf-8 cte=base64 disposition=attachment filename="about_near_the.txt" size=3701 adler32=cfd72261 role=attachment
+
+[body]
+text 1 chars 1308
+| Response write say the pool our like. Went he the this word are big work
+| the bug is act long may the thread write there. Use it her people one
+| good same man act the she.
+| 
+| Than who ask thread what came just the bucket where port man part. Alias
+| the come same hot first in have ssl he the just are I he it as. Off in
+| bucket which rewrite make just why each read many use has any. Picture
+| be number of only back down change log socket error the on part boy! No
+| does under number the. Of most of or the of them need get of even
+| response low has been and he? From spell rewrite us all some men!
+| 
+| The year at you some. To that was time be may use this the we our were
+| tell live their all after. Point play we all well backport went
+| smörgåsbord to I as cache the. Any give the could some even make of
+| number people new come no! High no he other the of they picture look
+| kind crash than they the Ångström here it httpd. That and just and what
+| year the.
+| 
+| You round year was me they them bucket a brûlée was differ other or use.
+| And by be at his name only mutex my! Most timeout they by look the will
+| word round an had can give server keepalive follow.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| María Rossi
+html none
+
+[attachments]
+2 type=text/plain filename="about_near_the.txt" size=3701 adler32=cfd72261 file=parts/0051/002.bin

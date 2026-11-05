@@ -1,0 +1,32 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "then": {
+      "const": "yes"
+    },
+    "else": {
+      "const": "other"
+    },
+    "if": {
+      "maxLength": 4
+    }
+  },
+  "tests": [
+    {
+      "description": "yes redirects to then and passes",
+      "data": "yes"
+    },
+    {
+      "description": "other redirects to else and passes",
+      "data": "other"
+    },
+    {
+      "description": "no redirects to then and fails",
+      "data": "no"
+    },
+    {
+      "description": "invalid redirects to else and fails",
+      "data": "invalid"
+    }
+  ]
+}

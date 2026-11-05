@@ -1,0 +1,3 @@
+build -j 2
+touch src/m0/f0.txt
+build out/all.txt -j 2

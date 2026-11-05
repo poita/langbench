@@ -1,0 +1,10 @@
+{% extends "layout.html" %}
+{% block title %}Authors &middot; {{ super() }}{% endblock %}
+{% block main %}
+<h1>Authors</h1>
+<ul>
+{%- for t in tags %}
+<li><a href="{{ t.url }}">{{ t.name }}</a> ({{ t.post_count }})</li>
+{%- endfor %}
+</ul>
+{% endblock %}

@@ -1,0 +1,21 @@
+build
+edit main.kiln
+let x = 1 2
+let y = 1 $
+---
+build
+edit main.kiln
+let x = 1 2
+let y = "{a $ b}"
+---
+build
+edit main.kiln
+let x = "\q"
+let y = (
+---
+build
+edit main.kiln
+}
+let x = 1 | 2
+---
+build

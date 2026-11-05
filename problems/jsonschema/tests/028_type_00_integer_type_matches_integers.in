@@ -1,0 +1,44 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "integer"
+  },
+  "tests": [
+    {
+      "description": "an integer is an integer",
+      "data": 1
+    },
+    {
+      "description": "a float with zero fractional part is an integer",
+      "data": 1.0
+    },
+    {
+      "description": "a float is not an integer",
+      "data": 1.1
+    },
+    {
+      "description": "a string is not an integer",
+      "data": "foo"
+    },
+    {
+      "description": "a string is still not an integer, even if it looks like one",
+      "data": "1"
+    },
+    {
+      "description": "an object is not an integer",
+      "data": {}
+    },
+    {
+      "description": "an array is not an integer",
+      "data": []
+    },
+    {
+      "description": "a boolean is not an integer",
+      "data": true
+    },
+    {
+      "description": "null is not an integer",
+      "data": null
+    }
+  ]
+}

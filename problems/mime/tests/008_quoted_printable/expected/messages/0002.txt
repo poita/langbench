@@ -1,0 +1,22 @@
+[message]
+id 0002
+source "case.eml"
+
+[headers]
+content-type: "text/plain; charset=utf-8"
+content-transfer-encoding: "QUOTED-PRINTABLE"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=utf-8 cte=quoted-printable size=10 adler32=19eb0455 role=text
+
+[body]
+text 0 chars 8
+| é and è
+html none
+
+[attachments]

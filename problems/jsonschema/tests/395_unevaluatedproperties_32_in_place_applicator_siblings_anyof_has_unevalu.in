@@ -1,0 +1,41 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "allOf": [
+      {
+        "properties": {
+          "foo": true
+        }
+      }
+    ],
+    "anyOf": [
+      {
+        "properties": {
+          "bar": true
+        },
+        "unevaluatedProperties": false
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "base case: both properties present",
+      "data": {
+        "foo": 1,
+        "bar": 1
+      }
+    },
+    {
+      "description": "in place applicator siblings, bar is missing",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "in place applicator siblings, foo is missing",
+      "data": {
+        "bar": 1
+      }
+    }
+  ]
+}

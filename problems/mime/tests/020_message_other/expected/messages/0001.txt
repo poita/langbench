@@ -1,0 +1,24 @@
+[message]
+id 0001
+source "delivery-status.eml"
+
+[headers]
+content-type: "multipart/report; report-type=delivery-status; boundary=\"R\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/report cte=7bit boundary="R" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=20 adler32=531307d5 role=text
+  2 message/delivery-status cte=7bit size=96 adler32=56632193 role=attachment
+
+[body]
+text 1 chars 20
+| your message bounced
+html none
+
+[attachments]
+2 type=message/delivery-status filename=- size=96 adler32=56632193 file=parts/0001/002.bin

@@ -1,0 +1,36 @@
+[message]
+id 0004
+source "attachment_only_email.eml"
+
+[headers]
+subject: "this message JUST contains an attachment"
+from: "Ryan Finnie <rfinnie@domain.dom>"
+to: "bob@domain.dom"
+content-disposition: "attachment; filename=blah.gz"
+content-transfer-encoding: "base64"
+content-description: "Attachment has identical content to above foo.gz"
+message-id: "<1066974048.4264.62.camel@localhost>"
+mime-version: "1.0"
+date: "23 Oct 2003 22:40:49 -0700"
+content-type: "application/x-gzip; NAME=blah.gz"
+
+[addresses]
+from 0 display="Ryan Finnie" spec="rfinnie@domain.dom"
+to 0 display="" spec="bob@domain.dom"
+
+[date]
+raw " 23 Oct 2003 22:40:49 -0700"
+valid yes
+utc 2003-10-24T05:40:49Z
+offset -0700
+epoch 1066974049
+
+[structure]
+0 application/x-gzip cte=base64 disposition=attachment filename="blah.gz" size=288 adler32=32e898f4 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/x-gzip filename="blah.gz" size=288 adler32=32e898f4 file=parts/0004/000.bin

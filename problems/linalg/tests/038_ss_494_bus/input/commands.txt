@@ -1,0 +1,5 @@
+norm1 494_bus.mtx
+norminf 494_bus.mtx
+normfro 494_bus.mtx
+solve 494_bus.mtx rhs.mtx
+mul 494_bus.mtx rhs.mtx

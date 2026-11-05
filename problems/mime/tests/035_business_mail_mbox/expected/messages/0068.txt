@@ -1,0 +1,171 @@
+[message]
+id 0068
+source "mbox:68"
+
+[headers]
+received: "from students.example.ac.jp (mx8.students.example.ac.jp [5.81.225.81]) by apache.org (Postfix) with ESMTP id 71F6E43429 for <v@mail.example.net>; yesterday"
+received: "from corp.example.co.uk (mx2.apache.org [158.51.126.90]) by example.com (Postfix) with ESMTP id D308F78500 for <wrossi@post.example.fr>; Mon, 15 Aug 2018 10:40:48 +0530"
+received: "from eu.example.de (mx5.eu.example.de [232.139.40.144]) by students.example.ac.jp (Postfix) with ESMTP id 10E801C683 for <nobrien@lists.example.edu>; Mon, 17 Nov 2009 12:24:24 +0100"
+received: "from post.example.fr (mx1.corp.example.co.uk [103.68.11.56]) by post.example.fr (Postfix) with ESMTP id C7A2A3DF57 for <astergaard.45@eu.example.de>; Sat Mar 12 08:58:05 2003 +0530"
+return-path: "<nstergaard.90@mail.example.net>"
+message-id: "<697.bc5d2e05.93548@example.com>"
+in-reply-to: "<699.810f2d38.36582@mail.example.net>"
+references: "<698.566f83a6.31540@eu.example.de> <699.810f2d38.36582@mail.example.net>"
+date: "16 FEB 09 02:13 +1245"
+from: "Zoë Doe <zdoe@mail.example.net>"
+to: "François Kowalski <fkowalski@dev.example.io>,    Agnieszka Nakamura <anakamura@dev.example.io>"
+cc: "ckowalski@dev.example.io"
+subject: "At such build try were if as all no and"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=000000000000a6b41b1bfad0"
+
+[addresses]
+from 0 display="Zoë Doe" spec="zdoe@mail.example.net"
+to 0 display="François Kowalski" spec="fkowalski@dev.example.io"
+to 1 display="Agnieszka Nakamura" spec="anakamura@dev.example.io"
+cc 0 display="" spec="ckowalski@dev.example.io"
+
+[date]
+raw " 16 FEB 09 02:13 +1245"
+valid yes
+utc 2009-02-15T13:28:00Z
+offset +1245
+epoch 1234704480
+
+[structure]
+0 multipart/mixed cte=7bit boundary="000000000000a6b41b1bfad0" parts=6 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="simple boundary 312" parts=2 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="000000000000eaa9dd1db328" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=quoted-printable size=1771 adler32=1a196601 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=2375 adler32=0bf030c7 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="Zürich_and_the.jpg" size=1548 adler32=3e8b041e role=attachment
+  6 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=inline filename="or_to.docx" size=5194 adler32=c0782b57 role=attachment
+  7 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="Ångström_play_work_know.patch" size=5844 adler32=034a4458 role=attachment
+  8 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="Ørsted_cache_what_for.docx" size=5617 adler32=95f8f23c role=attachment
+  9 message/rfc822 cte=7bit disposition=inline parts=1
+    10 multipart/mixed cte=7bit boundary="0000000000005608ff84b0c0" parts=4 preamble=45 epilogue=1
+      11 multipart/alternative cte=7bit boundary="=_18d078978f1c1e2335834cbbcac62d1d" parts=2 preamble=45 epilogue=0
+        12 text/plain charset=utf-8 cte=quoted-printable size=1237 adler32=acb7acfe role=attachment
+        13 text/html charset=windows-1252 cte=quoted-printable size=1643 adler32=d5562fe9 role=attachment
+      14 application/pdf cte=base64 disposition=inline filename="been.pdf" size=7771 adler32=d4d3ecbc role=attachment
+      15 message/rfc822 cte=7bit disposition=inline parts=1
+        16 multipart/mixed cte=7bit boundary="simple boundary 470" parts=4 preamble=45 epilogue=0
+          17 multipart/alternative cte=7bit boundary="simple boundary 819" parts=2 preamble=0 epilogue=0
+            18 text/plain charset=iso-8859-1 cte=quoted-printable size=358 adler32=8bd27ea7 role=attachment
+            19 text/html charset=windows-1252 cte=quoted-printable size=639 adler32=6faadca2 role=attachment
+          20 image/jpeg cte=base64 disposition=inline filename="the_crash_want.jpg" size=2039 adler32=611de85a role=attachment
+          21 application/zip cte=base64 disposition=attachment filename="branch_the_you.zip" size=1129 adler32=6d962df2 role=attachment
+          22 image/png cte=base64 disposition=attachment filename="Kraków_is_work_out.png" size=2529 adler32=3a1aca43 role=attachment
+      23 multipart/digest cte=7bit boundary="=_5cd42addbe6bbdd44bb70b99bd993642" parts=2 preamble=45 epilogue=0
+        24 message/rfc822 cte=7bit parts=1
+          25 multipart/alternative cte=7bit boundary="simple boundary 247" parts=2 preamble=0 epilogue=0
+            26 text/plain charset=utf-8 cte=base64 size=2414 adler32=9cad4eaf role=attachment
+            27 text/html charset=utf-8 cte=quoted-printable size=3151 adler32=aedb432b role=attachment
+        28 message/rfc822 cte=7bit parts=1
+          29 multipart/mixed cte=7bit boundary="=_58ba91f983b97f5dd10ced27d8fa7338" parts=2 preamble=45 epilogue=0
+            30 text/plain charset=utf-8 cte=base64 size=1051 adler32=05a076e2 role=attachment
+            31 text/plain charset=utf-8 cte=7bit disposition=inline filename="cause_of.txt" size=4677 adler32=c9157b64 role=attachment
+  32 multipart/digest cte=7bit boundary="Apple-Mail=_B71B6CB0DC579AC3" parts=2 preamble=45 epilogue=0
+    33 message/rfc822 cte=7bit parts=1
+      34 text/plain charset=utf-8 cte=8bit size=728 adler32=d811fc94 role=attachment
+    35 message/rfc822 cte=7bit parts=1
+      36 multipart/alternative cte=7bit boundary="simple boundary 191" parts=2 preamble=45 epilogue=0
+        37 text/plain charset=utf-8 cte=8bit size=2001 adler32=1e43a91d role=attachment
+        38 text/html charset=utf-8 cte=quoted-printable size=2628 adler32=a25c7923 role=attachment
+
+[body]
+text 3 chars 1771
+| On Tue, 13 Jul 2025 13:11:36 +1000, Pierre Brown wrote:
+| > > Can have in said Ørsted man home this client the the of small have
+| > say. To he as must if log time have very for. Big make him he get
+| > > hot up. Commit hot most was café small? Much came of the out can
+| > > came were a spell certificate vhost the! You his help came the his I
+| >> add and differ help. Need think where patch to the are many can.
+| >
+| > It had can word the or them when a follow does error name. Is
+| > request know but of say socket out have port long had name Größe.
+| >
+| 
+| New number look the the have of hot the good have if. Such home will
+| timeout every a by write in or help with help.
+| 
+| The me sentence have help we how the they word to it an again patch came
+| hook? Through of status come many form were even write world! Make at is
+| my just play brigade that of? Boy small live an of for self my an a more
+| Ångström but of if so. Than more have number me he their just tell
+| father that the help kind they.
+| 
+| Have right like would is now. To for to of coöperate bug differ out that
+| give may will up hand when it.
+| 
+| This well all client kind cause she by do cache she look his on are up
+| pool like! Picture to new been résumé was and have. The take said up
+| brigade it be the again came good know. Commit of server and of most
+| tell two Paulo been! Client part a if Kraków will help are? The and new
+| us that how build know your down. Piñata a which config so if tell give!
+| 
+| More directive and and find man it world. The what than status word the
+| for high pool the two up the have men? Day picture the all my from
+| server of people jalapeño give over old vhost find. In in be to branch
+| number for but hot of for he is two. The old in way after port for is
+| port from look write made same his!
+| 
+| -- 
+| Erik Nguyen
+html 4 chars 2363
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Tue, 13 Jul 2025 13:11:36 +1000, Pierre Brown wrote:<br>
+| &gt; &gt; Can have in said Ørsted man home this client the the of small have<br>
+| &gt; say. To he as must if log time have very for. Big make him he get<br>
+| &gt; &gt; hot up. Commit hot most was café small? Much came of the out can<br>
+| &gt; &gt; came were a spell certificate vhost the! You his help came the his I<br>
+| &gt;&gt; add and differ help. Need think where patch to the are many can.<br>
+| &gt;<br>
+| &gt; It had can word the or them when a follow does error name. Is<br>
+| &gt; request know but of say socket out have port long had name Größe.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">New number look the the have of hot the good have if. Such home will<br>
+| timeout every a by write in or help with help.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The me sentence have help we how the they word to it an again patch came<br>
+| hook? Through of status come many form were even write world! Make at is<br>
+| my just play brigade that of? Boy small live an of for self my an a more<br>
+| Ångström but of if so. Than more have number me he their just tell<br>
+| father that the help kind they.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Have right like would is now. To for to of coöperate bug differ out that<br>
+| give may will up hand when it.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">This well all client kind cause she by do cache she look his on are up<br>
+| pool like! Picture to new been résumé was and have. The take said up<br>
+| brigade it be the again came good know. Commit of server and of most<br>
+| tell two Paulo been! Client part a if Kraków will help are? The and new<br>
+| us that how build know your down. Piñata a which config so if tell give!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">More directive and and find man it world. The what than status word the<br>
+| for high pool the two up the have men? Day picture the all my from<br>
+| server of people jalapeño give over old vhost find. In in be to branch<br>
+| number for but hot of for he is two. The old in way after port for is<br>
+| port from look write made same his!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Erik Nguyen<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="Zürich_and_the.jpg" size=1548 adler32=3e8b041e file=parts/0068/005.bin
+6 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="or_to.docx" size=5194 adler32=c0782b57 file=parts/0068/006.bin
+7 type=text/x-diff filename="Ångström_play_work_know.patch" size=5844 adler32=034a4458 file=parts/0068/007.bin
+8 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="Ørsted_cache_what_for.docx" size=5617 adler32=95f8f23c file=parts/0068/008.bin
+12 type=text/plain filename=- size=1237 adler32=acb7acfe file=parts/0068/012.bin
+13 type=text/html filename=- size=1643 adler32=d5562fe9 file=parts/0068/013.bin
+14 type=application/pdf filename="been.pdf" size=7771 adler32=d4d3ecbc file=parts/0068/014.bin
+18 type=text/plain filename=- size=358 adler32=8bd27ea7 file=parts/0068/018.bin
+19 type=text/html filename=- size=639 adler32=6faadca2 file=parts/0068/019.bin
+20 type=image/jpeg filename="the_crash_want.jpg" size=2039 adler32=611de85a file=parts/0068/020.bin
+21 type=application/zip filename="branch_the_you.zip" size=1129 adler32=6d962df2 file=parts/0068/021.bin
+22 type=image/png filename="Kraków_is_work_out.png" size=2529 adler32=3a1aca43 file=parts/0068/022.bin
+26 type=text/plain filename=- size=2414 adler32=9cad4eaf file=parts/0068/026.bin
+27 type=text/html filename=- size=3151 adler32=aedb432b file=parts/0068/027.bin
+30 type=text/plain filename=- size=1051 adler32=05a076e2 file=parts/0068/030.bin
+31 type=text/plain filename="cause_of.txt" size=4677 adler32=c9157b64 file=parts/0068/031.bin
+34 type=text/plain filename=- size=728 adler32=d811fc94 file=parts/0068/034.bin
+37 type=text/plain filename=- size=2001 adler32=1e43a91d file=parts/0068/037.bin
+38 type=text/html filename=- size=2628 adler32=a25c7923 file=parts/0068/038.bin

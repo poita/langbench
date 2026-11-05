@@ -1,0 +1,36 @@
+35
+insert 7 seven
+size
+min
+max
+get 7
+get 6
+get 8
+floor 7
+floor 8
+floor 6
+ceil 7
+ceil 6
+ceil 8
+succ 7
+succ 6
+succ 8
+pred 7
+pred 8
+pred 6
+rank 6
+rank 7
+rank 8
+select 0
+select 1
+range 7 7
+range 6 8
+range 8 9
+range 5 6
+range 8 6
+delete 7
+size
+min
+max
+get 7
+delete 7

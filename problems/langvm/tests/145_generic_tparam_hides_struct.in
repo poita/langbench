@@ -1,0 +1,7 @@
+@module main
+struct T { a: Int }
+fn same<T>(x: T) -> T { x }
+fn main() {
+    print(same("param wins"));
+    print(showInt(same(T.{ a: 4 }).a));
+}

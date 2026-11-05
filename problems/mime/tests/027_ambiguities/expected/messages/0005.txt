@@ -1,0 +1,26 @@
+[message]
+id 0005
+source "nested-angles.eml"
+
+[headers]
+from: "a <b <c@d.com> , e@f.com>, g@h.com"
+to: "plain <x@y.com>"
+subject: "nested angle brackets"
+
+[addresses]
+from 0 display="" spec="a<b<c@d.com>,e@f.com>"
+from 1 display="" spec="g@h.com"
+to 0 display="plain" spec="x@y.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

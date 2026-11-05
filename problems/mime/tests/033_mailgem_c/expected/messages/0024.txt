@@ -1,0 +1,25 @@
+[message]
+id 0024
+source "utf8_headers.eml"
+
+[headers]
+from: "\"Jöhn Doe\" <jdöe@mächine.example>"
+to: "\"Märy Smith\" <märy@exämple.net>"
+subject: "Säying Hello"
+
+[addresses]
+from 0 display="Jöhn Doe" spec="jdöe@mächine.example"
+to 0 display="Märy Smith" spec="märy@exämple.net"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

@@ -1,0 +1,55 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "properties": {
+          "bar": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bar"
+        ]
+      },
+      {
+        "properties": {
+          "foo": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "foo"
+        ]
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "first oneOf valid (complex)",
+      "data": {
+        "bar": 2
+      }
+    },
+    {
+      "description": "second oneOf valid (complex)",
+      "data": {
+        "foo": "baz"
+      }
+    },
+    {
+      "description": "both oneOf valid (complex)",
+      "data": {
+        "foo": "baz",
+        "bar": 2
+      }
+    },
+    {
+      "description": "neither oneOf valid (complex)",
+      "data": {
+        "foo": 2,
+        "bar": "quux"
+      }
+    }
+  ]
+}

@@ -1,0 +1,133 @@
+[message]
+id 0071
+source "mbox:71"
+
+[headers]
+received: "from corp.example.co.uk (mx1.dev.example.io [61.36.127.185]) by example.org (Postfix) with ESMTP id A3C71BFF8B for <doe@post.example.fr>; Mon, 20 Nov 2024 14:48:46 PDT"
+return-path: "<gbrown@mail.example.net>"
+message-id: "<721.da993a69.86554@students.example.ac.jp>"
+date: "Mon, 8 Apr 2005 21:59:11 +1245"
+from: "d@students.example.ac.jp (Someone)"
+reply-to: "Дмитрий Lefèvre <lefvre@corp.example.co.uk>"
+to: "Carl Lefèvre <clefvre@mail.example.net>,    vdoe@mail.example.net"
+cc: "ybrown.91@corp.example.co.uk (Yuki Brown), Fiona Fernández <ffernndez@dev.example.io>"
+subject: "Fwd: I the very just hot"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_1284625c96cfe12ceeae0b5746334fc6\""
+
+[addresses]
+from 0 display="" spec="d@students.example.ac.jp"
+reply-to 0 display="Дмитрий Lefèvre" spec="lefvre@corp.example.co.uk"
+to 0 display="Carl Lefèvre" spec="clefvre@mail.example.net"
+to 1 display="" spec="vdoe@mail.example.net"
+cc 0 display="" spec="ybrown.91@corp.example.co.uk"
+cc 1 display="Fiona Fernández" spec="ffernndez@dev.example.io"
+
+[date]
+raw " Mon, 8 Apr 2005 21:59:11 +1245"
+valid yes
+utc 2005-04-08T09:14:11Z
+offset +1245
+epoch 1112951651
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_1284625c96cfe12ceeae0b5746334fc6" parts=4 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="Apple-Mail=_2AB65D9688E98C10" parts=3 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="----=_Part_7502_72249954.259387644361" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=us-ascii cte=quoted-printable size=1861 adler32=f09880cf role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=2451 adler32=023b4aa1 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="me.jpg" size=806 adler32=582e838d role=attachment
+    6 image/png cte=base64 disposition=attachment filename="crème_client.png" size=3905 adler32=57827f79 role=attachment
+  7 application/zip cte=base64 disposition=inline filename="show_near_turn.zip" size=3288 adler32=15905ffb role=attachment
+  8 application/pdf cte=base64 disposition=inline filename="I_cause_they.pdf" size=6113 adler32=46389d8e role=attachment
+  9 image/png cte=base64 disposition=inline filename="brûlée_hot.png" size=5767 adler32=0405fd26 role=attachment
+
+[body]
+text 3 chars 1861
+| On 21 NOV 24 04:52 +0530, William Lef?vre wrote:
+| >> Hot request cause they the say branch what more sound will when of
+| > > from earth world the server! Or release house just time live in any
+| > word the directive word way was the.
+| >
+| >> Connection picture him this as. Must no will some they I you when
+| > alias name make high.
+| >
+| > > Also is the most end the more small little over. But take near sound
+| > move to of on end the of can all of place many. Review my big were
+| >> same review again they. Him act with sentence port the even see
+| > > through her port to all every she form the from. Commit on such from
+| >> home is the other air. Bucket is off word be my light day many
+| > > module time word line such can long.
+| >
+| 
+| She home there that and the differ he you from many fianc?e to the come
+| kind. Will that the of spell he Paulo to or is round give light or. Out
+| in add help is had over when only call where the some is! To the r?sum?
+| so the be be the the after one hook word have and most? Of we rewrite
+| one of the little a the man for. Of most the to as one it was now good
+| take long up show of at father write!
+| 
+| The had to long this other father word animal us his? Only but than
+| config call to for be so every she to the which in they. Of all been
+| went off end large client hand would the.
+| 
+| Down two very would of we little every the I part self of. We Paulo by
+| mean look come man the that for over of!
+| 
+| With they through the from look down on for differ from round put some
+| which timeout one? Father is sm?rg?sbord as but at were had. New header
+| go light move vhost. Know more of is their crash read and we little in
+| right they been are on man! Read more what came build more take was high
+| more like I like timeout work. Up are of hook all the at on. When now
+| move part work same for socket kind co?perate the even as him at bug
+| her.
+| 
+| -- 
+| Tom?s ?stergaard
+html 4 chars 2451
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 21 NOV 24 04:52 +0530, William Lefèvre wrote:<br>
+| &gt;&gt; Hot request cause they the say branch what more sound will when of<br>
+| &gt; &gt; from earth world the server! Or release house just time live in any<br>
+| &gt; word the directive word way was the.<br>
+| &gt;<br>
+| &gt;&gt; Connection picture him this as. Must no will some they I you when<br>
+| &gt; alias name make high.<br>
+| &gt;<br>
+| &gt; &gt; Also is the most end the more small little over. But take near sound<br>
+| &gt; move to of on end the of can all of place many. Review my big were<br>
+| &gt;&gt; same review again they. Him act with sentence port the even see<br>
+| &gt; &gt; through her port to all every she form the from. Commit on such from<br>
+| &gt;&gt; home is the other air. Bucket is off word be my light day many<br>
+| &gt; &gt; module time word line such can long.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">She home there that and the differ he you from many fiancée to the come<br>
+| kind. Will that the of spell he Paulo to or is round give light or. Out<br>
+| in add help is had over when only call where the some is! To the résumé<br>
+| so the be be the the after one hook word have and most? Of we rewrite<br>
+| one of the little a the man for. Of most the to as one it was now good<br>
+| take long up show of at father write!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The had to long this other father word animal us his? Only but than<br>
+| config call to for be so every she to the which in they. Of all been<br>
+| went off end large client hand would the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Down two very would of we little every the I part self of. We Paulo by<br>
+| mean look come man the that for over of!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">With they through the from look down on for differ from round put some<br>
+| which timeout one? Father is smörgåsbord as but at were had. New header<br>
+| go light move vhost. Know more of is their crash read and we little in<br>
+| right they been are on man! Read more what came build more take was high<br>
+| more like I like timeout work. Up are of hook all the at on. When now<br>
+| move part work same for socket kind coöperate the even as him at bug<br>
+| her.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Tomás Østergaard<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="me.jpg" size=806 adler32=582e838d file=parts/0071/005.bin
+6 type=image/png filename="crème_client.png" size=3905 adler32=57827f79 file=parts/0071/006.bin
+7 type=application/zip filename="show_near_turn.zip" size=3288 adler32=15905ffb file=parts/0071/007.bin
+8 type=application/pdf filename="I_cause_they.pdf" size=6113 adler32=46389d8e file=parts/0071/008.bin
+9 type=image/png filename="brûlée_hot.png" size=5767 adler32=0405fd26 file=parts/0071/009.bin

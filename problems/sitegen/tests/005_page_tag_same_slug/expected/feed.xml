@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Test Site</title>
+  <id>https://example.com/</id>
+  <updated>2023-04-05T00:00:00Z</updated>
+  <link href="https://example.com/" rel="alternate"/>
+  <link href="https://example.com/feed.xml" rel="self"/>
+  <author>
+    <name>A. Author</name>
+  </author>
+  <entry>
+    <title>First</title>
+    <id>https://example.com/posts/first/</id>
+    <updated>2023-04-05T00:00:00Z</updated>
+    <link href="https://example.com/posts/first/" rel="alternate"/>
+    <content type="html">&lt;p&gt;A post tagged &lt;code&gt;Notes&lt;/code&gt;.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

@@ -1,0 +1,20 @@
+message R { repeated int32 a = 1; repeated sint32 b = 2; repeated fixed64 c = 3; repeated string s = 4;
+  repeated bytes y = 5; repeated bool g = 6; repeated uint64 u = 7; repeated sfixed32 j = 8; }
+--
+encode R {a: [0]}
+encode R {a: [0, 0, 0]}
+encode R {a: []}
+encode R {a: [1], b: [-1], c: [1], s: ["x"], y: [x"ff"], g: [true], u: [1], j: [-1]}
+encode R {s: ["", ""]}
+encode R {y: [x""]}
+encode R {g: [false]}
+encode R {u: [18446744073709551615, 0]}
+encode R {a: [-1, 2147483647, -2147483648]}
+encode R {a: 1}
+encode R {a: [1, [2]]}
+encode R {a: [1,]}
+encode R {a: [,1]}
+encode R {a: [1 2]}
+encode R {a: [1, "2"]}
+encode R {s: ["a", 1]}
+encode R {a: [4294967295]}

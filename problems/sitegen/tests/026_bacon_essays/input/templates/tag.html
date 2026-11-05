@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block head %}{{ tag.name|lower }} ({{ tag.post_count }}){% endblock %}
+{% block bodyclass %}tag{% endblock %}
+{% block content %}
+{% set newest = tag.posts|first %}
+<h2>{{ tag.name }}</h2>
+<p>{{ tag.post_count }} essays; newest is <a href="{{ newest.url }}">{{ newest.title }}</a> ({{ newest.date_long }}).</p>
+<ul>
+{%- for post in posts %}
+<li>{{ chip(post.date, post.url) }} {{ post.title|escape }}</li>
+{%- endfor %}
+</ul>
+{% endblock %}

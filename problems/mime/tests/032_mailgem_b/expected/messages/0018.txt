@@ -1,0 +1,42 @@
+[message]
+id 0018
+source "japanese_attachment.eml"
+
+[headers]
+mime-version: "1.0"
+received: "by 10.231.35.72 with HTTP; Fri, 16 Oct 2009 05:39:34 -0700 (PDT)"
+date: "Fri, 16 Oct 2009 23:39:34 +1100"
+delivered-to: "raasdnil@gmail.com"
+message-id: "<57a815bf0910160539m64240421gb35ea52e101aedbc@mail.gmail.com>"
+subject: "testing"
+from: "Mikel Lindsaar <raasdnil@gmail.com>"
+to: "Mikel Lindsaar <raasdnil@gmail.com>"
+content-type: "multipart/mixed; boundary=00032557395e3572cf04760cb060"
+
+[addresses]
+from 0 display="Mikel Lindsaar" spec="raasdnil@gmail.com"
+to 0 display="Mikel Lindsaar" spec="raasdnil@gmail.com"
+
+[date]
+raw " Fri, 16 Oct 2009 23:39:34 +1100"
+valid yes
+utc 2009-10-16T12:39:34Z
+offset +1100
+epoch 1255696774
+
+[structure]
+0 multipart/mixed cte=7bit boundary="00032557395e3572cf04760cb060" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=7bit size=65 adler32=b7c31488 role=text
+  2 text/plain charset=utf-8 cte=base64 disposition=attachment filename="てすと.txt" size=33 adler32=f9ba110f role=attachment
+
+[body]
+text 1 chars 65
+| testing
+| 
+| -- 
+| http://lindsaar.net/
+| Rails, RSpec and Life blog....
+html none
+
+[attachments]
+2 type=text/plain filename="てすと.txt" size=33 adler32=f9ba110f file=parts/0018/002.bin

@@ -1,0 +1,67 @@
+[message]
+id 0074
+source "mbox:74"
+
+[headers]
+received: "from example.org (mx6.mail.example.net [213.115.235.107]) by dev.example.io (Postfix) with ESMTP id 475ABDB5F5 for <johansson@corp.example.co.uk>; Thu, 10 Sep 2024 16:21:42 -0000"
+received: "from lists.example.edu (mx8.students.example.ac.jp [23.61.17.79]) by example.org (Postfix) with ESMTP id AF6BABAB83 for <xrossi@lists.example.edu>; Thu, 17 Aug 2005 17:15:40 +0100 (CET)"
+received: "from apache.org (mx9.apache.org [103.255.33.97]) by dev.example.io (Postfix) with ESMTP id BE1EE255FD for <q.69@dev.example.io>; Sun, 3 May 2004 05:15:37 GMT"
+received: "from lists.example.edu (mx6.example.org [208.59.21.60]) by example.com (Postfix) with ESMTP id B00E0FF203 for <wrossi@dev.example.io>; Thu May 25 18:28:53 2024 EST"
+received: "from lists.example.edu (mx7.dev.example.io [195.165.127.55]) by example.org (Postfix) with ESMTP id 48C18D56E3 for <dlefvre@eu.example.de>; Fri, 24 Oct 2004 04:07:41 +0530"
+return-path: "<jmller@example.org>"
+message-id: "<474.e63bd644.65515@apache.org>"
+in-reply-to: "<483.74c7fadf.11102@mail.example.net>"
+references: "<475.2604da73.24421@students.example.ac.jp> <476.0a8d1510.61147@example.com> <477.a2c3384a.25030@example.com> <478.81a1f70a.27281@example.org> <479.9830513a.27007@mail.example.net> <480.e0f3c99c.53109@lists.example.edu> <481.a0e6cb18.21728@corp.example.co.uk> <482.e7a7d747.28352@mail.example.net> <483.74c7fadf.11102@mail.example.net>"
+date: "23 MAR 09 20:17 +0000"
+from: "Дмитрий Brown <brown@example.org>"
+to: "\"Ivan Brown\" <ibrown.66@post.example.fr>, Pierre Fernández <pfernndez@example.org>,\tVera García <vgarca@example.com>"
+cc: "Ivan van der Berg <ivanderberg@eu.example.de>, María Kowalski <mkowalski@eu.example.de>"
+subject: "[PATCH] A Ångström water patch"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; charset=utf-8"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Дмитрий Brown" spec="brown@example.org"
+to 0 display="Ivan Brown" spec="ibrown.66@post.example.fr"
+to 1 display="Pierre Fernández" spec="pfernndez@example.org"
+to 2 display="Vera García" spec="vgarca@example.com"
+cc 0 display="Ivan van der Berg" spec="ivanderberg@eu.example.de"
+cc 1 display="María Kowalski" spec="mkowalski@eu.example.de"
+
+[date]
+raw " 23 MAR 09 20:17 +0000"
+valid yes
+utc 2009-03-23T20:17:00Z
+offset +0000
+epoch 1237839420
+
+[structure]
+0 text/plain charset=utf-8 cte=quoted-printable size=489 adler32=56799a4d role=text
+
+[body]
+text 0 chars 488
+| What to as these now us the if take over small are! An then picture just
+| under part each they or what also change one a.
+| 
+| I the warning from that them a Straße was handler! There the in again be
+| their set the had a thread who mean of.
+| 
+| Segfault the way keepalive to here. Good write review is water any most
+| who apr she.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Ivan Nakamura
+html none
+
+[attachments]

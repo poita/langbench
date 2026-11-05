@@ -1,0 +1,17 @@
+# The site configuration.
+
+title = "The \"Quoted\" Site"      # a trailing comment
+base_url   =    "https://toml.example"
+author="A\tB"
+posts_per_page = 2
+
+   # an indented comment
+tagline = "first\nsecond"
+year = -44
+enabled = false
+keywords = ["gamma", "alpha", "beta",]
+empty_list = []
+hash_inside = "not # a comment"
+unicode_escape = "\u00e9t\u00e9"
+carriage = "a\rb"
+zero = 0

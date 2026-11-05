@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.oracle-venv/
+
+# Local state: worktrees, lbench builds and results, compiler snapshots
+.claude/worktrees/
+.lbench/
+toolchains/
+
+# Build outputs inside implementation projects. Compiled executables are named per
+# project, so tools/impl_run.py finish --stage also filters binaries by file signature.
+implementations/**/.dub/
+implementations/**/target/
+implementations/**/build/
+implementations/**/bin/
+implementations/**/obj/
+implementations/**/*.o
+implementations/**/*.a
+implementations/**/*.egg-info/
+implementations/**/*-test-library
+implementations/**/*-test-unittest
+runs-*/**/.dub/
+runs-*/**/target/
+runs-*/**/build/
+runs-*/**/bin/
+runs-*/**/obj/
+runs-*/**/*.o
+runs-*/**/*.a
+runs-*/**/*.egg-info/
+runs-*/**/*-test-library
+runs-*/**/*-test-unittest
+
+# Benchmark inputs and expected outputs are generated deterministically by each
+# problem's bench/gen_bench.py (`make bench`); only the generators, notes and
+# licences are tracked.
+problems/*/bench/*
+!problems/*/bench/gen_bench.py
+!problems/*/bench/NOTES.md
+!problems/*/bench/LICENSE*
+!problems/*/bench/CORPUS_LICENSE
+problems/*/bench-long/

@@ -1,0 +1,21 @@
+messages 20
+0001 source="multi-weirdspace.eml" bytes=2301 parts=4 attachments=2 text=1 html=-
+0002 source="multipartdigestnestedemptyparts.eml" bytes=677 parts=4 attachments=1 text=- html=-
+0003 source="multipartnestedemptyparts.eml" bytes=705 parts=4 attachments=1 text=- html=-
+0004 source="multipartnestedemptypartsnorfc822.eml" bytes=558 parts=3 attachments=0 text=2 html=-
+0005 source="not-mime.eml" bytes=499 parts=1 attachments=0 text=0 html=-
+0006 source="obsolete.eml" bytes=200 parts=1 attachments=0 text=0 html=-
+0007 source="qp-body.eml" bytes=165 parts=1 attachments=0 text=0 html=-
+0008 source="re-fwd.eml" bytes=779 parts=3 attachments=1 text=- html=-
+0009 source="sig-uu.eml" bytes=947 parts=1 attachments=0 text=0 html=-
+0010 source="simple-attachment.eml" bytes=2025 parts=3 attachments=1 text=1 html=-
+0011 source="simple.eml" bytes=669 parts=1 attachments=0 text=0 html=-
+0012 source="ticket-60931.eml" bytes=374 parts=3 attachments=0 text=1 html=2
+0013 source="twopart.eml" bytes=42590 parts=3 attachments=1 text=1 html=-
+0014 source="uu-junk-target.eml" bytes=9097 parts=6 attachments=3 text=1 html=-
+0015 source="uu-junk.eml" bytes=8561 parts=3 attachments=1 text=1 html=-
+0016 source="uu-zeegee.eml" bytes=6968 parts=1 attachments=0 text=0 html=-
+0017 source="very-long-boundary.eml" bytes=3060 parts=3 attachments=1 text=1 html=-
+0018 source="very-very-long-boundary.eml" bytes=28260 parts=3 attachments=1 text=1 html=-
+0019 source="weird-boundary.eml" bytes=540 parts=3 attachments=1 text=1 html=-
+0020 source="x-gzip64.eml" bytes=509 parts=1 attachments=0 text=0 html=-

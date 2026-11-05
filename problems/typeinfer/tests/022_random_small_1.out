@@ -1,0 +1,30 @@
+x2 : 'a list
+error: unify
+error: unify
+error: unify
+error: unify
+error: unify
+c : bool
+error: unbound
+x2 : 'a -> 'b -> 'c -> 'd -> bool
+error: unbound
+error: unify
+error: unify
+error: unbound
+error: unify
+error: unbound
+error: unify
+y : 'a -> 'b -> 'c -> ('d -> 'e -> 'f -> 'g -> bool) * int * ('h -> 'i -> 'j -> bool)
+v : bool * (bool * int * int)
+error: unify
+- : ('a -> 'b -> unit) list list
+error: unify
+s : ('a -> 'b -> 'c -> int * 'b) list
+error: unbound
+q : 'a -> 'b -> 'c -> 'd list
+error: unbound
+error: unify
+d : int
+error: unbound
+error: unify
+error: occurs

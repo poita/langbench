@@ -1,0 +1,63 @@
+step 1: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0
+step 2: edit .kiln-state
+  ok size=104
+step 3: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 4: edit .kiln-state
+  ok size=91
+step 5: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 6: edit .kiln-state
+  ok size=100
+step 7: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 8: edit .kiln-state
+  ok size=109
+step 9: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 10: edit .kiln-state
+  ok size=104
+step 11: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 12: edit .kiln-state
+  ok size=115
+step 13: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 14: edit .kiln-state
+  ok size=73
+step 15: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 16: edit .kiln-state
+  ok size=104
+step 17: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 18: edit .kiln-state
+  ok size=103
+step 19: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 20: edit .kiln-state
+  ok size=103
+step 21: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 22: edit .kiln-state
+  ok size=104
+step 23: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 24: edit .kiln-state
+  ok size=208
+step 25: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1

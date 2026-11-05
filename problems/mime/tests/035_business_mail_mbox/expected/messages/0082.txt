@@ -1,0 +1,66 @@
+[message]
+id 0082
+source "mbox:82"
+
+[headers]
+received: "from mail.example.net (mx9.eu.example.de [69.102.167.13]) by dev.example.io (Postfix) with ESMTP id 134165F801 for <ylefvre@students.example.ac.jp>; Sat, 24 Sep 2024 18:53:59 -0700"
+received: "from dev.example.io (mx8.students.example.ac.jp [38.219.14.64]) by eu.example.de (Postfix) with ESMTP id 2A4BF928BE for <ulefvre@example.org>; Sun, 18 Jun 2003 06:42:22 +1245"
+received: "from apache.org (mx5.lists.example.edu [25.15.141.124]) by corp.example.co.uk (Postfix) with ESMTP id 51A93D6ED4 for <ukowalski@post.example.fr>; fri,20 mar 2018 19:26:35 (comment (nested)) -0330"
+received: "from dev.example.io (mx5.students.example.ac.jp [252.106.123.124]) by students.example.ac.jp (Postfix) with ESMTP id AAEF68A0C7 for <xtaylor@apache.org>; Sun, 1 Mar 2005 13:39:53 -0800"
+return-path: "<bsmith.76@apache.org>"
+message-id: "<860.3db678bc.74360@post.example.fr>"
+date: "31 Feb 2004 10:00:00 +0000"
+from: "\"Wilson, Ivan\" <iwilson@students.example.ac.jp>"
+to: "Chloé van der Berg <cvanderberg@students.example.ac.jp>"
+cc: "\"Bob Brown\" <bbrown@example.com>, Ann García <agarca@apache.org>"
+subject: "Picture they follow mean the hot work some turn of"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_2F3ABBE2C1D53C5\""
+
+[addresses]
+from 0 display="Wilson, Ivan" spec="iwilson@students.example.ac.jp"
+to 0 display="Chloé van der Berg" spec="cvanderberg@students.example.ac.jp"
+cc 0 display="Bob Brown" spec="bbrown@example.com"
+cc 1 display="Ann García" spec="agarca@apache.org"
+
+[date]
+raw " 31 Feb 2004 10:00:00 +0000"
+valid no
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_2F3ABBE2C1D53C5" parts=4 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_2436_455716295.806547081893" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="=_22cdffd8eb64a960d39e9a30de50a52f" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=quoted-printable size=297 adler32=6c8f6699 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=525 adler32=b9aeb30c role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="give_log_men_the.jpg" size=809 adler32=e5408f2d role=attachment
+  6 image/png cte=base64 disposition=inline filename="number.png" size=7754 adler32=41fed80f role=attachment
+  7 text/csv charset=utf-8 cte=quoted-printable disposition=inline filename="through_a_one.csv" size=8042 adler32=1e490865 role=attachment
+  8 image/png cte=base64 disposition=inline filename="élan_with.png" size=3920 adler32=473d920c role=attachment
+
+[body]
+text 3 chars 297
+| Her hand find back trunk just how over with it great what! So how Málaga
+| of of is is then on a with the off over big. The to way his good when
+| Paulo all the I that have. The mutex time to help and! The jalapeño
+| socket if the that to high that the do get only can one what long and?
+| 
+| -- 
+| Chloé Doe
+html 4 chars 525
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Her hand find back trunk just how over with it great what! So how Málaga<br>
+| of of is is then on a with the off over big. The to way his good when<br>
+| Paulo all the I that have. The mutex time to help and! The jalapeño<br>
+| socket if the that to high that the do get only can one what long and?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Chloé Doe<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="give_log_men_the.jpg" size=809 adler32=e5408f2d file=parts/0082/005.bin
+6 type=image/png filename="number.png" size=7754 adler32=41fed80f file=parts/0082/006.bin
+7 type=text/csv filename="through_a_one.csv" size=8042 adler32=1e490865 file=parts/0082/007.bin
+8 type=image/png filename="élan_with.png" size=3920 adler32=473d920c file=parts/0082/008.bin

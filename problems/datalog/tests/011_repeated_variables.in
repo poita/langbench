@@ -1,0 +1,12 @@
+edge(1, 2). edge(2, 3). edge(3, 1). edge(2, 2). edge(4, 1). edge(5, 1). edge(a, a).
+node(1). node(2). node(a).
+loop(X) :- edge(X, X).
+tri(X) :- edge(X, Y), edge(Y, Z), edge(Z, X).
+twin(X, Y) :- edge(X, Z), edge(Y, Z), X != Y.
+pair(X, X) :- node(X).
+both(X) :- edge(X, X), node(X).
+?- loop(X).
+?- tri(X).
+?- twin(X, Y).
+?- pair(X, Y).
+?- both(X).

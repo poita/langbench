@@ -1,0 +1,7 @@
+CREATE TABLE ping(
+        id INTEGER PRIMARY KEY,
+        flag TEXT,
+        host TEXT,
+        ms INTEGER);
+CREATE INDEX ping_flag ON ping(flag);
+CREATE INDEX ping_host ON ping(host);

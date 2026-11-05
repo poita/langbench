@@ -1,0 +1,40 @@
+[message]
+id 0015
+source "raw_email_trailing_dot.eml"
+
+[headers]
+delivered-to: "xxx@xxx.com"
+received: "by 10.67.31.8 with SMTP id i8cs1195ugj; Mon, 22 Sep 2008 13:45:18 -0700 (PDT)"
+received: "by 10.100.207.5 with SMTP id e5mr3483815ang.104.1222110393505; Mon, 22 Sep 2008 12:06:33 -0700 (PDT)"
+return-path: "<noreply@rubyforge.org>"
+received: "from rubyforge.org (rubyforge.org [205.234.109.19]) by mx.google.com with ESMTP id c2si899474ana.10.2008.09.22.12.06.28; Mon, 22 Sep 2008 12:06:33 -0700 (PDT)"
+received-spf: "pass (google.com: best guess record for domain of noreply@rubyforge.org designates 205.234.109.19 as permitted sender) client-ip=205.234.109.19;"
+authentication-results: "mx.google.com; spf=pass (google.com: best guess record for domain of noreply@rubyforge.org designates 205.234.109.19 as permitted sender) smtp.mail=noreply@rubyforge.org"
+received: "by rubyforge.org (Postfix, from userid 502) id 8FB1518581AC; Mon, 22 Sep 2008 15:06:28 -0400 (EDT)"
+to: "noreply@rubyforge.org"
+from: "Sandy M. <noreply@rubyforge.org>"
+subject: "[skynet-help][60666] How are intermediate files handled in SkyNet?"
+content-type: "text/plain; charset=UTF-8"
+message-id: "<20080922190628.8FB1518581AC@rubyforge.org>"
+date: "Mon, 22 Sep 2008 15:06:28 -0400 (EDT)"
+
+[addresses]
+from 0 display="Sandy M." spec="noreply@rubyforge.org"
+to 0 display="" spec="noreply@rubyforge.org"
+
+[date]
+raw " Mon, 22 Sep 2008 15:06:28 -0400 (EDT)"
+valid yes
+utc 2008-09-22T19:06:28Z
+offset -0400
+epoch 1222110388
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=22 adler32=5c440739 role=text
+
+[body]
+text 0 chars 22
+| Testing, testing, 123.
+html none
+
+[attachments]

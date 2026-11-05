@@ -1,0 +1,25 @@
+[message]
+id 0002
+source "mixed.eml"
+
+[headers]
+subject: "Re: ✓ done"
+x-glued: "ab and ab"
+x-lang: "hi there"
+x-broken: "=?utf-8?X?hi?= ok"
+x-spaces: "ab   c"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

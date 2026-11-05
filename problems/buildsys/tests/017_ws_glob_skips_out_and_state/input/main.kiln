@@ -1,0 +1,6 @@
+let xs = sort(glob("**"))
+step {
+    out "out/g.txt"
+    cmd write("{join(xs, "|")}\n")
+}
+default "out/g.txt"

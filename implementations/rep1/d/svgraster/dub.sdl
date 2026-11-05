@@ -1,0 +1,29 @@
+name "svgraster"
+description "A small SVG 1.1 subset rasteriser that renders to binary PPM images"
+authors "svgraster authors"
+copyright "Copyright (c) svgraster authors"
+license "MIT"
+
+targetPath "bin"
+sourcePaths "source"
+importPaths "source"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "svgraster"
+    sourcePaths "source" "cli"
+    mainSourceFile "cli/main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "svgraster"
+}
+
+configuration "unittest" {
+    targetType "executable"
+    targetName "svgraster-test"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+    mainSourceFile "tests/runner.d"
+}

@@ -1,0 +1,39 @@
+[message]
+id 0003
+source "mbox:3"
+
+[headers]
+subject: "forwarded bundle"
+from: "forwarder@example.com"
+date: "Sat, 4 Oct 2025 11:00:00 +0000"
+content-type: "multipart/mixed; boundary=\"fwd\""
+
+[addresses]
+from 0 display="" spec="forwarder@example.com"
+
+[date]
+raw " Sat, 4 Oct 2025 11:00:00 +0000"
+valid yes
+utc 2025-10-04T11:00:00Z
+offset +0000
+epoch 1759575600
+
+[structure]
+0 multipart/mixed cte=7bit boundary="fwd" parts=3 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=22 adler32=600e083f role=text
+  2 message/rfc822 cte=7bit disposition=attachment filename="one.eml" parts=1
+    3 multipart/alternative cte=7bit boundary="in" parts=2 preamble=0 epilogue=0
+      4 text/plain charset=us-ascii cte=7bit size=16 adler32=34990636 role=attachment
+      5 text/html charset=us-ascii cte=7bit size=17 adler32=36c705f5 role=attachment
+  6 message/rfc822 cte=7bit parts=1
+    7 text/plain charset=utf-8 cte=quoted-printable size=16 adler32=369806ea role=attachment
+
+[body]
+text 1 chars 22
+| Two messages attached.
+html none
+
+[attachments]
+4 type=text/plain filename=- size=16 adler32=34990636 file=parts/0003/004.bin
+5 type=text/html filename=- size=17 adler32=36c705f5 file=parts/0003/005.bin
+7 type=text/plain filename=- size=16 adler32=369806ea file=parts/0003/007.bin

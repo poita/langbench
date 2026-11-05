@@ -1,0 +1,7 @@
+.schema blobs
+COUNT blobs
+SELECT id,n,label FROM blobs
+SELECT id,n,body FROM blobs WHERE n <= 200
+SELECT id,n FROM blobs WHERE n >= 1000 ORDER BY n DESC
+SELECT body FROM blobs WHERE id = 20
+INDEX blobs_n 8000

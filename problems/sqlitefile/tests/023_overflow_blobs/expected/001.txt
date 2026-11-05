@@ -1,0 +1,2 @@
+CREATE TABLE blobs(id INTEGER PRIMARY KEY, n INTEGER, body BLOB, label TEXT);
+CREATE INDEX blobs_n ON blobs(n);

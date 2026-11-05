@@ -1,0 +1,19 @@
+@module main
+fn main() {
+    print(showFloat(1.0));
+    print(showFloat(2.0 / 3.0));
+    print(showFloat(-0.0));
+    print(showFloatAt(2.5, 0) ++ " " ++ showFloatAt(3.5, 0) ++ " " ++ showFloatAt(0.5, 0));
+    print(showFloatAt(0.1 + 0.2, 17));
+    print(showFloatAt(1.0 / 3.0, 10));
+    print(showFloat(sqrtF(2.0)));
+    print(showFloat(piF()));
+    print(showFloatAt(nanF(), 2) ++ " " ++ showFloatAt(1.0 / 0.0, 2)
+          ++ " " ++ showFloatAt(-1.0 / 0.0, 2));
+    print(showInt(floatBits(1.0)));
+    print(showFloat(powF(2.0, 10)) ++ " " ++ showFloat(powF(2.0, -2)));
+    print(showInt(truncToInt(-3.9)) ++ " " ++ showFloat(roundF(-2.5))
+          ++ " " ++ showFloat(floorF(-2.5)));
+    print(showBool(nanF() == nanF()) ++ " " ++ showInt(cmpF(nanF(), 1.0)));
+    print(showFloat(toFloat(9007199254740993)));
+}

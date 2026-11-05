@@ -1,0 +1,15 @@
+step {
+    out "out/a.txt"
+    cmd write("A\n")
+}
+step {
+    out "out/b.txt"
+    in "out/a.txt"
+    cmd copy()
+}
+step {
+    out "out/idle.txt"
+    cmd write("idle\n")
+    cost 9
+}
+default "out/b.txt"

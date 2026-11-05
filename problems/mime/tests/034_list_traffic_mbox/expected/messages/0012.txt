@@ -1,0 +1,80 @@
+[message]
+id 0012
+source "mbox:12"
+
+[headers]
+received: "from apache.org (mx8.dev.example.io [103.107.160.29]) by post.example.fr (Postfix) with ESMTP id DCE60F94E0 for <imller.90@example.org>; Sat, 6 Jun 2012 20:52:34 +0200"
+received: "from students.example.ac.jp (mx3.corp.example.co.uk [232.73.41.174]) by lists.example.edu (Postfix) with ESMTP id 16005C315 for <taylor@lists.example.edu>; Tue, 20 Jun 2018 04:56:12 MET (EDT)"
+received: "from example.org (mx7.apache.org [121.107.102.125]) by example.com (Postfix) with ESMTP id 46CD9ABB1A for <ydoe@dev.example.io>; Sun, 02 Aug 2012 06:56:39 +1000 (EDT)"
+received: "from mail.example.net (mx3.dev.example.io [46.16.175.189]) by corp.example.co.uk (Postfix) with ESMTP id 95ABEDECA4 for <pdubois@dev.example.io>; Tue Mar 22 04:09:59 2005 EST"
+return-path: "<hdoe.33@example.org>"
+message-id: "<112.4d6da296.23345@eu.example.de>"
+in-reply-to: "<114.a2ecb7ab.27129@mail.example.net>"
+references: "<113.fe5fb1d5.69631@students.example.ac.jp> <114.a2ecb7ab.27129@mail.example.net>"
+date: "Sat, 4 Jul 2024 12:09:43 +0000"
+from: "Tomás Иванов <t.44@example.org>"
+reply-to: "hsmith.74@students.example.ac.jp (Hana Smith)"
+to: "Ελένη Østergaard <stergaard@apache.org>"
+cc: "\"Brown, Uwe\" <ubrown.45@dev.example.io>,\tVera Lefèvre <vlefvre@apache.org>"
+subject: "Fwd: She it the"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"00000000000035d4cd56e645\""
+
+[addresses]
+from 0 display="Tomás Иванов" spec="t.44@example.org"
+reply-to 0 display="" spec="hsmith.74@students.example.ac.jp"
+to 0 display="Ελένη Østergaard" spec="stergaard@apache.org"
+cc 0 display="Brown, Uwe" spec="ubrown.45@dev.example.io"
+cc 1 display="Vera Lefèvre" spec="vlefvre@apache.org"
+
+[date]
+raw " Sat, 4 Jul 2024 12:09:43 +0000"
+valid yes
+utc 2024-07-04T12:09:43Z
+offset +0000
+epoch 1720094983
+
+[structure]
+0 multipart/mixed cte=7bit boundary="00000000000035d4cd56e645" parts=3 preamble=45 epilogue=0
+  1 text/plain charset=utf-8 cte=7bit size=1151 adler32=c9d984f5 role=text
+  2 text/x-diff charset=utf-8 cte=base64 disposition=inline filename="can_config.patch" size=6013 adler32=66837f19 role=attachment
+  3 text/plain charset=utf-8 cte=quoted-printable disposition=attachment filename="Málaga_when_out_déjà_so.txt" size=10493 adler32=e20c991d role=attachment
+
+[body]
+text 1 chars 1144
+| When there rewrite build the think was near café! Be mean year them
+| thread that his very and show be the him time look you is. Name was his
+| are client need. But long the live every made and to part to write try
+| land said the. The São help time again the have the segfault to the them
+| by such thing name the. No can segfault socket of her father that was
+| the side of find the time mean?
+| 
+| The word which the was this is first like do I place come vote tell?
+| Than when follow handler a some and what at spell take thing read the
+| add the socket.
+| 
+| In a it same their patch make father too café air call his father that
+| her. Mutex vhost our to a side have you old you I to déjà could work.
+| 
+| The it at their us and on the when way. Been your have proxy take too?
+| Tell two review man or for of on made she use to is write you but. Right
+| at have apr work and by come is the us act. To must socket and had come
+| down will you! Bucket from log to up of. That are change was did cache!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| François Schröder
+html none
+
+[attachments]
+2 type=text/x-diff filename="can_config.patch" size=6013 adler32=66837f19 file=parts/0012/002.bin
+3 type=text/plain filename="Málaga_when_out_déjà_so.txt" size=10493 adler32=e20c991d file=parts/0012/003.bin

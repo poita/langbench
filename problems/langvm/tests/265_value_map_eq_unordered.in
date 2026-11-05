@@ -1,0 +1,13 @@
+@module main
+fn main() {
+    let a = #["x": 1, "y": 2, "z": 3];
+    let b = #["z": 3, "x": 1, "y": 2];
+    print(showBool(a == b));
+    print(showBool(a != b));
+    print(showBool([a] == [b]));
+    b["x"] = 9;
+    print(showBool(a == b));
+    let c = #[1: [1, 2], 2: [3]];
+    let d = #[2: [3], 1: [1, 2]];
+    print(showBool(c == d));
+}

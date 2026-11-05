@@ -1,0 +1,27 @@
+From a@example.com Mon Jan  1 00:00:00 2001
+Subject: first
+From: a@example.com
+
+first body
+
+From b@example.com Tue Jan  2 00:00:00 2001
+Subject: second
+From: b@example.com
+
+a body line that mentions From at the start:
+From here on it is just text
+
+From c@example.com Wed Jan  3 00:00:00 2001
+Subject: third
+
+
+
+body after blank lines
+
+
+From d@example.com Thu Jan  4 00:00:00 2001
+Subject: fourth
+Content-Type: text/plain; charset=utf-8
+
+café
+

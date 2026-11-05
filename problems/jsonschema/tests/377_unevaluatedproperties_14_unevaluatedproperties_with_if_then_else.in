@@ -1,0 +1,66 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "if": {
+      "properties": {
+        "foo": {
+          "const": "then"
+        }
+      },
+      "required": [
+        "foo"
+      ]
+    },
+    "then": {
+      "properties": {
+        "bar": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "bar"
+      ]
+    },
+    "else": {
+      "properties": {
+        "baz": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "baz"
+      ]
+    },
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "when if is true and has no unevaluated properties",
+      "data": {
+        "foo": "then",
+        "bar": "bar"
+      }
+    },
+    {
+      "description": "when if is true and has unevaluated properties",
+      "data": {
+        "foo": "then",
+        "bar": "bar",
+        "baz": "baz"
+      }
+    },
+    {
+      "description": "when if is false and has no unevaluated properties",
+      "data": {
+        "baz": "baz"
+      }
+    },
+    {
+      "description": "when if is false and has unevaluated properties",
+      "data": {
+        "foo": "else",
+        "baz": "baz"
+      }
+    }
+  ]
+}

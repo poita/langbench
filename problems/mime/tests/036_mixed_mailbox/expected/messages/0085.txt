@@ -1,0 +1,97 @@
+[message]
+id 0085
+source "mbox:85"
+
+[headers]
+received: "from apache.org (mx2.post.example.fr [244.174.121.85]) by corp.example.co.uk (Postfix) with ESMTP id D24A4DAF54 for <vanderberg@corp.example.co.uk>; Wed Oct 26 16:02:40 2005 MET"
+received: "from apache.org (mx3.mail.example.net [4.105.107.203]) by eu.example.de (Postfix) with ESMTP id 4230A40E4E for <ckim@post.example.fr>; Thu, 16 Feb 2005 09:58:21 -0000"
+return-path: "<gvanderberg@students.example.ac.jp>"
+message-id: "<700.c8f13786.63215@students.example.ac.jp>"
+in-reply-to: "<704.4e9db1a8.53309@apache.org>"
+references: "<701.a51c2904.16716@dev.example.io> <702.c85d55ac.48641@dev.example.io> <703.e43aba4a.96685@lists.example.edu> <704.4e9db1a8.53309@apache.org>"
+date: "Sun, 14 Jun 2018 02:16:34 +1000"
+from: "François Petrov <fpetrov.60@example.com>"
+to: "Đorđe Brown <brown@example.org>,    dpetrov.75@eu.example.de (Dana Petrov),    Hana Kowalski <hkowalski.50@dev.example.io>"
+cc: "William Lefèvre <wlefvre.84@mail.example.net>, Uwe Smith <usmith@mail.example.net>"
+subject: "Re: [PATCH] Ask response on"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"0000000000006b1c8e8c39c6\""
+
+[addresses]
+from 0 display="François Petrov" spec="fpetrov.60@example.com"
+to 0 display="Đorđe Brown" spec="brown@example.org"
+to 1 display="" spec="dpetrov.75@eu.example.de"
+to 2 display="Hana Kowalski" spec="hkowalski.50@dev.example.io"
+cc 0 display="William Lefèvre" spec="wlefvre.84@mail.example.net"
+cc 1 display="Uwe Smith" spec="usmith@mail.example.net"
+
+[date]
+raw " Sun, 14 Jun 2018 02:16:34 +1000"
+valid yes
+utc 2018-06-13T16:16:34Z
+offset +1000
+epoch 1528906594
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000006b1c8e8c39c6" parts=5 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="=_d064496f57c4ae6a277f2b6632af3ef4" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=base64 size=1044 adler32=8149719f role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1455 adler32=d784fa7e role=html
+  4 application/pdf cte=base64 disposition=attachment filename="are_the.pdf" size=1877 adler32=ad7788b2 role=attachment
+  5 image/png cte=base64 disposition=attachment filename="the_act_Málaga_very.png" size=7877 adler32=296e2344 role=attachment
+  6 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="fiancée_have_cause.docx" size=4138 adler32=dd33e217 role=attachment
+  7 application/zip cte=base64 disposition=attachment filename="server_long_put_who.zip" size=4784 adler32=c4b93b2b role=attachment
+
+[body]
+text 2 chars 1044
+| Up tell of you would the a. Ångström there alias what I segfault was as
+| status my élan could make how so!
+| 
+| The I good little commit to house side but little the end great. The his
+| or high of thing part request was our that. Of been as the keepalive you
+| have the said was. To off act of the to connection request proxy of was?
+| Write the apr of make a me client home again self your the façade new
+| many their would. Trunk the about we a have is I many Größe round of
+| piñata at before one who they.
+| 
+| Socket by to and café that vote set segfault of know the what must tell
+| we the her. Your who on the and out of mean no much Málaga of I ssl who
+| had! The the the the he the all say. In but can move jalapeño? With but
+| it the about are help this new all get!
+| 
+| Time is do ask round rewrite. Number the the déjà to good through. If of
+| also the does could back was is tell client look so had take pool be
+| this. Server been can take why cache was that call on spell of ssl. Will
+| to made crème good the or had the tell socket part up!
+| 
+| -- 
+| Vera Fernández
+html 3 chars 1455
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Up tell of you would the a. Ångström there alias what I segfault was as<br>
+| status my élan could make how so!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The I good little commit to house side but little the end great. The his<br>
+| or high of thing part request was our that. Of been as the keepalive you<br>
+| have the said was. To off act of the to connection request proxy of was?<br>
+| Write the apr of make a me client home again self your the façade new<br>
+| many their would. Trunk the about we a have is I many Größe round of<br>
+| piñata at before one who they.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Socket by to and café that vote set segfault of know the what must tell<br>
+| we the her. Your who on the and out of mean no much Málaga of I ssl who<br>
+| had! The the the the he the all say. In but can move jalapeño? With but<br>
+| it the about are help this new all get!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Time is do ask round rewrite. Number the the déjà to good through. If of<br>
+| also the does could back was is tell client look so had take pool be<br>
+| this. Server been can take why cache was that call on spell of ssl. Will<br>
+| to made crème good the or had the tell socket part up!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Vera Fernández<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="are_the.pdf" size=1877 adler32=ad7788b2 file=parts/0085/004.bin
+5 type=image/png filename="the_act_Málaga_very.png" size=7877 adler32=296e2344 file=parts/0085/005.bin
+6 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="fiancée_have_cause.docx" size=4138 adler32=dd33e217 file=parts/0085/006.bin
+7 type=application/zip filename="server_long_put_who.zip" size=4784 adler32=c4b93b2b file=parts/0085/007.bin

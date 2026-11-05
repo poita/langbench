@@ -1,0 +1,11 @@
+cat-file HEAD
+cat-file HEAD^{tree}
+cat-file HEAD~1
+cat-file d88dfd389daad003b438e77d27b70d9ab225956e
+cat-file c7e9dab3dabd3246edf0d0729cb5fb040890050a
+cat-file d3dd2cdec7eb982afa8af8e818a00cd374a49caf
+cat-file 548b49a44ea5cffaf9d90eb866835d156f90b5e0
+cat-file refs/tags/blobtag
+cat-file blobtag^{}
+cat-file v0.1
+cat-file 0000000000000000000000000000000000000000

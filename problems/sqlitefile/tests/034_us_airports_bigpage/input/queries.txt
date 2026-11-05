@@ -1,0 +1,9 @@
+SELECT * FROM usap LIMIT 6
+SELECT id,ident,name,elevation_ft FROM usap WHERE elevation_ft > 11000 ORDER BY elevation_ft DESC
+SELECT ident,municipality FROM usap WHERE iso_region = 'US-HI' ORDER BY ident
+SELECT id,ident FROM usap ORDER BY ident LIMIT 20
+SELECT id,name FROM usap WHERE name > 'Zz' ORDER BY name
+SELECT id,ident,type FROM usap WHERE type = 'seaplane_base' AND elevation_ft > 4000
+SELECT id,elevation_ft FROM usap ORDER BY elevation_ft DESC LIMIT 12
+SELECT id,municipality FROM usap WHERE municipality IS NULL LIMIT 15
+SELECT rowid,ident FROM usap WHERE rowid < 6600

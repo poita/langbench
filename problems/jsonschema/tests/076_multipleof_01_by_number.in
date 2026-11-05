@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "multipleOf": 1.5
+  },
+  "tests": [
+    {
+      "description": "zero is multiple of anything",
+      "data": 0
+    },
+    {
+      "description": "4.5 is multiple of 1.5",
+      "data": 4.5
+    },
+    {
+      "description": "-4.5 is multiple of 1.5",
+      "data": -4.5
+    },
+    {
+      "description": "35 is not multiple of 1.5",
+      "data": 35
+    }
+  ]
+}

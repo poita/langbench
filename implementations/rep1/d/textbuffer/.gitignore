@@ -1,0 +1,7 @@
+bin/
+.dub/
+*.o
+*.a
+dub.selections.json
+textbuffer-test-*
+__test__*

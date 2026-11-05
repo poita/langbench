@@ -1,0 +1,6 @@
+step {
+    out "out/z.txt"
+    in ["src/a.txt"]
+    cmd concat()
+}
+default "out/z.txt"

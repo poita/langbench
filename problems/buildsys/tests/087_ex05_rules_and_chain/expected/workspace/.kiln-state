@@ -1,0 +1,14 @@
+kiln-state 1
+step out/one.txt
+cmd concat()
+in src/a.txt 8943a78b9f342c58
+in src/b.txt c857dca71c36fafd
+out out/one.txt 5e52e06e8b405ae8
+end
+step out/two.txt
+cmd concat()
+in src/a.txt 8943a78b9f342c58
+in src/b.txt c857dca71c36fafd
+in out/one.txt 5e52e06e8b405ae8
+out out/two.txt f98ee131e7582add
+end

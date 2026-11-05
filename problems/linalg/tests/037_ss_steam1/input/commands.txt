@@ -1,0 +1,6 @@
+norm1 steam1.mtx
+norminf steam1.mtx
+normfro steam1.mtx
+transpose steam1.mtx
+lu steam1.mtx
+solve steam1.mtx rhs.mtx

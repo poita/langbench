@@ -1,0 +1,10 @@
+{
+  "greeting": "Hi"
+}
+--
+=== main
+{% macro hello(name, punct="!") %}{{ greeting }}, {{ name }}{{ punct }}{% endmacro %}{% macro box(content, width=3, pad="*") %}{{ pad * width }}{{ content }}{{ pad * width }}{% endmacro %}{% macro args(a, b, c) %}a={{ a }} b={{ b|default("-") }} c={{ c is defined }}{% endmacro %}{% macro defaults(a, b=a, c=b ~ "!") %}{{ a }}{{ b }}{{ c }}{% endmacro %}{{ hello("Ada") }} {{ hello("Bob", "?") }} {{ hello(name="Cy", punct=".") }} {{ hello(punct=";", name="Di") }}
+{{ box("x") }} {{ box("y", 1) }} {{ box("z", pad="-") }} {{ box(width=2, content="w") }}
+{{ args(1) }} | {{ args(1, 2) }} | {{ args(1, 2, 3) }} | {{ args(1, c=3) }}
+{{ defaults(1) }} {{ defaults(1, 2) }} {{ defaults(1, 2, 3) }} {{ defaults("x", c="y") }}
+{% macro late() %}{{ mood }}{% endmacro %}{% set mood = "Yo" %}{{ late() }} {% set r = hello("stored") %}{{ r|upper }} {{ r|length }}

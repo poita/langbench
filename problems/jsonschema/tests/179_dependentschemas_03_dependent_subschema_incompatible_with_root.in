@@ -1,0 +1,43 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {}
+    },
+    "dependentSchemas": {
+      "foo": {
+        "properties": {
+          "bar": {}
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "matches root",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "matches dependency",
+      "data": {
+        "bar": 1
+      }
+    },
+    {
+      "description": "matches both",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "no dependency",
+      "data": {
+        "baz": 1
+      }
+    }
+  ]
+}

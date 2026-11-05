@@ -1,0 +1,1062 @@
+dd0d558b067da8fbf8d080ee09ff24247df71973 dependabot[bot] 1784583148 Bump actions/setup-node from 6.4.0 to 7.0.0
+cfd0f9a5eed1bd69e7080ff903070da300092e29 dependabot[bot] 1784323968 Bump prettier from 3.8.1 to 3.9.5
+31d94fc168b6f2b21600241f2bb528225e9be7d8 dependabot[bot] 1784310384 Bump eslint from 10.5.0 to 10.6.0
+91e57302b7f3d2c6092e11a766c6a8e8f81c0d38 dependabot[bot] 1784310166 Bump rollup from 4.61.0 to 4.62.2
+c9e748f49411fd0c47ca26db0d54c95170dd8fea dependabot[bot] 1784309958 Bump globals from 17.6.0 to 17.7.0
+cc8cc3e991bf665bac30421d064cd079798b4579 dependabot[bot] 1784309791 Bump browserstack-node-sdk from 1.56.1 to 1.63.2
+0f0853fe53c431182c4a975857926f538c2073d4 dependabot[bot] 1784309627 Bump selenium-webdriver from 4.44.0 to 4.45.0
+6b396d562e66b2d2bae2879f8c9e6eef84a3f91d dependabot[bot] 1784237563 Bump actions/stale from 10.3.0 to 10.4.0
+35f9e8a56a62c2b164e9ff7da7bae63d19dfa08c dependabot[bot] 1782336758 Bump actions/checkout from 6.0.2 to 7.0.0
+db8c4d3cbe1dd3a374f53ed21acb1fd01b1d2dc9 dependabot[bot] 1781904754 Bump eslint from 10.4.0 to 10.5.0
+0c113724311a8f2d3c95193e6bfe54c4db468971 dependabot[bot] 1781559261 Bump browserstack-node-sdk from 1.55.0 to 1.56.1
+98494f5bf51391a603bdbc4265939619159199e8 dependabot[bot] 1780968703 Bump rollup from 4.60.0 to 4.61.0
+79c88cb9e4711ac97da3ccd661c0bbd4df84ad51 dependabot[bot] 1780968406 Bump qunit from 2.25.0 to 2.26.0
+935e08d92f0d1f25433f1856e6a1943e0d629d01 dependabot[bot] 1780967759 Bump the npm_and_yarn group across 1 directory with 2 updates
+b008288e6a494c312f366eb3bbaf357fd78f04aa dependabot[bot] 1780954382 Bump release-it from 20.0.0 to 20.2.0
+d40a7e6df4832065abb578d89271d0eb9dec044c Klaus Hartl 1780235673 Delete orphaned test file
+13e4ac8d7451588a9056868e9e4cee65d8737f22 Klaus Hartl 1780058869 Update release process description
+49a660964a0b5f3f5ca4a750476ffd8172dde908 Klaus Hartl 1780051823 Revert "Disable Node deprecation DEP0044 for release workflow"
+4ddeabd6438f603e8bdbd5fe9b03b2a25c91cc55 dependabot[bot] 1780053003 Bump browserstack-node-sdk from 1.53.0 to 1.55.0
+faa03d1f34132ce03ecc0a087865e1a09cadce06 dependabot[bot] 1779845348 Bump actions/stale from 10.2.0 to 10.3.0
+0ec404a9dba9f7c76bc8159205a6302a78606fe0 dependabot[bot] 1780052831 Bump eslint from 10.3.0 to 10.4.0
+2c87940531f4650141571235e863f40699a94c2d dependabot[bot] 1780052688 Bump @tootallnate/once in the npm_and_yarn group across 1 directory
+84ffd7826bd0b7708df50e605c6bbddaac8a20fe dependabot[bot] 1780052516 Bump selenium-webdriver from 4.43.0 to 4.44.0
+d7a10966e3f2cbcbfa96e34e7544d23aab9e3372 Release 1780051899 Craft v3.0.8 release
+248e685e20c7aa9553453f0084f14a62173462d2 Klaus Hartl 1780051432 Use existing Chrome with puppeteer
+fc04269d83cae5536c08fdb71c9fd1d35e148f7a Klaus Hartl 1780046865 Remove QUnit related workaround in Grunt config
+265a6853d04eefa6f7a4d8acdd118d3f5c4dddc3 Klaus Hartl 1780050241 Tidy up package lock file
+478e59129f8f1e5c80fc71fecd37b04cd8ed1575 Klaus Hartl 1780039204 Disable Node deprecation DEP0044 for release workflow
+331d5240db232da6748abbdde7a35823f681e9a7 Klaus Hartl 1779973161 Fix node version config for E2E test job
+11d773d413f680a4ccf23a5375e82fa14df1b7a7 Klaus Hartl 1779960183 Ensure ECMAScript compatibility
+d78864600f3ee9c3780c3f3d0072342beb722f45 Klaus Hartl 1779948233 Remove `engines` property from package
+e7d9a4dff0d5ebc51a200819e3ab3a2dbe87979a Klaus Hartl 1779948076 Fix typo in test assertion message
+b5fca24b9bc03b20e8751f7eea6c14c40095f7e8 Klaus Hartl 1778910797 Make credentials use explicit in release workflow
+17bacba0171dd022728d8fdeba3203c60791bf58 Release 1778909158 Craft v3.0.7 release
+adb823cb7e95ead47f3af4d4951e589acbde2077 Klaus Hartl 1778873319 Fix release workflow halting at `git tag`
+5f9e759b07d2752e8407a3a43fb5f879bf384c5e Klaus Hartl 1778873217 May remove Git user config from release workflow
+6ac921184c7b3b7d9431c88707f56521acd72ab4 Klaus Hartl 1778868928 Fix release workflow not able to push commit + tag
+2278bc55e1804c4c2d9bd2110a9b449949a52751 Klaus Hartl 1778868711 Fix missing package version bump
+eb3c40e89731e99b8970faaf35ddad249c6c0020 Klaus Hartl 1778837024 Prevent cookie attribute injection
+f6f157f430d707d2ffd0c9c9138227a6cea564e5 dependabot[bot] 1778275988 Bump globals from 17.5.0 to 17.6.0
+f409d022da50a0c6fa8724f087fbc50fab9a9533 dependabot[bot] 1778275976 Bump eslint from 10.2.0 to 10.3.0
+a686883c03a754c04546cfc1653911a70a640b40 dependabot[bot] 1778629666 Bump protobufjs in the npm_and_yarn group across 1 directory
+c6112d2d4f2881a12aaf89d9e2996ef6870eb6d0 dependabot[bot] 1778608705 Bump @protobufjs/utf8 in the npm_and_yarn group across 1 directory
+cfb9a5cc3d7b69db724ef8f3c4e87bf1eea7d320 dependabot[bot] 1778290597 Bump fast-uri in the npm_and_yarn group across 1 directory
+3ce899183e1bb92e9f20a445abc468851f0fe360 dependabot[bot] 1778189573 Bump browserstack-node-sdk from 1.52.2 to 1.53.0
+406ad384705cba24f6deaac014b79ee5bad78775 dependabot[bot] 1778115668 Bump ip-address in the npm_and_yarn group across 1 directory
+87359a4973f4117dacc94a58f0c22b5301b581f1 Klaus Hartl 1777485012 Harden GitHub actions workflows w/ zizmor
+52a5d6567f94862effd73cc1e075efc8030c914a dependabot[bot] 1777498376 Bump grunt-contrib-qunit from 10.1.1 to 10.2.0
+17087621c460d1bfc8b30a04916253f900ba8136 Klaus Hartl 1777454785 Tweak introduction part of readme a bit
+a83027f11b2d78d9c73ef3ed98953a90126a9173 Klaus Hartl 1777454450 Remove defunct CodeClimate badge
+64a1355ab32ba41977bb56b29f7b2c498cacba99 dependabot[bot] 1777454092 Bump lodash in the npm_and_yarn group across 1 directory
+a8e97bfdf60a01d29a98ff8d9779835493142728 Klaus Hartl 1777362501 Silence noisy Node warnings for BrowserStack SDK
+85f19b7e8c019711815aab73f700120d2b449f66 Klaus Hartl 1777360259 Use npm script for running BrowserStack test
+0dbe9b5e97a2327d077b641e166058db695decdf Klaus Hartl 1777359041 Revert "Activate Browserstack testing for PRs"
+0f881dcac1e205da8d137ca146ad89b337313dea Klaus Hartl 1777357356 Make test summary count failed tests
+148ecd74e7fbcc92a09f2ab9e0348a4ecaa21801 Klaus Hartl 1777131122 Revert "Verify test failure reports correctly"
+f7a793a46b5e2486d8ee62d44c999f95ee69daec Klaus Hartl 1777127155 Verify test failure reports correctly
+29ebadd0ee1fcb583c5aa9e36f7b0a78ceca36ed Klaus Hartl 1777098426 Migrate BrowserStack browser testing to Node SDK
+a5de5eb048e3fa63afa7fe47e6f131cc3261e6d2 Klaus Hartl 1776925670 Activate Browserstack testing for PRs
+38bbd57161ec03cc02213c641334dfb47faefc20 dependabot[bot] 1777336642 Bump actions/setup-node from 6.3.0 to 6.4.0
+8a7bf279f55864f5f8c34bf5c5cdc12141eb9b69 Fayner Brack 1777010096 Revert "Enable browserstack.local for iPhone 17"
+9f37cecfc756bf194b57b894596fe150d701e076 Fayner Brack 1777008260 Enable browserstack.local for iPhone 17
+9a5e5ce4e1bd5c36a69290e56436a43bd9747214 dependabot[bot] 1776979978 Bump grunt-contrib-qunit from 10.1.1 to 10.2.0
+55c9cf78cd1a6c9a3501b30b4513930e3a3cab29 Klaus Hartl 1776884696 Bump up Appium version to random newer
+110c13909497a275a5c59b0ccc5396730f785954 Klaus Hartl 1776883577 Specify explicit Safari versions for Browserstack
+2e7262ce8a1835e553372f1a3c9f317ea35c7fbe Klaus Hartl 1776883228 Update Pixel/Android to run Browserstack tests for
+bae06ca24f3a1a9ade2d236c1135c6165e648840 Klaus Hartl 1776883174 Update iPhone/iOS to run Browserstack tests for
+f910da3f8ec9180343b59341fde8bd611436ecca Klaus Hartl 1776882745 Update macOS to run Browserstack tests for
+0859b01fe35814cef63d789320b3fca9614fb39c dependabot[bot] 1776782777 Bump undici and release-it
+cdb4e7dc195868fd1f67188b131ef059b2ef36dc dependabot[bot] 1776782808 Bump globals from 17.4.0 to 17.5.0
+6a82dc40e37de966dc2e55e62bd91e8ece8b8a77 dependabot[bot] 1776726092 Bump actions/setup-node from 6 to 6.3.0
+46890857b36fa90afb81339d6f28b9e28eb6d4e6 dependabot[bot] 1776288768 Bump nano-staged from 0.9.0 to 1.0.2
+136c3d704cd90a075a26be87e686fa09e353feea dependabot[bot] 1775867617 Bump eslint from 10.1.0 to 10.2.0
+8d12b08a96961c5a05f4fc5979f3ae02d073621a dependabot[bot] 1775858155 Bump basic-ftp from 5.2.1 to 5.2.2
+bc8ad965b4bb8a732d5b7140ec3828c831f1ba9a dependabot[bot] 1775680505 Bump basic-ftp from 5.2.0 to 5.2.1
+4f8d49afc120d6345a386906c4e3042e4e2bb1c9 dependabot[bot] 1775283551 Bump defu from 6.1.4 to 6.1.6
+8c60d2019c82cbf19a217bec6a15fa255221ba8f dependabot[bot] 1774908896 Bump rollup from 4.59.0 to 4.60.0
+3ba69e4aa09dff76980d35e2dfab2fa5ae13144b dependabot[bot] 1774650318 Bump serialize-javascript from 7.0.4 to 7.0.5
+15ae96a3782a2b87f8a44b7e1f796dd3cd5e5ddd dependabot[bot] 1774647159 Bump eslint from 10.0.1 to 10.1.0
+8a3ff5f4920d1d1579cd2673da114054d9fc3082 dependabot[bot] 1773966930 Bump flatted from 3.3.1 to 3.4.2
+ed40a99a6ad0dd5531ce8e257d4e6eaed8ebb0d2 dependabot[bot] 1773071606 Bump serialize-javascript and @rollup/plugin-terser
+c481ab960f7342c501b9b5e98dd636dd71e495bf dependabot[bot] 1773067185 Bump globals from 17.3.0 to 17.4.0
+dfd62608172aba232fde75da5d1137edfff19507 Klaus Hartl 1773067059 Set up cooldown period for GitHub Actions as well
+b9947683bf0b7ad1d072c3a49371ba745cc33fab Klaus Hartl 1772266918 Add Partitioned attribute to readme
+4ad090290050e26a7a6d5678304f0f8a5f7d6678 Klaus Hartl 1772266449 Migrate to ESLint 10
+9321e7f5a4e498c4f127ebc7ae1faf4414d1b898 dependabot[bot] 1772086424 Bump rollup from 4.57.1 to 4.59.0
+b9445c803083dbc61b3e5cc90a697d75b329d85d dependabot[bot] 1772058933 Bump basic-ftp from 5.0.5 to 5.2.0
+b93c1cb9711f1af096ec8c501c56b41b257d7484 dependabot[bot] 1771887053 Bump rollup-plugin-license from 3.6.0 to 3.7.0
+0518904822e0732d40d15eb44b58225bc2edf4d1 dependabot[bot] 1771363962 Bump actions/stale from 10.1.0 to 10.2.0
+89ab6189932ca5bc78f3f1a8fceb32b1666af1de dependabot[bot] 1771073008 Bump qs from 6.14.1 to 6.14.2
+4ca29e34e249fdad6f789089dc5dd5908854282a Klaus Hartl 1770890123 Revert "Bring back e2e testing in IE"
+5fad2accaeefed63325c9de46423ccd32dd52700 Klaus Hartl 1770889010 Bring back e2e testing in IE
+c8b921a7f526df53886311ca04a4ab1f27fae0fd dependabot[bot] 1770845555 Bump chainguard-dev/actions from 1.5.10 to 1.6.0
+637fab32faeee9ca37a141898afaed706f6e8d30 dependabot[bot] 1770413570 Bump rollup from 4.56.0 to 4.57.1
+f52cd1f6a43fb5a336884daf59baf266d9fc1168 dependabot[bot] 1769931286 Bump lodash from 4.17.21 to 4.17.23
+08f83954dd37f99de0a7e9e1d78cac21d83657b0 dependabot[bot] 1769931148 Bump qunit from 2.24.2 to 2.25.0
+148fd51f37cf87e2cec1789965e1f165677b23bd dependabot[bot] 1769931029 Bump release-it from 19.0.6 to 19.2.2
+016918b8bec0f516ed595e0dbdc6996ab7a3e0bc dependabot[bot] 1769930895 Bump qs from 6.11.2 to 6.14.1
+b597993b8e18214d0b6aa985bd2f6fcb649b5bda dependabot[bot] 1769930757 Bump rollup from 4.53.3 to 4.54.0
+df2f3aabe104527d735f00e57f46bc5fd94f0267 dependabot[bot] 1769930585 Bump prettier from 3.6.2 to 3.7.4
+cdaa884d1fd0b8497f6b2fe695df6c968c00fa42 Klaus Hartl 1769930319 Pin npm version to update to
+8fb0de0d4155812ed39742f4a5540b1c02ec3a03 Klaus Hartl 1769930278 Remove now duplicate npm updating
+2400349401697da8463c9db18ecb208a11694de3 Klaus Hartl 1769929891 Ensure to use latest npm in workflows
+c395695e3639d74ea8df543d689b25e7ee634ef7 Klaus Hartl 1769929427 Update Node version to use for release workflow
+dbbed7a78890219a824bddfcb2650864fef3de84 Klaus Hartl 1769928363 Remove CI config duplication
+085e604eaf4d555622bfcb2bec05c1d3241d78e6 Klaus Hartl 1764409942 Bump rollup-plugin-license from 3.2.0 to 3.6.0
+c15a8cc502124299ef845a38e3d80d1648191287 dependabot[bot] 1764018792 Bump eslint-plugin-html from 8.0.0 to 8.1.3
+a0a4a1cccc62cc7c55ba415f21686fe16a490bdd dependabot[bot] 1764312631 Bump eslint from 9.0.0 to 9.39.1
+aba86cf33d95696726e3e6dfe898712cd9b73576 dependabot[bot] 1764277333 Bump grunt-contrib-qunit from 10.0.0 to 10.1.1
+ab6669bfa84364764747cb25fc4b437d38650477 dependabot[bot] 1764018777 Bump simple-git-hooks from 2.8.1 to 2.13.1
+8adf5fd63de04910c3827b8e46e48d8270746100 dependabot[bot] 1764018769 Bump prettier from 3.0.0 to 3.6.2
+5171863c6e0912f16a9b810b6f0cd8eda5066b30 dependabot[bot] 1764018800 Bump qunit from 2.19.4 to 2.24.2
+56943d4b0a6389a1fc792bca186d54eac72838aa Klaus Hartl 1763893203 Update packages after running `npm audit fix`
+2337560c4624ecf73343528c54b37017afe5ba27 dependabot[bot] 1763892713 Bump chainguard-dev/actions
+b835faf73359e60368738e6482975eb239a806c9 dependabot[bot] 1763892641 Bump actions/stale from 9.0.0 to 10.1.0
+5c8417ebd3369a16a22bc496f33d012279dc83f5 dependabot[bot] 1763892522 Bump actions/checkout from 4 to 6
+1cb12e9f12b58e93546dbd59bedb7979dec950f9 dependabot[bot] 1763892379 Bump actions/setup-node from 4 to 6
+5209a715e1b5fdaedab37b35544a3fd14b741673 dependabot[bot] 1763892169 Bump serve-static from 1.15.0 to 1.16.2
+f633d4403b70deeaaeca8f86a8119b71cf80fc86 dependabot[bot] 1763891165 Bump on-headers and morgan
+7c214cd0e9b1cf58c3d0c712df9508b71762e439 dependabot[bot] 1763890980 Bump braces from 3.0.2 to 3.0.3
+d2dc2d43290edd30507f44c41560be33eb8dcea0 dependabot[bot] 1763890814 Bump serialize-javascript from 6.0.1 to 6.0.2
+81f06285b34a316bb5c34a291abb7e7717ff687c dependabot[bot] 1763890608 Bump js-yaml from 3.14.1 to 3.14.2
+fd9d362d82eee2a08b144202b336ef6f62440f5b dependabot[bot] 1763890376 Bump tar-fs and puppeteer
+59a7c2356607182277e493e0e72dbd031c4238c7 Klaus Hartl 1763890277 Fix cooldown config for Dependabot some more
+14ae7808c76b095d5ee5e1f0429ed3aa011cfc18 Klaus Hartl 1763889978 Fix placement of cooldown config for Dependabot
+c1d46e2eccb3be5e19660d0c5f3adfd8a4677a1a Klaus Hartl 1763889325 Configure cool down for Dependabot
+4bada5f492de5b6d387f9aeae4fdb98f2be720b4 Klaus Hartl 1763889131 Bump rollup from 4.12.1 to 4.53.3
+6e16e1fbf4c8d2ccb6a7019f49523059c82b5592 Klaus Hartl 1763889073 Update Node versions to test in
+e83dc91bd843ccb19be3dd88464ffb64895043bb Klaus Hartl 1763887211 Fix installing optional dependencies w/ `npm ci`
+4611ed3f5d54d73a1658a8f8f9a93942d89637ab Klaus Hartl 1763883702 Ensure dependency versions more strictly
+64379b322b2ee2a594c71503be893f2b510de6a1 dependabot[bot] 1763456557 Bump nano-staged from 0.8.0 to 0.9.0
+31d86980ea309f23c72c390ed2f954eff207cb38 Klaus Hartl 1763456425 Fix Markdown formatting for code of conduct
+4dc71be83a844e4640c84df85d9161888ddc7dad Klaus Hartl 1760152893 Publish via trusted publisher exclusively
+ea7f9b2f2e8201dcfae217f9348c0f8dda13b26a Klaus Hartl 1756039330 Create CODE_OF_CONDUCT.md
+edde046cb9c7f3516aa3603c9cbe1fd505f83090 Viktor Szépe 1749950292 Fix typo in README
+4ed50ae0a0322096262b74f5ae06cd0d0ce6fd0f dependabot[bot] 1745011536 Bump release-it from 18.1.2 to 19.0.1
+7f3f09550dfb89dfd809887c27513d4495899b41 dependabot[bot] 1736803995 Bump eslint-config-prettier from 9.1.0 to 10.0.1
+19c77ea7f383c377f45359e3d98ed7e66b2edfba dependabot[bot] 1736198996 Bump release-it from 17.11.0 to 18.0.0
+8eb77f5f5f17cf3d08ac8b6f74438d9425fdad6c dependabot[bot] 1720499829 Bump grunt-contrib-qunit from 8.0.1 to 10.0.0
+5b676b97a4ff308443f7f8f9a2e26c7d690a48ac dependabot[bot] 1720473468 Bump grunt-contrib-connect from 4.0.0 to 5.0.0
+1c5db721d2f080bac3e41b55a92f31c522816be3 dependabot[bot] 1714687068 Bump eslint-plugin-markdown from 4.0.1 to 5.0.0
+4ffd2111c42c93915d672f6a6aa90232814fa15b Klaus Hartl 1712664653 Change Prettier config file for consistency
+2227aa9cdfea0822e0314fc691e8528e7e519f5d Klaus Hartl 1712664424 Remove outdated keyword
+f30a5f2384cb3feac30814a3109d21d69b0210b0 Klaus Hartl 1712664367 Migrate to ESLint 9 w/ flat config
+2eca98a6b091162d9d776a766f4b21ba8e8ab6ab Klaus Hartl 1709973820 Remove Node version from test matrix
+ec76018796d4a2806acc87bd6f06296e9d44837f Klaus Hartl 1709973660 Take Node version from package.json for testing
+2da96e38adbce8ff027a7866dbcf92360b4dd27f Klaus Hartl 1709973400 Fix installing dependencies
+2628922bba23f0d602052619fef06c1f1a00105e dependabot[bot] 1701984593 Bump actions/stale from 4.1.1 to 9.0.0
+fa8f325c715b613798f8f43f7bf3067fc6973b9e Klaus Hartl 1709972163 Remove trailing whitespace
+134f03d7053adf5cb2e0660b62b12ca4fb3d9647 Klaus Hartl 1709972112 Remove broken link
+bd374fbc88d5426291d8039a26682ced2514665d Klaus Hartl 1709971662 Apply formatting after merging PR
+ccc6b9867207654a45036da5782840475dab1d69 David Balatero 1704727746 Add documentation for how to import the library
+2aaea67280c34814945a79d97fa54be0d83c9174 dependabot[bot] 1709762009 Bump eslint-plugin-markdown from 3.0.1 to 4.0.1
+7627008ccd468040d670a4d39b7ea8ecb03df6a5 dependabot[bot] 1707772312 Bump eslint-plugin-html from 7.1.0 to 8.0.0
+323f1f2bdae68f99b4b6f3a2a9252132365dcb0b Klaus Hartl 1703494840 Enhance note in readme related to cookie deletion
+5eeb835f1d03c523b3609f1aa93e9d11048b519f dependabot[bot] 1699912733 Bump release-it from 16.2.1 to 17.0.0
+51d26ca5bfe8c085d94119a16c472100c6ea5641 dependabot[bot] 1698096130 Bump actions/setup-node from 3 to 4
+977798fe2576518739f91d33b266fdfdeff7f79a Klaus Hartl 1697795195 Avoid marking dependabot PRs as stale
+bd09ac5cef7817e5e96620db3ead2e7e2b3938c6 dependabot[bot] 1697491449 Bump rollup from 3.29.4 to 4.1.4
+d53791620dc1cf3e731b8865e30c760546943d65 Klaus Hartl 1697606291 Revisit configuration for stale issue/pr bot
+0ce42f2f749ed6d680736a12281e2d02b2e4a265 dependabot[bot] 1695072003 Bump grunt-contrib-qunit from 7.0.1 to 8.0.1
+8715d7b75bb2c89c4992691d5a03c275eb8ea89a dependabot[bot] 1693861651 Bump actions/checkout from 3 to 4
+a427812597527fd82f9747fe075c2f65b93c3112 Klaus Hartl 1691565903 Add stale issue automation workflow
+04e389cbdb5a7f98a94fd532d1563b73e869db3b dependabot[bot] 1691443462 Bump eslint-config-prettier from 8.10.0 to 9.0.0
+b23b52b50c237db792f0121c41ff29216172cd46 dependabot[bot] 1689803641 Bump grunt-contrib-connect from 3.0.0 to 4.0.0
+495bf421c6f7d81e74021fdaabd2312ececca6eb Klaus Hartl 1688799630 Bump prettier from 2.8.8 to 3.0.0
+f318682ed102a2e2d35834322d62f24da2ae3b8d dependabot[bot] 1688594092 Bump release-it from 15.11.0 to 16.0.0
+dbabe4f8083f90915ac7964a1da5caa019714117 Klaus Hartl 1687753775 Set up recommended extensions for VS Code
+c3fa260f82ae0d229ea45274f0aaa876c52581ad Klaus Hartl 1687698411 Ignore dev container for CI
+5a9abb5b60c6d3c15d3df4c100517ec78fdba904 Klaus Hartl 1687628707 Set up dev container
+e8ee063e1172bee8786ab690b716eb4c06c600f3 Klaus Hartl 1687680074 Remove superfluous instructions
+b75456169404447d4e66a98aea87bb46c06909cc Klaus Hartl 1687587189 Improve testing if cookie has been found before
+aecb4b3c4596065a5bae5ffcb595cd940e59c752 Klaus Hartl 1687491274 Use QUnit for node tests
+19c9747d7e894f8915a6f6b2cbe37a5621b68d67 Klaus Hartl 1687452057 Add Git hooks setup for linting + formatting
+b744e2a5a1195c3d66aab0344c0aa1d640c73f90 Klaus Hartl 1687450589 Use improved prettier invocation
+7c19140fa36a3553f06f104ca441e32c5eb87ede Klaus Hartl 1687450323 Fix job reference in pipeline
+800142a4ff43dc3e61f566cdcb63aad7d89a0407 Klaus Hartl 1687449650 Overhaul linting + formatter approach
+9fd191c63557fd5859492b5ac6c92c6940f866dc Klaus Hartl 1687427965 Bump eslint-config-standard from 16.0.3 to 17.1.0
+7dd825a00e709a9f2eb712182063ea45308a89eb Klaus Hartl 1687415055 Update mobile devices to test in
+6f67f2f50cc1c5c0946bcf9b2f85d97c209bc5a6 Klaus Hartl 1687414446 Update macOS versions to test in
+b3e22dbe055bd8ad6f80a0de0787dc3afa29adbe Klaus Hartl 1687414040 Update Node.js versions to test against
+9fcf40238bc07d40a4f0e292a32c7675f60b9746 Klaus Hartl 1687413035 Skip CI for a couple of files
+4c461ed65421b67791e90be3a499c9d9a40b4140 Klaus Hartl 1687412623 Consolidate testing workflows
+5c1f5fca7e20c9db1108899610e75da49500d054 Klaus Hartl 1687411964 Add note on how to install dependencies on M1/M2
+246e335be963c2364d88e0e767a3a79c27365075 Klaus Hartl 1687363948 Simplify delayed assertion on encodings
+f79ea756db122e9a8d1ffde3094384d5300d63f4 Klaus Hartl 1687363435 Remove `assert.expect()` calls
+4b5164eb950aa0dcd537379f3db3e514024d7ae5 Klaus Hartl 1687362781 Bump qunit from 2.9.3 to 2.19.4
+60b544ceee5380c575a79d42a4ba7fc41b9054c1 Klaus Hartl 1687362663 Opt in to Chrome's new headless mode
+65fc216154fbff9f553ef56a68ae458f9b48154b Klaus Hartl 1687350778 Eliminate "QUnit is not defined" errors
+3834c918a0993fed52dba95d2cb448305e965951 Klaus Hartl 1685438984 Update vulnerability reporting to use GitHub
+1953d302d7050a8e73e74a9e1822630da1dc3852 Klaus Hartl 1685433360 Ensure consistency w/ get('name') + get() behavior
+9519b763233f0d7f8b6c99c0a1b8a2b323e69c2d Klaus Hartl 1685363320 Remove security related info in readme
+dabfdbbf94c553d022abbde4b6c525b06080069a Klaus Hartl 1685363274 Tweak security related information
+3916010fe006a7085fdf50c6438330a52119373e n0tst3 1685274538 Create SECURITY.md
+ab3f67fc4fad88cdf07b258c08e4164e06bf7506 github-actions[bot] 1682328232 Craft v3.0.5 release
+39a0f40ef22eeb64906836b5cf00ea615ebe8739 Klaus Hartl 1682325653 Remove npm version restriction
+08eb82579fb1c6c42486db6fc6636b56fe52e497 Klaus Hartl 1682242858 Stop distribution via GitHub releases
+f44d1252a1451bba215de5680cd27ab9db74561e Klaus Hartl 1682224762 Revert "Allow skipping npm publishing for releasing"
+ef94a674a73cb98237a5234d549ab7fc1c4daf13 Klaus Hartl 1682224742 Revert "Add cli flag required to actually skip npm publish"
+3f8542cfd82016505d84194c8d239a4bdb165a0f Klaus Hartl 1682147339 Reword readme section regarding releasing
+0e8eb66fb74c349959b061d857713b3ba0b2251d Klaus Hartl 1682147180 Add cli flag required to actually skip npm publish
+c74040829f3c2a244bf4b041ff2ec785199356c9 Klaus Hartl 1682146676 Allow skipping npm publishing for releasing
+089e42b7a755bcd8afab3fd9eeed3868ae9ea7e3 Klaus Hartl 1682146607 Add keyless commit signing to release workflow
+97dca933b686c0b9b7b6f74189780854e9aa5822 github-actions[bot] 1682102183 Craft v3.0.4 release
+ed914cc29f1a3071612cbd2c8526675ddb219cc0 Klaus Hartl 1682101963 Craft v3.0.3 release
+1074ef899a6d314f601f0bbd3f6a244e4907b1df Klaus Hartl 1682100487 Adapt git user in release workflow
+b838df853a7cedd1430f2603491a2389ad03f47f Klaus Hartl 1682100058 Craft v3.0.2 release
+2d06dec3e9d397e9f7f290a980d6b57289d29d0d Klaus Hartl 1682098037 Add missing git user config for release workflow
+ee043b4fc341f076de57d1bb6d808b090b43c017 Klaus Hartl 1682097052 Fix test for boolean input
+30dd7615c6b6746f409c48a714d0916f57320822 Klaus Hartl 1682082602 Prevent `npm whoami` check for release-it
+ada4b3b4b638c47b4cfc8e70ad8164219c2dccb6 Klaus Hartl 1682082570 Add missing GitHub token for releasing
+75c8aa5d9c5216962a51f8dcbbb30b3d905c44ba Klaus Hartl 1682082550 Streamline checking out repo for releasing
+9a2bf3fecb1215e513d53db92ebf17330fb60f36 Klaus Hartl 1682081679 Add missing whitespace in command
+715aaa0b26a7c3fa40ac373fd395f1f56d86e009 Klaus Hartl 1682080868 Add missing flag for npm publishing
+d8af3b21c263a63b80a8235735f565f50519b931 Klaus Hartl 1682080849 Fix yaml formatting in workflow file
+8d7b07ef09dded0478dfa39a493331668aa47b31 Klaus Hartl 1682080824 Rename copy&paste job name
+4f201eb9ac3dd4db09640b229bf5052cbd7eb6f1 Klaus Hartl 1682080427 Add workflow for releasing w/ package provenance
+f2f5646bce005eb146af50f50c35030e5d86b1df Klaus Hartl 1679208635 Adapt branch name in readme
+c5ec0f77f72edaa5db6aa78fe52763093e0f7cd1 dependabot[bot] 1679003995 Bump grunt-contrib-nodeunit from 4.0.0 to 5.0.0
+a6572cca30d7fa92d5d56154088a25e7ac9443c0 dependabot[bot] 1677534709 Bump rollup-plugin-filesize from 9.1.2 to 10.0.0 (#812)
+e542c7ac46ef083041e5227e1f455adff5288797 Klaus Hartl 1677256656 Enable easier shell command copy&paste
+05da3362615d49d7f0b2922768ac4252e613d786 Klaus Hartl 1677256378 Update grunt setup info
+7a630098f1d066db03e63c48a5f0112489fbbbbe Klaus Hartl 1677256216 Remove outdated info from contributing guide
+c573aaa2010b57d66e23eda05c43f5f4b8330237 Klaus Hartl 1677003028 Bump rollup from 2.79.1 to 3.17.2
+c37acc26ea4f5cd2734e88bf94b7c855f9795214 Klaus Hartl 1676991378 Remove IEs from BrowserStack testing
+005fd2a049fcbef5dafbdc6dcf0897d6b09960db Klaus Hartl 1676989171 Allow running BrowserStack tests manually
+fd0f0f442eb873833b831e0d2e7e7fb29910033b Klaus Hartl 1676640155 Replace deprecated terser package
+188d1dc27e37536d6f88a4596c127dc4dd64fd03 Klaus Hartl 1676640121 Configure npm to not generate lock file
+ad52e512a3bd0ec4d438ab044f1c7e564027e437 dependabot[bot] 1676638786 Bump grunt-contrib-qunit from 6.2.1 to 7.0.0 (#808)
+3c04d17c2fb955af979bfb9a0186fe1ed9029111 Klaus Hartl 1676638652 Apply formatting changes from most recent prettier
+2b875972c335545895c57458d7b3c8423125aeef Klaus Hartl 1676638600 Update engines property in package spec
+8be0d012c1108625e21a34fbcdf638e0a4ab9831 Klaus Hartl 1676633689 Update Node versions (LTS) to test against
+265ddcd6d3d2dc3136e0fba10f6553c80f802fc8 Klaus Hartl 1666852869 Bump rollup-plugin-license from 2.9.0 to 3.0.0
+f79d254efcc9fcc12624a732db917d3823f1f6d0 dependabot[bot] 1658287052 Bump eslint-plugin-html from 6.2.0 to 7.0.0 (#787)
+25be28ce9c457652ec633ee3589bc7a001fedadb dependabot[bot] 1658200789 Bump eslint-plugin-markdown from 2.2.1 to 3.0.0 (#786)
+38dcc5d8b7d7c75c45c7985ad6868f438ffb2956 Klaus Hartl 1652164039 Tidy up dependabot config
+75f1f7ae70cb6a138db6fee5142c0139ad466674 dependabot[bot] 1652161691 Bump actions/setup-node from 2 to 3 (#779)
+8c305b256c34c1b3c307f24f020b7979c3a87f68 dependabot[bot] 1652160378 Bump actions/checkout from 2 to 3 (#778)
+6a9333ca5fac22364fd70cb90b410820ec62eaf1 Klaus Hartl 1652160243 Pin 3rd-party actions to commit sha
+2323fd0d5716d68fef4814c3324fd71ce1a9da28 Klaus Hartl 1652160107 Add github-actions setup for dependabot
+86712648ab47ded20a8a508214d470a2c8bc3c71 dependabot[bot] 1651548199 Bump release-it from 14.14.3 to 15.0.0 (#777)
+61a2178dcc2ad13b5bb4263460042084cdc716cf dependabot[bot] 1650519495 Bump standard from 16.0.4 to 17.0.0 (#774)
+64cfa8c6a1ea68a573a477f7462e42adc7e5684a Daniel Tseng 1649322037 docs: use https protocol for RFC 6265 (#771)
+f1985c561dce6c6c98161bd66ded7fdad787366b dependabot[bot] 1649142029 Bump grunt-contrib-qunit from 3.1.0 to 6.0.0 (#770)
+341df52bff8dd2840434a43e9bf7d4f159a84e6a Klaus Hartl 1647514478 Simplify passing attributes reference unit test
+3faec9b5169ad06f456028a4aa001ca9e746b86b Klaus Hartl 1641371374 Try to get away without explicit dependency
+88c5b8e43f70466651e0722bd21ee3734cd87eb5 Klaus Hartl 1641368892 Fix problem running browserstack tests on M1
+7140e7569b362d03190b4932e3280548e68441de Klaus Hartl 1641365367 Add Google Pixel to tested devices
+0eabb4e82b039d46be70589ba6a4242159edf9e9 Klaus Hartl 1641296576 Revert "Add Android device to BrowserStack config"
+520271f522aed886f72f9a579c901911ec296ea2 Klaus Hartl 1641295922 Add Android device to BrowserStack config
+db23a26582fe5c5bc0639099ff82ca5dd3964e5b Klaus Hartl 1641295059 Run CI once a month along with push
+b1e6a772d30a0370e3b6aa57db1c319464a0114d Klaus Hartl 1641286240 Remove copy&pasted command
+8774617d333fb089e91450ddc2cbeef373160597 Klaus Hartl 1641285789 Remove accidentally duplicated markdown
+252666c65999f794ff22ffa7a781e7ea8d1bee97 Klaus Hartl 1641285698 Replace BrowserStack badge
+9de4e0cc22d8cec4e70edc376965ea4124331e5e Klaus Hartl 1641285618 Add BrowserStack testing workflow
+4208f963527ca246eccc63fe5dfb37394803fb7e Klaus Hartl 1641284718 Turn off caching (requires package lock file)
+b936ed0166b454c8bddaae3fdfd4b33c73965000 Klaus Hartl 1641284547 Avoid requiring a lock file
+b7868e9bd4c2c2490b062169d5fa203591ad24bf Klaus Hartl 1641284025 Replace build badge
+d72cb515ab15fe685ffe91a5a7ea8b8726e9c097 Klaus Hartl 1641283516 Start migrating to GitHub Actions for CI
+0371f69baee31eba40d3200d0e1a2d2b528f0fc8 dependabot[bot] 1633555640 Bump grunt-contrib-nodeunit from 3.0.0 to 4.0.0
+226a4df0a4c0efdbf345579ae14a8d7f4deb42bd Klaus Hartl 1630644093 Stick to consistent cookie terminology
+0ba77141dd215782cc7770347a457906908c66ff Klaus Hartl 1630492954 Craft v3.0.1 release
+2a8d172c0bc70a71201561f05af3a25d2f6c1fbc Denis Richard 1630422564 export package.json
+a6345f02eadf2498e7e9d67ffcf4c20ed02c0ad5 Klaus Hartl 1630072126 Let dependabot ignore patch updates
+fee39fc8282a9b9a3ae75b4ef66aa8fbba7c165c Klaus Hartl 1630053992 Move RFC 6265 related functionality to converter
+9e45d88ef25807b721915d456acd9a3284e64de6 Klaus Hartl 1629536834 Use decodeURIComponent() for decoding key
+0790074cf36dbe21b3b78fc9f3b968e6e2a8e8d1 Klaus Hartl 1629267387 Remove unnecessary assignment
+f06749cc93e9e690ce97912552746d41415c7546 Klaus Hartl 1627451609 Remove iPhone 8 from BrowserStack setup
+750a2d8f5a112e9e7719b06c8356323901c6e0fa Klaus Hartl 1627319865 Update overlooked references after releasing
+ea3239ac98cb0269746563092f9e3662a7b20ad3 Klaus Hartl 1627318977 Craft v3.0.0 release
+1711eb2f3f5a95b6334771bbf458bbb1510f2ff1 dependabot[bot] 1627318678 Bump eslint-plugin-promise from 4.3.1 to 5.1.0
+7e1d613acbe89ef7efa59a188c80be7dbd2c606a Klaus Hartl 1627318541 Bump eslint-config-standard from 14.1.1 to 16.0.3
+2643786060f66dfcaac5ba34e33240f48685299f Klaus Hartl 1627025756 Bump eslint-plugin-markdown from 1.0.2 to 2.2.0
+309a4eb1ead9875a8620230c2312aa2a0b7dbf1c Klaus Hartl 1627024552 Bump standard from 14.3.4 to 16.0.3
+74c56efe4719d48e51b95116423d0120b39084a5 dependabot[bot] 1627019010 Bump eslint from 6.8.0 to 7.31.0
+2fe225a3e5d9c667bf17a6ae52f750d302f6112a Klaus Hartl 1627019429 Bump grunt-contrib-nodeunit from 2.1.0 to 3.0.0
+6105fb3d4e2d643361260b2bbe7118c22db57b61 dependabot[bot] 1627018413 Bump grunt-contrib-connect from 2.1.0 to 3.0.0
+cc25e502a0b9fa96462bc39d7c3ac9c102b936a3 Klaus Hartl 1627018745 Reformat with up-to-date prettier
+f423ced8dc1143bfc42cade8dedf293d33e24a3a dependabot[bot] 1627018589 Bump prettier from 1.19.1 to 2.3.2
+6b9a5d67efe3f1b8be70aeed80599de3747902fc dependabot[bot] 1626683046 Bump rollup-plugin-terser from 5.3.1 to 7.0.2
+94a2681391fa748a715805fee378f2fe391f9dc2 dependabot[bot] 1626683072 Bump rollup-plugin-filesize from 6.2.1 to 9.1.1
+ff241b82c16df6ef2efcc8851bf58c95b3146bca dependabot[bot] 1626683002 Bump release-it from 12.6.3 to 14.10.0
+98ceb3a913c207d9ad5f88f952831a3f1df35bee Klaus Hartl 1626682729 Add Dependabot configuration
+986d671557244ec598a189e70156343d0fb0af25 Klaus Hartl 1626510678 Update Travis build badge link
+6541ccd8f683a3d913c5ea2e93459d8561ae482f Klaus Hartl 1626445419 Revert "Remove outdated information from readme"
+e2fb53d0babbc4f6ba361be133359570aefab33c Klaus Hartl 1626445385 Revert "Fix example reference in readme"
+f973578cc9d0f86ca6499e8734fc2bdbc7326199 Klaus Hartl 1626436428 Craft v3.0.0-rc.4 release
+90be9712e0b78550354cfe8cfae19d7e2a35e687 Klaus Hartl 1626436152 Revert "Generate CommonJS and ESM versions of JSCookie along with the UMD version."
+ab1cfc06efaf14f3f12bdd5c61add7ed796640e7 Klaus Hartl 1626433725 Remove CDN links
+8611af2e4636a25240808a45037100a0518394d9 Klaus Hartl 1626362643 Shorten jsdeliver reference
+6e5f737609b5eaff6053634a5b8df00e945df830 Klaus Hartl 1626337506 Fix example reference in readme
+9e6f80897042073b8f430699a3577af1152cd255 Klaus Hartl 1626337372 Remove outdated information from readme
+858ff5bd30e3e074b5ac4f3cebc5e7541760ec0e Klaus Hartl 1626336601 Make important note stand out some more
+5ed1ab610cc4ff53bbbf30b27ef4304de74a3615 Klaus Hartl 1626335794 Craft v3.0.0-rc.3 release
+8bc821c86627cb8218223cfb1fb077fb55a738d1 Klaus Hartl 1626335440 Fix package.json exports paths
+dd1699f8f834fb9a083a1fffaba80fc3bf9c2a32 Klaus Hartl 1626334870 Fix links in readme
+e27e0a85e3004677c9c3a6342de3f473ac974f9a Klaus Hartl 1626255444 Update minimum node version
+8a93068df9bdda7fcfd5ec9d469b6d6834539c86 Klaus Hartl 1626241015 Update another problematic dependency
+f0a9d69f5385c91e8849f6af69299be56ff0bb68 Klaus Hartl 1626240197 Pin problematic dependency
+2d8374697e9ae03f11538eaa546a7ace0a88445b Klaus Hartl 1626239609 Update eslint dependency
+7cc5c43f5235d6eb19e7ad9c871543c033795aa8 Klaus Hartl 1626237511 Craft v3.0.0-rc.2 release
+86ed7c677026eb85d9aacd9d17d71b7221aed208 Klaus Hartl 1626236936 Update nodejs test environments
+e2a43909ebd5f70255bcece82f6966988340ecee Klaus Hartl 1626236425 Update macOS test environments
+cc61b2ceaf62231d185933b47bffa9ceb1bd7c50 Rouven Weßling 1601829234 Generate CommonJS and ESM versions of JSCookie along with the UMD version.
+eceefcc0be5bcb07d6ca32b03978e2c6f8cc848e Klaus Hartl 1599570578 Craft v3.0.0-rc.1 release
+3d56250e0d590b57221ff05d3879e8ca57346b08 Klaus Hartl 1599567949 Revert "Remove dealing with quoted cookie values"
+61972e1d7f67ecdf29423c318a73b4e49f4721fc Klaus Hartl 1599289343 Remove test from module it doesn't belong to
+d1b0b312008ee2a0276d018fa4ecdc19b2f551a5 Klaus Hartl 1599289066 Remove dealing with quoted cookie values
+294247e0e30495da1427fc01f1121d49ffda2c1a Klaus Hartl 1599288323 Revert "Revisit encoding/decoding implementation"
+59fe8827fe2eb31b5430f1c863bffaba303f6a7e Klaus Hartl 1599286352 Revert "Update docs to reflect change of encoding/decoding"
+43bdd41b392fafd1f5df7b43e09ec895658938cb Klaus Hartl 1596266219 Adapt documentation for sameSite attribute
+3cc23031e6a7df1f7ef958194bf3c59742041c23 Michaël De Boey 1594761134 Update package.json
+2fcb3b8f532e3e32b152d22d8b5b86959f5e3a09 Michaël De Boey 1594760902 Update .travis.yml
+bf6cb699a1e0f387b6f4654a8baa421b85ab7de0 Klaus Hartl 1590174407 Update macOS versions to test in
+d0247db89680b22b0d1bd681e001d596b952ca5f Klaus Hartl 1590171204 Add iOS/iPhones to automated testing
+3b9e495fd7072546535de1ae99164d6e7bf68b84 Klaus Hartl 1588401023 Fix test description wording
+b84a35b2d6259c445deac5cc6cc3d2bc21b7be61 Klaus Hartl 1588400608 Allow converters that operate on non-String types
+355f7efee1265a99ceba62ccd56f28e252dfb5d3 Klaus Hartl 1586967292 Change email for reporting vulnerabilities
+7d41e167ab6e4c1f65716d7a1ad2533fb952e80b Klaus Hartl 1583935180 Update references for release candidate
+5198674f45861adde9c9a2c29d7314ed0b76aece Klaus Hartl 1583934727 Craft v3.0.0-rc.0 release
+95d31560a18e88431a1823be4a1e2756477f40eb Klaus Hartl 1583592649 Rename variables for clarity
+d06d5f984ef3c18ab86ce88377c71511de08db43 Klaus Hartl 1583591081 Revert "Implement cookie retrieval using regex"
+baf7f59211c165f0708f01dcb584fae50de6e469 Klaus Hartl 1583574726 Implement cookie retrieval using regex
+d773549c0c2f2f5714feaad4af49f428ffc9d596 Klaus Hartl 1583566912 Update rollup
+40c95a94cb99d3afb65ca4ad60d46108732172a7 Klaus Hartl 1583407176 Craft v3.0.0-beta.4 release
+a462826a3df20476315cccf1369e49edabe41237 Klaus Hartl 1583252127 Update docs to reflect change of encoding/decoding
+04805be8c62f079dd01606ca5855b0bb4a9466da Klaus Hartl 1583241839 Tidy up converters
+b22e6cbf6d3279572b212c95f524067f34405259 Klaus Hartl 1583174196 Revisit encoding/decoding implementation
+d727ba6ceffb101e300a38b4eb06bcca4ac571d1 Luis Pato 1582540320 Update README.md (#601)
+b1d83a073525e00f87d8b4effa4804b8cb741f12 Klaus Hartl 1578740827 Remove no longer supported node version
+f33a0c86e1c4480208f121a328c87f8eae5f7388 Klaus Hartl 1576846715 Add start script to example
+bb98c04d3e369bd8fea635f9d605520161add647 Klaus Hartl 1576846537 Update js-cookie dependency in examples
+42416e8418d24c96de74e97d36db25acbc1444e7 Klaus Hartl 1576845680 Craft v3.0.0-beta.3 release
+f977cc4e114f9dfdf90fe4f7ec47cc760f5534ae Klaus Hartl 1576844496 Fix importing module when not using a bundler
+17b370152c5c0e7d2ac1d04cf594a248fba46bc3 Klaus Hartl 1576325142 Bring back accidentally removed expectation
+285801c44f2ceec6aa836396da3d73851fd94454 Klaus Hartl 1576322679 Remove no longer valid advice from readme
+77f377a9ba7aeb1545073402a90e87ec9826ceff Klaus Hartl 1576319321 Bring back immutability for attributes + converter
+f8ac1893325f6e3f956bdbffe9adecde5b1ba6b1 Klaus Hartl 1576186448 Fix conditional in release hook
+099389f0161e5a8ed74033d432be9e6be9e19e00 Klaus Hartl 1576178439 Craft v3.0.0-beta.2 release
+dc9bcdf80d08ff009705c958eed7597993dcbe04 Klaus Hartl 1576177350 Fix `noConflict()` no longer being present
+13dbe93cafa99ab062eb2e0a8b9660ecf1d5ecbc Klaus Hartl 1576177275 Revert "Remove noConflict() testing remnants"
+0f293a641844b43b6917257ae919b8c3d1a8375a Klaus Hartl 1576176548 Turn `extend()` into `assign()`
+235d13f8f3a1491cc6f043cea504691d1a965375 Klaus Hartl 1576137812 Condense group in regex further
+2c2855cec8860e74b3249277fe53e95acc9db464 Klaus Hartl 1576137079 Merge pull request #577 from nreynis/feature/micro-optimization-filesize-charat
+2f60412461fc0ea41157ddcfe1f530eb64e7fc6c Nicolas Reynis 1576104568 Replace charAt by more concise syntax
+29a9b4b8df699a1cb56bd754f04bd58982960c58 Klaus Hartl 1576092117 Use git instead of github hook in release-it setup
+6d922acc9ef4bfd1c54f0a02f3602b3961971c4c Klaus Hartl 1576091205 Prevent accidentally adding changes to a release
+cce5de3bcd5bc26b8a47a769dad3d3d38b06f4b9 Klaus Hartl 1576091115 Prevent updating "latest" tag for prerelease
+99b3336d48f729c6e0326cc1f9e2e9e58dfe5bc1 Klaus Hartl 1576086779 Bring back accidentally committed config change
+f1d58ca9bb6c6321e270740922e8f9b9325d1fb3 Klaus Hartl 1576061246 Craft v3.0.0-beta.1 release
+d0cd2e105626ad809c23fead775b61dc51e843e5 Klaus Hartl 1575924056 Use proper module specifier
+f1cf17d5720c7e5ab71e2a64723a6eeeb3abf7c9 Klaus Hartl 1575906121 Make extend a module as well
+b0b9b35a460727d9d366ffa07b3f47e8d0666d57 Klaus Hartl 1575893290 Modularize source
+608c2c5cd481edbebb8623b91fafa87a8db3c0d0 Klaus Hartl 1575844350 Condense regex expressions
+1ca9e94270838adc4f3d05b3b74e6ba403ce4b65 Klaus Hartl 1575843990 Move var assignment to the top
+a3706c5ddb599d4c7f7dce6a5b8c0ac2a9476a9e Klaus Hartl 1575816083 Remove unused argument
+31bc2567f8141d0f465f214f09e35d010d093cd8 Klaus Hartl 1575815469 Drop no longer necessary assignment
+de2f2aa9dcfe471a2ff8ca91a188566905ddccf4 Klaus Hartl 1575814649 Avoid exposing converters twice in api instance
+47b538d69f8fd36e821015ab4ce8dec6e0a122e6 Klaus Hartl 1575798902 Freeze entire api instance
+b4240abaaf991779719e2fe155e45085157752af Klaus Hartl 1575791595 Adapt api creation using `Object.create()`
+a47c81bd7b548a0b91b29718d7d9dc87dca68e33 Klaus Hartl 1575789512 Test undesired config carry-over explicitly
+e77c3d3342785e0db2538e6a3c1f89d94a27078f Klaus Hartl 1575753288 Move test regarding api setup out of write module
+1cbedfea9f846ec745d2348ce686f7d8a413b59f Klaus Hartl 1575750611 Remove `defaults` in favor of builder
+d9f533999dd55c85c1a886ad328d4b27aa60048d Klaus Hartl 1575708259 Simplify read conversion behavior
+148f1c13ac0dcfeee26ee0c7d5dba0b695209d45 Klaus Hartl 1575707274 Change `withConverter()` to require explicit type
+71a24cb4a3a7d310dc75a84dc5815cd1b8692017 Klaus Hartl 1575585346 Try different condition for when stage may run
+e0e31a7e5fe954be6a060e249860fdec65f040d6 Klaus Hartl 1575585171 Apply prettier formatting
+8454f234ae026a2ec1e4f3ed780efc7b61015bd2 Klaus Hartl 1575583162 Merge pull request #566 from nreynis/feature/use-converter-internally
+e91d754e15dfc35b1cf87393efd6888179f86b04 Nicolas Reynis 1575498135 Reuse RFC 6265 converter internally
+dc37d14d7a4c99d102fc0acca95a4e3ff440676b Klaus Hartl 1575554549 Remove no longer needed String casting
+9834ceb0de76d29629d6c69c4611587326e4043d Klaus Hartl 1575554300 Replace snakecase naming
+1ffae4383e97d41061b166914d61e939328d1c5b Klaus Hartl 1575554228 Merge pull request #563 from js-cookie/greenkeeper/rollup-plugin-license-0.13.0
+247ec03c0ddad80fdaeee083f23bee7ec0adfa26 Klaus Hartl 1575554011 Add Nodejs 12 (LTS) to test matrix
+3370281bb8e390f95fe2fb49b48d413de231f6c4 Klaus Hartl 1575553894 Add yml files to be formatted by prettier
+8142228abe83718ecb2987c5f6b1a075126aed4d greenkeeper[bot] 1575209249 chore(package): update rollup-plugin-license to version 0.13.0
+ac337a9432182c02cc291b13798c0a1fbfa0e3a4 Klaus Hartl 1570957710 Make pinning of dependencies consistent, relaxing
+95112337f010a08edf4e09c3eda80448426007f0 Klaus Hartl 1570957476 Update qunit
+bb851de9ff2a426aa4de83bd42bf00338675b204 Klaus Hartl 1570868969 Add TypeScript declarations note to readme
+3827a7c02299fc9801825307a28639dba7a408a8 Klaus Hartl 1570739848 Fix link and improve description for `sameSite`
+38586793975b099d4d5f878fdfd7f9c3e21c1f8b Klaus Hartl 1570739569 Document `sameSite`
+3dbf3a34b72bc78c47aadebaa3c83b1a9f7cb151 Klaus Hartl 1570653012 Merge pull request #549 from perry-contribs/master
+da80216a7590e3aaee548992f66bc68826664b4a Parikshit Hooda 1570645760 Update README.md
+b177ce755962749cbbedc20911abb9ff565e855d Klaus Hartl 1570376934 Improve high-level package description
+3d01f65527354097d7e1d751353a609a902d2584 Klaus Hartl 1570353673 Add badge showing gzipped size
+881e88740ce71c04bdc221183e63b38131b79b92 Klaus Hartl 1570353546 Shorten npm installation instruction
+590f175700ece5ea3878b99bfd31cc7cb351429a Klaus Hartl 1570353380 Add whitespace back in for better structure
+6d702d20094ba30d528cb6ecfc31cd8325ade038 Klaus Hartl 1570350031 Use `Date.now()`
+87c69004f1a2438504e48208963cb883c8f79b60 Klaus Hartl 1570301574 Revert "Prevent changelog consisting of commit messages"
+c9f1e1e574c49ce16e168cb8e361870587ba6f46 Klaus Hartl 1570285896 Fix npm badge to display recent version
+5723bc23f6dc545731da14216e42fc1e298d81f3 Klaus Hartl 1570279942 Update lib size + jsdelivr instructions in readme
+c85ee95eded7648d4e85d95ec5f1898439fe87b1 Klaus Hartl 1570279232 Craft v3.0.0-beta.0 release
+61825c1ebcfcfcbe751904e71fc4daa7774f1f1d Klaus Hartl 1570278693 Fix updating latest tag during releasing
+4b79290b98d7fbf1ab493a7f9e1619418ac01e45 Klaus Hartl 1570277373 Remove built-in JSON support
+1698b1ae5fee119aa3d02f3be8e31260e02f1475 Klaus Hartl 1570263449 Avoid setting expires option to unexpected value
+feffe740b9baba9f172df0264f0484c3e7e25e24 Klaus Hartl 1570107333 Omit markdown files from package
+8f81a6b5b2dfd35b9ce03c901b479b46fb298e64 Klaus Hartl 1570107240 Add examples, starting with webpack
+f97a7553e81af49bcd0e532b78cc535c2c3f0510 Klaus Hartl 1570103964 Fix ES module import example in readme
+33b54cc04da967d53d68463e1a535f93e49b5417 Klaus Hartl 1570103436 Use npx for commands
+236d28b169014cabf1019b19c3ed2e03d1f7c7d2 Klaus Hartl 1570099621 Update eslint
+56150585e86108af29e80f8c23fda968b2976f84 Klaus Hartl 1569751413 Add predefined labels to issue templates
+1ed57b9003d1252d67ce31c64bed2ef371067d0b Klaus Hartl 1569750461 Add badge for npm package
+bf6bb36b3b0ac40e71136b7a56abef2f91a763f9 Klaus Hartl 1569750413 Fix issue template, leave yaml frontmatter alone
+7f648d1a19d92685f574d5f74e2ccff64a2e59e1 Klaus Hartl 1569748690 Add note regarding FAQ to issue templates
+7413ba63e463a0289c2044d5464915096d76a60a Klaus Hartl 1569743856 Apply prettier to added markdown files
+9bf3b8ea9906d41249325fafe9f182601ad221ea Klaus Hartl 1569743438 Update issue templates
+df76a881cd02848924e8fc73d75730c7f264f955 Klaus Hartl 1569493146 Modernize Gruntfile.js file
+0d16266152377b421a6951ea630c1b1e2b7732af Klaus Hartl 1569264491 Rerun formatter after PR merge
+7becd826789b8cc22e9983ebfcedf92030302d6c Klaus Hartl 1569264068 Merge pull request #488 from gazmull/server-side-express
+c498f784d3cb19b134003a040778bd958bd8574c Klaus Hartl 1569263846 Tweak installation instructions in readme
+18ed0fd05ae87f11906ae53545681d36731806e6 Klaus Hartl 1569235943 Support case insensitive url encoding
+dfa587de38dbaf901faed5f6bcfbdee6ce0d63f5 Klaus Hartl 1569091706 Correct regex to match url encoded characters
+155e16b95aa39afc9e8ddbc202a065afee5866b5 Klaus Hartl 1568830090 Tidying up formatting one more time
+c61cb3db3de5d3ada20ffe17cbbf05f6ef0ab8f8 Klaus Hartl 1568821448 Simplify rollup config using package definition
+9c59fdba55a4f67ae859d92a1eb9b047600f210f Klaus Hartl 1568660067 Use browser field instead of main in package.json
+9dc5d757e78fd6379a12288066392faddae1e779 Klaus Hartl 1568658042 Fix changing defaults as a whole
+8a7441d8da18e9c6c5979b32dbd2f0663748e281 Klaus Hartl 1568657145 Add missing test for predefined defaults
+ee1cf35bc99687d8e2eec32ac4a81d32e5b19145 Klaus Hartl 1568628366 Expose default path via api
+02198d54be93bce03615ece97c076c164f746025 Klaus Hartl 1568572351 Update latest tag as part of releasing
+80daa3e3ed46eb9b1a846be05fe29dcfe72e2205 Klaus Hartl 1568562229 Simplify assertion
+92aea31c6376be12aefb9a234b90774f844befa9 Klaus Hartl 1568559017 Configure prettier to ignore dist
+da65bd32bdad336071fdd787045337ccfd715a59 Klaus Hartl 1568454024 Add prettier to automated formatting for js files
+46d7457f0fe2efc3dfba37f9d7db733c7162d085 Klaus Hartl 1568451538 Revert "Remove obsolete grunt task"
+e6b4465b900ba062a2217a470f7d8e010236d136 Klaus Hartl 1568447804 Simplify creation of api object
+899118b2e34c3d28fe9154154ef317d93341991a Klaus Hartl 1568447346 Handle falsy arguments passed to getters
+acc4954499f4c84f00ee787b80504f9612341450 Klaus Hartl 1568400521 Remove obsolete grunt task
+47568ec856e5df69a6aea5eb4dccaf52157cb637 Klaus Hartl 1568400138 Merge pull request #539 from js-cookie/releasing
+a6f7b23224a95b0e36c2a20078271467ee491e52 Klaus Hartl 1568374616 Add reminders about GitHub draft releases
+cc6b35c620c6fe5b74af191d7d8203ef0ca00b83 Klaus Hartl 1568373515 Prevent changelog consisting of commit messages
+21c66c7d5997b60af5762449c86d73d3cc46071b Klaus Hartl 1568364101 Document the automated releasing approach
+46e50dfbf74b4423e03877985bcb3778a8cd84e3 Klaus Hartl 1568312479 Add configuration for release-it
+e1fe249de5912a594fbc1fa1f34c663f630b4984 Klaus Hartl 1568311410 Add consistent license to all dist variants
+8dfc697638b1dbc1a34d518c70a943d7ac6dbbcc Klaus Hartl 1568281736 Introduce release-it
+7207115c31616438452ed6a689c31734f4c85c73 Klaus Hartl 1568281210 Add `defer` to module/nomodule loading example
+87ee3e965f3028256522b14049915e05e81e2424 Klaus Hartl 1568280086 Fix problem with missing semicolon
+a287d0787adada848d12c66634e9f24cc5c9ca60 Klaus Hartl 1568279290 Fix false positive in missing semicolon test
+226d02b4ead10614b96cff9b5ad561ea50c2954f Klaus Hartl 1568224608 Remove now irrelevant, misleading comment
+275c7e585226f03848f84dfc676482d432fecc6a Klaus Hartl 1568224421 Merge pull request #538 from js-cookie/overhaul-linting-and-formatting
+cb4e4721ecf0e583a39ec1b5793ad784c9861ce4 Klaus Hartl 1568128984 Add standard style badge
+a0fb4bfc20c8e53a51dc89aa7e45dfa7c05a1a7d Klaus Hartl 1568125687 Ensure consistent formatting: html, json, md files
+59b5fb6090b991de37f8858e345183925e1c1185 Klaus Hartl 1568045125 Remove outdated configuration file for TextMate
+ebde0e354c03ce58301ae3a2aca21017ea37584b Klaus Hartl 1568014457 Make usage of `URL` work in Node 8
+c8b921b46305449822d354a7f728c55be39e1d16 Klaus Hartl 1568012138 Install missing peer dependency
+633b794a5120a72590735b31b861bc8da610e8bb Klaus Hartl 1567970113 Introduce JavaScript Standard Style
+98325f8a37872b51fb2e21f7b21b402ec2524473 Klaus Hartl 1568044729 Merge pull request #537 from js-cookie/es-module
+c96aea2def1572a6a37c37b79bd41de0993f213f Klaus Hartl 1567935300 Adapt documentation for ES module usage
+ac129d269eea79c21f763c2060a663513d5d9043 Klaus Hartl 1567865233 Bring back noConflict functionality for umd module
+60e9ed87450184ed36dae128a1a9b1ee0fbc7c2c Klaus Hartl 1567864986 Add test for ES module
+0feef85b9bf535add6ce03f440841b0c78bdec46 Klaus Hartl 1567859520 Fix typo
+d2a6f4cdb6eb4567301a753629267fa125e54189 Klaus Hartl 1567853512 Update qunit package, using latest
+0a7d1db1b91b03dc2f71183fbe65981f463d7878 Klaus Hartl 1567845865 Set up package for module/nomodule distributions
+a2c113677e9d4a519f164e4bab7f63a5dc12b618 Klaus Hartl 1567791086 Remove support for Bower
+e1e1d90ad0e8897e58b24568071412bbd44c4249 Klaus Hartl 1567790706 Remove noConflict() testing remnants
+2be6618aaa94f68bb56384d0b205251f5fb134df Klaus Hartl 1567790370 Fix file references in tests
+01e324cfd9dd467f8a41e15dcec9aa8329dcb4fe Klaus Hartl 1567790160 Remove tests for amd + umd
+a39aaa661fee7506ad5dadcc40c8405df1aba8d4 Klaus Hartl 1567785320 Adapt compare_size grunt task for module
+077d626eb5441df3165e2df0942b3dc4bd92fd3c Klaus Hartl 1567785250 Adapt watch grunt task for module
+6e90e544b969b07490c1bf19ae2eec770e82d4b3 Klaus Hartl 1567784562 Adapt eslint to account for module
+7382578f2a9f869afa104048c9ac1a27f1ea5405 Klaus Hartl 1567761859 Add filesize rollup plugin
+e3a09f3f72ea9ea83e4866e50a81dced16f1eb08 Klaus Hartl 1567761783 Port uglify grunt task to rollup
+f75545c0fff53e68fe163b2478a7a58563c17048 Klaus Hartl 1567788557 Introduce rollup
+26a33eb44978ef28fa6bdb2d349f5738b4da841a Klaus Hartl 1567778312 Turn source into ES module
+eaa734aa1360b05e6d3b9196ab20aa7d1c0b30c0 Klaus Hartl 1567694465 Update grunt-contrib-qunit dependency
+d811fec56b2a3a93abcf745e9af4e5c02eece909 Klaus Hartl 1567693002 Drop support of IE 6 - 9
+a9222c1af3dbbd11db08c3d933965da7da101485 Klaus Hartl 1567691221 Drop testing in Node 6 (LTS versions only)
+24eb68c3849a2e0d4154c1fc003c462489c65bdc Klaus Hartl 1567690906 Update grunt-eslint dependency
+829c45fc59dab9b3861500c448f7b02129764062 Klaus Hartl 1567690234 Update dependencies
+343ffaa3e2a28da53c7974878fcadf3ac07908d6 Klaus Hartl 1567689430 Fix using wrong BrowserStack badge key
+e52d8b72df73d1e9f3c32a3aecd211a7cdd608b4 Klaus Hartl 1567688285 Merge pull request #409 from js-cookie/browserstack-setup
+e93c187d2f9273aa0d6d81782ced71d5dbc649b6 Klaus Hartl 1567687197 Add supporters section to readme
+55756aec64df0013d130ce581e82df44833fe803 Klaus Hartl 1567606973 Merge branch 'master' into browserstack-setup
+ca92c8106730480cd50033444ffbe924dbd7da52 Klaus Hartl 1567606709 Update Browserstack badge key
+7059adba6789018fab1ca14f88d7c4bd8ccfdfab Klaus Hartl 1567600625 Format json consistently
+885aa4523fc20307fff94e669978b3a22b5c299c Klaus Hartl 1566380190 Skip uploading video for passing tests
+2fe522f6a00fe70fd07a82391de7c34f08344d4e Klaus Hartl 1566378488 Revert to using macOS 10.13
+2ac1d1b2805b4606e0cf61b2b09fd17958dee220 Klaus Hartl 1566378323 Update dependencies
+a2b1e1273ab84467cb38d2deda9dd3de7a6991f3 Klaus Hartl 1566375415 Update macOS browsers to test in
+dceb7eb11da98ec266fc91a884f7218158f47b98 Klaus Hartl 1566315719 Use sauce-tunnel package with latest bins
+8ae243b5ccae771746a5a1963304137aefef3085 Klaus Hartl 1565355718 Change approach to providing Sauce credentials
+54962f884e9ae33f93e13ac903ffaf1d5a523598 Klaus Hartl 1565096646 Release version 2.2.1
+f2759d9e94390f9350aa0662c713676fccd063e2 Klaus Hartl 1550477620 Adapt readme
+799c98bf2257d946522a553f8ab3c49e092b14a6 Klaus Hartl 1550477564 Add console polyfill
+4b00ab6ff2896ba36a82b225bee31da5bb05154a Klaus Hartl 1550477513 Remove invalid cookie differently
+9aa1b79e99a68dace4be6a7f476ef27c6e7684a8 Klaus Hartl 1550477241 Set up BrowserStack based testing
+d2724a87a29cbf7ee539452fb42b3e3a1aff95a8 Klaus Hartl 1550403231 Update browsers to test in
+224f9d97926c444de1fea21beabb800c26b79d48 Klaus Hartl 1550400678 Remove no longer supported browser
+27014688a5ea2964bd04567e675a8c302a5a3423 Klaus Hartl 1546851390 Introduce build stages
+d37b1eb49c455f409ef2659a3c0853e78b127a72 Euni 1548403865 write: better json object validation
+db0d8f2afae8e6b403ebc9050b459859e6cd226f Euni 1548347409 write: better json detection
+d1df35db6cc1befbe27b2cc0784c29a008e6bbe4 Euni 1548341655 Add Express
+d62645185a4ede39ae10216fa695e5f70e701482 greenkeeper[bot] 1545985895 Update grunt to version 1.0.3
+d7f16e2bf92befc3ab3fdfdfdc710856ba181de5 greenkeeper[bot] 1545985428 Update grunt-contrib-connect to version 2.0.0
+0c7f84ff0d29975fc60590ca7b93237ac43ad708 Fagner Brack 1545984954 Remove unsupported Safari browser from Sauce Labs
+bf1faf0dd8126943ccbde163986adeacff6b1e7e Fagner Brack 1542162092 Remove jquery-plugin tag from npm
+e94bbb5b119e397ea25864c4d917bbc97937d22d Maurici Abad Gutiérrez 1539420244 Add to the README to remind that cookies may get deleted
+e111ecdf7dfacde5011d544b5a48c38ef331a871 Ed Parry 1537728406 Updated the README for deleting with a domain Closes gh-467. Closes gh-463.
+bf8bb9cb99ec9b1aa6e8ee4594823ebc6507d44c Rouven Weßling 1530619476 Split api() into separate functions to get and set cookies (#454)
+69f802be223209e0ea283b23cba05b1cd0fbc551 Rouven Weßling 1530447126 Switches linting to eslint (#451)
+cab66782392b7fa17cf65a1153c167a00025e038 greenkeeper[bot] 1528182570 Update grunt-contrib-nodeunit to version 2.0.0
+6581c42171ec7ea72d48a32e6327d6f64ba0b1fd greenkeeper[bot] 1528182540 Update grunt-contrib-watch to version 1.1.0
+5e969423792fb2adaa1eaeca811ce3129866327e Daniel Ruf 1528182441 Run the tests on Node.js 8 and 10 (#446)
+e288a7321e2d292c3045c03d222d19faa51e9e4e Daniel Ruf 1527592039 Cache node_modules in Travis CI
+8b311b9dab5751fab3b09b58d215262e908e92e1 Fagner Brack 1524888617 Document the Build Status Matrix can include opened PRs
+f82f376ed044bc29ee23fd29d97d8c3ffd898226 greenkeeper[bot] 1524888370 Update grunt-contrib-watch to version 1.0.1
+9035bfa2f21b58475f3087a58fe8f56063f1d492 Preston Ursini 1524888291 Update LICENSE to add contributors and Github message (#433)
+d8b016be0f3c068ee4be8a121313de90502da2e0 Fagner Brack 1524613465 Revert ES6 module example that is incorrect
+5be81339f52311e0727dd45f91146ad5fb44822a Xesau 1524612754 Fix JS syntax in readme demo code (#432)
+3fcefa52affa80e3febf43352569aa2592af3e60 Klaus Hartl 1523539043 Make expires test agnostic to DST change
+3138f588a1a7f3f6ec4012185104bcb974702441 Klaus Hartl 1523609031 Fix saucelabs configuration to fix build
+71859834c34a9c54bb81482cf4c2a890db4ed7dc Klaus Hartl 1523599771 Merge pull request #418 from carhartl/fix-getjson-accidentally-writing-cookie-with-too-many-arguments
+d7534cd2fa0878a42d3d403e8231634dda7e6ed2 Klaus Hartl 1523533455 Enhance documentation regarding read operations
+ef3c94613b58c85e739cef23a418d2d94c58a683 Klaus Hartl 1521611716 Prevent accidentally writing cookie in getJSON()
+8b2a8801cc53fe9e150ef41c5c79d1193c79a385 Klaus Hartl 1521576466 Try making expires related test more fail-safe
+0875b1c3d77be0092c6b59afce46c3b57f266a29 Andrew Murray 1521547136 Fixed typos in the code for the SERVER_SIDE.md docs
+e56c99086300e0f3bc81d4e85e355a6f0284be77 Klaus Hartl 1518798804 Refine fix for running tests in old IEs
+8d9dbf350ccd7da099d9403bf308abf155f25b09 Klaus Hartl 1518788205 Revert "Fix running test suite in old IEs"
+3ec501832955f3bdceac34240a4506b0638ce3de Klaus Hartl 1518768423 Merge pull request #401 from carhartl/reducing-bytes
+a7ab62c187eaffcee82ba35469e52464fdbcf29a Klaus Hartl 1518294341 Pass on arguments without array'izing it
+1df2c68b55b9c962ccc177113cc5a8592f251fc5 Klaus Hartl 1518293940 Remove superfluous assignment
+8018ea2b5ed8f7004919382d0855e5be6bf7cd14 Klaus Hartl 1518192058 Change cookie reading approach
+7f756454e77eb5ec177bab11cd5cf9cf1b512481 Klaus Hartl 1518191625 Refine code for applying read converters
+4cd7df2a3a7e8746dfcd44f4377759e2d0a15a31 Klaus Hartl 1517572606 Make expires attribute handling more concise
+7441ec74f3d251bd3d2119169f75f7bb8a384a53 Klaus Hartl 1517564588 Make use of ternary operator instead of if/else
+d53efd36c39b7f50282e7e56ad659751cf006aa0 Klaus Hartl 1517562831 Make use of chaining for string wrangling
+6e42d24f8bf0080949f37db8191516967e6d72b4 Klaus Hartl 1518768098 Fix running test suite in old IEs
+f9f3f0eb93528214bdc4fda062717eba1861bb45 Klaus Hartl 1518293914 Group related code together
+5083c64cdcd991ed4b85d883dea9368d4d3c9197 Klaus Hartl 1518191666 Group api related functions together
+e7f7f5d8e8630236f1a7a0068c661b0a30845964 Klaus Hartl 1518645765 Fix some wording and punctuation in readme
+6ac440da669a096e33cba976f8d9b56b5ea8ecbc Fagner Brack 1518310834 Prevent XSS in the cookie attributes
+e7a476b146717ea3720bef5cfabd0b4d72a11722 greenkeeper[bot] 1518040021 Update grunt to version 1.0.2
+73476a4ecfa5ac3621df501af22e613725e88976 Fagner Brack 1503099800 Document NPM Package Manager usage
+a06b8404a13ed7dbbc962873f2ef4cc6338045af Fagner Brack 1503100768 Document ES6 Module Loader
+a0012f21ba0519fa3c7571cc6f16e15902ec051b Fagner Brack 1509170131 Fix vulnerability reports contact e-mail in the README
+34f056cd261982828072b84a9bbdcd8c3d9931ad Fagner Brack 1509169566 Release version 2.2.0
+a04804adc9853d6eefc512bf7e71784531a68c71 greenkeeper[bot] 1509168662 Update dependencies (#366)
+2754526ad71998b521e4c74ead8b9eccd5918217 Faraz Sherwani 1509168478 Do not remove quotes for the getJSON() API
+976c5cea9fb8b8bca213e7eeed091fa4c58edad4 Fagner Brack 1509165462 Add Safari 9, 10 and 11 to Sauce Labs tests
+1760835174afd97f5a655485e35277b3b3bb50eb Fagner Brack 1509164720 Upgrade Sauce Labs Chrome and Firefox versions
+ba8460b331ad50caf0340cac48a824c6910a4112 Fagner Brack 1509163143 Fix typo for the SauceLabs test on Chrome 41 on Mac
+e7ef7d750340e76414fe741a3994e7ce5db532d5 Fagner Brack 1509163111 Add again SauceLabs support for IE 8 under Windows 7 umbrella
+d3495561e6598aba71ec4770a585ccb82ee48802 Fagner Brack 1509161611 Remove tests that were making Sauce Labs to get stuck
+cebb2aea46bd08a733d90f284db9fda3352b183c Fagner Brack 1509156648 Add release step to update jsDelivr on major bump
+88ce27f063f5484de179ce5b1cd668d9fd57a482 Lukas Drgon 1509155205 Add jsDelivr CDN link
+ebf49dfb3e57f1d81777573fd2a32d72ecfc41a3 Fagner Brack 1508545584 Remove the 'secure' attribute from the remove method in the README
+82860ea5d2333a469eae7f53516478fdbd708354 Brian Donovan 1466781085 Exclude files not needed for the generated npm package.
+31b3366b0384ddc41558a4bf84ce282e65c27588 Seth Westphal 1493702400 Update to the latest Node.js LTS version.
+b48e6cfeb1ab8aad36b2e708349f148ef02f881d Fagner Brack 1503104445 Update grunt-contrib-uglify to version 2.3.0
+62a9e8438fedc78d25ea2070508b770d9926ac94 greenkeeperio-bot 1479940921 Update grunt-contrib-qunit to version 2.0.0
+8b70250875f7e07445b6a457f9c2474ead4cba44 Fagner Brack 1491219144 Release version 2.1.4
+41cbdbaa6e05923d673cb75bb1604aa5a8e69f36 Fagner Brack 1491217318 Expose e-mail address for vulnerability reports
+f5f05376fcb2cdc632db736662c026a5f4597618 greenkeeperio-bot 1490954465 Update grunt-contrib-uglify to version 2.2.1
+32fd4bb840106ed1691b07332b3f3f60c4ce55ec greenkeeperio-bot 1487524348 Update requirejs to version 2.3.3
+cacd196435f8ddc6fac73317e9be167f7bd6230c greenkeeperio-bot 1486486168 Update grunt-contrib-qunit to version 1.3.0
+42d33893dc3edc95a805fbdc153b86b996643fe4 Alito 1491216184 Fix a typo in the 'converters' anchor of the README
+2a367621645cefc27078e191f512224f9da9737a Filip Bartuzi 1483959406 Add the information that the #remove method is silent
+c1aa987f171e802fd69664c9891c8c7270837b43 Jaroslav Hanslik 1483958799 Allow undocumented attributes to be passed when creating a cookie
+4e77d05b59692b664fe869f3e2dd54b77c13badf Janus 1483957064 Use strict mode in the tests
+81e8c0b7f3753c7191eeb709b23ff0efad445203 greenkeeperio-bot 1479940921 Update grunt-contrib-jshint to version 1.1.0
+b1f0a45ac82c892442215fd3cc54877465f3ae8b greenkeeperio-bot 1474131832 Update requirejs to version 2.3.2
+7fd36e66b60a4e0ac9d09207fb3a348a2969152c greenkeeperio-bot 1473095881 Update requirejs to version 2.3.1
+da42a53ae786d983455852d2f29e542e7c702d42 Fagner Brack 1472792128 Fix the release steps
+68acf18560eb7a5d21db7197ae24d975971d1ae0 Fagner Brack 1472788734 Release version 2.1.3
+767ebd932706fc7286398bf6bb5b07e23ad1518e Fagner Brack 1472257115 Change README to point to the 'latest' tag
+92f8e2b04cb0ebef236e019a5900012e86a0729a Fagner Brack 1472247871 Register in AMD and UMD if both available
+583c52457fa1bb6ac823fa687ef52749a9cd2fa2 Fagner Brack 1471875644 Add docs to use with ES6 imports
+ccdcc583430f2646591ad01a24cac0ca5d8da9a6 Fagner Brack 1471872318 Change the manual release to use the 'latest' tag
+72d05c27ebfb99aa8b6ae8f1b46210e223e815b9 Fagner Brack 1470305243 Update grunt-contrib-uglify to version 2.0.0
+ec189f13fdb8d26144f87ab14d3229c0cfcfc67b Fagner Brack 1469950633 Remove QUnit.expect from amd test
+bccdaf79f7bef1d6d2cd56cbff00f8ed2a2c04a4 Fagner Brack 1470305008 Do not parse as JSON when window has a truthy 'json' prop
+9b467413478a0ef58e3aa65b2ab2862c63bbd6b4 greenkeeperio-bot 1468936208 Update grunt-contrib-uglify to version 1.0.2
+671f7f48092e6079b7dfc21d3806fff46b936227 greenkeeperio-bot 1467843142 Update grunt-saucelabs to version 9.0.0
+96c44da1ab77531239f20f21e02eff72fd7acdbd Fagner Brack 1466854994 Add a note in the README for cookies that expires in less than a day
+960a75ed4f5876327c2a7628cc6e41be282effcc Fagner Brack 1466339485 Clarify the interoperability of default encoding
+bafff92d609c10d1fba51054f069ccda3ba4b9dd Fagner Brack 1466339114 Remove unnecessary code alignment
+ff5e17320918f33915145e3ba7397a96e6085e01 greenkeeperio-bot 1466544112 Update grunt-jscs to version 3.0.1
+3d47ad878256bf6457a88ebc72738558e8eaa07f Fagner Brack 1466343504 Revert "Update QUnit to version 2.0.0"
+337419f7366264c2c9bc34ec6f69d9fd434ceb35 Fagner Brack 1466340398 Update QUnit to version 2.0.0
+fcd3d4ade36f44e7936d8cbda074c4987cc6cbff greenkeeperio-bot 1465011186 Update grunt-jscs to version 3.0.0
+79037c2272b8e231e49ecb3dd92f3fb6ce594f76 everdimension 1466338738 Add support for UglifyJS 'unsafe' option
+d430a7351127fc3ea0e231103a2badbeedda0e55 Fagner Brack 1464502075 Prepare for the next development iteration
+8bb6144bc6efd3ccf95af29dd8ed67fcfe33eaa7 Fagner Brack 1464501293 Release version 2.1.2
+2d82baa24c43adeaa4d96ab640cc6fbb1ff94bea Fagner Brack 1461329427 Separate the installation docs in sections
+81e202aa5620e97f2254580fb2010e03927408f7 Fagner Brack 1463060873 Do not fail if there is a malformed cookie name
+0769556df5cad66ef8760a65e15bfddd6021cdb0 Bendik Solheim 1464009929 Correct notice on attributes in remove function
+f2b25713e8fae658d418b60710adc0e0d14998d9 Fagner Brack 1462611991 Upgrade devDependencies
+8a0ae7c08a12930b5eec32d533f7ca383b82a7b5 Fagner Brack 1462611281 Remove 'Very good' Wiki sentence
+81aeea19d20e30ad913e92fccc8c4329e0bfd13a Fagner Brack 1460818487 Add gif file aligned on top of README
+e209f64295ec502e3ffd614e0efb11a853236815 Fagner Brack 1461332215 Update dependencies
+ea3c0b56fce4a8f806d00463fcd086013f415069 Fagner Brack 1460799050 Prepare for the next development iteration
+5c830fb71a2bd3acce9cb733d692e13316991891 Fagner Brack 1460798836 Release version 2.1.1
+880dedd10e6e149449e5d582474a73021578f1b6 Fagner Brack 1460798612 Remove underscore from the OldCookies variable
+dbce75978fd020aa1f4e22d9fa19147aebf96303 icamys 1460131007 Add semicolon to the begining of the library source
+4a4122eb06bc6c4fa8034f00dd9170bd07d4ce7c Fagner Brack 1459859684 Update grunt to version 1.0.0
+0c8f5e1fe35da6c1105ac943b3a9a69a757c6d0a Fagner Brack 1459857888 Do not create cookie if using .set() incorrectly
+dc8f4376d30ba0165df6c6124173ceccf360a442 greenkeeperio-bot 1458936274 Update qunitjs to version 1.23.0
+84eb3244c1e199abdf3e839ed36b25719b2e2b8d Fagner Brack 1459339315 Do not throw errors if the methods are called in node
+3c85aee2650e202cb69ef25113e8f5496d49a5ff Fagner Brack 1459338076 Rename commonjs test file to general nodejs tests
+d82dc72dab240ac64756afa7182b0d71e112dba1 Fagner Brack 1458398045 Upgrade npm test modules
+3a8dfff03a8b7bb3862d97334567a183c2c7926b ThiagoDosSantos 1454157171 Document how to make Tomcat 8 to be compliant with RFC6265
+a49f53a53a38f102c8f7be1dffb600ae0b4b7783 greenkeeperio-bot 1456950237 Update grunt-jscs to version 2.8.0
+163b7bc2ebd3141c29125207c16c8af86351a648 greenkeeperio-bot 1456244101 Update qunitjs to version 1.22.0
+8682bc931bc35c33c8b2f8f8ea7c5b515103701d greenkeeperio-bot 1456223005 Update dev dependencies
+3f2b5e6884407c54b391483f39ddcd4c70f9243c Fagner Brack 1451562266 Prepare for the next development iteration
+788bde34ed7d8c63c245bb3f7028242e1d1b37c1 Fagner Brack 1451561456 Release version 2.1.0
+0fe470c76d254fa413c56bd83e77fcb0a6d5f29b Fagner Brack 1447009103 Merge pull request #71 from js-cookie/write-converter
+951353e99115746fe8afb186c084894f96d0161e Fagner Brack 1446352924 Simplify the "converters" docs
+5fae39dc6bd7feea539d4c584ac18a071eaf601a Fagner Brack 1446352762 "Object Literal" instead of "object literal"
+f72d1bf7f12bc1569ef86a7eca0f72531a02a84c Fagner Brack 1446351710 Better wording for server-side encoding docs
+eaacfd3524ffcaed5a400a00ebcef0c77bb4718e Fagner Brack 1446351385 Make it clear that the encoding examples are just examples
+703b40c80eb3f0457dd866ef28faaa89bd912068 Fagner Brack 1446350531 Replace "js-cookie" with the project name as in the README
+cb6db3967fbc7ab835e9cf3625a556819a937847 Fagner Brack 1445109663 Add docs for JBoss 7.1.1 incorrectly handling of "[" and "]"
+214a23eb2402cc4321162bc483916e840a7c6ee1 Fagner Brack 1445107969 Update the snippet to decode plus sign to spaces first
+7a73bd214a889e7b47d41757ae1ab9fa661b20ee Fagner Brack 1445107414 Change the variable names to make it clear what is for
+16a8b8cca72cebe26ef867b1d909ce2f1769ed3e Fagner Brack 1445107204 Add PHP setrawcookie docs
+bad9911fb684cd468c1873d11c58f3a676762959 Fagner 1445107110 Rename SERVERS.md to SERVER_SIDE.md
+ecc1386c6645d1d935a682c3ccb7f23b3d107e5c Fagner 1443484882 Small typo
+0264aadd35e9f3732baf17e722630167ac9a9e6f Fagner Brack 1443484460 Add docs for Tomcat
+dbc7add2fdddaaa440bd97e5e18449485c52d4d3 Fagner Brack 1443483940 This example is not necessary anymore
+591e663c85f4c6edcc4a283eba67f0e8067fdf81 Fagner Brack 1443483883 Link server-side documentation from the README.md
+87755239d40e5e8f998ac63018705e72d25f3db0 Fagner 1443483722 Add workarounds for server-side PHP and Rack
+8a761febe499f71ef3b30c178c3d1dec31833ac3 Fagner Brack 1443481620 Add docs for the new api
+a5640d48ac9b3dbc7cd0734f3f691e1aea69e951 Fagner Brack 1438406998 Add an API to pass an Object Literal for the write converter
+d832048dcf6526081c773f2014815292b7135827 Fagner 1445106561 Document the Wiki pages
+572f0449a19986f9495ff54018a6643399d705f4 Fagner 1445106266 Fix typo "unobtrusive" instead of "unobstrusive"
+bc8c940a705d15fdc6d9155a7bef448f0ceba845 Fagner 1445106210 Link the "Accepts any character" to the "encoding" anchor point
+ce67410de68dc5831b45dc6630974fa0e0b75cf7 Fagner 1445105775 Prepare for the next development iteration
+605b12c6fae112bd484bfa005f144c82872e2a90 Fagner 1445105220 Release version 2.0.4
+b3dad2c90f102c2d9935a3e51a3384752644525a Tim Sebastian 1445104727 Add unnecessary files to bower ignore
+5afa5d967d8f6b5d2a498926ae3e98e9a1c4857d Akos Vandra 1444309014 Add license info in order to release with webjars
+c2c73cd0ea49256a53f613e7fa638f73b8bd9979 Fagner 1443402789 Document the format of the "domain" attribute
+f28a0fdfc0f780406a4f083c1ec410c77acf55ec Nektro 1440223566 Update README.md
+64a34bd49af04a197a33212cc65fbb4ac09ab6d0 Fagner Brack 1439748668 IE8 compatibility mode does not support JSON
+d9318bb5994db77c809a6b26266b1ea84a42a40f Ivan Yan 1438054073 The JSON-js polyfill requirement in the README should not include IE8
+6b896ce02064efae60ea1e2f1617fa1853c8a708 Klaus Hartl 1437745694 Fix Cookie setup as window global
+4a67cb3bda1d7bc344d7339ae4efc38d890eb47c Fagner Brack 1437356513 Prepare for the next development iteration
+d827e087e1f919a4cd106ebe8542f3408d8fe124 Fagner Brack 1437355862 Release version 2.0.3
+09a074968a3c2511776889c5d40a8411e8527c9b Fagner Brack 1437269144 Fix the documentation, Cookies.remove() do not use use the converters.
+625c466e9b0ff82800fd7b7568a01ad51672e306 Fagner Brack 1437355685 Make the authors consistent with the README.md footer
+6ffc0b4ab8cfe34d1d4bb85d6a09feb34c76acdb Fagner Brack 1436037114 Test the behavior for `undefined` value in custom attributes
+e36ddd2e3268627328a5a198384001533af2a67a Fagner Brack 1436646239 Should not throw an exception for a third party malformed cookie
+76932e33d9b4a50789c2edb0a1aa9657fde9b829 Fagner Brack 1435424137 Release on npm as the last step
+45287a3142ca1d17a096a18df7dbaca66d185d0c Fagner Brack 1435423707 Prepare for the next development iteration
+aab421ebc55584e3f87b64ae2a77702c2f043280 Fagner Brack 1435423370 Release version 2.0.2
+24a0c2a6906bf546d133471efaa523ab9428463e Fagner Brack 1435245217 Documentation enhancement
+f8e01f4c0cc5e959166e011b03958107182ffa86 Dima Chukhai 1435232214 false secure option should not modify the cookie path
+dbfe7e83a26e5b941b2309e8b9fef2f34dd5cf67 Fagner Brack 1434986627 Prepare for the next development iteration
+380cc86630fe807c89aaa5453e606bf6e00a7509 Fagner Brack 1434985572 Fix npm were it published the master "2.1.0-pre" on top of "2.0.0"
+c1dec2f3d97b2c8914131ad17f4b7f25c56b3244 Fagner Brack 1434937130 Set the link straight to the README section
+988ada83872a9f8c036ed7c39a32767e7274d5a9 Fagner Brack 1434934828 Prepare for the next development iteration
+3641d94a853034c6401d64de9fd82736c94afde7 Fagner Brack 1434932240 Release version 2.0.0
+caa594ca966c967a8b72a317eddf446e5094caa8 Fagner Brack 1434312105 Add usage example for the server-side integration
+5182aa05b34f87149eba46414f182c18194f4f78 Fagner Brack 1434308502 Show off that accepts any character
+0979f0663a9ef27c820accd67c7f4cfa195638b1 Fagner Brack 1434307999 The build status is not only for the master branch
+667b52bba7c2268910d15f1c1293d658dacec12d Fagner Brack 1434231976 Fix word typo
+dbea5c3dd024082ccf5dd6a97e3040cfb4a79608 Fagner Brack 1433729445 "version" attribute is not necessary for bower
+7c3a8bd7a05d89b7cee79a0d465556facf05ae59 Fagner Brack 1433724768 Fix jscs code style violations and run jscs in the test operation
+f5d096656bd6690e4e0d9f3e02adf13db8dcc180 Fagner Brack 1433724186 This is just tests if js-cookie can be loaded in a commonjs environment
+408739859fac6294b638c659cc31c1825b3d9e24 Fagner Brack 1433724031 Pass the quoted value test through the encoding integration test
+61abed8ffbb48eaf53e31219495ccba215e4d8f2 Fagner Brack 1433558918 Merge pull request #33 from js-cookie/qunit-update
+a81df6c2624835e7afc16dd25e85218325c71fc0 Fagner Brack 1433552122 Merge pull request #40 from js-cookie/integration-api
+2fb8854e2db84a45e9c4adaa239b2e63a4af710d Fagner Brack 1433549263 Do not stop the whole test suite if it fails to parse the JSON response
+b68e966f81ab4fb0ff1ced2f23039e997de34888 Fagner Brack 1433463727 Fix build
+168f4c244f532e5a0d391315df61c477a159468d Fagner Brack 1432517027 The url is supposed to end with a slash
+c25b3841b4489088a21c8ee909b0eb18ba260636 Fagner Brack 1432478414 Bower requires an empty ignore field to prevent warning
+e95fde0c6205f992dbab7a7d189726cfd2e38213 Fagner Brack 1432477828 Ignoring the files makes impossible to run the build
+4e97e716db970ece75ebd5b8da53ed400bd8972b Fagner Brack 1432400629 The object should only hold the decoded data from the server
+a88c4990dc9e5073580456062bd29747e5d41aa5 Fagner Brack 1432400522 Slight change to the integration spec
+21bf118fa73953c03402719336a38d17302d3cfc Fagner Brack 1432399349 Test the server encoding integration using grunt-contrib-connect
+1dcbd9c000adc1503159e605aa5023f6f7307cdd Fagner Brack 1432394860 Wrap the tests in the encoding routine
+13e4178b0bb3007f2c2ded72555c813514301a78 Fagner Brack 1432353352 Should also pass the plain cookie format and finish the async routine
+8e91807d40f169de982c4bec71b935dc5309f510 Fagner Brack 1432352212 Add utility to conditionally send a request to the server
+c2fd7241450554c115f81bdf843277e7a5f01232 Fagner Brack 1431216850 Prepare for the next development iteration
+ede5390320df3d7208919592fb5d22cbdc9a075e Fagner Brack 1431216492 Release version 2.0.0-beta.1
+9b1fd5020d6b29d1b04877f528acc9ed587cf4ec Fagner Brack 1430697141 I know it's encoding test, it's in the encoding file
+c950949301b2d645d1bc99bbc215235244057fc0 Fagner Brack 1430696367 Initial integration spec draft
+5266429520f5564a508cebab2053031f9c79c2a7 Fagner Brack 1430688169 teardown has been renamed to "afterEach"
+7e3bee77614ddbe2d59853fef2997fd93bf470f9 Fagner Brack 1430688007 update the QUnit code to prepare for v2
+0e5a2268ed3d949e6ab0a03eda64838c6c1442e4 Fagner Brack 1430684203 Split the encoding tests into a separate file
+1a0d1ed13c106382d2cfe1186a73e8091e4ac349 Fagner Brack 1430679916 Merge pull request #32 from js-cookie/path-defaults
+4005ea284a4dd8eff2dfd1a2efe4d48e1c07c05b Fagner Brack 1430598933 Document the path valid to the current page
+4aa50236bf88e9a96df133d594e77775d630d6d6 Fagner Brack 1430530069 This comment is redundant
+f1b7eeb83b294ea4173de06eb10fd04d1dea01a6 Fagner Brack 1430529715 Change the docs to the new default behavior
+c00df64e12ecb8907a5a82aeb55f138247434bf7 Fagner Brack 1430527864 Make sure cookies created outside js-cookie default instance are removed
+573a63842b483020847d5f9783c98a1ae73fc0a7 Fagner Brack 1430522090 Fix the naming to comply with the docs
+38dc9e2b0e2300b773869e2ec82b4a40eef3cb09 Fagner Brack 1430521995 Deleting an attribute should roll back to the default definition
+bc4b822a98b580367f21329711c8d8474c0181e5 Fagner Brack 1430518834 Create the default path attribute implementation
+6ff48c80cbbf9ed6e0e6bf1757a8890f16970cfd Fagner Brack 1430518431 This is not called "options" anymore, but "attributes"
+f43aecb204012e21b1db6a6f29fec16207cc026a Fagner Brack 1430518230 Let's keep this test atomic and remove all cookies
+740f65be5a6aa356a87335de93bca92b416f8bc5 Fagner Brack 1430518064 The returned value has the path added here too if set as default
+b9212c112def1739a20f3ea980e4fbe5e431b5e1 Fagner Brack 1430518021 Again, test if it starts with the expected value
+f82eb043f5db1a881c3cc7bddf56fa27a37219a1 Fagner Brack 1430517986 Use split instead of regex to prevent non-deterministic behavior
+4ac5076277c4472b00fb282a4c25f8ae941c7b24 Fagner Brack 1430517854 Test only if the string starts with the expected value
+33a200537952946d36d37b4b41035c0b097f1d31 Fagner Brack 1430517755 Do not change defaults after each test
+04b6544f90c219ca5100889b9a544f2420026839 Fagner Brack 1430099758 The build status matrix represents the status of the master branch
+fef63b792e73f691fa5d39b67d43b5edc97ddd0a Fagner Brack 1430078765 Merge pull request #30 from theodorejb/readme-grammar
+9d8bc36cca9410a6a112d4738ddcb9586e637307 Theodore Brown 1430074012 Minor grammar fix in readme
+ffbe93bf9265987203ba1eedc291f3d15b66e2b5 Fagner Brack 1430071253 Update README.md
+14d0f0c59c9c4bed6ef09185528c6beb87d242e5 Fagner Brack 1430070952 Docs enhancement
+8fed588c9064a4cd1abfbdb90c39a9f3036db9c7 Fagner Brack 1430070198 Merge pull request #5 from js-cookie/2.0
+6d7b2906602cf806215423cdfe98490d901ed405 Fagner Brack 1429920208 Merge pull request #27 from js-cookie/byte-saving
+e1f7ea28c983f599ef4f883c286f46e1fc4219e4 Fagner Brack 1429917693 Merge pull request #26 from js-cookie/sauce-browsers
+38fb895ab9e853dd3826923cf8548397fcb7d6c2 Fagner Brack 1429917562 Merge pull request #29 from js-cookie/jscs
+550a159c7a25afd8d160c8677986ddd06cf60c14 Fagner Brack 1429844594 Merge branch 'master' into 2.0
+95fbfc729f5293ca39ca30a3df18f38bd84fb945 Fagner Brack 1429844527 Prepare for the next development iteration
+85a7e2866c864d1c4a361525b5fc6510f7cfe4f0 Fagner Brack 1429844063 Release version 1.5.1
+8104cc2b431f60e6354aff7eca22346556b680a2 Fagner Brack 1429843885 Add keywords
+22b11677780e183e34901e7b4473e2e92226aeab Fagner Brack 1429841102 Make some rules consistent and fix some files
+3f867f6d064a69f7b1fe26cc04f8a0f97226a3c6 Fagner Brack 1429832156 The changelog file was removed by the previous commit
+feb987b618f903ceec67f43b2e869f3a91322697 Fagner Brack 1429831833 I created all releases mentioned in the changelog in the releases page
+fdcf45adaf9a1b614a56635cfae4679cb3168e2f Fagner Brack 1429829328 No need for those comments, there are tests for globals/amd/node
+84c40aab76e8b1ebfaa231f2170b352918ee91b5 Fagner Brack 1429829194 Fix year 2015 and naming
+bea9f5186144c0184c167d5bf12f6551b737b5b0 Fagner Brack 1429827409 Assume "escape" is available anywhere in the source files
+51e8745b7457ce23b1a9a04910712baabb0e991b Fagner Brack 1429825928 There is no need to arrayify the arguments here
+82b916896adeb29649640227d4c780056054c52c Fagner Brack 1429769157 Cut some bytes
+755bea0f0bbd34c9a2db796fd18d27bc5ce8f34d Fagner Brack 1429738592 Do not run the polyfill file through jshint
+fc808e7ecbabf361ce3c8dfce2ec189c0682c712 Fagner Brack 1429738425 Italic, not bold
+d937a2f7976b87726d1f9563b81b41573854e6f8 Fagner Brack 1429738280 Add JSON polyfill to make tests pass for IE 6 and a note in the README
+ec03a6d394b3e9372513f7d1f5c8a5464077d894 Fagner Brack 1429735534 Update Sauce browsers
+dfd44aaee68fd32229773ef8db3772ba4843dd0f Fagner Brack 1429726108 This is not a "plugin" anymore...
+4ffe15236681c25853b29d2a00b0886643f27517 Fagner Brack 1429725995 Small changes in the README
+45c051ca73b189d97ad853c2496c42c37111b57f Fagner Brack 1429724145 Merge pull request #21 from js-cookie/void-remove
+bb9234bd2e7f7cac10d6c05dcc5112419afe2cfc Fagner Brack 1429545407 Remove from docs
+146f42c3bdfb6c122719900f0f46ed42a3814055 Fagner Brack 1429545246 Remove the code
+1257445c0e2bd512674062bf9e0628b19136112f Fagner Brack 1429722249 Merge pull request #20 from js-cookie/server-encoding-test
+ad741fd4bb90fad533e07e4cd283b9ca0df3dc01 Fagner Brack 1429721674 Merge pull request #22 from js-cookie/rethink-converters
+a38840b7b97ff86ebb9d4edab812a336cedc6119 Fagner Brack 1429651435 Merge branch 'master' into 2.0
+a105e27b63eb831a8ded138f7d77b784e64cf7c1 Tom Southall 1429645010 Add ".noConflict()" to prevent conflict with third party scripts
+395aa1d4dd97ba58d8bebeaa6a0c059d16194a82 Fagner Brack 1429569784 Fix CI
+f9aba4e8348fb820a76311a32c66bed9f8becee2 Fagner Brack 1429569765 Small changes to the encoding section
+ef49662a77dedd48733f9853772a44bf6f1edb6c Fagner Brack 1429569570 Adjust docs
+d4318a98e0de1c7e222f3bd7786037cd45d08f94 Fagner Brack 1429569531 Add test for retrieving all cookies using converters
+6b66ed4e29dbfa1a223804cbdb8169e3ea636b52 Fagner Brack 1429567524 Add new converter implementation
+512724c247956ba11893005c6bc04998aba571fd Fagner Brack 1429544951 Fix docs
+9a8018c436ebd035d7d7fa98e65f882f3f033981 Fagner Brack 1429544047 I believe this fix was mistaken
+a0c522634f7d14db916cc818418b9d69cc4225de Fagner Brack 1429543562 Byte reduction, I can do this passing just references
+73478fe0da2dd6c21587dfe510386cbdc388097d Fagner Brack 1429542630 Add test for global replace of parens
+13f5145795d283c7ef349d87d1d8d7565ce8325e Fagner Brack 1429542348 Need to use global replace (damn "g")
+5ac2a2ab101177ab1c881e543d79b7589a3c93e5 Fagner Brack 1429541503 Test characters allowed in the cookie-name
+5235b01b6cb83a372df8430087889ef062202c1c Fagner Brack 1429536514 jshint
+57cb45e9a1df86f5dc3fe1be28a83b67cd75cd65 Fagner Brack 1429536198 Consistently uses cookie-name and cookie-value as the spec names it
+bf15611aa872626a391f39935b014327525d1148 Fagner Brack 1429536134 Do the same as the previous commit but now for the cookie name
+5c70ff336843460d6028f3b1dfbeda1dc779d3af Fagner Brack 1429534530 This belongs to the cookie value encoding module
+2f2be3ddf46b5f93cb9b424a75b13881d8d42cd3 Fagner Brack 1429534115 Split unrelated assertions in separate tests for cookie value encoding
+5bb0e058dd91915ca53886936319b4e6c2296404 Fagner Brack 1429533954 unnecessary RegExp instantiation
+31dfc49ffec4b462bf6720cdefd1fd484ff78ddb Fagner Brack 1429532012 Mode the 'cookie-octet enclosed in DQUOTE' test to tests.js
+31ff4a4ebf7542d0d6d6197fdf7378e5d102828b Fagner Brack 1429531008 Split the tests in 3 files for better manageability
+c495d5c52c54ebcbc29d14b895dc53dff564d761 Fagner Brack 1429530445 Test for allowed characters in cookie value
+c76131c780dffd829832b8cfb1a7b8fbfd0f482a Fagner Brack 1429486176 Use the same naming used in the source
+432b39818c27c029439857d2b3627ab781d66f60 Fagner Brack 1429486128 Add test for whitespace in cookie-name
+fd0bfc42149dd1ae9cf1f3e1dd842373b625fa95 Fagner Brack 1429485887 This file is not necessary anymore
+694ffe1e62b1eae13f6e7e3a00ccae950698e8a6 Fagner Brack 1429485703 Testing server communication is irrelevant now
+42d102a4dc105e677a1f2321aa5355c5c47e87bc Fagner Brack 1429484586 encode all unallowed chars in cookie name and value
+655bd685591713e87df5ee5bab6e4a1dcfc55f8f Fagner Brack 1429483339 Change strategy for characters that are not allowed in cookie
+acfab498f0cfbbc446b05e487ca015cbc4e4b758 Fagner Brack 1429478319 First test if the browser can set characters outside ASCII range
+b7e13a5c308d39d30e2f34e1c08fdcf8b5ae05b6 Fagner Brack 1429475308 Make it clear the characters that are being encoded and the ones that are not
+6840741e0085beff238f41ea69cb3f2703bcbe07 Fagner Brack 1429461934 Fix the jshint errors
+b6787ef72516e64c882ce3882257caa2db35c3d7 Fagner Brack 1429460553 Test for 2 bytes, 3 bytes and 4 bytes characters.
+c896f1512fc7caa6abf79a8eecc268a9c0837dde Fagner Brack 1429453476 Make it possible to run the build and have the tests open in browser
+5010afeb8c201a1d711b4bd17d2e504c1b29cb37 Fagner Brack 1429453370 Separate one server config for each build type
+37d41c58ede4d3b7b3af4213c50143afe19fbbcb Fagner Brack 1429448457 Merge pull request #11 from js-cookie/remove-package-managers
+34cb1a4efe816716a42aced8c634f322dd30fc85 Fagner Brack 1429132216 Document package managers support
+d7c5b13f3ed819e8f4a211dcf7a5089f3e9ebd51 Fagner Brack 1429125166 Remove custom code for jamjs, jspm, component.io
+a174ebe70dd2e97f35c6303118262a7b89076c8e Fagner Brack 1429446791 Merge pull request #17 from js-cookie/default-behavior-docs
+fbde23b392dc85cd86e4c2cd44ba6a6fe6acafbe Fagner Brack 1429446609 Merge pull request #14 from js-cookie/few-tweaks
+d02fac4fb932eb538860bfad2997199ec16c212d Fagner Brack 1429446047 Merge pull request #15 from js-cookie/quoted-string
+4689dc4988777fc75cbcd622c8642e35e4eb380c Fagner Brack 1429162143 The more simple and direct the better
+9228f251e717289e51040329c3dc2e67b84e9784 Fagner Brack 1429161842 Small change in the RFC section
+b94993a04309d6e72a0a1df04394394817e7f1b5 Fagner Brack 1429161007 Enhances README documentation
+3a9007abcbc99d26ff8edc179647316ad9afd380 Fagner Brack 1429157381 I suppose there's no need to expect slash or plain quotes inside a value
+6f6210fe99753279a9819eee3aa76dad5487c002 Fagner Brack 1429155557 Try to figure out how to handle cookie-octet enclosed in quotes
+78a3b44b82c997b9b682af1b34b72a664f8cc563 Fagner Brack 1429151676 Few tweaks and tricks to reduce gzipped size while supporting IE8
+2847ee7906960acfe25821284b24ead5d697c4c3 Fagner Brack 1429123527 Document the JSON handling also works when reading all available cookies
+c08977068ab9183af7edb019063cc900dc01c1b3 Fagner Brack 1429122700 Merge branch 'master' into 2.0
+790472a06db1eca5fae60ee63c8a570e8cf2cfcd Fagner Brack 1429121321 Link the documentation of the latest release tag
+41c15bc385fc9a3f8371bdbc32908c68f0d9f53a Fagner Brack 1429116399 Prepare for the next development iteration
+6bc53675ca78838c9c9c361eae39d5f50bbb6353 Fagner Brack 1429113224 Use js-cookie name instead of js.cookie
+3d532c63b5da15f604ed7d3a3b92f202b5172d09 Fagner Brack 1429112242 Release version 1.5.0
+2f625ebbbfa91fa154a61152b7deea32659a0792 Fagner Brack 1429121321 Link the documentation of the latest release tag
+dea8b623802c0d43fc84ff4430b73c82e400e829 Fagner Brack 1429120475 Merge pull request #7 from js-cookie/raw-option-removal
+4150b5ea9c60e6c40288c399cabf0ffa8eeddb69 Fagner Brack 1429119913 Merge pull request #8 from js-cookie/RFC-6265
+bfa572a8bebae53dbe4f71122e98e1dcf527ef3e Fagner Brack 1429119231 Merge pull request #9 from js-cookie/remove-json
+a52398deaf90d98ab64688904180f95a3ec8b807 Fagner Brack 1429116507 Merge pull request #10 from js-cookie/auto-json-handling
+e6af74f131fbcc92091184a80968428019c49219 Fagner Brack 1429116399 Prepare for the next development iteration
+087d36ac338b92c001d3b6fb344874cbf37f8298 Fagner Brack 1429113224 Use js-cookie name instead of js.cookie
+ad5b406f13b4c843e45c3cd19d38d961ace0985b Fagner Brack 1429112242 Release version 1.5.0
+9adc4da866b4be23b7c7093dc122401fd2b577de Fagner Brack 1428892441 Add JSON automatic handling
+8cdc5c63e2a8e038a964c2eda223650cc7125d8b Fagner Brack 1428873384 Remove from docs
+f6180cf069e3621aa50404eb92585abfd1f30e6d Fagner Brack 1428873041 Remove json option
+84d838b16f1a3d9a8b9960fe84b329a174b8a964 Fagner Brack 1428871715 Add documentation for handling RFC 6265 encoding/decoding
+f41d4d8000bed54285afcf977bfaf9caf680ca6e Fagner Brack 1428870257 Test for all unallowed characters in the cookie-name
+12087296c4109729892a9204ee51fdd3f16d21b2 Fagner Brack 1428790028 Global replace and DRY
+e9f8bd0b446a81b6f8a0a501add1d1954c47f2d4 Fagner Brack 1428788450 Encode and decode cookie special characters using the UTF-8 hex encoding
+19e479ca369a70e1015f6987480e66fcbd3fc0a4 Fagner Brack 1428786904 Merge branch '2.0' into raw-option-removal
+cd50945c222e489a00e2bf5b530f60f7e86862ef Fagner Brack 1428784994 Merge branch 'master' into 2.0
+2a4ee3a05b3fe28ce5e5ea249d3bf6f210e47827 Fagner Brack 1428784030 Fix a bug found when one creates a cookie with a quote
+9264f2ad1f9f8b00d5dac51cd2b9a94d7a856a33 Fagner Brack 1428783040 Remove "raw" option from docs
+ec1931735a236971bfaa2d6bc7c9de3c72224d4c Fagner Brack 1428778005 Fix test globals and ci failure
+091921f3893131f1329c67a80929d66f8d8fc42b Fagner Brack 1428777013 Provide a solution for custom decoding
+1ff2fda87c9056bb17f8a27aba94c560589f2e53 Fagner Brack 1428774929 Document the release steps and mark the 1.5.0 development iteration
+7bc213565044131a121efa8bf2f15e846bdfd6be Fagner Brack 1428698334 RFC 6265 do not allow double quotes for cookie octet value
+a0ca45a8e1d293e1d6478f928354112f081ccf14 Fagner Brack 1428695850 Remove encoding operations and raw option
+e00ffbb107486f2b599915f1da44ffba94075e1c Fagner Brack 1428689658 Merge branch 'master' into 2.0
+e2ae3b69f7e56eb9b76f7f712c022f4448cda556 Fagner Brack 1428689551 Volo is not supported anymore
+b74edfce74e074baab400129ab89084e59bfced9 Fagner Brack 1428673640 Remove jquery support
+38153d1994b23255f849a03f45105da2c516e36e Fagner Brack 1428672199 Just to be able to create a PR
+3e816b8ab8a130ccc24e29966dbf98c04f66a6d3 Fagner Brack 1428669791 Add migration notice and optional jquery support
+a95cebc9ea68b270585bcba5094e98e57a44282d Klaus Hartl 1428583423 Merge pull request #4 from carhartl/fix/building-unsecure-prs
+782a0629c921f4c3ac378c4207c0233e1b03d648 Klaus Hartl 1428573686 Fixing condition for when to run the suite with sauce and when not
+2c8c2bd3bd723ae7fa0ec347fe7c7f347d8b8d41 Klaus Hartl 1428568305 Testing for sauce access key instead of a pull request
+f122b36be1a84efabb97cc909b2eb1f695016a0e Klaus Hartl 1428568763 Removing chmod'ing travis.sh
+b6b2266faa2881cf7c6526bdef0fd5030c9bfff2 Klaus Hartl 1428567912 Making script executable
+2d543c8ab59bbcb630b5c19d705727a6fd50a12b Klaus Hartl 1428566523 Correcting naming
+60599da8e9c11f2859e7fc188435f45bb57de53c Sahat Yalkabov 1428529508 README: SVG Badges
+ba93ccf410f089106cdcf71519c48cb29ce829ed Fagner Brack 1428466215 Create a "travis.sh" file to run the build
+812bc0ba1384dad93e312881ca065c74ddd6d646 Timo Tijhof 1405161255 travis: Don't run grunt-saucelabs for pull requests
+f9a8b771c7d1bbc2811517e9478e7053b423ba6e Fagner Brack 1428452298 Add SAUCE_USERNAME of subaccount
+0ac5c4d7bbe2d21c73ccfc3284c4f2376f7dd088 Fagner Brack 1428451858 Update SAUCE_ACCESS_KEY to the subaccount ACCESS_KEY
+f3710992ef54467fb3c34942a1e7ffb8b876a89e Fagner Brack 1428445379 Fix sauce test failures for IE 8
+173e2f36ec8d30280f453f3ae247aea0a3dfd216 Fagner Brack 1427318946 The "readmeFilename" property doesn't need to exist on package.json
+eb8585d8f74f7e9a6052de8fde3b62de7e496e96 Fagner Brack 1427172922 There's no need for jquery in .jshintrc rules
+71ccc947bb077528e11eba781b4836fc92eae0fe Fagner Brack 1427172892 Rename jquery.cookie to js.cookie and modify all references
+faec1b2cff108d859d671b2f7dfdec6d7aa58ea0 Fagner Brack 1427172216 Change naming references where possible without renaming the main file
+f5a5116a50ec9581c6566640d6ccbe7cd92ec0c4 Fagner Brack 1427167258 Unnecessary gitHead property
+50b0b088d3b57051c42bebdd46965aeb4511055f Fagner Brack 1427162369 This test is unnecessary
+8b6ebc437e3901716ac4cacfedd94a7e2bf02738 Fagner Brack 1427159393 Exposing internals for unit testing breaks the "lightweight" concept
+5764f3eb2c0859e201fd40bdcd988ce0af12a832 Fagner Brack 1427158355 Remove all jquery usage from the codebase
+c7e34b763a1c6ab71bd76fceacb2b7b5ca48cfb1 Fagner Brack 1427157139 Remove last jQuery external method dep with a custom implementation
+8aedf0091a3bd628eb90aea80bff51d33e020de7 Fagner Brack 1427156559 Remove remaining code depending on jquery in the test files
+cbe8ed9303a4e1c01c95facf45041a3434df0404 Fagner Brack 1427155959 Write a custom simple extend for this project's use case
+25ced9c78c57aad75806d50993956d811df72e2a Fagner Brack 1427153736 Add the "Cookies" API without changing the jquery dependency requirement
+bd1b173ba43a41ece786602e81e5801ac3196067 Fagner Brack 1427150029 Update all package.json dependencies and use a fixed version
+4527b3725ce7b61066e6aa12bbe8d20c0371a1d7 Klaus Hartl 1426714014 Fix removing cookies in sub paths
+41b1bad52a029e75f68676024a559dd0142fcb67 Klaus Hartl 1426712691 Fix computation of the expires date to consider a local daylight saving time change
+07e593d8fb8913867e357b6ddee3f7f6a05c35e7 Klaus Hartl 1426710879 Trying to improve readability a bit
+8df2e77e25147cb8ba183c905bb8747523cce26e Klaus Hartl 1426710205 Merge pull request #307 from t0mtaylor/master
+8b28ab2091e966b78f8d901df02e317e00bcde6b Klaus Hartl 1426709831 Improving comments somewhat
+17884203d14afc4eb4954cb8f584c269901756be Klaus Hartl 1426709756 Moving around jshint configuration to where it belongs
+d3d4b4a0a9f8ea82e11e50a1d5a7c7f38bae9a35 Klaus Hartl 1426709198 Merge pull request #339 from kozze89/fix-commonjs-export
+f12dce392ae87bcc50ee76d57ab8e59f60f522d6 Konstantinos Vaggelakos 1416963387 Commonjs export fix and jshint updates
+91ca66419cc657098a48960d4a248b2862836f26 Tom Taylor 1407752441 Merge remote-tracking branch 'upstream/master'
+aeb793d27286c7f0b915c3aaee24c3b7d04d71fd Klaus Hartl 1405488601 Updating copyright
+9ed982ae82b8204b2d2129f16555cb0b120850ee Klaus Hartl 1405488417 Fixing references for a couple of package managers after moving plugin into src.
+1add8c1ed12ed6dbef761aa5795d38cc0095a296 Klaus Hartl 1405485563 Merge pull request #314 from jstrimpel/master
+ae467e55ff0ff31d4fe61f92e96cb2377d3e70ad Tom Taylor 1405469142 Removed vars, whitespace, 2 bytes saved gzip
+afc813b033a653999a4d01c11d33626cec346e9f Jason Strimpel 1405467165 updated main property value
+72671796a24ea5a3cf9985339e19d50a294651ef Klaus Hartl 1405451125 Merge pull request #313 from Krinkle/jshint
+b106a0e23640281321cf7ced832f6dc8fb88a085 Timo Tijhof 1405367660 Move JSHint config to jshintrc files
+be47cde2a75446930784fde3e15263974599fd16 Krinke 1405174980 Invalid cookie value should not be a getter
+14557ed5dec32c317bbd426f20e5287a8b9c0f8f Klaus Hartl 1401687612 Simplifying test server url...
+3f1f88b72503e7f993508b2caf37b1d4c0d39f4b Klaus Hartl 1401487256 Also lint tests. For this, moving jshint options into Gruntfile...
+a5aa50fb369bb1b21ba9f928a7da525c6d204061 Klaus Hartl 1401483433 Minimal html for QUnit
+1c710ecf3f3e32c47c8ccf632ac3a8156a4c43f9 Klaus Hartl 1401482142 Updating grunt-contrib-jshint package.
+1a98e9ce0c330d420b70887a02805bb67d0945d8 Klaus Hartl 1401480780 Removing obsolete options for the connect task
+18fc9a124d377aaea6f90daa29084ad16571ab9b Klaus Hartl 1401480421 Also ignore logs of the form log.1 etc. (created by Sauce Labs)
+f81174035cc52298efb5a31afc86026516ad29ca Klaus Hartl 1401479119 Updating grunt-saucelabs package.
+e3a19c3e6dbd7c3ebd4a350bee7d8de1dd4dafed Klaus Hartl 1401314885 Improving Readme
+f2b6b252b01cb24a5619744730022d860d3215e1 Klaus Hartl 1399672159 Enable livereload for test suite when opened in the browser via grunt task
+1f14c0053ea8f1a77144871ffdc2334a1ea5bbae Klaus Hartl 1399670574 Adding a connect:tests task, to automatically open tests in the default browser.
+da0e4ac0904eab8bc609c10620e19bb1abc0aa91 Klaus Hartl 1399666122 Updating node version to use in CI
+c5ad0163f0259553b6933f3ef72f80c80db5fa9c Klaus Hartl 1399666074 Fixing indentation in the yaml
+e9fe5559e4b69aedf6a916a3e27e2a8cfda6f079 Klaus Hartl 1399665117 Use `grunt connect:server:keepalive` to start a server, removing the one in test.
+e847e2a42f2cf63e43013cd16df7fab75d207dfc Klaus Hartl 1399363601 Update QUnit
+e2a881c9694a39b57cb7eff8a4f64ebd6a144456 Klaus Hartl 1399363410 Update jQuery used in the tests
+288af0659a8371fa1128133f1205eac3afb4633a Klaus Hartl 1399362871 Updating to use latest Firefox for Sauce Labs CI
+120dc4cd1bbac59a1b6ce4e80a158b54cda68b81 Klaus Hartl 1398715161 Updating Sauce Labs browsers to test in CI, closes #288
+7f88a4e631aba8a8c688fd8999ce6b9bcfd50718 Klaus Hartl 1398629235 Preparing for 1.4.1 release
+cdb77ba48636ab672062ffe9022b695771a2dd4b Klaus Hartl 1398412877 Merge pull request #275 from MrNice/patch-1
+38b998b9780e52da3952ab57572c36f46280a79a Nicholas Van de walle 1394812809 Update MIT-LICENSE.txt
+9481ec9eb649e10cd8650d58c0170a36b2da10e7 Klaus Hartl 1393923485 Removing newline
+8f641ded8a1f6b7697161e258592c9d388d15485 Klaus Hartl 1393923357 Updating changelog, preparing for next release
+5b12a4e11dd167d6227cb866ee6e88134cdae813 Klaus Hartl 1393616075 Adding missing newline at the end
+187c874c6727f4c9518e6565e1b742192de80bb5 Klaus Hartl 1393614497 Write comments in a consistent manner
+021c59940557fad74e66188180ed0ce7b93cc62d Klaus Hartl 1393616014 Merge pull request #253 from Kneaver/master
+95bf25e8e5717a416f0219a5a85a6e4bcd2a493a Klaus Hartl 1393615666 Merge pull request #262 from wilmoore/patch-2
+954b559cdf56381412524d5ad6d79d786e35a2d8 Klaus Hartl 1393615521 Merge pull request #261 from wilmoore/patch-1
+13a3f1186751b6742240d79fde5fe34f59fdeb3b Klaus Hartl 1393615305 Merge pull request #260 from primedia/master
+1d22c53e5a81ff2d0e146fdead748062d20ff7e6 Klaus Hartl 1393614135 Merge pull request #264 from gaastonsr/commonjs-support
+6e175cd71e0d4cf8b64739b3128ddef5a33c938a Gastón Omar Sánchez Ruíz 1392176199 Add CommonJS support
+5421819450666bada6d1aed655cfaf4e85a4f88b Wil Moore III 1392072696 Download hint for volo
+92c3fd0ad5cfa45ff03914969912fad4c4a9861a Wil Moore III 1392072531 Fix package.json main property
+433a10696e71f1584662cae507c404f4bfbb9526 Klaus Hartl 1390939389 Adding note about the documentation in master vs latest release
+3646a0de3e271641a3e232d39e29e71bdab16850 Colin Rymer 1390924948 add jamjs support
+d24eb23c3f045fe96e9e2993529a91478a97fca8 Bruno Winck, Kneaver 1388137897 Add component.json to support component.io
+fbb0117ff06f7d7410c4243af8906e64d3ad27de Klaus Hartl 1385816777 Date.parse works a bit different in Firefox and IE and Webkit. Also fixing the creation of global variables in the test.
+ecb597b65e4c477baa2b30a2a5a67fdaee9870ea Klaus Hartl 1385762093 Allow fractions of a day for expires option.
+2b5a3a39bdb5865dd84c9b7218ac1cb7531b207a Klaus Hartl 1385674976 Merge pull request #244 from guybedford/master
+580416a8b08e33d819a92fca7f4caa8d9ca6527c Guy Bedford 1385477496 add jspm package.json config
+ac265dcb3bd0d18252396a0ce6db5c4a4c420069 Klaus Hartl 1383206955 Moving build status matrix below description. [ci skip]
+8947f435c39b209d1ef4c46284702c2e0d03678b Klaus Hartl 1383147688 Using correctly set up Sauce Labs account (one for open source). Should fix badge not showing up.
+7984c941e06b071eaf3eac9cfbd171decd3b75b2 Klaus Hartl 1383146401 Adding Code Climate badge.
+3ab35ab43ef4aed1c3d463ce8e0a86c914b0d260 Klaus Hartl 1382649212 Using a single try/catch block instead of two.
+0ae9f7eec0f56c677c826094eb126060a50b93b6 Klaus Hartl 1381918678 Fix return value for $.removeCookie() in case cookie deletion failed for whatever reason.
+3caf209abe30a856789d0ceb464c297dfdbe670e Klaus Hartl 1380997456 Preparing for 1.4.0 release
+db776243573afd2cb2d6342158e9395d69ef1b23 Klaus Hartl 1377029176 Adding syntax highlighting for remaining code blocks in the README.
+64eb7b75ad3165fd842cca68ada02606c5797550 Klaus Hartl 1377013473 Implemented conversion function as optional last argument for reading. Also see #151.
+43660d48c0a05bbe637acae3ac3468a44451f572 Klaus Hartl 1380977453 On CI, adding a couple of browsers/platforms to run tests on (using Sauce Labs).
+939e3fd16bcc539db1530017527465f612b97b8e Klaus Hartl 1378922833 Consistent formatting.
+81dd6a1596bdcd8e6c4008fcfc6d42825a7c4a2f Klaus Hartl 1378893343 Handle decoding error gracefully upon reading, return undefined. Closes #215.
+a1e99ef60442a4c7b634d4e60c90b5cd9dc4352d Klaus Hartl 1378845758 Fix odd result for calling $.cookie() when there are no cookies at all. Closes #212.
+8f68246af8c43aff70e63dde6a4fe868a5f960f4 Klaus Hartl 1376824974 Correcting the test case's description
+43ecd80e4ddf36ac62bf40be35e610b0c19c1538 Klaus Hartl 1376768764 Allow strings to be saved and read while json == true. Also fixes removing such a cookie while json == true.
+bd134a7439ab876117146863e491e72d8d3a1f5a Klaus Hartl 1376763499 Changing headline
+b77bf53a2ee7113c4161abb8ca7c345eae0b11f4 Klaus Hartl 1376763386 Adding files to be ignored by bower, closes #205.
+9b5607e8302df273ad37fff9e099cc6aedbd1c25 Fagner 1373073344 Contribution guidelines enhancement
+60c1126cb6d4edfe078fa75f315a7df196e3e78c Klaus Hartl 1372353586 Also mentioning bower package definition in changelog, I pushed to fast.
+6e301424b28a7e4a123d79fc975f6e477a8623c9 Klaus Hartl 1372353329 Renaming package definition file for latest bower, see #179
+006199a6da5e6eaf380ef0c74788bc6b015a8d1e Klaus Hartl 1372352758 More consistent formatting
+43f15080765e5f1b47a5bb68ed4acd6fabfe9c0e Fagner Brack 1372350464 Several minor changes to the development process
+047d82fda5eac06b53c89efc94fdd44aec180a67 Klaus Hartl 1364576848 Do not alter options object in $.removeCookie (consider that a reference may have been passed), closes #175
+0b9c6ca456ac8ebe28c59c366065f9d51f10ee42 Klaus Hartl 1362725184 Moving paragraph to the right place [ci skip]
+eb39ce5e270198be485f3e4ecd30c89ffbd6be02 Klaus Hartl 1361877247 Fixing writing/removing a cookie with a name that contains characters where encodeURIComponent applies, closes #155.
+8ebbca5a68f4a2e51a5f79ccdc8f5dbec1b0f9da Klaus Hartl 1361825179 .travis.yml needs grunt-cli
+a09ee1c73969340d5109eb7c0d983cbdbd2f2cc3 Klaus Hartl 1361824924 Set up to build on grunt 0.4.0
+bd3c9713222bace68d25fe2128c0f8633cad1269 Klaus Hartl 1361645658 Removing test for jQuery
+cefb0c399960553edae76f91f9fc5470a1c3bc04 Klaus Hartl 1359539065 When attempting to read a cookie with json=true and the JSON string is invalid, no longer throw a SyntaxError, but simply return undefined as if the cookie doesn't exist. Such cookie isn't usable as JSON cookie, thus we're treating it as not existing.
+cd21803f2b253fe2520d9649e1185003e04006ee Klaus Hartl 1359539037 Improving test description
+fb17f70168d1310fc1670697c858b9121b968f2e Klaus Hartl 1359538980 Renaming file as to better express its purpose
+3665c4ad4be19ad07a3a1eebe34f55160cb9c230 Klaus Hartl 1359537922 Using strictEqual() in all the assertions, on test needed to be adapted. Plus removing one obsolete test.
+95749a957d53b457a0dc7e9da2252f5ac680c92d Klaus Hartl 1359472530 remove redundant line
+e4cdea1d9d003f99a5825c1734cfebd07c28bd27 Klaus Hartl 1359470619 Merge pull request #149 from FagnerMartinsBrack/tests-cookie-write
+9f4379549f6e3f76e6ef12a63eca98b132f33994 Fagner Brack 1359469373 write cookies using $.cookie since the read operation already tests it
+265617e44788887f47b0d17dde1610626ad071c5 Klaus Hartl 1359296393  `$.cookie('name', null)` now returns `undefined` (instead `null`) in case that cookie didn't exist
+faa1cde4610a731198c0a12b4fd7c50a5b06d6d4 Klaus Hartl 1359294883 Removing deprecated method `$.cookie('name', null)` for deleting a cookie.
+a1456e146adfd88243b826fbcc3c33f35f58d84a Klaus Hartl 1359294504 Mention AMD in installation section
+78a6aa9ab45892cbf8868f61a8198533214631d6 Klaus Hartl 1359228609 Adding task for minifying, closes #147
+fb6aa5949113b18de3e6fc2ccce9da7a18e75446 Klaus Hartl 1359226535 Adding support for AMD. Closes #59.
+99b58acc151ccdf093718c379ebc2617a523ee2e Klaus Hartl 1359215113 Added fixed issue I missed
+b649ce59ed04bc10b129959ed20b83211086765f Klaus Hartl 1359212478 Bit of refactoring in tests.js
+b13db67afecc3069e6c3069ac55e8c2ca4da6434 Klaus Hartl 1359212441 Removing pointless test
+091b4b49d23ed40798a2221272a8a934dcaff627 Klaus Hartl 1359207298 A cookie name must not get the RFC2068 treatment.
+a3e259d96a48e6176ec1a83087dcca826a36c8e6 Klaus Hartl 1359185561 What I meant was contributor - I keep maintaining as well...
+fd724ca9d68f7087427a5efe53d5c839a571c31f Klaus Hartl 1359149204 Updating version and changelog
+82c93ebdeea32b5e730078c3df212b5b9c9a3ef1 Klaus Hartl 1359148750 Fixing issue where it was no longer possible to check for an arbitrary cookie while json is set to true (SyntaxError: JSON.parse)...
+014706b2665c665df3a692ddc8e9cae5c20be830 Klaus Hartl 1359148710 Fixing path to jquery.cookie.js
+40b8755b982f922887e72fc3a9f3f5ec227b35f3 Klaus Hartl 1359138617 Moving all test related files to /test
+e22f0e267809e1fc65d9b41ee45853110db02fcc Klaus Hartl 1359136722 Remove trailing whitespace
+f77c13447a4f892452f96e70607498431b4ab968 Klaus Hartl 1359105331 Adding build status to README
+47c76f863289bc10dff5d24230eb1d2fd4e48af1 Klaus Hartl 1359105078 Adding lint task, adding default, so a simple [4mRunning "lint:files" (lint) task[24m Lint free.
+2df7ab889976847fc8b4c7096a4029425455254e Klaus Hartl 1359099630 Quickfix for making tests green in grunt (and Travis?) - should use $.cookie() along with $.removeCookie() to remove cookies though...
+a464b5502bd68e9a9f3f096649a2871021afa67c Klaus Hartl 1359099138 Using expect() elsewhere too
+8e2adc4bd305f7953754a2c6d7d65fbaa530353c Klaus Hartl 1359096177 Install grunt
+238b662ac044989c811c9f24f2e63d514103312e Klaus Hartl 1359096050 Setup for Travis CI
+97e20e46442a78838088f947042513bd1b1307de Klaus Hartl 1359094738 Adding maintainers
+90c731e46fe3faf87bd5537b8297c013a8b31c47 Klaus Hartl 1359094488 Removing redundant test, see 9aac1c82add15f8a01d668b8eb067bcaf5de6587
+6a6b530a91e643e1714d966a551e0872573b6200 Fagner Martins 1359078852 Merge branch 'master' of ssh://git@github.com/carhartl/jquery-cookie.git
+b502dafcc72c67b4318fd77517b535ebd3db42ec Fagner Martins 1359078605 There is no need for semicolon in a Function Declaration
+befc98624ee5a7a86487dfe0f6eac03172bbe4f3 Fagner Martins 1359078255 Merge pull request #146 from FagnerMartinsBrack/plus
+9aac1c82add15f8a01d668b8eb067bcaf5de6587 Fagner Martins 1359078208 Test for returning all cookies as an object
+c79d8415e6a1b2ef508c62c27e38b634b8de4e9a Fagner Martins 1359077180 plus
+3e07441dd941e0248a5efa497fcc88ee4505aa13 Klaus Hartl 1359064825 Needs to replace global
+4601c3c906f88f5b145cef0a43146a56be9a146c Klaus Hartl 1359045502 Fixig little things in the plugin manifest
+df3e07adc1e1196c7e7d7edf450c488ef1464224 Klaus Hartl 1359044985 Updating version numbers, ready to release 1.3.0
+9954d00b518d86260d1b8823e7b4449a4563da94 Klaus Hartl 1359044905 Make sandboxed test work in IE8 again - iframe.onload = ... doesn't seem to be reliable.
+e15880942eaf152716b4fc978c348b42e08045b8 Klaus Hartl 1359044799 Forgot to update jQuery in the sandbox - could probably pull from top...
+c32ed09760ae336e66ba6acc18b9f4b556d7565a Klaus Hartl 1359040801 Calling $.cookie without arguments returns all available cookies as object...
+57cd3ddd2f32e373ec7da79049b1d58acbb7de27 Klaus Hartl 1359033819 Adding missing var statement, missing semicolons
+ff9dfc634e91a7cbd32a27596efa1fb0199c2d0c Klaus Hartl 1358942379 Handle RFC 2068 quoted cookie values properly, closes #57
+3ec7c95dca01fa6368f083defe329c544cba47b4 Klaus Hartl 1358938438 Adding a component.json for bower, closes #115
+bebed17cae2bb74489c6e1d8629995e52d8e8e05 Klaus Hartl 1358938388 Fixing author property
+a2e985946f4b33aa39f4da6acf696efa3ef29c94 Klaus Hartl 1358937587 Adding jQuery plugin package manifest
+793946a420524ee9e9e818dfa19b8a00632d20f6 Klaus Hartl 1358935933 Updating jQuery and QUnit
+2236f9c82df6a8983840f2df85c65ae0708220d3 Klaus Hartl 1358935813 Merge pull request #141 from FagnerMartinsBrack/expected-future-deprecated
+3ae56dc91ed604fa75b8517a3c38ee3438123720 Klaus Hartl 1358855878 Removing licensing under GPL Version 2 (following the jQuery library itself here), also adding the MIT license to the repository.
+0f5a49023fb89db11bc10c47391e376b9140e005 Klaus Hartl 1358852285 Fixing version numbers in the changelog
+75a5a29bc2183a4429dcb36bbea18e98cfe14e8a Fagner Brack 1358799205 Remove expect from tests arguments
+04f99cbfb06fa7c3f88692caf2ffae4be173d958 Klaus Hartl 1352297601 Fixing first headline markdown
+4b1433316b6b02924d134aeec20a55fe258c64d2 Klaus Hartl 1352297419 Adding a note about a potential path + filename issue in Internet Explorer...
+b7edc7c6b1a2273540b7ccff94a51725ae683781 Klaus Hartl 1350298302 Fixing typo, more explanation
+d176f577d563e0237aa52b91c5a05ce3e6d5fbcb Klaus Hartl 1350298181 Adding note about not to include the plugin directly from GitHub, seems necessary.
+523c40740293de1299823e5a85a1df703802c54d Klaus Hartl 1350122176 Adding semicolon
+892e6f0049747a35441d0ab47d1cba450b27c4c9 Klaus Hartl 1350049708 Removing trailing whitespace
+75a4882f8f96200724e59c4295bf068c3d3bd8d7 Klaus Hartl 1350049619 Adding line for consistency
+fd254ddffcda4d21ffb15f41da5eeea62bf51cc9 Klaus Hartl 1350049591 Fixing IE issue, where cookie values were not read correctly because of duplicate occurrences of "; ", fixes #88, fixes #117.
+c2b80550af6c32ad6a72e79870a97823cd37a52d Klaus Hartl 1349108712 Seems better the other way round
+ee280e7f4e18ec4a5df2e1f69fddadee8ddec467 Klaus Hartl 1349108568 Actually forgot the testing part
+ee1d298f40d90256c66810a084f4016e63976c12 Klaus Hartl 1349107091 Improving documentation, closes #109, closes #112
+974884fc69602b05b9daeb5de528f69167c17170 Klaus Hartl 1349106993 Increasing version number already
+46bf7e33514dc0c5681d96ff43ee5da1457e81a6 Klaus Hartl 1349089962 no longer need eqnull:true for jshint
+3105502862f0e533f57ea6a4f4e44c305a808cfb Klaus Hartl 1347611892 Fixing some formatting
+9e53f37510df79a37acfc5f31dfff4edc8b95ce7 Klaus Hartl 1347106038 Do not accidently write a new cookie when looking it up, fixes #99
+e9ab1b9b09d8f6f060b98e5ddb1e06537900c798 Klaus Hartl 1346239233 Use config
+70dcdd7a5010a7da316c2c239ebf0e3c8f5136e9 Klaus Hartl 1346236289 Fix outdated comment, let the code speak for itself
+796abd66a0b2af7139da5dd86a464b7884d2faaf Klaus Hartl 1346236011 Adding raw and json configuration (replacing former option), closes #89
+3e59f61e3a6d4d48aeafc31b611eb3c35e9bbbe1 Klaus Hartl 1346235785 Fix mime type for server
+e39cf517cc1bd2aec5950587f7abefa3a4662d29 Klaus Hartl 1344538707 Some formatting fixes and cleanup, adding to changelog
+808704fff1b7c0ae40ae359bd835eb95db68fdf7 Klaus Hartl 1344537449 Merge pull request #87 from FagnerMartinsBrack/removeCookie-68
+b54ec09f5a95f028119d7277a5863459198f343e Fagner Martins 1344303530 Remove new object creation
+cda95959fa343036bd4654f0839d06620672d2db Fagner Martins 1344303491 Actually... It should return null
+b0a8917d96a8d2d75d27cdf0733fa6072d8ecf7c Fagner Martins 1344302820 Remove undefined cookie removal support It creates a cookie with "undefined" value instead. Nobody should rely on this.
+1e8054ae7c987d7d951ebd270c510a420b751fc2 Fagner Martins 1344301664 Test if the options are being properly passed to the $.cookie
+a2890227c45e73689df16a748b070c7472b12625 Fagner Brack 1343683720 semicolon/test typo Remove $.cookie("cookieName", null); from docs
+ea788817bb5d7855ed20f1a4f4b4b31e6274cc67 Fagner Brack 1343253931 Using optional argument convention
+9627bec4c32475f258f02818394044fb1cf177b4 Fagner Brack 1343253363 Increase version
+2a850c55577d0e81442059e346626409101627ec Fagner Brack 1343253345 $.removeCookie
+84a7de2014acd71d835f5940ad229a0185b2901f Fagner Brack 1342131188 $.removeCookie Allows the cookie removal with a more intuitive method
+2e12796f574f0d842aa1025d38b04111852ae074 Klaus Hartl 1341830394 Adding version number and a little change log, closes #43.
+5843012c09c58e5116741ede05c9840785b42a22 Klaus Hartl 1341829958 Convert pluses to space for server-side written cookies, closes #13.
+a36fbf9fee9d1b3a1a7e4cc1fee3f20cbb3e4feb Klaus Hartl 1341827333 Now using tabs for indentation, following jQuery core style guidelines, closes #82.
+bdf8abb77e369244aad86c04c02c50cae1c20563 Klaus Hartl 1341826833 Rewriting pulled tests
+4a8a17338aa581810567a7d58d7e02d623e9bfc4 Klaus Hartl 1341825861 Merge pull request #64 from 2rye/expires-option-issue-60
+8e782956ee8ed7f5249ff7b77f3e427480372595 Klaus Hartl 1341740732 Make jshint pass again
+5cb5328e20a83d1df704d92e990a52e674590212 Klaus Hartl 1341736903 Merge pull request #81 from FagnerMartinsBrack/patch-document
+8c7922bc4a094d2c4cc9fa782312b41f435e1db6 Fagner Martins 1341721154 Merge branch 'master' into patch-document
+4106abbbd1f0af192ac02d361c075fec5046ed2f Fagner Martins 1341720467 Pass document through the Immediately-Invoked Function Expression UglifyJS 747 characters -> 744 characters
+e54d27215771e7b085593c4c537c641df3390d09 Klaus Hartl 1341708883 consistent indentation
+ab25523a1efc137b62a556b54a03da823221d2d8 Klaus Hartl 1341707926 Merge pull request #79 from FagnerMartinsBrack/patch-1
+4bda5f0e1d50b9fb8f42bf7ad4dfac21cc849bdd Fagner Martins 1341687324 == null checks for null and undefined "It's actually quite useful to do == null or != null as it will pass (or fail) if the value is either null or undefined." http://docs.jquery.com/JQuery_Core_Style_Guidelines
+e60f7e8ce141d03e12cbadf1395ca7418a39655c Klaus Hartl 1341682498 some more documentation tweaking
+b1a53bc71190912543be3e6641b3fc9bb74333cc Klaus Hartl 1341681827 Be consistent...
+613562a7f71ca57ba12be8220ec17fed38d0cc0c Klaus Hartl 1341681733 Adding test for cookie with [] in a name as to avoid regression.
+b53cdf05636978855c3a41994be765b2c083e417 Klaus Hartl 1341680542 Reviewed tests from pull request.
+91e60cbcc46099b78a828b5c8fe69eb63d885096 Klaus Hartl 1341680002 Merge branch 'master' of github.com:carhartl/jquery-cookie
+94557e88198466097c14eca6e0476d160ced2f85 Klaus Hartl 1341679975 Handle embedded equal signs when reading raw cookies, closes #50, closes #53.
+f43512ef6a5c546be8b80772574c06f7e7da57bc Klaus Hartl 1341678091 Merge pull request #67 from kswedberg/expose-default-options
+e13a9b64abaae114c536bac1b65be7b5d50f5e6d Klaus Hartl 1341675615 making jshint pass
+c2f9c3a5e8381be35adc7159bf6f27b6f840c7c4 Klaus Hartl 1341675157 Updating jQuery and using minified version
+72e8738cb73d4cfbbf697a3f2fd54d592f4174ac Klaus Hartl 1341674379 Improving the documentation a bit, mostly by rearranging text.
+e3a844be3d66eaa38533e04aac9a607c77b7a33c Klaus Hartl 1341674058 Merge pull request #78 from vlakoff/develop
+0511cd571905dfda69457dc29051d1855e9ef2b0 vlakoff 1341550784 Fix an error in README.md
+cd97d43c1eec0127535922da29e6a85a5bafe169 Karl Swedberg 1336156297 updated readme
+d7ec3dc9cdf34ee9e34a6c6691de0abb8742ce60 Karl Swedberg 1336155466 added tests. also, by default, $.cookie.defaults is empty obj.
+66412a26b657ff17762a7f8af35c9127af20cfde Karl Swedberg 1336154829 expose default options as $.cookie.defaults allows setting options globally for all calls to $.cookie()
+52e1faaf7686d6cf8fe949b5c3422abbdf1a606b Mr Rogers 1335643476  * added tests for expiry
+1fa4a1807d54a8c2d6a5e355918b8cf16ff84983 Klaus Hartl 1331455507 using officially mentioned cdn url for qunit, event though it's not a stable version
+5e06301cfbec885f2d0e0f779be10c021aa17be9 Klaus Hartl 1331455290 using latest jquery
+e1a27c698f1c5c52ffd660cfc6761824f42461d5 Klaus Hartl 1331455201 Merge pull request #52 from cwp/issue-51
+5b028b34f8677f2ef23ebbcf7251c895e410c8c1 Colin Putney 1331004375 Updated the tests to work with the latest QUnit.
+faa09dc38bd3c791212e8fca67ee661af55fa530 Klaus Hartl 1328716650 fixing header
+dacd3254780275c757064683b1bf6e230e8726fb Klaus Hartl 1328141646 replacing outdated domain with Twitter username
+92c16dbaf7f98f2478d08c418db1bcb7f5aa6ef7 Klaus Hartl 1328141528 Merge pull request #47 from duncansmart/patch-1
+527e94a87d4573032bc3a23ec8877e9b167b39cc Duncan Smart 1328140858 Just a suggestion: I came across this library in the wild and it took a few moments to track down the github project!
+c388c26bf47641fc731e92684b31dd61ad4fac52 Klaus Hartl 1327045104 fixed last headline
+21349d93cb59192712d90edb70ba8720d5a920ca Klaus Hartl 1327042683 don't be too restrictive about the value, closes #46
+b8b2785392b9e9ff6630c4982dc651c11175813a Klaus Hartl 1327040198 fixing headlines
+280132fcafd5fae7aa4a111ddf670c7f823033b1 Klaus Hartl 1327040151 using markdown
+a5349aaf8c2ccc69d45b8abc48873ea8f27f0689 Klaus Hartl 1327039465 gotcha when deleting a cookie more explicit
+2841fd8b3b2d8a0593038a0c5aefac9617f43ac6 Klaus Hartl 1327007177 minor review
+c5169e1d3bfae93bf9e33f6cb07deda8b0317bbb Klaus Hartl 1327007064 server listening at 0.0.0.0, seems to only work w/ Bonjour and Parallels
+f98f6a3c615f4a447530cf354bf9880e01aa24ba Klaus Hartl 1326970152 fix incorrect return value in IE (null) in case cookie value is empty string, closes #25
+aa977dd5abb18ea637a70f3b1f2d498557007612 Klaus Hartl 1326967684 fixing white space
+34a506a1e57bbc123554b04b78ba8780f5039fd0 Klaus Hartl 1326967060 fixing deletion of cookie in IE, broken in former commit
+ac34ed466370f55310ba62ce36ce70579e0c5849 Klaus Hartl 1326959004 allow value of '[object Object]', closes #22
+408472704eb9fb9d31aa9197d7f860fe0e4f338b Klaus Hartl 1326956404 Merge pull request #44 from tomkins/master
+dfec31130c898bf07e313e409306eb910aceb3d7 Alex Tomkins 1326811570 Setup jquery-cookie in a closure
+7e8d8af14d65c4c3dcbb68c05ac7275531c36588 Klaus Hartl 1320259816 Merge pull request #36 from coryschires/patch-1
+6fb0191c92a77a2a8b42a296d273dce49f412646 Cory Schires 1320256244 Add a note about gotcha when clearing cookies
+575a41978aac0111862bc5b7deb0b7e6782f61c4 Klaus Hartl 1310120424 better wording, that should do it
+b794fe77ba2206c2d6c0ba7f34e0e3a0ec670045 Klaus Hartl 1310120216 more rdoc fixes
+b34aebdf23bbc12c9871a00dda47a6ca8fec6616 Klaus Hartl 1310119872 some more tweaks for the readme
+5de116f4bb4fc492caa4b295d74c7757ba402cef Klaus Hartl 1310119564 another rdoc fix
+4541350c169bdeb750382c7d1671c1e8a0cdeb0b Klaus Hartl 1310119495 some rdoc fixes
+7e682a2874f580f78632747de63e1bb442ed9a74 Klaus Hartl 1310119218 rdoc
+35377d7a273cf9dac2f7d21e4ad996a489c30977 Klaus Hartl 1310119110 README instead of inline documentation
+3b456a17d4c7e2373b958fff49d65d7511f4becd Klaus Hartl 1310116825 removing trailing whitespace
+67fb34f6a866c40d0570265e8fa5911605d92616 Klaus Hartl 1296125709 not a todo
+001687708c9270d399eea2d0c4c10fd6b0169b3e Klaus Hartl 1296125006 allow passing String objects, allow undefined as argument when deleting
+26f9f6737df86b4b08a08556c514e235d134ba54 Klaus Hartl 1296123821 refactored a whole lot, test suite in much better shape now
+d25bb6eada92c3a78e034766ca60add25c76bdca Klaus Hartl 1296077918 quickly set up a node server to be able to prmore reliably test cookies
+6818b83dff89e9cac9e95acd9d78bf0179777e3d carhartl 1262989051 introduced "raw" option as to whether encode-/decodeURIComponent cookie value or not... (there was an issues when encoded value is read server-side)
+593636afe9a173b5f889c863e1c7aa9d6ceb8b8e carhartl 1262983384 refactoring: reduce amount of code remarkably
+c0f510ba2e53c0bee71c009541bc3653d8fd1a04 carhartl 1262973124 added very simple tests as a basis for some upcoming refactoring...
+ba23ec9d0b5dd65231aeb4ca052f1d660cf532eb carhartl 1249326819 imported from jquery svn
+ad326c5b56c3a95ee4905702c3f6eb0e96955370 carhartl 1249326755 first commit

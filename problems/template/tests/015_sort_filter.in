@@ -1,0 +1,33 @@
+{
+  "words": [
+    "banana",
+    "Apple",
+    "cherry",
+    "apple",
+    "Banana",
+    "b",
+    "B",
+    "a"
+  ],
+  "nums": [
+    3,
+    1.5,
+    2,
+    -1,
+    0,
+    2.5,
+    10
+  ],
+  "d": {
+    "z": 1,
+    "a": 2,
+    "M": 3
+  }
+}
+--
+=== main
+{{ words|sort|join(",") }}
+{{ nums|sort|join(",") }}
+{{ d|sort|join(",") }}
+{{ "hello"|sort|join }}
+{{ []|sort }} {{ [true, false, 0, 1]|sort|join(",") }} {{ ["b", "a"]|sort }}

@@ -1,0 +1,57 @@
+kiln-state 1
+step out/f0.txt
+cmd write("25/0:A/b/C.txt|deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|p|p.q|q/r|q/r.s/t.u||x|x/|/x|a//b|deep|deep/1|MIX/a-b.txt\n")
+out out/f0.txt 752953da10c3c8fe
+end
+step out/f1.txt
+cmd write("25/0:A/b/C.txt|deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|p|p.q|q/r|q/r.s/t.u||x|x/|/x|a//b|deep|deep/1|MIX/a-b.txt\n")
+out out/f1.txt 752953da10c3c8fe
+end
+step out/f10.txt
+cmd write("1/24:p.q\n")
+out out/f10.txt 1dceefb67785fa96
+end
+step out/f11.txt
+cmd write("2/23:q/r|q/r.s/t.u\n")
+out out/f11.txt 23b37cbd0c18ed44
+end
+step out/f12.txt
+cmd write("1/24:q/r.s/t.u\n")
+out out/f12.txt 3a6293b142290ca4
+end
+step out/f13.txt
+cmd write("7/18:mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt\n")
+out out/f13.txt 258b34f2adf29938
+end
+step out/f2.txt
+cmd write("25/0:A/b/C.txt|deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/UPPER.TXT|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|p|p.q|q/r|q/r.s/t.u||x|x/|/x|a//b|deep|deep/1|MIX/a-b.txt\n")
+out out/f2.txt 752953da10c3c8fe
+end
+step out/f3.txt
+cmd write("7/18:deep/1/2/3/4/5/6/7/8/9/bottom.dat|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|deep|deep/1\n")
+out out/f3.txt e6728092bf183549
+end
+step out/f4.txt
+cmd write("4/21:deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt\n")
+out out/f4.txt 70c579d529afff9d
+end
+step out/f5.txt
+cmd write("12/13:A/b/C.txt|deep/1/2/3/4/leaf.txt|deep/1/2/x.txt|deep/1/y.txt|deep/z.txt|mix/.leading.txt|mix/9.txt|mix/a+b.txt|mix/a-b.txt|mix/a.b.c.txt|mix/a_b.txt|MIX/a-b.txt\n")
+out out/f5.txt 53a8d896bf9f750d
+end
+step out/f6.txt
+cmd write("1/24:deep/1/2/3/4/leaf.txt\n")
+out out/f6.txt 027bac35ed16275e
+end
+step out/f7.txt
+cmd write("2/23:deep/1/2/3/4/leaf.txt|deep/1/2/x.txt\n")
+out out/f7.txt ced0db84dcc7ccf2
+end
+step out/f8.txt
+cmd write("1/24:deep/1/2/x.txt\n")
+out out/f8.txt 6917d37bb8bf16c1
+end
+step out/f9.txt
+cmd write("2/23:p|x\n")
+out out/f9.txt a01fa1e4eded2363
+end

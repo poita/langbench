@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {},
+      "bar": {}
+    },
+    "additionalProperties": {
+      "type": "boolean"
+    }
+  },
+  "tests": [
+    {
+      "description": "no additional properties is valid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "an additional valid property is valid",
+      "data": {
+        "foo": 1,
+        "bar": 2,
+        "quux": true
+      }
+    },
+    {
+      "description": "an additional invalid property is invalid",
+      "data": {
+        "foo": 1,
+        "bar": 2,
+        "quux": 12
+      }
+    }
+  ]
+}

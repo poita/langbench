@@ -1,0 +1,23 @@
+[message]
+id 0005
+source "invalid-day.eml"
+
+[headers]
+subject: "date test"
+date: "31 Feb 2004 00:00:00 +0000"
+
+[addresses]
+
+[date]
+raw " 31 Feb 2004 00:00:00 +0000"
+valid no
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

@@ -1,0 +1,23 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "enum": [
+      6,
+      null
+    ]
+  },
+  "tests": [
+    {
+      "description": "null is valid",
+      "data": null
+    },
+    {
+      "description": "number is valid",
+      "data": 6
+    },
+    {
+      "description": "something else is invalid",
+      "data": "test"
+    }
+  ]
+}

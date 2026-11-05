@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% block head %}{{ page.title }}{% endblock %}
+{% block bodyclass %}static{% endblock %}
+{% block content %}
+{{ page.content }}<p><a href="{{ page.permalink }}">{{ page.permalink }}</a></p>
+{% endblock %}

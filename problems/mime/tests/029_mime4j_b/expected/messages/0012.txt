@@ -1,0 +1,20 @@
+[message]
+id 0012
+source "missing-boundary.eml"
+
+[headers]
+content-type: "multipart/alternative; boundary=\"inner-boundary\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/alternative cte=7bit boundary="inner-boundary" parts=0 preamble=5 epilogue=none
+
+[body]
+text none
+html none
+
+[attachments]

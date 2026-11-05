@@ -1,0 +1,41 @@
+2
+abcdef
+ghijkl
+add-cursor 0 0
+print
+add-cursor 0 3
+add-cursor 0 4
+delete
+print
+goto 0 3
+add-cursor 0 4
+delete
+print
+goto 0 1
+add-cursor 0 2
+delete-forward
+print
+goto 0 1
+add-cursor 0 2
+move left
+move left
+print
+insert q
+print
+goto 0 5
+add-cursor 1 5
+move right
+print
+goto 0 3
+add-cursor 1 3
+move up
+print
+goto 0 3
+add-cursor 1 3
+move down
+print
+goto 0 4
+add-cursor 1 2
+move end
+move down
+print

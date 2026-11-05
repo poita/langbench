@@ -1,0 +1,29 @@
+name "softfloat"
+description "Software IEEE-754 binary32 arithmetic (add, sub, mul, div, sqrt) using only integer operations"
+authors "softfloat authors"
+license "MIT"
+copyright "Copyright © softfloat authors"
+
+# Default configuration: the command-line tool.
+configuration "cli" {
+    targetType "executable"
+    targetName "softfloat"
+    mainSourceFile "app/main.d"
+    sourcePaths "source" "app"
+    importPaths "source"
+}
+
+# The reusable library only (use as a dependency).
+configuration "library" {
+    targetType "library"
+    targetName "softfloat"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+# Used by `dub test`: library sources plus the separate unit-test modules.
+configuration "unittest" {
+    targetType "autodetect"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

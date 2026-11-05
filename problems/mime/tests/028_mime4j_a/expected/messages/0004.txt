@@ -1,0 +1,22 @@
+[message]
+id 0004
+source "bad-newlines-multiple-parts.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"------------299A70B339B65A93542D2AE\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="------------299A70B339B65A93542D2AE" parts=1 preamble=45 epilogue=46
+  1 text/plain charset=us-ascii cte=7bit size=10 adler32=1459037e role=text
+
+[body]
+text 1 chars 10
+| Text body
+html none
+
+[attachments]

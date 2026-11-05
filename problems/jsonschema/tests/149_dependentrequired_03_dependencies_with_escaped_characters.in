@@ -1,0 +1,42 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "dependentRequired": {
+      "foo\nbar": [
+        "foo\rbar"
+      ],
+      "foo\"bar": [
+        "foo'bar"
+      ]
+    }
+  },
+  "tests": [
+    {
+      "description": "CRLF",
+      "data": {
+        "foo\nbar": 1,
+        "foo\rbar": 2
+      }
+    },
+    {
+      "description": "quoted quotes",
+      "data": {
+        "foo'bar": 1,
+        "foo\"bar": 2
+      }
+    },
+    {
+      "description": "CRLF missing dependent",
+      "data": {
+        "foo\nbar": 1,
+        "foo": 2
+      }
+    },
+    {
+      "description": "quoted quotes missing dependent",
+      "data": {
+        "foo\"bar": 2
+      }
+    }
+  ]
+}

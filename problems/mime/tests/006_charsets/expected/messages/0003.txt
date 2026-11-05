@@ -1,0 +1,21 @@
+[message]
+id 0003
+source "latin1.eml"
+
+[headers]
+content-type: "text/plain; charset=iso-8859-1"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=7bit size=18 adler32=492f069c role=text
+
+[body]
+text 0 chars 18
+| café naïve © 1999
+html none
+
+[attachments]

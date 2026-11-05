@@ -1,0 +1,109 @@
+[message]
+id 0257
+source "mbox:257"
+
+[headers]
+received: "from lists.example.edu (mx7.dev.example.io [186.2.37.131]) by eu.example.de (Postfix) with ESMTP id 2F8F48DC3D for <bsmith.18@mail.example.net>; Wed, 27 Feb 2025 19:51:48 +0100"
+received: "from eu.example.de (mx2.corp.example.co.uk [126.24.209.68]) by example.org (Postfix) with ESMTP id EA51B0876D for <aschrder.84@apache.org>; Tue, 9 Feb 2005 00:53:09 -0800"
+received: "from example.org (mx2.post.example.fr [28.73.144.15]) by example.com (Postfix) with ESMTP id B2C124F021 for <qmller@example.org>; thu,21 nov 2009 12:32:47 (comment (nested)) MET"
+received: "from lists.example.edu (mx7.example.com [233.100.194.252]) by example.org (Postfix) with ESMTP id B13A011F7A for <otaylor@apache.org>; Mon, 8 Jul 2012 20:48:37 -0000"
+return-path: "<bbrown@mail.example.net>"
+message-id: "<1837.3b032514.34698@corp.example.co.uk>"
+in-reply-to: "<1849.a9b3217f.34864@eu.example.de>"
+references: "<1838.fbf405b5.90328@lists.example.edu> <1839.90059ea8.86595@mail.example.net> <1840.a087553f.49548@example.com> <1841.061d23e8.43130@apache.org> <1842.446ecbd4.30912@example.org> <1843.49c635bc.30868@eu.example.de> <1844.25b76377.41131@example.org> <1845.5b0d065c.51229@example.com> <1846.d0cc5a00.45894@dev.example.io> <1847.56782f44.10531@example.org> <1848.af2e6779.5463@lists.example.edu> <1849.a9b3217f.34864@eu.example.de>"
+date: "Fri, 15 Dec 2025 01:18:40 +0200"
+from: "\"Hana Doe\" <hdoe@post.example.fr>"
+to: "ipetrov@lists.example.edu, Xavier Brown <xbrown@post.example.fr>, sstergaard.32@lists.example.edu (Someone)"
+cc: "vdubois@post.example.fr"
+subject: "His see piñata warning"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_8891_567470259.94016427582\""
+
+[addresses]
+from 0 display="Hana Doe" spec="hdoe@post.example.fr"
+to 0 display="" spec="ipetrov@lists.example.edu"
+to 1 display="Xavier Brown" spec="xbrown@post.example.fr"
+to 2 display="" spec="sstergaard.32@lists.example.edu"
+cc 0 display="" spec="vdubois@post.example.fr"
+
+[date]
+raw " Fri, 15 Dec 2025 01:18:40 +0200"
+valid yes
+utc 2025-12-14T23:18:40Z
+offset +0200
+epoch 1765754320
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_8891_567470259.94016427582" parts=6 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="0000000000005dc2d0f932fb" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=base64 size=1178 adler32=6820a279 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1583 adler32=96d026d9 role=html
+  4 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="the.patch" size=2358 adler32=f368ec3f role=attachment
+  5 image/png cte=base64 disposition=attachment filename="façade_has_land.png" size=4603 adler32=e5c3dc33 role=attachment
+  6 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="to_form.patch" size=5019 adler32=e2b64531 role=attachment
+  7 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="résumé_will_the_we.docx" size=5186 adler32=7a2df4fc role=attachment
+  8 multipart/digest cte=7bit boundary="simple boundary 205" parts=2 preamble=0 epilogue=0
+    9 message/rfc822 cte=7bit parts=1
+      10 text/plain charset=utf-8 cte=base64 size=2435 adler32=521b4f1d role=attachment
+    11 message/rfc822 cte=7bit parts=1
+      12 text/plain charset=utf-8 cte=quoted-printable size=2237 adler32=e504f7a1 role=attachment
+
+[body]
+text 2 chars 1164
+| For module she I when up the the than handler backport get our turn to
+| great to. Said résumé error who httpd air of his play than of did the
+| the the. How I hot put the an the him to an each can picture when. One
+| the of here is to land ask a warning the the no just take which turn?
+| 
+| Three number of his the may. Place I spell again in with a crash it
+| warning under bug.
+| 
+| Play the word see up! Use very we the same header make her façade out
+| error it now hot year use! See the other word went two he come alias the
+| much each who what get after hand. Give large the did down these was
+| Ørsted of like just brûlée sound. Turn or of of act Málaga then and with
+| brigade so part segfault act go made the! How as is mother good backport
+| hand the.
+| 
+| With the they off under in small can down for be crème the new. At
+| Zürich this these hot some some port of two up. The handler a patch one
+| what word give under out so! Crash have of move side man Kraków light
+| the Größe up up. Fiancée as but who it all httpd she and proxy find
+| which he small tell on. Be we to thread of air what a trunk little land.
+| By long are the through module are that side work.
+| 
+| -- 
+| Jörg van der Berg
+html 3 chars 1583
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">For module she I when up the the than handler backport get our turn to<br>
+| great to. Said résumé error who httpd air of his play than of did the<br>
+| the the. How I hot put the an the him to an each can picture when. One<br>
+| the of here is to land ask a warning the the no just take which turn?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Three number of his the may. Place I spell again in with a crash it<br>
+| warning under bug.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Play the word see up! Use very we the same header make her façade out<br>
+| error it now hot year use! See the other word went two he come alias the<br>
+| much each who what get after hand. Give large the did down these was<br>
+| Ørsted of like just brûlée sound. Turn or of of act Málaga then and with<br>
+| brigade so part segfault act go made the! How as is mother good backport<br>
+| hand the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">With the they off under in small can down for be crème the new. At<br>
+| Zürich this these hot some some port of two up. The handler a patch one<br>
+| what word give under out so! Crash have of move side man Kraków light<br>
+| the Größe up up. Fiancée as but who it all httpd she and proxy find<br>
+| which he small tell on. Be we to thread of air what a trunk little land.<br>
+| By long are the through module are that side work.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Jörg van der Berg<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/x-diff filename="the.patch" size=2358 adler32=f368ec3f file=parts/0257/004.bin
+5 type=image/png filename="façade_has_land.png" size=4603 adler32=e5c3dc33 file=parts/0257/005.bin
+6 type=text/x-diff filename="to_form.patch" size=5019 adler32=e2b64531 file=parts/0257/006.bin
+7 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="résumé_will_the_we.docx" size=5186 adler32=7a2df4fc file=parts/0257/007.bin
+10 type=text/plain filename=- size=2435 adler32=521b4f1d file=parts/0257/010.bin
+12 type=text/plain filename=- size=2237 adler32=e504f7a1 file=parts/0257/012.bin

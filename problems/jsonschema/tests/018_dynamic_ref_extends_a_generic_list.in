@@ -1,0 +1,48 @@
+{
+  "schema": {
+    "$id": "https://example.test/strings",
+    "$defs": {
+      "itemType": {
+        "$dynamicAnchor": "itemType",
+        "type": "string"
+      },
+      "list": {
+        "$id": "https://example.test/list",
+        "$defs": {
+          "itemType": {
+            "$dynamicAnchor": "itemType"
+          }
+        },
+        "type": "array",
+        "items": {
+          "$dynamicRef": "#itemType"
+        }
+      }
+    },
+    "$ref": "https://example.test/list"
+  },
+  "tests": [
+    {
+      "description": "all strings",
+      "data": [
+        "a",
+        "b"
+      ]
+    },
+    {
+      "description": "one number",
+      "data": [
+        "a",
+        1
+      ]
+    },
+    {
+      "description": "empty array",
+      "data": []
+    },
+    {
+      "description": "not an array",
+      "data": "a"
+    }
+  ]
+}

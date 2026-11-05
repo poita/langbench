@@ -1,0 +1,589 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/m0/f0.txt reverse_lines()
+  run 2 4 w0 out/m0/f1.txt number()
+  run 4 5 w0 out/m0/f10.txt copy()
+  run 5 7 w0 out/m0/f12.txt reverse_lines()
+  run 7 9 w0 out/m0/f13.txt number()
+  run 9 10 w0 out/m0/f14.txt copy()
+  run 10 12 w0 out/m0/f2.txt reverse_lines()
+  run 12 14 w0 out/m0/f4.txt number()
+  run 14 15 w0 out/m0/f5.txt copy()
+  run 15 17 w0 out/m0/f6.txt reverse_lines()
+  run 17 19 w0 out/m0/f8.txt number()
+  run 19 20 w0 out/m0/f9.txt copy()
+  run 20 22 w0 out/m0/g11.txt reverse_lines()
+  run 22 24 w0 out/m0/g15.txt number()
+  run 24 25 w0 out/m0/g3.txt copy()
+  run 25 27 w0 out/m0/g7.txt reverse_lines()
+  run 27 31 w0 out/m0/bundle.txt concat()
+  run 31 34 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 34 35 w0 out/m1/f0.txt wrap("[", "]\n")
+  run 35 38 w0 out/m1/f1.txt grep("e")
+  run 38 40 w0 out/m1/f10.txt upper()
+  run 40 41 w0 out/m1/f12.txt wrap("[", "]\n")
+  run 41 44 w0 out/m1/f13.txt grep("e")
+  run 44 46 w0 out/m1/f14.txt upper()
+  run 46 47 w0 out/m1/f2.txt wrap("[", "]\n")
+  run 47 50 w0 out/m1/f4.txt grep("e")
+  run 50 52 w0 out/m1/f5.txt upper()
+  run 52 53 w0 out/m1/f6.txt wrap("[", "]\n")
+  run 53 56 w0 out/m1/f8.txt grep("e")
+  run 56 58 w0 out/m1/f9.txt upper()
+  run 58 59 w0 out/m1/g11.txt wrap("[", "]\n")
+  run 59 62 w0 out/m1/g15.txt grep("e")
+  run 62 64 w0 out/m1/g3.txt upper()
+  run 64 65 w0 out/m1/g7.txt wrap("[", "]\n")
+  run 65 68 w0 out/m1/bundle.txt hash()
+  run 68 68 w0 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 68 69 w0 out/m1/doc.txt preprocess()
+  run 69 72 w0 out/m2/f0.txt replace("a", "A")
+  run 72 74 w0 out/m2/f1.txt reverse_lines()
+  run 74 76 w0 out/m2/f10.txt lower()
+  run 76 79 w0 out/m2/f12.txt replace("a", "A")
+  run 79 81 w0 out/m2/f13.txt reverse_lines()
+  run 81 83 w0 out/m2/f14.txt lower()
+  run 83 86 w0 out/m2/f2.txt replace("a", "A")
+  run 86 88 w0 out/m2/f4.txt reverse_lines()
+  run 88 90 w0 out/m2/f5.txt lower()
+  run 90 93 w0 out/m2/f6.txt replace("a", "A")
+  run 93 95 w0 out/m2/f8.txt reverse_lines()
+  run 95 97 w0 out/m2/f9.txt lower()
+  run 97 100 w0 out/m2/g11.txt replace("a", "A")
+  run 100 102 w0 out/m2/g15.txt reverse_lines()
+  run 102 104 w0 out/m2/g3.txt lower()
+  run 104 107 w0 out/m2/g7.txt replace("a", "A")
+  run 107 110 w0 out/m2/bundle.txt hash()
+  run 110 111 w0 out/m2/wrapped.txt wrap("<m2|", "|>\n")
+  run 111 113 w0 out/m3/f0.txt number()
+  run 113 115 w0 out/m3/f1.txt number()
+  run 115 117 w0 out/m3/f10.txt number()
+  run 117 119 w0 out/m3/f12.txt number()
+  run 119 121 w0 out/m3/f13.txt number()
+  run 121 123 w0 out/m3/f14.txt number()
+  run 123 125 w0 out/m3/f2.txt number()
+  run 125 127 w0 out/m3/f4.txt number()
+  run 127 129 w0 out/m3/f5.txt number()
+  run 129 131 w0 out/m3/f6.txt number()
+  run 131 133 w0 out/m3/f8.txt number()
+  run 133 135 w0 out/m3/f9.txt number()
+  run 135 137 w0 out/m3/g11.txt number()
+  run 137 139 w0 out/m3/g15.txt number()
+  run 139 141 w0 out/m3/g3.txt number()
+  run 141 143 w0 out/m3/g7.txt number()
+  run 143 146 w0 out/m3/bundle.txt hash()
+  run 146 150 w0 out/m3/wrapped.txt wrap("<m3|", "|>\n")
+  run 150 152 w0 out/m4/f0.txt number()
+  run 152 153 w0 out/m4/f1.txt wrap("[", "]\n")
+  run 153 156 w0 out/m4/f10.txt replace("a", "A")
+  run 156 158 w0 out/m4/f12.txt number()
+  run 158 159 w0 out/m4/f13.txt wrap("[", "]\n")
+  run 159 162 w0 out/m4/f14.txt replace("a", "A")
+  run 162 164 w0 out/m4/f2.txt number()
+  run 164 165 w0 out/m4/f4.txt wrap("[", "]\n")
+  run 165 168 w0 out/m4/f5.txt replace("a", "A")
+  run 168 170 w0 out/m4/f6.txt number()
+  run 170 171 w0 out/m4/f8.txt wrap("[", "]\n")
+  run 171 174 w0 out/m4/f9.txt replace("a", "A")
+  run 174 176 w0 out/m4/g11.txt number()
+  run 176 177 w0 out/m4/g15.txt wrap("[", "]\n")
+  run 177 180 w0 out/m4/g3.txt replace("a", "A")
+  run 180 182 w0 out/m4/g7.txt number()
+  run 182 184 w0 out/m4/bundle.txt count_lines()
+  run 184 188 w0 out/m4/wrapped.txt wrap("<m4|", "|>\n")
+  run 188 195 w0 out/m4/doc.txt preprocess()
+  run 195 196 w0 out/m5/f0.txt wrap("[", "]\n")
+  run 196 197 w0 out/m5/f1.txt wrap("[", "]\n")
+  run 197 199 w0 out/m5/f10.txt indent(2)
+  run 199 200 w0 out/m5/f12.txt wrap("[", "]\n")
+  run 200 201 w0 out/m5/f13.txt wrap("[", "]\n")
+  run 201 203 w0 out/m5/f14.txt indent(2)
+  run 203 204 w0 out/m5/f2.txt wrap("[", "]\n")
+  run 204 205 w0 out/m5/f4.txt wrap("[", "]\n")
+  run 205 207 w0 out/m5/f5.txt indent(2)
+  run 207 208 w0 out/m5/f6.txt wrap("[", "]\n")
+  run 208 209 w0 out/m5/f8.txt wrap("[", "]\n")
+  run 209 211 w0 out/m5/f9.txt indent(2)
+  run 211 212 w0 out/m5/g11.txt wrap("[", "]\n")
+  run 212 213 w0 out/m5/g15.txt wrap("[", "]\n")
+  run 213 215 w0 out/m5/g3.txt indent(2)
+  run 215 216 w0 out/m5/g7.txt wrap("[", "]\n")
+  run 216 220 w0 out/m5/bundle.txt concat()
+  run 220 223 w0 out/m5/wrapped.txt wrap("<m5|", "|>\n")
+  run 223 226 w0 out/m6/f0.txt dedup()
+  run 226 229 w0 out/m6/f1.txt replace("a", "A")
+  run 229 231 w0 out/m6/f10.txt indent(2)
+  run 231 234 w0 out/m6/f12.txt dedup()
+  run 234 237 w0 out/m6/f13.txt replace("a", "A")
+  run 237 239 w0 out/m6/f14.txt indent(2)
+  run 239 242 w0 out/m6/f2.txt dedup()
+  run 242 245 w0 out/m6/f4.txt replace("a", "A")
+  run 245 247 w0 out/m6/f5.txt indent(2)
+  run 247 250 w0 out/m6/f6.txt dedup()
+  run 250 253 w0 out/m6/f8.txt replace("a", "A")
+  run 253 255 w0 out/m6/f9.txt indent(2)
+  run 255 258 w0 out/m6/g11.txt dedup()
+  run 258 261 w0 out/m6/g15.txt replace("a", "A")
+  run 261 263 w0 out/m6/g3.txt indent(2)
+  run 263 266 w0 out/m6/g7.txt dedup()
+  run 266 268 w0 out/m6/bundle.txt count_lines()
+  run 268 270 w0 out/m6/wrapped.txt wrap("<m6|", "|>\n")
+  run 270 272 w0 out/m7/f0.txt lower()
+  run 272 274 w0 out/m7/f1.txt indent(2)
+  run 274 275 w0 out/m7/f10.txt copy()
+  run 275 277 w0 out/m7/f12.txt lower()
+  run 277 279 w0 out/m7/f13.txt indent(2)
+  run 279 280 w0 out/m7/f14.txt copy()
+  run 280 282 w0 out/m7/f2.txt lower()
+  run 282 284 w0 out/m7/f4.txt indent(2)
+  run 284 285 w0 out/m7/f5.txt copy()
+  run 285 287 w0 out/m7/f6.txt lower()
+  run 287 289 w0 out/m7/f8.txt indent(2)
+  run 289 290 w0 out/m7/f9.txt copy()
+  run 290 292 w0 out/m7/g11.txt lower()
+  run 292 294 w0 out/m7/g15.txt indent(2)
+  run 294 295 w0 out/m7/g3.txt copy()
+  run 295 297 w0 out/m7/g7.txt lower()
+  run 297 301 w0 out/m7/bundle.txt concat()
+  run 301 301 w0 out/m7/wrapped.txt wrap("<m7|", "|>\n")
+  run 301 304 w0 out/m7/doc.txt preprocess()
+  run 304 307 w0 out/m8/f0.txt dedup()
+  run 307 309 w0 out/m8/f1.txt indent(2)
+  run 309 310 w0 out/m8/f10.txt wrap("[", "]\n")
+  run 310 313 w0 out/m8/f12.txt dedup()
+  run 313 315 w0 out/m8/f13.txt indent(2)
+  run 315 316 w0 out/m8/f14.txt wrap("[", "]\n")
+  run 316 319 w0 out/m8/f2.txt dedup()
+  run 319 321 w0 out/m8/f4.txt indent(2)
+  run 321 322 w0 out/m8/f5.txt wrap("[", "]\n")
+  run 322 325 w0 out/m8/f6.txt dedup()
+  run 325 327 w0 out/m8/f8.txt indent(2)
+  run 327 328 w0 out/m8/f9.txt wrap("[", "]\n")
+  run 328 331 w0 out/m8/g11.txt dedup()
+  run 331 333 w0 out/m8/g15.txt indent(2)
+  run 333 334 w0 out/m8/g3.txt wrap("[", "]\n")
+  run 334 337 w0 out/m8/g7.txt dedup()
+  run 337 341 w0 out/m8/bundle.txt concat()
+  run 341 344 w0 out/m8/wrapped.txt wrap("<m8|", "|>\n")
+  run 344 345 w0 out/m9/f0.txt wrap("[", "]\n")
+  run 345 346 w0 out/m9/f1.txt wrap("[", "]\n")
+  run 346 348 w0 out/m9/f10.txt reverse_lines()
+  run 348 349 w0 out/m9/f12.txt wrap("[", "]\n")
+  run 349 350 w0 out/m9/f13.txt wrap("[", "]\n")
+  run 350 352 w0 out/m9/f14.txt reverse_lines()
+  run 352 353 w0 out/m9/f2.txt wrap("[", "]\n")
+  run 353 354 w0 out/m9/f4.txt wrap("[", "]\n")
+  run 354 356 w0 out/m9/f5.txt reverse_lines()
+  run 356 357 w0 out/m9/f6.txt wrap("[", "]\n")
+  run 357 358 w0 out/m9/f8.txt wrap("[", "]\n")
+  run 358 360 w0 out/m9/f9.txt reverse_lines()
+  run 360 361 w0 out/m9/g11.txt wrap("[", "]\n")
+  run 361 362 w0 out/m9/g15.txt wrap("[", "]\n")
+  run 362 364 w0 out/m9/g3.txt reverse_lines()
+  run 364 365 w0 out/m9/g7.txt wrap("[", "]\n")
+  run 365 369 w0 out/m9/bundle.txt concat()
+  run 369 373 w0 out/m9/wrapped.txt wrap("<m9|", "|>\n")
+  run 373 376 w0 out/m10/f0.txt replace("a", "A")
+  run 376 379 w0 out/m10/f1.txt replace("a", "A")
+  run 379 382 w0 out/m10/f10.txt replace("a", "A")
+  run 382 385 w0 out/m10/f12.txt replace("a", "A")
+  run 385 388 w0 out/m10/f13.txt replace("a", "A")
+  run 388 391 w0 out/m10/f14.txt replace("a", "A")
+  run 391 394 w0 out/m10/f2.txt replace("a", "A")
+  run 394 397 w0 out/m10/f4.txt replace("a", "A")
+  run 397 400 w0 out/m10/f5.txt replace("a", "A")
+  run 400 403 w0 out/m10/f6.txt replace("a", "A")
+  run 403 406 w0 out/m10/f8.txt replace("a", "A")
+  run 406 409 w0 out/m10/f9.txt replace("a", "A")
+  run 409 412 w0 out/m10/g11.txt replace("a", "A")
+  run 412 415 w0 out/m10/g15.txt replace("a", "A")
+  run 415 418 w0 out/m10/g3.txt replace("a", "A")
+  run 418 421 w0 out/m10/g7.txt replace("a", "A")
+  run 421 424 w0 out/m10/bundle.txt hash()
+  run 424 427 w0 out/m10/wrapped.txt wrap("<m10|", "|>\n")
+  run 427 433 w0 out/m10/doc.txt preprocess()
+  run 433 436 w0 out/m11/f0.txt replace("a", "A")
+  run 436 437 w0 out/m11/f1.txt wrap("[", "]\n")
+  run 437 440 w0 out/m11/f10.txt replace("a", "A")
+  run 440 443 w0 out/m11/f12.txt replace("a", "A")
+  run 443 444 w0 out/m11/f13.txt wrap("[", "]\n")
+  run 444 447 w0 out/m11/f14.txt replace("a", "A")
+  run 447 450 w0 out/m11/f2.txt replace("a", "A")
+  run 450 451 w0 out/m11/f4.txt wrap("[", "]\n")
+  run 451 454 w0 out/m11/f5.txt replace("a", "A")
+  run 454 457 w0 out/m11/f6.txt replace("a", "A")
+  run 457 458 w0 out/m11/f8.txt wrap("[", "]\n")
+  run 458 461 w0 out/m11/f9.txt replace("a", "A")
+  run 461 464 w0 out/m11/g11.txt replace("a", "A")
+  run 464 465 w0 out/m11/g15.txt wrap("[", "]\n")
+  run 465 468 w0 out/m11/g3.txt replace("a", "A")
+  run 468 471 w0 out/m11/g7.txt replace("a", "A")
+  run 471 474 w0 out/m11/bundle.txt hash()
+  run 474 475 w0 out/m11/wrapped.txt wrap("<m11|", "|>\n")
+  run 475 477 w0 out/m12/f0.txt lower()
+  run 477 478 w0 out/m12/f1.txt copy()
+  run 478 482 w0 out/m12/f10.txt sort_lines()
+  run 482 484 w0 out/m12/f12.txt lower()
+  run 484 485 w0 out/m12/f13.txt copy()
+  run 485 489 w0 out/m12/f14.txt sort_lines()
+  run 489 491 w0 out/m12/f2.txt lower()
+  run 491 492 w0 out/m12/f4.txt copy()
+  run 492 496 w0 out/m12/f5.txt sort_lines()
+  run 496 498 w0 out/m12/f6.txt lower()
+  run 498 499 w0 out/m12/f8.txt copy()
+  run 499 503 w0 out/m12/f9.txt sort_lines()
+  run 503 505 w0 out/m12/g11.txt lower()
+  run 505 506 w0 out/m12/g15.txt copy()
+  run 506 510 w0 out/m12/g3.txt sort_lines()
+  run 510 512 w0 out/m12/g7.txt lower()
+  run 512 516 w0 out/m12/bundle.txt concat()
+  run 516 520 w0 out/m12/wrapped.txt wrap("<m12|", "|>\n")
+  run 520 522 w0 out/m13/f0.txt indent(2)
+  run 522 524 w0 out/m13/f1.txt upper()
+  run 524 526 w0 out/m13/f10.txt lower()
+  run 526 528 w0 out/m13/f12.txt indent(2)
+  run 528 530 w0 out/m13/f13.txt upper()
+  run 530 532 w0 out/m13/f14.txt lower()
+  run 532 534 w0 out/m13/f2.txt indent(2)
+  run 534 536 w0 out/m13/f4.txt upper()
+  run 536 538 w0 out/m13/f5.txt lower()
+  run 538 540 w0 out/m13/f6.txt indent(2)
+  run 540 542 w0 out/m13/f8.txt upper()
+  run 542 544 w0 out/m13/f9.txt lower()
+  run 544 546 w0 out/m13/g11.txt indent(2)
+  run 546 548 w0 out/m13/g15.txt upper()
+  run 548 550 w0 out/m13/g3.txt lower()
+  run 550 552 w0 out/m13/g7.txt indent(2)
+  run 552 556 w0 out/m13/bundle.txt concat()
+  run 556 556 w0 out/m13/wrapped.txt wrap("<m13|", "|>\n")
+  run 556 558 w0 out/m13/doc.txt preprocess()
+  run 558 561 w0 out/all.txt count_lines()
+  ok ran=258 hit=0 time=561
+step 2: create src/m7/new0.txt
+  ok size=19
+step 3: build @m2 -j 2
+  hit 0 out/m2/f0.txt
+  hit 0 out/m2/f1.txt
+  hit 0 out/m2/f10.txt
+  hit 0 out/m2/f12.txt
+  hit 0 out/m2/f13.txt
+  hit 0 out/m2/f14.txt
+  hit 0 out/m2/f2.txt
+  hit 0 out/m2/f4.txt
+  hit 0 out/m2/f5.txt
+  hit 0 out/m2/f6.txt
+  hit 0 out/m2/f8.txt
+  hit 0 out/m2/f9.txt
+  hit 0 out/m2/g11.txt
+  hit 0 out/m2/g15.txt
+  hit 0 out/m2/g3.txt
+  hit 0 out/m2/g7.txt
+  hit 0 out/m2/bundle.txt
+  hit 0 out/m2/wrapped.txt
+  ok ran=0 hit=18 time=0
+step 4: edit src/m11/f10.txt
+  ok size=8
+step 5: build @m5 -j 1
+  hit 0 out/m5/f0.txt
+  hit 0 out/m5/f1.txt
+  hit 0 out/m5/f10.txt
+  hit 0 out/m5/f12.txt
+  hit 0 out/m5/f13.txt
+  hit 0 out/m5/f14.txt
+  hit 0 out/m5/f2.txt
+  hit 0 out/m5/f4.txt
+  hit 0 out/m5/f5.txt
+  hit 0 out/m5/f6.txt
+  hit 0 out/m5/f8.txt
+  hit 0 out/m5/f9.txt
+  hit 0 out/m5/g11.txt
+  hit 0 out/m5/g15.txt
+  hit 0 out/m5/g3.txt
+  hit 0 out/m5/g7.txt
+  hit 0 out/m5/bundle.txt
+  hit 0 out/m5/wrapped.txt
+  ok ran=0 hit=18 time=0
+step 6: touch main.kiln
+  ok
+step 7: build (default) -j 3
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f10.txt
+  hit 0 out/m0/f12.txt
+  hit 0 out/m0/f13.txt
+  hit 0 out/m0/f14.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/f4.txt
+  hit 0 out/m0/f5.txt
+  hit 0 out/m0/f6.txt
+  hit 0 out/m0/f8.txt
+  hit 0 out/m0/f9.txt
+  hit 0 out/m0/g11.txt
+  hit 0 out/m0/g15.txt
+  hit 0 out/m0/g3.txt
+  hit 0 out/m0/g7.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/f1.txt
+  hit 0 out/m1/f10.txt
+  hit 0 out/m1/f12.txt
+  hit 0 out/m1/f13.txt
+  hit 0 out/m1/f14.txt
+  hit 0 out/m1/f2.txt
+  hit 0 out/m1/f4.txt
+  hit 0 out/m1/f5.txt
+  hit 0 out/m1/f6.txt
+  hit 0 out/m1/f8.txt
+  hit 0 out/m1/f9.txt
+  hit 0 out/m1/g11.txt
+  hit 0 out/m1/g15.txt
+  hit 0 out/m1/g3.txt
+  hit 0 out/m1/g7.txt
+  hit 0 out/m1/bundle.txt
+  hit 0 out/m1/wrapped.txt
+  hit 0 out/m1/doc.txt
+  hit 0 out/m2/f0.txt
+  hit 0 out/m2/f1.txt
+  hit 0 out/m2/f10.txt
+  hit 0 out/m2/f12.txt
+  hit 0 out/m2/f13.txt
+  hit 0 out/m2/f14.txt
+  hit 0 out/m2/f2.txt
+  hit 0 out/m2/f4.txt
+  hit 0 out/m2/f5.txt
+  hit 0 out/m2/f6.txt
+  hit 0 out/m2/f8.txt
+  hit 0 out/m2/f9.txt
+  hit 0 out/m2/g11.txt
+  hit 0 out/m2/g15.txt
+  hit 0 out/m2/g3.txt
+  hit 0 out/m2/g7.txt
+  hit 0 out/m2/bundle.txt
+  hit 0 out/m2/wrapped.txt
+  hit 0 out/m3/f0.txt
+  hit 0 out/m3/f1.txt
+  hit 0 out/m3/f10.txt
+  hit 0 out/m3/f12.txt
+  hit 0 out/m3/f13.txt
+  hit 0 out/m3/f14.txt
+  hit 0 out/m3/f2.txt
+  hit 0 out/m3/f4.txt
+  hit 0 out/m3/f5.txt
+  hit 0 out/m3/f6.txt
+  hit 0 out/m3/f8.txt
+  hit 0 out/m3/f9.txt
+  hit 0 out/m3/g11.txt
+  hit 0 out/m3/g15.txt
+  hit 0 out/m3/g3.txt
+  hit 0 out/m3/g7.txt
+  hit 0 out/m3/bundle.txt
+  hit 0 out/m3/wrapped.txt
+  hit 0 out/m4/f0.txt
+  hit 0 out/m4/f1.txt
+  hit 0 out/m4/f10.txt
+  hit 0 out/m4/f12.txt
+  hit 0 out/m4/f13.txt
+  hit 0 out/m4/f14.txt
+  hit 0 out/m4/f2.txt
+  hit 0 out/m4/f4.txt
+  hit 0 out/m4/f5.txt
+  hit 0 out/m4/f6.txt
+  hit 0 out/m4/f8.txt
+  hit 0 out/m4/f9.txt
+  hit 0 out/m4/g11.txt
+  hit 0 out/m4/g15.txt
+  hit 0 out/m4/g3.txt
+  hit 0 out/m4/g7.txt
+  hit 0 out/m4/bundle.txt
+  hit 0 out/m4/wrapped.txt
+  hit 0 out/m4/doc.txt
+  hit 0 out/m5/f0.txt
+  hit 0 out/m5/f1.txt
+  hit 0 out/m5/f10.txt
+  hit 0 out/m5/f12.txt
+  hit 0 out/m5/f13.txt
+  hit 0 out/m5/f14.txt
+  hit 0 out/m5/f2.txt
+  hit 0 out/m5/f4.txt
+  hit 0 out/m5/f5.txt
+  hit 0 out/m5/f6.txt
+  hit 0 out/m5/f8.txt
+  hit 0 out/m5/f9.txt
+  hit 0 out/m5/g11.txt
+  hit 0 out/m5/g15.txt
+  hit 0 out/m5/g3.txt
+  hit 0 out/m5/g7.txt
+  hit 0 out/m5/bundle.txt
+  hit 0 out/m5/wrapped.txt
+  hit 0 out/m6/f0.txt
+  hit 0 out/m6/f1.txt
+  hit 0 out/m6/f10.txt
+  hit 0 out/m6/f12.txt
+  hit 0 out/m6/f13.txt
+  hit 0 out/m6/f14.txt
+  hit 0 out/m6/f2.txt
+  hit 0 out/m6/f4.txt
+  hit 0 out/m6/f5.txt
+  hit 0 out/m6/f6.txt
+  hit 0 out/m6/f8.txt
+  hit 0 out/m6/f9.txt
+  hit 0 out/m6/g11.txt
+  hit 0 out/m6/g15.txt
+  hit 0 out/m6/g3.txt
+  hit 0 out/m6/g7.txt
+  hit 0 out/m6/bundle.txt
+  hit 0 out/m6/wrapped.txt
+  hit 0 out/m7/f0.txt
+  hit 0 out/m7/f1.txt
+  hit 0 out/m7/f10.txt
+  hit 0 out/m7/f12.txt
+  hit 0 out/m7/f13.txt
+  hit 0 out/m7/f14.txt
+  hit 0 out/m7/f2.txt
+  hit 0 out/m7/f4.txt
+  hit 0 out/m7/f5.txt
+  hit 0 out/m7/f6.txt
+  hit 0 out/m7/f8.txt
+  hit 0 out/m7/f9.txt
+  run 0 2 w0 out/m7/new0.txt lower()
+  run 0 2 w1 out/m7/g11.txt indent(2)
+  run 0 1 w2 out/m7/g15.txt copy()
+  hit 0 out/m7/doc.txt
+  hit 0 out/m8/f0.txt
+  hit 0 out/m8/f1.txt
+  hit 0 out/m8/f10.txt
+  hit 0 out/m8/f12.txt
+  hit 0 out/m8/f13.txt
+  hit 0 out/m8/f14.txt
+  hit 0 out/m8/f2.txt
+  hit 0 out/m8/f4.txt
+  hit 0 out/m8/f5.txt
+  hit 0 out/m8/f6.txt
+  hit 0 out/m8/f8.txt
+  hit 0 out/m8/f9.txt
+  hit 0 out/m8/g11.txt
+  hit 0 out/m8/g15.txt
+  hit 0 out/m8/g3.txt
+  hit 0 out/m8/g7.txt
+  hit 0 out/m8/bundle.txt
+  hit 0 out/m8/wrapped.txt
+  hit 0 out/m9/f0.txt
+  hit 0 out/m9/f1.txt
+  hit 0 out/m9/f10.txt
+  hit 0 out/m9/f12.txt
+  hit 0 out/m9/f13.txt
+  hit 0 out/m9/f14.txt
+  hit 0 out/m9/f2.txt
+  hit 0 out/m9/f4.txt
+  hit 0 out/m9/f5.txt
+  hit 0 out/m9/f6.txt
+  hit 0 out/m9/f8.txt
+  hit 0 out/m9/f9.txt
+  hit 0 out/m9/g11.txt
+  hit 0 out/m9/g15.txt
+  hit 0 out/m9/g3.txt
+  hit 0 out/m9/g7.txt
+  hit 0 out/m9/bundle.txt
+  hit 0 out/m9/wrapped.txt
+  hit 0 out/m10/f0.txt
+  hit 0 out/m10/f1.txt
+  hit 0 out/m10/f10.txt
+  hit 0 out/m10/f12.txt
+  hit 0 out/m10/f13.txt
+  hit 0 out/m10/f14.txt
+  hit 0 out/m10/f2.txt
+  hit 0 out/m10/f4.txt
+  hit 0 out/m10/f5.txt
+  hit 0 out/m10/f6.txt
+  hit 0 out/m10/f8.txt
+  hit 0 out/m10/f9.txt
+  hit 0 out/m10/g11.txt
+  hit 0 out/m10/g15.txt
+  hit 0 out/m10/g3.txt
+  hit 0 out/m10/g7.txt
+  hit 0 out/m10/bundle.txt
+  hit 0 out/m10/wrapped.txt
+  hit 0 out/m10/doc.txt
+  hit 0 out/m11/f0.txt
+  hit 0 out/m11/f1.txt
+  hit 0 out/m11/f12.txt
+  hit 0 out/m11/f13.txt
+  hit 0 out/m11/f14.txt
+  hit 0 out/m11/f2.txt
+  hit 0 out/m11/f4.txt
+  hit 0 out/m11/f5.txt
+  hit 0 out/m11/f6.txt
+  hit 0 out/m11/f8.txt
+  hit 0 out/m11/f9.txt
+  hit 0 out/m11/g11.txt
+  hit 0 out/m11/g15.txt
+  hit 0 out/m11/g3.txt
+  hit 0 out/m11/g7.txt
+  hit 0 out/m12/f0.txt
+  hit 0 out/m12/f1.txt
+  hit 0 out/m12/f10.txt
+  hit 0 out/m12/f12.txt
+  hit 0 out/m12/f13.txt
+  hit 0 out/m12/f14.txt
+  hit 0 out/m12/f2.txt
+  hit 0 out/m12/f4.txt
+  hit 0 out/m12/f5.txt
+  hit 0 out/m12/f6.txt
+  hit 0 out/m12/f8.txt
+  hit 0 out/m12/f9.txt
+  hit 0 out/m12/g11.txt
+  hit 0 out/m12/g15.txt
+  hit 0 out/m12/g3.txt
+  hit 0 out/m12/g7.txt
+  hit 0 out/m12/bundle.txt
+  hit 0 out/m12/wrapped.txt
+  hit 0 out/m13/f0.txt
+  hit 0 out/m13/f1.txt
+  hit 0 out/m13/f10.txt
+  hit 0 out/m13/f12.txt
+  hit 0 out/m13/f13.txt
+  hit 0 out/m13/f14.txt
+  hit 0 out/m13/f2.txt
+  hit 0 out/m13/f4.txt
+  hit 0 out/m13/f5.txt
+  hit 0 out/m13/f6.txt
+  hit 0 out/m13/f8.txt
+  hit 0 out/m13/f9.txt
+  hit 0 out/m13/g11.txt
+  hit 0 out/m13/g15.txt
+  hit 0 out/m13/g3.txt
+  hit 0 out/m13/g7.txt
+  hit 0 out/m13/bundle.txt
+  hit 0 out/m13/wrapped.txt
+  hit 0 out/m13/doc.txt
+  run 1 3 w2 out/m7/g3.txt lower()
+  run 2 4 w0 out/m7/g7.txt indent(2)
+  run 2 5 w1 out/m11/f10.txt replace("a", "A")
+  run 4 8 w0 out/m7/bundle.txt concat()
+  run 5 8 w1 out/m11/bundle.txt hash()
+  run 8 8 w0 out/m7/wrapped.txt wrap("<m7|", "|>\n")
+  run 8 9 w1 out/m11/wrapped.txt wrap("<m11|", "|>\n")
+  run 9 12 w0 out/all.txt count_lines()
+  ok ran=11 hit=248 time=12
+step 8: edit src/m2/f0.txt
+  ok size=22
+step 9: build @m2 -j 16
+  run 0 3 w0 out/m2/f0.txt replace("a", "A")
+  hit 0 out/m2/f1.txt
+  hit 0 out/m2/f10.txt
+  hit 0 out/m2/f12.txt
+  hit 0 out/m2/f13.txt
+  hit 0 out/m2/f14.txt
+  hit 0 out/m2/f2.txt
+  hit 0 out/m2/f4.txt
+  hit 0 out/m2/f5.txt
+  hit 0 out/m2/f6.txt
+  hit 0 out/m2/f8.txt
+  hit 0 out/m2/f9.txt
+  hit 0 out/m2/g11.txt
+  hit 0 out/m2/g15.txt
+  hit 0 out/m2/g3.txt
+  hit 0 out/m2/g7.txt
+  run 3 6 w0 out/m2/bundle.txt hash()
+  run 6 7 w0 out/m2/wrapped.txt wrap("<m2|", "|>\n")
+  ok ran=3 hit=15 time=7

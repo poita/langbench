@@ -1,0 +1,9 @@
+norm1 ibm32.mtx
+normfro ibm32.mtx
+det ibm32.mtx
+inv ibm32.mtx
+qr ibm32.mtx
+svd ibm32.mtx
+cond ibm32.mtx
+solve ibm32.mtx rhs.mtx
+mul ibm32.mtx rhs.mtx

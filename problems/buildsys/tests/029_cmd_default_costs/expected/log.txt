@@ -1,0 +1,36 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/00.txt write("w\n")
+  run 1 2 w0 out/01.txt copy()
+  run 2 4 w0 out/02.txt concat()
+  run 4 6 w0 out/03.txt upper()
+  run 6 8 w0 out/04.txt lower()
+  run 8 11 w0 out/05.txt grep("a")
+  run 11 14 w0 out/06.txt replace("a", "A")
+  run 14 18 w0 out/07.txt sort_lines()
+  run 18 20 w0 out/08.txt reverse_lines()
+  run 20 23 w0 out/09.txt dedup()
+  run 23 25 w0 out/10.txt number()
+  run 25 27 w0 out/11.txt indent(2)
+  run 27 28 w0 out/12.txt wrap("<", ">")
+  run 28 30 w0 out/13.txt count_lines()
+  run 30 33 w0 out/14.txt hash()
+  run 33 39 w0 out/15.txt preprocess()
+  ok ran=16 hit=0 time=39
+step 2: build (default) -j 1
+  hit 0 out/00.txt
+  hit 0 out/01.txt
+  hit 0 out/02.txt
+  hit 0 out/03.txt
+  hit 0 out/04.txt
+  hit 0 out/05.txt
+  hit 0 out/06.txt
+  hit 0 out/07.txt
+  hit 0 out/08.txt
+  hit 0 out/09.txt
+  hit 0 out/10.txt
+  hit 0 out/11.txt
+  hit 0 out/12.txt
+  hit 0 out/13.txt
+  hit 0 out/14.txt
+  hit 0 out/15.txt
+  ok ran=0 hit=16 time=0

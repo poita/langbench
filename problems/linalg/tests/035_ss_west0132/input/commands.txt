@@ -1,0 +1,6 @@
+norm1 west0132.mtx
+norminf west0132.mtx
+normfro west0132.mtx
+transpose west0132.mtx
+mul west0132.mtx west0132.mtx
+lu west0132.mtx

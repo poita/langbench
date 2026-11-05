@@ -1,0 +1,10 @@
+decode
+# top comment
+
+
+   # indented
+key = "value" # inline comment
+	
+[t] # after header
+  x = 1
+# trailing comment without newline

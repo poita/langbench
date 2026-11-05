@@ -1,0 +1,16 @@
+set A1 10
+set A2 32
+set A3 =A1+A2
+set A4 =A3*2
+set A5 =A4/8
+set A6 =A5-A1
+get A3
+get A4
+get A5
+get A6
+set A1 20
+get A3
+get A4
+get A5
+get A6
+dump

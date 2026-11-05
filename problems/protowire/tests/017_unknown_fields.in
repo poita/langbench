@@ -1,0 +1,35 @@
+message K { int32 a = 1; string s = 2; }
+--
+decode K 1805
+decode K 18ffffffffffffffffff01
+decode K 190102030405060708
+decode K 1a03ff0f0e
+decode K 1a00
+decode K 1d01020304
+decode K 1b1c
+decode K 1b08051a02ffff1c
+decode K 1b231b1c241c
+decode K 1b0f1c
+decode K 1b001c
+decode K 1b1b1c
+decode K 1c
+decode K 1b08051a
+decode K 1b08051c0801
+decode K 08011805120178
+decode K f8ffffff0f01
+decode K f8ffffff0f00
+decode K 8080808008ff01
+decode K 1805080a
+decode K ab010801ac01ab010801ac01ab010801ac01ab010801ac01ab010801ac01ab010801ac01ab010801ac01ab010801ac010801
+decode K 1a80808080000801
+decode K 1a8080808080000801
+decode K 1b1a80808080001c0801
+decode K 1b1a8080808080001c0801
+decode K 1bf8ffffff0f001c0801
+decode K 1bf8ffffff1f001c0801
+decode K 1b8080808010001c0801
+decode K 1b80808080800100001c0801
+decode K 1b18ffffffffffffffffff011c0801
+decode K 1b1880808080808080808080011c0801
+decode K 1b1a03ffffff1c0801
+decode K 1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1b1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c1c

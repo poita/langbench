@@ -1,0 +1,6 @@
+decode
+[tbl]
+a.b.c = {d.e=1}
+
+[tbl.x]
+a.b.c = {d.e=1}

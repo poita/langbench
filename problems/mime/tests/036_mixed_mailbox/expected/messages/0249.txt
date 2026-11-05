@@ -1,0 +1,102 @@
+[message]
+id 0249
+source "mbox:249"
+
+[headers]
+received: "from mail.example.net (mx8.example.org [135.195.141.204]) by mail.example.net (Postfix) with ESMTP id FEF3650DEE for <ajohansson@example.org>; 12 DEC 03 04:17 +0000"
+return-path: "<mller@eu.example.de>"
+message-id: "<1803.2fab3470.8492@post.example.fr>"
+in-reply-to: "<1806.5f70111c.74927@lists.example.edu>"
+references: "<1804.ac727488.78328@eu.example.de> <1805.c3c17c45.29783@students.example.ac.jp> <1806.5f70111c.74927@lists.example.edu>"
+date: "Mon, 12 Feb 2003 09:51:40 MET"
+from: "mller@post.example.fr"
+to: "\"Johansson, Agnieszka\" <ajohansson.78@post.example.fr>"
+cc: "\"Nils Brown\" <nbrown.99@mail.example.net>"
+subject: "[PATCH] Did what picture read now Größe in"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_7B71FD01021BB446\""
+
+[addresses]
+from 0 display="" spec="mller@post.example.fr"
+to 0 display="Johansson, Agnieszka" spec="ajohansson.78@post.example.fr"
+cc 0 display="Nils Brown" spec="nbrown.99@mail.example.net"
+
+[date]
+raw " Mon, 12 Feb 2003 09:51:40 MET"
+valid yes
+utc 2003-02-12T09:51:40Z
+offset +0000
+epoch 1045043500
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_7B71FD01021BB446" parts=3 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="simple boundary 255" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=8bit size=902 adler32=ae1d37b7 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1294 adler32=0639ba30 role=html
+  4 text/csv charset=utf-8 cte=7bit disposition=attachment filename="what.csv" size=2006 adler32=56747e96 role=attachment
+  5 message/rfc822 cte=7bit disposition=inline parts=1
+    6 multipart/mixed cte=7bit boundary="----=_Part_4358_270546107.366379320797" parts=4 preamble=45 epilogue=1
+      7 multipart/alternative cte=7bit boundary="=_7b669cc4e6b0a9d33620c1604e5d89bc" parts=2 preamble=0 epilogue=0
+        8 text/plain charset=utf-8 cte=quoted-printable size=2198 adler32=6a9ef6ee role=attachment
+        9 text/html charset=utf-8 cte=quoted-printable size=2867 adler32=6c56d4e2 role=attachment
+      10 text/plain charset=utf-8 cte=7bit disposition=attachment filename="many_just_they.txt" size=5428 adler32=f292849f role=attachment
+      11 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="how_was_as.docx" size=7137 adler32=b1c3bae5 role=attachment
+      12 application/pdf cte=base64 disposition=inline filename="do_change.pdf" size=7092 adler32=759b940b role=attachment
+
+[body]
+text 2 chars 889
+| On 13 MAY 24 21:22 -0400, Đorđe Østergaard wrote:
+| > > Form build I to of! Said day and them even when land the to was
+| >> people a light write the.
+| >
+| > > Change father this are three to. Then when home first Paulo sentence
+| > > a of of I an build their two bucket end hand too. About his there
+| > > are her with httpd self!
+| >
+| > Ørsted turn new low was! Man went could help façade the you to
+| > review all again many hot our mutex the São. Out came all can can
+| >> home to day. All be you name and the it! These been must patch error
+| >> of can timeout jalapeño in cause the has from with each his? An call
+| > of if résumé! Of part word put move the such at move for now the
+| > line on on his the.
+| >
+| 
+| Other is round pool vote this put home him even? Make three come about
+| that picture kind are thread is are look. Had say that and connection
+| side what good one client do sentence and!
+| 
+| -- 
+| Nils 山田
+html 3 chars 1281
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 13 MAY 24 21:22 -0400, Đorđe Østergaard wrote:<br>
+| &gt; &gt; Form build I to of! Said day and them even when land the to was<br>
+| &gt;&gt; people a light write the.<br>
+| &gt;<br>
+| &gt; &gt; Change father this are three to. Then when home first Paulo sentence<br>
+| &gt; &gt; a of of I an build their two bucket end hand too. About his there<br>
+| &gt; &gt; are her with httpd self!<br>
+| &gt;<br>
+| &gt; Ørsted turn new low was! Man went could help façade the you to<br>
+| &gt; review all again many hot our mutex the São. Out came all can can<br>
+| &gt;&gt; home to day. All be you name and the it! These been must patch error<br>
+| &gt;&gt; of can timeout jalapeño in cause the has from with each his? An call<br>
+| &gt; of if résumé! Of part word put move the such at move for now the<br>
+| &gt; line on on his the.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Other is round pool vote this put home him even? Make three come about<br>
+| that picture kind are thread is are look. Had say that and connection<br>
+| side what good one client do sentence and!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Nils 山田<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/csv filename="what.csv" size=2006 adler32=56747e96 file=parts/0249/004.bin
+8 type=text/plain filename=- size=2198 adler32=6a9ef6ee file=parts/0249/008.bin
+9 type=text/html filename=- size=2867 adler32=6c56d4e2 file=parts/0249/009.bin
+10 type=text/plain filename="many_just_they.txt" size=5428 adler32=f292849f file=parts/0249/010.bin
+11 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="how_was_as.docx" size=7137 adler32=b1c3bae5 file=parts/0249/011.bin
+12 type=application/pdf filename="do_change.pdf" size=7092 adler32=759b940b file=parts/0249/012.bin

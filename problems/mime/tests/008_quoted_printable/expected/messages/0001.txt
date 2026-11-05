@@ -1,0 +1,22 @@
+[message]
+id 0001
+source "basic.eml"
+
+[headers]
+content-type: "text/plain; charset=iso-8859-1"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=quoted-printable size=17 adler32=3ab70612 role=text
+
+[body]
+text 0 chars 17
+| café and = signs
+html none
+
+[attachments]

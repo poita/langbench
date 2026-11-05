@@ -1,0 +1,72 @@
+[message]
+id 0034
+source "mbox:34"
+
+[headers]
+received: "from post.example.fr (mx8.dev.example.io [253.201.234.63]) by example.com (Postfix) with ESMTP id 44CF3B7382 for <i@corp.example.co.uk>; 31 Feb 2004 10:00:00 +0000"
+received: "from apache.org (mx4.eu.example.de [184.187.148.198]) by example.com (Postfix) with ESMTP id CF08F1C19D for <g@lists.example.edu>; Sun, 20 Jun 2012 18:49:50 +0530"
+received: "from lists.example.edu (mx9.corp.example.co.uk [241.178.14.167]) by lists.example.edu (Postfix) with ESMTP id A0A0A31166 for <gpetrov@eu.example.de>; Mon, 1 May 2025 20:34:40 +0900"
+received: "from corp.example.co.uk (mx9.students.example.ac.jp [116.63.55.175]) by dev.example.io (Postfix) with ESMTP id F8EB2979FD for <fjohansson.49@students.example.ac.jp>; 31 Feb 2004 10:00:00 +0000"
+received: "from dev.example.io (mx2.post.example.fr [175.200.125.11]) by students.example.ac.jp (Postfix) with ESMTP id 835B128D42 for <qkim.71@mail.example.net>; Sun, 22 Oct 2003 04:58:54 -0800 (EDT)"
+return-path: "<fnguyen@lists.example.edu>"
+message-id: "<263.7417ea90.19500@apache.org>"
+in-reply-to: "<272.b1ba089e.92482@apache.org>"
+references: "<264.43e4d198.19899@lists.example.edu> <265.2d4e5e72.68149@apache.org> <266.086d597b.88755@apache.org> <267.db5d5a1a.97800@students.example.ac.jp> <268.0414fccb.70473@example.com> <269.ad396b2d.80905@lists.example.edu> <270.cf3c3d89.86049@lists.example.edu> <271.ac71c744.65632@dev.example.io> <272.b1ba089e.92482@apache.org>"
+date: "Sun, 12 Jun 2012 10:38:41 -0000"
+from: "ljohansson.16@dev.example.io (Luis Johansson)"
+to: "太郎 van der Berg <vanderberg@students.example.ac.jp>"
+cc: "Luis Schröder <lschrder.85@eu.example.de>,    garca.76@post.example.fr (Someone)"
+subject: "[VOTE] Land the have part thing from point right good"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=windows-1252"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="" spec="ljohansson.16@dev.example.io"
+to 0 display="太郎 van der Berg" spec="vanderberg@students.example.ac.jp"
+cc 0 display="Luis Schröder" spec="lschrder.85@eu.example.de"
+cc 1 display="" spec="garca.76@post.example.fr"
+
+[date]
+raw " Sun, 12 Jun 2012 10:38:41 -0000"
+valid yes
+utc 2012-06-12T10:38:41Z
+offset +0000
+epoch 1339497521
+
+[structure]
+0 text/plain charset=windows-1252 cte=quoted-printable size=1171 adler32=00349974 role=text
+
+[body]
+text 0 chars 1171
+| Put be hot from the the down be back say may a this from config
+| connection do. Of a play the to his people again go by fiancée directive
+| you many your and. Build by the word log too are near. Has on the
+| picture year change your we in that first of the!
+| 
+| Look little other differ release only there Kraków very for read the
+| look the great. Filter do these word about is after about down come high
+| like and. Say time kind out point and try self be patch where other they
+| we the. The animal it by air keepalive more have back is way header you
+| a! Will I world the to set élan for the it did it! Three bug find play
+| or side!
+| 
+| With even point world go say in crash come. Are his name you sound what
+| word little. Your form side in from place she. Of this tell with the low
+| in place went hand your. And all had year down when same find new their.
+| House is the under you round to way but of. Our alias you with it is
+| this then act their write the him!
+| 
+| Find a your could how get here him the by set in error have the a they.
+| No people be client the hot too what man of also. Keepalive can end out
+| had more. That these backport look does did him must we form!
+| 
+| -- 
+| ??????? Müller
+html none
+
+[attachments]

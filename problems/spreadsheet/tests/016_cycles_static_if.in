@@ -1,0 +1,19 @@
+set A1 =IF(0,A1,5)
+get A1
+set A2 =IF(1,5,A2)
+get A2
+set B1 =IF(0,B2,1)
+set B2 =IF(0,B1,2)
+get B1
+get B2
+set B2 2
+get B1
+get B2
+set C1 =IF(1,C2,0)
+set C2 =IF(1,C3,0)
+set C3 =IF(1,C1,0)
+set C4 =C1
+set C5 =IF(0,C1,"safe")
+dump
+set C2 3
+dump

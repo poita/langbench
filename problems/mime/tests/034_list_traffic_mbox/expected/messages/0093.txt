@@ -1,0 +1,88 @@
+[message]
+id 0093
+source "mbox:93"
+
+[headers]
+received: "from dev.example.io (mx2.dev.example.io [60.231.78.171]) by eu.example.de (Postfix) with ESMTP id BDE3FA5C85 for <epapadopoulos.83@mail.example.net>; Tue, 23 May 2025 21:22:27 +0000 (JST)"
+received: "from dev.example.io (mx2.eu.example.de [205.175.169.120]) by eu.example.de (Postfix) with ESMTP id F1D377C5DA for <zpetrov@dev.example.io>; Sun, 5 Jul 2009 18:48:13 +0200"
+received: "from example.com (mx2.eu.example.de [199.96.165.74]) by apache.org (Postfix) with ESMTP id 7C52AFADE6 for <lstergaard@eu.example.de>; Thu, 18 Feb 2024 01:05:09 GMT"
+received: "from post.example.fr (mx8.post.example.fr [178.25.51.109]) by example.com (Postfix) with ESMTP id ACE63874B7 for <mwilson@post.example.fr>; Sat, 8 Aug 2005 13:38:24 +0900"
+received: "from mail.example.net (mx1.apache.org [43.64.82.6]) by corp.example.co.uk (Postfix) with ESMTP id B42DFA5107 for <mwilson@corp.example.co.uk>; Tue, 22 Dec 2009 16:14:46 -0500"
+return-path: "<jvanderberg.93@students.example.ac.jp>"
+message-id: "<594.8675e544.84915@students.example.ac.jp>"
+in-reply-to: "<605.6d82d12f.1841@example.org>"
+references: "<595.56e28766.32065@eu.example.de> <596.d97bbf78.31291@example.org> <597.1f0fd598.69660@example.com> <598.40ea9b24.73372@eu.example.de> <599.e772cb2b.91212@students.example.ac.jp> <600.c9dad6a1.72573@lists.example.edu> <601.0364707d.55534@dev.example.io> <602.fe08cc6e.91243@example.org> <603.cbc9a70b.11325@post.example.fr> <604.ad55453e.2627@mail.example.net> <605.6d82d12f.1841@example.org>"
+date: "Wed, 22 Nov 2004 23:57:27 +0200"
+from: "Søren Doe <sdoe@students.example.ac.jp>"
+to: "Pierre Иванов <p@students.example.ac.jp>"
+cc: "j@apache.org,    Дмитрий García <garca@example.org>"
+subject: "[VOTE] Httpd him find be"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=0000000000009aa1044fd1d4"
+
+[addresses]
+from 0 display="Søren Doe" spec="sdoe@students.example.ac.jp"
+to 0 display="Pierre Иванов" spec="p@students.example.ac.jp"
+cc 0 display="" spec="j@apache.org"
+cc 1 display="Дмитрий García" spec="garca@example.org"
+
+[date]
+raw " Wed, 22 Nov 2004 23:57:27 +0200"
+valid yes
+utc 2004-11-22T21:57:27Z
+offset +0200
+epoch 1101160647
+
+[structure]
+0 multipart/alternative cte=7bit boundary="0000000000009aa1044fd1d4" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=windows-1252 cte=quoted-printable size=927 adler32=e0704852 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1339 adler32=89d9d330 role=html
+
+[body]
+text 1 chars 927
+| She module socket as side had piñata could status client it each be the
+| find need made me! Were world father hot more large very by animal.
+| 
+| Any ask if in with. Coöperate just people Straße socket two by on good
+| came the people home animal through the of and? To this than bug these
+| even form her too after? On word this a she she is.
+| 
+| See patch make large the she word here of keepalive! Put now his long so
+| were I old on up are on of from long? Piñata his they near same I it
+| light in long he. The or mean it you she of build point be by a hand
+| give some their place no. First über build land made we at light the
+| each kind to. There just about was right the go brûlée or sentence his
+| light where the every there handler other.
+| 
+| The spell I him you status from we piñata which sentence a? Is before
+| low you of had side. For light about timeout home such people here or of
+| make other some down does said.
+| 
+| -- 
+| Xavier Schröder
+html 2 chars 1330
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">She module socket as side had piñata could status client it each be the<br>
+| find need made me! Were world father hot more large very by animal.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Any ask if in with. Coöperate just people Straße socket two by on good<br>
+| came the people home animal through the of and? To this than bug these<br>
+| even form her too after? On word this a she she is.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">See patch make large the she word here of keepalive! Put now his long so<br>
+| were I old on up are on of from long? Piñata his they near same I it<br>
+| light in long he. The or mean it you she of build point be by a hand<br>
+| give some their place no. First über build land made we at light the<br>
+| each kind to. There just about was right the go brûlée or sentence his<br>
+| light where the every there handler other.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The spell I him you status from we piñata which sentence a? Is before<br>
+| low you of had side. For light about timeout home such people here or of<br>
+| make other some down does said.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Xavier Schröder<br>
+| </p>
+| </body></html>
+
+[attachments]

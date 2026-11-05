@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Tags &middot; {{ site.title }}{% endblock %}
+{% block main %}
+<h1>Tags</h1>
+{% if tags %}
+<ul class="tagcloud">
+{%- for t in tags %}
+<li><a href="{{ t.url }}">{{ t.name }}</a> <span class="count">{{ t.post_count }}</span></li>
+{%- endfor %}
+</ul>
+{% else %}
+<p>No tags yet.</p>
+{% endif %}
+{% endblock %}

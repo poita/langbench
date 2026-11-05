@@ -1,0 +1,5 @@
+kiln-state 1
+step out/s.txt
+cmd write("1 10,11,99,p,Q\n")
+out out/s.txt bb6f107ddbfd1a40
+end

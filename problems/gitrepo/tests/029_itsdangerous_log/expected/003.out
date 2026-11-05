@@ -1,0 +1,50 @@
+672971d66a2ef9f85151e53283113f33d642dabd David Lord 1749933342 Merge branch 'stable'
+b0410878b9e46bd4c008eeac8cf4ed3d345e69b4 David Lord 1749931657 remove slsa provenance (#408)
+584138c73af1fc7701d37716543826dcfa314fc4 David Lord 1749931486 remove slsa provenance
+8953020d029bfc9f9d5a4f853e6dafd11a54a902 David Lord 1749761848 Merge branch 'stable'
+f593a0584f2efe929200a20fd1f78f2c3e1dcb04 David Lord 1749761814 svg logo
+73ad98e8629e67a85bf47a525aa7e5c8489e447c David Lord 1749669072 Merge branch 'stable'
+0b92f16a59022b5756311b1ca5ebd67aabef9371 David Lord 1749669063 svg logo (#407)
+38774c9ae5f73312fdfe2abc1267cf19dccb4d21 David Lord 1749668956 svg logo
+31f46a3469dbfb2ecf83dd0c4297c1efc508fcca David Lord 1748466234 remove previously deprecated code (#406)
+4bb03cd6819228f30079885297299fe568a62863 David Lord 1748465894 remove previously deprecated code
+4dffa1963f896a0a311dec3c14f003a5f382c446 David Lord 1748465830 drop end of life python versions (#405)
+7edfa12ed562c5d5e9d6faa06812e42f02efb0e0 David Lord 1748465692 drop end of life python versions
+117218e006641644a038772e557a3ae6cb1448a1 David Lord 1748465471 Merge branch 'stable'
+09a8e058a9cca4cae9fb993d936957278cbec151 David Lord 1748465363 Update project to use uv for dependency management (#404)
+c294b2fb47447d83be02470525c9c6292ce5fd74 David Lord 1748465271 fix pyright findings
+91952b90cd5c9e8b36f20a2bf05e0496e55c13c3 Adam Englander 1747792417 use uv
+1ad903dddad0e38b6ab25be5e4e7a9189cc5a9a4 David Lord 1736891136 use global contributing guide (#401)
+11b0f7ebb0c96ac8af6b42b4b139adf6c627e537 David Lord 1736891025 use global contributing guide
+62fde54d4ff717fa1c4af688dbebf97845fed495 David Lord 1729799487 update test workflow trigger
+29e0cdfc8cf9db2a6128a3aa929c585348295c9d David Lord 1729799483 Merge branch 'stable'
+044bb34b2ac4b8cd5d0ed278d94aba00844e9b9c David Lord 1729799465 update test workflow trigger
+f8459e3d6cd5b40b9581b10456f439d4dd0a785d David Lord 1729797241 Merge branch 'stable'
+51bd702e0c8e7959eea10c93b39027f2d61fbb14 David Lord 1729797232 update dev dependencies
+7f245362a2607893747bf45303e7c241ed1589d5 David Lord 1725206653 set up pre-commit lite workflow
+50e6b624d86b6770bbf433f2617ff17fd628a053 David Lord 1725205682 set up pre-commit lite workflow
+7619f947956abe992c2cb9ad946584dfb3b86b0d David Lord 1725204746 set up pre-commit lite workflow
+0df2193cd68d9fc69008764e8cffb2b9d3e238f7 David Lord 1724461864 remove pre-commit.ci update
+d408c5ef2ae186d2f4d768ac502298047f301797 David Lord 1724459866 Merge branch '2.2.x'
+2b4057a393a3a3ac30ffec644f3985bfbd4ef155 David Lord 1724459809 update dev dependencies
+ad4174f458fc4b532ecad91f592ce42408b4f4a0 David Lord 1724459612 add gha-update, remove dependabot
+e9620514720116f76dc3884e0c6b2bd651b1c9a8 David Lord 1722958249 [pre-commit.ci] pre-commit autoupdate (#396)
+4bf8d6fd809be4023012439bdf90155c5b300430 pre-commit-ci[bot] 1722899363 [pre-commit.ci] pre-commit autoupdate
+3b42a1f39d36cb2333b4a1c9b17533cda4d3f645 David Lord 1722695322 Bump the github-actions group with 3 updates (#395)
+a72b0d7729b49bcb75a3b079d93c62dae7b8d6af dependabot[bot] 1722524052 Bump the github-actions group with 3 updates
+e9881e55236f64c5dfe99f7b6428ef109dc020fa David Lord 1719919016 [pre-commit.ci] pre-commit autoupdate (#393)
+afe72f9c29f8224bd485fb3f85596de5e73b0ed3 pre-commit-ci[bot] 1719879334 [pre-commit.ci] pre-commit autoupdate
+14301495f3b1f6c98708909ab94f5b276fa51a98 David Lord 1719875616 Bump the python-requirements group in /requirements with 4 updates (#391)
+0f354a34b2bfb3db21a8d140816ad970bbe4f0e4 David Lord 1719863755 Bump the github-actions group with 2 updates (#392)
+0f151b6c756b8ad59061c42fd9060eb23351e594 dependabot[bot] 1719844976 Bump the github-actions group with 2 updates
+faa2f04ee3901c462d4b300118777768332a08e9 dependabot[bot] 1719843773 Bump the python-requirements group in /requirements with 4 updates
+43e3ac27aa5495b087f61bfc9a54db2ac3b7f974 David Lord 1717453539 [pre-commit.ci] pre-commit autoupdate (#390)
+5bb67722a5ad082cb0dbb1c8fbb404a9d9955943 pre-commit-ci[bot] 1717452649 [pre-commit.ci] pre-commit autoupdate
+582a23c3bf8195c096c245458aeb645dae72134d David Lord 1717251585 Bump actions/checkout from 4.1.4 to 4.1.6 in the github-actions group (#388)
+9c83cb4cb9f85bc76e3b7b3036eb0935d4987218 dependabot[bot] 1717251333 Bump actions/checkout from 4.1.4 to 4.1.6 in the github-actions group
+fc61ea1e57a935d3fafe6caef35bdd9b97418448 David Lord 1717251266 Bump the python-requirements group in /requirements with 4 updates (#387)
+5876a08e6803ce402a5976937e81198dbf6fc1bc dependabot[bot] 1717251070 Bump the python-requirements group in /requirements with 4 updates
+6567d656f0386cfe647c9ad5cdfc59e68150487c David Lord 1715448918 Merge branch '2.2.x'
+6ca10918f91a4903d7cab480ae2084441fe01e72 David Lord 1715448905 test with python 3.13 (#385)
+2da4fabb221369bdcc276dd0e565524013e1af16 David Lord 1715448423 test with python 3.13
+b815a03f394f8186e4e48c5d973292ca0e88fc99 David Lord 1715034544 [pre-commit.ci] pre-commit autoupdate (#384)

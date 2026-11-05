@@ -1,0 +1,37 @@
+[1] ok begin
+[2] ok put created
+[3] ok put created
+[4] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 0
+  indexes 0
+  wal 32
+[5] ok rollback
+[6] ok stat
+  pages 1
+  free 0
+  freehead 0
+  docs 0
+  root 0
+  height 0
+  commits 0
+  indexes 0
+  wal 32
+[7] ok begin
+[8] ok put created
+[9] ok commit 1 frames 2
+[10] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 1
+  indexes 0
+  wal 2152

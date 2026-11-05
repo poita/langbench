@@ -1,0 +1,145 @@
+[message]
+id 0166
+source "mbox:166"
+
+[headers]
+received: "from students.example.ac.jp (mx5.post.example.fr [230.40.61.238]) by students.example.ac.jp (Postfix) with ESMTP id CDF7EA3474 for <lobrien@lists.example.edu>; Fri, 12 May 2024 13:31:20 CST"
+received: "from apache.org (mx8.example.org [131.241.17.242]) by eu.example.de (Postfix) with ESMTP id 7FB7FC02E1 for <ewilson@apache.org>; fri,7 feb 2024 11:27:40 (comment (nested)) PDT"
+received: "from lists.example.edu (mx3.example.com [10.115.206.9]) by mail.example.net (Postfix) with ESMTP id C0094BC12 for <schrder.73@students.example.ac.jp>; Thu, 25 Jan 2012 19:41:29 -0800"
+received: "from students.example.ac.jp (mx1.corp.example.co.uk [243.36.241.48]) by lists.example.edu (Postfix) with ESMTP id 8BA8B3993A for <blefvre@corp.example.co.uk>; Tue, 17 Dec 2018 02:33:05 +0200"
+return-path: "<ypapadopoulos@example.com>"
+message-id: "<1231.c2a25610.66912@eu.example.de>"
+date: "Sun, 12 Dec 2003 00:59:11 -0400"
+from: "\"Quinn Papadopoulos\" <qpapadopoulos@mail.example.net>"
+to: "bschrder@mail.example.net,\tRémi Papadopoulos <rpapadopoulos.19@example.org>,\tfkowalski@dev.example.io, \"Taylor, Xavier\" <xtaylor.30@corp.example.co.uk>, Pierre Nakamura <pnakamura@students.example.ac.jp>, \"Smith, Erik\" <esmith.10@mail.example.net>, btaylor.48@apache.org, Søren 山田 <s@post.example.fr>,    \"Wilson, Luis\" <lwilson.35@mail.example.net>,\tLuis Иванов <l@post.example.fr>,    \"Kowalski, Luis\" <lkowalski.22@students.example.ac.jp>,    \"van der Berg, Ivan\" <ivanderberg@apache.org>, Nils Fernández <nfernndez.36@example.org>,    Nils Petrov <npetrov@eu.example.de>, Björn Nguyen <bnguyen.39@post.example.fr>, Uwe Kim <ukim.60@lists.example.edu>, ggarca.16@eu.example.de,\tWilliam Kim <wkim@eu.example.de>, obrien.75@corp.example.co.uk,    Дмитрий Lefèvre <lefvre@students.example.ac.jp>"
+cc: "\"Quinn Taylor\" <qtaylor@eu.example.de>,    \"Dubois, Bob\" <bdubois@dev.example.io>, mpetrov.76@post.example.fr (Someone), Đorđe Petrov <petrov.51@corp.example.co.uk>,\tqkim.16@lists.example.edu,    María Rossi <mrossi@post.example.fr>, Chloé Kim <ckim@mail.example.net>, Đorđe Doe <doe@mail.example.net>,\tFiona García <fgarca@mail.example.net>, \"Kowalski, William\" <wkowalski.54@mail.example.net>, \"Smith, Erik\" <esmith@mail.example.net>, Rémi Dubois <rdubois@example.com>,    Đorđe Fernández <fernndez@students.example.ac.jp>,\t\"Doe, Xavier\" <xdoe.89@dev.example.io>,    Tomás Kim <tkim.61@corp.example.co.uk>, tkim@post.example.fr, vkim@eu.example.de,\tPierre Dubois <pdubois@apache.org>,    Yuki Иванов <y@eu.example.de>, Ann Rossi <arossi@example.org>, xkowalski@eu.example.de,\tFiona Lefèvre <flefvre@apache.org>, \"Rossi, Vera\" <vrossi@students.example.ac.jp>, \"Olga O'Brien\" <oobrien@apache.org>,\tYuki van der Berg <yvanderberg@apache.org>, Łukasz Petrov <petrov@post.example.fr>, Fiona Schröder <fschrder@example.com>,\tĐorđe Østergaard <stergaard@example.com>,    William Brown <wbrown.41@dev.example.io>,    Sven 山田 <s@post.example.fr>,    Đorđe Petrov <petrov@corp.example.co.uk>,    krossi.95@corp.example.co.uk (Karin Rossi),\tWilliam Müller <wmller.66@mail.example.net>, Дмитрий O'Brien <obrien@dev.example.io>,    太郎 Fernández <fernndez@eu.example.de>, 太郎 Nguyen <nguyen.18@post.example.fr>, doe.85@students.example.ac.jp (Someone),\tKarin Papadopoulos <kpapadopoulos.65@lists.example.edu>,    Luis van der Berg <lvanderberg.40@apache.org>, xbrown@lists.example.edu, ntaylor@mail.example.net, qpetrov.23@example.com, \"Ann Taylor\" <ataylor@lists.example.edu>,\tMaría Papadopoulos <mpapadopoulos@dev.example.io>,\tLuis Johansson <ljohansson@mail.example.net>, ngarca@corp.example.co.uk,\tZoë Dubois <zdubois.99@lists.example.edu>, Дмитрий Østergaard <stergaard.93@example.org>, gbrown.71@corp.example.co.uk, Rémi Lefèvre <rlefvre@mail.example.net>, María Fernández <mfernndez@eu.example.de>,    Nils Fernández <nfernndez@corp.example.co.uk>,\t\"Taylor, Karin\" <ktaylor@lists.example.edu>,    \"O'Brien, Yuki\" <yobrien@example.org>, \"Greg Johansson\" <gjohansson@students.example.ac.jp>, \"Nguyen, Nils\" <nnguyen@apache.org>,    \"Dubois, Ann\" <adubois.17@corp.example.co.uk>,\tFiona Müller <fmller.21@lists.example.edu>,\tMaría Müller <mmller.88@students.example.ac.jp>, Nils Smith <nsmith@eu.example.de>, Pierre Johansson <pjohansson@students.example.ac.jp>"
+subject: "[VOTE] Which do a"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+resent-date: "Thu, 3 Jul 2025 05:22:40 +1245"
+bcc: "\"Papadopoulos, Uwe\" <upapadopoulos@example.com>, Ivan Иванов <i@lists.example.edu>,    Chloé 山田 <c@dev.example.io>,\tBob Johansson <bjohansson.11@lists.example.edu>,    Дмитрий Smith <smith@post.example.fr>"
+thread-topic: "Old get is it off light."
+comments: "Self the long  people small segfault trunk as  again!"
+sender: "Дмитрий Rossi <rossi@dev.example.io>"
+reply-to: "Olga Dubois <odubois@dev.example.io>, xschrder@corp.example.co.uk,    Xavier Nguyen <xnguyen.3@mail.example.net>"
+content-type: "text/plain; CHARSET=ISO-8859-1"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Quinn Papadopoulos" spec="qpapadopoulos@mail.example.net"
+sender 0 display="Дмитрий Rossi" spec="rossi@dev.example.io"
+reply-to 0 display="Olga Dubois" spec="odubois@dev.example.io"
+reply-to 1 display="" spec="xschrder@corp.example.co.uk"
+reply-to 2 display="Xavier Nguyen" spec="xnguyen.3@mail.example.net"
+to 0 display="" spec="bschrder@mail.example.net"
+to 1 display="Rémi Papadopoulos" spec="rpapadopoulos.19@example.org"
+to 2 display="" spec="fkowalski@dev.example.io"
+to 3 display="Taylor, Xavier" spec="xtaylor.30@corp.example.co.uk"
+to 4 display="Pierre Nakamura" spec="pnakamura@students.example.ac.jp"
+to 5 display="Smith, Erik" spec="esmith.10@mail.example.net"
+to 6 display="" spec="btaylor.48@apache.org"
+to 7 display="Søren 山田" spec="s@post.example.fr"
+to 8 display="Wilson, Luis" spec="lwilson.35@mail.example.net"
+to 9 display="Luis Иванов" spec="l@post.example.fr"
+to 10 display="Kowalski, Luis" spec="lkowalski.22@students.example.ac.jp"
+to 11 display="van der Berg, Ivan" spec="ivanderberg@apache.org"
+to 12 display="Nils Fernández" spec="nfernndez.36@example.org"
+to 13 display="Nils Petrov" spec="npetrov@eu.example.de"
+to 14 display="Björn Nguyen" spec="bnguyen.39@post.example.fr"
+to 15 display="Uwe Kim" spec="ukim.60@lists.example.edu"
+to 16 display="" spec="ggarca.16@eu.example.de"
+to 17 display="William Kim" spec="wkim@eu.example.de"
+to 18 display="" spec="obrien.75@corp.example.co.uk"
+to 19 display="Дмитрий Lefèvre" spec="lefvre@students.example.ac.jp"
+cc 0 display="Quinn Taylor" spec="qtaylor@eu.example.de"
+cc 1 display="Dubois, Bob" spec="bdubois@dev.example.io"
+cc 2 display="" spec="mpetrov.76@post.example.fr"
+cc 3 display="Đorđe Petrov" spec="petrov.51@corp.example.co.uk"
+cc 4 display="" spec="qkim.16@lists.example.edu"
+cc 5 display="María Rossi" spec="mrossi@post.example.fr"
+cc 6 display="Chloé Kim" spec="ckim@mail.example.net"
+cc 7 display="Đorđe Doe" spec="doe@mail.example.net"
+cc 8 display="Fiona García" spec="fgarca@mail.example.net"
+cc 9 display="Kowalski, William" spec="wkowalski.54@mail.example.net"
+cc 10 display="Smith, Erik" spec="esmith@mail.example.net"
+cc 11 display="Rémi Dubois" spec="rdubois@example.com"
+cc 12 display="Đorđe Fernández" spec="fernndez@students.example.ac.jp"
+cc 13 display="Doe, Xavier" spec="xdoe.89@dev.example.io"
+cc 14 display="Tomás Kim" spec="tkim.61@corp.example.co.uk"
+cc 15 display="" spec="tkim@post.example.fr"
+cc 16 display="" spec="vkim@eu.example.de"
+cc 17 display="Pierre Dubois" spec="pdubois@apache.org"
+cc 18 display="Yuki Иванов" spec="y@eu.example.de"
+cc 19 display="Ann Rossi" spec="arossi@example.org"
+cc 20 display="" spec="xkowalski@eu.example.de"
+cc 21 display="Fiona Lefèvre" spec="flefvre@apache.org"
+cc 22 display="Rossi, Vera" spec="vrossi@students.example.ac.jp"
+cc 23 display="Olga O'Brien" spec="oobrien@apache.org"
+cc 24 display="Yuki van der Berg" spec="yvanderberg@apache.org"
+cc 25 display="Łukasz Petrov" spec="petrov@post.example.fr"
+cc 26 display="Fiona Schröder" spec="fschrder@example.com"
+cc 27 display="Đorđe Østergaard" spec="stergaard@example.com"
+cc 28 display="William Brown" spec="wbrown.41@dev.example.io"
+cc 29 display="Sven 山田" spec="s@post.example.fr"
+cc 30 display="Đorđe Petrov" spec="petrov@corp.example.co.uk"
+cc 31 display="" spec="krossi.95@corp.example.co.uk"
+cc 32 display="William Müller" spec="wmller.66@mail.example.net"
+cc 33 display="Дмитрий O'Brien" spec="obrien@dev.example.io"
+cc 34 display="太郎 Fernández" spec="fernndez@eu.example.de"
+cc 35 display="太郎 Nguyen" spec="nguyen.18@post.example.fr"
+cc 36 display="" spec="doe.85@students.example.ac.jp"
+cc 37 display="Karin Papadopoulos" spec="kpapadopoulos.65@lists.example.edu"
+cc 38 display="Luis van der Berg" spec="lvanderberg.40@apache.org"
+cc 39 display="" spec="xbrown@lists.example.edu"
+cc 40 display="" spec="ntaylor@mail.example.net"
+cc 41 display="" spec="qpetrov.23@example.com"
+cc 42 display="Ann Taylor" spec="ataylor@lists.example.edu"
+cc 43 display="María Papadopoulos" spec="mpapadopoulos@dev.example.io"
+cc 44 display="Luis Johansson" spec="ljohansson@mail.example.net"
+cc 45 display="" spec="ngarca@corp.example.co.uk"
+cc 46 display="Zoë Dubois" spec="zdubois.99@lists.example.edu"
+cc 47 display="Дмитрий Østergaard" spec="stergaard.93@example.org"
+cc 48 display="" spec="gbrown.71@corp.example.co.uk"
+cc 49 display="Rémi Lefèvre" spec="rlefvre@mail.example.net"
+cc 50 display="María Fernández" spec="mfernndez@eu.example.de"
+cc 51 display="Nils Fernández" spec="nfernndez@corp.example.co.uk"
+cc 52 display="Taylor, Karin" spec="ktaylor@lists.example.edu"
+cc 53 display="O'Brien, Yuki" spec="yobrien@example.org"
+cc 54 display="Greg Johansson" spec="gjohansson@students.example.ac.jp"
+cc 55 display="Nguyen, Nils" spec="nnguyen@apache.org"
+cc 56 display="Dubois, Ann" spec="adubois.17@corp.example.co.uk"
+cc 57 display="Fiona Müller" spec="fmller.21@lists.example.edu"
+cc 58 display="María Müller" spec="mmller.88@students.example.ac.jp"
+cc 59 display="Nils Smith" spec="nsmith@eu.example.de"
+cc 60 display="Pierre Johansson" spec="pjohansson@students.example.ac.jp"
+bcc 0 display="Papadopoulos, Uwe" spec="upapadopoulos@example.com"
+bcc 1 display="Ivan Иванов" spec="i@lists.example.edu"
+bcc 2 display="Chloé 山田" spec="c@dev.example.io"
+bcc 3 display="Bob Johansson" spec="bjohansson.11@lists.example.edu"
+bcc 4 display="Дмитрий Smith" spec="smith@post.example.fr"
+
+[date]
+raw " Sun, 12 Dec 2003 00:59:11 -0400"
+valid yes
+utc 2003-12-12T04:59:11Z
+offset -0400
+epoch 1071205151
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=quoted-printable size=421 adler32=282790dc role=text
+
+[body]
+text 0 chars 421
+| Said I had the which said hot high client. Back go has the look be her
+| for any. It if and the have of are the animal brigade when made out many
+| by! Had part did my the and of new day a from these then as the jalapeño
+| him. Turn many out and down socket before.
+| 
+| Any no patch line were look here the do hand up must good. Or went be on
+| that come! Could great them an of would then vote look off the world?
+| 
+| -- 
+| Jörg Wilson
+html none
+
+[attachments]

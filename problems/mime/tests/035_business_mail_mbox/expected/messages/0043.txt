@@ -1,0 +1,116 @@
+[message]
+id 0043
+source "mbox:43"
+
+[headers]
+received: "from example.org (mx6.eu.example.de [181.240.196.11]) by lists.example.edu (Postfix) with ESMTP id 2E83FA753B for <tgarca@apache.org>; Tue, 26 Mar 2009 17:50:27 -0500 (CET)"
+received: "from example.org (mx8.post.example.fr [131.176.79.106]) by post.example.fr (Postfix) with ESMTP id 83A01F0749 for <ekim@corp.example.co.uk>; tue,1 dec 2024 22:3:23 (comment (nested)) +0100"
+return-path: "<bpapadopoulos@mail.example.net>"
+message-id: "<447.59f55f0a.24374@dev.example.io>"
+in-reply-to: "<448.8eb439c9.56872@post.example.fr>"
+references: "<448.8eb439c9.56872@post.example.fr>"
+date: "16 APR 25 21:52 PDT"
+from: "Xavier García <xgarca@students.example.ac.jp>"
+to: "\"O'Brien, William\" <wobrien.19@eu.example.de>,    Zoë Nakamura <znakamura@students.example.ac.jp>"
+subject: "Were three the part the three land can"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_5E2E081293F07675\""
+
+[addresses]
+from 0 display="Xavier García" spec="xgarca@students.example.ac.jp"
+to 0 display="O'Brien, William" spec="wobrien.19@eu.example.de"
+to 1 display="Zoë Nakamura" spec="znakamura@students.example.ac.jp"
+
+[date]
+raw " 16 APR 25 21:52 PDT"
+valid yes
+utc 2025-04-17T04:52:00Z
+offset -0700
+epoch 1744865520
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_5E2E081293F07675" parts=5 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="Apple-Mail=_D1691E9948D43006" parts=3 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="=_1a6d775a81842c28928497b1133f17b3" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=utf-8 cte=quoted-printable size=1268 adler32=b0bca330 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1775 adler32=ec4f4bb4 role=html
+    5 image/png cte=base64 disposition=inline filename="go_crème.png" size=1903 adler32=1061b74d role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="jalapeño_we.jpg" size=1863 adler32=a235abf3 role=attachment
+  7 text/plain charset=utf-8 cte=base64 disposition=attachment filename="résumé_or_in_these_too.txt" size=11378 adler32=b67cbfde role=attachment
+  8 text/csv charset=utf-8 cte=base64 disposition=attachment filename="write.csv" size=6460 adler32=e0e51505 role=attachment
+  9 image/jpeg cte=base64 disposition=attachment filename="but.jpg" size=1614 adler32=7a0313be role=attachment
+  10 text/plain charset=utf-8 cte=7bit disposition=attachment filename="too_to.txt" size=5024 adler32=d011ee70 role=attachment
+
+[body]
+text 3 chars 1258
+| On Tue, 08 Dec 2004 16:37:32 CST (EDT), Xavier Taylor wrote:
+| > That but large build crash has. Every is their in he of follow one
+| > > more? A live me be they mother. Who they the to why the big naïve
+| >> first all that large even? Proxy number this men his the request and
+| > which two he differ mother kind? The all some do each than this the.
+| >
+| >> Hot be of of cause at the move do say has of. Just such I if the
+| > > crème come the he. The of was the there. Málaga do like up move of
+| >> she high help. The said than that be but thing at it say here so the
+| > > near the see. Have earth low number side to the they mutex is by.
+| >
+| > How from of the put had came of to went but hot the said. At the it
+| > > a even near some them and boy see men write the no review is take.
+| >
+| 
+| The résumé on the the old some could is his server naïve there brûlée be
+| with. The the of first we this read the many why has of like trunk
+| coöperate cache there of! Big time even your get the we the trunk no
+| even did the did such by?
+| 
+| Cause get you went build the the all set time did in that! Are then the
+| very how.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Łukasz O'Brien
+html 4 chars 1765
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Tue, 08 Dec 2004 16:37:32 CST (EDT), Xavier Taylor wrote:<br>
+| &gt; That but large build crash has. Every is their in he of follow one<br>
+| &gt; &gt; more? A live me be they mother. Who they the to why the big naïve<br>
+| &gt;&gt; first all that large even? Proxy number this men his the request and<br>
+| &gt; which two he differ mother kind? The all some do each than this the.<br>
+| &gt;<br>
+| &gt;&gt; Hot be of of cause at the move do say has of. Just such I if the<br>
+| &gt; &gt; crème come the he. The of was the there. Málaga do like up move of<br>
+| &gt;&gt; she high help. The said than that be but thing at it say here so the<br>
+| &gt; &gt; near the see. Have earth low number side to the they mutex is by.<br>
+| &gt;<br>
+| &gt; How from of the put had came of to went but hot the said. At the it<br>
+| &gt; &gt; a even near some them and boy see men write the no review is take.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The résumé on the the old some could is his server naïve there brûlée be<br>
+| with. The the of first we this read the many why has of like trunk<br>
+| coöperate cache there of! Big time even your get the we the trunk no<br>
+| even did the did such by?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Cause get you went build the the all set time did in that! Are then the<br>
+| very how.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Łukasz O'Brien<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="go_crème.png" size=1903 adler32=1061b74d file=parts/0043/005.bin
+6 type=image/jpeg filename="jalapeño_we.jpg" size=1863 adler32=a235abf3 file=parts/0043/006.bin
+7 type=text/plain filename="résumé_or_in_these_too.txt" size=11378 adler32=b67cbfde file=parts/0043/007.bin
+8 type=text/csv filename="write.csv" size=6460 adler32=e0e51505 file=parts/0043/008.bin
+9 type=image/jpeg filename="but.jpg" size=1614 adler32=7a0313be file=parts/0043/009.bin
+10 type=text/plain filename="too_to.txt" size=5024 adler32=d011ee70 file=parts/0043/010.bin

@@ -1,0 +1,39 @@
+[message]
+id 0001
+source "hdr-fakeout.eml"
+
+[headers]
+received: "(qmail 24486 invoked by uid 501); 20 May 2000 01:55:02 -0000"
+date: "Fri, 19 May 2000 21:55:02 -0400"
+from: "\"Russell P. Sutherland\" <russ@quist.on.ca>"
+to: "\"Russell P. Sutherland\" <russ@quist.on.ca>"
+subject: "test message 1"
+message-id: "<20000519215502.A24482@quist.on.ca>"
+mime-version: "1.0"
+content-transfer-encoding: "7BIT"
+content-type: "text/plain; charset=us-ascii"
+x-mailer: "Mutt 1.0us"
+organization: "Quist Consulting"
+
+[addresses]
+from 0 display="Russell P. Sutherland" spec="russ@quist.on.ca"
+to 0 display="Russell P. Sutherland" spec="russ@quist.on.ca"
+
+[date]
+raw " Fri, 19 May 2000 21:55:02 -0400"
+valid yes
+utc 2000-05-20T01:55:02Z
+offset -0400
+epoch 958787702
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=86 adler32=3d131d9a role=text
+
+[body]
+text 0 chars 86
+| The header is not properly terminated; the \"blank line\" 
+| actually has a space in it.
+| 
+html none
+
+[attachments]

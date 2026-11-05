@@ -1,0 +1,6 @@
+step 1: build out/a.txt -j -j 1
+  error E_UNKNOWN_TARGET -j
+step 2: build (default) -j 2
+  run 0 1 w0 out/a.txt write("A\n")
+  run 0 1 w1 out/b.txt write("B\n")
+  ok ran=2 hit=0 time=1

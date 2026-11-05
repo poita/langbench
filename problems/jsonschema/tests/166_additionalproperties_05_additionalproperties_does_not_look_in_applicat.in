@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "allOf": [
+      {
+        "properties": {
+          "foo": {}
+        }
+      }
+    ],
+    "additionalProperties": {
+      "type": "boolean"
+    }
+  },
+  "tests": [
+    {
+      "description": "properties defined in allOf are not examined",
+      "data": {
+        "foo": 1,
+        "bar": true
+      }
+    }
+  ]
+}

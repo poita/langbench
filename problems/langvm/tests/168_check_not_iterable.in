@@ -1,0 +1,2 @@
+@module main
+fn main() { for x in 1 { print("x"); } }

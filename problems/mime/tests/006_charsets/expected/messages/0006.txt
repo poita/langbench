@@ -1,0 +1,21 @@
+[message]
+id 0006
+source "unknown.eml"
+
+[headers]
+content-type: "text/plain; charset=x-made-up"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=x-made-up cte=7bit size=19 adler32=441e05f4 role=text
+
+[body]
+text 0 chars 19
+| fallback is cp1252
+html none
+
+[attachments]

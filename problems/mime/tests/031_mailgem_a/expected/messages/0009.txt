@@ -1,0 +1,37 @@
+[message]
+id 0009
+source "attachment_with_quoted_filename.eml"
+
+[headers]
+return-path: "<jeff@37signals.com>"
+received: "from ?10.0.1.6? (d36-211-30.home1.cgocable.net [24.36.211.30]) by mx.google.com with ESMTPS id g14sm267889rvb.22.2009.05.13.08.42.03 (version=TLSv1/SSLv3 cipher=RC4-MD5); Wed, 13 May 2009 08:42:04 -0700 (PDT)"
+message-id: "<E0F9311D-F469-4E7B-81BC-F240BD473566@37signals.com>"
+from: "Jeffrey Hardy <jeff@37signals.com>"
+to: "Jeffrey Hardy <jeff@37signals.com>"
+content-type: "multipart/mixed; boundary=Apple-Mail-6--218366681"
+mime-version: "1.0 (Apple Message framework v935.3)"
+subject: "Eelanalüüsi päring"
+date: "Wed, 13 May 2009 11:42:01 -0400"
+x-mailer: "Apple Mail (2.935.3)"
+
+[addresses]
+from 0 display="Jeffrey Hardy" spec="jeff@37signals.com"
+to 0 display="Jeffrey Hardy" spec="jeff@37signals.com"
+
+[date]
+raw " Wed, 13 May 2009 11:42:01 -0400"
+valid yes
+utc 2009-05-13T15:42:01Z
+offset -0400
+epoch 1242229321
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail-6--218366681" parts=1 preamble=0 epilogue=0
+  1 image/jpeg cte=base64 disposition=inline filename="Eelanalüüsi päring.jpg" size=1952 adler32=fb523c45 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+1 type=image/jpeg filename="Eelanalüüsi päring.jpg" size=1952 adler32=fb523c45 file=parts/0009/001.bin

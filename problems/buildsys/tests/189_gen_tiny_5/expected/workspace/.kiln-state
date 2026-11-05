@@ -1,0 +1,57 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 6384991403c5fcd4
+in out/m1/bundle.txt 89de8a17bb17234c
+out out/all.txt 018ca2df6fd545dc
+end
+step out/m0/bundle.txt
+cmd count_lines()
+in out/m0/f0.txt 20d4ce9d4370b52a
+in out/m0/f1.txt cbf29ce484222325
+out out/m0/bundle.txt 6384991403c5fcd4
+end
+step out/m0/f0.txt
+cmd sort_lines()
+in src/m0/f0.txt e18e3a70b310253a
+out out/m0/f0.txt 20d4ce9d4370b52a
+end
+step out/m0/f1.txt
+cmd indent(2)
+in src/m0/f1.txt cbf29ce484222325
+out out/m0/f1.txt cbf29ce484222325
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 6384991403c5fcd4
+out out/m0/wrapped.txt 4ada986d11fd30f5
+end
+step out/m1/bundle.txt
+cmd count_lines()
+in out/m1/f0.txt 48fad6fb551487fa
+in out/m1/f1.txt a28fbf51f7239da6
+out out/m1/bundle.txt 89de8a17bb17234c
+end
+step out/m1/doc.txt
+cmd preprocess()
+in src/m1/doc.src 991f1ffa20f5355b
+dep src/m1/f0.txt 791cba68812829d9
+dep src/m1/f1.txt a28fbf51f7239da6
+out out/m1/doc.txt 1e4838eb3bee88b9
+out out/m1/doc.d 8bb1ae618216f19a
+end
+step out/m1/f0.txt
+cmd number()
+in src/m1/f0.txt 791cba68812829d9
+out out/m1/f0.txt 48fad6fb551487fa
+end
+step out/m1/f1.txt
+cmd lower()
+in src/m1/f1.txt a28fbf51f7239da6
+out out/m1/f1.txt a28fbf51f7239da6
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt 89de8a17bb17234c
+out out/m1/wrapped.txt 654c5924adacedee
+end

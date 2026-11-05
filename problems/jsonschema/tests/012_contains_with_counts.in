@@ -1,0 +1,46 @@
+{
+  "schema": {
+    "type": "array",
+    "contains": {
+      "type": "integer"
+    },
+    "minContains": 2,
+    "maxContains": 3
+  },
+  "tests": [
+    {
+      "description": "two integers",
+      "data": [
+        1,
+        "a",
+        2
+      ]
+    },
+    {
+      "description": "one integer",
+      "data": [
+        1,
+        "a"
+      ]
+    },
+    {
+      "description": "four integers",
+      "data": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "description": "three integers among others",
+      "data": [
+        "a",
+        1,
+        2,
+        3,
+        "b"
+      ]
+    }
+  ]
+}

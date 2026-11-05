@@ -1,0 +1,55 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "type": "integer"
+      },
+      {
+        "type": "string"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "correct types",
+      "data": [
+        1,
+        "foo"
+      ]
+    },
+    {
+      "description": "wrong types",
+      "data": [
+        "foo",
+        1
+      ]
+    },
+    {
+      "description": "incomplete array of items",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "array with additional items",
+      "data": [
+        1,
+        "foo",
+        true
+      ]
+    },
+    {
+      "description": "empty array",
+      "data": []
+    },
+    {
+      "description": "JavaScript pseudo-array is valid",
+      "data": {
+        "0": "invalid",
+        "1": "valid",
+        "length": 2
+      }
+    }
+  ]
+}

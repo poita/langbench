@@ -1,0 +1,35 @@
+(define x 10)
+x
+(define y (+ x 5))
+y
+(set! x 20)
+x
+(define x 30)
+x
+(define (get) x)
+(get)
+(set! x 40)
+(get)
+(define z (begin (set! x 50) x))
+z
+(define (shadow x) (set! x (+ x 1)) x)
+(shadow 1)
+x
+(define (outer)
+  (define a 1)
+  (set! a (+ a 1))
+  a)
+(outer)
+(define f (lambda () 'first))
+(f)
+(define f (lambda () 'second))
+(f)
+(begin (define w 7) (display w) (newline))
+w
+(define v (if #f #f))
+(list v)
+(define (setter) (set! x 'changed-inside))
+(setter)
+x
+(list (set! x 1) (define q 2))
+(list x q)

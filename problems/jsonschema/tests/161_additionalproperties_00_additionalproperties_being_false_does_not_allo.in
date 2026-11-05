@@ -1,0 +1,52 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {},
+      "bar": {}
+    },
+    "patternProperties": {
+      "^v": {}
+    },
+    "additionalProperties": false
+  },
+  "tests": [
+    {
+      "description": "no additional properties is valid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "an additional property is invalid",
+      "data": {
+        "foo": 1,
+        "bar": 2,
+        "quux": "boom"
+      }
+    },
+    {
+      "description": "ignores arrays",
+      "data": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "description": "ignores strings",
+      "data": "foobarbaz"
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    },
+    {
+      "description": "patternProperties are not additional properties",
+      "data": {
+        "foo": 1,
+        "vroom": 2
+      }
+    }
+  ]
+}

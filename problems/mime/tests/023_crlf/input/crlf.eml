@@ -1,0 +1,15 @@
+Subject: crlf message
+Content-Type: multipart/mixed; boundary="B"
+
+preamble
+--B
+Content-Type: text/plain; charset=us-ascii
+
+line one
+line two
+--B
+Content-Type: application/octet-stream
+Content-Transfer-Encoding: base64
+
+DQoNCg==
+--B--

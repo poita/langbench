@@ -1,0 +1,16 @@
+message Y { bytes y = 1; repeated bytes ry = 2; string s = 3; }
+--
+encode Y {y: x"00"}
+encode Y {y: x""}
+encode Y {y: x"ff00fe01"}
+encode Y {ry: [x"", x"ab", x"", x"c0af"]}
+encode Y {y: x"AB"}
+encode Y {y: x"abc"}
+encode Y {y: "ab"}
+encode Y {y: x"ab" }
+encode Y {y: x "ab"}
+decode Y 0a01ff
+decode Y 0a04c0afeda0
+decode Y 0a00
+decode Y 12001201ff1200
+decode Y 0a03000102

@@ -1,0 +1,22 @@
+[message]
+id 0004
+source "padded.eml"
+
+[headers]
+content-type: "text/plain; charset=utf-8"
+content-transfer-encoding: "base64"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=utf-8 cte=base64 size=5 adler32=062c0215 role=text
+
+[body]
+text 0 chars 5
+| hello
+html none
+
+[attachments]

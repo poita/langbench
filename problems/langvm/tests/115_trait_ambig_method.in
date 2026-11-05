@@ -1,0 +1,6 @@
+@module main
+trait A { fn go(self) -> Int; }
+trait B { fn go(self) -> Int; }
+impl A for Int { fn go(self) -> Int { 1 } }
+impl B for Int { fn go(self) -> Int { 2 } }
+fn main() { print(showInt(3.go())); }

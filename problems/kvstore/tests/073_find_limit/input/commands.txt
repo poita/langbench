@@ -1,0 +1,18 @@
+put "u1" {name:"ada",age:36,ok:true}
+put "u2" {name:"bob",age:29,ok:false}
+put "u3" {name:"cy",age:36,ok:true}
+put "u4" {name:"dee",age:null}
+put "u5" {name:"eve",age:[1,2]}
+put "u6" {name:"fay",age:{x:1}}
+put "u7" {name:"gus"}
+put "u8" {name:"hal",age:-5}
+put "u9" {name:"ivy",age:"36"}
+find exists name limit 0
+find exists name limit 1
+find exists name limit 3
+find exists name limit 100
+find exists name limit 2147483647
+find exists name limit -1
+find exists name limit
+find exists name 3
+find limit 1

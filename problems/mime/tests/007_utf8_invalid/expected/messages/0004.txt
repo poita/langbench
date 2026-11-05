@@ -1,0 +1,21 @@
+[message]
+id 0004
+source "surrogate.eml"
+
+[headers]
+content-type: "text/plain; charset=utf-8"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=12 adler32=284305d6 role=text
+
+[body]
+text 0 chars 10
+| ��� and ퟿
+html none
+
+[attachments]

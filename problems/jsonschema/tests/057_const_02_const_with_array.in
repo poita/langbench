@@ -1,0 +1,34 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "const": [
+      {
+        "foo": "bar"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "same array is valid",
+      "data": [
+        {
+          "foo": "bar"
+        }
+      ]
+    },
+    {
+      "description": "another array item is invalid",
+      "data": [
+        2
+      ]
+    },
+    {
+      "description": "array with additional items is invalid",
+      "data": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

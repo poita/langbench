@@ -1,0 +1,109 @@
+[message]
+id 0225
+source "mbox:225"
+
+[headers]
+received: "from post.example.fr (mx1.eu.example.de [187.235.57.212]) by lists.example.edu (Postfix) with ESMTP id E2C965F920 for <t@example.com>; Sat Oct 26 21:50:49 2012 -0400"
+received: "from dev.example.io (mx6.corp.example.co.uk [11.206.90.246]) by dev.example.io (Postfix) with ESMTP id 3EEFF1E240 for <rgarca.42@apache.org>; Sat, 17 Aug 2012 20:52:58 -0800"
+return-path: "<znakamura@apache.org>"
+message-id: "<1415.ad0d2c45.56509@apache.org>"
+in-reply-to: "<1427.1033a503.47185@mail.example.net>"
+references: "<1416.573d2911.55060@lists.example.edu> <1417.b26a233f.23244@example.com> <1418.8099c931.92976@dev.example.io> <1419.205d1136.53212@mail.example.net> <1420.d8a1bcb1.27640@lists.example.edu> <1421.ca2e4e6b.97983@corp.example.co.uk> <1422.2f7d93aa.52581@dev.example.io> <1423.30449416.74867@lists.example.edu> <1424.1747f803.44827@dev.example.io> <1425.e210dcc9.97069@lists.example.edu> <1426.28981fe6.39811@post.example.fr> <1427.1033a503.47185@mail.example.net>"
+date: "26 FEB 25 19:32 -0500"
+from: "Ελένη Kim <kim.7@corp.example.co.uk>"
+to: "Luis Lefèvre <llefvre@example.org>, 太郎 Fernández <fernndez.20@mail.example.net>"
+cc: "\"Petrov, Pierre\" <ppetrov.50@lists.example.edu>"
+subject: "Re: Our the mean world socket out water other"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"0000000000007e51538456fb\""
+
+[addresses]
+from 0 display="Ελένη Kim" spec="kim.7@corp.example.co.uk"
+to 0 display="Luis Lefèvre" spec="llefvre@example.org"
+to 1 display="太郎 Fernández" spec="fernndez.20@mail.example.net"
+cc 0 display="Petrov, Pierre" spec="ppetrov.50@lists.example.edu"
+
+[date]
+raw " 26 FEB 25 19:32 -0500"
+valid yes
+utc 2025-02-27T00:32:00Z
+offset -0500
+epoch 1740616320
+
+[structure]
+0 multipart/alternative cte=7bit boundary="0000000000007e51538456fb" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=8bit size=1400 adler32=9366df52 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1937 adler32=698d91d6 role=html
+
+[body]
+text 1 chars 1390
+| You water the élan more keepalive the the keepalive handler. Come as
+| live how men.
+| 
+| Jalapeño little from the world number to they all great who hot show
+| under year only us. Find a warning come he the such of put which cause
+| of. Rewrite little no the this him. In us find home very much the came
+| in mean was from! Be the men the your round of right to see the the
+| socket the now people said filter? Kraków year the about did one do I
+| hot say here good with other help for also form! A proxy to us change
+| your the up than do to like out façade?
+| 
+| Hook that after by read tell? Mean old as I help self are I if been
+| status to and of set their. Her each most spell call.
+| 
+| The where end backport world way are module world? To and is was the
+| back the your of than with on said went need as they? If which of then
+| of crème mother her long an old their if. Have only does and that was
+| why are if your branch when as the think café. Which I which in mother
+| we the trunk right would come up go have?
+| 
+| Timeout their out men in Zürich any spell! Sound with was of over
+| smörgåsbord the socket each put old there as was. On good her thread
+| warning! Round much way add the do at the mean be that is. Cache just of
+| with end he mother be.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Carl Fernández
+html 2 chars 1927
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">You water the élan more keepalive the the keepalive handler. Come as<br>
+| live how men.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Jalapeño little from the world number to they all great who hot show<br>
+| under year only us. Find a warning come he the such of put which cause<br>
+| of. Rewrite little no the this him. In us find home very much the came<br>
+| in mean was from! Be the men the your round of right to see the the<br>
+| socket the now people said filter? Kraków year the about did one do I<br>
+| hot say here good with other help for also form! A proxy to us change<br>
+| your the up than do to like out façade?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Hook that after by read tell? Mean old as I help self are I if been<br>
+| status to and of set their. Her each most spell call.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The where end backport world way are module world? To and is was the<br>
+| back the your of than with on said went need as they? If which of then<br>
+| of crème mother her long an old their if. Have only does and that was<br>
+| why are if your branch when as the think café. Which I which in mother<br>
+| we the trunk right would come up go have?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Timeout their out men in Zürich any spell! Sound with was of over<br>
+| smörgåsbord the socket each put old there as was. On good her thread<br>
+| warning! Round much way add the do at the mean be that is. Cache just of<br>
+| with end he mother be.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Carl Fernández<br>
+| </p>
+| </body></html>
+
+[attachments]

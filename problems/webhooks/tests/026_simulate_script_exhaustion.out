@@ -1,0 +1,23 @@
+sim 18 4
+attempt 1 ev_1 ep_a 1 0 failure 500
+attempt 2 ev_1 ep_b 1 0 success 200
+attempt 3 ev_2 ep_a 1 1 failure 429
+attempt 4 ev_2 ep_b 1 1 success 200
+attempt 5 ev_1 ep_a 2 5 failure 429
+attempt 6 ev_2 ep_a 2 6 failure 429
+attempt 7 ev_1 ep_a 3 305 failure 429
+attempt 8 ev_2 ep_a 3 306 failure 429
+attempt 9 ev_1 ep_a 4 2105 failure 429
+attempt 10 ev_2 ep_a 4 2106 failure 429
+attempt 11 ev_1 ep_a 5 9305 failure 429
+attempt 12 ev_2 ep_a 5 9306 failure 429
+attempt 13 ev_1 ep_a 6 27305 failure 429
+attempt 14 ev_2 ep_a 6 27306 failure 429
+attempt 15 ev_1 ep_a 7 63305 failure 429
+attempt 16 ev_2 ep_a 7 63306 failure 429
+attempt 17 ev_1 ep_a 8 99305 failure 429
+attempt 18 ev_2 ep_a 8 99306 failure 429
+delivery ev_1 ep_a failed 8 99305 v1,MtmXMF+3ENfoOBnk7Ysy4jUJJSWRqjAcDeBC3Eh6LQ4=
+delivery ev_1 ep_b delivered 1 0 v1,794kETbzhG+lf2XRwN7HdLtqJebc601iePs3j4+aKPw=
+delivery ev_2 ep_a failed 8 99306 v1,ACq2spCP7Ol59PuSjgYFpX5TMw3loJaX1fIqDjeRqBc=
+delivery ev_2 ep_b delivered 1 1 v1,pPs6xFeBd7zpgo6gS0AwFleYFtlh2m+isl5MJhvXogM=

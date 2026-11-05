@@ -1,0 +1,100 @@
+[message]
+id 0122
+source "mbox:122"
+
+[headers]
+received: "from mail.example.net (mx1.mail.example.net [203.5.212.128]) by lists.example.edu (Postfix) with ESMTP id 3FBFC61657 for <hschrder.13@apache.org>; Wed, 13 Mar 2004 20:24:15 -0330"
+received: "from lists.example.edu (mx7.example.com [238.56.213.79]) by post.example.fr (Postfix) with ESMTP id D2238C21E6 for <b@lists.example.edu>; Sun, 18 Nov 2009 10:43:02 +0900"
+received: "from example.org (mx1.example.org [107.167.111.26]) by students.example.ac.jp (Postfix) with ESMTP id 5A92D04024 for <johansson@mail.example.net>; Mon, 28 Sep 2025 01:18:39 -0330"
+received: "from lists.example.edu (mx8.example.org [250.145.224.113]) by post.example.fr (Postfix) with ESMTP id 9B3C8ADF2B for <apapadopoulos@post.example.fr>; Wed, 23 Sep 2003 22:43:25 -0500"
+return-path: "<fschrder@corp.example.co.uk>"
+message-id: "<946.b8dc160c.93721@students.example.ac.jp>"
+in-reply-to: "<958.a597fb6d.49898@mail.example.net>"
+references: "<947.b227496f.44034@post.example.fr> <948.2777eae2.38806@post.example.fr> <949.c5ea7ad6.32409@students.example.ac.jp> <950.632a88ed.45504@corp.example.co.uk> <951.0f0074f3.96149@post.example.fr> <952.1b7684eb.26145@dev.example.io> <953.42fb9631.24473@example.com> <954.00017744.16611@example.org> <955.3d59982a.98161@mail.example.net> <956.fdc798ce.57417@post.example.fr> <957.2aa3f00b.57820@mail.example.net> <958.a597fb6d.49898@mail.example.net>"
+date: "Tue, 4 Sep 2003 08:47:49 -0800"
+from: "Rémi 山田 <r@post.example.fr>"
+to: "fernndez@corp.example.co.uk, blefvre@example.org,\tQuinn Kim <qkim@students.example.ac.jp>"
+cc: "fstergaard@lists.example.edu (Someone), \"Olga Petrov\" <opetrov.98@mail.example.net>"
+subject: "Fwd: Was out did up many man build from word of"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 236\""
+
+[addresses]
+from 0 display="Rémi 山田" spec="r@post.example.fr"
+to 0 display="" spec="fernndez@corp.example.co.uk"
+to 1 display="" spec="blefvre@example.org"
+to 2 display="Quinn Kim" spec="qkim@students.example.ac.jp"
+cc 0 display="" spec="fstergaard@lists.example.edu"
+cc 1 display="Olga Petrov" spec="opetrov.98@mail.example.net"
+
+[date]
+raw " Tue, 4 Sep 2003 08:47:49 -0800"
+valid yes
+utc 2003-09-04T16:47:49Z
+offset -0800
+epoch 1062694069
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 236" parts=2 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="00000000000076a759f38939" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=8bit size=1195 adler32=49f0a5d2 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1656 adler32=dbf13e01 role=html
+  4 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=inline filename="certificate_I.docx" size=6029 adler32=2170816a role=attachment
+
+[body]
+text 2 chars 1188
+| I each of this think. Will get élan with see I is with help out her
+| config which she their the keepalive? Every build so come patch try had
+| back the it the which cause!
+| 
+| Filter hook any one what back hot the the and the over were to. Place
+| one tell other response it bug could.
+| 
+| The branch where any you request was. Add back every would name from any
+| and much? Which about up of first of your differ came again word hot
+| them. Place such again show me the he backport the the and picture here
+| is. Of to like these the very there been here bucket.
+| 
+| Over which word him move near has you use Ångström! Paulo to a the your.
+| Some his that down are to build it when! He Paulo your been log more
+| water did out was where. All connection near from is. Water earth is
+| world be each Málaga their a three.
+| 
+| The is élan from three that and the if! Is two of thread too form he
+| land world up of were response a in. These change Zürich see for have
+| segfault this response she one her after. The his write act is under
+| number naïve out! Socket than set he as our bucket what trunk of our the
+| way that build on time? Build set of a him it the what that well a like
+| differ you server the?
+| 
+| -- 
+| Ivan Smith
+html 3 chars 1656
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">I each of this think. Will get élan with see I is with help out her<br>
+| config which she their the keepalive? Every build so come patch try had<br>
+| back the it the which cause!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Filter hook any one what back hot the the and the over were to. Place<br>
+| one tell other response it bug could.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The branch where any you request was. Add back every would name from any<br>
+| and much? Which about up of first of your differ came again word hot<br>
+| them. Place such again show me the he backport the the and picture here<br>
+| is. Of to like these the very there been here bucket.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Over which word him move near has you use Ångström! Paulo to a the your.<br>
+| Some his that down are to build it when! He Paulo your been log more<br>
+| water did out was where. All connection near from is. Water earth is<br>
+| world be each Málaga their a three.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The is élan from three that and the if! Is two of thread too form he<br>
+| land world up of were response a in. These change Zürich see for have<br>
+| segfault this response she one her after. The his write act is under<br>
+| number naïve out! Socket than set he as our bucket what trunk of our the<br>
+| way that build on time? Build set of a him it the what that well a like<br>
+| differ you server the?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ivan Smith<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="certificate_I.docx" size=6029 adler32=2170816a file=parts/0122/004.bin

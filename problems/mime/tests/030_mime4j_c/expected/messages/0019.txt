@@ -1,0 +1,24 @@
+[message]
+id 0019
+source "weird-boundary.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"0123456789abcdefghijklmnopqrstuvwxyzABCDEFLMNOPRSTUVWXYZ'()+_,-./:=? \""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0123456789abcdefghijklmnopqrstuvwxyzABCDEFLMNOPRSTUVWXYZ'()+_,-./:=?" parts=2 preamble=10 epilogue=none
+  1 text/plain charset=us-ascii cte=7bit size=9 adler32=10db0374 role=text
+  2 text/plain charset=us-ascii cte=7bit size=184 adler32=e6d93d25 role=attachment
+
+[body]
+text 1 chars 9
+| Text body
+html none
+
+[attachments]
+2 type=text/plain filename=- size=184 adler32=e6d93d25 file=parts/0019/002.bin

@@ -1,0 +1,22 @@
+step {
+    out "out/a.txt"
+    in "src/a.txt"
+    cmd upper()
+    cost 3
+}
+step {
+    out "out/b.txt"
+    in "out/a.txt"
+    cmd copy()
+}
+step {
+    out "out/c.txt"
+    in "out/b.txt"
+    cmd copy()
+}
+step {
+    out "out/d.txt"
+    in "out/c.txt"
+    cmd number()
+}
+default "out/d.txt"

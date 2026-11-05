@@ -1,0 +1,33 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "a_string": {
+        "type": "string"
+      }
+    },
+    "enum": [
+      {
+        "$ref": "#/$defs/a_string"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "do not evaluate the $ref inside the enum, matching any string",
+      "data": "this is a string"
+    },
+    {
+      "description": "do not evaluate the $ref inside the enum, definition exact match",
+      "data": {
+        "type": "string"
+      }
+    },
+    {
+      "description": "match the enum exactly",
+      "data": {
+        "$ref": "#/$defs/a_string"
+      }
+    }
+  ]
+}

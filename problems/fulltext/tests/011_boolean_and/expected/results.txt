@@ -1,0 +1,10 @@
+QUERY 1 cat dog
+HITS 1
+1	both	2.1368	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 2 cat AND dog
+HITS 1
+1	both	2.1368	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 3 cat AND dog AND bird
+HITS 0
+QUERY 4 cat AND lake
+HITS 0

@@ -1,0 +1,155 @@
+[message]
+id 0074
+source "mbox:74"
+
+[headers]
+received: "from dev.example.io (mx1.mail.example.net [217.208.155.200]) by corp.example.co.uk (Postfix) with ESMTP id 335D0E774B for <okim.78@apache.org>; Fri Nov 1 11:33:53 2012 +0900"
+return-path: "<ypetrov@lists.example.edu>"
+message-id: "<588.80599f07.64136@apache.org>"
+date: "Sun, 13 May 2009 23:23:25 PDT"
+from: "María Wilson <mwilson@apache.org>"
+to: "Björn O'Brien <bobrien.72@mail.example.net>"
+cc: "Łukasz Wilson <wilson@example.org>,\tMaría van der Berg <mvanderberg@students.example.ac.jp>"
+subject: "Turn port it crash thing with I know the will"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=0000000000006496d194c1b4"
+
+[addresses]
+from 0 display="María Wilson" spec="mwilson@apache.org"
+to 0 display="Björn O'Brien" spec="bobrien.72@mail.example.net"
+cc 0 display="Łukasz Wilson" spec="wilson@example.org"
+cc 1 display="María van der Berg" spec="mvanderberg@students.example.ac.jp"
+
+[date]
+raw " Sun, 13 May 2009 23:23:25 PDT"
+valid yes
+utc 2009-05-14T06:23:25Z
+offset -0700
+epoch 1242282205
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000006496d194c1b4" parts=6 preamble=0 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_6683_752077274.993225862600" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 123" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=7bit size=1977 adler32=bdccadba role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=2614 adler32=98ec7e13 role=html
+    5 image/jpeg cte=base64 disposition=inline filename="élan_of_the_the_make.jpg" size=1011 adler32=792fe9a1 role=attachment
+    6 image/jpeg cte=base64 disposition=inline filename="cache.jpg" size=3612 adler32=0d30d078 role=attachment
+    7 image/jpeg cte=base64 disposition=inline filename="of_were_coöperate.jpg" size=3573 adler32=6a07e3c5 role=attachment
+  8 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="brûlée_piñata_word_does_go.docx" size=1474 adler32=b720e05e role=attachment
+  9 text/csv charset=utf-8 cte=7bit disposition=attachment filename="other_a_is.csv" size=6691 adler32=a5da4f20 role=attachment
+  10 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="so_about_up.patch" size=2692 adler32=de874509 role=attachment
+  11 image/jpeg cte=base64 disposition=attachment filename="her_sentence_and_many.jpg" size=2120 adler32=199719ba role=attachment
+  12 message/rfc822 cte=7bit disposition=inline parts=1
+    13 multipart/mixed cte=7bit boundary="=_8e88b5ac3e254cbfece06bb3bcc16130" parts=4 preamble=45 epilogue=1
+      14 multipart/related cte=7bit boundary="simple boundary 284" parts=3 preamble=0 epilogue=0
+        15 multipart/alternative cte=7bit boundary="----=_Part_8057_696624549.237243631666" parts=2 preamble=0 epilogue=0
+          16 text/plain charset=iso-8859-1 cte=7bit size=658 adler32=5a6fd94d role=attachment
+          17 text/html charset=utf-8 cte=quoted-printable size=1072 adler32=d7de6540 role=attachment
+        18 image/jpeg cte=base64 disposition=attachment filename="did_tell.jpg" size=3023 adler32=9e1dde89 role=attachment
+        19 image/jpeg cte=base64 disposition=attachment filename="fiancée_also_he.jpg" size=1510 adler32=c4f4ee5a role=attachment
+      20 application/zip cte=base64 disposition=inline filename="naïve_ask_over.zip" size=6835 adler32=e1f824de role=attachment
+      21 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="café_that_must.docx" size=3299 adler32=345c279d role=attachment
+      22 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="from_in_end.docx" size=5862 adler32=1b1d2aa6 role=attachment
+
+[body]
+text 3 chars 1960
+| On thu,17 feb 2025 13:56:49 (comment (nested)) +0100, Hana García wrote:
+| > Of is hot are the it I I at all coöperate make he we are. So he and
+| > the my status or a. Is can how the time the these take may it httpd
+| > > patch man. Long must add the what show by the! In cause apr well
+| > > form like be hook the I it that name were! Had are they on my the
+| > had vhost way differ the come?
+| >
+| >> At self again spell the it the than you you him hook? Over his these
+| > > long and déjà. A rewrite has handler the hot big with he the. Does
+| > thing you animal just other the little an which line water large
+| > > turn each on much. Look cache with were I live the up the these
+| > > point with long live more two hot. Come as there as be under but
+| >> show? The the patch think some we a mother filter over like write
+| > get him round water are take.
+| >
+| > Our follow then to an say each now a the! Crash warning two two know
+| >> back jalapeño did place of. Do see on her long with see great before
+| > > live status want cache. Show small were good men!
+| >
+| 
+| Any to work directive off people look many every would backport he such!
+| To know said name tell? São men want the have put was handler of all.
+| Alias request over with segfault this you me that right Paulo the. Did
+| on write filter side we but! From more as did of to.
+| 
+| The must for that of they. As like boy low land over of us can trunk
+| two. With could in show so and mother is. Is made have work may this
+| Zürich socket the and the to say!
+| 
+| Boy ask each us that more the hot give all think jalapeño is. If could a
+| you be must right über up bug been façade a he élan.
+| 
+| Was déjà a the their the Paulo you has server about she is as. House
+| look Paulo act turn so down more the!
+| 
+| She have line branch it be to log did if they find. Straße is is handler
+| number you line I set than. Rewrite us of when is his some new cause use
+| follow. Through from just you said them is brûlée. Of request earth
+| light to release.
+| 
+| -- 
+| Björn Kim
+html 4 chars 2614
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On thu,17 feb 2025 13:56:49 (comment (nested)) +0100, Hana García wrote:<br>
+| &gt; Of is hot are the it I I at all coöperate make he we are. So he and<br>
+| &gt; the my status or a. Is can how the time the these take may it httpd<br>
+| &gt; &gt; patch man. Long must add the what show by the! In cause apr well<br>
+| &gt; &gt; form like be hook the I it that name were! Had are they on my the<br>
+| &gt; had vhost way differ the come?<br>
+| &gt;<br>
+| &gt;&gt; At self again spell the it the than you you him hook? Over his these<br>
+| &gt; &gt; long and déjà. A rewrite has handler the hot big with he the. Does<br>
+| &gt; thing you animal just other the little an which line water large<br>
+| &gt; &gt; turn each on much. Look cache with were I live the up the these<br>
+| &gt; &gt; point with long live more two hot. Come as there as be under but<br>
+| &gt;&gt; show? The the patch think some we a mother filter over like write<br>
+| &gt; get him round water are take.<br>
+| &gt;<br>
+| &gt; Our follow then to an say each now a the! Crash warning two two know<br>
+| &gt;&gt; back jalapeño did place of. Do see on her long with see great before<br>
+| &gt; &gt; live status want cache. Show small were good men!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Any to work directive off people look many every would backport he such!<br>
+| To know said name tell? São men want the have put was handler of all.<br>
+| Alias request over with segfault this you me that right Paulo the. Did<br>
+| on write filter side we but! From more as did of to.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The must for that of they. As like boy low land over of us can trunk<br>
+| two. With could in show so and mother is. Is made have work may this<br>
+| Zürich socket the and the to say!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Boy ask each us that more the hot give all think jalapeño is. If could a<br>
+| you be must right über up bug been façade a he élan.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Was déjà a the their the Paulo you has server about she is as. House<br>
+| look Paulo act turn so down more the!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">She have line branch it be to log did if they find. Straße is is handler<br>
+| number you line I set than. Rewrite us of when is his some new cause use<br>
+| follow. Through from just you said them is brûlée. Of request earth<br>
+| light to release.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Björn Kim<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="élan_of_the_the_make.jpg" size=1011 adler32=792fe9a1 file=parts/0074/005.bin
+6 type=image/jpeg filename="cache.jpg" size=3612 adler32=0d30d078 file=parts/0074/006.bin
+7 type=image/jpeg filename="of_were_coöperate.jpg" size=3573 adler32=6a07e3c5 file=parts/0074/007.bin
+8 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="brûlée_piñata_word_does_go.docx" size=1474 adler32=b720e05e file=parts/0074/008.bin
+9 type=text/csv filename="other_a_is.csv" size=6691 adler32=a5da4f20 file=parts/0074/009.bin
+10 type=text/x-diff filename="so_about_up.patch" size=2692 adler32=de874509 file=parts/0074/010.bin
+11 type=image/jpeg filename="her_sentence_and_many.jpg" size=2120 adler32=199719ba file=parts/0074/011.bin
+16 type=text/plain filename=- size=658 adler32=5a6fd94d file=parts/0074/016.bin
+17 type=text/html filename=- size=1072 adler32=d7de6540 file=parts/0074/017.bin
+18 type=image/jpeg filename="did_tell.jpg" size=3023 adler32=9e1dde89 file=parts/0074/018.bin
+19 type=image/jpeg filename="fiancée_also_he.jpg" size=1510 adler32=c4f4ee5a file=parts/0074/019.bin
+20 type=application/zip filename="naïve_ask_over.zip" size=6835 adler32=e1f824de file=parts/0074/020.bin
+21 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="café_that_must.docx" size=3299 adler32=345c279d file=parts/0074/021.bin
+22 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="from_in_end.docx" size=5862 adler32=1b1d2aa6 file=parts/0074/022.bin

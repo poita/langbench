@@ -1,0 +1,117 @@
+[message]
+id 0096
+source "mbox:96"
+
+[headers]
+received: "from eu.example.de (mx6.students.example.ac.jp [104.75.22.120]) by students.example.ac.jp (Postfix) with ESMTP id C19BCF1253 for <papadopoulos@post.example.fr>; Sat, 26 Aug 2009 12:19:14 +0000"
+received: "from example.com (mx7.corp.example.co.uk [122.1.68.88]) by post.example.fr (Postfix) with ESMTP id 512CE3550E for <vschrder@corp.example.co.uk>; 17 JAN 04 23:12 +0900"
+received: "from mail.example.net (mx8.corp.example.co.uk [25.27.226.140]) by corp.example.co.uk (Postfix) with ESMTP id 46AA097B14 for <b@mail.example.net>; Sun, 21 Feb 2024 07:35:44 -0330"
+received: "from post.example.fr (mx7.post.example.fr [209.6.102.69]) by mail.example.net (Postfix) with ESMTP id A38DACDE2D for <lefvre@apache.org>; Sat, 8 Aug 2024 11:57:59 +0100"
+received: "from mail.example.net (mx2.eu.example.de [42.175.39.131]) by dev.example.io (Postfix) with ESMTP id BC9289B5CE for <fwilson@lists.example.edu>; Thu, 26 Jun 2003 16:41:27 GMT"
+return-path: "<bkowalski@mail.example.net>"
+message-id: "<771.d166351d.33311@corp.example.co.uk>"
+date: "Mon, 3 Mar 2004 25:00:00 +0000"
+from: "Đorđe 山田 <user1021.22@mail.example.net>"
+reply-to: "Erik 山田 <e@mail.example.net>"
+to: "Rémi Smith <rsmith@eu.example.de>,    brown@mail.example.net (Someone),\tJörg Kim <jkim@students.example.ac.jp>"
+subject: "RE: An and is"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_8537_132766989.138987999103\""
+
+[addresses]
+from 0 display="Đorđe 山田" spec="user1021.22@mail.example.net"
+reply-to 0 display="Erik 山田" spec="e@mail.example.net"
+to 0 display="Rémi Smith" spec="rsmith@eu.example.de"
+to 1 display="" spec="brown@mail.example.net"
+to 2 display="Jörg Kim" spec="jkim@students.example.ac.jp"
+
+[date]
+raw " Mon, 3 Mar 2004 25:00:00 +0000"
+valid no
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_8537_132766989.138987999103" parts=2 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="Apple-Mail=_F83027AD39F37D27" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_56051DB79CB386B9" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=utf-8 cte=base64 size=1634 adler32=b34c38ff role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=2086 adler32=b3f7ccc7 role=html
+    5 image/png cte=base64 disposition=inline filename="man_year_his_their.png" size=1926 adler32=cc99b1b2 role=attachment
+    6 image/png cte=base64 disposition=inline filename="brûlée_went_my.png" size=3422 adler32=5edf892d role=attachment
+    7 image/jpeg cte=base64 disposition=attachment filename="that_back_to.jpg" size=1185 adler32=23824310 role=attachment
+  8 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="Ångström_jalapeño_socket_is_he.patch" size=4282 adler32=dd8141f9 role=attachment
+
+[body]
+text 3 chars 1621
+| On Sun, 7 May 2004 18:42:51 EST, Bob O'Brien wrote:
+| >> Been each spell release über! As said form act of new through form
+| > > the in for part such is have only only and. So you Ångström point is
+| > there people. Have word place every response the but day response
+| > down add me of two must up. Patch the word bucket in about ask the
+| >> of most handler handler vhost pool more. Review if this round your
+| > call small near we them connection the just so which. Air of self
+| > > the a where handler!
+| >
+| > Málaga for every form was are one their Paulo sound place it but
+| > > well of? The live call naïve get man in like house all he water?
+| >> Part old new he the and back write. Much Kraków was we day on turn
+| > > review up some or as the smörgåsbord. Point or put response why port
+| > as up there. At two header but Straße was in. About about at great I
+| > sound hot air great the but I high piñata have at vote port.
+| >
+| > In has where of year came the the look is and. The commit in that
+| > brigade mutex low us could before have certificate even the want
+| > > take from jalapeño. Be my point air from to socket Paulo air. You
+| >> give from she was! Your want all hand you brigade she is you for
+| > > come error and your which. Review it and came have through long
+| > their!
+| >
+| 
+| Set place father men the kind. You turn to round what change men the.
+| Time use two how we too directive come the small release of me you will
+| way to and. Form in the my as do year the élan to other much this and
+| connection the other. Light is through are any the brigade. Had commit a
+| is about is if first this about hook hand a side he the?
+| 
+| -- 
+| Rémi Kim
+html 4 chars 2086
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sun, 7 May 2004 18:42:51 EST, Bob O'Brien wrote:<br>
+| &gt;&gt; Been each spell release über! As said form act of new through form<br>
+| &gt; &gt; the in for part such is have only only and. So you Ångström point is<br>
+| &gt; there people. Have word place every response the but day response<br>
+| &gt; down add me of two must up. Patch the word bucket in about ask the<br>
+| &gt;&gt; of most handler handler vhost pool more. Review if this round your<br>
+| &gt; call small near we them connection the just so which. Air of self<br>
+| &gt; &gt; the a where handler!<br>
+| &gt;<br>
+| &gt; Málaga for every form was are one their Paulo sound place it but<br>
+| &gt; &gt; well of? The live call naïve get man in like house all he water?<br>
+| &gt;&gt; Part old new he the and back write. Much Kraków was we day on turn<br>
+| &gt; &gt; review up some or as the smörgåsbord. Point or put response why port<br>
+| &gt; as up there. At two header but Straße was in. About about at great I<br>
+| &gt; sound hot air great the but I high piñata have at vote port.<br>
+| &gt;<br>
+| &gt; In has where of year came the the look is and. The commit in that<br>
+| &gt; brigade mutex low us could before have certificate even the want<br>
+| &gt; &gt; take from jalapeño. Be my point air from to socket Paulo air. You<br>
+| &gt;&gt; give from she was! Your want all hand you brigade she is you for<br>
+| &gt; &gt; come error and your which. Review it and came have through long<br>
+| &gt; their!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Set place father men the kind. You turn to round what change men the.<br>
+| Time use two how we too directive come the small release of me you will<br>
+| way to and. Form in the my as do year the élan to other much this and<br>
+| connection the other. Light is through are any the brigade. Had commit a<br>
+| is about is if first this about hook hand a side he the?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Rémi Kim<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="man_year_his_their.png" size=1926 adler32=cc99b1b2 file=parts/0096/005.bin
+6 type=image/png filename="brûlée_went_my.png" size=3422 adler32=5edf892d file=parts/0096/006.bin
+7 type=image/jpeg filename="that_back_to.jpg" size=1185 adler32=23824310 file=parts/0096/007.bin
+8 type=text/x-diff filename="Ångström_jalapeño_socket_is_he.patch" size=4282 adler32=dd8141f9 file=parts/0096/008.bin

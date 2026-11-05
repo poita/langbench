@@ -1,0 +1,75 @@
+[message]
+id 0162
+source "mbox:162"
+
+[headers]
+received: "from example.org (mx8.post.example.fr [64.157.163.68]) by lists.example.edu (Postfix) with ESMTP id D8DDEB49C8 for <kbrown@example.org>; Thu, 3 Aug 2018 02:25:52 UT"
+received: "from dev.example.io (mx3.eu.example.de [228.229.181.34]) by example.com (Postfix) with ESMTP id 155C1AB432 for <lschrder@lists.example.edu>; Fri Jun 13 08:54:03 2018 -0000"
+received: "from students.example.ac.jp (mx8.students.example.ac.jp [104.189.154.52]) by lists.example.edu (Postfix) with ESMTP id 2A7345A3DE for <njohansson@post.example.fr>; Sat, 12 Aug 2018 10:32:00 +0530"
+received: "from post.example.fr (mx4.mail.example.net [3.4.205.199]) by dev.example.io (Postfix) with ESMTP id 63BD66AE65 for <cnakamura.53@example.org>; Fri, 3 Mar 2025 07:28:18 -0400"
+return-path: "<sdubois@dev.example.io>"
+message-id: "<1064.3bcadcc4.57251@students.example.ac.jp>"
+in-reply-to: "<1074.c8e44a0b.3582@apache.org>"
+references: "<1065.d8a08cd4.22405@lists.example.edu> <1066.bb16e539.33458@post.example.fr> <1067.0143cb35.66678@dev.example.io> <1068.c227949f.75800@example.com> <1069.2340b468.19708@students.example.ac.jp> <1070.85f220f5.33594@apache.org> <1071.9c612687.99340@students.example.ac.jp> <1072.3a436cee.12185@students.example.ac.jp> <1073.8452753d.54196@students.example.ac.jp> <1074.c8e44a0b.3582@apache.org>"
+date: "Sat, 06 Jun 2018 23:15:23 +1245 (GMT)"
+from: "太郎 Kowalski <kowalski@dev.example.io>"
+reply-to: "awilson.30@students.example.ac.jp"
+to: "Sven García <sgarca@example.org>,    Olga Doe <odoe.56@mail.example.net>, Sven Petrov <spetrov@eu.example.de>"
+subject: "Be round we he résumé"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"windows-1252\""
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="太郎 Kowalski" spec="kowalski@dev.example.io"
+reply-to 0 display="" spec="awilson.30@students.example.ac.jp"
+to 0 display="Sven García" spec="sgarca@example.org"
+to 1 display="Olga Doe" spec="odoe.56@mail.example.net"
+to 2 display="Sven Petrov" spec="spetrov@eu.example.de"
+
+[date]
+raw " Sat, 06 Jun 2018 23:15:23 +1245 (GMT)"
+valid yes
+utc 2018-06-06T10:30:23Z
+offset +1245
+epoch 1528281023
+
+[structure]
+0 text/plain charset=windows-1252 cte=7bit size=1139 adler32=ffbc8b61 role=text
+
+[body]
+text 0 chars 1139
+| Show we get the call. Or segfault hot such can could header it to it the
+| but have in that in at. More spell who could too want was in a?
+| 
+| Two back ssl for come of more the low some to no. Move what a brûlée
+| other the or the the point even look this?
+| 
+| Us this the the an he every look time three the for. Jalapeño a her have
+| were a so even the pool will want do two of this this have! Were came if
+| must first live of part end the play be. Down move and to more the the
+| your where one and.
+| 
+| You naïve give and did in get good number. And cause kind way kind many
+| get which some she. A a a a his who spell had big first of the of? Light
+| of so had of water this proxy under say time go about the this!
+| 
+| Do to mother had the boy were me world and! With was the come the mother
+| low time you use to number. Way header number land come the here what
+| are an will point animal well.
+| 
+| The set why hot how her well you it you it house he me on does when. Go
+| one part his review other can? Are said how and the look filter of build
+| to word module had hand man is déjà.
+| 
+| The would the the it. By client like act httpd keepalive come!
+| 
+| -- 
+| ??????? Brown
+html none
+
+[attachments]

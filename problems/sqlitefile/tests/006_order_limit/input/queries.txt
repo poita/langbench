@@ -1,0 +1,10 @@
+SELECT name,age FROM people ORDER BY age
+SELECT name,age FROM people ORDER BY age ASC
+SELECT name,age FROM people ORDER BY age DESC
+SELECT name FROM people ORDER BY name
+SELECT name FROM people ORDER BY name DESC LIMIT 2
+SELECT * FROM people LIMIT 0
+SELECT * FROM people LIMIT 3
+SELECT name,height FROM people ORDER BY height DESC LIMIT 4
+SELECT name FROM people ORDER BY photo
+SELECT name FROM people ORDER BY rowid DESC

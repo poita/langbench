@@ -1,0 +1,39 @@
+build -j 8
+edit src/m2/sub/g3.txt
+delta
+kappa
+birch
+fir
+---
+build @m2 -j 3
+touch main.kiln
+build @m4 -j 64
+edit src/m0/f2.txt
+mu
+cedar
+nu
+omicron
+---
+build @m4
+edit src/m2/f1.txt
+nu
+iota
+elm
+---
+build
+create src/m4/new0.txt
+Ünicode
+gamma
+delta
+---
+build @m1 -j 64
+edit src/m3/f0.txt
+fir
+fir
+iota
+   spaced   
+---
+build @m2 -j 16
+edit src/m2/f2.txt
+---
+build @m3 -j 16

@@ -1,0 +1,68 @@
+[message]
+id 0032
+source "mbox:32"
+
+[headers]
+received: "from example.org (mx8.eu.example.de [132.235.190.148]) by mail.example.net (Postfix) with ESMTP id 3ACB07F1A4 for <ojohansson@mail.example.net>; Sun Jun 13 01:21:08 2003 PDT"
+received: "from eu.example.de (mx8.lists.example.edu [193.206.55.203]) by apache.org (Postfix) with ESMTP id 7E0BE52890 for <apapadopoulos@corp.example.co.uk>; Fri, 4 Apr 2005 22:29:54 +1000"
+received: "from apache.org (mx8.post.example.fr [53.248.242.27]) by dev.example.io (Postfix) with ESMTP id 8E280C65DD for <pvanderberg@students.example.ac.jp>; Fri, 17 Jan 2005 21:15:31 -0400 (GMT)"
+received: "from eu.example.de (mx2.lists.example.edu [17.115.70.12]) by example.com (Postfix) with ESMTP id 6E8B7064F for <csmith@example.com>; Sat, 28 Oct 2004 19:12:45 +1000"
+received: "from example.com (mx9.dev.example.io [175.118.207.163]) by example.org (Postfix) with ESMTP id 4F57F1C72F for <hgarca@students.example.ac.jp>; Sun, 24 May 2004 18:43:28 -0700"
+return-path: "<hdubois@eu.example.de>"
+message-id: "<259.80ab8834.15430@eu.example.de>"
+in-reply-to: "<267.468764ee.78514@mail.example.net>"
+references: "<260.1848f934.73243@example.com> <261.b8a5a15b.40524@apache.org> <262.8ef2f937.10016@students.example.ac.jp> <263.3e880fc3.70220@example.org> <264.827c6627.15707@example.com> <265.ae13913c.90960@corp.example.co.uk> <266.e5e469cf.33597@example.org> <267.468764ee.78514@mail.example.net>"
+date: "Mon, 2 Jul 2004 16:29:13 EST"
+from: "Tomás Taylor <ttaylor@example.org>"
+to: "Ελένη Rossi <rossi@example.org>, Rémi Kim <rkim@corp.example.co.uk>,\tQuinn 山田 <q@lists.example.edu>"
+cc: "Đorđe Nakamura <nakamura@mail.example.net>"
+subject: "Re: Them right may you the out have"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"utf-8\""
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="Tomás Taylor" spec="ttaylor@example.org"
+to 0 display="Ελένη Rossi" spec="rossi@example.org"
+to 1 display="Rémi Kim" spec="rkim@corp.example.co.uk"
+to 2 display="Quinn 山田" spec="q@lists.example.edu"
+cc 0 display="Đorđe Nakamura" spec="nakamura@mail.example.net"
+
+[date]
+raw " Mon, 2 Jul 2004 16:29:13 EST"
+valid yes
+utc 2004-07-02T21:29:13Z
+offset -0500
+epoch 1088803753
+
+[structure]
+0 text/plain charset=utf-8 cte=8bit size=669 adler32=02b1de2b role=text
+
+[body]
+text 0 chars 661
+| The hot all the use you made he land part make out make him hand place
+| the. Ssl part they home it little must cause timeout under. But man
+| water made may Zürich?
+| 
+| Under my right that animal want the now? To had release her these number
+| keepalive work to a. Look or name I had boy? At but over old some all
+| help change and right work they show. A branch with so much.
+| 
+| Build are the the client well is little water his look mother near on
+| and it on. He word I could all how of in the was rewrite.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Дмитрий Doe
+html none
+
+[attachments]

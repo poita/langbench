@@ -1,0 +1,60 @@
+[message]
+id 0061
+source "mbox:61"
+
+[headers]
+received: "from corp.example.co.uk (mx9.eu.example.de [138.65.188.190]) by example.com (Postfix) with ESMTP id 94DC48B0D8 for <xrossi@apache.org>; Wed, 8 Dec 2009 04:43:22 -0800"
+received: "from students.example.ac.jp (mx5.example.com [128.77.222.250]) by mail.example.net (Postfix) with ESMTP id FDFF4D21ED for <ekim@corp.example.co.uk>; fri,3 jan 2012 2:35:56 (comment (nested)) -0330"
+received: "from corp.example.co.uk (mx5.mail.example.net [16.185.167.48]) by post.example.fr (Postfix) with ESMTP id E9CDAB554F for <nbrown@eu.example.de>; Fri, 26 May 2009 23:11:49 -0500"
+received: "from post.example.fr (mx5.example.com [134.49.107.95]) by mail.example.net (Postfix) with ESMTP id 2536BE9DB3 for <ekim.70@example.org>; Sun, 16 Sep 2025 06:26:57 MET"
+received: "from dev.example.io (mx1.students.example.ac.jp [253.255.143.66]) by mail.example.net (Postfix) with ESMTP id 635B6F5692 for <dvanderberg@lists.example.edu>; 22 SEP 03 17:38 EST"
+return-path: "<yobrien@eu.example.de>"
+message-id: "<406.0a590cec.35368@example.com>"
+in-reply-to: "<416.d49e7549.28886@lists.example.edu>"
+references: "<407.dd9d8157.9552@dev.example.io> <408.4f08b0bc.65753@corp.example.co.uk> <409.ace347b1.12127@corp.example.co.uk> <410.8271e7aa.14076@students.example.ac.jp> <411.3c941e7d.37237@apache.org> <412.3357cfc4.68366@mail.example.net> <413.26b436ef.37169@lists.example.edu> <414.cd40723f.79827@dev.example.io> <415.74a65428.3012@apache.org> <416.d49e7549.28886@lists.example.edu>"
+date: "Sat, 22 Apr 2024 15:12:04 +0000"
+from: "lefvre.37@dev.example.io"
+to: "kjohansson.30@students.example.ac.jp, François Fernández <ffernndez.72@students.example.ac.jp>"
+subject: "Re: [PATCH] Just she are our back"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_6357_486836272.639772585845\""
+
+[addresses]
+from 0 display="" spec="lefvre.37@dev.example.io"
+to 0 display="" spec="kjohansson.30@students.example.ac.jp"
+to 1 display="François Fernández" spec="ffernndez.72@students.example.ac.jp"
+
+[date]
+raw " Sat, 22 Apr 2024 15:12:04 +0000"
+valid yes
+utc 2024-04-22T15:12:04Z
+offset +0000
+epoch 1713798724
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_6357_486836272.639772585845" parts=3 preamble=45 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=base64 size=418 adler32=42c29282 role=text
+  2 text/csv charset=utf-8 cte=7bit disposition=attachment filename="Ørsted_such_façade_über_each.csv" size=1610 adler32=0113fe23 role=attachment
+  3 text/x-diff charset=utf-8 cte=7bit disposition=inline filename="Größe_this_has.patch" size=4845 adler32=a276f962 role=attachment
+
+[body]
+text 1 chars 418
+| Here and I had must a thread and would way way play module the the.
+| Change über in much by self people sentence it in. Directive with they
+| did under to. Of these in review been year any round of his up.
+| 
+| In he part one you they that the out did use two now? And do and socket
+| low vhost. From here of when log out she certificate can kind! Log was
+| are that they day he bucket review Größe such.
+| 
+| -- 
+| Björn van der Berg
+html none
+
+[attachments]
+2 type=text/csv filename="Ørsted_such_façade_über_each.csv" size=1610 adler32=0113fe23 file=parts/0061/002.bin
+3 type=text/x-diff filename="Größe_this_has.patch" size=4845 adler32=a276f962 file=parts/0061/003.bin

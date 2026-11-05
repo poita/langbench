@@ -1,0 +1,12 @@
+decode
+a = []
+b = [1, 2, 3]
+c = [ "red", "yellow", "green" ]
+d = [ [ 1, 2 ], ["a", "b", "c"] ]
+e = [ 0.1, 1, "x", true ]
+f = [
+  1,
+  2, # trailing comment
+]
+g = [[[[[]]]]]
+h = [{x = 1}, {y = 2}]

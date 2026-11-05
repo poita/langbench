@@ -1,0 +1,38 @@
+step 1: build (default) -j 1
+  error E_TYPE phony a: expected strlist, got int
+step 2: edit main.kiln
+  ok size=36
+step 3: build (default) -j 1
+  error E_BAD_PATH bad path
+step 4: edit main.kiln
+  ok size=34
+step 5: build (default) -j 1
+  error E_DUP_PHONY a
+step 6: edit main.kiln
+  ok size=15
+step 7: build (default) -j 1
+  error E_TYPE index: expected int, got str
+step 8: edit main.kiln
+  ok size=18
+step 9: build (default) -j 1
+  error E_TYPE operator +: expected int, got str
+step 10: edit main.kiln
+  ok size=19
+step 11: build (default) -j 1
+  error E_TYPE operator ++: expected list, got str
+step 12: edit main.kiln
+  ok size=20
+step 13: build (default) -j 1
+  error E_UNKNOWN_VAR y
+step 14: edit main.kiln
+  ok size=58
+step 15: build (default) -j 1
+  error E_TYPE field out: expected strlist, got int
+step 16: edit main.kiln
+  ok size=18
+step 17: build (default) -j 1
+  error E_TYPE index: expected int, got bool
+step 18: edit main.kiln
+  ok size=17
+step 19: build (default) -j 1
+  error E_TYPE operator -: expected int, got str

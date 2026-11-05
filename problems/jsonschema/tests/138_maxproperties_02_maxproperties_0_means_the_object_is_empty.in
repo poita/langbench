@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "maxProperties": 0
+  },
+  "tests": [
+    {
+      "description": "no properties is valid",
+      "data": {}
+    },
+    {
+      "description": "one property is invalid",
+      "data": {
+        "foo": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+inv one.mtx
+det one.mtx
+lu one.mtx
+chol pos.mtx
+eig one.mtx
+svd one.mtx
+qr one.mtx
+cond one.mtx
+solve one.mtx rhs.mtx
+svd col.mtx
+svd row.mtx
+qr col.mtx
+lstsq col.mtx b3.mtx
+norm1 row.mtx
+norminf col.mtx
+transpose row.mtx
+mul row.mtx col.mtx
+mul col.mtx row.mtx

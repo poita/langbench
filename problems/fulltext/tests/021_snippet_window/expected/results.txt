@@ -1,0 +1,10 @@
+QUERY 1 target
+HITS 3
+1	twice	0.1828	gamma delta epsilon zeta eta theta iota kappa target alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa target
+2	early	0.1340	target alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota
+3	late	0.1340	beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa target
+QUERY 2 target OR alpha
+HITS 3
+1	twice	0.4081	delta epsilon zeta eta theta iota kappa target alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa target alpha
+2	early	0.3603	target alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota
+3	late	0.3603	beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa target

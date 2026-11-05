@@ -1,0 +1,57 @@
+QUERY 1 run
+HITS 1
+1	running	2.4788	He was running; the runner runs and had run
+QUERY 2 running
+HITS 1
+1	running	2.4788	He was running; the runner runs and had run
+QUERY 3 connect
+HITS 1
+1	connect	3.0985	connection connections connected connecting connect
+QUERY 4 connections
+HITS 1
+1	connect	3.0985	connection connections connected connecting connect
+QUERY 5 relational
+HITS 1
+1	relate	2.8021	relational relate related relativity relativistic
+QUERY 6 relativity
+HITS 1
+1	relate	1.8955	relational relate related relativity relativistic
+QUERY 7 happy
+HITS 1
+1	happy	2.5028	happy happiness happier happily unhappy
+QUERY 8 happiness
+HITS 1
+1	happy	2.5028	happy happiness happier happily unhappy
+QUERY 9 happier
+HITS 1
+1	happy	1.8955	happy happiness happier happily unhappy
+QUERY 10 feeding
+HITS 1
+1	chains	2.2128	feed feeding; need needed; bleed bleeding; deed deeded
+QUERY 11 needed
+HITS 1
+1	chains	2.2128	feed feeding; need needed; bleed bleeding; deed deeded
+QUERY 12 bleed
+HITS 1
+1	chains	2.2128	feed feeding; need needed; bleed bleeding; deed deeded
+QUERY 13 iced
+HITS 1
+1	finals	2.2128	ice iced; cease ceased; rate rated; probate probated
+QUERY 14 cease
+HITS 1
+1	finals	2.2128	ice iced; cease ceased; rate rated; probate probated
+QUERY 15 rated
+HITS 1
+1	finals	2.2128	ice iced; cease ceased; rate rated; probate probated
+QUERY 16 hopping
+HITS 1
+1	doubles	2.4788	hopping hopped hop; falling fall; fizzed fizz; tanned tan
+QUERY 17 falling
+HITS 1
+1	doubles	2.1305	hopping hopped hop; falling fall; fizzed fizz; tanned tan
+QUERY 18 fizz
+HITS 1
+1	doubles	2.1305	hopping hopped hop; falling fall; fizzed fizz; tanned tan
+QUERY 19 "feed feeding"
+HITS 1
+1	chains	1.5815	feed feeding; need needed; bleed bleeding; deed deeded

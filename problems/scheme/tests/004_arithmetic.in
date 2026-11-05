@@ -1,0 +1,8 @@
+(+) (+ 5) (+ 1 2 3 4) (*) (* 7) (* 2 3 4) (- 5) (- 10 3) (- 10 1 2 3) (- -5)
+(quotient 7 2) (quotient -7 2) (quotient 7 -2) (quotient -7 -2)
+(remainder 7 2) (remainder -7 2) (remainder 7 -2) (remainder -7 -2)
+(quotient 0 5) (remainder 0 5) (quotient 5 7) (remainder 5 7)
+(* 99999999999 99999999999) (- 0 99999999999999999999) (+ 99999999999999999999 1)
+(quotient 100000000000000000000 3) (remainder 100000000000000000000 3)
+(+ (* 2 3) (- 10 4) (quotient 9 2))
+(quotient 1 1) (remainder -1 1) (quotient -1 -1) (quotient 6 -3) (remainder 6 -3)

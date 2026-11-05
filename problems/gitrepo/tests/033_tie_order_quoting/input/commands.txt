@@ -1,0 +1,25 @@
+log main
+log main 3
+log main 1
+log y
+log z
+log x
+diff root x
+diff x root
+diff root main
+diff y z
+diff main^ main^2
+ls-tree main
+ls-tree root
+ls-tree y
+rev-parse main^
+rev-parse main^2
+rev-parse main^2^
+rev-parse main~2
+count-objects
+log msgs
+log msgs 2
+cat-file msgs
+rev-parse msgs~3
+cat-file 2bdf67abb163a4ffb2d7f3f0880c9fe5068ce782
+cat-file efb9cf4925d36f1e847046b10a26ef47095b1a20

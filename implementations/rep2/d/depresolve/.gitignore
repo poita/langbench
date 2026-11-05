@@ -1,0 +1,7 @@
+.dub/
+bin/
+*.o
+*.a
+*.lst
+dub.selections.json
+depresolve-test-*

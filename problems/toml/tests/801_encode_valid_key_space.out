@@ -1,0 +1,6 @@
+"  much \t\t  whitespace  \t\n  \r\n  " = 3
+" c d " = 2
+"a b" = 1
+
+[" tbl "]
+"\ttab\ttab\t" = "tab"

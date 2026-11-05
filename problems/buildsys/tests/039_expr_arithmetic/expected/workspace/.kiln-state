@@ -1,0 +1,21 @@
+kiln-state 1
+step out/l0.txt
+cmd write("4 10 -21 -2 1 0 -3 -7 -4\n")
+out out/l0.txt 7f79791275ec3d3f
+end
+step out/l1.txt
+cmd write("5 9 4 2 3 -3 -3 -1\n")
+out out/l1.txt 4c2dcdd9c01dcd74
+end
+step out/l2.txt
+cmd write("abcd 3 true true\n")
+out out/l2.txt 68ca1a9a575c5bc2
+end
+step out/l3.txt
+cmd write("cf2010\n")
+out out/l3.txt 489b5d247acf6df7
+end
+step out/l4.txt
+cmd write("false true true false\n")
+out out/l4.txt 7d2ccf2432afe323
+end

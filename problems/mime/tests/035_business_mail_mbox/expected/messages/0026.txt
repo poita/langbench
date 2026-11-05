@@ -1,0 +1,115 @@
+[message]
+id 0026
+source "mbox:26"
+
+[headers]
+received: "from dev.example.io (mx6.lists.example.edu [71.134.242.138]) by example.com (Postfix) with ESMTP id A830F4E5C for <bnakamura@mail.example.net>; Tue, 26 Mar 2025 09:32:47 +1000"
+received: "from dev.example.io (mx7.eu.example.de [66.248.157.122]) by example.org (Postfix) with ESMTP id 58C7B1D65 for <drossi.12@example.com>; Sun, 25 Feb 2005 02:52:49 +0900 (JST)"
+received: "from eu.example.de (mx5.dev.example.io [223.25.57.5]) by post.example.fr (Postfix) with ESMTP id 1AAED8EBA1 for <ikowalski@post.example.fr>; Sun, 2 Jun 2024 03:51:24 -0500"
+received: "from corp.example.co.uk (mx2.eu.example.de [70.59.121.29]) by lists.example.edu (Postfix) with ESMTP id D2B67BD4EA for <msmith@example.org>; Tue Dec 7 12:12:09 2003 CST"
+received: "from example.com (mx7.lists.example.edu [202.175.131.101]) by mail.example.net (Postfix) with ESMTP id F54B05547F for <cstergaard@example.org>; Fri, 23 Aug 2009 02:09:05 +0000"
+return-path: "<flefvre@lists.example.edu>"
+message-id: "<337.189df20f.36135@mail.example.net>"
+in-reply-to: "<339.be6ca2c7.94746@eu.example.de>"
+references: "<338.5d3cd7f8.84117@example.com> <339.be6ca2c7.94746@eu.example.de>"
+date: "sun,3 may 2012 5:18:17 (comment (nested)) Z"
+from: "uobrien@example.org"
+to: "\"Brown, William\" <wbrown@mail.example.net>,    Karin Müller <kmller@dev.example.io>"
+cc: "Agnieszka García <agarca@mail.example.net>,\tCarl Dubois <cdubois@eu.example.de>"
+subject: "Re: In we is of"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"0000000000004c4d37bc58d8\""
+
+[addresses]
+from 0 display="" spec="uobrien@example.org"
+to 0 display="Brown, William" spec="wbrown@mail.example.net"
+to 1 display="Karin Müller" spec="kmller@dev.example.io"
+cc 0 display="Agnieszka García" spec="agarca@mail.example.net"
+cc 1 display="Carl Dubois" spec="cdubois@eu.example.de"
+
+[date]
+raw " sun,3 may 2012 5:18:17 (comment (nested)) Z"
+valid yes
+utc 2012-05-03T05:18:17Z
+offset +0000
+epoch 1336022297
+
+[structure]
+0 multipart/mixed cte=7bit boundary="0000000000004c4d37bc58d8" parts=6 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="simple boundary 325" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=quoted-printable size=1037 adler32=c5d66988 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1434 adler32=d194f031 role=html
+  4 application/pdf cte=base64 disposition=attachment filename="Málaga_you_café_their.pdf" size=2068 adler32=b38209a5 role=attachment
+  5 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="crème_so.csv" size=10483 adler32=266e019a role=attachment
+  6 image/png cte=base64 disposition=attachment filename="over.png" size=6597 adler32=88b0c889 role=attachment
+  7 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=inline filename="piñata_and_server_each.docx" size=7834 adler32=f3871f77 role=attachment
+  8 message/rfc822 cte=7bit disposition=inline parts=1
+    9 multipart/mixed cte=7bit boundary="simple boundary 429" parts=3 preamble=0 epilogue=1
+      10 multipart/related cte=7bit boundary="Apple-Mail=_A562C51FCB78A58C" parts=2 preamble=0 epilogue=0
+        11 multipart/alternative cte=7bit boundary="Apple-Mail=_A0A225D09BE4D5EB" parts=2 preamble=0 epilogue=0
+          12 text/plain charset=iso-8859-1 cte=base64 size=1666 adler32=73783f37 role=attachment
+          13 text/html charset=utf-8 cte=quoted-printable size=2259 adler32=d9fd064b role=attachment
+        14 image/png cte=base64 disposition=attachment filename="from_his_hot.png" size=3094 adler32=1e4015b8 role=attachment
+      15 application/pdf cte=base64 disposition=attachment filename="great_on_went.pdf" size=7730 adler32=70c6b8bd role=attachment
+      16 application/zip cte=base64 disposition=attachment filename="find.zip" size=4610 adler32=5b991514 role=attachment
+
+[body]
+text 2 chars 1037
+| On Mon, 19 Mar 2004 18:47:49 Z, Bob Fernández wrote:
+| > > Can to name an the been say is? Them apr him and move came he give
+| >> move where give how! Many which through a to put word keepalive
+| > Größe at other now connection you it and. Of look boy spell it been
+| >> handler socket with the mutex and each than so.
+| >
+| > > Certificate way has it who if put mother play. Branch to spell the
+| > > thing I is résumé had the. Was want their of I were sentence the use
+| > mother the each out are give at brûlée their. All mutex will turn an
+| > > hook sound sound two the of of brûlée by with are! Bucket after hot
+| > word but the the has live the pool why of man the crème and the?
+| > Thing get use now did their act day said more under!
+| >
+| 
+| Do number great some timeout? Play he and so be than log had Straße.
+| Picture add can work then to their near may get way come to segfault we
+| httpd with. Are try turn review to log with long does it I brigade no
+| server déjà. Out three differ down earth make trunk of the timeout give
+| patch.
+| 
+| -- 
+| Yuki Østergaard
+html 3 chars 1420
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 19 Mar 2004 18:47:49 Z, Bob Fernández wrote:<br>
+| &gt; &gt; Can to name an the been say is? Them apr him and move came he give<br>
+| &gt;&gt; move where give how! Many which through a to put word keepalive<br>
+| &gt; Größe at other now connection you it and. Of look boy spell it been<br>
+| &gt;&gt; handler socket with the mutex and each than so.<br>
+| &gt;<br>
+| &gt; &gt; Certificate way has it who if put mother play. Branch to spell the<br>
+| &gt; &gt; thing I is résumé had the. Was want their of I were sentence the use<br>
+| &gt; mother the each out are give at brûlée their. All mutex will turn an<br>
+| &gt; &gt; hook sound sound two the of of brûlée by with are! Bucket after hot<br>
+| &gt; word but the the has live the pool why of man the crème and the?<br>
+| &gt; Thing get use now did their act day said more under!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Do number great some timeout? Play he and so be than log had Straße.<br>
+| Picture add can work then to their near may get way come to segfault we<br>
+| httpd with. Are try turn review to log with long does it I brigade no<br>
+| server déjà. Out three differ down earth make trunk of the timeout give<br>
+| patch.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Yuki Østergaard<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="Málaga_you_café_their.pdf" size=2068 adler32=b38209a5 file=parts/0026/004.bin
+5 type=text/csv filename="crème_so.csv" size=10483 adler32=266e019a file=parts/0026/005.bin
+6 type=image/png filename="over.png" size=6597 adler32=88b0c889 file=parts/0026/006.bin
+7 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="piñata_and_server_each.docx" size=7834 adler32=f3871f77 file=parts/0026/007.bin
+12 type=text/plain filename=- size=1666 adler32=73783f37 file=parts/0026/012.bin
+13 type=text/html filename=- size=2259 adler32=d9fd064b file=parts/0026/013.bin
+14 type=image/png filename="from_his_hot.png" size=3094 adler32=1e4015b8 file=parts/0026/014.bin
+15 type=application/pdf filename="great_on_went.pdf" size=7730 adler32=70c6b8bd file=parts/0026/015.bin
+16 type=application/zip filename="find.zip" size=4610 adler32=5b991514 file=parts/0026/016.bin

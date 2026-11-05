@@ -1,0 +1,12 @@
+# pack-refs with: peeled fully-peeled sorted 
+c7e9dab3dabd3246edf0d0729cb5fb040890050a refs/heads/main
+9b7be95b55515d9cd3ebf19d2eb3c1c3bf5f9ee1 refs/heads/old
+78896b43a692044b0b29addd66480e061e2d4b67 refs/heads/side
+50515054e97a0e7a5edf2ca956657f02a1c08920 refs/remotes/origin/main
+608b34b3efb351e369c76ab1eaca1c726a6a740b refs/tags/blobtag
+^dd0b8ea56425370656188ab06b1e727e3683c65c
+839ff6ae8889eab56c8eef3bca6658428d98d497 refs/tags/v0.1
+d88dfd389daad003b438e77d27b70d9ab225956e refs/tags/v1.0
+^77ca1c030c4c8de5300319f15bcbf59c486aec4d
+0f438beb1c69e74d71c3a9ac87ed78b68bb598c6 refs/tags/v1.0-signed
+^77ca1c030c4c8de5300319f15bcbf59c486aec4d

@@ -1,0 +1,41 @@
+[message]
+id 0005
+source "not-mime.eml"
+
+[headers]
+return-path: "<s.rahtz@elsevier.co.uk>"
+to: "Eryq <eryq@rhine.stx.com>"
+from: "s.rahtz@elsevier.co.uk (Sebastian Rahtz)"
+subject: "Re: HELP! Problems installing PSNFSS, and other querys"
+date: "Wed, 15 Feb 1995 09:38:18"
+
+[addresses]
+from 0 display="" spec="s.rahtz@elsevier.co.uk"
+to 0 display="Eryq" spec="eryq@rhine.stx.com"
+
+[date]
+raw " Wed, 15 Feb 1995 09:38:18"
+valid yes
+utc 1995-02-15T09:38:18Z
+offset +0000
+epoch 792841098
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=287 adler32=4e6f581c role=text
+
+[body]
+text 0 chars 287
+| try reading the LaTeX Companion for more details
+| 
+| ignore the checksum error in lucida.dtx. i'll fix it
+| 
+| sebastian
+| Sebastian Rahtz                              s.rahtz@elsevier.co.uk
+| Production Methods Group                     +44 1865 843662
+| Elsevier Science Ltd
+| Kidlington
+| Oxford, UK
+| 
+html none
+
+[attachments]

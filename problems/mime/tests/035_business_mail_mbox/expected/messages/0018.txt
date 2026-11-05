@@ -1,0 +1,120 @@
+[message]
+id 0018
+source "mbox:18"
+
+[headers]
+received: "from mail.example.net (mx1.post.example.fr [197.80.144.15]) by apache.org (Postfix) with ESMTP id C9CC2C80AA for <ugarca.53@apache.org>; Thu, 1 Aug 2009 14:22:06 GMT"
+received: "from mail.example.net (mx9.example.com [139.215.185.91]) by students.example.ac.jp (Postfix) with ESMTP id 7A29EC3E27 for <anguyen@eu.example.de>; Fri, 14 Mar 2005 20:01:04 GMT"
+received: "from corp.example.co.uk (mx4.eu.example.de [248.236.134.162]) by eu.example.de (Postfix) with ESMTP id D8484F5465 for <kjohansson@students.example.ac.jp>; Mon, 26 May 2005 00:16:40 -0800 (JST)"
+return-path: "<rnakamura.35@corp.example.co.uk>"
+message-id: "<240.129d4c02.48385@corp.example.co.uk>"
+date: "Sun, 07 Mar 2025 16:20:56 +1000 (CET)"
+from: "Chloé O'Brien <cobrien@dev.example.io>"
+reply-to: "cgarca.27@corp.example.co.uk"
+to: "Дмитрий Dubois <dubois@mail.example.net>, Đorđe Østergaard <stergaard@example.com>"
+cc: "Søren Brown <sbrown@corp.example.co.uk>"
+subject: "[PATCH] Over take boy the the help bug Ångström"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_984C9A93EC7E0B79\""
+
+[addresses]
+from 0 display="Chloé O'Brien" spec="cobrien@dev.example.io"
+reply-to 0 display="" spec="cgarca.27@corp.example.co.uk"
+to 0 display="Дмитрий Dubois" spec="dubois@mail.example.net"
+to 1 display="Đorđe Østergaard" spec="stergaard@example.com"
+cc 0 display="Søren Brown" spec="sbrown@corp.example.co.uk"
+
+[date]
+raw " Sun, 07 Mar 2025 16:20:56 +1000 (CET)"
+valid yes
+utc 2025-03-07T06:20:56Z
+offset +1000
+epoch 1741328456
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_984C9A93EC7E0B79" parts=5 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="----=_Part_6996_184888650.1083329029061" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=us-ascii cte=quoted-printable size=1276 adler32=abefb414 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1746 adler32=4d9b55bf role=html
+  4 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="under.patch" size=3302 adler32=ea640d4c role=attachment
+  5 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="large_thing.docx" size=5740 adler32=1fa12ecb role=attachment
+  6 application/zip cte=base64 disposition=attachment filename="coöperate_go_any_come_build.zip" size=5457 adler32=beca78a7 role=attachment
+  7 multipart/digest cte=7bit boundary="simple boundary 917" parts=3 preamble=0 epilogue=0
+    8 message/rfc822 cte=7bit parts=1
+      9 multipart/alternative cte=7bit boundary="----=_Part_6246_651944743.171899891963" parts=2 preamble=45 epilogue=0
+        10 text/plain charset=windows-1252 cte=base64 size=1888 adler32=17dda233 role=attachment
+        11 text/html charset=utf-8 cte=quoted-printable size=2459 adler32=4a3763e3 role=attachment
+    12 message/rfc822 cte=7bit parts=1
+      13 text/plain charset=utf-8 cte=quoted-printable size=2168 adler32=9a36f7fc role=attachment
+    14 message/rfc822 cte=7bit parts=1
+      15 multipart/mixed cte=7bit boundary="Apple-Mail=_6C70CBB9A76DF096" parts=2 preamble=0 epilogue=0
+        16 text/plain charset=windows-1252 cte=7bit size=1096 adler32=b1d1854a role=attachment
+        17 text/csv charset=utf-8 cte=quoted-printable disposition=inline filename="before_too.csv" size=10183 adler32=f4a7a67f role=attachment
+
+[body]
+text 2 chars 1276
+| On Thu, 19 Sep 2004 14:18:03 MET, Ivan Johansson wrote:
+| > Sentence has sound she two every thread to come S?o of each. Have
+| > > connection he their certificate the and to know the do like round
+| > > what of as do which. Read it just give when which would after.
+| >
+| >> Same some the of at act the that pi?ata than he on! The go to low
+| > > request log very come a differ had more here a of light. There it
+| > > were a were on of your the. With review what when the like?
+| >
+| 
+| A three the at timeout before like his and and came there want work of.
+| That error to each after the even set world of are response three your!
+| Set has fianc?e after come by she.
+| 
+| World her must animal ask branch! With when in again to her has of there
+| the mean who. Show part may look be is you an want long before number
+| it. And of they day up time. It could Gr??e were other small of such a
+| land the little will I. Keepalive connection port and most every could
+| boy review some word some it from from.
+| 
+| Kind status made we was spell out to like his or the I and of. Many long
+| end all thing as fa?ade will is air in. Time a day you thread well one
+| your fa?ade connection is follow may about them. New a the I are the a
+| under filter and which where bug they. Your little as make great?
+| 
+| -- 
+| Chlo? Nakamura
+html 3 chars 1746
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Thu, 19 Sep 2004 14:18:03 MET, Ivan Johansson wrote:<br>
+| &gt; Sentence has sound she two every thread to come São of each. Have<br>
+| &gt; &gt; connection he their certificate the and to know the do like round<br>
+| &gt; &gt; what of as do which. Read it just give when which would after.<br>
+| &gt;<br>
+| &gt;&gt; Same some the of at act the that piñata than he on! The go to low<br>
+| &gt; &gt; request log very come a differ had more here a of light. There it<br>
+| &gt; &gt; were a were on of your the. With review what when the like?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">A three the at timeout before like his and and came there want work of.<br>
+| That error to each after the even set world of are response three your!<br>
+| Set has fiancée after come by she.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">World her must animal ask branch! With when in again to her has of there<br>
+| the mean who. Show part may look be is you an want long before number<br>
+| it. And of they day up time. It could Größe were other small of such a<br>
+| land the little will I. Keepalive connection port and most every could<br>
+| boy review some word some it from from.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Kind status made we was spell out to like his or the I and of. Many long<br>
+| end all thing as façade will is air in. Time a day you thread well one<br>
+| your façade connection is follow may about them. New a the I are the a<br>
+| under filter and which where bug they. Your little as make great?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Chloé Nakamura<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/x-diff filename="under.patch" size=3302 adler32=ea640d4c file=parts/0018/004.bin
+5 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="large_thing.docx" size=5740 adler32=1fa12ecb file=parts/0018/005.bin
+6 type=application/zip filename="coöperate_go_any_come_build.zip" size=5457 adler32=beca78a7 file=parts/0018/006.bin
+10 type=text/plain filename=- size=1888 adler32=17dda233 file=parts/0018/010.bin
+11 type=text/html filename=- size=2459 adler32=4a3763e3 file=parts/0018/011.bin
+13 type=text/plain filename=- size=2168 adler32=9a36f7fc file=parts/0018/013.bin
+16 type=text/plain filename=- size=1096 adler32=b1d1854a file=parts/0018/016.bin
+17 type=text/csv filename="before_too.csv" size=10183 adler32=f4a7a67f file=parts/0018/017.bin

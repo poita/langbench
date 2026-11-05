@@ -1,0 +1,6 @@
+simulate
+endpoint ep_fail whsec_c2VjcmV0 * 500
+endpoint ep_slow whsec_b3RoZXItc2VjcmV0 * timeout
+endpoint ep_ok whsec_dGhpcmQta2V5 * 200
+event ev_1 1000000 alpha 7b7d
+end

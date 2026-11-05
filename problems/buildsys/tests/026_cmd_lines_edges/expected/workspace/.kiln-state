@@ -1,0 +1,44 @@
+kiln-state 1
+step out/n0.txt
+cmd number()
+in src/blank.txt e2762dcc6a59725c
+out out/n0.txt 103301cf08a7188a
+end
+step out/n1.txt
+cmd number()
+in src/cr.txt 9be41682f5df12f8
+out out/n1.txt b735b1cfe3d7020b
+end
+step out/n2.txt
+cmd number()
+in src/empty.txt cbf29ce484222325
+out out/n2.txt cbf29ce484222325
+end
+step out/n3.txt
+cmd number()
+in src/nl.txt af63c74c8601c8dd
+out out/n3.txt d9535df0daf07b54
+end
+step out/n4.txt
+cmd number()
+in src/nonl.txt e5beb1190415e670
+out out/n4.txt 2c77199916813d07
+end
+step out/nh.txt
+cmd hash()
+in out/n0.txt 103301cf08a7188a
+in out/n1.txt b735b1cfe3d7020b
+in out/n2.txt cbf29ce484222325
+in out/n3.txt d9535df0daf07b54
+in out/n4.txt 2c77199916813d07
+out out/nh.txt 85c6b982d0d15f1d
+end
+step out/nn.txt
+cmd count_lines()
+in src/blank.txt e2762dcc6a59725c
+in src/cr.txt 9be41682f5df12f8
+in src/empty.txt cbf29ce484222325
+in src/nl.txt af63c74c8601c8dd
+in src/nonl.txt e5beb1190415e670
+out out/nn.txt b2e51de6e30ab421
+end

@@ -1,0 +1,10 @@
+# leading comment
+
+   add a.mtx b.mtx   
+
+#mul a.mtx b.mtx
+mul	a.mtx	b.mtx
+   
+  # indented comment
+norm1    a.mtx
+det a.mtx

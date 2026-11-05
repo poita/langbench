@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "items": {
+      "type": "string"
+    },
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "unevaluatedItems doesn't apply",
+      "data": [
+        "foo",
+        "bar"
+      ]
+    }
+  ]
+}

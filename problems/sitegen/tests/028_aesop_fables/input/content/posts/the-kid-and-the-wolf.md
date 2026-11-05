@@ -1,0 +1,12 @@
++++
+title = "The Kid and the Wolf"
+date = "2019-02-03"
+slug = "the-kid-and-the-wolf"
+tags = ["Wolves", "Kids"]
++++
+A **KID** standing on the roof of a house, out of harm’s way, saw a Wolf
+passing by and immediately began to taunt and revile him. The Wolf,
+looking up, said, “Sirrah! I hear thee: yet it is not thou who mockest
+me, but the roof on which thou art standing.”
+
+Time and place often give the advantage to the weak over the strong.

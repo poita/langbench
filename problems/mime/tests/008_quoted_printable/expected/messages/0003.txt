@@ -1,0 +1,26 @@
+[message]
+id 0003
+source "odd.eml"
+
+[headers]
+content-type: "text/plain; charset=us-ascii"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=19 adler32=2edf0419 role=text
+
+[body]
+text 0 chars 19
+| a=Zb
+| c=3
+| d=  
+| e\r
+| f
+html none
+
+[attachments]

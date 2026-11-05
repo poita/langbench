@@ -1,0 +1,85 @@
+QUERY 1 alpha
+HITS 5
+1	doc257	0.4583	alpha mu alpha alpha alpha beta kappa mu happiness omicron psi pi gamma theta phi eta beta xi beta sigma lambda psi xi lambda
+2	doc138	0.4514	running to pi to beta kappa nu nu mu mu to tau happiness alpha lambda relational kappa kappa tau nu epsilon iota alpha sigma xi to alpha alpha chi alpha
+3	doc001	0.4482	alpha kappa rho phi the chi omega phi gamma sigma eta sigma mu and phi happiness lambda theta alpha of kappa running nu relational running theta nu omicron alpha alpha
+4	doc054	0.4422	upsilon alpha alpha epsilon of delta epsilon and beta sigma eta and epsilon sigma iota iota alpha running omicron to pi sigma zeta lambda mu alpha zeta psi nu alpha
+5	doc153	0.4414	upsilon alpha xi lambda lambda theta phi to tau eta running the the of happiness and phi happiness omicron sigma kappa rho alpha alpha connection lambda rho alpha beta alpha
+QUERY 2 alpha beta
+HITS 5
+1	doc257	0.9000	alpha mu alpha alpha alpha beta kappa mu happiness omicron psi pi gamma theta phi eta beta xi beta sigma lambda psi xi lambda
+2	doc389	0.8243	pi happiness delta tau omega beta mu iota delta upsilon alpha relational delta phi connection mu omicron alpha of eta running iota connection lambda delta beta relational beta upsilon beta
+3	doc244	0.8196	beta psi mu iota tau the rho pi xi eta beta theta happiness alpha zeta gamma delta zeta beta and to alpha psi beta omega nu phi sigma upsilon beta
+4	doc037	0.8154	gamma alpha eta kappa zeta of relational happiness rho pi upsilon connection pi beta zeta zeta the lambda omicron alpha phi mu nu rho lambda eta beta lambda the beta
+5	doc365	0.8147	chi the chi epsilon relational gamma running alpha pi phi omicron pi xi eta relational omicron mu rho the beta iota happiness pi alpha beta beta omega phi pi alpha
+QUERY 3 alpha OR beta
+HITS 5
+1	doc257	0.9000	alpha mu alpha alpha alpha beta kappa mu happiness omicron psi pi gamma theta phi eta beta xi beta sigma lambda psi xi lambda
+2	doc389	0.8243	pi happiness delta tau omega beta mu iota delta upsilon alpha relational delta phi connection mu omicron alpha of eta running iota connection lambda delta beta relational beta upsilon beta
+3	doc244	0.8196	beta psi mu iota tau the rho pi xi eta beta theta happiness alpha zeta gamma delta zeta beta and to alpha psi beta omega nu phi sigma upsilon beta
+4	doc037	0.8154	gamma alpha eta kappa zeta of relational happiness rho pi upsilon connection pi beta zeta zeta the lambda omicron alpha phi mu nu rho lambda eta beta lambda the beta
+5	doc365	0.8147	chi the chi epsilon relational gamma running alpha pi phi omicron pi xi eta relational omicron mu rho the beta iota happiness pi alpha beta beta omega phi pi alpha
+QUERY 4 alpha NOT beta
+HITS 5
+1	doc001	0.4482	alpha kappa rho phi the chi omega phi gamma sigma eta sigma mu and phi happiness lambda theta alpha of kappa running nu relational running theta nu omicron alpha alpha
+2	doc379	0.4401	tau theta running alpha zeta to and psi omega to alpha rho relational relational zeta alpha gamma tau mu and alpha psi connection sigma relational mu to alpha iota relational
+3	doc162	0.4360	alpha epsilon alpha of pi connection epsilon delta zeta phi to the alpha theta the eta the rho kappa to chi upsilon tau sigma
+4	doc171	0.4317	lambda rho mu to rho upsilon zeta to theta and and relational alpha epsilon theta lambda psi tau and rho mu happiness rho sigma lambda alpha epsilon alpha to theta
+5	doc066	0.4204	epsilon connection omicron mu gamma xi xi zeta pi alpha zeta and upsilon to iota tau to nu chi connection iota alpha chi alpha chi eta iota nu gamma alpha
+QUERY 5 "alpha beta"
+HITS 5
+1	doc257	3.8529	alpha mu alpha alpha alpha beta kappa mu happiness omicron psi pi gamma theta phi eta beta xi beta sigma lambda psi xi lambda
+2	doc209	3.6643	sigma lambda upsilon rho to kappa and sigma pi nu sigma kappa lambda beta to delta alpha beta and happiness chi connection relational rho connection xi beta to upsilon
+3	doc027	3.2227	iota beta alpha of happiness running phi upsilon nu zeta upsilon pi phi lambda xi omicron rho relational running relational pi iota mu happiness psi phi psi omicron alpha beta
+4	doc002	3.1681	psi tau running relational iota omicron epsilon the zeta nu alpha beta epsilon psi kappa phi running rho running to xi omega sigma relational lambda nu kappa and phi lambda
+5	doc191	3.1681	gamma alpha beta delta upsilon omicron to to psi tau alpha upsilon omicron zeta epsilon pi and omega iota relational beta upsilon xi happiness delta iota tau delta alpha chi
+QUERY 6 "the alpha"
+HITS 5
+1	doc154	3.7284	gamma the beta mu pi psi pi zeta iota the alpha to gamma lambda epsilon iota chi mu tau alpha iota beta pi omicron
+2	doc162	3.7284	alpha epsilon alpha of pi connection epsilon delta zeta phi to the alpha theta the eta the rho kappa to chi upsilon tau sigma
+3	doc391	3.6147	iota xi to and sigma delta xi psi connection running relational mu omega iota mu sigma delta connection rho delta and sigma lambda the alpha and phi rho the alpha
+4	doc296	3.4448	psi phi psi chi psi upsilon pi phi iota mu phi relational kappa alpha the beta mu iota upsilon the running gamma kappa beta happiness theta rho rho the alpha
+5	doc326	3.4448	nu lambda of omega omicron rho happiness phi the alpha psi alpha relational omega nu omega upsilon relational happiness lambda to chi sigma connection upsilon zeta of lambda epsilon eta
+QUERY 7 run connect
+HITS 5
+1	doc121	0.9785	delta chi and eta connection connection running tau running tau rho eta mu to pi alpha phi omega alpha sigma running sigma tau mu mu and running alpha omega tau
+2	doc157	0.9726	connection epsilon running alpha nu lambda omicron beta xi running beta gamma chi running omega zeta happiness eta sigma connection of mu omicron pi connection nu sigma the kappa upsilon
+3	doc222	0.9655	theta eta relational running running rho psi connection sigma delta of alpha xi running alpha relational kappa connection to lambda xi mu chi xi phi happiness gamma happiness running connection
+4	doc332	0.9399	connection epsilon omega iota gamma xi omega phi pi to omicron running of relational of running psi iota omicron kappa running upsilon omicron relational connection and
+5	doc017	0.9268	connection chi lambda delta connection happiness to tau rho zeta kappa xi zeta xi theta tau relational eta gamma sigma upsilon happiness running psi pi omega happiness running phi running
+QUERY 8 happiness
+HITS 5
+1	doc176	0.4935	lambda happiness kappa chi nu pi gamma running connection happiness mu omicron and lambda beta happiness upsilon sigma epsilon of nu zeta nu theta phi relational happiness eta delta happiness
+2	doc215	0.4781	happiness running connection mu beta the iota tau beta lambda zeta omicron iota nu alpha sigma happiness theta gamma omega mu relational and happiness tau zeta happiness psi theta happiness
+3	doc236	0.4736	kappa phi the omicron omicron of gamma epsilon iota upsilon happiness sigma and pi and connection connection relational rho happiness omicron upsilon eta alpha happiness the gamma to psi happiness
+4	doc269	0.4720	to happiness theta happiness lambda omega alpha phi gamma happiness psi to to the chi theta happiness epsilon theta psi the nu lambda running relational epsilon kappa epsilon iota chi
+5	doc321	0.4703	omicron phi mu lambda mu beta tau omicron iota gamma nu happiness upsilon mu connection the the happiness alpha happiness upsilon beta iota relational relational rho mu to omicron happiness
+QUERY 9 (alpha OR beta) AND NOT gamma
+HITS 5
+1	doc389	0.8243	pi happiness delta tau omega beta mu iota delta upsilon alpha relational delta phi connection mu omicron alpha of eta running iota connection lambda delta beta relational beta upsilon beta
+2	doc381	0.7740	beta connection pi of upsilon theta upsilon epsilon eta theta pi happiness happiness to relational alpha omega beta relational mu the epsilon alpha iota running happiness psi pi psi iota
+3	doc377	0.7555	omicron omega tau alpha chi iota beta delta omicron to chi delta lambda connection upsilon omicron nu zeta and eta of rho and beta pi nu the omicron happiness beta
+4	doc110	0.7546	tau beta lambda delta to alpha of lambda upsilon rho omicron upsilon beta zeta connection theta tau upsilon running pi chi theta xi epsilon epsilon beta omicron omicron kappa connection
+5	doc079	0.7440	iota omicron zeta eta psi lambda sigma phi beta nu iota beta alpha tau of psi zeta of upsilon alpha to relational to the mu beta relational xi beta beta
+QUERY 10 omega
+HITS 20
+1	doc155	0.5003	to omega delta zeta chi theta to chi omega omega tau running omega chi running lambda omega kappa running the alpha omega eta of omicron happiness pi psi relational alpha
+2	doc211	0.4827	rho gamma xi psi the alpha upsilon and gamma happiness psi happiness xi xi the omega omega gamma happiness psi sigma connection iota omega lambda relational delta pi omega omega
+3	doc394	0.4805	the to omega the phi pi omega mu rho sigma upsilon relational epsilon psi phi lambda xi omega beta iota relational the zeta delta upsilon sigma rho lambda omega omega
+4	doc085	0.4696	upsilon xi chi omega happiness nu psi omicron mu omega mu xi lambda to of omicron kappa upsilon theta zeta relational delta omega rho upsilon tau phi alpha psi omega
+5	doc168	0.4686	of psi phi psi omega and rho eta tau happiness iota phi iota of upsilon iota phi lambda rho and omega pi and gamma rho the theta to omega omega
+6	doc335	0.4686	and nu to kappa tau omega mu gamma omicron to upsilon happiness nu omega omega omega psi xi psi beta epsilon and upsilon relational alpha nu lambda nu kappa phi
+7	doc319	0.4659	connection omega beta xi chi to upsilon of nu xi omega omega psi alpha omega of phi alpha epsilon eta nu iota rho tau eta theta upsilon xi eta omega
+8	doc336	0.4605	omega the connection xi epsilon and omega omega to nu xi gamma alpha rho nu upsilon the and eta running zeta omicron running delta beta upsilon sigma upsilon happiness omega
+9	doc144	0.4590	gamma alpha zeta xi psi omega and epsilon epsilon kappa chi tau lambda upsilon eta lambda omega eta gamma chi omega to sigma the pi kappa to xi gamma omega
+10	doc326	0.4585	nu lambda of omega omicron rho happiness phi the alpha psi alpha relational omega nu omega upsilon relational happiness lambda to chi sigma connection upsilon zeta of lambda epsilon eta
+11	doc010	0.4527	omicron happiness kappa nu upsilon eta zeta rho theta alpha beta xi happiness running of omega the theta pi sigma running gamma lambda lambda connection and omega connection omega omega
+12	doc312	0.4482	pi pi and epsilon zeta mu alpha theta rho omega pi theta rho running lambda omega sigma to gamma to phi eta alpha chi omega xi connection the phi beta
+13	doc102	0.4481	omega gamma of alpha delta theta chi rho to and chi relational relational happiness connection rho mu rho zeta nu psi chi zeta kappa omega upsilon the iota gamma omega
+14	doc172	0.4462	to eta delta happiness kappa eta mu kappa sigma the lambda omega kappa gamma mu pi upsilon omega beta and rho relational theta of eta zeta chi theta relational omega
+15	doc248	0.4462	mu zeta iota omega the tau gamma happiness chi psi sigma happiness sigma iota running running tau lambda and delta omega psi eta eta to sigma alpha alpha sigma phi
+16	doc109	0.4445	zeta relational omega phi running chi relational zeta alpha sigma gamma alpha and upsilon running to rho of nu and sigma omega running to lambda delta theta running rho omega
+17	doc189	0.4422	gamma eta of alpha gamma omega upsilon omicron theta epsilon tau omega pi nu kappa beta phi omicron happiness gamma upsilon to xi beta the epsilon zeta mu phi omega
+18	doc351	0.4422	running eta chi omega beta gamma omega gamma omega pi relational connection nu rho of delta zeta running epsilon connection chi lambda alpha rho running chi zeta epsilon the omega
+19	doc279	0.4421	relational upsilon running upsilon xi and zeta iota alpha omega kappa rho phi relational and alpha phi eta running tau sigma the pi rho beta epsilon omega theta theta omega
+20	doc009	0.4407	omega lambda sigma iota kappa connection gamma theta omega rho tau zeta phi epsilon rho sigma of mu chi upsilon omicron iota beta relational and chi kappa zeta upsilon omega

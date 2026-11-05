@@ -1,0 +1,176 @@
+build
+edit main.kiln
+step {
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+}
+---
+build
+edit main.kiln
+step {
+    out []
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write("x")
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cost 1
+    cost undefined_name
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    depfile "out/z.d"
+    depfile "out/y.d"
+    cmd preprocess()
+}
+---
+build
+edit main.kiln
+step {
+    out 1
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out ["out/z.txt", 1]
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in 1
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    after true
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cost "x"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cost 0 - 1
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    depfile 1
+    cmd preprocess()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd nosuch()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd nosuch(undefined_name)
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd grep()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write("a", "b")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd copy(1)
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd grep(1)
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd indent("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd replace("a", 1)
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd replace("", "x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd indent(0 - 1)
+}
+---
+build

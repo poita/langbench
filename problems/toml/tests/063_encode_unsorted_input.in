@@ -1,0 +1,9 @@
+encode
+{
+  "zebra" : { "inner" : { "type": "integer", "value": "2" } },
+  "alpha" : {
+    "value" : "1",
+    "type" : "integer"
+  },
+  "mid" : [ { "b" : { "type" : "bool", "value" : "true" } } ]
+}

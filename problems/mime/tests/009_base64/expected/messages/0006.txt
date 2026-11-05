@@ -1,0 +1,22 @@
+[message]
+id 0006
+source "wrapped.eml"
+
+[headers]
+content-type: "application/octet-stream"
+content-transfer-encoding: "base64"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 application/octet-stream cte=base64 size=66 adler32=bb630862 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/octet-stream filename=- size=66 adler32=bb630862 file=parts/0006/000.bin

@@ -1,0 +1,7 @@
+normfro impcol_b.mtx
+norm1 impcol_b.mtx
+det impcol_b.mtx
+inv impcol_b.mtx
+qr impcol_b.mtx
+cond impcol_b.mtx
+solve impcol_b.mtx rhs.mtx

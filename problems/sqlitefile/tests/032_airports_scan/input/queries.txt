@@ -1,0 +1,24 @@
+.tables
+.schema airport
+.schema runway
+COUNT airport
+COUNT runway
+SELECT * FROM airport LIMIT 5
+SELECT ident,name,elevation_ft FROM airport WHERE elevation_ft > 14000 ORDER BY elevation_ft DESC
+SELECT ident,name FROM airport WHERE type = 'large_airport' AND iso_country = 'JP' ORDER BY ident
+SELECT id,ident,municipality FROM airport WHERE municipality IS NULL LIMIT 20
+SELECT ident,latitude_deg,longitude_deg FROM airport ORDER BY latitude_deg LIMIT 15
+SELECT ident,latitude_deg FROM airport ORDER BY latitude_deg DESC LIMIT 15
+SELECT id,length_ft,surface FROM runway WHERE length_ft > 16000 ORDER BY length_ft DESC
+SELECT id,airport_ident,le_ident,he_ident FROM runway WHERE closed = 1 AND length_ft > 9000
+SELECT ident,name,iata_code FROM airport WHERE iata_code = 'LHR'
+SELECT ident,type,name FROM airport WHERE iso_country = 'IS' ORDER BY ident
+INDEX airport_ident 'KJFK'
+INDEX airport_ident 'EGLL'
+INDEX airport_ident 'ZZZZ'
+INDEX airport_country 'VA'
+INDEX airport_country 'AQ'
+INDEX airport_type 'balloonport'
+INDEX runway_ref 6523
+INDEX runway_ref 3622
+SELECT count FROM airport LIMIT 1

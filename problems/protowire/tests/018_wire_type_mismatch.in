@@ -1,0 +1,16 @@
+message W { int32 a = 1; string s = 2; fixed32 f = 3; repeated int32 r = 4; repeated string rs = 5; W w = 6; repeated fixed64 rf = 7; }
+--
+decode W 0a0105
+decode W 0a0105080a
+decode W 1005
+decode W 1801
+decode W 1d00000000
+decode W 2501000000
+decode W 2801
+decode W 3005
+decode W 3d00000000
+decode W 0d0102030408011a0161
+decode W 0b0c0801
+decode W 3901000000000000003a0801000000000000003d01000000
+decode W 0a
+decode W 0d0102

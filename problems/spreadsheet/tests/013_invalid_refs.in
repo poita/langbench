@@ -1,0 +1,16 @@
+set A1 =A0
+set A2 =AAA1
+set A3 =A10000
+set A4 =A01
+set A5 =SUM(A0:B2)
+set A6 =IF(1,5,A0)
+set A7 =ZZ9999
+set A8 =A9999
+set A9 =A1
+set A10 =A10+A0
+set A11 =A10
+set A12 =1+ZZ0
+set A13 =SUM(A9999:ZZ9999)
+set A14 =ZZZ1&"x"
+set A15 =IF(A0,1,2)
+dump

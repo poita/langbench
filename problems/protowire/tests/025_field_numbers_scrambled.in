@@ -1,0 +1,17 @@
+message Z {
+  string j = 10;
+  int32 a = 1;
+  repeated int32 r = 536870911;
+  bool b = 200;
+  Z z = 3;
+  bytes y = 18999;
+  fixed32 f = 20000;
+  int64 g = 2;
+}
+--
+encode Z {j: "j", a: 1, r: [1], b: true, z: {}, y: x"aa", f: 1, g: 2}
+encode Z {r: [2], j: "k", a: 0}
+decode Z 0801100252016ac00c01baa30901aa85e209010000001a00faffffff0f0101
+decode Z faffffff0f01021a021a00
+decode Z f8ffffff0f01
+decode Z ffffffff0f

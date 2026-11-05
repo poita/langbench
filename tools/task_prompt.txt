@@ -1,0 +1,12 @@
+Build a standalone {lang_name} project that implements the specification in {root}/problems/{slug}/SPEC.md{design}. {root}/CONVENTIONS.md describes the command-line contract and the build.sh and run.sh scripts the project needs.
+
+Put the project in {root}/{proj}/. Structure it the way a well-maintained open-source {lang_name} project of this kind would be:
+- a reusable library with a clear, documented public API, split into modules by responsibility;
+- a thin command-line tool on top of the library that implements the I/O contract in SPEC.md;
+- the language's standard build tool and project manifest;
+- a README.md: what it is, how to build it, how to use the CLI, and an example of using the library;
+- unit tests for the library, in files separate from the library source.
+
+Use {toolchain}; {build}{machine_notes} Use only the standard library. Don't use anything that implements the core of the problem for you; SPEC.md says what that rules out.{notes}{efficiency}
+
+It's done when `cd {root} && {proj}/build.sh && python3 run_tests.py {slug} -- {proj}/run.sh` passes every test (-v and --filter help with debugging) and the unit tests pass. Scratch files can go in {root}/scratch/. If you think the spec or a test is wrong, say so.

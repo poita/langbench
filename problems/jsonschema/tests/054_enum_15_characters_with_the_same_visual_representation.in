@@ -1,0 +1,19 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "enum": [
+      "ä"
+    ],
+    "$comment": "U+00E4"
+  },
+  "tests": [
+    {
+      "description": "character uses the same codepoint",
+      "data": "ä"
+    },
+    {
+      "description": "character looks the same but uses combining marks",
+      "data": "ä"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+name "jq"
+description "A jq-subset query language: JSON parser, serializer and filter interpreter"
+authors "jq-d contributors"
+copyright "Copyright © 2026"
+license "MIT"
+
+// The default configuration builds the command-line tool (bin/jq).
+configuration "cli" {
+    targetType "executable"
+    targetName "jq"
+    targetPath "bin"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
+}
+
+// Use this configuration (subConfiguration "jq" "library") to depend on the library only.
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+// `dub test` picks this configuration up; the tests live apart from the library.
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

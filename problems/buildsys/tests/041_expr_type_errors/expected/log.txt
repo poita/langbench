@@ -1,0 +1,70 @@
+step 1: build (default) -j 1
+  error E_TYPE operator +: expected int, got str
+step 2: edit main.kiln
+  ok size=16
+step 3: build (default) -j 1
+  error E_TYPE operator +: expected int, got str
+step 4: edit main.kiln
+  ok size=17
+step 5: build (default) -j 1
+  error E_TYPE operator -: expected int, got bool
+step 6: edit main.kiln
+  ok size=17
+step 7: build (default) -j 1
+  error E_TYPE operator *: expected int, got bool
+step 8: edit main.kiln
+  ok size=16
+step 9: build (default) -j 1
+  error E_TYPE operator /: expected int, got list
+step 10: edit main.kiln
+  ok size=16
+step 11: build (default) -j 1
+  error E_TYPE operator %: expected int, got str
+step 12: edit main.kiln
+  ok size=16
+step 13: build (default) -j 1
+  error E_TYPE operator ~: expected str, got int
+step 14: edit main.kiln
+  ok size=16
+step 15: build (default) -j 1
+  error E_TYPE operator ~: expected str, got int
+step 16: edit main.kiln
+  ok size=19
+step 17: build (default) -j 1
+  error E_TYPE operator ++: expected list, got str
+step 18: edit main.kiln
+  ok size=18
+step 19: build (default) -j 1
+  error E_TYPE operator &&: expected bool, got int
+step 20: edit main.kiln
+  ok size=18
+step 21: build (default) -j 1
+  error E_TYPE operator &&: expected bool, got int
+step 22: edit main.kiln
+  ok size=18
+step 23: build (default) -j 1
+  error E_TYPE operator ||: expected bool, got int
+step 24: edit main.kiln
+  ok size=21
+step 25: build (default) -j 1
+  error E_TYPE operator ||: expected bool, got list
+step 26: edit main.kiln
+  ok size=11
+step 27: build (default) -j 1
+  error E_TYPE operator !: expected bool, got int
+step 28: edit main.kiln
+  ok size=13
+step 29: build (default) -j 1
+  error E_TYPE operator -: expected int, got str
+step 30: edit main.kiln
+  ok size=17
+step 31: build (default) -j 1
+  error E_TYPE index: expected int, got str
+step 32: edit main.kiln
+  ok size=13
+step 33: build (default) -j 1
+  error E_TYPE index target: expected str|list, got int
+step 34: edit main.kiln
+  ok size=16
+step 35: build (default) -j 1
+  error E_TYPE index target: expected str|list, got bool

@@ -1,0 +1,26 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "propertyNames": {
+      "maxLength": 5
+    },
+    "additionalProperties": {
+      "type": "number"
+    }
+  },
+  "tests": [
+    {
+      "description": "Valid against both keywords",
+      "data": {
+        "apple": 4
+      }
+    },
+    {
+      "description": "Valid against propertyNames, but not additionalProperties",
+      "data": {
+        "fig": 2,
+        "pear": "available"
+      }
+    }
+  ]
+}

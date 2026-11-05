@@ -1,0 +1,27 @@
+let a = 7
+let b = -3
+step {
+    out "out/l0.txt"
+    cmd write("{a + b} {a - b} {a * b} {a / b} {a % b} {b / a} {b % a} {-a} {-(a + b)}\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{1 + 2 * 3 - 4 / 2} {(1 + 2) * 3} {10 % 4 * 2} {2 * 3 % 4} {7 / 2} {-7 / 2} {7 / -2} {-7 % 2}\n")
+}
+default "out/l1.txt"
+step {
+    out "out/l2.txt"
+    cmd write("{"ab" ~ "cd" ~ ""} {count([1] ++ [2, 3] ++ [])} {!false} {!!true}\n")
+}
+default "out/l2.txt"
+step {
+    out "out/l3.txt"
+    cmd write("{"abcdef"[2]}{"abcdef"[-1]}{[10, 20, 30][-2]}{[10, 20, 30][0]}\n")
+}
+default "out/l3.txt"
+step {
+    out "out/l4.txt"
+    cmd write("{false && undefined_name} {true || undefined_name} {false || true} {true && false}\n")
+}
+default "out/l4.txt"

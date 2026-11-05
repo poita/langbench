@@ -1,0 +1,15 @@
++++
+title = "The Kites and the Swans"
+date = "2019-04-01"
+slug = "the-kites-and-the-swans"
+tags = ["Swans"]
++++
+**TEE KITES** of olden times, as well as the Swans, had the privilege of
+song. But having heard the neigh of the horse, they were so enchanted
+with the sound, that they tried to imitate it; and, in trying to neigh,
+they forgot how to sing.
+
+The desire for imaginary benefits often involves the loss of present
+blessings.
+
+Read the whole collection at [Project Gutenberg](https://www.gutenberg.org/ebooks/21).

@@ -1,0 +1,29 @@
+name "jq"
+description "A jq-subset interpreter: reusable library plus a stdin/stdout command-line tool"
+authors "Peter Alexander"
+license "MIT"
+copyright "Copyright (c) Peter Alexander"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "jq"
+    targetPath "bin"
+    mainSourceFile "source/app.d"
+    sourcePaths "source"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "jq"
+    targetPath "bin"
+    sourcePaths "source"
+    excludedSourceFiles "source/app.d"
+}
+
+configuration "unittest" {
+    targetType "library"
+    targetName "jq-test"
+    sourcePaths "source" "tests"
+    importPaths "source"
+    excludedSourceFiles "source/app.d"
+}

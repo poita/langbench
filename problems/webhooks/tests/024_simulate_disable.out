@@ -1,0 +1,15 @@
+sim 6 8
+attempt 1 ev_1 ep_gone 1 1000 failure 500
+attempt 2 ev_1 ep_live 1 1000 success 200
+attempt 3 ev_2 ep_gone 1 1002 gone 410
+attempt 4 ev_2 ep_live 1 1002 success 200
+attempt 5 ev_3 ep_live 1 2000 success 200
+attempt 6 ev_4 ep_live 1 3000000 success 200
+delivery ev_1 ep_gone disabled 1 1000 v1,WaCwYa7/UFpU7zme9e5hujO4Lcft/ECpbj9Y3S8ldZ8=
+delivery ev_1 ep_live delivered 1 1000 v1,L2Rtq87LXbCd02GmdGGRoTyl8vk01XRO9z6TMtZI60w=
+delivery ev_2 ep_gone failed 1 1002 v1,NytQOd9bZB+3YjJTm/wANd+xx4kTpIo5lW24B6j/x5M=
+delivery ev_2 ep_live delivered 1 1002 v1,/2FnVPqRSvdovLsdqhgiI55qr/UG2u1pLUmHChPMnro=
+delivery ev_3 ep_gone disabled 0 - v1,pmYLNNoh+Y/kRUqJEmDS0knwILVAqpH4dt3bVHZj09U=
+delivery ev_3 ep_live delivered 1 2000 v1,qKRNFqphLAot5TtbMSB90NNSiHbGb37gfAGFnjablgE=
+delivery ev_4 ep_gone disabled 0 - v1,IV1d8rEmfgtzBjx5gVVWFXu3+BYWYUEWoCrq26qV1rM=
+delivery ev_4 ep_live delivered 1 3000000 v1,4Cu3SzUjXsucIKKu8bP1JA+/BPWNMbWCjVRPlwDK90g=

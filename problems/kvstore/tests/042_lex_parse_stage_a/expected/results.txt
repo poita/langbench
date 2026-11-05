@@ -1,0 +1,23 @@
+[1] ok put created
+[2] error depth
+[3] error depth
+[4] error depth
+[5] error dup-field
+[6] ok put created
+[7] ok get value
+  [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+[8] error bad-path
+[9] error syntax
+[10] error bad-path
+[11] error bad-path
+[12] error syntax
+[13] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 4272

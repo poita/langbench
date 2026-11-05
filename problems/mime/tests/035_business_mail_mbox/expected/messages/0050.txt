@@ -1,0 +1,82 @@
+[message]
+id 0050
+source "mbox:50"
+
+[headers]
+received: "from lists.example.edu (mx2.corp.example.co.uk [201.53.162.226]) by apache.org (Postfix) with ESMTP id DFAF6296D2 for <g.15@lists.example.edu>; Tue, 2 Aug 2004 07:30:45 -0800"
+received: "from mail.example.net (mx1.example.com [231.93.177.197]) by students.example.ac.jp (Postfix) with ESMTP id A0BAA4624F for <npetrov@post.example.fr>; Mon, 21 Dec 2009 12:04:41 +0200"
+received: "from dev.example.io (mx2.post.example.fr [186.26.214.131]) by students.example.ac.jp (Postfix) with ESMTP id BDA5B37B6C for <pwilson@apache.org>; Tue, 1 Jan 2012 19:54:15 GMT"
+received: "from example.org (mx7.example.org [206.238.249.3]) by example.com (Postfix) with ESMTP id C982868992 for <alefvre@post.example.fr>; Fri, 8 Mar 2012 08:23:49 -0000"
+return-path: "<obrien@students.example.ac.jp>"
+message-id: "<501.0661cc6a.14210@dev.example.io>"
+in-reply-to: "<510.8abb9c82.98538@post.example.fr>"
+references: "<502.ffcdcddd.60489@post.example.fr> <503.6f8e6416.21803@example.org> <504.d29a422d.90252@eu.example.de> <505.cf9afe66.78312@post.example.fr> <506.5ae12046.46831@post.example.fr> <507.29bf218d.1844@lists.example.edu> <508.51b145f2.5912@dev.example.io> <509.dcdc8811.29988@post.example.fr> <510.8abb9c82.98538@post.example.fr>"
+date: "Sun, 5 Jun 2018 12:10:46 PDT"
+from: "\"Petrov, Ann\" <apetrov@example.com>"
+to: "johansson@post.example.fr (Someone),\tΕλένη Johansson <johansson@students.example.ac.jp>"
+cc: "Sven García <sgarca.45@dev.example.io>"
+subject: "[PATCH] Call tell are"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 536\""
+
+[addresses]
+from 0 display="Petrov, Ann" spec="apetrov@example.com"
+to 0 display="" spec="johansson@post.example.fr"
+to 1 display="Ελένη Johansson" spec="johansson@students.example.ac.jp"
+cc 0 display="Sven García" spec="sgarca.45@dev.example.io"
+
+[date]
+raw " Sun, 5 Jun 2018 12:10:46 PDT"
+valid yes
+utc 2018-06-05T19:10:46Z
+offset -0700
+epoch 1528225846
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 536" parts=3 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="----=_Part_2774_184838431.561127473234" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=us-ascii cte=quoted-printable size=732 adler32=d8a0fc9e role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1083 adler32=915a75fa role=html
+  4 application/zip cte=base64 disposition=attachment filename="add.zip" size=4107 adler32=9b36d33b role=attachment
+  5 text/csv charset=utf-8 cte=quoted-printable disposition=inline filename="thing_some_little.csv" size=10472 adler32=ebb7f47b role=attachment
+
+[body]
+text 2 chars 732
+| Write S?o word get is house well are a! Land way right to ?rsted you
+| hand made and get work help well! Of to with off the the would look who
+| said or sm?rg?sbord year cause! Your people the side the get. Sound know
+| as our rewrite? By the know for said here in word the or place any from
+| look the and was!
+| 
+| You look thread the that. That me when like the hot go had water hand
+| their any. Her side to word that the error who set then.
+| 
+| Place line good so way are. The as of mean the be well pool went were!
+| On all one you the! Of why but if take but call to in most cause that
+| you his day the time. Must you the man by and who word a the give show
+| on high the. Review you segfault why his here take have was been.
+| 
+| -- 
+| Xavier Schr?der
+html 3 chars 1078
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Write São word get is house well are a! Land way right to Ørsted you<br>
+| hand made and get work help well! Of to with off the the would look who<br>
+| said or smörgåsbord year cause! Your people the side the get. Sound know<br>
+| as our rewrite? By the know for said here in word the or place any from<br>
+| look the and was!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">You look thread the that. That me when like the hot go had water hand<br>
+| their any. Her side to word that the error who set then.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Place line good so way are. The as of mean the be well pool went were!<br>
+| On all one you the! Of why but if take but call to in most cause that<br>
+| you his day the time. Must you the man by and who word a the give show<br>
+| on high the. Review you segfault why his here take have was been.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Xavier Schröder<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/zip filename="add.zip" size=4107 adler32=9b36d33b file=parts/0050/004.bin
+5 type=text/csv filename="thing_some_little.csv" size=10472 adler32=ebb7f47b file=parts/0050/005.bin

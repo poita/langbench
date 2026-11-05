@@ -1,0 +1,29 @@
+{
+    "name": "sqlitefile",
+    "description": "A from-scratch reader for SQLite 3 database files with a tiny query engine",
+    "authors": ["sqlitefile contributors"],
+    "license": "MIT",
+    "copyright": "Copyright (c) sqlitefile contributors",
+    "configurations": [
+        {
+            "name": "application",
+            "targetType": "executable",
+            "targetName": "sqlitefile",
+            "mainSourceFile": "cli/main.d",
+            "sourcePaths": ["source"],
+            "importPaths": ["source"]
+        },
+        {
+            "name": "library",
+            "targetType": "library",
+            "sourcePaths": ["source"],
+            "importPaths": ["source"]
+        },
+        {
+            "name": "unittest",
+            "targetType": "library",
+            "sourcePaths": ["source", "tests"],
+            "importPaths": ["source", "tests"]
+        }
+    ]
+}

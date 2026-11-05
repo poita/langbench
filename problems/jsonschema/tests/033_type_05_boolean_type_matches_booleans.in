@@ -1,0 +1,48 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "boolean"
+  },
+  "tests": [
+    {
+      "description": "an integer is not a boolean",
+      "data": 1
+    },
+    {
+      "description": "zero is not a boolean",
+      "data": 0
+    },
+    {
+      "description": "a float is not a boolean",
+      "data": 1.1
+    },
+    {
+      "description": "a string is not a boolean",
+      "data": "foo"
+    },
+    {
+      "description": "an empty string is not a boolean",
+      "data": ""
+    },
+    {
+      "description": "an object is not a boolean",
+      "data": {}
+    },
+    {
+      "description": "an array is not a boolean",
+      "data": []
+    },
+    {
+      "description": "true is a boolean",
+      "data": true
+    },
+    {
+      "description": "false is a boolean",
+      "data": false
+    },
+    {
+      "description": "null is not a boolean",
+      "data": null
+    }
+  ]
+}

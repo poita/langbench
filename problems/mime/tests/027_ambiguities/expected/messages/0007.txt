@@ -1,0 +1,22 @@
+[message]
+id 0007
+source "quoted-backslash.eml"
+
+[headers]
+content-type: "application/octet-stream"
+content-disposition: "attachment; filename=\"a\\\\\"; creation-date=\"x\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 application/octet-stream cte=7bit disposition=attachment filename="a\\" size=5 adler32=05a501a5 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/octet-stream filename="a\\" size=5 adler32=05a501a5 file=parts/0007/000.bin

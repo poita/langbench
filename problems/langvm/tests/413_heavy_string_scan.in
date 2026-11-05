@@ -1,0 +1,22 @@
+@module main
+fn main() {
+    let unit = "the quick brown fox jumps over the lazy dog; ";
+    let text = strRepeat(unit, 6000);
+    let n = strLen(text);
+    var vowels = 0;
+    var spaces = 0;
+    var hash = 0;
+    for i in 0 .. n {
+        let c = charAt(text, i);
+        if strContains("aeiou", showChar(c)) { vowels = vowels + 1; }
+        if c == ' ' { spaces = spaces + 1; }
+        hash = (hash * 131 + ord(c)) % 1000000007;
+    }
+    print(fmt("{} chars, {} vowels, {} spaces, hash {}", [showInt(n), showInt(vowels), showInt(spaces), showInt(hash)]));
+    let parts = strSplit(text, "; ");
+    print(showInt(listLen(parts)) ++ " parts");
+    var rev = 0;
+    for c in strReverse(substr(text, 0, 90000)) { if c == 'o' { rev = rev + 1; } }
+    print(showInt(rev) ++ " o's in the reversed prefix");
+    print(showInt(strIndexOf(text, "dog; the quick brown fox jumps over the lazy cat")));
+}

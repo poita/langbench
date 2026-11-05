@@ -1,0 +1,9 @@
+c 7 of the 8 clauses over 3 variables: exactly one model (1 2 -3)
+p cnf 3 7
+1 2 3 0
+1 2 -3 0
+1 -2 3 0
+1 -2 -3 0
+-1 2 3 0
+-1 2 -3 0
+-1 -2 -3 0

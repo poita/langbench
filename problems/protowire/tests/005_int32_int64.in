@@ -1,0 +1,23 @@
+message I { int32 a = 1; int64 b = 2; repeated int32 ra = 3; repeated int64 rb = 4; }
+--
+encode I {a: 1}
+encode I {a: -1}
+encode I {a: 127, b: 128}
+encode I {a: 2147483647, b: 9223372036854775807}
+encode I {a: -2147483648, b: -9223372036854775808}
+encode I {b: -1}
+encode I {ra: [0, -1, 300, -2147483648], rb: [-9223372036854775808, 1]}
+decode I 08ffffffffffffffffff01
+decode I 08ffffffff07
+decode I 088080808008
+decode I 08ffffffff0f
+decode I 088080808010
+decode I 0880808080808080808001
+decode I 10ffffffffffffffff7f
+decode I 10ffffffffffffffffff01
+decode I 1080808080808080808001
+decode I 1a0a00ffffffffffffffffff01
+encode I {a: 2147483648}
+encode I {a: -2147483649}
+encode I {b: 9223372036854775808}
+encode I {b: -9223372036854775809}

@@ -1,0 +1,74 @@
+[message]
+id 0046
+source "mbox:46"
+
+[headers]
+received: "from mail.example.net (mx2.lists.example.edu [56.52.139.195]) by dev.example.io (Postfix) with ESMTP id F167384484 for <lpetrov.95@apache.org>; Tue, 22 Sep 2003 21:07:12 +0900"
+received: "from lists.example.edu (mx3.corp.example.co.uk [214.92.64.85]) by mail.example.net (Postfix) with ESMTP id D8CDC229E0 for <itaylor.18@corp.example.co.uk>; Sat, 25 Oct 2003 01:39:36 +0530"
+received: "from dev.example.io (mx3.dev.example.io [4.94.201.72]) by mail.example.net (Postfix) with ESMTP id 41BF312E62 for <wmller@mail.example.net>; tue,8 may 2018 13:47:11 (comment (nested)) GMT"
+return-path: "<ybrown@mail.example.net>"
+message-id: "<473.75e876f3.78611@example.org>"
+in-reply-to: "<475.281386aa.68613@apache.org>"
+references: "<474.c0169dec.93260@corp.example.co.uk> <475.281386aa.68613@apache.org>"
+date: "Wed, 27 Jun 2012 03:51:54 CST (PST)"
+from: "Erik Иванов <e@apache.org>"
+to: "Дмитрий Johansson <johansson@dev.example.io>"
+cc: "fwilson.52@eu.example.de (Fiona Wilson)"
+subject: "RE: Go kind when was the been a have the work"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_991c469ad1ccfcffaec2c10701bef18b\""
+
+[addresses]
+from 0 display="Erik Иванов" spec="e@apache.org"
+to 0 display="Дмитрий Johansson" spec="johansson@dev.example.io"
+cc 0 display="" spec="fwilson.52@eu.example.de"
+
+[date]
+raw " Wed, 27 Jun 2012 03:51:54 CST (PST)"
+valid yes
+utc 2012-06-27T09:51:54Z
+offset -0600
+epoch 1340790714
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_991c469ad1ccfcffaec2c10701bef18b" parts=2 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="=_20cd112b33e405d814c6e78b0e67dc50" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="=_82027eb9ac5c5ad43e199be0e2f7b9d7" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=7bit size=327 adler32=cd8d61ef role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=616 adler32=962cc286 role=html
+    5 image/png cte=base64 disposition=attachment filename="word.png" size=1787 adler32=01da7229 role=attachment
+  6 image/png cte=base64 disposition=attachment filename="on.png" size=5904 adler32=80e57cd7 role=attachment
+
+[body]
+text 3 chars 327
+| Hot the round it a use of great these live must then. Of give this you
+| help. We with warning get a same you write and big the they now httpd
+| pool it why down!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Sven Johansson
+html 4 chars 616
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Hot the round it a use of great these live must then. Of give this you<br>
+| help. We with warning get a same you write and big the they now httpd<br>
+| pool it why down!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Sven Johansson<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="word.png" size=1787 adler32=01da7229 file=parts/0046/005.bin
+6 type=image/png filename="on.png" size=5904 adler32=80e57cd7 file=parts/0046/006.bin

@@ -1,0 +1,24 @@
+[1] ok put created
+[2] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 1
+  root 3
+  height 1
+  commits 1
+  indexes 0
+  wal 3200
+[3] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+[4] ok delete removed
+[5] ok stat
+  pages 3
+  free 2
+  freehead 3
+  docs 0
+  root 0
+  height 0
+  commits 2
+  indexes 0
+  wal 6368

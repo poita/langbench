@@ -1,0 +1,33 @@
+[message]
+id 0013
+source "example10.eml"
+
+[headers]
+from: "Pete(A wonderful \\) chap) <pete(his account)@silly.test(his host)>"
+to: "A Group(Some people)     :Chris Jones <c@(Chris's host.)public.example>,         joe@example.org,  John <jdoe@one.test> (my dear friend); (the end of the group)"
+cc: "(Empty list)(start)Undisclosed recipients  :(nobody(that I know))  ;"
+date: "Thu, 13 Feb 1969 23:32 -0330 (Newfoundland Time)"
+message-id: "<testabcd.1234@silly.test>"
+
+[addresses]
+from 0 display="Pete" spec="pete@silly.test"
+to 0 display="Chris Jones" spec="c@public.example"
+to 1 display="" spec="joe@example.org"
+to 2 display="John" spec="jdoe@one.test"
+
+[date]
+raw " Thu,      13        Feb          1969      23:32               -0330 (Newfoundland Time)"
+valid yes
+utc 1969-02-14T03:02:00Z
+offset -0330
+epoch -27723480
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=9 adler32=11620317 role=text
+
+[body]
+text 0 chars 9
+| Testing.
+html none
+
+[attachments]

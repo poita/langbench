@@ -1,0 +1,6 @@
+step {
+    out "out/a.txt"
+    in "out/a.txt"
+    cmd copy()
+}
+default "out/a.txt"

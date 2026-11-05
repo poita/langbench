@@ -1,0 +1,38 @@
+message V { uint64 u = 1; int32 i = 2; sint32 s = 3; bool b = 4; int32 big = 536870911; string t = 5; }
+--
+decode V 0881808080808080808000
+decode V 088000
+decode V 0880808080808080808000
+decode V 0880808080808080808002
+decode V 08ffffffffffffffffff7f
+decode V 08ffffffffffffffffff02
+decode V 088080808080808080808001
+decode V 08ffffffffffffffffff80
+decode V 108180808010
+decode V 18ffffffffffffffffff01
+decode V 1880808080808080808001
+decode V 2080808080808080808002
+decode V 208080808080808080800a
+decode V 8800000005
+decode V 8880808000
+decode V 888080808000
+decode V f8ffffff0f07
+decode V f8ffffff1f07
+decode V f8ffffffff0107
+decode V ffffffff0f
+decode V 00
+decode V 0005
+decode V 0e
+decode V 0f
+decode V 07
+decode V 06
+decode V 2a810061
+decode V 2a818080800062
+decode V 2a81808080800063
+decode V 2aff01
+decode V 2affffffff0f
+decode V 2affffffffffffffffff01
+decode V 2a80808080808080808000
+decode V 2a00
+encode V {big: 1}
+encode V {big: 1, u: 1}

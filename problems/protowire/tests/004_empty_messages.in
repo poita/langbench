@@ -1,0 +1,14 @@
+message E {}
+message W { E e = 1; repeated E es = 2; int32 n = 3; }
+--
+decode E
+encode E {}
+decode W
+encode W {}
+encode W {e: {}}
+decode W 0a00
+encode W {es: [{}, {}, {}]}
+decode W 120012001200
+encode W {es: []}
+encode W {n: 0, e: {}, es: []}
+decode W 0a001800

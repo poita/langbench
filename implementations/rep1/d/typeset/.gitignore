@@ -1,0 +1,10 @@
+.dub/
+bin/
+*.o
+*.a
+*.lib
+dub.selections.json
+typeset-test-*
+cli/.dub/
+libtypeset.a
+typeset-test-*

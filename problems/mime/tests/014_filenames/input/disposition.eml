@@ -1,0 +1,21 @@
+Content-Type: multipart/mixed; boundary="B"
+
+--B
+Content-Type: text/plain
+
+body
+--B
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename="report.pdf"
+
+data
+--B
+Content-Type: application/octet-stream; name="fallback.bin"
+
+more
+--B
+Content-Type: application/octet-stream; name="ct.bin"
+Content-Disposition: attachment; filename="cd.bin"
+
+both
+--B--

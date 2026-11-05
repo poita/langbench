@@ -1,0 +1,84 @@
+match 0 1
+no
+match 0 1
+no
+match 0 1
+match 1 2
+no
+no
+match 0 1
+no
+no
+no
+match 0 0
+no
+match 0 0
+match 0 0
+match 0 0
+match 3 3
+no
+no
+no
+no
+no
+no
+match 0 1
+no
+match 0 1
+no
+match 0 1|0,1
+match 0 1|0,1
+match 0 1|0,1
+match 1 2|1,2
+match 0 1|0,1
+match 0 1|0,1
+no
+match 0 1|0,1
+match 0 1
+match 0 1
+no
+match 0 1
+match 1 2
+match 0 1
+match 0 1
+no
+match 0 4|3,4
+no
+match 0 0|-
+match 2 3|-
+match 0 2|0,1
+match 0 1|-
+match 0 1|-
+match 0 1|0,1
+match 0 0|-
+match 0 0|-
+match 0 0|0,0
+match 0 0|0,0
+match 0 0|0,0
+match 1 1|1,1
+match 0 3
+match 0 0
+match 0 2
+match 0 4
+no
+no
+match 0 2|1,2
+match 1 2|1,2
+match 0 1|0,1
+match 1 3|2,3
+match 0 1|0,1
+no
+match 0 1|0,1|0,0
+match 0 0|-|-
+match 0 0
+no
+match 0 0
+match 0 1
+match 1 2
+no
+no
+match 0 1
+match 1 2
+no
+match 0 1
+match 0 1

@@ -1,0 +1,54 @@
+[message]
+id 0017
+source "multi-igor2.eml"
+
+[headers]
+date: "Thu, 6 Jun 1996 15:50:39 +0400 (MOW DST)"
+from: "Starovoitov Igor <igor@fripp.aic.synapse.ru>"
+to: "eryq@rhine.gsfc.nasa.gov"
+subject: "Need help"
+mime-version: "1.0"
+content-type: "MULTIPART/MIXED; BOUNDARY=\"-490585488-806670346-834061839=:2195\""
+
+[addresses]
+from 0 display="Starovoitov Igor" spec="igor@fripp.aic.synapse.ru"
+to 0 display="" spec="eryq@rhine.gsfc.nasa.gov"
+
+[date]
+raw " Thu, 6 Jun 1996 15:50:39 +0400 (MOW DST)"
+valid yes
+utc 1996-06-06T11:50:39Z
+offset +0400
+epoch 834061839
+
+[structure]
+0 multipart/mixed cte=7bit boundary="-490585488-806670346-834061839=:2195" parts=4 preamble=215 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=293 adler32=546b641f role=text
+  2 text/plain charset=us-ascii cte=base64 filename="Makefile" size=2442 adler32=72589516 role=attachment
+  3 text/plain charset=us-ascii cte=base64 filename="multi-nested.msg" size=3272 adler32=c89b4282 role=attachment
+  4 text/plain charset=us-ascii cte=base64 filename="Parser.n.out" size=906 adler32=d28c04b8 role=attachment
+
+[body]
+text 1 chars 293
+| Dear Sir,
+| 
+| I have a problem with Your MIME-Parser-1.9
+| and multipart-nested messages. 
+| Not all parts are parsed.
+| 
+| Here my Makefile, Your own multipart-nested.msg
+| and its out after \"make test\".
+| Some my messages not completely parsed too. 
+| 
+| Is this a bug?
+| 
+| Thank You for help.
+| 
+| 
+| Igor Starovoytov.
+html none
+
+[attachments]
+2 type=text/plain filename="Makefile" size=2442 adler32=72589516 file=parts/0017/002.bin
+3 type=text/plain filename="multi-nested.msg" size=3272 adler32=c89b4282 file=parts/0017/003.bin
+4 type=text/plain filename="Parser.n.out" size=906 adler32=d28c04b8 file=parts/0017/004.bin

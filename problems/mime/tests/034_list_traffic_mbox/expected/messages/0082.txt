@@ -1,0 +1,88 @@
+[message]
+id 0082
+source "mbox:82"
+
+[headers]
+received: "from eu.example.de (mx5.lists.example.edu [127.234.175.239]) by corp.example.co.uk (Postfix) with ESMTP id CD5705563 for <l.20@eu.example.de>; Sun, 1 Jul 2025 23:09:09 -0000"
+received: "from example.org (mx1.lists.example.edu [240.28.57.90]) by lists.example.edu (Postfix) with ESMTP id 1C6836E7C5 for <ubrown@students.example.ac.jp>; Thu, 27 Aug 2005 12:35:58 -0800"
+received: "from example.com (mx4.eu.example.de [81.8.49.254]) by corp.example.co.uk (Postfix) with ESMTP id 723031BFE4 for <fmller@apache.org>; Tue, 24 Apr 2025 10:33:25 -0800"
+received: "from apache.org (mx3.eu.example.de [188.154.219.135]) by mail.example.net (Postfix) with ESMTP id DD7C6BE490 for <rsmith.86@eu.example.de>; wed,15 oct 2025 4:57:27 (comment (nested)) +1000"
+received: "from example.com (mx5.lists.example.edu [181.48.243.250]) by dev.example.io (Postfix) with ESMTP id A177FEE257 for <gpapadopoulos@example.org>; sat,2 aug 2018 5:29:30 (comment (nested)) Z"
+return-path: "<rsmith.1@dev.example.io>"
+message-id: "<512.ccab9764.27822@eu.example.de>"
+in-reply-to: "<522.124f5521.54996@students.example.ac.jp>"
+references: "<513.e5a4f0d1.76932@apache.org> <514.5798784f.19875@example.com> <515.14df2294.65213@lists.example.edu> <516.f857edb4.77326@apache.org> <517.237441cd.97991@lists.example.edu> <518.da7dcc28.65240@mail.example.net> <519.6a204794.81663@example.com> <520.75566cb5.13292@lists.example.edu> <521.ad24016a.89308@example.org> <522.124f5521.54996@students.example.ac.jp>"
+date: "Sat, 15 Nov 2009 10:58:35 CST"
+from: "Ann Nakamura <anakamura.29@lists.example.edu>"
+to: "Tomás Doe <tdoe@corp.example.co.uk>, Olga 山田 <o.67@students.example.ac.jp>"
+cc: "Дмитрий Müller <mller.65@example.org>,    \"Johansson, Yuki\" <yjohansson.39@dev.example.io>"
+subject: "Re: [PATCH] Façade to other"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_5482C8727449C0\""
+
+[addresses]
+from 0 display="Ann Nakamura" spec="anakamura.29@lists.example.edu"
+to 0 display="Tomás Doe" spec="tdoe@corp.example.co.uk"
+to 1 display="Olga 山田" spec="o.67@students.example.ac.jp"
+cc 0 display="Дмитрий Müller" spec="mller.65@example.org"
+cc 1 display="Johansson, Yuki" spec="yjohansson.39@dev.example.io"
+
+[date]
+raw " Sat, 15 Nov 2009 10:58:35 CST"
+valid yes
+utc 2009-11-15T16:58:35Z
+offset -0600
+epoch 1258304315
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_5482C8727449C0" parts=3 preamble=45 epilogue=0
+  1 text/plain charset=utf-8 cte=8bit size=1603 adler32=7db539f6 role=text
+  2 text/x-diff charset=utf-8 cte=base64 disposition=inline filename="Málaga_backport.patch" size=4927 adler32=c260205c role=attachment
+  3 text/x-diff charset=utf-8 cte=7bit disposition=inline filename="ask_two.patch" size=5607 adler32=29f4fc04 role=attachment
+
+[body]
+text 1 chars 1588
+| At from crème of she through other call crash how now move? It like
+| sentence put do directive my?
+| 
+| Will sound my kind think down an a each him right? Just people crash a
+| follow our of his give the and! We many branch back you. Be of add there
+| follow trunk is did are there we you word father in.
+| 
+| Status they the time these know can on world. Will the it number long
+| right but was or time. Will she much now use the that make the be you
+| out had. Act house if could low the of year be the some under low the
+| make. Proxy what do if year to as? An are the end the he status request
+| use!
+| 
+| Málaga an the so made man in a you she us was at she play Ångström he
+| they? One and part for many my and ask one give certificate first build
+| no. Need find commit it brûlée that of work said this two write. Little
+| his name was can of his it rewrite when if and she may? It directive and
+| with an when the you small brûlée make have the have land may the.
+| 
+| Water their the the what go here would were is! Said thing café was she
+| the is the write big mean year been log some the my client. Year well
+| some of boy this people bucket naïve.
+| 
+| For high a you for want change or keepalive line at. Old up same small
+| by could look it came will the show with round! Thing under year the
+| time I all warning is mutex some? Boy they every is a that word. The
+| work name Ångström went people by header the? The here of you at get by
+| each.
+| 
+| With module my use great was the one jalapeño use show many our need is
+| the! Release must more round to the of right even proxy has out need the
+| the two want.
+| 
+| -- 
+| Rémi Fernández
+html none
+
+[attachments]
+2 type=text/x-diff filename="Málaga_backport.patch" size=4927 adler32=c260205c file=parts/0082/002.bin
+3 type=text/x-diff filename="ask_two.patch" size=5607 adler32=29f4fc04 file=parts/0082/003.bin

@@ -1,0 +1,21 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 9bffa7106409f643
+out out/all.txt 73c3a2afe5afed4a
+end
+step out/m0/bundle.txt
+cmd hash()
+in out/m0/f0.txt abb610ab08fd6f8d
+out out/m0/bundle.txt 9bffa7106409f643
+end
+step out/m0/f0.txt
+cmd reverse_lines()
+in src/m0/f0.txt 239e6fbabfa918d1
+out out/m0/f0.txt abb610ab08fd6f8d
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 9bffa7106409f643
+out out/m0/wrapped.txt 23b59b133c9cce36
+end

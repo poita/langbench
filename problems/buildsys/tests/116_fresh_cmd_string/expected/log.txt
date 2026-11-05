@@ -1,0 +1,33 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/z.txt upper()
+  ok ran=1 hit=0 time=2
+step 2: edit main.kiln
+  ok size=83
+step 3: build (default) -j 1
+  run 0 1 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=1
+step 4: edit main.kiln
+  ok size=83
+step 5: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0
+step 6: edit main.kiln
+  ok size=86
+step 7: build (default) -j 1
+  run 0 3 w0 out/z.txt grep("A")
+  ok ran=1 hit=0 time=3
+step 8: edit main.kiln
+  ok size=86
+step 9: build (default) -j 1
+  run 0 3 w0 out/z.txt grep("B")
+  ok ran=1 hit=0 time=3
+step 10: edit main.kiln
+  ok size=114
+step 11: build (default) -j 1
+  hit 0 out/z.txt
+  ok ran=0 hit=1 time=0
+step 12: edit main.kiln
+  ok size=94
+step 13: build (default) -j 1
+  run 0 7 w0 out/z.txt copy()
+  ok ran=1 hit=0 time=7

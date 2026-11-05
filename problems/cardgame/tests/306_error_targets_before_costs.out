@@ -1,0 +1,20 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+ERR 12 illegal-target
+ERR 13 illegal-target
+ERR 14 bad-target-count
+ERR 15 bad-target-count
+ERR 16 cannot-afford
+8 PASS A
+ERR 18 illegal-target
+ERR 19 bad-target-count
+ERR 20 cost-unpayable
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+9 RESULT pending none

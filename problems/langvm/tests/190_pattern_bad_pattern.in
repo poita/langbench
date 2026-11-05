@@ -1,0 +1,2 @@
+@module main
+fn main() { match 1.5 { 1.5 -> print("a"), _ -> print("b") } }

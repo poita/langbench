@@ -1,0 +1,61 @@
+[message]
+id 0172
+source "mbox:172"
+
+[headers]
+received: "from post.example.fr (mx6.lists.example.edu [177.97.253.53]) by students.example.ac.jp (Postfix) with ESMTP id 9DA0F73651 for <ostergaard@apache.org>; yesterday"
+received: "from students.example.ac.jp (mx3.eu.example.de [229.82.31.78]) by example.org (Postfix) with ESMTP id D77758435D for <smith@post.example.fr>; Sat, 05 Oct 2003 07:23:26 -0400 (CET)"
+received: "from eu.example.de (mx1.students.example.ac.jp [250.189.83.101]) by lists.example.edu (Postfix) with ESMTP id 71BBC1E39E for <dubois.86@apache.org>; 8 FEB 25 00:57 +1000"
+return-path: "<wilson@post.example.fr>"
+message-id: "<1248.72d4330a.16257@lists.example.edu>"
+in-reply-to: "<1252.5931a8df.50322@apache.org>"
+references: "<1249.0c60fe30.60678@example.org> <1250.c33aeefc.63913@corp.example.co.uk> <1251.cc1cc0c2.65863@dev.example.io> <1252.5931a8df.50322@apache.org>"
+date: "yesterday"
+from: "mller@example.com"
+to: "Greg Kowalski <gkowalski@mail.example.net>"
+subject: "Have day turn will"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 822\""
+
+[addresses]
+from 0 display="" spec="mller@example.com"
+to 0 display="Greg Kowalski" spec="gkowalski@mail.example.net"
+
+[date]
+raw " yesterday"
+valid no
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 822" parts=4 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="simple boundary 8" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=base64 size=257 adler32=dd0b5f4f role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=485 adler32=0a68abc2 role=html
+  4 image/jpeg cte=base64 disposition=attachment filename="for_land_the_client.jpg" size=7062 adler32=14bf738c role=attachment
+  5 image/jpeg cte=base64 disposition=attachment filename="were_back.jpg" size=3177 adler32=33cbffcb role=attachment
+  6 application/zip cte=base64 disposition=attachment filename="then_of_first.zip" size=7752 adler32=fd572a3f role=attachment
+
+[body]
+text 2 chars 247
+| Hot log long the to handler each and ask cause low tell thing this he of
+| year. If brûlée picture as was façade élan? Hand it of the be the what
+| cache men end make man way had of us? Word work now little what his
+| header also kind.
+| 
+| -- 
+| Nils Иванов
+html 3 chars 475
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Hot log long the to handler each and ask cause low tell thing this he of<br>
+| year. If brûlée picture as was façade élan? Hand it of the be the what<br>
+| cache men end make man way had of us? Word work now little what his<br>
+| header also kind.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Nils Иванов<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="for_land_the_client.jpg" size=7062 adler32=14bf738c file=parts/0172/004.bin
+5 type=image/jpeg filename="were_back.jpg" size=3177 adler32=33cbffcb file=parts/0172/005.bin
+6 type=application/zip filename="then_of_first.zip" size=7752 adler32=fd572a3f file=parts/0172/006.bin

@@ -1,0 +1,38 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "type": "string"
+      }
+    },
+    "dependentSchemas": {
+      "foo": {
+        "properties": {
+          "bar": {
+            "const": "bar"
+          }
+        },
+        "required": [
+          "bar"
+        ]
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "with no unevaluated properties",
+      "data": {
+        "foo": "foo",
+        "bar": "bar"
+      }
+    },
+    {
+      "description": "with unevaluated properties",
+      "data": {
+        "bar": "bar"
+      }
+    }
+  ]
+}

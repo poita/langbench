@@ -1,0 +1,13 @@
+set A1 5
+set A2 = 1 + 2
+set A3 =SUM( A1 , A2 )
+set A4 =IF( A1 > 1 , "y" , "n" )
+set A5 =( 1 + 2 ) * 3
+set A6 = - A1
+set A7 =A1&" "&A2
+set A8 = "a" & "b"
+set A9 =SUM(A1:A2 , 1 )
+set A10 =  1  <>  2
+set A11 = MAX ( 1 , 2 )
+set A12 =1 <= 2
+dump

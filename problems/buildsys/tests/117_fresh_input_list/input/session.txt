@@ -1,0 +1,66 @@
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "src/b.txt"]
+    cmd concat()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "src/b.txt"]
+    cmd concat()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/b.txt", "src/a.txt"]
+    cmd concat()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "src/b.txt", "src/b.txt"]
+    cmd concat()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "src/b.txt"]
+    cmd concat()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "@p", "src/b.txt"]
+    cmd concat()
+}
+phony p = []
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "src/b.txt"]
+    after "src/c.txt"
+    cmd concat()
+}
+default "out/z.txt"
+---
+build

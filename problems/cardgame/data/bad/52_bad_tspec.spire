@@ -1,0 +1,2 @@
+(card AAA-001 (name "One") (type rite) (cost 1)
+  (resolve (targets (planet)) (draw 1 you)))

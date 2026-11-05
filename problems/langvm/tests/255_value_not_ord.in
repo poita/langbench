@@ -1,0 +1,2 @@
+@module main
+fn main() { print(showBool((1, 2) < (3, 4))); }

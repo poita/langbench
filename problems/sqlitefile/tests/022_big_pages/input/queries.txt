@@ -1,0 +1,8 @@
+.tables
+.schema doc
+COUNT doc
+SELECT * FROM doc LIMIT 8
+SELECT id,words FROM doc WHERE words > 49900 ORDER BY words
+SELECT id,ratio FROM doc ORDER BY ratio LIMIT 6
+INDEX doc_words 25000
+SELECT id,title FROM doc WHERE id >= 5995

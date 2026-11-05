@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://test.json-schema.org/unmatched-dynamic-anchor/root",
+    "$ref": "list",
+    "$defs": {
+      "foo": {
+        "$dynamicAnchor": "items",
+        "type": "string"
+      },
+      "list": {
+        "$id": "list",
+        "type": "array",
+        "items": {
+          "$dynamicRef": "#items"
+        },
+        "$defs": {
+          "items": {
+            "$comment": "This is only needed to give the reference somewhere to resolve to when it behaves like $ref",
+            "$anchor": "items",
+            "$dynamicAnchor": "foo"
+          }
+        }
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "Any array is valid",
+      "data": [
+        "foo",
+        42
+      ]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+[message]
+id 0115
+source "mbox:115"
+
+[headers]
+received: "from students.example.ac.jp (mx9.corp.example.co.uk [228.62.94.93]) by corp.example.co.uk (Postfix) with ESMTP id BA8D67F081 for <knguyen@dev.example.io>; thu,25 jul 2004 8:40:42 (comment (nested)) +0000"
+return-path: "<bkowalski@corp.example.co.uk>"
+message-id: "<888.8ebb825c.78249@lists.example.edu>"
+date: "Mon, 4 Sep 2009 05:00:51 -0400"
+from: "\"Kowalski, Agnieszka\" <akowalski.76@mail.example.net>"
+to: "qkowalski@eu.example.de"
+cc: "Łukasz Brown <brown@mail.example.net>,\tIvan Lefèvre <ilefvre@example.org>"
+subject: "Re: See the that again the think"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=ISO-8859-1"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Kowalski, Agnieszka" spec="akowalski.76@mail.example.net"
+to 0 display="" spec="qkowalski@eu.example.de"
+cc 0 display="Łukasz Brown" spec="brown@mail.example.net"
+cc 1 display="Ivan Lefèvre" spec="ilefvre@example.org"
+
+[date]
+raw " Mon, 4 Sep 2009 05:00:51 -0400"
+valid yes
+utc 2009-09-04T09:00:51Z
+offset -0400
+epoch 1252054851
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=quoted-printable size=985 adler32=64dc5766 role=text
+
+[body]
+text 0 chars 985
+| Live mother like tell had than it an he of he take have differ try thing
+| you. Put be a did the.
+| 
+| Use have no follow the see two with he. To the an how line know the the
+| there read that!
+| 
+| Of at by could have even of and look word with call I. Can we as out end
+| that go animal one there and about of of. You word does also the their
+| your for?
+| 
+| New there the the they we to Zürich an spell other? Well is live of the
+| the! The he a he has response to of other him made can header! Warning
+| side release the review the were help the of picture. And end thing you
+| be?
+| 
+| Thread there this well an? Other Zürich of turn in people they his
+| bucket kind certificate is well look sentence a also was? Each most and
+| old know had it this for them the rewrite the that use ssl? The this the
+| for end old handler way by use the Zürich with bucket word from with!
+| Self way home small so as of vote look and ask at come move the! One
+| from good hot the smörgåsbord build change is vote a with.
+| 
+| -- 
+| Vera ??
+html none
+
+[attachments]

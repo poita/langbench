@@ -1,0 +1,35 @@
+create index i00
+create index i01
+create index i02
+create index i03
+create index i04
+create index i05
+create index i06
+create index i07
+create index i08
+create index i09
+create index i10
+create index i11
+create index i12
+create index i13
+create index i14
+create index i15
+create index i16
+indexes
+stat
+put "k00" {i00:0,i01:1,i02:2,i03:3,i04:4,i05:5,i06:6,i07:7,i08:8,i09:9,i10:10,i11:11,i12:12,i13:13,i14:14,i15:15}
+put "k01" {i00:1,i01:2,i02:3,i03:4,i04:5,i05:6,i06:7,i07:8,i08:9,i09:10,i10:11,i11:12,i12:13,i13:14,i14:15,i15:16}
+put "k02" {i00:2,i01:3,i02:4,i03:5,i04:6,i05:7,i06:8,i07:9,i08:10,i09:11,i10:12,i11:13,i12:14,i13:15,i14:16,i15:17}
+put "k03" {i00:3,i01:4,i02:5,i03:6,i04:7,i05:8,i06:9,i07:10,i08:11,i09:12,i10:13,i11:14,i12:15,i13:16,i14:17,i15:18}
+put "k04" {i00:4,i01:5,i02:6,i03:7,i04:8,i05:9,i06:10,i07:11,i08:12,i09:13,i10:14,i11:15,i12:16,i13:17,i14:18,i15:19}
+put "k05" {i00:5,i01:6,i02:7,i03:8,i04:9,i05:10,i06:11,i07:12,i08:13,i09:14,i10:15,i11:16,i12:17,i13:18,i14:19,i15:20}
+indexes
+stat
+drop index i00
+drop index i05
+drop index i15
+indexes
+create index zz
+create index yy
+indexes
+stat

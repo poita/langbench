@@ -1,0 +1,10 @@
+{
+  "x": "ctx"
+}
+--
+=== main
+{% macro m(x) %}<{{ x }}>{% endmacro %}{% extends "base" %}{% set v = m(1) ~ m(2) %}{% macro n() %}N{% include "inc" %}{% endmacro %}{% set w = n()|lower %}{% block body %}{{ v }}{{ w }}{{ m(x) }}{% endblock %}
+=== base
+[{% block body %}{% endblock %}]
+=== inc
+I{{ x }}

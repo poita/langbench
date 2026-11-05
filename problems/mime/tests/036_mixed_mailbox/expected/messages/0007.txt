@@ -1,0 +1,96 @@
+[message]
+id 0007
+source "mbox:7"
+
+[headers]
+received: "from post.example.fr (mx1.students.example.ac.jp [180.36.242.197]) by apache.org (Postfix) with ESMTP id 571A006463 for <qobrien@mail.example.net>; 27 SEP 25 12:17 -0500"
+received: "from example.org (mx7.example.org [126.228.56.220]) by eu.example.de (Postfix) with ESMTP id 69AD3E19FB for <sschrder@lists.example.edu>; sat,1 jul 2003 13:13:6 (comment (nested)) +0530"
+return-path: "<bpapadopoulos@post.example.fr>"
+message-id: "<63.6de479b6.40882@example.org>"
+in-reply-to: "<66.73e0fd1e.16470@mail.example.net>"
+references: "<64.f6bdea47.55647@dev.example.io> <65.d13597c6.21939@lists.example.edu> <66.73e0fd1e.16470@mail.example.net>"
+date: "Thu, 13 Sep 2018 01:59:54 -0800"
+from: "rgarca@lists.example.edu (Someone)"
+to: "Björn 山田 <b@corp.example.co.uk>"
+subject: "[VOTE] Back you way the every naïve"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_6924745A31DF1FD8\""
+
+[addresses]
+from 0 display="" spec="rgarca@lists.example.edu"
+to 0 display="Björn 山田" spec="b@corp.example.co.uk"
+
+[date]
+raw " Thu, 13 Sep 2018 01:59:54 -0800"
+valid yes
+utc 2018-09-13T09:59:54Z
+offset -0800
+epoch 1536832794
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_6924745A31DF1FD8" parts=4 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="=_62b5a97161c0de23c330f9fde3500508" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=quoted-printable size=1162 adler32=6235941b role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1566 adler32=37581810 role=html
+  4 image/jpeg cte=base64 disposition=attachment filename="other_was.jpg" size=545 adler32=53090bf7 role=attachment
+  5 image/jpeg cte=base64 disposition=attachment filename="façade_where_can_name_of.jpg" size=3026 adler32=f2b6ce21 role=attachment
+  6 image/jpeg cte=base64 disposition=attachment filename="he.jpg" size=7886 adler32=f6cf2c64 role=attachment
+
+[body]
+text 2 chars 1151
+| On 14 NOV 05 09:41 GMT, Łukasz Nguyen wrote:
+| > A you use their high your the I and an well or like round if their
+| >> if form. Line old most that of my also with this go to cache of.
+| >> Water boy write his the the give were that side are some in at or
+| >> with. The great the about made from what the the. After many be will
+| >> his tell time even commit right the through low just! And apr his of
+| > > day just same if out Zürich year and it is us move. Great on will
+| >> that come we and certificate Ångström a if number was at could by
+| > time he.
+| >
+| > Could ask every any is word of crème work config. Make hot they word
+| >> you say does they change us Málaga these. Résumé request to a up me
+| > > be in vote has? Think one status handler the change mutex he the
+| > > her. Port must turn certificate of name every do from of you it a!
+| > Great where that if the my there crème do long try may. But over
+| >> round each by brigade good high could father me Ørsted read.
+| >
+| 
+| Good in from know to no move is. Will on where but spell find we our
+| only to the number. Spell to most the some like house must then the made
+| when give after that of.
+| 
+| -- 
+| Søren Johansson
+html 3 chars 1566
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 14 NOV 05 09:41 GMT, ?ukasz Nguyen wrote:<br>
+| &gt; A you use their high your the I and an well or like round if their<br>
+| &gt;&gt; if form. Line old most that of my also with this go to cache of.<br>
+| &gt;&gt; Water boy write his the the give were that side are some in at or<br>
+| &gt;&gt; with. The great the about made from what the the. After many be will<br>
+| &gt;&gt; his tell time even commit right the through low just! And apr his of<br>
+| &gt; &gt; day just same if out Zürich year and it is us move. Great on will<br>
+| &gt;&gt; that come we and certificate Ångström a if number was at could by<br>
+| &gt; time he.<br>
+| &gt;<br>
+| &gt; Could ask every any is word of crème work config. Make hot they word<br>
+| &gt;&gt; you say does they change us Málaga these. Résumé request to a up me<br>
+| &gt; &gt; be in vote has? Think one status handler the change mutex he the<br>
+| &gt; &gt; her. Port must turn certificate of name every do from of you it a!<br>
+| &gt; Great where that if the my there crème do long try may. But over<br>
+| &gt;&gt; round each by brigade good high could father me Ørsted read.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Good in from know to no move is. Will on where but spell find we our<br>
+| only to the number. Spell to most the some like house must then the made<br>
+| when give after that of.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Søren Johansson<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="other_was.jpg" size=545 adler32=53090bf7 file=parts/0007/004.bin
+5 type=image/jpeg filename="façade_where_can_name_of.jpg" size=3026 adler32=f2b6ce21 file=parts/0007/005.bin
+6 type=image/jpeg filename="he.jpg" size=7886 adler32=f6cf2c64 file=parts/0007/006.bin

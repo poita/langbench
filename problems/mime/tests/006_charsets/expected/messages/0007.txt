@@ -1,0 +1,21 @@
+[message]
+id 0007
+source "upper.eml"
+
+[headers]
+content-type: "TEXT/PLAIN; CHARSET=UTF-8"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=7 adler32=1368044f role=text
+
+[body]
+text 0 chars 4
+| éèê
+html none
+
+[attachments]

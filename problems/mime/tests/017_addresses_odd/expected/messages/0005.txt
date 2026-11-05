@@ -1,0 +1,28 @@
+[message]
+id 0005
+source "malformed.eml"
+
+[headers]
+from: "broken <a@@b>"
+to: "no.at.sign, trailing@dot.com., <>"
+cc: "\"unterminated <x@example.com>"
+
+[addresses]
+from 0 display="" spec="broken<a@@b>"
+to 0 display="" spec="no.at.sign"
+to 1 display="" spec="trailing@dot.com."
+to 2 display="" spec="<>"
+cc 0 display="" spec="unterminated <x@example.com>"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

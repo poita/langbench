@@ -1,0 +1,174 @@
+@module main
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn sm(m: #[Str: Int]) -> Str {
+    "{" ++ strJoin(listMap(pairsOf(m), |p| quoteStr(fst(p)) ++ ":" ++ showInt(snd(p))), ",") ++ "}"
+}
+fn main() {
+    var xs: [Int] = listNew();
+    var ys: [Int] = listNew();
+    var m: #[Str: Int] = mapNew();
+    var s = "start";
+    var cs: [Char] = listNew();
+    emit(showInt(strIndexOf(s, "")) ++ "," ++ showInt(strLastIndexOf(s, "hello")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(0), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = reverseList(xs);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(1), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showInt(strIndexOf(s, "hello")) ++ "," ++ showInt(strLastIndexOf(s, "hello")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(2), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = strJoin(strSplit(s, "/"), "/");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(3), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listFilter(xs, |v| v % 4 != 0);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(4), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showBool(mapDel(m, "é")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(5), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showBool(listContains(xs, 5)) ++ showInt(listIndexOf(xs, -9)) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(6), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showBool(mapDel(m, "é")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(7), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    push(xs, 94);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(8), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showBool(mapDel(m, "x")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(9), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = sortBy(xs, |p, q| cmpI(-p, -q));
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(10), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for c in chars("ab") { push(cs, c); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(11), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = s ++ "abc";
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(12), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listMap(xs, |v| v * 8 % 101);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(13), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showBool(mapDel(m, "hello")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(14), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(xs) > 0 { emit("rm " ++ showInt(removeAt(xs, modFloor(50, listLen(xs)))) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(15), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    push(xs, 70);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(16), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(xs) > 0 { emit("rm " ++ showInt(removeAt(xs, modFloor(13, listLen(xs)))) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(17), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = if strLen(s) > 40 { strReverse(substr(s, 0, 20)) } else { s };
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(18), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(xs) > 0 { emit("rm " ++ showInt(removeAt(xs, modFloor(9, listLen(xs)))) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(19), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = strReplace(s, "c", "abc");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(20), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = if strLen(s) > 40 { strReverse(substr(s, 0, 20)) } else { s };
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(21), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showBool(listContains(xs, -8)) ++ showInt(listIndexOf(xs, -3)) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(22), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    push(xs, -12);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(23), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["é"] = mapGetOr(m, "q q", 0) + 2;
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(24), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for k in keysOf(m) { if m[k] % 2 == 0 { m[k] = m[k] + 1; } }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(25), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["cd"] = mapGetOr(m, "q q", 0) + 4;
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(26), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = substr(s, minI(3, strLen(s)), strLen(s));
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(27), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listFilter(xs, |v| v % 2 != 0);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(28), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listMap(xs, |v| v * 5 % 101);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(29), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for k in keysOf(m) { if m[k] % 2 == 0 { m[k] = m[k] + 1; } }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(30), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["ab,cd"] = mapGetOr(m, "ab,cd", 0) + 3;
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(31), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    push(xs, -31);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(32), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    insert(xs, modFloor(23, listLen(xs) + 1), 2);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(33), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = s ++ "";
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(34), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = xs ++ slice(xs, 0, listLen(xs) / 2);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(35), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showInt(strIndexOf(s, "ab")) ++ "," ++ showInt(strLastIndexOf(s, "ab")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(36), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    emit(showBool(mapDel(m, "é")) ++ " ");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(37), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = strReplace(s, "ab", "x");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(38), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for k in keysOf(m) { if m[k] % 2 == 0 { m[k] = m[k] + 1; } }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(39), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    insert(xs, modFloor(44, listLen(xs) + 1), 7);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(40), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = xs ++ slice(xs, 0, listLen(xs) / 2);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(41), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(xs) > 0 { emit("pop " ++ showInt(pop(xs)) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(42), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    ys = listCopy(xs); push(ys, 1000);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(43), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listMap(xs, |v| v * 3 % 101);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(44), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(xs) > 0 { emit("rm " ++ showInt(removeAt(xs, modFloor(1, listLen(xs)))) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(45), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listFilter(xs, |v| v % 4 != 0);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(46), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(cs) > 0 { cs = sortBy(cs, |p, q| cmpC(q, p)); emit(strOfChars(cs) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(47), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m[""] = listLen(xs);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(48), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for k in keysOf(m) { if m[k] % 2 == 0 { m[k] = m[k] + 1; } }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(49), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = substr(s, minI(0, strLen(s)), strLen(s));
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(50), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = sortBy(xs, |p, q| cmpI(p, q));
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(51), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = strJoin(strSplit(s, ","), "/");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(52), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    ys = listCopy(xs); push(ys, 1000);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(53), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    push(xs, 63);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(54), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for k in keysOf(m) { if m[k] % 2 == 0 { m[k] = m[k] + 1; } }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(55), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    insert(xs, modFloor(31, listLen(xs) + 1), -3);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(56), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = sortBy(xs, |p, q| cmpI(p, q));
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(57), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    push(xs, -66);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(58), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = strJoin(strSplit(s, "a"), "/");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(59), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listMap(xs, |v| v * 6 % 101);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(60), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m[""] = mapGetOr(m, "abc", 0) + 4;
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(61), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = xs ++ slice(xs, 0, listLen(xs) / 2);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(62), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = reverseList(xs);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(63), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for k in keysOf(m) { if m[k] % 2 == 0 { m[k] = m[k] + 1; } }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(64), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(xs) > 0 { emit("pop " ++ showInt(pop(xs)) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(65), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    xs = listFilter(xs, |v| v % 2 != 0);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(66), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    for k in keysOf(m) { if m[k] % 2 == 0 { m[k] = m[k] + 1; } }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(67), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(xs) > 0 { emit("pop " ++ showInt(pop(xs)) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(68), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = substr(s, minI(0, strLen(s)), strLen(s));
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(69), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["é"] = mapGetOr(m, "q q", 0) + 1;
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(70), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["q q"] = mapGetOr(m, "abc", 0) + 3;
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(71), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["z9"] = listLen(xs);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(72), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["abc"] = mapGetOr(m, "abc", 0) + 1;
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(73), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    push(xs, 13);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(74), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = strJoin(strSplit(s, " "), "/");
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(75), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = if strLen(s) > 40 { strReverse(substr(s, 0, 20)) } else { s };
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(76), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    if listLen(cs) > 0 { cs = sortBy(cs, |p, q| cmpC(q, p)); emit(strOfChars(cs) ++ " "); }
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(77), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    m["ab,cd"] = listLen(xs);
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(78), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    s = if strLen(s) > 40 { strReverse(substr(s, 0, 20)) } else { s };
+    print(fmt("{} xs={} ys={} m={} s={}", [showInt(79), sl(xs), showInt(listLen(ys)), sm(m), quoteStr(s)]));
+    print(showInt(listFold(xs, 0, |a, v| a * 7 + v)) ++ " " ++ showInt(mapLen(m)) ++ " " ++ showInt(strLen(s)));
+    print(substr(s, 0, strLen(s) + 1));
+}

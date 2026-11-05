@@ -1,0 +1,7 @@
+.dub/
+/datalog
+*.o
+*.a
+dub.selections.json
+__test__*
+/datalog-test-unittest

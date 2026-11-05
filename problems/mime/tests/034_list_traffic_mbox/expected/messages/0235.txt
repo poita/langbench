@@ -1,0 +1,62 @@
+[message]
+id 0235
+source "mbox:235"
+
+[headers]
+received: "from eu.example.de (mx5.eu.example.de [56.42.127.249]) by example.com (Postfix) with ESMTP id 486B83D0B0 for <cdoe.14@dev.example.io>; Sun, 16 May 2012 17:05:53 -0700 (GMT)"
+received: "from example.org (mx2.lists.example.edu [125.24.246.120]) by example.com (Postfix) with ESMTP id F58B3E18B5 for <b@post.example.fr>; Sun, 26 Jan 2012 21:45:31 PDT"
+received: "from example.org (mx8.eu.example.de [138.57.142.110]) by corp.example.co.uk (Postfix) with ESMTP id 9E2C75C0A6 for <doe.13@dev.example.io>; yesterday"
+return-path: "<user5677.86@eu.example.de>"
+message-id: "<1494.94d7223a.85213@students.example.ac.jp>"
+in-reply-to: "<1506.a72ff52b.4260@dev.example.io>"
+references: "<1495.b277d30b.61273@post.example.fr> <1496.dd616a58.88698@lists.example.edu> <1497.8e6e0780.73409@corp.example.co.uk> <1498.86d7d2c6.77885@corp.example.co.uk> <1499.b50b70dc.54876@students.example.ac.jp> <1500.f12e4698.32765@mail.example.net> <1501.c198b8b3.31661@dev.example.io> <1502.495a3085.49832@lists.example.edu> <1503.9a556fe8.58241@eu.example.de> <1504.5f94672e.9741@example.org> <1505.fc6dfe69.60344@mail.example.net> <1506.a72ff52b.4260@dev.example.io>"
+date: "Fri, 11 Apr 2005 20:35:36 CST (PST)"
+from: "William Wilson <wwilson@dev.example.io>"
+to: "Greg Johansson <gjohansson@students.example.ac.jp>, mnakamura.6@example.org"
+cc: "nfernndez.52@students.example.ac.jp (Someone)"
+subject: "RE: Said in mean were a round think all fiancée"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=us-ascii"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="William Wilson" spec="wwilson@dev.example.io"
+to 0 display="Greg Johansson" spec="gjohansson@students.example.ac.jp"
+to 1 display="" spec="mnakamura.6@example.org"
+cc 0 display="" spec="nfernndez.52@students.example.ac.jp"
+
+[date]
+raw " Fri, 11 Apr 2005 20:35:36 CST (PST)"
+valid yes
+utc 2005-04-12T02:35:36Z
+offset -0600
+epoch 1113273336
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=675 adler32=5a6de444 role=text
+
+[body]
+text 0 chars 675
+| On sat,17 nov 2012 22:22:54 (comment (nested)) -0330, Fran?ois Smith wrote:
+| > I what word had place vote will will were time but mean round do
+| >> other hand? Which release an will vhost build each many the they
+| > > move now. Home but that an status. With that too she people see and.
+| >
+| 
+| The end did na?ve it after what of three see his but some Z?rich move
+| timeout every. A had he mother only and for. Read a every there client
+| bucket when the or. About review say spell and in mother a work some too
+| the any and that read.
+| 
+| You of what in and when well the the good of only. Low he me cause each
+| M?laga for under patch about at with as play all.
+| 
+| -- 
+| Agnieszka van der Berg
+html none
+
+[attachments]

@@ -1,0 +1,6 @@
+{
+  "d": {}
+}
+--
+=== main
+{{ d.a.b is defined }}

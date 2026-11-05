@@ -1,0 +1,22 @@
+[message]
+id 0005
+source "no-charset.eml"
+
+[headers]
+content-type: "application/octet-stream"
+content-disposition: "attachment; filename*=plain%20name.txt"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 application/octet-stream cte=7bit disposition=attachment filename="plain name.txt" size=5 adler32=05a501a5 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/octet-stream filename="plain name.txt" size=5 adler32=05a501a5 file=parts/0005/000.bin

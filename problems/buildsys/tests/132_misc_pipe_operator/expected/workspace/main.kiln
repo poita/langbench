@@ -1,0 +1,25 @@
+step {
+    out "out/l0.txt"
+    cmd write("{[3, 1, 2] |> sort |> first}|{[3, 1, 2] |> sort |> join(",")}\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{"abc" |> upper}|{"abc" |> upper |> lower |> len}\n")
+}
+default "out/l1.txt"
+step {
+    out "out/l2.txt"
+    cmd write("{"x" |> pathjoin("y", "z")}|{[1, 2, 3] |> slice(1, 2) |> last}\n")
+}
+default "out/l2.txt"
+step {
+    out "out/l3.txt"
+    cmd write("{5 |> range |> reverse |> join("-")}|{[[1], [2]] |> flatten |> sum}\n")
+}
+default "out/l3.txt"
+step {
+    out "out/l4.txt"
+    cmd write("{"a,b,c" |> split(",") |> count}|{"  pad  " |> trim |> upper}\n")
+}
+default "out/l4.txt"

@@ -1,0 +1,23 @@
+let x = 1
+let acc = []
+each i in [0, 1] {
+    let x = 10 + i
+    set acc = acc ++ [x]
+}
+when true {
+    let x = 99
+    set acc = acc ++ [x]
+    set x = 98
+}
+each i, n in ["p", "q"] {
+    when i == 0 {
+        set acc = acc ++ [n]
+    } otherwise {
+        set acc = acc ++ [upper(n)]
+    }
+}
+step {
+    out "out/s.txt"
+    cmd write("{x} {join(acc, ",")}\n")
+}
+default "out/s.txt"

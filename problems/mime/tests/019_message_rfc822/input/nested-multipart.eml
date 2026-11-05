@@ -1,0 +1,14 @@
+Content-Type: message/rfc822
+
+Subject: inner
+Content-Type: multipart/alternative; boundary="I"
+
+--I
+Content-Type: text/plain
+
+inner plain
+--I
+Content-Type: text/html
+
+<p>inner html</p>
+--I--

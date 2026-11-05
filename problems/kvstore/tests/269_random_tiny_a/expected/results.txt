@@ -1,0 +1,75 @@
+[1] ok find 0 plan scan
+[2] ok find 0 plan scan
+[3] error not-found
+[4] ok checkpoint pages 0
+[5] ok scan 0
+[6] error not-found
+[7] ok put created
+[8] error index-missing
+[9] ok put created
+[10] ok put created
+[11] ok put replaced
+[12] ok get value
+  {"age":37,"tag":7}
+[13] ok create index age entries 2
+[14] ok put replaced
+[15] ok find 0 plan scan
+[16] ok checkpoint pages 3
+[17] ok put created
+[18] ok begin
+[19] ok commit 8 frames 1
+[20] ok put replaced
+[21] ok begin
+[22] ok put replaced
+[23] ok commit 10 frames 2
+[24] ok put created
+[25] ok delete removed
+[26] ok update updated
+[27] ok indexes 1
+  0 age root 3 entries 3
+[28] error not-found
+[29] error not-found
+[30] error not-found
+[31] ok checkpoint pages 3
+[32] ok get value
+  "ssssss"
+[33] ok begin
+[34] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 4
+  root 2
+  height 1
+  commits 13
+  indexes 1
+  wal 32
+[35] ok delete removed
+[36] ok scan 3
+  "k00003"
+  "k00001"
+  "k00000"
+[37] ok put created
+[38] ok commit 14 frames 3
+[39] ok put replaced
+[40] ok scan 3
+  "k00003"
+  "k00001"
+  "k00000"
+[41] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 4
+  root 2
+  height 1
+  commits 15
+  indexes 1
+  wal 5320
+[42] ok indexes 1
+  0 age root 3 entries 2
+[43] ok scan 4
+  "k00000"
+  "k00001"
+  "k00003"
+  "k00004"

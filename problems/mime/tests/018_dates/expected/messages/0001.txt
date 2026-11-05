@@ -1,0 +1,26 @@
+[message]
+id 0001
+source "before-epoch.eml"
+
+[headers]
+subject: "date test"
+date: "Mon, 3 Mar 1969 12:00:00 -0500"
+
+[addresses]
+
+[date]
+raw " Mon, 3 Mar 1969 12:00:00 -0500"
+valid yes
+utc 1969-03-03T17:00:00Z
+offset -0500
+epoch -26204400
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

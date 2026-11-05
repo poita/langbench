@@ -1,0 +1,11 @@
+(string-append) (string-append "a") (string-append "a" "b" "c") (string-append "" "" "")
+(string-length "") (string-length "hello") (string-length "a\"b\\c\nd\te")
+(number->string 0) (number->string -42) (number->string 123456789012345678901234567890)
+(symbol->string 'hello) (symbol->string 'a-b?) (string-length (symbol->string 'abc))
+(string-append (number->string 12) (symbol->string 'x) "!")
+(string? "x") (string? 'x) (symbol? 'x) (symbol? "x")
+(equal? "abc" "abc") (equal? "abc" "abd") (equal? "abc" 'abc) (equal? "" "")
+"tab\there" "quote\"q" "back\\slash" "new\nline"
+(display "tab\there") (newline) (display "quote\"q") (newline) (display "back\\slash") (newline) (display "new\nline") (newline)
+(string-length (string-append "abc" "defg"))
+(number->string (string-length "four"))

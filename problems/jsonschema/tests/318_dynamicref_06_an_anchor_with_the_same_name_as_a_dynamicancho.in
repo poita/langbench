@@ -1,0 +1,35 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://test.json-schema.org/dynamic-resolution-ignores-anchors/root",
+    "$ref": "list",
+    "$defs": {
+      "foo": {
+        "$anchor": "items",
+        "type": "string"
+      },
+      "list": {
+        "$id": "list",
+        "type": "array",
+        "items": {
+          "$dynamicRef": "#items"
+        },
+        "$defs": {
+          "items": {
+            "$comment": "This is only needed to satisfy the bookending requirement",
+            "$dynamicAnchor": "items"
+          }
+        }
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "Any array is valid",
+      "data": [
+        "foo",
+        42
+      ]
+    }
+  ]
+}

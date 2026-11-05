@@ -1,0 +1,6 @@
+{}
+--
+=== main
+{% extends "broken" %}{% block a %}x{% endblock %}
+=== broken
+{% block a %}{% endblock

@@ -1,0 +1,71 @@
+message E { int32 a = 1; string s = 2; bool b = 3; Sub m = 4; repeated int32 r = 5; uint32 u = 6; bytes y = 7; }
+message Sub { int32 v = 1; }
+--
+encode E {a: 1, a: 2}
+encode E {a: 1, z: 2}
+encode E {A: 1}
+encode E {a: 1,}
+encode E {,a: 1}
+encode E {a: 1,, s: "x"}
+encode E {a 1}
+encode E {a: }
+encode E {a: 1
+encode E a: 1}
+encode E {a: 1}}
+encode E {a: 1} x
+encode E {}{}
+encode E {a: +1}
+encode E {a: 01}
+encode E {a: 007}
+encode E {a: -0}
+encode E {a: 1.0}
+encode E {a: 1e3}
+encode E {a: 0x10}
+encode E {a: - 1}
+encode E {a: --1}
+encode E {a: "1"}
+encode E {a: true}
+encode E {a: {}}
+encode E {a: []}
+encode E {s: 1}
+encode E {s: x"00"}
+encode E {s: {}}
+encode E {b: 0}
+encode E {b: false, b: true}
+encode E {b: TRUE}
+encode E {b: truee}
+encode E {b: tru}
+encode E {m: {v: 1, v: 2}}
+encode E {m: {w: 1}}
+encode E {m: {v: 1}, m: {v: 2}}
+encode E {m: {v: 1}}}
+encode E {m: {v: 1}
+encode E {m: null}
+encode E {r: [1, 2], r: [3]}
+encode E {r: [1, 2]]}
+encode E {r: [[1]]}
+encode E {u: 4294967296}
+encode E {u: -1}
+encode E {y: x"0"}
+encode E {y: x"gg"}
+encode E {y: x""}
+encode E {y: "00"}
+encode E {y: x'00'}
+encode E {'a': 1}
+encode E {"a": 1}
+encode E {a: 1; s: "x"}
+encode E {a:1;}
+encode E {a = 1}
+encode E {a: 1	}
+encode E {a:	1}
+encode E {a: 1, s: "x	y"}
+encode E
+encode E 
+encode E {
+encode E }
+encode E []
+encode E [{a: 1}]
+encode E 5
+encode E {a: 1} {a: 2}
+encode E { }
+encode E {a :1}

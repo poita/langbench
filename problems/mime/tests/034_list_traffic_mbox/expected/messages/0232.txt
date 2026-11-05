@@ -1,0 +1,62 @@
+[message]
+id 0232
+source "mbox:232"
+
+[headers]
+received: "from lists.example.edu (mx7.students.example.ac.jp [247.124.231.68]) by eu.example.de (Postfix) with ESMTP id D0E0F743C2 for <bkim@students.example.ac.jp>; Thu, 19 Jul 2012 07:04:00 Z"
+return-path: "<cdubois@lists.example.edu>"
+message-id: "<1466.c1812e6a.12506@students.example.ac.jp>"
+in-reply-to: "<1473.2ff97784.42742@lists.example.edu>"
+references: "<1467.bc9f99de.73104@corp.example.co.uk> <1468.48fbebf1.15388@lists.example.edu> <1469.fc7b4aa2.16968@example.com> <1470.31c9b5c9.7989@corp.example.co.uk> <1471.278d412d.97973@post.example.fr> <1472.1be1cf61.21882@post.example.fr> <1473.2ff97784.42742@lists.example.edu>"
+date: "Tue, 5 Dec 2003 22:47:06 +0200"
+from: "Tomás van der Berg <tvanderberg@dev.example.io>"
+to: "María Lefèvre <mlefvre.22@students.example.ac.jp>,    bnakamura@mail.example.net (Bob Nakamura), 太郎 Brown <brown.77@students.example.ac.jp>"
+cc: "Ivan Taylor <itaylor.18@example.org>"
+subject: "RE: Mutex year said light right log most number"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=utf-8"
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="Tomás van der Berg" spec="tvanderberg@dev.example.io"
+to 0 display="María Lefèvre" spec="mlefvre.22@students.example.ac.jp"
+to 1 display="" spec="bnakamura@mail.example.net"
+to 2 display="太郎 Brown" spec="brown.77@students.example.ac.jp"
+cc 0 display="Ivan Taylor" spec="itaylor.18@example.org"
+
+[date]
+raw " Tue, 5 Dec 2003 22:47:06 +0200"
+valid yes
+utc 2003-12-05T20:47:06Z
+offset +0200
+epoch 1070657226
+
+[structure]
+0 text/plain charset=utf-8 cte=8bit size=639 adler32=5652d112 role=text
+
+[body]
+text 0 chars 635
+| Be every élan make and status more response she that add. Near I only in
+| keepalive? Line only before who status of him the form! The bucket line
+| many two some be are which end from you has! Find cause they over can.
+| 
+| Good me he old went an is I timeout just some tell port. Ørsted with we
+| his right élan sound she did on. I the other with tell to? The client
+| that little one be such trunk a is? Place of move it side animal I
+| fiancée them their it same move of too your?
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Bob Nguyen
+html none
+
+[attachments]

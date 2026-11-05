@@ -1,0 +1,45 @@
+POST blocks 2020-03-01 March 1, 2020
+title: Block structure
+url: /posts/blocks/
+permalink: https://example.com/posts/blocks/
+tags: Markdown->/tags/markdown/(2)
+older: -
+newer: lists 2020-03-02 Loose and tight lists
+--- content ---
+<h1>A heading</h1>
+<h1>Setext heading</h1>
+<h2>Another one</h2>
+<p>A paragraph with
+a soft line break.</p>
+<ul>
+<li>a bullet</li>
+<li>another bullet
+with a continuation line</li>
+</ul>
+<ol>
+<li>first</li>
+<li>second
+<ol>
+<li>nested</li>
+<li>also nested</li>
+</ol>
+</li>
+</ol>
+<blockquote>
+<p>A block quote
+spanning lines.</p>
+<blockquote>
+<p>Nested quote.</p>
+</blockquote>
+</blockquote>
+<pre><code class="language-python">def f(x):
+    return x * 2
+</code></pre>
+<pre><code>an indented code block
+second line
+</code></pre>
+<hr />
+<h2>Heading with closing hashes</h2>
+--- excerpt ---
+<h1>A heading</h1>
+--- end ---

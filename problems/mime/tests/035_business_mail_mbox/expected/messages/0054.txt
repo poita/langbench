@@ -1,0 +1,104 @@
+[message]
+id 0054
+source "mbox:54"
+
+[headers]
+received: "from eu.example.de (mx3.eu.example.de [110.79.88.32]) by apache.org (Postfix) with ESMTP id 9DD5249C32 for <ffernndez@mail.example.net>; Tue, 7 Jun 2018 03:49:04 +0000"
+received: "from lists.example.edu (mx7.example.com [254.223.120.204]) by example.com (Postfix) with ESMTP id 48991D59D1 for <o.81@corp.example.co.uk>; Fri, 13 Jul 2012 07:51:24 +0100"
+received: "from post.example.fr (mx2.example.com [236.214.178.46]) by lists.example.edu (Postfix) with ESMTP id ADD6975E01 for <fpetrov@mail.example.net>; Fri, 12 Jan 2009 02:54:15 -0800"
+return-path: "<g.58@students.example.ac.jp>"
+message-id: "<555.a055d4e9.8632@example.com>"
+in-reply-to: "<562.7f373135.27831@apache.org>"
+references: "<556.e49fd2df.86201@example.com> <557.22485e0b.95475@corp.example.co.uk> <558.08f3879b.28495@corp.example.co.uk> <559.0c430b7f.77188@dev.example.io> <560.4209f8ed.14117@eu.example.de> <561.021ff614.24513@corp.example.co.uk> <562.7f373135.27831@apache.org>"
+date: "Sun, 27 Nov 2005 20:21:50 CST (JST)"
+from: "María Papadopoulos <mpapadopoulos@post.example.fr>"
+reply-to: "Sven Fernández <sfernndez@dev.example.io>"
+to: "太郎 Schröder <schrder@eu.example.de>, gjohansson@lists.example.edu"
+cc: "enguyen@students.example.ac.jp (Erik Nguyen)"
+subject: "RE: They you make she their Привет мир"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 111\""
+
+[addresses]
+from 0 display="María Papadopoulos" spec="mpapadopoulos@post.example.fr"
+reply-to 0 display="Sven Fernández" spec="sfernndez@dev.example.io"
+to 0 display="太郎 Schröder" spec="schrder@eu.example.de"
+to 1 display="" spec="gjohansson@lists.example.edu"
+cc 0 display="" spec="enguyen@students.example.ac.jp"
+
+[date]
+raw " Sun, 27 Nov 2005 20:21:50 CST (JST)"
+valid yes
+utc 2005-11-28T02:21:50Z
+offset -0600
+epoch 1133144510
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 111" parts=3 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="simple boundary 757" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_978C829C9CCDEE43" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=windows-1252 cte=quoted-printable size=647 adler32=611de2b7 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=948 adler32=d3444889 role=html
+    5 image/png cte=base64 disposition=inline filename="thread_down_are_no.png" size=1729 adler32=3e865aaf role=attachment
+  6 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="their_now_the_year.docx" size=6957 adler32=57806a73 role=attachment
+  7 message/rfc822 cte=7bit disposition=inline parts=1
+    8 multipart/mixed cte=7bit boundary="simple boundary 92" parts=4 preamble=0 epilogue=1
+      9 multipart/alternative cte=7bit boundary="0000000000004cd44c619ac3" parts=2 preamble=0 epilogue=0
+        10 text/plain charset=iso-8859-1 cte=quoted-printable size=399 adler32=4ae38a54 role=attachment
+        11 text/html charset=utf-8 cte=quoted-printable size=687 adler32=0ea0eb26 role=attachment
+      12 application/pdf cte=base64 disposition=attachment filename="élan_were_as.pdf" size=4044 adler32=b6cff61a role=attachment
+      13 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="it_need_segfault.csv" size=10363 adler32=a6ebd8b2 role=attachment
+      14 message/rfc822 cte=7bit disposition=inline parts=1
+        15 multipart/mixed cte=7bit boundary="=_8c5835ce64ff8ad5dde180f55ba12978" parts=2 preamble=0 epilogue=0
+          16 multipart/related cte=7bit boundary="simple boundary 299" parts=2 preamble=45 epilogue=0
+            17 multipart/alternative cte=7bit boundary="000000000000037723648cac" parts=2 preamble=0 epilogue=0
+              18 text/plain charset=windows-1252 cte=quoted-printable size=2021 adler32=d2d0ae22 role=attachment
+              19 text/html charset=windows-1252 cte=quoted-printable size=2723 adler32=1f75970a role=attachment
+            20 image/png cte=base64 disposition=attachment filename="good.png" size=3239 adler32=8ff631a0 role=attachment
+          21 text/csv charset=utf-8 cte=base64 disposition=inline filename="Ångström_are_Ångström.csv" size=3129 adler32=69c4dde6 role=attachment
+
+[body]
+text 3 chars 647
+| Take the one the follow that right. The of some of the the him that man
+| hot put which from her back just the was. Think after piñata now there
+| the our such come on say land she very you. With and many he which! How
+| of will mutex the other are too part of about proxy. On his connection
+| side would of these round after! To Málaga make socket side vote was
+| each!
+| 
+| Or call build near right high the you only the. Little he to socket day.
+| The a and you time the how and came had just use may my the build me.
+| Point time after with sentence some error other much ask so this is a
+| can try than? Of coöperate the to are their I.
+| 
+| -- 
+| ?ukasz van der Berg
+html 4 chars 944
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Take the one the follow that right. The of some of the the him that man<br>
+| hot put which from her back just the was. Think after piñata now there<br>
+| the our such come on say land she very you. With and many he which! How<br>
+| of will mutex the other are too part of about proxy. On his connection<br>
+| side would of these round after! To Málaga make socket side vote was<br>
+| each!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Or call build near right high the you only the. Little he to socket day.<br>
+| The a and you time the how and came had just use may my the build me.<br>
+| Point time after with sentence some error other much ask so this is a<br>
+| can try than? Of coöperate the to are their I.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Łukasz van der Berg<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="thread_down_are_no.png" size=1729 adler32=3e865aaf file=parts/0054/005.bin
+6 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="their_now_the_year.docx" size=6957 adler32=57806a73 file=parts/0054/006.bin
+10 type=text/plain filename=- size=399 adler32=4ae38a54 file=parts/0054/010.bin
+11 type=text/html filename=- size=687 adler32=0ea0eb26 file=parts/0054/011.bin
+12 type=application/pdf filename="élan_were_as.pdf" size=4044 adler32=b6cff61a file=parts/0054/012.bin
+13 type=text/csv filename="it_need_segfault.csv" size=10363 adler32=a6ebd8b2 file=parts/0054/013.bin
+18 type=text/plain filename=- size=2021 adler32=d2d0ae22 file=parts/0054/018.bin
+19 type=text/html filename=- size=2723 adler32=1f75970a file=parts/0054/019.bin
+20 type=image/png filename="good.png" size=3239 adler32=8ff631a0 file=parts/0054/020.bin
+21 type=text/csv filename="Ångström_are_Ångström.csv" size=3129 adler32=69c4dde6 file=parts/0054/021.bin

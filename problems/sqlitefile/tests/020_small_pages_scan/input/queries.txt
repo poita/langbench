@@ -1,0 +1,8 @@
+.schema reading
+COUNT reading
+SELECT * FROM reading LIMIT 5
+SELECT id,station,celsius FROM reading WHERE celsius > 44.9
+SELECT id,celsius FROM reading ORDER BY celsius LIMIT 10
+SELECT id,celsius FROM reading ORDER BY celsius DESC LIMIT 10
+SELECT id FROM reading WHERE id = 19999
+SELECT id,station FROM reading WHERE station = 'ST-0001' LIMIT 20

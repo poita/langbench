@@ -1,0 +1,46 @@
+[message]
+id 0026
+source "email_with_similar_boundaries.eml"
+
+[headers]
+received: "from xxxx.xxxxxxx.xxx (127.0.0.1) by xxxx.xxxxxxxx.xxx (127.0.01) with Microsoft SMTP Server id 11.1.111.1; Thu, 5 Apr 2012 01:01:01 -0700"
+message-id: "<e4b473$b3jkq@xxxx.xxxx.xxxxxxxx.xxx>"
+to: "<xxxxxxx@xxxxxxxxxxx.xxx>"
+subject: "Xxxxxx"
+date: "Fri, 6 Apr 2012 01:01:01 +0000"
+from: "Xxxxx <xxxxxx@xxxxxxxx.xxx>"
+x-mailer: "PHP/5.2.6"
+content-type: "multipart/mixed; boundary=\"----=_NextPart_476c4fde88e507bb8028170e8cf47c73\""
+mime-version: "1.0"
+
+[addresses]
+from 0 display="Xxxxx" spec="xxxxxx@xxxxxxxx.xxx"
+to 0 display="" spec="xxxxxxx@xxxxxxxxxxx.xxx"
+
+[date]
+raw " Fri, 6 Apr 2012 01:01:01 +0000"
+valid yes
+utc 2012-04-06T01:01:01Z
+offset +0000
+epoch 1333674061
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_NextPart_476c4fde88e507bb8028170e8cf47c73" parts=2 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="----=_NextPart_476c4fde88e507bb8028170e8cf47c73_alt" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=8bit size=5 adler32=058801ab role=text
+    3 text/html charset=utf-8 cte=8bit size=238 adler32=e45d49f8 role=html
+  4 application/octetstream cte=base64 disposition=attachment filename="LOGO.png" size=3 adler32=028e012a role=attachment
+
+[body]
+text 2 chars 5
+| Test
+html 3 chars 238
+| <!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01//EN\" \"http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd\"><html><head>
+| <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+| <title>Test</title>
+| <body>
+| <p>Test</p>
+| </body>
+
+[attachments]
+4 type=application/octetstream filename="LOGO.png" size=3 adler32=028e012a file=parts/0026/004.bin

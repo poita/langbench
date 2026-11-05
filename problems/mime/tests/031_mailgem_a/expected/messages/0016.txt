@@ -1,0 +1,41 @@
+[message]
+id 0016
+source "cant_parse_from.eml"
+
+[headers]
+date: "Thu, 11 Jun 2009 23:25:02 -0700"
+from: "Apple <News@InsideApple.Apple.com>"
+to: "karl.baum@gmail.com"
+message-id: "<7oh6b1$1clhrjk@badger-vip.apple.com>"
+subject: "Meet the new MacBook Pro family. Now includes 13-inch."
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=mimepart_4b0c353551675_3d1c15b79ea5e70c1783"
+
+[addresses]
+from 0 display="Apple" spec="News@InsideApple.Apple.com"
+to 0 display="" spec="karl.baum@gmail.com"
+
+[date]
+raw " Thu, 11 Jun 2009 23:25:02 -0700"
+valid yes
+utc 2009-06-12T06:25:02Z
+offset -0700
+epoch 1244787902
+
+[structure]
+0 multipart/alternative cte=7bit boundary="mimepart_4b0c353551675_3d1c15b79ea5e70c1783" parts=2 preamble=0 epilogue=1
+  1 text/plain charset=iso-8859-1 cte=quoted-printable disposition=inline size=114 adler32=2f0128c3 role=text
+  2 text/html charset=iso-8859-1 cte=quoted-printable disposition=inline size=249 adler32=e024518f role=html
+
+[body]
+text 1 chars 114
+| From one solid piece of aluminum comes a MacBook Pro that's thin and light, beautifully streamlined, and durable.
+html 2 chars 249
+| <!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">
+| <html>
+| <head>
+| <body>
+| From one solid piece of aluminum comes a MacBook Pro that's thin and light, beautifully streamlined, and durable.<br><a href=\"http://insideapple.app</body>
+| </html>
+
+[attachments]

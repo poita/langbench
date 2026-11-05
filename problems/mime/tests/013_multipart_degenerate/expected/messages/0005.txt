@@ -1,0 +1,20 @@
+[message]
+id 0005
+source "no-delimiter.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=0 preamble=15 epilogue=none
+
+[body]
+text none
+html none
+
+[attachments]

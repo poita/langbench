@@ -1,0 +1,40 @@
+u : bool -> bool
+- : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> int list
+error: unify
+d : 'a -> 'b -> 'c -> unit
+error: unify
+error: unify
+error: unify
+y : 'a -> 'b -> int * int * int
+error: occurs
+- : 'a -> unit
+n : unit
+g : unit
+d : 'a -> 'b -> bool
+b : (('a -> 'b -> int) -> 'c) -> 'c
+b : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> 'h -> bool
+error: occurs
+- : 'a list
+error: unify
+error: unify
+error: unify
+a : int
+error: unify
+error: unify
+error: unify
+error: unify
+z : 'a -> 'b -> 'c -> 'd -> 'e -> 'a
+error: unify
+y : unit
+error: unbound
+error: unbound
+error: unbound
+acc : int
+error: unbound
+error: unify
+error: unify
+z : 'a -> 'b -> int
+error: unbound
+error: unify
+h : 'a -> 'b -> 'c -> 'a
+error: unify

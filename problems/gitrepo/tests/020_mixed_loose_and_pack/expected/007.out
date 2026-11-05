@@ -1,0 +1,3 @@
+blob 25
+#!/bin/sh
+exec make "$@"

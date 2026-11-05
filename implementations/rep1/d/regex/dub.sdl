@@ -1,0 +1,29 @@
+name "regexvm"
+description "A backtracking-VM regular expression engine with Perl-style leftmost, greedy, ordered-choice semantics and full capture positions."
+authors "Peter Alexander"
+copyright "Copyright © 2026"
+license "MIT"
+
+# The library lives in source/, the command-line tool in app/, and the
+# library's unit tests in tests/ (kept apart from the library sources).
+
+configuration "cli" {
+    targetType "executable"
+    targetName "regex-cli"
+    targetPath "bin"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

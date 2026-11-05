@@ -1,0 +1,31 @@
+[message]
+id 0024
+source "multiple_invalid_content_dispositions.eml"
+
+[headers]
+from: "<redacted@flashmail.net>"
+subject: "Redacted"
+to: "<redacted@Enron.com>"
+message-id: "<105647271315.NCV17523@x263.net>"
+mime-version: "1.0"
+content-type: "text/html; charset=utf-8"
+content-disposition: "=?utf-8?Q?invalid?="
+content-transfer-encoding: "quoted-printable"
+content-disposition: "=?utf-8?Q?invalid?="
+
+[addresses]
+from 0 display="" spec="redacted@flashmail.net"
+to 0 display="" spec="redacted@Enron.com"
+
+[date]
+none
+
+[structure]
+0 text/html charset=utf-8 cte=quoted-printable disposition==?utf-8?q?invalid?= size=11 adler32=15be0352 role=html
+
+[body]
+text none
+html 0 chars 11
+| <p>foo</p>
+
+[attachments]

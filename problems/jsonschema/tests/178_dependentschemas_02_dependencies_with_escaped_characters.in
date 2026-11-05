@@ -1,0 +1,47 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "dependentSchemas": {
+      "foo\tbar": {
+        "minProperties": 4
+      },
+      "foo'bar": {
+        "required": [
+          "foo\"bar"
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "quoted tab",
+      "data": {
+        "foo\tbar": 1,
+        "a": 2,
+        "b": 3,
+        "c": 4
+      }
+    },
+    {
+      "description": "quoted quote",
+      "data": {
+        "foo'bar": {
+          "foo\"bar": 1
+        }
+      }
+    },
+    {
+      "description": "quoted tab invalid under dependent schema",
+      "data": {
+        "foo\tbar": 1,
+        "a": 2
+      }
+    },
+    {
+      "description": "quoted quote invalid under dependent schema",
+      "data": {
+        "foo'bar": 1
+      }
+    }
+  ]
+}

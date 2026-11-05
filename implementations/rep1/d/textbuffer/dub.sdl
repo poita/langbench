@@ -1,0 +1,27 @@
+name "textbuffer"
+description "Text buffer with multiple cursors, selections, undo and redo"
+authors "textbuffer authors"
+license "MIT"
+copyright "Copyright (c) textbuffer authors"
+targetPath "bin"
+sourcePaths "source"
+importPaths "source"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "textbuffer"
+    sourcePaths "source" "app"
+    mainSourceFile "app/main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "textbuffer"
+}
+
+configuration "unittest" {
+    targetType "library"
+    targetName "textbuffer-test"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

@@ -1,0 +1,40 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok find 0 plan scan
+[11] ok find 1 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+[12] ok find 3 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+[13] ok find 9 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u4" = {"age":null,"name":"dee"}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u6" = {"age":{"x":1},"name":"fay"}
+  "u7" = {"name":"gus"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}
+[14] ok find 9 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u4" = {"age":null,"name":"dee"}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u6" = {"age":{"x":1},"name":"fay"}
+  "u7" = {"name":"gus"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}
+[15] error syntax
+[16] error syntax
+[17] error syntax
+[18] error syntax

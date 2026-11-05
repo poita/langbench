@@ -1,0 +1,30 @@
+name "orderbook"
+description "Limit order book matching engine with price-time priority"
+authors "Peter Alexander"
+license "MIT"
+copyright "Copyright © 2026"
+
+targetType "executable"
+targetName "orderbook"
+sourcePaths "source"
+importPaths "source"
+
+# `dub build` builds the command-line tool on top of the library.
+configuration "cli" {
+    targetType "executable"
+    sourcePaths "source" "app"
+    mainSourceFile "app/main.d"
+}
+
+# The library alone (no executable entry point), for use as a dependency.
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+}
+
+# `dub test`: library sources plus the separate test modules in tests/.
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+    importPaths "source"
+}

@@ -1,0 +1,15 @@
+.tables
+.schema sqlite_sequence
+.schema seq
+COUNT emp
+COUNT seq
+INDEX emp_dept 'eng'
+INDEX emp_dept 'legal'
+INDEX emp_dept 'études'
+INDEX emp_dept NULL
+INDEX emp_manager 7
+INDEX emp_manager 39
+INDEX emp_manager 999
+INDEX emp_grade 2.5
+INDEX emp_dept_salary 'eng'
+INDEX sqlite_autoindex_tag_1 'tag-001'

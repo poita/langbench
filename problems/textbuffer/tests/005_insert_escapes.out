@@ -1,0 +1,46 @@
+\x
+cursor 0 1
+--
+\
+x
+cursor 1 0
+--
+\
+a
+b
+
+cx
+cursor 4 1
+--
+\
+a
+b
+
+c\nx
+cursor 4 3
+--
+\
+a
+b
+
+c\n  two spaces  x
+cursor 4 17
+--
+\
+a
+b
+
+c\n  two spaces  x
+
+
+cursor 6 0
+--
+\\\
+a
+b
+
+c\n  two spaces  x
+
+
+cursor 0 2
+--

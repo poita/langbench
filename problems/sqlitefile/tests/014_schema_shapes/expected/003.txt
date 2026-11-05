@@ -1,0 +1,2 @@
+CREATE TABLE host(id INTEGER PRIMARY KEY, name TEXT);
+CREATE TRIGGER host_touch AFTER INSERT ON host BEGIN UPDATE host SET name = NEW.name WHERE id = NEW.id; END;

@@ -1,0 +1,29 @@
+name "mime"
+description "MIME email parser: mbox/.eml mailboxes to a normalised text dump plus decoded attachments"
+authors "Peter Alexander"
+copyright "Copyright © 2025"
+license "MIT"
+
+targetPath "bin"
+sourcePaths "source"
+importPaths "source"
+
+configuration "application" {
+    targetType "executable"
+    targetName "mime"
+    mainSourceFile "source/app.d"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "mime"
+    excludedSourceFiles "source/app.d"
+}
+
+configuration "unittest" {
+    targetType "library"
+    targetName "mime-test"
+    excludedSourceFiles "source/app.d"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

@@ -1,0 +1,29 @@
+SELECT name FROM people WHERE age <> 45
+.SCHEMA people
+.TABLES
+.tables extra
+.schema
+.schema people notes
+SELECT name FROM people EXTRA
+SELECT name, FROM people
+SELECT name FROM people LIMIT -1
+SELECT name FROM people WHERE name = 'abc
+SELECT name FROM people WHERE photo = X'0'
+SELECT name FROM people WHERE photo = X'zz'
+SELECT name FROM people WHERE age = 45 AND
+SELECT name FROM people WHERE height = .65
+SELECT name FROM people ORDER BY name ASC DESC
+INDEX people 'Ada'
+select name from people where age = 45
+SELECT  name , age  FROM  people  WHERE  age  >=  45  ORDER  BY  age  DESC  LIMIT  2
+SELECT name,photo FROM people WHERE photo = x'00ff'
+SELECT NAME FROM PEOPLE WHERE AGE IS NOT NULL
+SELECT name FROM people WHERE height = 1.65
+SELECT*FROM people
+SELECT name,age FROM people WHERE age>=45
+SELECT id,name FROM people WHERE age>40 ORDER BY name DESC LIMIT 2
+.schema 9bad
+.schema people;
+.schema people.notes
+SELECT oid FROM people
+SELECT _rowid_ FROM people

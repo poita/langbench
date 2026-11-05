@@ -1,0 +1,5 @@
+message P { repeated int32 r = 1; P p = 2; string s = 3; }
+--
+decode P 0801080212020803120208041a0322095c
+decode P 1b08011c0805
+decode P 1b08011400

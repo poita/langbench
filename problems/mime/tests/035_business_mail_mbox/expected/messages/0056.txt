@@ -1,0 +1,92 @@
+[message]
+id 0056
+source "mbox:56"
+
+[headers]
+received: "from mail.example.net (mx9.post.example.fr [50.212.73.169]) by corp.example.co.uk (Postfix) with ESMTP id 4E8B22BC7A for <lnguyen.24@corp.example.co.uk>; sun,9 feb 2012 12:47:55 (comment (nested)) -0330"
+received: "from corp.example.co.uk (mx8.students.example.ac.jp [54.94.16.142]) by students.example.ac.jp (Postfix) with ESMTP id A650933FB6 for <vstergaard@post.example.fr>; Sun, 22 Sep 2005 22:12:56 Z"
+received: "from dev.example.io (mx2.post.example.fr [183.57.247.184]) by example.org (Postfix) with ESMTP id E8058AD474 for <skowalski@example.org>; sun,7 jun 2003 20:21:6 (comment (nested)) PDT"
+return-path: "<rstergaard@lists.example.edu>"
+message-id: "<568.41676ee1.90991@example.com>"
+in-reply-to: "<576.a57d63fa.85973@post.example.fr>"
+references: "<569.52ac90e8.22165@mail.example.net> <570.ae47dde7.81846@post.example.fr> <571.e096b36b.78738@dev.example.io> <572.ea878c43.81874@dev.example.io> <573.bf66ccb6.54615@example.org> <574.4805308f.37790@example.org> <575.cc9dd9fe.27218@example.com> <576.a57d63fa.85973@post.example.fr>"
+date: "Tue, 19 Dec 2009 18:19:38 +0200"
+from: "\"Agnieszka O'Brien\" <aobrien.59@apache.org>"
+to: "Olga Schröder <oschrder@example.org>,    Luis van der Berg <lvanderberg.8@mail.example.net>"
+cc: "Ελένη Nakamura <nakamura@example.com>, grossi@apache.org (Greg Rossi)"
+subject: "Fwd: Big set no word the sound that most"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 251\""
+
+[addresses]
+from 0 display="Agnieszka O'Brien" spec="aobrien.59@apache.org"
+to 0 display="Olga Schröder" spec="oschrder@example.org"
+to 1 display="Luis van der Berg" spec="lvanderberg.8@mail.example.net"
+cc 0 display="Ελένη Nakamura" spec="nakamura@example.com"
+cc 1 display="" spec="grossi@apache.org"
+
+[date]
+raw " Tue, 19 Dec 2009 18:19:38 +0200"
+valid yes
+utc 2009-12-19T16:19:38Z
+offset +0200
+epoch 1261239578
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 251" parts=5 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="00000000000050f9afa80815" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=765 adler32=50100694 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1147 adler32=9b1684c5 role=html
+  4 image/jpeg cte=base64 disposition=inline filename="über_could.jpg" size=610 adler32=8c772b63 role=attachment
+  5 application/zip cte=base64 disposition=inline filename="all_we_put.zip" size=1835 adler32=9f579371 role=attachment
+  6 text/x-diff charset=utf-8 cte=7bit disposition=inline filename="is.patch" size=2768 adler32=fe33677a role=attachment
+  7 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="down_that.patch" size=5019 adler32=dc263c96 role=attachment
+
+[body]
+text 2 chars 759
+| On Tue Jun 27 11:38:47 2009 +1000, Chloé Johansson wrote:
+| > It this jalapeño we other the some! Will any before a the home?
+| >> Ångström spell you crème his there of father!
+| >
+| > > When look made is had hook day of if much came the off thing. Why
+| > > make his mean socket? Write and on each him cache want if large the
+| > spell. Sound of more make and look rewrite timeout the his.
+| >
+| 
+| Like kind review kind of on how move round the look was. Vote was the
+| may through round bug cache I. Point a segfault said or more some old
+| in. In most find act sentence is it of write he him port build they the
+| is rewrite. Want and this has with and and each.
+| 
+| Each then put the they? Help it and our the it alias than the status
+| help try the as need land.
+| 
+| -- 
+| Xavier Müller
+html 3 chars 1147
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Tue Jun 27 11:38:47 2009 +1000, Chloé Johansson wrote:<br>
+| &gt; It this jalapeño we other the some! Will any before a the home?<br>
+| &gt;&gt; Ångström spell you crème his there of father!<br>
+| &gt;<br>
+| &gt; &gt; When look made is had hook day of if much came the off thing. Why<br>
+| &gt; &gt; make his mean socket? Write and on each him cache want if large the<br>
+| &gt; spell. Sound of more make and look rewrite timeout the his.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Like kind review kind of on how move round the look was. Vote was the<br>
+| may through round bug cache I. Point a segfault said or more some old<br>
+| in. In most find act sentence is it of write he him port build they the<br>
+| is rewrite. Want and this has with and and each.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Each then put the they? Help it and our the it alias than the status<br>
+| help try the as need land.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Xavier Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="über_could.jpg" size=610 adler32=8c772b63 file=parts/0056/004.bin
+5 type=application/zip filename="all_we_put.zip" size=1835 adler32=9f579371 file=parts/0056/005.bin
+6 type=text/x-diff filename="is.patch" size=2768 adler32=fe33677a file=parts/0056/006.bin
+7 type=text/x-diff filename="down_that.patch" size=5019 adler32=dc263c96 file=parts/0056/007.bin

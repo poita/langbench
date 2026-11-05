@@ -1,0 +1,7 @@
+CREATE TABLE reading(
+        id INTEGER PRIMARY KEY,
+        station TEXT,
+        celsius REAL,
+        quality INTEGER);
+CREATE INDEX reading_station ON reading(station);
+CREATE INDEX reading_quality ON reading(quality);

@@ -1,0 +1,7 @@
+messages 6
+0001 source="empty.eml" bytes=75 parts=1 attachments=1 text=- html=-
+0002 source="garbage.eml" bytes=90 parts=1 attachments=0 text=0 html=-
+0003 source="nopad.eml" bytes=83 parts=1 attachments=0 text=0 html=-
+0004 source="padded.eml" bytes=84 parts=1 attachments=0 text=0 html=-
+0005 source="unknown-cte.eml" bytes=93 parts=1 attachments=0 text=0 html=-
+0006 source="wrapped.eml" bytes=164 parts=1 attachments=1 text=- html=-

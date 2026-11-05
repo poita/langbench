@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>  Filter Lab  </title>
+  <id>https://filters.example/</id>
+  <updated>2021-02-04T00:00:00Z</updated>
+  <link href="https://filters.example/" rel="alternate"/>
+  <link href="https://filters.example/feed.xml" rel="self"/>
+  <author>
+    <name>O'Reilly &amp; Sons</name>
+  </author>
+  <entry>
+    <title>Beta</title>
+    <id>https://filters.example/posts/two/</id>
+    <updated>2021-02-04T00:00:00Z</updated>
+    <link href="https://filters.example/posts/two/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Second body.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Alpha &amp; Omega</title>
+    <id>https://filters.example/posts/one/</id>
+    <updated>2021-02-03T00:00:00Z</updated>
+    <link href="https://filters.example/posts/one/" rel="alternate"/>
+    <content type="html">&lt;p&gt;First body.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

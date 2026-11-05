@@ -1,0 +1,67 @@
+[message]
+id 0135
+source "mbox:135"
+
+[headers]
+received: "from post.example.fr (mx6.example.com [63.212.13.130]) by dev.example.io (Postfix) with ESMTP id CE1550FF1A for <rossi@corp.example.co.uk>; 2 MAY 18 19:53 PDT"
+received: "from mail.example.net (mx1.apache.org [191.94.87.222]) by eu.example.de (Postfix) with ESMTP id E4363A541 for <qfernndez@mail.example.net>; Fri, 21 Mar 2024 04:45:36 +0900"
+received: "from post.example.fr (mx3.mail.example.net [21.180.151.114]) by dev.example.io (Postfix) with ESMTP id BCBBD22828 for <j.60@corp.example.co.uk>; Thu Feb 5 01:31:04 2004 -0700"
+return-path: "<llefvre@dev.example.io>"
+message-id: "<1045.5875e1c7.59891@corp.example.co.uk>"
+in-reply-to: "<1054.a35c38cd.36483@example.com>"
+references: "<1046.a50e646c.9574@lists.example.edu> <1047.e3a9e616.74089@eu.example.de> <1048.fbf3196d.51042@mail.example.net> <1049.4cc1a151.79729@post.example.fr> <1050.752a67ac.14592@post.example.fr> <1051.cda3c630.59220@example.com> <1052.6027ad2b.96356@mail.example.net> <1053.9af6359d.66018@dev.example.io> <1054.a35c38cd.36483@example.com>"
+date: "Mon, 7 Nov 2003 13:24:21 +0200"
+from: "Nils Kim <nkim@eu.example.de>"
+to: "François O'Brien <fobrien.37@dev.example.io>, Björn Østergaard <bstergaard.77@eu.example.de>,    \"Quinn O'Brien\" <qobrien.56@lists.example.edu>"
+subject: "RE: Down on in vote that here response think"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 14\""
+
+[addresses]
+from 0 display="Nils Kim" spec="nkim@eu.example.de"
+to 0 display="François O'Brien" spec="fobrien.37@dev.example.io"
+to 1 display="Björn Østergaard" spec="bstergaard.77@eu.example.de"
+to 2 display="Quinn O'Brien" spec="qobrien.56@lists.example.edu"
+
+[date]
+raw " Mon, 7 Nov 2003 13:24:21 +0200"
+valid yes
+utc 2003-11-07T11:24:21Z
+offset +0200
+epoch 1068204261
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 14" parts=3 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="000000000000e0c252e41931" parts=4 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="000000000000f6fd9f244e7c" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=8bit size=129 adler32=de892ce3 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=347 adler32=f3a675b4 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="and_that.jpg" size=3325 adler32=531273b9 role=attachment
+    6 image/jpeg cte=base64 disposition=inline filename="élan_in_change.jpg" size=2295 adler32=48607d1c role=attachment
+    7 image/jpeg cte=base64 disposition=attachment filename="with_you_have_much.jpg" size=3551 adler32=567dd5f3 role=attachment
+  8 application/zip cte=base64 disposition=attachment filename="which_is.zip" size=1749 adler32=2cd05544 role=attachment
+  9 text/csv charset=utf-8 cte=7bit disposition=attachment filename="Kraków_what_have.csv" size=4505 adler32=806b98c7 role=attachment
+
+[body]
+text 3 chars 127
+| And that place if follow it sound no be jalapeño how of Zürich was
+| thing. Find tell the you the of the he has.
+| 
+| -- 
+| Ivan Rossi
+html 4 chars 347
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">And that place if follow it sound no be jalapeño how of Zürich was<br>
+| thing. Find tell the you the of the he has.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ivan Rossi<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="and_that.jpg" size=3325 adler32=531273b9 file=parts/0135/005.bin
+6 type=image/jpeg filename="élan_in_change.jpg" size=2295 adler32=48607d1c file=parts/0135/006.bin
+7 type=image/jpeg filename="with_you_have_much.jpg" size=3551 adler32=567dd5f3 file=parts/0135/007.bin
+8 type=application/zip filename="which_is.zip" size=1749 adler32=2cd05544 file=parts/0135/008.bin
+9 type=text/csv filename="Kraków_what_have.csv" size=4505 adler32=806b98c7 file=parts/0135/009.bin

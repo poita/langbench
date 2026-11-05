@@ -1,0 +1,26 @@
+1
+abcdefghij
+add-cursor 0 3
+add-cursor 0 6
+add-cursor 0 10
+insert XY
+print
+delete
+print
+delete-forward
+print
+insert 1\n2
+print
+move up
+print
+move down
+print
+undo
+print
+goto 0 5
+add-cursor 0 2
+add-cursor 0 8
+move left select
+move left select
+insert -
+print

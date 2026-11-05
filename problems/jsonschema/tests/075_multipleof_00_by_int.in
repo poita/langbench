@@ -1,0 +1,20 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "multipleOf": 2
+  },
+  "tests": [
+    {
+      "description": "int by int",
+      "data": 10
+    },
+    {
+      "description": "int by int fail",
+      "data": 7
+    },
+    {
+      "description": "ignores non-numbers",
+      "data": "foo"
+    }
+  ]
+}

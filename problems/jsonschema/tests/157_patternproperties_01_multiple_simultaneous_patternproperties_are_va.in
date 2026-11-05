@@ -1,0 +1,53 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "patternProperties": {
+      "a*": {
+        "type": "integer"
+      },
+      "aaa*": {
+        "maximum": 20
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "a single valid match is valid",
+      "data": {
+        "a": 21
+      }
+    },
+    {
+      "description": "a simultaneous match is valid",
+      "data": {
+        "aaaa": 18
+      }
+    },
+    {
+      "description": "multiple matches is valid",
+      "data": {
+        "a": 21,
+        "aaaa": 18
+      }
+    },
+    {
+      "description": "an invalid due to one is invalid",
+      "data": {
+        "a": "bar"
+      }
+    },
+    {
+      "description": "an invalid due to the other is invalid",
+      "data": {
+        "aaaa": 31
+      }
+    },
+    {
+      "description": "an invalid due to both is invalid",
+      "data": {
+        "aaa": "foo",
+        "aaaa": 31
+      }
+    }
+  ]
+}

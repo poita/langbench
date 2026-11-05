@@ -1,0 +1,6 @@
+{}
+--
+=== main
+{% macro m() %}{% extends "b" %}{% endmacro %}
+=== b
+B

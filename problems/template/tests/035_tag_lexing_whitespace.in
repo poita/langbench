@@ -1,0 +1,10 @@
+{
+  "x": 1
+}
+--
+=== main
+{{x}}{{	x	}}{{
+ x
+}}{%set y=2%}{{y}}{%-if
+y-%}
+ok{%endif%}{{ [ 1 , 2 ]|join ( "," ) }}{{x|upper}}{{ (x)|int }}{{ "a"|replace("a","b") }}

@@ -1,0 +1,14 @@
+QUERY 1 fox
+HITS 1
+1	note	0.2877	The quick brown fox jumps over the lazy dog
+QUERY 2 dog
+HITS 1
+1	note	0.2877	The quick brown fox jumps over the lazy dog
+QUERY 3 quick brown
+HITS 1
+1	note	0.5754	The quick brown fox jumps over the lazy dog
+QUERY 4 cat
+HITS 0
+QUERY 5 "lazy dog"
+HITS 1
+1	note	0.2877	The quick brown fox jumps over the lazy dog

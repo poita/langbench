@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "minContains": 1
+  },
+  "tests": [
+    {
+      "description": "one item valid against lone minContains",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "zero items still valid against lone minContains",
+      "data": []
+    }
+  ]
+}

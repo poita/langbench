@@ -1,0 +1,137 @@
+[message]
+id 0021
+source "mbox:21"
+
+[headers]
+received: "from lists.example.edu (mx8.eu.example.de [104.226.135.202]) by eu.example.de (Postfix) with ESMTP id 4E4A3156A0 for <e@example.org>; Mon, 22 Dec 2018 07:06:58 CST"
+received: "from students.example.ac.jp (mx7.post.example.fr [238.201.211.18]) by eu.example.de (Postfix) with ESMTP id BDA5B2EA9F for <okim.89@apache.org>; Fri, 23 Mar 2025 17:53:07 EST (EDT)"
+received: "from post.example.fr (mx1.dev.example.io [182.131.108.155]) by mail.example.net (Postfix) with ESMTP id B4B8A8E603 for <mschrder@mail.example.net>; Sat, 19 Oct 2009 18:05:00 +0100 (EDT)"
+received: "from mail.example.net (mx1.post.example.fr [63.197.75.55]) by eu.example.de (Postfix) with ESMTP id 146B3BE47E for <jobrien@post.example.fr>; 25 DEC 18 22:00 +0530"
+received: "from apache.org (mx6.dev.example.io [189.131.238.13]) by apache.org (Postfix) with ESMTP id 5578AF15F6 for <wkim@apache.org>; Sat, 1 Nov 2012 10:37:39 MET"
+return-path: "<ugarca@example.org>"
+message-id: "<290.923b8892.65676@post.example.fr>"
+in-reply-to: "<292.0b7a7a5c.38547@eu.example.de>"
+references: "<291.b3b25f23.66100@eu.example.de> <292.0b7a7a5c.38547@eu.example.de>"
+date: "Thu, 13 Sep 2009 20:42:53 -0330"
+from: "Ann García <agarca@eu.example.de>"
+to: "William Østergaard <wstergaard@apache.org>"
+cc: "sdoe@post.example.fr, i@apache.org"
+subject: "[PATCH] Father crash they is"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_6457_768688100.653530883712\""
+
+[addresses]
+from 0 display="Ann García" spec="agarca@eu.example.de"
+to 0 display="William Østergaard" spec="wstergaard@apache.org"
+cc 0 display="" spec="sdoe@post.example.fr"
+cc 1 display="" spec="i@apache.org"
+
+[date]
+raw " Thu, 13 Sep 2009 20:42:53 -0330"
+valid yes
+utc 2009-09-14T00:12:53Z
+offset -0330
+epoch 1252887173
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_6457_768688100.653530883712" parts=3 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="=_00fd09799be686b8fe49ca259b352088" parts=3 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 825" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=7bit size=1616 adler32=3d5031d7 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=2188 adler32=e7e4f1c5 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="déjà_mean_the.jpg" size=897 adler32=c779b542 role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="the_need_year_number.jpg" size=2015 adler32=3bf5e5af role=attachment
+  7 application/zip cte=base64 disposition=inline filename="self_certificate_before.zip" size=5945 adler32=86cf549e role=attachment
+  8 message/rfc822 cte=7bit disposition=inline parts=1
+    9 multipart/mixed cte=7bit boundary="Apple-Mail=_A36629626B8E19A4" parts=5 preamble=0 epilogue=0
+      10 multipart/alternative cte=7bit boundary="=_8c6de4714e43bf9a2b9db208f501c896" parts=2 preamble=0 epilogue=0
+        11 text/plain charset=us-ascii cte=7bit size=790 adler32=0a911324 role=attachment
+        12 text/html charset=utf-8 cte=quoted-printable size=1147 adler32=5a5f9019 role=attachment
+      13 image/png cte=base64 disposition=inline filename="Zürich_at.png" size=2175 adler32=ee74164f role=attachment
+      14 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="too_with_a.docx" size=2909 adler32=70428bdb role=attachment
+      15 application/pdf cte=base64 disposition=inline filename="résumé_spell_we_of_would.pdf" size=556 adler32=fa2c20db role=attachment
+      16 text/x-diff charset=utf-8 cte=7bit disposition=inline filename="élan_when.patch" size=3178 adler32=6c3aead5 role=attachment
+
+[body]
+text 3 chars 1616
+| On Fri, 26 Oct 2012 07:32:32 Z, Jörg Nguyen wrote:
+| >> A form hand as old pool thing most directive to may side from proxy
+| > > get. As why the hot of the the of café and of were. Log but would
+| >> are a and the world every of come be be but other like they is! Is
+| > number long with it hot the add the out show there. You man the with
+| > > how of mean live thing thread as only has.
+| >
+| > > The this more this some hook side httpd! The in then backport three
+| > before do. Is first every kind use big has the act? Put word these
+| > > come do end want in the your at and the his what. Look too you
+| > differ made is read one been then sentence well vhost where. The a
+| >> bucket socket a or were the all were!
+| >
+| 
+| This many certificate much two. Request of log after the and any old
+| well is vote. Number her the thread I header connection in filter from
+| you have handler animal then.
+| 
+| Think know be she sentence can Größe so write the a of tell number! Can
+| for all these hot as for as. Use for of crash proxy there here use even
+| a some read after I. Did the as up now be the came the to segfault
+| animal there in.
+| 
+| That picture thread and of low vote line of log as of filter. Mean the
+| little it side even as your. Light hot old each to module three well for
+| I which like know with people their every alias.
+| 
+| Ångström over went his the and request these the need him São. Every
+| über every in say even a. But client be made would right small down give
+| socket would cause. And part old word and very is so work. House to have
+| résumé sound and rewrite before these every were a they build of think
+| picture one.
+| 
+| -- 
+| François Rossi
+html 4 chars 2177
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Fri, 26 Oct 2012 07:32:32 Z, Jörg Nguyen wrote:<br>
+| &gt;&gt; A form hand as old pool thing most directive to may side from proxy<br>
+| &gt; &gt; get. As why the hot of the the of café and of were. Log but would<br>
+| &gt;&gt; are a and the world every of come be be but other like they is! Is<br>
+| &gt; number long with it hot the add the out show there. You man the with<br>
+| &gt; &gt; how of mean live thing thread as only has.<br>
+| &gt;<br>
+| &gt; &gt; The this more this some hook side httpd! The in then backport three<br>
+| &gt; before do. Is first every kind use big has the act? Put word these<br>
+| &gt; &gt; come do end want in the your at and the his what. Look too you<br>
+| &gt; differ made is read one been then sentence well vhost where. The a<br>
+| &gt;&gt; bucket socket a or were the all were!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">This many certificate much two. Request of log after the and any old<br>
+| well is vote. Number her the thread I header connection in filter from<br>
+| you have handler animal then.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Think know be she sentence can Größe so write the a of tell number! Can<br>
+| for all these hot as for as. Use for of crash proxy there here use even<br>
+| a some read after I. Did the as up now be the came the to segfault<br>
+| animal there in.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">That picture thread and of low vote line of log as of filter. Mean the<br>
+| little it side even as your. Light hot old each to module three well for<br>
+| I which like know with people their every alias.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Ångström over went his the and request these the need him São. Every<br>
+| über every in say even a. But client be made would right small down give<br>
+| socket would cause. And part old word and very is so work. House to have<br>
+| résumé sound and rewrite before these every were a they build of think<br>
+| picture one.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| François Rossi<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="déjà_mean_the.jpg" size=897 adler32=c779b542 file=parts/0021/005.bin
+6 type=image/jpeg filename="the_need_year_number.jpg" size=2015 adler32=3bf5e5af file=parts/0021/006.bin
+7 type=application/zip filename="self_certificate_before.zip" size=5945 adler32=86cf549e file=parts/0021/007.bin
+11 type=text/plain filename=- size=790 adler32=0a911324 file=parts/0021/011.bin
+12 type=text/html filename=- size=1147 adler32=5a5f9019 file=parts/0021/012.bin
+13 type=image/png filename="Zürich_at.png" size=2175 adler32=ee74164f file=parts/0021/013.bin
+14 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="too_with_a.docx" size=2909 adler32=70428bdb file=parts/0021/014.bin
+15 type=application/pdf filename="résumé_spell_we_of_would.pdf" size=556 adler32=fa2c20db file=parts/0021/015.bin
+16 type=text/x-diff filename="élan_when.patch" size=3178 adler32=6c3aead5 file=parts/0021/016.bin

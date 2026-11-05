@@ -1,0 +1,7 @@
+diff HEAD~200 HEAD~150
+diff HEAD~150 HEAD~100
+diff HEAD~100 HEAD~50
+diff HEAD~50 HEAD
+diff HEAD~242 HEAD
+log HEAD 60
+count-objects

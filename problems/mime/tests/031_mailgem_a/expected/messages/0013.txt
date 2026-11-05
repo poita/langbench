@@ -1,0 +1,58 @@
+[message]
+id 0013
+source "bad_subject.eml"
+
+[headers]
+received: "from survey1usmta.mysurvey.com (survey1usmta.mysurvey.com [198.178.238.149]) by mtain-dh02.r1000.mx.aol.com (Internet Inbound) with ESMTP id 35AF9380001BD for <jjffddjkl161@aol.com>; Wed, 15 Dec 2010 12:22:13 -0500 (EST)"
+received: "from 172.30.44.41 (172.30.44.57) by survey1usmta.mysurvey.com (PowerMTA(TM) v3.5r15) id h13ska0ko6cn for <jjffddjkl161@aol.com>; Wed, 15 Dec 2010 12:21:20 -0500 (envelope-from <carol-jjffddjkl161=aol.com@mysurvey.com>)"
+from: "MySurvey.com & Carol Adams <carol@mysurvey.com>"
+reply-to: "carol@reply.mysurvey.com"
+to: "someone@aol.com"
+date: "Wed, 15 Dec 2010 12:21:20 -0500"
+subject: "MySurvey.com:  You have a survey waiting!  91123105"
+mime-version: "1.0"
+content-type: "multipart/alternative;boundary=\"----=_Layout_Part_DC7E1BB5_1105_4DB3_BAE3_2A6208EB099A\""
+x-aol-global-disposition: "G"
+x-aol-scoll-score: "1:2:376293952:93952408"
+x-aol-scoll-url_count: "5"
+x-aol-sid: "3039ac1d41164d08f9453480"
+x-aol-ip: "198.178.238.149"
+x-aol-spf: "domain : mysurvey.com SPF : pass"
+
+[addresses]
+from 0 display="MySurvey.com & Carol Adams" spec="carol@mysurvey.com"
+reply-to 0 display="" spec="carol@reply.mysurvey.com"
+to 0 display="" spec="someone@aol.com"
+
+[date]
+raw " Wed, 15 Dec 2010 12:21:20 -0500 "
+valid yes
+utc 2010-12-15T17:21:20Z
+offset -0500
+epoch 1292433680
+
+[structure]
+0 multipart/alternative cte=7bit boundary="----=_Layout_Part_DC7E1BB5_1105_4DB3_BAE3_2A6208EB099A" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=8bit size=912 adler32=da6b3017 role=text
+  2 text/html charset=utf-8 cte=8bit size=241 adler32=a9034810 role=html
+
+[body]
+text 1 chars 912
+| You have a survey waiting!
+| 
+| 
+| To take the survey:
+| 
+| 
+| ==================================================================
+| Please do not reply to this email, as we do not process emails sent to this address. To view FAQ's or to contact us, please go to our http://www.mysurvey.com/index.cfm?action=Main.lobbyGeneral&MyContent=contact page. 
+| ==================================================================   
+| You received this email because you (or someone in your household) registered to be a MySurvey.com member. Being a MySurvey.com member means receiving periodic email invitations to give your opinions via e-surveys as well as being eligible for special projects and product tests. If you wish to be removed from the MySurvey.com panel, please click here to http://www.mysurvey.com/index.cfm?action=Main.lobbyGeneral&myContent=unsubscribes.
+| ==================================================================
+html 2 chars 241
+| <center>
+| hello world
+| </center>
+| <IMG SRC=\"http://mailcenterus.mysurvey.com/gems_open_tracking.cfm?indid=99323446&cmpid=10000012106&r=9772160&rundate=15-DEC-2010+12%3a15%3a09&z=435ED3AE69D35EB44716E94814CD11A9\"border=\"0\" width=\"1\" height=\"1\">
+
+[attachments]

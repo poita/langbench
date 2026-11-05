@@ -1,0 +1,6 @@
+edge(1, 2).
+?- edge(1, X).
+?- edge(X, Y).
+path(X, Y) :- edge(X, Y).
+bad(X) :- edge(X, Y), not bad(Y).
+?- path(X, Y).

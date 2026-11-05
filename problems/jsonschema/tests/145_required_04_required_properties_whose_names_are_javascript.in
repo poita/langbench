@@ -1,0 +1,56 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "required": [
+      "__proto__",
+      "toString",
+      "constructor"
+    ]
+  },
+  "tests": [
+    {
+      "description": "ignores arrays",
+      "data": []
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    },
+    {
+      "description": "none of the properties mentioned",
+      "data": {}
+    },
+    {
+      "description": "__proto__ present",
+      "data": {
+        "__proto__": "foo"
+      }
+    },
+    {
+      "description": "toString present",
+      "data": {
+        "toString": {
+          "length": 37
+        }
+      }
+    },
+    {
+      "description": "constructor present",
+      "data": {
+        "constructor": {
+          "length": 37
+        }
+      }
+    },
+    {
+      "description": "all present",
+      "data": {
+        "__proto__": 12,
+        "toString": {
+          "length": "foo"
+        },
+        "constructor": 37
+      }
+    }
+  ]
+}

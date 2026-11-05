@@ -1,0 +1,87 @@
+[message]
+id 0024
+source "mbox:24"
+
+[headers]
+received: "from eu.example.de (mx5.example.com [190.112.235.206]) by students.example.ac.jp (Postfix) with ESMTP id 55C99C7ABE for <cvanderberg@students.example.ac.jp>; Fri, 25 Mar 2003 09:58:35 CST"
+received: "from students.example.ac.jp (mx2.lists.example.edu [183.56.138.162]) by corp.example.co.uk (Postfix) with ESMTP id AB9824D05E for <vvanderberg@lists.example.edu>; Wed, 19 Feb 2018 19:44:35 UT"
+received: "from apache.org (mx8.example.com [226.140.9.50]) by apache.org (Postfix) with ESMTP id 234C10B328 for <upetrov@apache.org>; Tue, 24 Aug 2025 05:34:19 EST"
+received: "from lists.example.edu (mx1.mail.example.net [40.34.180.81]) by dev.example.io (Postfix) with ESMTP id F0727F05F5 for <fbrown.18@dev.example.io>; Wed, 9 Nov 2024 14:12:28 -0700"
+return-path: "<smith@lists.example.edu>"
+message-id: "<297.26f581c4.48541@students.example.ac.jp>"
+in-reply-to: "<307.58195075.96666@post.example.fr>"
+references: "<298.e724fc36.16110@eu.example.de> <299.f29bef84.14832@post.example.fr> <300.49af465f.53795@eu.example.de> <301.5a2b3203.62296@lists.example.edu> <302.e3d31f56.86657@post.example.fr> <303.c990e12e.79524@dev.example.io> <304.e106158a.53010@eu.example.de> <305.f420dfa9.13816@corp.example.co.uk> <306.fa6b250e.25441@example.org> <307.58195075.96666@post.example.fr>"
+date: "Fri, 15 Oct 2005 09:12:25 PDT"
+from: "ufernndez.79@mail.example.net"
+reply-to: "Björn van der Berg <bvanderberg@students.example.ac.jp>"
+to: "sjohansson.31@lists.example.edu,    Karin Lefèvre <klefvre@students.example.ac.jp>,\t\"Papadopoulos, Olga\" <opapadopoulos@corp.example.co.uk>"
+subject: "Fwd: It now it review the naïve"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_716F5495B04F5D59\""
+
+[addresses]
+from 0 display="" spec="ufernndez.79@mail.example.net"
+reply-to 0 display="Björn van der Berg" spec="bvanderberg@students.example.ac.jp"
+to 0 display="" spec="sjohansson.31@lists.example.edu"
+to 1 display="Karin Lefèvre" spec="klefvre@students.example.ac.jp"
+to 2 display="Papadopoulos, Olga" spec="opapadopoulos@corp.example.co.uk"
+
+[date]
+raw " Fri, 15 Oct 2005 09:12:25 PDT"
+valid yes
+utc 2005-10-15T16:12:25Z
+offset -0700
+epoch 1129392745
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_716F5495B04F5D59" parts=3 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="simple boundary 174" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=us-ascii cte=quoted-printable size=534 adler32=cfb0b065 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=842 adler32=cd7e19f0 role=html
+  4 image/jpeg cte=base64 disposition=attachment filename="get_the_the.jpg" size=7031 adler32=1d1b7713 role=attachment
+  5 message/rfc822 cte=7bit disposition=inline parts=1
+    6 multipart/mixed cte=7bit boundary="----=_Part_6165_881393618.585804566673" parts=3 preamble=0 epilogue=0
+      7 multipart/alternative cte=7bit boundary="simple boundary 361" parts=2 preamble=45 epilogue=0
+        8 text/plain charset=us-ascii cte=7bit size=863 adler32=a8c32a9a role=attachment
+        9 text/html charset=windows-1252 cte=quoted-printable size=1262 adler32=a6e8b2e7 role=attachment
+      10 application/pdf cte=base64 disposition=attachment filename="or_new_word_as.pdf" size=6006 adler32=5cb3962c role=attachment
+      11 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="one_good.patch" size=1458 adler32=0859c7dd role=attachment
+
+[body]
+text 2 chars 534
+| On Mon, 6 Feb 2004 20:50:48 -0500, Ann Dubois wrote:
+| > > Light good make too of is to they! Was ?ngstr?m could made Krak?w
+| >> how the and? End at every number but config self an in of do.
+| >
+| 
+| Me did it go too it from of a man out is made had his is for. On who
+| give of I this word time in na?ve is! To very for what the live httpd
+| and get! For we that the her apr. Sentence the year had only come to did
+| but the work socket the think before the. Crash before is the differ the
+| the which as part to over he this Paulo.
+| 
+| -- 
+| Greg Wilson
+html 3 chars 842
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 6 Feb 2004 20:50:48 -0500, Ann Dubois wrote:<br>
+| &gt; &gt; Light good make too of is to they! Was Ångström could made Kraków<br>
+| &gt;&gt; how the and? End at every number but config self an in of do.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Me did it go too it from of a man out is made had his is for. On who<br>
+| give of I this word time in naïve is! To very for what the live httpd<br>
+| and get! For we that the her apr. Sentence the year had only come to did<br>
+| but the work socket the think before the. Crash before is the differ the<br>
+| the which as part to over he this Paulo.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Greg Wilson<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="get_the_the.jpg" size=7031 adler32=1d1b7713 file=parts/0024/004.bin
+8 type=text/plain filename=- size=863 adler32=a8c32a9a file=parts/0024/008.bin
+9 type=text/html filename=- size=1262 adler32=a6e8b2e7 file=parts/0024/009.bin
+10 type=application/pdf filename="or_new_word_as.pdf" size=6006 adler32=5cb3962c file=parts/0024/010.bin
+11 type=text/x-diff filename="one_good.patch" size=1458 adler32=0859c7dd file=parts/0024/011.bin

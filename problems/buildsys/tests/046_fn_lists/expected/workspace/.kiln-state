@@ -1,0 +1,29 @@
+kiln-state 1
+step out/l0.txt
+cmd write("4|4|1,1,2,3|3,1,2|1,2,1,3|3|1\n")
+out out/l0.txt 32398016896d91d5
+end
+step out/l1.txt
+cmd write("1,2|2,1|0|0\n")
+out out/l1.txt a5244e3cf2827723
+end
+step out/l2.txt
+cmd write("true|false|false|2|-1|1\n")
+out out/l2.txt 09c1c2c6058dd646
+end
+step out/l3.txt
+cmd write("0,1,2,3|0|7|0|4|0\n")
+out out/l3.txt cb2b0907c2321f10
+end
+step out/l4.txt
+cmd write("2|2|0|3\n")
+out out/l4.txt 049240fadb0fd94c
+end
+step out/l5.txt
+cmd write("truetruetruetrue|falsefalsefalsefalse\n")
+out out/l5.txt 7ea35666f51a0457
+end
+step out/l6.txt
+cmd write("out/a.o,out/b.o|100%-a|0|no-marker\n")
+out out/l6.txt 9d8b4e808dfb3df4
+end

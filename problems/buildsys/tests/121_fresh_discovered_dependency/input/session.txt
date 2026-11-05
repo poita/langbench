@@ -1,0 +1,18 @@
+build
+build
+edit src/p.txt
+P2
+---
+build
+build
+edit src/q.txt
+Q2
+---
+build
+edit src/m.txt
+head
+@need src/q.txt
+tail
+---
+build
+build

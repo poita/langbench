@@ -1,0 +1,63 @@
+3
+abcdef
+ghij
+klmnop
+goto 0 2
+move right select
+move right select
+print
+move left
+print
+move right select
+move right select
+move right
+print
+move left select
+move left select
+move left select
+print
+move right
+print
+goto 0 3
+move left select
+move left select
+move right select
+print
+move right select
+print
+move right select
+print
+move left
+print
+goto 0 3
+move down select
+print
+move down select
+move up
+print
+goto 1 2
+move home select
+move end
+print
+goto 1 2
+move end select
+move home
+print
+goto 1 2
+move end select
+move up
+print
+goto 1 2
+move home select
+move down
+print
+goto 0 4
+move up select
+print
+insert #
+print
+goto 2 1
+move down select
+print
+delete
+print

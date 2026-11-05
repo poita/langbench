@@ -1,0 +1,7 @@
+kiln-state 1
+step out/z.txt
+cmd preprocess()
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+out out/z.d 9c72deef9f816d0f
+end

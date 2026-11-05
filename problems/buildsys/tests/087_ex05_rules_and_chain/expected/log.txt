@@ -1,0 +1,4 @@
+step 1: build (default) -j 2
+  run 0 2 w0 out/one.txt concat()
+  run 2 7 w0 out/two.txt concat()
+  ok ran=2 hit=0 time=7

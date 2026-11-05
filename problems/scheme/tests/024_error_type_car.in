@@ -1,0 +1,6 @@
+(define (safe-car l) (if (pair? l) (car l) 'empty))
+(safe-car '())
+(display "ok")
+(newline)
+(car '())
+(display "after")

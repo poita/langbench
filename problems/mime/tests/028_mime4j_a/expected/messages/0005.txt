@@ -1,0 +1,28 @@
+[message]
+id 0005
+source "badfile.eml"
+
+[headers]
+from: "Michelle Holm <holm@sitka.colorado.edu>"
+to: "imswww@rhine.gsfc.nasa.gov"
+mime-version: "1.0"
+subject: "note the bogus filename"
+content-type: "text/plain; charset=iso-8859-1; name=\"/tmp/whoa\""
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="Michelle Holm" spec="holm@sitka.colorado.edu"
+to 0 display="" spec="imswww@rhine.gsfc.nasa.gov"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=8bit filename="/tmp/whoa" size=36 adler32=eb380c1b role=text
+
+[body]
+text 0 chars 36
+| This had better not end up in /tmp!
+html none
+
+[attachments]

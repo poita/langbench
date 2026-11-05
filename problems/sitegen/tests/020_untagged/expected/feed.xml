@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Test Site</title>
+  <id>https://example.com/</id>
+  <updated>2020-07-09T00:00:00Z</updated>
+  <link href="https://example.com/" rel="alternate"/>
+  <link href="https://example.com/feed.xml" rel="self"/>
+  <author>
+    <name>A. Author</name>
+  </author>
+  <entry>
+    <title>Explicitly empty tags</title>
+    <id>https://example.com/posts/explicit-empty/</id>
+    <updated>2020-07-09T00:00:00Z</updated>
+    <link href="https://example.com/posts/explicit-empty/" rel="alternate"/>
+    <content type="html">&lt;p&gt;An empty tag array.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Untagged 3</title>
+    <id>https://example.com/posts/n3/</id>
+    <updated>2020-07-04T00:00:00Z</updated>
+    <link href="https://example.com/posts/n3/" rel="alternate"/>
+    <content type="html">&lt;p&gt;No tags on this one.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Untagged 2</title>
+    <id>https://example.com/posts/n2/</id>
+    <updated>2020-07-03T00:00:00Z</updated>
+    <link href="https://example.com/posts/n2/" rel="alternate"/>
+    <content type="html">&lt;p&gt;No tags on this one.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

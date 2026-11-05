@@ -1,0 +1,10 @@
+CREATE TABLE affname(
+        id INTEGER PRIMARY KEY,
+        s STRING,
+        fp FLOATING POINT,
+        it INTTEXT,
+        cf CHARFLOAT,
+        br BLOBREAL,
+        dp DOUBLE PRECISION,
+        dc DECIMAL(10,5),
+        nt);

@@ -1,0 +1,4 @@
+decode
+= "no key name"  # INVALID
+"" = "blank"     # VALID but discouraged
+'' = 'blank'     # VALID but discouraged

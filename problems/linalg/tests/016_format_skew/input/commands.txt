@@ -1,0 +1,6 @@
+transpose k.mtx
+add k.mtx kt.mtx
+mul k.mtx k.mtx
+norm1 k.mtx
+normfro ka.mtx
+det k.mtx

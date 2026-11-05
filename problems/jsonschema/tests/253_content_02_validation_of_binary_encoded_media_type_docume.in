@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contentMediaType": "application/json",
+    "contentEncoding": "base64"
+  },
+  "tests": [
+    {
+      "description": "a valid base64-encoded JSON document",
+      "data": "eyJmb28iOiAiYmFyIn0K"
+    },
+    {
+      "description": "a validly-encoded invalid JSON document; validates true",
+      "data": "ezp9Cg=="
+    },
+    {
+      "description": "an invalid base64 string that is valid JSON; validates true",
+      "data": "{}"
+    },
+    {
+      "description": "ignores non-strings",
+      "data": 100
+    }
+  ]
+}

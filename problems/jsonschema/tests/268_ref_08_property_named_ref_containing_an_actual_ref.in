@@ -1,0 +1,29 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "$ref": {
+        "$ref": "#/$defs/is-string"
+      }
+    },
+    "$defs": {
+      "is-string": {
+        "type": "string"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "property named $ref valid",
+      "data": {
+        "$ref": "a"
+      }
+    },
+    {
+      "description": "property named $ref invalid",
+      "data": {
+        "$ref": 2
+      }
+    }
+  ]
+}

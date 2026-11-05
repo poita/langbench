@@ -1,0 +1,34 @@
+[message]
+id 0014
+source "raw_email_simple.eml"
+
+[headers]
+return-path: "<mikel@nowhere.com>"
+received: "from mikel091a by oaamta05sl.mx.bigpond.com with SMTP id <20071021093820.JFMT24025.oaamta05sl.mx.bigpond.com@mikel091a> for <mikel@nowhere.com.else>; Sun, 21 Oct 2007 19:38:20 +1000"
+date: "Sun, 21 Oct 2007 19:38:13 +1000"
+from: "Mikel Lindsaar <mikel@nowhere.com>"
+to: "Mikel <mikel@somewhere.com>"
+message-id: "<009601c813c6$19df3510$0437d30a@mikel091a>"
+subject: "Testing outlook"
+
+[addresses]
+from 0 display="Mikel Lindsaar" spec="mikel@nowhere.com"
+to 0 display="Mikel" spec="mikel@somewhere.com"
+
+[date]
+raw " Sun, 21 Oct 2007 19:38:13 +1000"
+valid yes
+utc 2007-10-21T09:38:13Z
+offset +1000
+epoch 1192959493
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=13 adler32=1fd2041b role=text
+
+[body]
+text 0 chars 13
+| Hello Mikel
+| 
+html none
+
+[attachments]

@@ -1,0 +1,38 @@
+[message]
+id 0010
+source "bluedot-postcard.eml"
+
+[headers]
+content-type: "multipart/alternative; boundary=\"----------=_961872013-1436-0\""
+content-transfer-encoding: "binary"
+mime-version: "1.0"
+x-mailer: "MIME-tools 5.211 (Entity 5.205)"
+to: "noone"
+subject: "A postcard for you"
+
+[addresses]
+to 0 display="" spec="noone"
+
+[date]
+none
+
+[structure]
+0 multipart/alternative cte=binary boundary="----------=_961872013-1436-0" parts=2 preamble=47 epilogue=0
+  1 text/plain charset=us-ascii cte=binary disposition=inline size=88 adler32=53111e50 role=text
+  2 multipart/related cte=binary boundary="----------=_961872013-1436-1" parts=2 preamble=47 epilogue=0
+    3 text/html charset=us-ascii cte=binary disposition=inline size=123 adler32=c39424c0 role=html
+    4 image/jpeg cte=base64 disposition=inline filename="bluedot.jpg" size=4272 adler32=6a58165b role=attachment
+
+[body]
+text 1 chars 88
+| Having a wonderful time... 
+| wish you were looking at HTML 
+| instead of this boring text!
+html 3 chars 123
+|  <H1>Hey there!</H1> 
+|  Having a <I>wonderful</I> time... 
+|  take a look!
+|   <BR><IMG SRC=\"cid:my-graphic\" ALT=\"Snapshot\"><HR>
+
+[attachments]
+4 type=image/jpeg filename="bluedot.jpg" size=4272 adler32=6a58165b file=parts/0010/004.bin

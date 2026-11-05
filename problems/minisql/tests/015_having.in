@@ -1,0 +1,17 @@
+
+CREATE TABLE sales (region TEXT, rep TEXT, amount INTEGER);
+INSERT INTO sales VALUES ('n', 'a', 10), ('n', 'b', 20), ('s', 'a', 5), ('s', 'c', NULL), ('e', 'a', 7), ('e', 'a', 8), ('e', 'b', 9), (NULL, 'd', 1), ('w', 'e', 100);
+SELECT region, COUNT(*) FROM sales GROUP BY region HAVING COUNT(*) > 1;
+SELECT region, SUM(amount) FROM sales GROUP BY region HAVING SUM(amount) >= 24;
+SELECT region, SUM(amount) FROM sales GROUP BY region HAVING SUM(amount) < 24 OR SUM(amount) IS NULL;
+SELECT region FROM sales GROUP BY region HAVING MIN(amount) IS NULL;
+SELECT region FROM sales GROUP BY region HAVING region IS NULL OR region > 'n';
+SELECT region, rep, COUNT(*) FROM sales GROUP BY region, rep HAVING COUNT(*) = 2 OR rep = 'e';
+SELECT rep, COUNT(*) AS n FROM sales GROUP BY rep HAVING COUNT(*) > 1 ORDER BY n DESC, rep;
+SELECT region, MAX(amount) FROM sales WHERE amount > 5 GROUP BY region HAVING MAX(amount) < 50 ORDER BY 2 DESC;
+SELECT region, COUNT(*) FROM sales GROUP BY region HAVING 1;
+SELECT region, COUNT(*) FROM sales GROUP BY region HAVING 0;
+SELECT region, COUNT(*) FROM sales GROUP BY region HAVING NULL;
+SELECT region, COUNT(*) FROM sales GROUP BY region HAVING COUNT(*) > 1 LIMIT 1 OFFSET 1;
+SELECT region FROM sales GROUP BY region HAVING SUM(amount) > 10 ORDER BY COUNT(*) DESC, region DESC;
+SELECT rep FROM sales GROUP BY rep HAVING COUNT(*) > 100;

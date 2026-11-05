@@ -1,0 +1,10 @@
+.schema words
+SELECT * FROM words
+SELECT id,w FROM words ORDER BY w
+SELECT id,w FROM words ORDER BY w DESC LIMIT 5
+SELECT id FROM words WHERE w = '你好'
+SELECT id,w,lang FROM words WHERE lang = 'fr' ORDER BY w
+INDEX words_w 'éclair'
+INDEX words_lang 'emoji'
+INDEX words_w 'apple'
+INDEX words_w 'nothing here'

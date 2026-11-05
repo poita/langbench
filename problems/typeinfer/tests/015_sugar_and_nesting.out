@@ -1,0 +1,15 @@
+f : 'a -> 'b -> 'c -> 'a * 'b * 'c
+g : 'a -> 'b -> 'a * 'b
+h : 'a -> 'b -> 'a * 'b
+k : 'a -> 'b -> 'a * 'b
+- : int
+- : int * bool
+- : 'a -> 'a
+- : 'a -> 'b
+a : int
+outer : 'a -> 'a
+nest : 'a -> ('a * int) * ('a * bool)
+- : 'a -> ('a * 'a) * ('a * 'a)
+shadow : 'a -> bool
+shadow2 : 'a -> 'b -> 'b
+- : int

@@ -1,0 +1,72 @@
+[message]
+id 0034
+source "mbox:34"
+
+[headers]
+received: "from lists.example.edu (mx2.corp.example.co.uk [190.70.165.3]) by students.example.ac.jp (Postfix) with ESMTP id E999A0272 for <xpapadopoulos@apache.org>; Fri, 18 Nov 2025 05:45:47 +0530"
+received: "from dev.example.io (mx3.example.org [33.25.96.53]) by students.example.ac.jp (Postfix) with ESMTP id C6BFB438F2 for <emller.25@post.example.fr>; Tue, 16 Jun 2012 01:51:11 -0800"
+received: "from dev.example.io (mx5.apache.org [63.5.192.175]) by students.example.ac.jp (Postfix) with ESMTP id AAE16AC643 for <iwilson@dev.example.io>; 20 MAR 24 17:49 +0100"
+received: "from example.com (mx1.dev.example.io [89.128.93.92]) by apache.org (Postfix) with ESMTP id E52A88AE99 for <zlefvre@apache.org>; Thu, 4 Jun 2018 15:43:38 Z"
+return-path: "<crossi.95@lists.example.edu>"
+message-id: "<280.e9ac3740.14858@corp.example.co.uk>"
+date: "Sun, 26 Jun 2018 02:49:06 EST"
+from: "pschrder@mail.example.net"
+to: "Quinn Lefèvre <qlefvre@dev.example.io>"
+cc: "太郎 Иванов <user8203@apache.org>"
+subject: "[VOTE] And an live"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"windows-1252\""
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="" spec="pschrder@mail.example.net"
+to 0 display="Quinn Lefèvre" spec="qlefvre@dev.example.io"
+cc 0 display="太郎 Иванов" spec="user8203@apache.org"
+
+[date]
+raw " Sun, 26 Jun 2018 02:49:06 EST"
+valid yes
+utc 2018-06-26T07:49:06Z
+offset -0500
+epoch 1529999346
+
+[structure]
+0 text/plain charset=windows-1252 cte=base64 size=1050 adler32=27215dbc role=text
+
+[body]
+text 0 chars 1050
+| When us had do directive back came father look back his are as from who
+| high ssl hot. You what the must the have.
+| 
+| Could or two we the and it Ørsted this. Before of know them they use
+| much smörgåsbord did of small at them have he.
+| 
+| When said he hot again try show light was. The have there them in in
+| your day the I too land! Water a the to set you? Only of word read with
+| was round where to follow his go have one I? The for I even of only such
+| down from then what light give module with what. Most why on sound see
+| show.
+| 
+| Mother little bug been proxy patch we good the do are most was? Big here
+| all land been up do if tell call set this see will here here went?
+| 
+| His the of get you high write take by all up vote you to brigade? Or
+| play the you make time and cause form! Earth for I we does bug do and?
+| The he look show be is same was! By new are like one differ round made
+| this an?
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Jörg Taylor
+html none
+
+[attachments]

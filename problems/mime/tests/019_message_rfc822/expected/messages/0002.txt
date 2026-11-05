@@ -1,0 +1,25 @@
+[message]
+id 0002
+source "nested-multipart.eml"
+
+[headers]
+content-type: "message/rfc822"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 message/rfc822 cte=7bit parts=1
+  1 multipart/alternative cte=7bit boundary="I" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=us-ascii cte=7bit size=11 adler32=1a010451 role=attachment
+    3 text/html charset=us-ascii cte=7bit size=17 adler32=36c705f5 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+2 type=text/plain filename=- size=11 adler32=1a010451 file=parts/0002/002.bin
+3 type=text/html filename=- size=17 adler32=36c705f5 file=parts/0002/003.bin

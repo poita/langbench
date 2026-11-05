@@ -1,0 +1,64 @@
+[message]
+id 0059
+source "mbox:59"
+
+[headers]
+received: "from corp.example.co.uk (mx4.example.com [102.166.29.11]) by dev.example.io (Postfix) with ESMTP id F64858259D for <garca@mail.example.net>; Sun Dec 3 08:34:59 2009 -0400"
+return-path: "<johansson.19@mail.example.net>"
+message-id: "<396.b5895489.23520@lists.example.edu>"
+in-reply-to: "<400.9ee9d1ae.99248@corp.example.co.uk>"
+references: "<397.5143236d.94075@eu.example.de> <398.59712a34.82382@students.example.ac.jp> <399.eae962d8.65545@students.example.ac.jp> <400.9ee9d1ae.99248@corp.example.co.uk>"
+date: "Sat, 27 Dec 2012 16:27:42 MET"
+from: "Björn van der Berg <bvanderberg@example.com>"
+reply-to: "Hana Müller <hmller@post.example.fr>"
+to: "Agnieszka Lefèvre <alefvre@mail.example.net>, kpetrov@corp.example.co.uk"
+subject: "[PATCH] New time big word the of too under"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; charset=UTF-8"
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="Björn van der Berg" spec="bvanderberg@example.com"
+reply-to 0 display="Hana Müller" spec="hmller@post.example.fr"
+to 0 display="Agnieszka Lefèvre" spec="alefvre@mail.example.net"
+to 1 display="" spec="kpetrov@corp.example.co.uk"
+
+[date]
+raw " Sat, 27 Dec 2012 16:27:42 MET"
+valid yes
+utc 2012-12-27T16:27:42Z
+offset +0000
+epoch 1356625662
+
+[structure]
+0 text/plain charset=utf-8 cte=base64 size=903 adler32=eace3e3a role=text
+
+[body]
+text 0 chars 895
+| We they can made on or he is release one spell all move ask were went.
+| Part like the header every all boy apr why. Mutex if with old the crème
+| warning it.
+| 
+| Out made this mother have be and. So great of then branch us I in what
+| it cause the cause backport the came.
+| 
+| The proxy help patch hot with back smörgåsbord father their their some
+| act it a find too us! To year self come the on smörgåsbord and but way?
+| Had little well are a the some the put take you you mean are by self.
+| With mutex of mutex will day him said could bug but you number who he
+| some the what! The and all by by so Málaga can sound even mean as.
+| 
+| Thing port the may give the the an good water a when tell a a any had.
+| Place connection and by mean high air of right her to had of the. Also
+| this new the of show write like from add. Add or build and but time ssl
+| they one the number the said a for the them!
+| 
+| -- 
+| Zoë Fernández
+html none
+
+[attachments]

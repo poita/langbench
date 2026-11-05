@@ -1,0 +1,14 @@
+rule bundle(name, parts, weight = 2) {
+    step {
+        out "out/{name}.txt"
+        in parts
+        cmd concat()
+        cost weight
+    }
+}
+
+let base = ["src/a.txt", "src/b.txt"]
+use bundle("one", base)
+use bundle(name = "two", parts = base ++ ["out/one.txt"], weight = 5)
+phony all = ["out/one.txt", "out/two.txt"]
+default "@all"

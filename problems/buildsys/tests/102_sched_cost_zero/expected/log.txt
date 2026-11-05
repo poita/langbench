@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 0 w0 out/z0.txt write("0\n")
+  run 0 0 w0 out/z1.txt copy()
+  run 0 1 w0 out/z2.txt copy()
+  run 1 1 w0 out/z3.txt write("3\n")
+  ok ran=4 hit=0 time=1
+step 2: build (default) -j 2
+  hit 0 out/z0.txt
+  hit 0 out/z1.txt
+  hit 0 out/z2.txt
+  hit 0 out/z3.txt
+  ok ran=0 hit=4 time=0
+step 3: build (default) -j 1
+  hit 0 out/z0.txt
+  hit 0 out/z1.txt
+  hit 0 out/z2.txt
+  hit 0 out/z3.txt
+  ok ran=0 hit=4 time=0

@@ -1,0 +1,7 @@
+.dub/
+bin/
+*.o
+*.a
+dub.selections.json
+minisql-test
+minisql-test-*

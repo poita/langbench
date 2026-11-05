@@ -1,0 +1,26 @@
+[message]
+id 0002
+source "big-offset.eml"
+
+[headers]
+subject: "date test"
+date: "1 Jan 2000 00:00:00 +2359"
+
+[addresses]
+
+[date]
+raw " 1 Jan 2000 00:00:00 +2359"
+valid yes
+utc 1999-12-31T00:01:00Z
+offset +2359
+epoch 946598460
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

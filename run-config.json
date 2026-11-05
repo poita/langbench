@@ -1,0 +1,11 @@
+{
+ "langs": ["cpp", "rust", "go", "d", "python"],
+ "reps": 3,
+ "repProblems": ["chip8", "bigint", "regex", "sat", "depresolve", "datalog", "jq", "webhooks", "toml", "buildsys"],
+ "model": "claude-sonnet-5-5",
+ "effort": "high",
+ "concurrency": 6,
+ "approach": true,
+ "dc": "ldc2",
+ "out": "out"
+}

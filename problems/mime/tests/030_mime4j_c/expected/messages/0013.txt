@@ -1,0 +1,43 @@
+[message]
+id 0013
+source "twopart.eml"
+
+[headers]
+return-path: "<0647842285@uk.wowlg.com>"
+delivered-to: "wowlgcard@cpostale.com"
+received: "from WOWLG POSTCARD (unknown [57.67.194.147]) by lbn-int.qualimucho.com (Postfix) with SMTP id B33BE3F06 for <wowlgcard@cpostale.com>; Wed, 12 Jan 2005 08:08:12 +0100 (CET)"
+mime-version: "1.0"
+from: "0647842285@uk.wowlg.com"
+to: "wowlgcard@cpostale.com"
+message-id: "102.10200000000105"
+content-type: "multipart/mixed; boundary=\"=_wowlgpostcardsender102.10200000000105_=\""
+date: "Wed, 12 Jan 2005 08:08:12 +0100 (CET)"
+
+[addresses]
+from 0 display="" spec="0647842285@uk.wowlg.com"
+to 0 display="" spec="wowlgcard@cpostale.com"
+
+[date]
+raw " Wed, 12 Jan 2005 08:08:12 +0100 (CET)"
+valid yes
+utc 2005-01-12T07:08:12Z
+offset +0100
+epoch 1105513692
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_wowlgpostcardsender102.10200000000105_=" parts=2 preamble=48 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=8bit disposition=inline size=195 adler32=7f6244dc role=text
+  2 image/jpeg cte=base64 disposition=attachment filename="/home1/eucyon/data/img_event/postcard/uk7200_110_6.jpg" size=30631 adler32=cfe5f816 role=attachment
+
+[body]
+text 1 chars 195
+| JOY LEE;Batiment Le Rabelais 22 Ave. des Nations ZI PARIS NORD II; VILLEPINTE 93240;Greece#This is test message.
+| Términos y Condiciones
+| ¿Contraseña? Álbum
+| êtes le propriétaire
+| für geschäftliche
+| 
+html none
+
+[attachments]
+2 type=image/jpeg filename="/home1/eucyon/data/img_event/postcard/uk7200_110_6.jpg" size=30631 adler32=cfe5f816 file=parts/0013/002.bin

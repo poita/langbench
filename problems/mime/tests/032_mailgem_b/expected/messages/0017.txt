@@ -1,0 +1,32 @@
+[message]
+id 0017
+source "japanese.eml"
+
+[headers]
+mime-version: "1.0"
+subject: "まみむめも"
+from: "Mikel Lindsaar <raasdnil@gmail.com>"
+to: "みける <raasdnil@gmail.com>"
+content-type: "text/plain; charset=UTF-8"
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="Mikel Lindsaar" spec="raasdnil@gmail.com"
+to 0 display="みける" spec="raasdnil@gmail.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=utf-8 cte=base64 size=73 adler32=80be1b40 role=text
+
+[body]
+text 0 chars 63
+| かきくえこ
+| 
+| -- 
+| http://lindsaar.net/
+| Rails, RSpec and Life blog....
+html none
+
+[attachments]

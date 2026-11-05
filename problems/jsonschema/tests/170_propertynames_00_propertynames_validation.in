@@ -1,0 +1,53 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "propertyNames": {
+      "maxLength": 3
+    }
+  },
+  "tests": [
+    {
+      "description": "all property names valid",
+      "data": {
+        "f": {},
+        "foo": {}
+      }
+    },
+    {
+      "description": "some property names invalid",
+      "data": {
+        "foo": {},
+        "foobar": {}
+      }
+    },
+    {
+      "description": "object without properties is valid",
+      "data": {}
+    },
+    {
+      "description": "ignores arrays",
+      "data": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    {
+      "description": "ignores strings",
+      "data": "foobar"
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    },
+    {
+      "description": "ignores null",
+      "data": null
+    },
+    {
+      "description": "ignores booleans",
+      "data": true
+    }
+  ]
+}

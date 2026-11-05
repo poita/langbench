@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 240 120" width="240" height="120">
+  <g transform="translate(10,10)">
+    <rect width="40" height="30" fill="#2980b9"/>
+    <rect width="40" height="30" fill="#27ae60" transform="translate(50 5) scale(1.5 0.8)"/>
+    <rect width="40" height="30" fill="#c0392b" transform="rotate(25 30 20) translate(110 0)"/>
+  </g>
+  <g transform="matrix(1 0.15 -0.2 1 20 60)">
+    <circle cx="30" cy="20" r="18" fill="#8e44ad" fill-opacity="0.7"/>
+    <rect x="60" y="0" width="40" height="40" fill="none" stroke="#e67e22"
+          stroke-width="5" transform="skewX(-20)"/>
+    <polygon points="130,0 170,10 150,40" fill="#16a085" transform="skewY(12) rotate(-10)"/>
+  </g>
+  <g transform="scale(0.5)">
+    <rect x="380" y="180" width="80" height="40" fill="#555" transform="rotate(45)"/>
+  </g>
+  <rect x="200" y="5" width="30" height="20" fill="#2c3e50"
+        transform="translate(10,10),scale(0.8) rotate(-15)"/>
+</svg>

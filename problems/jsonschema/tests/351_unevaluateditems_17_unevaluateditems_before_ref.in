@@ -1,0 +1,39 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "unevaluatedItems": false,
+    "prefixItems": [
+      {
+        "type": "string"
+      }
+    ],
+    "$ref": "#/$defs/bar",
+    "$defs": {
+      "bar": {
+        "prefixItems": [
+          true,
+          {
+            "type": "string"
+          }
+        ]
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "with no unevaluated items",
+      "data": [
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "description": "with unevaluated items",
+      "data": [
+        "foo",
+        "bar",
+        "baz"
+      ]
+    }
+  ]
+}

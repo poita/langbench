@@ -1,0 +1,14 @@
+{
+  "name": "N"
+}
+--
+=== main
+{% extends "base" %}{% block body %}{% include "part" %}|{% include "child" %}{% endblock %}
+=== base
+[{% block body %}{% endblock %}]
+=== part
+part({{ name }})
+=== child
+{% extends "base2" %}{% block inner %}inner-of-child {{ name }}{% endblock %}
+=== base2
+{{ "{" }}{% block inner %}{% endblock %}{{ "}" }}

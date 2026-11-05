@@ -1,0 +1,16 @@
+{
+  "x": 1
+}
+--
+=== main
+a{# simple #}b
+{# multi
+line
+ comment #}c
+{#{{ x }} {% if %} not parsed #}d
+{# # } #}e{##}f
+g  {#- strip before #}  h
+i  {# strip after -#}  j
+k  {#- both -#}  l
+{#-#}m{#--#}  n
+{{ x }}{# after tag #}{{ x }}

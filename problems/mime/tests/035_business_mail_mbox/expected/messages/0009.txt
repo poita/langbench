@@ -1,0 +1,91 @@
+[message]
+id 0009
+source "mbox:9"
+
+[headers]
+received: "from dev.example.io (mx4.eu.example.de [235.33.167.216]) by lists.example.edu (Postfix) with ESMTP id 2A9FB8C06E for <vstergaard@lists.example.edu>; Mon, 3 Mar 2004 25:00:00 +0000"
+received: "from mail.example.net (mx5.apache.org [151.10.71.128]) by example.com (Postfix) with ESMTP id D1EC2FAEFB for <mlefvre@mail.example.net>; Sat, 09 Aug 2003 18:20:05 +0100 (EDT)"
+return-path: "<d.13@mail.example.net>"
+message-id: "<82.7ef622c4.96090@lists.example.edu>"
+date: "Fri, 19 Aug 2025 18:29:15 +0200"
+from: "Nils Doe <ndoe@example.org>"
+to: "Quinn Fernández <qfernndez@example.com>,\tqvanderberg.26@mail.example.net, \"Dubois, Yuki\" <ydubois@dev.example.io>"
+cc: "\"Kim, Xavier\" <xkim@post.example.fr>,\tFrançois Taylor <ftaylor@students.example.ac.jp>"
+subject: "[PATCH] The about day it boy too the will just were"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 39\""
+
+[addresses]
+from 0 display="Nils Doe" spec="ndoe@example.org"
+to 0 display="Quinn Fernández" spec="qfernndez@example.com"
+to 1 display="" spec="qvanderberg.26@mail.example.net"
+to 2 display="Dubois, Yuki" spec="ydubois@dev.example.io"
+cc 0 display="Kim, Xavier" spec="xkim@post.example.fr"
+cc 1 display="François Taylor" spec="ftaylor@students.example.ac.jp"
+
+[date]
+raw " Fri, 19 Aug 2025 18:29:15 +0200"
+valid yes
+utc 2025-08-19T16:29:15Z
+offset +0200
+epoch 1755620955
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 39" parts=6 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="00000000000053630bec5782" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=quoted-printable size=639 adler32=a4e4e11f role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=929 adler32=431640cc role=html
+  4 image/jpeg cte=base64 disposition=attachment filename="rewrite_where_in_the.jpg" size=5829 adler32=93643b02 role=attachment
+  5 image/jpeg cte=base64 disposition=attachment filename="any_word_this_write.jpg" size=6195 adler32=2ebdeecb role=attachment
+  6 application/zip cte=base64 disposition=attachment filename="place_of_to_kind.zip" size=7701 adler32=e2eed063 role=attachment
+  7 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="are_ask_your_do.docx" size=6685 adler32=a066dbfe role=attachment
+  8 multipart/digest cte=7bit boundary="----=_Part_8088_813557138.188871183476" parts=2 preamble=0 epilogue=0
+    9 message/rfc822 cte=7bit parts=1
+      10 multipart/alternative cte=7bit boundary="----=_Part_7879_580945307.130257761358" parts=2 preamble=45 epilogue=0
+        11 text/plain charset=iso-8859-1 cte=quoted-printable size=2486 adler32=e095653f role=attachment
+        12 text/html charset=utf-8 cte=quoted-printable size=3253 adler32=8c256872 role=attachment
+    13 message/rfc822 cte=7bit parts=1
+      14 text/plain charset=iso-8859-1 cte=7bit size=2074 adler32=c371d53b role=attachment
+
+[body]
+text 2 chars 632
+| The the like by and and the read so! Mean now for of patch in spell self
+| Ångström. You they is and and we three well work some be out look is
+| there me can. The most here response the that but does the which time
+| take. Have can and directive set number. In of sound he and on socket
+| can earth handler to make the can is.
+| 
+| This our and good try spell header your what Größe proxy word the! Way
+| an bug set side Ørsted build a came httpd. The some it the Ørsted much
+| client in will he all is? Is request mean and but and. The low of in go
+| a time said to go under filter Málaga spell point made of? To up of kind
+| in in?
+| 
+| -- 
+| Olga Petrov
+html 3 chars 929
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The the like by and and the read so! Mean now for of patch in spell self<br>
+| Ångström. You they is and and we three well work some be out look is<br>
+| there me can. The most here response the that but does the which time<br>
+| take. Have can and directive set number. In of sound he and on socket<br>
+| can earth handler to make the can is.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">This our and good try spell header your what Größe proxy word the! Way<br>
+| an bug set side Ørsted build a came httpd. The some it the Ørsted much<br>
+| client in will he all is? Is request mean and but and. The low of in go<br>
+| a time said to go under filter Málaga spell point made of? To up of kind<br>
+| in in?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Olga Petrov<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="rewrite_where_in_the.jpg" size=5829 adler32=93643b02 file=parts/0009/004.bin
+5 type=image/jpeg filename="any_word_this_write.jpg" size=6195 adler32=2ebdeecb file=parts/0009/005.bin
+6 type=application/zip filename="place_of_to_kind.zip" size=7701 adler32=e2eed063 file=parts/0009/006.bin
+7 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="are_ask_your_do.docx" size=6685 adler32=a066dbfe file=parts/0009/007.bin
+11 type=text/plain filename=- size=2486 adler32=e095653f file=parts/0009/011.bin
+12 type=text/html filename=- size=3253 adler32=8c256872 file=parts/0009/012.bin
+14 type=text/plain filename=- size=2074 adler32=c371d53b file=parts/0009/014.bin

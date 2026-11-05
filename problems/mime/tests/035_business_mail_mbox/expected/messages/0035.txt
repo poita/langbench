@@ -1,0 +1,119 @@
+[message]
+id 0035
+source "mbox:35"
+
+[headers]
+received: "from mail.example.net (mx8.example.org [36.238.113.183]) by apache.org (Postfix) with ESMTP id D839ACA230 for <xstergaard@dev.example.io>; Mon May 25 04:01:35 2009 UT"
+received: "from post.example.fr (mx2.corp.example.co.uk [211.34.47.9]) by eu.example.de (Postfix) with ESMTP id 5BFF15D396 for <rpetrov.70@mail.example.net>; Thu Sep 15 14:35:51 2003 -0330"
+return-path: "<jjohansson@example.com>"
+message-id: "<383.ba5816ee.74994@corp.example.co.uk>"
+date: "31 Feb 2004 10:00:00 +0000"
+from: "Xavier Wilson <xwilson@example.com>"
+reply-to: "\"Wilson, Ann\" <awilson@students.example.ac.jp>"
+to: "Ann Fernández <afernndez.29@post.example.fr>,    \"Kowalski, Quinn\" <qkowalski@students.example.ac.jp>"
+cc: "sstergaard@eu.example.de"
+subject: "Keepalive one my long brigade at"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_a91071bffe64336b04895bae1dd17a06\""
+
+[addresses]
+from 0 display="Xavier Wilson" spec="xwilson@example.com"
+reply-to 0 display="Wilson, Ann" spec="awilson@students.example.ac.jp"
+to 0 display="Ann Fernández" spec="afernndez.29@post.example.fr"
+to 1 display="Kowalski, Quinn" spec="qkowalski@students.example.ac.jp"
+cc 0 display="" spec="sstergaard@eu.example.de"
+
+[date]
+raw " 31 Feb 2004 10:00:00 +0000"
+valid no
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_a91071bffe64336b04895bae1dd17a06" parts=3 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="00000000000007b9a43992a3" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=quoted-printable size=1225 adler32=9570a938 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1654 adler32=cdd037f4 role=html
+  4 image/jpeg cte=base64 disposition=attachment filename="directive_the_by.jpg" size=4911 adler32=47558165 role=attachment
+  5 message/rfc822 cte=7bit disposition=inline parts=1
+    6 multipart/mixed cte=7bit boundary="Apple-Mail=_5ED19D8962AEA806" parts=5 preamble=0 epilogue=0
+      7 multipart/related cte=7bit boundary="simple boundary 706" parts=4 preamble=45 epilogue=0
+        8 multipart/alternative cte=7bit boundary="=_bccf822711cb851b927b5a95617f40e5" parts=2 preamble=0 epilogue=0
+          9 text/plain charset=iso-8859-1 cte=quoted-printable size=2741 adler32=8720b6b8 role=attachment
+          10 text/html charset=utf-8 cte=quoted-printable size=3506 adler32=f91eb7a9 role=attachment
+        11 image/jpeg cte=base64 disposition=inline filename="smörgåsbord_client.jpg" size=3032 adler32=7f2cc0ad role=attachment
+        12 image/jpeg cte=base64 disposition=inline filename="live.jpg" size=2705 adler32=d4c02cb8 role=attachment
+        13 image/jpeg cte=base64 disposition=inline filename="change_just.jpg" size=2359 adler32=73b689cc role=attachment
+      14 image/jpeg cte=base64 disposition=attachment filename="over_old.jpg" size=5023 adler32=43199c9a role=attachment
+      15 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="that.patch" size=4132 adler32=d8121ce5 role=attachment
+      16 image/jpeg cte=base64 disposition=attachment filename="Kraków_over.jpg" size=4126 adler32=a349ee61 role=attachment
+      17 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="branch_each_proxy_change.docx" size=2644 adler32=0580077f role=attachment
+
+[body]
+text 2 chars 1219
+| On Sun, 16 Oct 2009 17:27:18 +1000, Dana van der Berg wrote:
+| > > Who they a of play first way them through at and know in. Proxy most
+| > this in a a cause the her read it just. Water with there year the to
+| >> as over the show Kraków work and it under hot. Directive is have
+| > would three want come way also his light new at? You great the go
+| >> say.
+| >
+| > > Trunk of a and time read this through! In as big good there the read
+| > hot proxy off were one so?
+| >
+| 
+| About was could the went he change you of year light. Also form will
+| which commit a would would an handler coöperate of the the of use!
+| Filter side see most back of how it picture was also if Ørsted way place
+| number year. Hand you to that we Ørsted! That he connection earth work
+| the day follow animal turn the you did him to you the response! The are
+| over as over he directive one had made if. Other I all in your is and
+| they move?
+| 
+| Backport are picture request with port the be why will! Under move the
+| way it that were her take many mean down then about my or take place. On
+| that that him look now of like smörgåsbord many can. Him through old
+| were the timeout he. End for be the there to man socket? Word every in
+| the said said this trunk?
+| 
+| -- 
+| Carl Kowalski
+html 3 chars 1648
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sun, 16 Oct 2009 17:27:18 +1000, Dana van der Berg wrote:<br>
+| &gt; &gt; Who they a of play first way them through at and know in. Proxy most<br>
+| &gt; this in a a cause the her read it just. Water with there year the to<br>
+| &gt;&gt; as over the show Kraków work and it under hot. Directive is have<br>
+| &gt; would three want come way also his light new at? You great the go<br>
+| &gt;&gt; say.<br>
+| &gt;<br>
+| &gt; &gt; Trunk of a and time read this through! In as big good there the read<br>
+| &gt; hot proxy off were one so?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">About was could the went he change you of year light. Also form will<br>
+| which commit a would would an handler coöperate of the the of use!<br>
+| Filter side see most back of how it picture was also if Ørsted way place<br>
+| number year. Hand you to that we Ørsted! That he connection earth work<br>
+| the day follow animal turn the you did him to you the response! The are<br>
+| over as over he directive one had made if. Other I all in your is and<br>
+| they move?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Backport are picture request with port the be why will! Under move the<br>
+| way it that were her take many mean down then about my or take place. On<br>
+| that that him look now of like smörgåsbord many can. Him through old<br>
+| were the timeout he. End for be the there to man socket? Word every in<br>
+| the said said this trunk?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Carl Kowalski<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="directive_the_by.jpg" size=4911 adler32=47558165 file=parts/0035/004.bin
+9 type=text/plain filename=- size=2741 adler32=8720b6b8 file=parts/0035/009.bin
+10 type=text/html filename=- size=3506 adler32=f91eb7a9 file=parts/0035/010.bin
+11 type=image/jpeg filename="smörgåsbord_client.jpg" size=3032 adler32=7f2cc0ad file=parts/0035/011.bin
+12 type=image/jpeg filename="live.jpg" size=2705 adler32=d4c02cb8 file=parts/0035/012.bin
+13 type=image/jpeg filename="change_just.jpg" size=2359 adler32=73b689cc file=parts/0035/013.bin
+14 type=image/jpeg filename="over_old.jpg" size=5023 adler32=43199c9a file=parts/0035/014.bin
+15 type=text/x-diff filename="that.patch" size=4132 adler32=d8121ce5 file=parts/0035/015.bin
+16 type=image/jpeg filename="Kraków_over.jpg" size=4126 adler32=a349ee61 file=parts/0035/016.bin
+17 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="branch_each_proxy_change.docx" size=2644 adler32=0580077f file=parts/0035/017.bin

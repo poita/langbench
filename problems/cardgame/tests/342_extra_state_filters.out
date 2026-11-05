@@ -1,0 +1,154 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 TRIGGER A ~1 #17 1
+7 RESOLVE ~1
+8 COUNTERS #17 +1 1
+9 PHASE draw
+10 PHASE main1
+11 PLAY A ~2 #14 EXT-013
+12 PAY A ember 3
+13 PASS A
+14 PASS B
+15 RESOLVE ~2
+16 ARRIVE #14 EXT-013
+17 TRIGGER A ~3 #14 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~3
+21 CREATE #31 EXT-001 field
+22 ARRIVE #31 EXT-001
+23 CREATE #32 EXT-001 field
+24 ARRIVE #32 EXT-001
+25 CREATE #33 EXT-001 field
+26 ARRIVE #33 EXT-001
+27 CREATE #34 EXT-001 field
+28 ARRIVE #34 EXT-001
+29 PLAY A ~4 #11 EXT-003
+30 PAY A ember 1
+31 PASS A
+32 PASS B
+33 RESOLVE ~4
+34 DAMAGE #11 #15 1
+35 DAMAGE #11 #16 1
+36 DAMAGE #11 #17 1
+37 DAMAGE #11 #28 1
+38 DAMAGE #11 #29 1
+39 PREVENT #30 1
+40 DAMAGE #11 #14 1
+41 DAMAGE #11 #31 1
+42 DAMAGE #11 #32 1
+43 DAMAGE #11 #33 1
+44 DAMAGE #11 #34 1
+45 SPENT #11 EXT-003
+46 DESTROY #15 EXT-001
+47 DESTROY #16 EXT-001
+48 DESTROY #28 EXT-001
+49 DESTROY #29 EXT-001
+50 DESTROY #31 EXT-001
+51 DESTROY #32 EXT-001
+52 DESTROY #33 EXT-001
+53 DESTROY #34 EXT-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 6 cap 10 vault 10 hand 2 ash 5 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 4 rift 0
+hand A 1 #12 EXT-020
+hand A 2 #13 EXT-021
+field A #17 EXT-032 3/4 w1 c1 ready - kw vanguard
+field A #14 EXT-013 2/2 w1 c0 ready settling kw -
+field B #30 EXT-011 1/4 w0 c0 ready - kw plating:1
+ash A 1 #11 EXT-003
+ash A 2 #15 EXT-001
+ash A 3 #16 EXT-001
+ash A 4 #31 EXT-001
+ash A 5 #32 EXT-001
+ash B 1 #28 EXT-001
+ash B 2 #29 EXT-001
+ash B 3 #33 EXT-001
+ash B 4 #34 EXT-001
+STATE END
+54 PASS A
+55 PASS B
+56 PHASE clash-attack
+57 EXHAUST #17
+58 ATTACK #17
+59 PASS A
+60 PASS B
+61 PHASE clash-block
+62 BLOCK #30 #17
+63 PLAY A ~5 #13 EXT-021
+64 PAY A ember 1
+65 PASS A
+66 PASS B
+67 RESOLVE ~5
+68 BUFF #17 1 0
+69 BUFF #30 0 1
+70 DAMAGE #13 #14 1
+71 SPENT #13 EXT-021
+72 DESTROY #14 EXT-013
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 5 cap 10 vault 10 hand 1 ash 7 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 4 rift 0
+hand A 1 #12 EXT-020
+field A #17 EXT-032 4/4 w1 c1 exhausted attacking,blocked kw vanguard
+field B #30 EXT-011 1/5 w0 c0 ready blocking kw plating:1
+ash A 1 #11 EXT-003
+ash A 2 #15 EXT-001
+ash A 3 #16 EXT-001
+ash A 4 #31 EXT-001
+ash A 5 #32 EXT-001
+ash A 6 #13 EXT-021
+ash A 7 #14 EXT-013
+ash B 1 #28 EXT-001
+ash B 2 #29 EXT-001
+ash B 3 #33 EXT-001
+ash B 4 #34 EXT-001
+effect 1 ts12 A turn modify 1 0 on #17
+effect 2 ts13 A turn modify 0 1 on #30
+STATE END
+73 PASS A
+74 PASS B
+75 PHASE clash-damage
+76 PREVENT #30 1
+77 DAMAGE #17 #30 3
+78 DAMAGE #30 #17 1
+79 PASS A
+80 PASS B
+81 PHASE clash-end
+82 PASS A
+83 PASS B
+84 PHASE main2
+85 PLAY A ~6 #12 EXT-020
+86 PAY A ember 2
+87 PASS A
+88 PASS B
+89 RESOLVE ~6
+90 DESTROY #17 EXT-032
+91 DESTROY #30 EXT-011
+92 SPENT #12 EXT-020
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 3 cap 10 vault 10 hand 0 ash 9 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 5 rift 0
+ash A 1 #11 EXT-003
+ash A 2 #15 EXT-001
+ash A 3 #16 EXT-001
+ash A 4 #31 EXT-001
+ash A 5 #32 EXT-001
+ash A 6 #13 EXT-021
+ash A 7 #14 EXT-013
+ash A 8 #17 EXT-032
+ash A 9 #12 EXT-020
+ash B 1 #28 EXT-001
+ash B 2 #29 EXT-001
+ash B 3 #33 EXT-001
+ash B 4 #34 EXT-001
+ash B 5 #30 EXT-011
+effect 1 ts12 A turn modify 1 0 on -
+effect 2 ts13 A turn modify 0 1 on -
+STATE END
+93 RESULT pending none

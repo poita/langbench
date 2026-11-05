@@ -1,0 +1,92 @@
+[message]
+id 0065
+source "mbox:65"
+
+[headers]
+received: "from apache.org (mx4.eu.example.de [94.151.91.88]) by students.example.ac.jp (Postfix) with ESMTP id 95113C0E02 for <bbrown.88@corp.example.co.uk>; Thu, 21 Jan 2004 04:36:35 +0100"
+received: "from post.example.fr (mx9.corp.example.co.uk [13.60.104.64]) by dev.example.io (Postfix) with ESMTP id 71A3FC184E for <n@example.org>; Sun, 14 Jul 2009 20:45:54 -0500"
+return-path: "<bstergaard@eu.example.de>"
+message-id: "<670.8a619137.38041@example.org>"
+in-reply-to: "<673.a06212e6.40273@students.example.ac.jp>"
+references: "<671.8aef3dca.14793@dev.example.io> <672.364c71b9.46117@corp.example.co.uk> <673.a06212e6.40273@students.example.ac.jp>"
+date: "Wed, 28 Apr 2009 05:00:08 -0700"
+from: "\"Uwe Rossi\" <urossi.76@mail.example.net>"
+to: "Rémi Rossi <rrossi.25@students.example.ac.jp>,    Uwe Müller <umller.26@lists.example.edu>,    Quinn García <qgarca@post.example.fr>"
+cc: "Agnieszka Kim <akim.59@post.example.fr>"
+subject: "Fwd: End call your that the you thread façade"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 633\""
+
+[addresses]
+from 0 display="Uwe Rossi" spec="urossi.76@mail.example.net"
+to 0 display="Rémi Rossi" spec="rrossi.25@students.example.ac.jp"
+to 1 display="Uwe Müller" spec="umller.26@lists.example.edu"
+to 2 display="Quinn García" spec="qgarca@post.example.fr"
+cc 0 display="Agnieszka Kim" spec="akim.59@post.example.fr"
+
+[date]
+raw " Wed, 28 Apr 2009 05:00:08 -0700"
+valid yes
+utc 2009-04-28T12:00:08Z
+offset -0700
+epoch 1240920008
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 633" parts=4 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="00000000000008a65b08c91f" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=windows-1252 cte=7bit size=945 adler32=7ce143c6 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=1311 adler32=43c1be3a role=html
+  4 application/zip cte=base64 disposition=inline filename="each_had.zip" size=5343 adler32=82993cb7 role=attachment
+  5 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=inline filename="trunk.docx" size=6814 adler32=f15143e4 role=attachment
+  6 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=inline filename="people_him_went.docx" size=2644 adler32=c6662ab1 role=attachment
+
+[body]
+text 2 chars 945
+| On Mon, 19 Oct 2024 02:34:41 EST, Chloé Smith wrote:
+| > The said it thing response. Were has hot the a point the! Spell had
+| > > did came and the! Name review boy line config the over.
+| >
+| > The round mother a why before. Of server warning the of ssl first
+| >> put three she their are. Think such and hook you server is mother a
+| > > need alias that. Server than like the people live many most first
+| > > socket. Do same commit in point and the I rewrite will! Their the
+| >> came do that these Ørsted filter release that are live.
+| >
+| 
+| Most one vote other was the of did then out use who her? Follow have
+| build small work the for one come the apr was their does where and to
+| call. Same here at these which! Number had alias directive module much
+| a. It his the the the of can the of and round Zürich she on. High you
+| water than may if on think build make you such when. My through his do
+| with than me of there the the only her new hand!
+| 
+| -- 
+| William Brown
+html 3 chars 1308
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 19 Oct 2024 02:34:41 EST, Chloé Smith wrote:<br>
+| &gt; The said it thing response. Were has hot the a point the! Spell had<br>
+| &gt; &gt; did came and the! Name review boy line config the over.<br>
+| &gt;<br>
+| &gt; The round mother a why before. Of server warning the of ssl first<br>
+| &gt;&gt; put three she their are. Think such and hook you server is mother a<br>
+| &gt; &gt; need alias that. Server than like the people live many most first<br>
+| &gt; &gt; socket. Do same commit in point and the I rewrite will! Their the<br>
+| &gt;&gt; came do that these Ørsted filter release that are live.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Most one vote other was the of did then out use who her? Follow have<br>
+| build small work the for one come the apr was their does where and to<br>
+| call. Same here at these which! Number had alias directive module much<br>
+| a. It his the the the of can the of and round Zürich she on. High you<br>
+| water than may if on think build make you such when. My through his do<br>
+| with than me of there the the only her new hand!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| William Brown<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/zip filename="each_had.zip" size=5343 adler32=82993cb7 file=parts/0065/004.bin
+5 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="trunk.docx" size=6814 adler32=f15143e4 file=parts/0065/005.bin
+6 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="people_him_went.docx" size=2644 adler32=c6662ab1 file=parts/0065/006.bin

@@ -1,0 +1,43 @@
+[message]
+id 0009
+source "raw_email7.eml"
+
+[headers]
+mime-version: "1.0 (Apple Message framework v730)"
+content-type: "multipart/mixed; boundary=Apple-Mail-13-196941151"
+message-id: "<9169D984-4E0B-45EF-82D4-8F5E53AD7012@example.com>"
+from: "foo@example.com"
+subject: "testing"
+date: "Mon, 6 Jun 2005 22:21:22 +0200"
+to: "blah@example.com"
+
+[addresses]
+from 0 display="" spec="foo@example.com"
+to 0 display="" spec="blah@example.com"
+
+[date]
+raw " Mon, 6 Jun 2005 22:21:22 +0200"
+valid yes
+utc 2005-06-06T20:21:22Z
+offset +0200
+epoch 1118089282
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail-13-196941151" parts=2 preamble=0 epilogue=0
+  1 multipart/mixed cte=7bit boundary="Apple-Mail-12-196940926" parts=4 preamble=0 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=quoted-printable size=24 adler32=6b1d084d role=text
+    3 text/x-ruby-script charset=us-ascii cte=7bit disposition=attachment filename="test.rb" size=24 adler32=700e0883 role=attachment
+    4 application/pdf cte=base64 disposition=inline filename="test.pdf" size=14 adler32=25a90506 role=attachment
+    5 text/plain charset=us-ascii cte=7bit size=1 adler32=000b000b role=attachment
+  6 application/pkcs7-signature cte=base64 disposition=attachment filename="smime.p7s" size=227 adler32=e9d93ede role=attachment
+
+[body]
+text 2 chars 24
+| This is the first part.
+html none
+
+[attachments]
+3 type=text/x-ruby-script filename="test.rb" size=24 adler32=700e0883 file=parts/0009/003.bin
+4 type=application/pdf filename="test.pdf" size=14 adler32=25a90506 file=parts/0009/004.bin
+5 type=text/plain filename=- size=1 adler32=000b000b file=parts/0009/005.bin
+6 type=application/pkcs7-signature filename="smime.p7s" size=227 adler32=e9d93ede file=parts/0009/006.bin

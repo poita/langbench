@@ -1,0 +1,8 @@
+{
+  "n": 100
+}
+--
+=== main
+{% macro count(n) %}{% if n > 0 %}{{ n }},{{ count(n - 1) }}{% else %}done{% endif %}{% endmacro %}{% macro depth(n) %}{% if n == 0 %}0{% else %}{{ depth(n - 1)|int + 1 }}{% endif %}{% endmacro %}{{ count(n) }}
+{{ depth(n) }}
+{% for i in range(200) %}{{ depth(50)|int * i }} {% endfor %}

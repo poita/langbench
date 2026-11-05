@@ -1,0 +1,8 @@
+@module main
+fn main() {
+    let xs = [3, 1, 2, 1];
+    let ys = sortBy(xs, |a, b| cmpI(a, b));
+    print(strJoin(listMap(ys, |v| showInt(v)), " "));
+    let zs = sortBy(xs, |a, b| 0);
+    print(strJoin(listMap(zs, |v| showInt(v)), " "));
+}

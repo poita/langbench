@@ -1,0 +1,65 @@
+[message]
+id 0153
+source "mbox:153"
+
+[headers]
+received: "from lists.example.edu (mx8.dev.example.io [91.1.166.88]) by example.org (Postfix) with ESMTP id 7FBC748EBD for <frossi@lists.example.edu>; Tue, 28 Feb 2025 00:22:30 -0330"
+received: "from mail.example.net (mx1.lists.example.edu [221.219.129.161]) by apache.org (Postfix) with ESMTP id 596843CECF for <hschrder.64@corp.example.co.uk>; Sun, 21 Sep 2003 19:07:42 +0200"
+received: "from students.example.ac.jp (mx1.lists.example.edu [21.147.222.247]) by corp.example.co.uk (Postfix) with ESMTP id 8C738B28F8 for <dschrder@post.example.fr>; Thu, 1 Aug 2018 13:01:19 EST"
+return-path: "<hkowalski@mail.example.net>"
+message-id: "<1008.3b7e4b3e.14256@mail.example.net>"
+in-reply-to: "<1011.bf57dc6b.58970@lists.example.edu>"
+references: "<1009.884fd588.86138@example.com> <1010.35273664.20720@corp.example.co.uk> <1011.bf57dc6b.58970@lists.example.edu>"
+date: "Mon, 2 Nov 2004 22:46:49 Z"
+from: "\"Nils Doe\" <ndoe@post.example.fr>"
+to: "Fiona Иванов <f.97@apache.org>"
+cc: "tnguyen.95@example.com, Olga Müller <omller@students.example.ac.jp>"
+subject: "RE: The with call would his thread their über my a"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; charset=windows-1252"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Nils Doe" spec="ndoe@post.example.fr"
+to 0 display="Fiona Иванов" spec="f.97@apache.org"
+cc 0 display="" spec="tnguyen.95@example.com"
+cc 1 display="Olga Müller" spec="omller@students.example.ac.jp"
+
+[date]
+raw " Mon, 2 Nov 2004 22:46:49 Z"
+valid yes
+utc 2004-11-02T22:46:49Z
+offset +0000
+epoch 1099435609
+
+[structure]
+0 text/plain charset=windows-1252 cte=quoted-printable size=886 adler32=79ba3b6c role=text
+
+[body]
+text 0 chars 886
+| The there café but for this! At Ångström old the socket cause by.
+| Release little way sound need he spell of what if self the are mean
+| each. When one are thing have the handler spell other was Zürich and
+| crash alias? Day want thing you bucket.
+| 
+| What up little earth right is this the men the them want has an and
+| filter take said. Play I much write differ your is the the what said
+| every the the? Read on most the them alias which socket up three the
+| same you! At new I his could déjà call. This at them out vote year great
+| in vote build release sentence the and. Some make the crème even piñata
+| smörgåsbord build! Under and help they from number a the by that play
+| our backport thread move other hot!
+| 
+| That a their get he out of form build number log try is the. A off of
+| the form call him the father proxy! And the the that tell? Line did on
+| people that for side you?
+| 
+| -- 
+| Jörg Wilson
+html none
+
+[attachments]

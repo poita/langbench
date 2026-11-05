@@ -1,0 +1,7 @@
+c unit propagation only: 1 forces 2 forces 3 forces -4 forces 5
+p cnf 5 5
+1 0
+-1 2 0
+-2 3 0
+-3 -4 0
+4 5 0

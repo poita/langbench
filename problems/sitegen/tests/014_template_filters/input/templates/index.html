@@ -1,0 +1,18 @@
+title trimmed upper: {{ site.title|trim|upper }}
+title lower: {{ site.title|lower|trim }}
+motto escaped: {{ site.motto|escape }}
+keywords sorted: {{ site.keywords|sort|join(", ") }}
+keywords reversed: {{ site.keywords|reverse|join("/") }}
+first/last: {{ site.keywords|first }} {{ site.keywords|last }}
+length: {{ site.keywords|length }} {{ site.title|length }}
+int: {{ site.count_text|int }} {{ site.posts_per_page|int }}
+replace: {{ site.base_url|replace("https://", "") }}
+default: {{ site.missing|default("fallback") }} {{ site.author|default("x") }}
+reverse string: {{ site.author|reverse }}
+slug chain: {{ posts|first|default("")|default("") is defined }}
+maths: {{ 7 / 2 }} {{ 7 // 2 }} {{ 7 % 2 }} {{ 2 ** 10 }} {{ -7 // 2 }}
+concat: {{ site.title|trim ~ "!" ~ pagination.total_posts }}
+compare: {{ 1 < 2 }} {{ "a" > "b" }} {{ pagination.number == 1 }}
+membership: {{ "alpha" in site.keywords }} {{ "z" in site.title }}
+loop:{% for t in tags %} {{ loop.index }}/{{ loop.length }}:{{ t.name }}{% if loop.first %}(first){% endif %}{% if loop.last %}(last){% endif %}{% endfor %}
+range:{% for i in range(1, 4) %} {{ i }}{% endfor %}

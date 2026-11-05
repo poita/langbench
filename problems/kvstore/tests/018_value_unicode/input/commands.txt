@@ -1,0 +1,7 @@
+put "é" {"né":"ü",emoji:"😀"}
+get "é"
+put "中文" [1,"あ"]
+get "中文"
+scan
+scan keys
+stat

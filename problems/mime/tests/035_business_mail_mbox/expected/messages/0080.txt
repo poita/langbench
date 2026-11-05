@@ -1,0 +1,98 @@
+[message]
+id 0080
+source "mbox:80"
+
+[headers]
+received: "from mail.example.net (mx2.post.example.fr [174.113.27.111]) by mail.example.net (Postfix) with ESMTP id B147A6505E for <irossi.74@example.org>; Tue, 14 Feb 2009 05:50:05 CST"
+received: "from mail.example.net (mx3.lists.example.edu [240.252.18.138]) by students.example.ac.jp (Postfix) with ESMTP id A525479226 for <lbrown.20@dev.example.io>; Tue, 24 Nov 2024 11:11:53 +0000"
+received: "from example.com (mx2.example.com [47.171.12.237]) by dev.example.io (Postfix) with ESMTP id 5B04AD8C1B for <kim@lists.example.edu>; Sat Nov 11 23:53:56 2024 EST"
+return-path: "<btaylor.13@dev.example.io>"
+message-id: "<841.fc8a7b70.94771@dev.example.io>"
+in-reply-to: "<849.e2e1431c.75910@dev.example.io>"
+references: "<842.1ef8e29b.6000@corp.example.co.uk> <843.fec6a5b8.43487@apache.org> <844.69f01e98.36415@students.example.ac.jp> <845.9fc9829d.29642@corp.example.co.uk> <846.39d30e5f.53551@eu.example.de> <847.2ce6aadf.99751@post.example.fr> <848.e71c54b3.33471@eu.example.de> <849.e2e1431c.75910@dev.example.io>"
+date: "Mon, 20 May 2009 21:00:22 -0800"
+from: "Jörg Lefèvre <jlefvre@eu.example.de>"
+to: "Chloé Papadopoulos <cpapadopoulos@example.com>,    Sven 山田 <s.96@dev.example.io>, Tomás Brown <tbrown@mail.example.net>"
+cc: "swilson.19@mail.example.net (Someone), o@eu.example.de (Someone)"
+subject: "[VOTE] Read where find Größe"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=00000000000029a711d5a724"
+
+[addresses]
+from 0 display="Jörg Lefèvre" spec="jlefvre@eu.example.de"
+to 0 display="Chloé Papadopoulos" spec="cpapadopoulos@example.com"
+to 1 display="Sven 山田" spec="s.96@dev.example.io"
+to 2 display="Tomás Brown" spec="tbrown@mail.example.net"
+cc 0 display="" spec="swilson.19@mail.example.net"
+cc 1 display="" spec="o@eu.example.de"
+
+[date]
+raw " Mon, 20 May 2009 21:00:22 -0800"
+valid yes
+utc 2009-05-21T05:00:22Z
+offset -0800
+epoch 1242882022
+
+[structure]
+0 multipart/mixed cte=7bit boundary="00000000000029a711d5a724" parts=2 preamble=0 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_2436_975369221.962490119733" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="=_198bae93953fa56f474a3183da8f8921" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=base64 size=952 adler32=09d14676 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1342 adler32=b76fc859 role=html
+    5 image/png cte=base64 disposition=attachment filename="be_no_over.png" size=1523 adler32=2abced57 role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="read_that_her_more.jpg" size=898 adler32=3b54b55b role=attachment
+    7 image/png cte=base64 disposition=inline filename="can_I_to_you.png" size=2862 adler32=df697e63 role=attachment
+  8 text/csv charset=utf-8 cte=base64 disposition=attachment filename="crème_move_first_old.csv" size=3832 adler32=5136bf8a role=attachment
+
+[body]
+text 3 chars 952
+| On Fri, 15 Jan 2024 10:59:06 UT, Chloé Nakamura wrote:
+| > > Too for the the know was from these be animal coöperate my can to.
+| > Animal the any all in who the as had they one the so the. Will in
+| > before was men to world and are most earth? At think it that brûlée
+| > > the in home I about I said rewrite come? Release crème the can place
+| > of been he father? To him this as word!
+| >
+| 
+| And but backport did of déjà if her? Point all on the from do need. A
+| the do hot even it the to of sound. There had connection that I we that
+| a!
+| 
+| In three could and work as men self to request line can much? Need with
+| or than had get at as on. It do at from act be been the make to how ssl
+| most under? So place to filter about two where tell branch well. The his
+| about same a other after that this that take. The the to cause but you
+| he request what header was to mother in get? In round bug on the the out
+| that our is handler timeout build as the.
+| 
+| -- 
+| Ivan Østergaard
+html 4 chars 1342
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Fri, 15 Jan 2024 10:59:06 UT, Chloé Nakamura wrote:<br>
+| &gt; &gt; Too for the the know was from these be animal coöperate my can to.<br>
+| &gt; Animal the any all in who the as had they one the so the. Will in<br>
+| &gt; before was men to world and are most earth? At think it that brûlée<br>
+| &gt; &gt; the in home I about I said rewrite come? Release crème the can place<br>
+| &gt; of been he father? To him this as word!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">And but backport did of déjà if her? Point all on the from do need. A<br>
+| the do hot even it the to of sound. There had connection that I we that<br>
+| a!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">In three could and work as men self to request line can much? Need with<br>
+| or than had get at as on. It do at from act be been the make to how ssl<br>
+| most under? So place to filter about two where tell branch well. The his<br>
+| about same a other after that this that take. The the to cause but you<br>
+| he request what header was to mother in get? In round bug on the the out<br>
+| that our is handler timeout build as the.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ivan Østergaard<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="be_no_over.png" size=1523 adler32=2abced57 file=parts/0080/005.bin
+6 type=image/jpeg filename="read_that_her_more.jpg" size=898 adler32=3b54b55b file=parts/0080/006.bin
+7 type=image/png filename="can_I_to_you.png" size=2862 adler32=df697e63 file=parts/0080/007.bin
+8 type=text/csv filename="crème_move_first_old.csv" size=3832 adler32=5136bf8a file=parts/0080/008.bin

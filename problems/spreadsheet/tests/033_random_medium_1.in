@@ -1,0 +1,501 @@
+get B5
+set D5 0
+set C4 15
+set D5 =D5
+set A6 ="x y"*1000
+set D5 "abc"
+set A1 =38.53
+set E4 =IF(IF(IF(12345.678*B6,IF(A1,"zz",D1),5.77/18),MAX(C1:A1,A5:D2,B3:A6),AVG(D5:E6,C5)*MIN(E3:E3,E4:A3)),11<>A6/C5/C2,MAX(0.001,A4*B3))
+set A2 =(B5)
+clear B5
+set A3 "B"
+set C4 =""&COUNT(B6:D1,9,75.36)+E1
+set E4 =D5*4
+get D5
+set C1 =MIN(0.62)
+set A4 19
+set A4 =SUM(A4:A6)
+set C4 ="B"&D3
+get A5
+set A4 14
+set D5 13
+get D6
+set D3 "x y"
+set B2 =100-8
+get A6
+set E6 93.40
+set E1 7
+set E1 =-3
+dump
+get C4
+set A1 "hello world"
+get A6
+set E1 =(100)--A4
+set D2 "abc"
+set E5 15
+get B4
+get D4
+set D5 17.34
+set E2 =(18&"10")
+set A3 ="hello world"
+clear D2
+set E4 =AVG(B2,6,C2)
+get A5
+set B3 "B"
+get A1
+get C3
+dump
+set C6 =-62.50
+get A3
+set D1 =11
+set C3 =("B")
+get E3
+set B6 =10
+set E6 =(E5+-D3)
+get A2
+set B3 10
+set E4 "a"
+set B1 =B6>="x y"
+set B6 12
+set E5 =A3
+set D4 "x y"
+clear C5
+set C5 "zz"
+dump
+get A6
+get B6
+set D5 ="zz"
+get B3
+get E1
+set C1 15
+set C3 =55.89-3+-50.63+""/AVG(C1:C3,E3:B4)
+set C2 14
+set B2 =5&C4
+set A6 =D4-E3
+get E1
+get C6
+get C4
+set C5 =E1+D1*1
+set C4 "B"
+set D1 =A4
+set C5 =70.45
+set D3 =(E6)
+set D6 ""
+get A6
+set A1 =AVG(11,D2:C1)
+set D1 =B2
+set A1 ="x y"
+set C5 6
+set A5 =SUM(D1)
+set E6 =MAX(-A3+A6&11+C1-B2,IF(IF(-1000,AVG(0,A1:B6),"zz"),13,"hello world"))
+set B3 =-"10"
+set C6 "x y"
+clear D4
+set B5 ="B"
+set B3 ""
+dump
+set E2 =45.46
+set D1 =77.69
+set C4 =B6+MIN(-A2-A6)
+set D4 =E2&8
+set C4 "abc"
+set E2 =COUNT(E3:E5,C2:C6,A6:A3)
+set D6 =C4
+get A2
+set E3 =A4
+set A2 20
+set A6 "a"
+set D4 ="abc"
+get B6
+set D4 1
+get B6
+clear B6
+set E1 "hello world"
+set D1 =C2
+get E3
+get A2
+set D2 =SUM(COUNT(-"10",D5:B4,38.21),B2:E1,SUM(D1:C5,"B"+B5,E5:C3))
+set E6 44.88
+set C3 =13*15
+clear E2
+set E4 =MAX(D4:A2)
+set A2 =COUNT(E3:D3,A6:D5)
+get A2
+set A5 =A2
+dump
+set E3 =MIN(A5:D5,C2:E3)
+get E2
+set A4 15
+set D2 =9
+set A1 =D4
+set C1 28.41
+get A4
+get A5
+set E5 =68.50
+get E4
+get C5
+clear B5
+set E3 =IF(MIN(C4:B6,B2:D1),6,MAX(A6:D2,B2:C3))
+clear C1
+set B2 =7*17
+set C2 ="zz"
+set B5 =MIN(E3:C2,B5:C4,C5:B6)*COUNT(C6:C5,37.1,C5:D4)+5>D6*D2+-"abc">="a"
+set E5 =B3
+set B1 "zz"
+set C2 =0.001
+get C3
+set A1 "abc"
+set D2 =MIN(B5)
+set D4 =-B4
+get D2
+set B2 =MAX(E5:C6,B2:A6)
+set C6 =B1<>66.50
+set E5 =-E3*MAX(D2:E1)
+set C6 7
+set B3 =-E5<>D5+COUNT(A3:D2,E5,B5:E3)*A3
+get D1
+set D6 ="zz"*9
+clear D4
+clear B3
+clear A5
+set A6 =E4
+set E6 =16
+dump
+get D6
+set C4 14
+clear C1
+clear C6
+set C6 =AVG(7,B4)
+set A3 1000
+get E4
+set D4 "B"
+set C4 "x y"
+get B2
+get E2
+dump
+set E1 12
+set D5 1
+set B6 "hello world"
+set A6 "abc"
+set A5 =-D2-0<="B"
+clear B4
+set B3 =B3
+set C1 69.26
+set A4 =SUM(B3:B3,"10"=C4)-COUNT(C2:A3)
+get C4
+set B5 =5-A1
+set E5 =-(C2)/((11))
+set A6 "B"
+set E4 =E2
+get B2
+set C3 =SUM(B4:E1,D6:D1,2)
+get A1
+get C1
+get A3
+set D1 =-6*1.27
+set B4 16
+set D6 =(MIN("10",C2:A3,C4:D5))-IF(11+D1,MAX("zz",38.11,D4),12345.678*B2)
+set D2 11
+set A5 =(B1)<-"B"*E3/("")>="B"
+get E3
+get E3
+set D4 14
+set E1 =-52.95
+get D6
+set A6 ""
+set B3 =MIN(-0/B3,E4:D5,48.97)
+set B1 =11
+get D6
+set B4 9
+set E3 6
+get D6
+set B2 =SUM(""&69.74,-5,AVG(D5,A3:D5))-C3<2>A6*B1
+set C3 74.86
+set D3 =13.25-A5
+get D5
+dump
+get B3
+set B4 =23.56<C6
+get E4
+set B2 =7
+set C6 "abc"
+get A5
+set A2 "abc"
+set B3 0
+clear B4
+set A2 =100
+get D4
+dump
+set E2 =5
+get C5
+set D6 =-""
+set A3 =79.60
+set D4 ="hello world"
+set C1 20
+set C4 =(E1)
+set E6 =-B6&E6+C4
+set E4 "zz"
+set D3 =40.13
+get E4
+set D6 ="zz"+C4<=0.001
+set B1 1
+get E4
+set D4 0
+set D4 =C6+20&10
+set D2 0
+set A1 =-"abc"*0+C3/C1>B6
+set B3 "B"
+set A3 "abc"
+set B3 =E4+D1
+get A1
+set B5 =73.67
+get B2
+clear B3
+get D2
+set C2 ""
+set C3 =-MAX(C4/46.13,E1:B4,A2:A3)
+set A3 "10"
+set B3 19.40
+set E3 =AVG(B4:A5,B1:A5,C3:B3)
+get A6
+set D1 =D1+E4+A3*B1
+get E2
+set A4 =C5
+set B1 19
+set D5 97.2
+set D4 10
+set A3 =D3+(B3)=E2&"x y"&"x y"
+set C4 =-B5
+get C3
+get E3
+set C4 =AVG(A6:A3)+E5+AVG(9,E3:B5)>=-C6
+set E4 =14
+set E5 =-C3+(0.98)
+set C2 18
+set C5 =MIN(C6)-(15)/-(A4)
+set B1 95.56
+get A4
+set D6 1000
+clear C5
+get C5
+set C3 "a"
+set E5 "a"
+set A5 =SUM(E6*18*C5>17+"a"-D5*44.46,E6:A4)
+set D4 =-43.40+"zz"
+get C5
+set D3 "x y"
+set E6 =(2)*(C1)
+set E3 =12345.678<=15/13=D6
+set C2 =IF("a",1*B6>SUM(E5:A1,C6:D2,15),5.20)
+get E5
+set A6 ="abc"
+set D3 8
+set C6 "x y"
+get E4
+set C5 ""
+get B2
+get B3
+set E2 15.68
+set C2 2.76
+clear B5
+set D1 2
+set C4 12345.678
+get A3
+set A1 =(72.21-C2)
+clear D2
+set A1 =(MAX(A4:B2,A3,B4))+-MAX(18)
+clear A5
+set D3 =A4<=(B2)
+get E4
+get B5
+get C3
+clear A2
+get E3
+set E5 "x y"
+set C6 51.82
+get B6
+set C6 =B5&1-39.42*MAX(B6:B6,D2:E3,AVG(C3,C4))*90.70&9
+get B3
+clear E2
+set C6 "B"
+get D2
+set E3 "10"
+set D4 "zz"
+clear B1
+set D6 "abc"
+set D6 "10"
+get E1
+set C5 =IF(COUNT(E5:D3),(B5),1)
+set C6 =B1
+get E4
+set B5 =D1
+set B2 =B1*48.36
+set B2 1
+set D1 2
+set B6 3
+set D3 =0
+set E1 3.14159
+set E4 31.84
+set A6 82.11
+set B1 9
+set C4 87.57
+set E6 "x y"
+set D5 ="10"---C2&A2<>5
+set E4 "hello world"
+set A5 "hello world"
+set B2 40.65
+get E1
+set A1 =MIN(MAX(MIN(A2:A5)&(A4),B6:A4),MIN(C1:E5))
+set C5 =SUM(D4:D1)
+get E3
+set D1 =C5
+set C6 =3
+set E2 =-3
+set B5 =(20+A6+"a")
+clear A6
+get C1
+get D6
+set C2 =(MIN(A5:C5,4))
+set E5 =6<"B"
+set B5 =D1
+set C6 13
+set B2 =15*IF(-6.58,"B",B3+1)
+set E5 =B1
+dump
+set B2 6
+set B6 =C6=1
+set B2 =MIN(E4:B6)
+set A3 =A4
+set A5 =IF(16.26,6,10)
+clear E4
+set B1 =5*C2
+set E1 =-C6&(1.97)
+set A4 "a"
+set A6 "x y"
+clear B4
+set A1 "abc"
+dump
+set B3 "x y"
+set E3 "x y"
+set E4 =A1<>B4
+get C5
+clear C2
+set A3 =9/B4<=B4
+set A6 0
+get D1
+set A1 =A1/D2
+set B3 4
+get B3
+get A2
+set E3 =D1+AVG(C1:C4,AVG(C4,C3:D5,C3:A2),100>=D6)
+set E5 =AVG(C6:D4,13)
+get D6
+get E4
+get E2
+set D2 =COUNT(4)
+set D6 =C5
+get B1
+clear C3
+set A2 =(15)+-4-A2*C3
+set B2 "a"
+set C6 =SUM(-B5,IF(B6>"zz",MIN(C4:E5,B2:C5,C4),B1))+(-0&E2)
+set C2 =(E1)
+set A2 4.1
+get C3
+set C4 =D5
+set D6 =12
+get B3
+get D5
+get A3
+set C6 0
+set E3 =--D1>8/B3&B6+B1
+get C1
+set E2 64.5
+set C3 23.25
+set D1 0.001
+clear B6
+set E1 =C6
+set A3 =(41.61)
+clear A2
+set A1 =-20+A6
+set B4 11
+set E1 94.56
+set A1 "hello world"
+get B3
+get C5
+set C5 5
+set B6 2
+dump
+get E2
+set A3 =B3
+set C5 =5*20<MIN(D5,B1:D3)
+set E3 =20+MAX(B2:A2,C6:C3,E2:A6)>2*A2+(13)
+set A4 "B"
+set B1 =15>IF(D3*C3,B1,-8)--17=MIN(A2:A4,10)
+get E1
+set D1 =6
+clear D2
+set E5 20
+set A4 ="a"-17/IF(51.99,10,11)
+set C1 =19&B6
+get E2
+clear E1
+set E3 =IF(E4,-B4,-"a")
+set A1 =(MIN(D2-17,16,A6&3.14159))
+set D3 "x y"
+clear C5
+set D1 =AVG(A6:E3,MIN("abc"),C2:C2)
+set B5 8
+get E5
+set D6 =1
+get C2
+set C5 =SUM(SUM(E4:D4)>=93.83)
+get A3
+get C3
+get E2
+set D6 ="hello world"*D2-D4+IF(E4<>"abc",MAX(B1),93.50+C5)
+set B5 "x y"
+set E4 46.40
+set C3 =D1
+set A3 ="B"
+dump
+clear B6
+set A3 =E4&((2))
+get E2
+set E2 7
+set B3 "zz"
+get D3
+get A3
+set A5 "B"
+set D4 =11*C4+38.67+(MIN(D6,C2:E2,3.14159))
+set A5 =80.86+1
+set B2 ="B"
+set A1 4
+set E6 =--"B"
+set B6 =E5+C3
+get A5
+set A2 =(12345.678)*14*C3/11*SUM(D2:A4,B3:C3,18)
+get C6
+get C6
+set E2 =D1
+get E4
+get C4
+set D3 "B"
+set B6 =20&A2*"zz"
+get C5
+set A2 =MIN(C4:D3)<0.001
+set E6 =COUNT(35.30,20,B2:A3)&0
+set D2 =((D4)&A5+12)
+set A2 =9
+get B4
+get D1
+get A6
+set D3 "B"
+get E1
+clear D4
+set B1 =A2
+get B5
+set A4 =MIN(AVG(D6:B3,C6:A3)&B6/"zz",E1*SUM(E4:B6,C3:B4))
+set C3 =MAX(A3:D5)
+set E4 =IF(96.89&C3,C2/C5,B4+2)
+dump

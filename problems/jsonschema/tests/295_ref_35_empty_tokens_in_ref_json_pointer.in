@@ -1,0 +1,29 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "": {
+        "$defs": {
+          "": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "allOf": [
+      {
+        "$ref": "#/$defs//$defs/"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "number is valid",
+      "data": 1
+    },
+    {
+      "description": "non-number is invalid",
+      "data": "a"
+    }
+  ]
+}

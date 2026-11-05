@@ -1,0 +1,88 @@
+[message]
+id 0215
+source "mbox:215"
+
+[headers]
+received: "from dev.example.io (mx7.dev.example.io [14.248.12.178]) by students.example.ac.jp (Postfix) with ESMTP id AB199BAB5F for <tdubois.72@mail.example.net>; Sat, 10 Sep 2012 20:27:37 +1245"
+return-path: "<jsmith.87@lists.example.edu>"
+message-id: "<1344.bbf70acf.86957@post.example.fr>"
+in-reply-to: "<1354.fdf2a11a.45950@example.org>"
+references: "<1345.2fb1d334.32615@eu.example.de> <1346.2836183b.34404@example.org> <1347.421120dd.54673@example.org> <1348.6e1c5a0b.58268@example.org> <1349.389cd466.78496@example.com> <1350.e7b990d3.64589@students.example.ac.jp> <1351.1f1e166c.89141@example.com> <1352.6fa0cc18.22864@mail.example.net> <1353.4d017d00.36922@eu.example.de> <1354.fdf2a11a.45950@example.org>"
+date: "Thu, 10 Aug 2012 15:14:35 -0500"
+from: "Dana Müller <dmller.77@example.org>"
+to: "Björn Petrov <bpetrov@corp.example.co.uk>,\t\"Rossi, Hana\" <hrossi@example.com>"
+cc: "Sven Brown <sbrown.84@post.example.fr>"
+subject: "Re: [PATCH] Line client come to"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"000000000000edfa7f5bbd13\""
+
+[addresses]
+from 0 display="Dana Müller" spec="dmller.77@example.org"
+to 0 display="Björn Petrov" spec="bpetrov@corp.example.co.uk"
+to 1 display="Rossi, Hana" spec="hrossi@example.com"
+cc 0 display="Sven Brown" spec="sbrown.84@post.example.fr"
+
+[date]
+raw " Thu, 10 Aug 2012 15:14:35 -0500"
+valid yes
+utc 2012-08-10T20:14:35Z
+offset -0500
+epoch 1344629675
+
+[structure]
+0 multipart/alternative cte=7bit boundary="000000000000edfa7f5bbd13" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=8bit size=1052 adler32=ee6e7128 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1466 adler32=4a50fb90 role=html
+
+[body]
+text 1 chars 1052
+| Do will café I branch light for was be proxy it. Cache of the you would
+| and is the. The thing point how the is the in boy animal this near the!
+| When about would that he live air ssl httpd back warning every only line
+| of. Response them live Ångström she write mean number as are had see.
+| 
+| And config alias will the build they right he of then after and. Word
+| the any is filter in now Paulo just and module the trunk he! Side change
+| trunk your are and directive could more to we word! Is review the
+| timeout this of is him were me a had tell it? Do this good in give went
+| differ two in earth and all. Light for filter is more backport than
+| with.
+| 
+| Do the even connection each side you may one also and think would he
+| work! Most father her is was them after that you you!
+| 
+| Pool can what I have with certificate directive. And certificate it the
+| at some write may it other! Before write look part on only. And show I
+| pool no much has. Out at a for have and the in year through is but the.
+| Think was their does every? Use to you which she.
+| 
+| -- 
+| Carl Kowalski
+html 2 chars 1463
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Do will café I branch light for was be proxy it. Cache of the you would<br>
+| and is the. The thing point how the is the in boy animal this near the!<br>
+| When about would that he live air ssl httpd back warning every only line<br>
+| of. Response them live Ångström she write mean number as are had see.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">And config alias will the build they right he of then after and. Word<br>
+| the any is filter in now Paulo just and module the trunk he! Side change<br>
+| trunk your are and directive could more to we word! Is review the<br>
+| timeout this of is him were me a had tell it? Do this good in give went<br>
+| differ two in earth and all. Light for filter is more backport than<br>
+| with.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Do the even connection each side you may one also and think would he<br>
+| work! Most father her is was them after that you you!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Pool can what I have with certificate directive. And certificate it the<br>
+| at some write may it other! Before write look part on only. And show I<br>
+| pool no much has. Out at a for have and the in year through is but the.<br>
+| Think was their does every? Use to you which she.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Carl Kowalski<br>
+| </p>
+| </body></html>
+
+[attachments]

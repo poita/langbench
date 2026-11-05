@@ -1,0 +1,121 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-003 #52
+9 PAY A ember 1
+10 PASS A
+11 PLAY B ~2 #47 CIN-003 #26
+12 PAY B ember 1
+13 PASS B
+14 PLAY A ~3 #24 CIN-011 #26
+15 PAY A ember 1
+16 PASS A
+17 PLAY B ~4 #51 CIN-022 #52
+18 PAY B ember 2
+19 PASS B
+20 PLAY A ~5 #25 LOM-014 #26
+21 PAY A ember 1
+22 PASS A
+23 PLAY B ~6 #50 TID-028
+24 PAY B ember 1
+25 PASS B
+26 PLAY A ~7 #22 CIN-003 B
+27 PAY A ember 1
+28 PASS A
+29 PLAY B ~8 #48 CIN-003 A
+30 PAY B ember 1
+STATE BEGIN
+turn 1 active A phase main1 decision B priority
+player A spire 40 ember 47 cap 51 vault 20 hand 1 ash 0 rift 0
+player B spire 40 ember 45 cap 50 vault 20 hand 1 ash 0 rift 0
+hand A 1 #23 CIN-003
+hand B 1 #49 CIN-003
+field A #26 TOK-001 1/1 w0 c0 ready - kw -
+field B #52 TOK-003 0/3 w0 c0 ready - kw plating:1
+chain 1 ~1 A rite #21 0 #52
+chain 2 ~2 B rite #47 0 #26
+chain 3 ~3 A rite #24 0 #26
+chain 4 ~4 B rite #51 0 #52
+chain 5 ~5 A rite #25 0 #26
+chain 6 ~6 B rite #50 0
+chain 7 ~7 A rite #22 0 B
+chain 8 ~8 B rite #48 0 A
+STATE END
+LEGAL BEGIN B priority
+PASS
+PLAY 1 CIN-003 A
+PLAY 1 CIN-003 B
+PLAY 1 CIN-003 #26
+PLAY 1 CIN-003 #52
+LEGAL END
+31 PASS B
+32 PASS A
+33 RESOLVE ~8
+34 DAMAGE #48 A 2
+35 SPIRE A -2 38
+36 SPENT #48 CIN-003
+37 PASS A
+38 PASS B
+39 RESOLVE ~7
+40 DAMAGE #22 B 2
+41 SPIRE B -2 38
+42 SPENT #22 CIN-003
+43 PASS A
+44 PASS B
+45 RESOLVE ~6
+46 SHIELD B 3 3
+47 SPENT #50 TID-028
+48 PASS A
+49 PASS B
+50 RESOLVE ~5
+51 BUFF #26 0 3
+52 WARD #26 2 2
+53 SPENT #25 LOM-014
+54 PASS A
+55 PASS B
+56 RESOLVE ~4
+57 WARD #52 3 3
+58 BUFF #52 0 1
+59 SPENT #51 CIN-022
+60 PASS A
+61 PASS B
+62 RESOLVE ~3
+63 BUFF #26 2 0
+64 GRANT #26 pierce
+65 SPENT #24 CIN-011
+66 PASS A
+67 PASS B
+68 RESOLVE ~2
+69 PREVENT #26 2
+70 SPENT #47 CIN-003
+71 PASS A
+72 PASS B
+73 RESOLVE ~1
+74 PREVENT #52 2
+75 SPENT #21 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 38 ember 47 cap 51 vault 20 hand 1 ash 4 rift 0
+player B spire 38 ember 45 cap 50 vault 20 hand 1 ash 4 rift 0
+hand A 1 #23 CIN-003
+hand B 1 #49 CIN-003
+field A #26 TOK-001 3/4 w0 c0 ready - kw pierce
+field B #52 TOK-003 0/4 w0 c0 ready ward2 kw plating:1
+ash A 1 #22 CIN-003
+ash A 2 #25 LOM-014
+ash A 3 #24 CIN-011
+ash A 4 #21 CIN-003
+ash B 1 #48 CIN-003
+ash B 2 #50 TID-028
+ash B 3 #51 CIN-022
+ash B 4 #47 CIN-003
+effect 1 ts3 A turn modify 0 3 on #26
+effect 2 ts4 B turn modify 0 1 on #52
+effect 3 ts5 A turn modify 2 0 on #26
+effect 4 ts6 A turn grant pierce on #26
+STATE END
+76 RESULT pending none

@@ -1,0 +1,77 @@
+[message]
+id 0037
+source "mbox:37"
+
+[headers]
+received: "from dev.example.io (mx1.example.org [152.50.197.88]) by students.example.ac.jp (Postfix) with ESMTP id 7CD7406265 for <xnguyen@apache.org>; Tue, 11 Jan 2004 08:56:26 UT"
+received: "from students.example.ac.jp (mx6.corp.example.co.uk [41.73.148.95]) by mail.example.net (Postfix) with ESMTP id 1194B6709F for <btaylor@post.example.fr>; Wed, 23 May 2003 10:43:12 -0700"
+received: "from corp.example.co.uk (mx7.mail.example.net [199.97.246.15]) by corp.example.co.uk (Postfix) with ESMTP id 59FD417F99 for <cvanderberg.95@eu.example.de>; thu,6 aug 2005 16:34:24 (comment (nested)) +1245"
+return-path: "<kpetrov@apache.org>"
+message-id: "<285.1f7f6f7f.37369@post.example.fr>"
+in-reply-to: "<290.e257f557.14041@dev.example.io>"
+references: "<286.2317f085.22120@apache.org> <287.225de74f.13921@dev.example.io> <288.b7f0367f.63999@example.com> <289.2a05486a.7379@mail.example.net> <290.e257f557.14041@dev.example.io>"
+date: "Mon, 06 May 2005 17:03:29 -0330 (GMT)"
+from: "Chloé Doe <cdoe@students.example.ac.jp>"
+to: "Luis Smith <lsmith.22@mail.example.net>, Pierre van der Berg <pvanderberg@students.example.ac.jp>"
+cc: "kschrder.92@mail.example.net, dubois@example.com"
+subject: "Re: [PATCH] One have light they he a make are"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_FF4AF4E5409BE06\""
+
+[addresses]
+from 0 display="Chloé Doe" spec="cdoe@students.example.ac.jp"
+to 0 display="Luis Smith" spec="lsmith.22@mail.example.net"
+to 1 display="Pierre van der Berg" spec="pvanderberg@students.example.ac.jp"
+cc 0 display="" spec="kschrder.92@mail.example.net"
+cc 1 display="" spec="dubois@example.com"
+
+[date]
+raw " Mon, 06 May 2005 17:03:29 -0330 (GMT)"
+valid yes
+utc 2005-05-06T20:33:29Z
+offset -0330
+epoch 1115411609
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_FF4AF4E5409BE06" parts=3 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=quoted-printable size=1044 adler32=b2915fd4 role=text
+  2 text/x-diff charset=utf-8 cte=7bit disposition=inline filename="café_about.patch" size=4543 adler32=4413a9ae role=attachment
+  3 text/x-diff charset=utf-8 cte=quoted-printable disposition=inline filename="use_by_in_think.patch" size=2580 adler32=38292cfd role=attachment
+
+[body]
+text 1 chars 1044
+| New they for the config it ssl use fiancée of more place thread this a
+| my? Are word I much their other pool that before response went.
+| 
+| Of but is get then him out a mean she review now. This the air a under
+| day request then of. Low each say response is play end came apr and this
+| picture.
+| 
+| Or point down line the no! Came where little find and coöperate come the
+| a has! Is as any of only you could with spell were hook proxy water of?
+| And that he him the at year. They the from they live me it from them did
+| or way a his is the was first!
+| 
+| One one so these does. From a commit want as this come are are the under
+| write. Before no out the with. A the great if of hot the the filter.
+| Went this who live and Ångström config can there many animal are the
+| use. Form to thread will the down Straße read if word have see them big!
+| Will there to where of brûlée brigade him work.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| William Østergaard
+html none
+
+[attachments]
+2 type=text/x-diff filename="café_about.patch" size=4543 adler32=4413a9ae file=parts/0037/002.bin
+3 type=text/x-diff filename="use_by_in_think.patch" size=2580 adler32=38292cfd file=parts/0037/003.bin

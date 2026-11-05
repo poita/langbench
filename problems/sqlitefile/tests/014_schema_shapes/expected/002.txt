@@ -1,0 +1,2 @@
+CREATE TABLE intpk(code INT PRIMARY KEY, label TEXT, score REAL);
+CREATE INDEX intpk_label ON intpk(label);

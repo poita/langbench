@@ -1,0 +1,16 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "const": null
+  },
+  "tests": [
+    {
+      "description": "null is valid",
+      "data": null
+    },
+    {
+      "description": "not null is invalid",
+      "data": 0
+    }
+  ]
+}

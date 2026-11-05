@@ -1,0 +1,5 @@
+put "b" 2
+put "a" {name:"ada",age:36}
+get "a"
+scan
+stat

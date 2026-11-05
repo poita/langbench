@@ -1,0 +1,13 @@
++++
+title = "The Mice in Council"
+date = "2019-02-23"
+slug = "the-mice-in-council"
+tags = ["Fables"]
++++
+**THE MICE** summoned a council to decide how they might best devise means
+of warning themselves of the approach of their great enemy the Cat.
+Among the many plans suggested, the one that found most favour was the
+proposal to tie a bell to the neck of the Cat, so that the Mice, being
+warned by the sound of the tinkling, might run away and hide themselves
+in their holes at his approach. But when the Mice further debated who
+among them should thus “bell the Cat,” there was no one found to do it.

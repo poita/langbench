@@ -1,0 +1,25 @@
+3
+abc
+
+defgh
+goto 5 0
+print
+goto 0 99
+print
+goto 1 3
+print
+goto 2 1000000000
+print
+goto 1000000000 1000000000
+print
+add-cursor 7 7
+print
+add-cursor 0 50
+print
+add-cursor 1 50
+print
+insert +
+print
+goto 2 5
+add-cursor 2 6
+print

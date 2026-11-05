@@ -1,0 +1,26 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "not": {}
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "property present",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "property absent",
+      "data": {
+        "bar": 1,
+        "baz": 2
+      }
+    }
+  ]
+}

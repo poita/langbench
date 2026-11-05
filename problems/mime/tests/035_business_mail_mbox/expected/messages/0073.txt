@@ -1,0 +1,84 @@
+[message]
+id 0073
+source "mbox:73"
+
+[headers]
+received: "from apache.org (mx9.eu.example.de [42.222.142.27]) by post.example.fr (Postfix) with ESMTP id 1654B36768 for <bmller@lists.example.edu>; 4 NOV 09 23:45 -0400"
+received: "from post.example.fr (mx4.corp.example.co.uk [204.64.89.139]) by apache.org (Postfix) with ESMTP id E67485A643 for <xpetrov.40@example.org>; 15 NOV 03 18:53 +0900"
+return-path: "<ylefvre.11@eu.example.de>"
+message-id: "<723.17c0eacf.57220@dev.example.io>"
+date: "Fri, 01 May 2004 20:10:41 +0530 (CET)"
+from: "Fiona Smith <fsmith@eu.example.de>"
+reply-to: "Tomás Lefèvre <tlefvre@students.example.ac.jp>"
+to: "Björn Rossi <brossi.73@example.org>"
+cc: "Olga Иванов <o.91@apache.org>"
+subject: "Fwd: By only to and off it from trunk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 331\""
+
+[addresses]
+from 0 display="Fiona Smith" spec="fsmith@eu.example.de"
+reply-to 0 display="Tomás Lefèvre" spec="tlefvre@students.example.ac.jp"
+to 0 display="Björn Rossi" spec="brossi.73@example.org"
+cc 0 display="Olga Иванов" spec="o.91@apache.org"
+
+[date]
+raw " Fri, 01 May 2004 20:10:41 +0530 (CET)"
+valid yes
+utc 2004-05-01T14:40:41Z
+offset +0530
+epoch 1083422441
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 331" parts=5 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="000000000000f10b041404bb" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="----=_Part_1653_332348117.431444287211" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=windows-1252 cte=8bit size=599 adler32=ec36d1cb role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=947 adler32=1c2c470b role=html
+    5 image/png cte=base64 disposition=attachment filename="for_and_one_as.png" size=734 adler32=688d691b role=attachment
+  6 application/zip cte=base64 disposition=inline filename="in.zip" size=7985 adler32=a5df81b6 role=attachment
+  7 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="by_I.docx" size=6966 adler32=457b54cb role=attachment
+  8 application/zip cte=base64 disposition=inline filename="Málaga_the_down.zip" size=2110 adler32=fde2015d role=attachment
+  9 application/pdf cte=base64 disposition=inline filename="your_the.pdf" size=1784 adler32=0efc6ded role=attachment
+
+[body]
+text 3 chars 599
+| Straße are word by even name want large header all and at it way new
+| very warning. This only the off at from.
+| 
+| It it act he by déjà we my water you vote? The word land each the the
+| her was which old our it number! Read picture help give the the! A how
+| but can up. Spell in you like by or it the the home build word and line
+| branch!
+| 
+| Point hook mother was move the it the in at the is of vote some and
+| made. One Kraków façade two and that to at your is said must some. Want
+| hand the to what backport see many this land branch put. There look the
+| get trunk the apr and father would!
+| 
+| -- 
+| François Kim
+html 4 chars 941
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Straße are word by even name want large header all and at it way new<br>
+| very warning. This only the off at from.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">It it act he by déjà we my water you vote? The word land each the the<br>
+| her was which old our it number! Read picture help give the the! A how<br>
+| but can up. Spell in you like by or it the the home build word and line<br>
+| branch!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Point hook mother was move the it the in at the is of vote some and<br>
+| made. One Kraków façade two and that to at your is said must some. Want<br>
+| hand the to what backport see many this land branch put. There look the<br>
+| get trunk the apr and father would!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| François Kim<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="for_and_one_as.png" size=734 adler32=688d691b file=parts/0073/005.bin
+6 type=application/zip filename="in.zip" size=7985 adler32=a5df81b6 file=parts/0073/006.bin
+7 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="by_I.docx" size=6966 adler32=457b54cb file=parts/0073/007.bin
+8 type=application/zip filename="Málaga_the_down.zip" size=2110 adler32=fde2015d file=parts/0073/008.bin
+9 type=application/pdf filename="your_the.pdf" size=1784 adler32=0efc6ded file=parts/0073/009.bin

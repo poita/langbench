@@ -1,0 +1,7 @@
+step 1: build (default) -j 1
+  error E_NO_BUILD_FILE main.kiln
+step 2: create main.kiln
+  ok size=82
+step 3: build (default) -j 1
+  run 0 1 w0 out/hello.txt write("hello\n")
+  ok ran=1 hit=0 time=1

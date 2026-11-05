@@ -1,0 +1,7 @@
+3 4 + => 7
+x y - => 6
+2 3 4 * + => 14
+x 0 / => error: divide by zero
+z 1 + => error: unbound z
+1 2 => error: leftover
+5 1 2 + 4 * + 3 - => 14

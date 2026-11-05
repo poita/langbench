@@ -1,0 +1,32 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "with only the nested evaluated property",
+      "data": {
+        "foo": {
+          "bar": "foo"
+        }
+      }
+    },
+    {
+      "description": "with an unevaluated property that exists at another location",
+      "data": {
+        "foo": {
+          "bar": "foo"
+        },
+        "bar": "bar"
+      }
+    }
+  ]
+}

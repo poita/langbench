@@ -1,0 +1,205 @@
+[1] ok put created
+[2] ok put created
+[3] ok indexes 0
+[4] ok checkpoint pages 2
+[5] ok scan 0
+[6] ok find 1 plan scan
+  "k00004" = false
+[7] ok put created
+[8] ok put created
+[9] ok create index name entries 1
+[10] ok find 0 plan scan
+[11] ok put created
+[12] ok put created
+[13] ok find 1 plan scan
+  "k00000" = {"age":31,"name":"n15"}
+[14] ok scan 3
+  "k00022" = {"age":11,"tag":"t"}
+  "k00016" = {"age":18,"name":"n19"}
+  "k00013" = {"age":9,"name":"n04"}
+[15] ok begin
+[16] ok find 2 plan scan
+  "k00000" = {"age":31,"name":"n15"}
+  "k00004" = false
+[17] ok put created
+[18] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 7
+  root 2
+  height 1
+  commits 7
+  indexes 1
+  wal 12728
+[19] error txn-active
+[20] ok delete removed
+[21] ok put created
+[22] ok put created
+[23] error not-found
+[24] ok put created
+[25] ok put created
+[26] error not-found
+[27] ok put created
+[28] error not-object
+[29] error not-found
+[30] ok scan 0
+[31] ok put created
+[32] error not-found
+[33] ok put created
+[34] ok put created
+[35] ok put replaced
+[36] ok put replaced
+[37] ok create index age entries 4
+[38] ok scan 3
+  "k00013"
+  "k00016"
+  "k00017"
+[39] ok put replaced
+[40] error not-found
+[41] error not-found
+[42] ok commit 8 frames 6
+[43] ok put created
+[44] ok stat
+  pages 6
+  free 0
+  freehead 0
+  docs 15
+  root 5
+  height 2
+  commits 9
+  indexes 2
+  wal 22208
+[45] ok delete removed
+[46] ok delete removed
+[47] ok put replaced
+[48] ok indexes 2
+  0 name root 3 entries 3
+  1 age root 6 entries 3
+[49] error not-found
+[50] ok put replaced
+[51] error not-found
+[52] ok delete removed
+[53] error not-found
+[54] ok unset updated
+[55] ok scan 0
+[56] ok scan 3
+  "k00020"
+  "k00019"
+  "k00018"
+[57] ok delete removed
+[58] ok begin
+[59] ok drop index name pages 1
+[60] error not-object
+[61] ok put created
+[62] ok put created
+[63] ok delete removed
+[64] ok get value
+  false
+[65] ok put replaced
+[66] ok stat
+  pages 6
+  free 1
+  freehead 4
+  docs 12
+  root 2
+  height 1
+  commits 16
+  indexes 1
+  wal 50672
+[67] ok get value
+  true
+[68] ok find 0 plan scan
+[69] ok rollback
+[70] ok put created
+[71] ok scan 2
+  "k00000"
+  "k00001"
+[72] error index-exists
+[73] ok begin
+[74] ok put replaced
+[75] error not-object
+[76] error not-object
+[77] ok put created
+[78] error not-found
+[79] ok find 0 plan scan
+[80] ok put replaced
+[81] error not-object
+[82] ok put replaced
+[83] ok put replaced
+[84] ok put created
+[85] ok rollback
+[86] error not-found
+[87] ok begin
+[88] ok put created
+[89] ok put created
+[90] ok put replaced
+[91] error index-missing
+[92] ok rollback
+[93] ok delete removed
+[94] ok put created
+[95] ok scan 3
+  "k00006"
+  "k00008"
+  "k00009"
+[96] error not-found
+[97] error not-found
+[98] ok put created
+[99] ok put created
+[100] ok put created
+[101] ok stat
+  pages 8
+  free 0
+  freehead 0
+  docs 15
+  root 8
+  height 2
+  commits 22
+  indexes 2
+  wal 70728
+[102] ok checkpoint pages 8
+[103] ok update updated
+[104] ok put created
+[105] ok put created
+[106] ok put created
+[107] error index-exists
+[108] ok scan 4
+  "k00003"
+  "k00002"
+  "k00001"
+  "k00000"
+[109] error not-object
+[110] error not-object
+[111] error not-found
+[112] ok put replaced
+[113] ok scan 0
+[114] ok put replaced
+[115] ok scan 2
+  "k00000"
+  "k00001"
+[116] ok put replaced
+[117] ok unset updated
+[118] ok get value
+  true
+[119] ok put replaced
+[120] ok begin
+[121] ok commit 32 frames 1
+[122] ok stat
+  pages 10
+  free 0
+  freehead 0
+  docs 18
+  root 8
+  height 2
+  commits 32
+  indexes 2
+  wal 30664
+[123] ok indexes 2
+  0 name root 3 entries 4
+  1 age root 6 entries 4
+[124] ok scan 5
+  "k00000"
+  "k00001"
+  "k00002"
+  "k00003"
+  "k00004"

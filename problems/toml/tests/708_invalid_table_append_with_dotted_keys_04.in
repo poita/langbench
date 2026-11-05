@@ -1,0 +1,9 @@
+decode
+[dependencies.foo]
+version = "0.16"
+
+[dependencies]
+libc = "0.2"
+
+[dependencies]
+rand = "0.3.14"

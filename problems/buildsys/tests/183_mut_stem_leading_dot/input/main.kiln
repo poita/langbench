@@ -1,0 +1,10 @@
+step {
+    out "out/l0.txt"
+    cmd write("{stem(".hidden")}|{ext(".hidden")}|{stem("d/.x.y")}|{ext("d/.x.y")}\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{stem("..")}|{ext("..")}|{stem("a/.")}|{ext("a/.")}\n")
+}
+default "out/l1.txt"

@@ -1,0 +1,12 @@
+% a comment line
+edge(1,2).edge(2,
+	3). % trailing comment
+
+  path(X,Y):-edge(X,Y).
+path(X,
+Z) :-
+  edge(X,Y),
+  path(Y,Z).   %%% more
+?-path(1,X).
+?- path(X, 3) .
+%?- path(9, 9).

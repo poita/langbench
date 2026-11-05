@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block title %}{{ super() }}{% if pagination.number > 1 %} (page {{ pagination.number }}){% endif %}{% endblock %}
+{% block main %}
+<table class="papers">
+<tr><th>#</th><th>Paper</th><th>Published</th></tr>
+{%- for post in posts %}
+<tr><td>{{ (pagination.number - 1) * site.posts_per_page + loop.index }}</td><td><a href="{{ post.url }}">{{ post.title }}</a></td><td>{{ post.date }}</td></tr>
+{%- endfor %}
+</table>
+<p class="pager">
+{%- for l in pagination.links %}{% if l.current %}[{{ l.number }}]{% else %}<a href="{{ l.url }}">{{ l.number }}</a>{% endif %} {% endfor %}
+</p>
+{% endblock %}

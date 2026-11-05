@@ -1,0 +1,677 @@
+672971d66a2ef9f85151e53283113f33d642dabd David Lord 1749933342 Merge branch 'stable'
+b0410878b9e46bd4c008eeac8cf4ed3d345e69b4 David Lord 1749931657 remove slsa provenance (#408)
+584138c73af1fc7701d37716543826dcfa314fc4 David Lord 1749931486 remove slsa provenance
+8953020d029bfc9f9d5a4f853e6dafd11a54a902 David Lord 1749761848 Merge branch 'stable'
+f593a0584f2efe929200a20fd1f78f2c3e1dcb04 David Lord 1749761814 svg logo
+73ad98e8629e67a85bf47a525aa7e5c8489e447c David Lord 1749669072 Merge branch 'stable'
+0b92f16a59022b5756311b1ca5ebd67aabef9371 David Lord 1749669063 svg logo (#407)
+38774c9ae5f73312fdfe2abc1267cf19dccb4d21 David Lord 1749668956 svg logo
+31f46a3469dbfb2ecf83dd0c4297c1efc508fcca David Lord 1748466234 remove previously deprecated code (#406)
+4bb03cd6819228f30079885297299fe568a62863 David Lord 1748465894 remove previously deprecated code
+4dffa1963f896a0a311dec3c14f003a5f382c446 David Lord 1748465830 drop end of life python versions (#405)
+7edfa12ed562c5d5e9d6faa06812e42f02efb0e0 David Lord 1748465692 drop end of life python versions
+117218e006641644a038772e557a3ae6cb1448a1 David Lord 1748465471 Merge branch 'stable'
+09a8e058a9cca4cae9fb993d936957278cbec151 David Lord 1748465363 Update project to use uv for dependency management (#404)
+c294b2fb47447d83be02470525c9c6292ce5fd74 David Lord 1748465271 fix pyright findings
+91952b90cd5c9e8b36f20a2bf05e0496e55c13c3 Adam Englander 1747792417 use uv
+1ad903dddad0e38b6ab25be5e4e7a9189cc5a9a4 David Lord 1736891136 use global contributing guide (#401)
+11b0f7ebb0c96ac8af6b42b4b139adf6c627e537 David Lord 1736891025 use global contributing guide
+62fde54d4ff717fa1c4af688dbebf97845fed495 David Lord 1729799487 update test workflow trigger
+29e0cdfc8cf9db2a6128a3aa929c585348295c9d David Lord 1729799483 Merge branch 'stable'
+044bb34b2ac4b8cd5d0ed278d94aba00844e9b9c David Lord 1729799465 update test workflow trigger
+f8459e3d6cd5b40b9581b10456f439d4dd0a785d David Lord 1729797241 Merge branch 'stable'
+51bd702e0c8e7959eea10c93b39027f2d61fbb14 David Lord 1729797232 update dev dependencies
+7f245362a2607893747bf45303e7c241ed1589d5 David Lord 1725206653 set up pre-commit lite workflow
+50e6b624d86b6770bbf433f2617ff17fd628a053 David Lord 1725205682 set up pre-commit lite workflow
+7619f947956abe992c2cb9ad946584dfb3b86b0d David Lord 1725204746 set up pre-commit lite workflow
+0df2193cd68d9fc69008764e8cffb2b9d3e238f7 David Lord 1724461864 remove pre-commit.ci update
+d408c5ef2ae186d2f4d768ac502298047f301797 David Lord 1724459866 Merge branch '2.2.x'
+2b4057a393a3a3ac30ffec644f3985bfbd4ef155 David Lord 1724459809 update dev dependencies
+ad4174f458fc4b532ecad91f592ce42408b4f4a0 David Lord 1724459612 add gha-update, remove dependabot
+e9620514720116f76dc3884e0c6b2bd651b1c9a8 David Lord 1722958249 [pre-commit.ci] pre-commit autoupdate (#396)
+4bf8d6fd809be4023012439bdf90155c5b300430 pre-commit-ci[bot] 1722899363 [pre-commit.ci] pre-commit autoupdate
+3b42a1f39d36cb2333b4a1c9b17533cda4d3f645 David Lord 1722695322 Bump the github-actions group with 3 updates (#395)
+a72b0d7729b49bcb75a3b079d93c62dae7b8d6af dependabot[bot] 1722524052 Bump the github-actions group with 3 updates
+e9881e55236f64c5dfe99f7b6428ef109dc020fa David Lord 1719919016 [pre-commit.ci] pre-commit autoupdate (#393)
+afe72f9c29f8224bd485fb3f85596de5e73b0ed3 pre-commit-ci[bot] 1719879334 [pre-commit.ci] pre-commit autoupdate
+14301495f3b1f6c98708909ab94f5b276fa51a98 David Lord 1719875616 Bump the python-requirements group in /requirements with 4 updates (#391)
+0f354a34b2bfb3db21a8d140816ad970bbe4f0e4 David Lord 1719863755 Bump the github-actions group with 2 updates (#392)
+0f151b6c756b8ad59061c42fd9060eb23351e594 dependabot[bot] 1719844976 Bump the github-actions group with 2 updates
+faa2f04ee3901c462d4b300118777768332a08e9 dependabot[bot] 1719843773 Bump the python-requirements group in /requirements with 4 updates
+43e3ac27aa5495b087f61bfc9a54db2ac3b7f974 David Lord 1717453539 [pre-commit.ci] pre-commit autoupdate (#390)
+5bb67722a5ad082cb0dbb1c8fbb404a9d9955943 pre-commit-ci[bot] 1717452649 [pre-commit.ci] pre-commit autoupdate
+582a23c3bf8195c096c245458aeb645dae72134d David Lord 1717251585 Bump actions/checkout from 4.1.4 to 4.1.6 in the github-actions group (#388)
+9c83cb4cb9f85bc76e3b7b3036eb0935d4987218 dependabot[bot] 1717251333 Bump actions/checkout from 4.1.4 to 4.1.6 in the github-actions group
+fc61ea1e57a935d3fafe6caef35bdd9b97418448 David Lord 1717251266 Bump the python-requirements group in /requirements with 4 updates (#387)
+5876a08e6803ce402a5976937e81198dbf6fc1bc dependabot[bot] 1717251070 Bump the python-requirements group in /requirements with 4 updates
+6567d656f0386cfe647c9ad5cdfc59e68150487c David Lord 1715448918 Merge branch '2.2.x'
+6ca10918f91a4903d7cab480ae2084441fe01e72 David Lord 1715448905 test with python 3.13 (#385)
+2da4fabb221369bdcc276dd0e565524013e1af16 David Lord 1715448423 test with python 3.13
+b815a03f394f8186e4e48c5d973292ca0e88fc99 David Lord 1715034544 [pre-commit.ci] pre-commit autoupdate (#384)
+c1c530b601d5f9cebf79b93f578f31bc9d7ea873 pre-commit-ci[bot] 1715033142 [pre-commit.ci] pre-commit autoupdate
+5feb31a83b11ca684e3060492244137d680a9add David Lord 1714575311 Bump the github-actions group with 2 updates (#383)
+d00108ed18635c595f821c87b17dde84a1db5876 dependabot[bot] 1714575144 Bump the github-actions group with 2 updates
+f17d65d6853e05f25f1c0179e0f5821dd07f2285 David Lord 1714575066 Bump the python-requirements group in /requirements with 5 updates (#382)
+2c98f9d61f38c707cae8ddd82a90e7544f0830ee dependabot[bot] 1714574813 Bump the python-requirements group in /requirements with 5 updates
+f824f3d955b17e0da5afacc5e4a51bfbf6672b8d David Lord 1713915849 Bump the python-requirements group in /requirements with 4 updates (#381)
+4f269f6f0426fd361072630566ee86a833698928 David Lord 1713915835 Bump the github-actions group with 4 updates (#380)
+a21926b237d6ad8b46cacc449472671d491ccdb5 dependabot[bot] 1713915313 Bump the python-requirements group in /requirements with 4 updates
+c9a0604a473b1d3ad0e12bc8b0af54b82a2b8e30 dependabot[bot] 1713915188 Bump the github-actions group with 4 updates
+1285985dac688fd734016b6d905ab6c644f2f1ff David Lord 1713915144 unignore upload/download-artifact
+3ddb1ce418712d02f674a171b3f13ab20f6839a7 David Lord 1713303276 Merge remote-tracking branch 'origin/2.1.x'
+060bb1cb68dfd90375be57d6ebec79a0a7b4de6d David Lord 1713303035 release 2.2.0 (#379)
+096c8d42545d3b68ea21a4f890fb2b2d8979c0bd David Lord 1713302360 release version 2.2.0
+2f69e841d2a979c616a55b226e444694f5d9c962 David Lord 1713298162 support FIPS builds without SHA-1 (#378)
+7f4dcf83a07bb3d53f4e0e65ef1b43327b4cca90 David Lord 1713297956 access sha1 lazily
+93ae366874bbd4f69d90495c45b2cd336387496c David Lord 1713286826 change entry for generic serializer
+135eb234ed4a07520779ffb679407b7d27c8ffe6 David Lord 1713286102 Generic serializer (#377)
+999ce7af1f0502a224d33338e6ded8bc1e81cb2f Daverball 1713080337 Improve generic typing further
+52890d78bb6d92eac4d8d84f33f61be8bd803da7 David Lord 1713043072 improve generic typing
+385c0eb7501b121b1fddafe19c547073f5a458a0 David Lord 1713041728 type `Serializer` as generic (#374)
+01001c63af4a1c58b65328b2aad3df75a6edc843 David Lord 1713037262 type Serializer as generic
+bc88e945d31c407e16c3f4e1c713c12dd598e58d David Lord 1713034504 improve typing (#373)
+69a3bca7582859bc8ce83ccc28b0cf33f7909388 David Lord 1713034388 improve typing
+0f15cf139d05d299ce98c9f917442bd0d79ab11c David Lord 1713030922 fix pr link
+53efacdf1136edb9462aeca221023a8f9bbd79a9 David Lord 1713030860 drop support for Python 3.7 (#372)
+f02e32dc3a129eb735aabf507fd6c0c4c9627d72 David Lord 1713030546 drop support for Python 3.7
+1e9550e9c30a1a9c346fed78815c4b23573ffb73 David Lord 1713030144 deprecate `__version__` (#371)
+672f44bcff4a7499665dc9b5de9b14dcd3b0fcb9 David Lord 1713029911 deprecate __version__
+05c805fce50a058ecc72ecbb91d02c98dc4a82ac David Lord 1712960701 update project files (#369)
+9a25d989cd65c4991c2c8ac46ef55e0e8dfe49ab David Lord 1712960120 update project files
+11e882bb4a74d571bed0e3f6b4e004eeb2daa970 David Lord 1711687212 update dev dependencies
+64abe505243bcf6c9581b3e5290d88f0e1eff141 David Lord 1701728823 [pre-commit.ci] pre-commit autoupdate (#363)
+a3ad6e46bdcb737832ab31810f91c58528dbcf9a pre-commit-ci[bot] 1701721769 [pre-commit.ci] pre-commit autoupdate
+7c6286ed2125c87662eeb102b32fb3d68611a5d6 David Lord 1694016046 Bump actions/checkout from 3.5.3 to 3.6.0 (#359)
+3c90c621613cd4346233ff80666018bb57cb3f6f David Lord 1694016034 Bump slsa-framework/slsa-github-generator from 1.7.0 to 1.9.0 (#358)
+cd1c4226cf3e8301ad6193cfccc9202045b98672 David Lord 1694016016 Bump pypa/gh-action-pypi-publish from 1.8.8 to 1.8.10 (#357)
+94955a009b30ceeb2efbf2a01a2fff55b53a8a72 dependabot[bot] 1693584729 Bump actions/checkout from 3.5.3 to 3.6.0
+5936c9c89474647bef56ae2ac335d376a97f9f77 dependabot[bot] 1693584725 Bump slsa-framework/slsa-github-generator from 1.7.0 to 1.9.0
+74c96ded8a12580dc9f406f31d2ca8d21150b8f9 dependabot[bot] 1693584720 Bump pypa/gh-action-pypi-publish from 1.8.8 to 1.8.10
+fdd143efad87f23c3fb972321e28f31c85424f5f David Lord 1690906609 Bump actions/setup-python from 4.6.1 to 4.7.0 (#355)
+ca9209cc5ea4c0f1f867bd2682b53a9c5a77d8b2 David Lord 1690906600 Bump pypa/gh-action-pypi-publish from 1.8.7 to 1.8.8 (#356)
+62d9a445c0570334d046459ef3b76509c1d6817c dependabot[bot] 1690906263 Bump pypa/gh-action-pypi-publish from 1.8.7 to 1.8.8
+e28e55b71ea94861c507bddfd075c563fa7322b8 dependabot[bot] 1690906259 Bump actions/setup-python from 4.6.1 to 4.7.0
+119bccd1444c31933f29e8441c9e27e93231a31c David Lord 1690900667 [pre-commit.ci] pre-commit autoupdate (#354)
+7678d9e90386f0612aa8fed567d6dc6ad0c3020d pre-commit-ci[bot] 1690879545 [pre-commit.ci] pre-commit autoupdate
+02f3dcf612e8939fee251db2d0b3eb842488b6e7 David Lord 1688476696 [pre-commit.ci] pre-commit autoupdate (#353)
+a38e573e8b51f6740d7867517f98a3a30034045f pre-commit-ci[bot] 1688452600 [pre-commit.ci] pre-commit autoupdate
+5837e6decbd3e441832446475fbc57ff22debc9a David Lord 1688228608 Bump actions/checkout from 3.5.2 to 3.5.3 (#352)
+cd942b71c26df339a69f6f422e4f1040ed2f2809 David Lord 1688228599 Bump slsa-framework/slsa-github-generator from 1.6.0 to 1.7.0 (#351)
+cde443385455740657205880317b7118a077b394 David Lord 1688228593 Bump pypa/gh-action-pypi-publish from 1.8.6 to 1.8.7 (#350)
+eec13be7d1eec8f900295a68a86a025d2095c0cc David Lord 1688228586 Bump dessant/lock-threads from 4.0.0 to 4.0.1 (#349)
+b3c0de070a3342ffd812ab3515bf63ffd5441ce3 dependabot[bot] 1688228158 Bump actions/checkout from 3.5.2 to 3.5.3
+e46a1fe93f51713dfc455412aa6ca291241db0cd dependabot[bot] 1688228155 Bump slsa-framework/slsa-github-generator from 1.6.0 to 1.7.0
+da7637b94834872ee28aa88404e86fd8fcd92401 dependabot[bot] 1688228152 Bump pypa/gh-action-pypi-publish from 1.8.6 to 1.8.7
+3ac238d8464d47fd0f7ca5a9806d7716cb6a33f5 dependabot[bot] 1688228148 Bump dessant/lock-threads from 4.0.0 to 4.0.1
+0ab63df6732eafccf36cd3ee2ceb888fde3ae820 David Lord 1687978916 switch to flit build backend (#348)
+d65fa7a16b0807448c331b7de98e6b270096072d David Lord 1687978736 switch to flit build backend
+aef6c59378ca2d5698d91d771e5277efb415f77f David Lord 1687880476 Merge branch '2.1.x'
+c15f434e2fe0c8fc1d6fe8f0df0ea384c8b335ac David Lord 1687880448 update dependencies
+8a2fed9c06287d7086586355ac2038eb654d1b74 David Lord 1686069054 [pre-commit.ci] pre-commit autoupdate (#346)
+aa642e9ef4ed5da8fe8fafafc5864567bdb63e58 pre-commit-ci[bot] 1686025303 [pre-commit.ci] pre-commit autoupdate
+620efc9d12889da2594a0e38840512afe0a58c17 David Lord 1685651862 Merge branch '2.1.x'
+1001d4625affafe1fa3b317cbb3ab84b982170b1 David Lord 1685651797 update dependencies
+7d7daeaff7f625c71acfdcbc994a38b3b5d150a1 David Lord 1685651010 remove unused links
+be0d43556a6183d64f0c8df627d983b075ad9e90 David Lord 1685651027 update metadata
+5bbe1b40817e66e6e0f23830526564ec8b5ff88d David Lord 1685645336 Bump actions/setup-python from 4.6.0 to 4.6.1 (#345)
+ba7a71a8f0bf2e7a8cff156fdb291efc4f24c679 David Lord 1685645244 Bump pypa/gh-action-pypi-publish from 1.8.5 to 1.8.6 (#344)
+edc80db53ba209a0a5e24000c2a7c99c039ae4ad David Lord 1685645192 Bump slsa-framework/slsa-github-generator from 1.5.0 to 1.6.0 (#343)
+def089159245be7fb144f2c03327e9223683dc0e dependabot[bot] 1685638613 Bump actions/setup-python from 4.6.0 to 4.6.1
+76cb1e7abfb106ab41e24bdac63906c5598f01bf dependabot[bot] 1685638609 Bump pypa/gh-action-pypi-publish from 1.8.5 to 1.8.6
+7ca74353f54fd64bbd13fd96af342ac9c24660ae dependabot[bot] 1685638606 Bump slsa-framework/slsa-github-generator from 1.5.0 to 1.6.0
+b4943587aef3fd34514f9ae8a6d38d89222ee62f David Lord 1683032095 [pre-commit.ci] pre-commit autoupdate (#341)
+c02c0a59d9300e9d729fed436897858c8055bf24 pre-commit-ci[bot] 1683002004 [pre-commit.ci] pre-commit autoupdate
+6423621bb7a240d004ded83d8ba1715c3b5009bb David Lord 1682961718 Bump pypa/gh-action-pypi-publish from 1.8.4 to 1.8.5 (#340)
+86607bfe38b74fb50f2ed0a8482828962ccf1fda David Lord 1682961651 Bump actions/checkout from 3.5.0 to 3.5.2 (#338)
+70972f1d3d300cd2cd0948218ce3061d5e3f3f6f dependabot[bot] 1682961492 Bump actions/checkout from 3.5.0 to 3.5.2
+1bb0c0fe17f14e111d3b5c562573c9f8b9136b2d David Lord 1682961440 Bump actions/setup-python from 4.5.0 to 4.6.0 (#339)
+adc3409ca986503ba1d09ddf7bc73304eeec7bb6 dependabot[bot] 1682960241 Bump pypa/gh-action-pypi-publish from 1.8.4 to 1.8.5
+c004014326c2eab83f97ac16b1146e6fac757a64 dependabot[bot] 1682960236 Bump actions/setup-python from 4.5.0 to 4.6.0
+aeb0586a728ab23b66ef68dee9669b7c5c11e392 David Lord 1680610464 [pre-commit.ci] pre-commit autoupdate (#337)
+f46ab60a4e2cb667c765d4a58f3d86c3825291f6 pre-commit-ci[bot] 1680589883 [pre-commit.ci] pre-commit autoupdate
+697d9a5a10e18cc7b3394ab732cd689ab5423b3f David Lord 1680527797 Bump pypa/gh-action-pypi-publish from 1.6.4 to 1.8.4 (#335)
+1114d2e135446324b20ac0ce66a95ddfacd63fae David Lord 1680527787 Bump actions/cache from 3.2.6 to 3.3.1 (#336)
+24a353da8e5bd5735286cc67a18db312542c1be8 David Lord 1680527779 Bump actions/checkout from 3.3.0 to 3.5.0 (#334)
+348013636c4c5fb52444c3a8cb690f6be92f6c4c dependabot[bot] 1680368235 Bump actions/cache from 3.2.6 to 3.3.1
+acb330267fb2e721f0789e120b985d0057810d9d dependabot[bot] 1680368230 Bump pypa/gh-action-pypi-publish from 1.6.4 to 1.8.4
+df642983c79964a51998d8eb5f6f16da8c1c2a3c dependabot[bot] 1680368226 Bump actions/checkout from 3.3.0 to 3.5.0
+dc33f8d6b40cdce3816d0002ee44921196326825 David Lord 1678200722 [pre-commit.ci] pre-commit autoupdate (#333)
+0bf007418a16c971bcf8c44ed01923ea9b2c076f pre-commit-ci[bot] 1678161135 [pre-commit.ci] pre-commit autoupdate
+de09cad488a4d7c7bbcbcdb8e1c2dfde64325f48 David Lord 1677690286 Bump slsa-framework/slsa-github-generator from 1.4.0 to 1.5.0 (#331)
+ae73725fc9b6f8cc1928dba0c69f092c396c20c6 David Lord 1677690133 Bump actions/cache from 3.2.4 to 3.2.6 (#332)
+0eeee335495c53497bf87a1a2ebaa93eb697eeff dependabot[bot] 1677689857 Bump actions/cache from 3.2.4 to 3.2.6
+9c0fb46dc2ef69788fc447887df33a5842b24836 dependabot[bot] 1677689854 Bump slsa-framework/slsa-github-generator from 1.4.0 to 1.5.0
+c7a1848094b73b6d8a31020d626855f580bae5c7 David Lord 1675783359 Merge branch '2.1.x'
+ec4c661303b05799a7d32db16329e6398761d20e David Lord 1675782758 [pre-commit.ci] pre-commit autoupdate (#330)
+c37f158fccedba6501c72725bc13b9e1839f4970 pre-commit-ci[bot] 1675744993 [pre-commit.ci] pre-commit autoupdate
+d95cf3fd94c1010f4ca3986aa9d976b010e796f0 David Lord 1675270715 Bump actions/cache from 3.2.3 to 3.2.4 (#329)
+78471df06eadbfc245d30768aed68be3d6fda142 David Lord 1675270707 Bump actions/setup-python from 4.4.0 to 4.5.0 (#328)
+79f51b74028037c9842f413a36c768846f8651ff dependabot[bot] 1675267299 Bump actions/cache from 3.2.3 to 3.2.4
+16a27d597c295b19962e41a1f80b68c767a3e741 dependabot[bot] 1675267293 Bump actions/setup-python from 4.4.0 to 4.5.0
+4d342cb6c6efb817250d6169bc9dfeb65267780d David Lord 1674233191 Merge branch '2.1.x'
+9f430cc67270ac5ed6b8cf7970670d4eadc8c82c David Lord 1674233108 build, provenance, publish workflow (#327)
+a08f12ff18b0c4aea9490348b45ee3ca96d621e9 David Lord 1674231727 build, provenance, publish workflow
+6ebe1acaab06a76c31d00668f9a8d44d9c4a2e5b David Lord 1674139362 switch to pyproject.toml (#326)
+876ce6ff93e27aa6527b2964a2112e9dab0ab352 David Lord 1674138989 fix mypy/flake8 findings
+64fcb8776193a7b67c0038f98455376e6643993b David Lord 1674138975 switch to pyproject.toml
+49ca689daa3b80abd7ac84690baff724a6cbb56a David Lord 1673302137 set workflow permissions
+78cf8f0fcb693e961fd6b31b40f7b1e3c176a745 David Lord 1673302128 Merge branch '2.1.x'
+3dd95adcaaf07c16e37d39f2d235cb0c552face5 David Lord 1673302004 update tested python versions (#325)
+5f94c803e6881b96ce523da301579c99a24aa912 David Lord 1673301469 update tested python versions
+2fc49a4a46f955f6cdb68be175c166d022676b59 David Lord 1672759449 Bump dessant/lock-threads from 3 to 4 (#324)
+54f804eb3948fb6130d9bd818a17252a388da91f David Lord 1672759439 Bump actions/cache from 3.0.11 to 3.2.2 (#323)
+1af0e947b5277e4fe054aa80fb48a124ef554979 dependabot[bot] 1672588865 Bump dessant/lock-threads from 3 to 4
+dd9d25cf313220a07212c2862d39e5f08412257f dependabot[bot] 1672588863 Bump actions/cache from 3.0.11 to 3.2.2
+931237a806f430dc9461f2b8159338ad100d846e David Lord 1672353988 Merge branch '2.1.x'
+e095ab5be6566d86ffcc2bbafee97962e2e979c1 David Lord 1672353965 ignore flake8-bugbear B905 (#322)
+19a74d2af57e5b195aa9cf4fed57941c615d8fda Mehdi ABAAKOUK 1672334706 ignore flake8-bugbear B905
+7c88434349e140955ea8dfd10486e69f7693ff17 David Lord 1672353772 update dependencies
+71df0f9648d94b7f94e376e0429072f773352425 pre-commit-ci[bot] 1667882328 [pre-commit.ci] pre-commit autoupdate (#320)
+aa7e016aae5ddc66517b37b64377352b88d0bcb3 dependabot[bot] 1667323341 Bump actions/cache from 3.0.9 to 3.0.11 (#319)
+499a2627ee9dad70f02cf1d39472f67ce2334f30 pre-commit-ci[bot] 1667310769 [pre-commit.ci] pre-commit autoupdate (#317)
+6312a21c5ceda0889846206be53f27543080fd38 dependabot[bot] 1664719440 Bump actions/cache from 3.0.8 to 3.0.9 (#316)
+c4940f7e3e510cc38e05a892fe1657962c018884 pre-commit-ci[bot] 1664719430 [pre-commit.ci] pre-commit autoupdate (#315)
+e3f80536454bf12b94c1c65d02c8701a943ff63f dependabot[bot] 1662048541 Bump actions/cache from 3.0.5 to 3.0.8 (#314)
+5bf37a58e64f17707629c48ac78fae6e66b3d98f David Lord 1659396131 Merge pull request #313 from pallets/pre-commit-ci-update-config
+934b688d847dccea2d0cf7d0ad64bdc7521c3a33 pre-commit-ci[bot] 1659395897 [pre-commit.ci] pre-commit autoupdate
+13047062df938aec8c5667376e1de4d61cf124b8 David Lord 1659370124 Merge pull request #312 from pallets/dependabot/github_actions/actions/cache-3.0.5
+7235c29fcd7924c557f704f9eaf1e5fad5eabbf3 dependabot[bot] 1659369968 Bump actions/cache from 3.0.4 to 3.0.5
+484d5e6d3c613160cb6c9336b9454f3204702e74 David Lord 1656975524 Merge pull request #311 from pallets/dependabot/github_actions/actions/cache-3.0.4
+15af694f6a4f9b6e998b9b84259c6a699fb7e913 David Lord 1656975514 Merge pull request #310 from pallets/dependabot/github_actions/actions/setup-python-4
+42403f74c35942a41dc40062f51addac8cd6be33 David Lord 1656975509 Merge pull request #308 from pallets/pre-commit-ci-update-config
+3e80653ebb8fe6c433d060fa23417ac565cfa0dd pre-commit-ci[bot] 1656974226 [pre-commit.ci] pre-commit autoupdate
+102df2f73caed8268a7193787947a423b37ff102 dependabot[bot] 1656691577 Bump actions/cache from 3.0.3 to 3.0.4
+2036af4a7dce2bb565ba6e38c707032546e8b388 dependabot[bot] 1656691574 Bump actions/setup-python from 3 to 4
+8d5179188663db754d2f12851fb8d8eb8dda3eac David Lord 1654100213 Merge pull request #307 from pallets/dependabot/github_actions/actions/cache-3.0.3
+b758d81e7d3f44a90d4a8b33f93eafa3ee2d14a0 dependabot[bot] 1654099597 Bump actions/cache from 3.0.2 to 3.0.3
+6be730c63eebdbc68cf743469fd783ea43c856af David Lord 1651421588 Merge pull request #306 from pallets/dependabot/github_actions/actions/cache-3.0.2
+6ae1fcd8e76b6e0817d6207ada628f148e028174 dependabot[bot] 1651421019 Bump actions/cache from 3.0.1 to 3.0.2
+1e8135ebc584191af7ebbfffeaa6c33eda4a9be8 David Lord 1651154451 Merge branch '2.1.x'
+eac727902d930ddd07f2561ef17dfc98b558c70a David Lord 1651154443 update requirements
+ffe1fd6047a5b0fb03a030a5aee56597c63397b1 David Lord 1648844566 Merge branch '2.1.x'
+e47521d9d0972ebee072ffb37a023eb63d235528 David Lord 1648844548 Merge pull request #304 from pallets/update-requirements
+d72de530a5e41066969f408838a517e8faf31a84 David Lord 1648844325 update requirements
+092202a9676a7242a9a494d7a9472269dbd6e5f2 David Lord 1648829313 Merge pull request #303 from pallets/dependabot/github_actions/actions/checkout-3
+9127b08a44556a6d797455ce2fa9c0bdf60c5ec7 David Lord 1648829244 Merge pull request #302 from pallets/dependabot/github_actions/actions/cache-3.0.1
+591065c5fddad2d3bb0051c1ff106d06b2468b9f dependabot[bot] 1648829062 Bump actions/checkout from 2 to 3
+9704e2a8467e0620d4c3930c13df406d0db36df4 dependabot[bot] 1648829060 Bump actions/cache from 2 to 3.0.1
+fca4d63c1c3a443f824667405b8b7ff27c0c69d6 David Lord 1648134776 Merge branch '2.1.x'
+49d263f60b6f78df8924be51262eeb5216ab1468 David Lord 1648134602 Merge pull request #301 from pallets/release-2.1.2
+8c75d07665ddac3f9a72c1feacdb487a74ab83ea David Lord 1648134188 release version 2.1.2
+64cd581d83c0770ec5683d312cedbed06395b9ed David Lord 1648134125 Merge pull request #299 from dirkmueller/main
+3edfbbbc615be5090d452bbf8a13dfdd68436659 Dirk Müller 1648123333 handle OverflowError in timed unsign on 32-bit systems
+4712ab6f5b7ca291544ce5e2dad2beffb05291a7 David Lord 1648133737 start version 2.2.0
+f0daa0833c72a47baed68466a55f7e465096d26e David Lord 1648133708 Merge branch '2.1.x'
+faa28bccc85ee47a8274536dd3649a0b67d0a75b David Lord 1648133691 start version 2.1.2
+fbdc27c26345ef1639a635a3e656d2607b6476f5 David Lord 1646843073 Merge branch '2.1.x'
+38e9d8a417ac4e578ec422cb58e84c33b207b740 David Lord 1646842908 Merge pull request #298 from pallets/release-2.1.1
+ff131477a3bb7e280318ea2046423a3d1193ca9a David Lord 1646842492 release version 2.1.1
+2ec0dbb46b0ea8d2943d2f59091fe582dd8de283 David Lord 1646842631 Merge pull request #297 from pallets/release-2.1.1
+ae9fce4ac065a9c2eee3273a377bc973d3b2ca65 David Lord 1646842492 release version 2.1.1
+3d3dc9f0428f8ede689b2d65121d87fb70d01fce David Lord 1646839946 Merge remote-tracking branch 'origin/2.1.x'
+25494a8b4d0968b8fe92877435a62abd1aa54c47 David Lord 1646839792 Merge pull request #296 from alanhamlett/main
+177196d3a5c7ad37b8ccbd0f88445aced07f1ca0 David Lord 1646838417 catch OSError on Windows
+37f09970fa32a330a6660ded3abdb264086531b5 Alan Hamlett 1646790210 catching year overflow ValueError
+85b1e3b76e0e37473dc286450ada725cd02981b4 Alan Hamlett 1646790046 failing test for year overflow
+3b762645dab2250933311f8612989a4075100659 David Lord 1646835352 start version 2.1.1
+4f5cd46ce57cb312e6087dbc84ac5591bc1f7d5d David Lord 1646153314 Merge pull request #295 from pallets/dependabot/github_actions/actions/setup-python-3
+4c971d2243ac436781d2fe25d1493138c8be9b79 dependabot[bot] 1646150678 Bump actions/setup-python from 2 to 3
+733783b4083527ef066b8f15b22637beb7369d64 David Lord 1645155754 updates go to 2.1.x
+bfafa6541acd8c7573661d6b1545ff8e8133a43e David Lord 1645154920 Merge pull request #288 from pallets/release-2.1.0
+5b7c2d6d3bda0afcba89ffeb17a9c696681baf89 David Lord 1645154702 release version 2.1.0
+a95d94a2555121fcd5d6dc5e1a589238a788e5c0 David Lord 1645037870 unpin pytest
+bd57b17d238afa2e9199115b1d4d74c0979736d8 David Lord 1645037809 Merge branch '2.0.x'
+7c6d8d229565543bb581b9d40fd8f78cd1446784 David Lord 1645037764 remove unused 2.0.2 section
+9585137838de09d1cc176df21f72856eaa35d55a David Lord 1645037271 Merge pull request #287 from pallets/update-requirements
+ca2f5ea24c454f03e3bd83029adb36988d69dcc9 David Lord 1645037058 stop using dependabot for python, too noisy
+8579d06cf83742ea05e61f50a78936fea93c25b8 David Lord 1645037042 cache pip with setup-python action
+136f77f671623c4a404042269a176db12f4ef907 David Lord 1645036893 use pip-compile-multi for requirements
+3e9a625190dc26369aa3f3822ff2ab113d6f316a David Lord 1645036835 update pre-commit hooks
+dcae87bd556f304782eea446e465f854ebec77c6 David Lord 1642171590 Merge pull request #282 from legoktm/patch-1
+f8f1b8c9620db963bc286b2281c6c0fb8a4bddb7 Kunal Mehta 1642117406 Fix Issue Tracker link in README
+8abfce3e0e507f2151ad1932f06f68f9bc102bef David Lord 1642114473 Merge branch '2.0.x'
+84e75ea940967545b0eb932f742754a160fd6cb1 David Lord 1642114441 update tool config
+1672caec07e7850afb8d5ba4e37e06e2ab196dcb David Lord 1642104972 Merge branch '2.0.x'
+5caa3469407c16d1d0f1d6d89f9707175f0bec01 David Lord 1642104307 update tool config
+57910b4ab92871a76a2b4ad5edb41ad7f40bba71 David Lord 1642101919 update requirements
+233527d38bfe35b5c28a11a580555b6e8dda34c3 David Lord 1636148372 Merge pull request #273 from pallets/remove-deprecated-code
+506ca21d8cc1d16313270c37b6990c9e7762f68e David Lord 1636147673 remove deprecated code
+7443b9119b9ea29865c41f61e7f6e4e10873f301 David Lord 1636134001 Merge pull request #272 from pallets/drop-python-3.6
+4cb15d9e63cd331dcdd4a42636bf09cb68f638e6 David Lord 1636133208 drop Python 3.6
+2f3e08104e82735a5c7cfa8c51574cf1c3e16c75 David Lord 1636122525 Merge branch '2.0.x'
+d1c85670cce70d81f9949619434daf8c0b9cd37e David Lord 1636122494 Merge pull request #271 from pallets/test-3.10
+9b2a419e2289fc54524b44131c3c5e700b831379 David Lord 1636122367 test Python 3.11
+6039c2f00b73b624e5bf14ab3e98bf3d46a02766 David Lord 1636119921 test Python 3.10
+8baf0b40cb2da3f94661ac381ade8f45095b2b90 David Lord 1635796385 Merge branch '2.0.x'
+e66383258258d1fbe83ef34b6045a558b268d5e6 David Lord 1635796370 Merge pull request #270 from pallets/update-requirements
+6c3ae819b630d3a9288f3ba2dc124a5e52d27035 David Lord 1635796190 update requirements
+0e13d6613acebe99be211d27d55f56819cba9147 David Lord 1633532554 Merge branch '2.0.x'
+f2017d74490802f644f1ee9a23ee8872cf47bd34 David Lord 1633532522 Merge pull request #268 from pallets/update-requirements
+3b98b73ef31f0c1833856074de1bfbd3cece2ad8 David Lord 1633532354 update requirements
+516ecfc1aaebea7ad995e2c6aa6bd2fff34cb485 David Lord 1633532155 Merge pull request #267 from pallets/except-chain
+fd08baf4409ecd8b23a977235ee0a36cb75d5037 David Lord 1633531970 use exception chaining
+98af2f4cb5401391c61c1569215816b7f833821d David Lord 1631114298 Merge pull request #261 from pallets/pre-commit-ci-update-config
+dd9af6d09244f9e7cab56fe325b80adca10aad93 pre-commit-ci[bot] 1630955214 [pre-commit.ci] pre-commit autoupdate
+51c798654640ecf5901d30d1dab51a0fdd664327 David Lord 1630510488 Merge pull request #259 from pallets/dependabot/pip/tox-3.24.3
+e671c0f42f7a82eb048e32d44152da45a0555e16 David Lord 1630510483 Merge pull request #260 from pallets/dependabot/pip/pre-commit-2.14.1
+1cebfc9ef71051a4855cdefeeb3787de89b66132 David Lord 1630510478 Merge pull request #258 from pallets/dependabot/pip/pytest-6.2.5
+eeb5d38a60143481080532b698787ab7cf50da36 dependabot[bot] 1630483397 Bump pre-commit from 2.13.0 to 2.14.1
+e1f7bc3c899c5eb8d47d25ca55e2b6c0bcc7ca38 dependabot[bot] 1630483372 Bump tox from 3.24.1 to 3.24.3
+9c417b4021e697d8176dcb297afb907a582730ee dependabot[bot] 1630483348 Bump pytest from 6.2.4 to 6.2.5
+b10f4af1400f4b5d22a6d83633e35d500ade31da David Lord 1628602589 Merge remote-tracking branch 'origin/2.0.x'
+ac0225fa921ea252fdee7f10c6d07fb0f8a94911 David Lord 1628601539 Merge pull request #256 from esadek/pip_link
+f6a7b35ffad1b9d369d985ad46e81ce966ba9381 Emil Sadek 1628494094 update pip link
+259d77e03d3e39526bcc91a6b44d4e5cd58ec7f0 David Lord 1627999403 Merge pull request #251 from pallets/dependabot/pip/sphinx-4.1.2
+7259e64f8ef4a30228af24681834a6e9f037ffd3 David Lord 1627999191 Merge pull request #252 from pallets/dependabot/pip/tox-3.24.1
+849c9a8e3838848174a30a33aeaeadc6ebe8d43c David Lord 1627996343 Merge pull request #253 from pallets/pre-commit-ci-update-config
+065b4d089760e05b66f20bd61d24351b505bde72 pre-commit-ci[bot] 1627930278 [pre-commit.ci] pre-commit autoupdate
+bb5b10f0b5c751c5b29f11d32805ba72dc762c4d dependabot[bot] 1627805464 Bump tox from 3.23.1 to 3.24.1
+b2b4ba8c800030a13aaa18002ad3a69a57fb354b dependabot[bot] 1627805398 Bump sphinx from 4.0.2 to 4.1.2
+2576678e7186146e2a75a77d33a3c4392fcfb29b David Lord 1625578492 Merge pull request #248 from pallets/pre-commit-ci-update-config
+40067f8f7772fc9df447217aa4a2ac8754ec6f72 pre-commit-ci[bot] 1625523018 [pre-commit.ci] pre-commit autoupdate
+038c65150e92542e9875237c4eb02cab7ccdadb1 David Lord 1625144243 Merge pull request #246 from pallets/dependabot/pip/pip-tools-6.2.0
+8af78a948bae6b3115888b25545565c57f0b33e8 dependabot[bot] 1625144065 Bump pip-tools from 6.1.0 to 6.2.0
+a14b2b19b38dd671674a3a06c8c8f7fb0b56518d David Lord 1625143994 Merge pull request #247 from pallets/dependabot/pip/mypy-0.910
+75ab404df0e3a8b504ffa7399019f7c87b377cbf dependabot[bot] 1625126586 Bump mypy from 0.812 to 0.910
+b1e32ca0a77a819dc992e0b9ab9e70929b9224aa David Lord 1622554437 Merge pull request #245 from pallets/dependabot/pip/pre-commit-2.13.0
+f3bfcb879a24bd8622295ec7ca20ae0328029922 dependabot[bot] 1622534799 Bump pre-commit from 2.12.1 to 2.13.0
+ed87f92b2fdc30effec1abba8fc5b2e2a34e56cc David Lord 1621950232 Merge pull request #244 from greyli/improve-contributing-guide
+2e4aebecb5377f4075093fcbcc4f6354b5ce84b7 Grey Li 1621849901 Improve the contributing guide
+005d16a946eb1fa18aaba36f516ce776fb93e0e1 David Lord 1621567687 Merge branch '2.0.x'
+4b5c2156590aae1101e28301d61eaa13aa0eff7c David Lord 1621567650 Merge pull request #243 from pallets/update-theme
+bdea69563f15770400803236c2eb0faa2d417c73 David Lord 1621567419 update pallets and sphinx requirements
+fde09b663e16e72338b9bdbfde05ccd9b9860e37 David Lord 1621567371 update pallets-sphinx-themes
+b46ebef579ef0a86517453e8106c9d7d5cf7dd29 David Lord 1621350744 Merge branch '2.0.x'
+d479a75518fbfe12653e6ed38151f3268bce401d David Lord 1621350684 start version 2.0.2.dev0
+8f39dd317914321fed26437c874637641bd598b6 David Lord 1621350507 Merge pull request #242 from pallets/release-2.0.1
+eccb31fd83e89a6787884d3e58319965ea459a67 David Lord 1621350214 release version 2.0.1
+87d4e83a1ff7810b5016d447b39d82ce28496f8f David Lord 1621349935 Merge pull request #241 from pallets/salt-default
+41ec419632aae3533ff12838044eeddd9cd1311f David Lord 1621348924 allow salt=None again
+15a2e0d9b4bdaa38144c947a9aa04ffd49826700 David Lord 1621347525 Merge pull request #240 from pallets/update-typing
+d2250ed8b2185af1ffaea4166b8d114286a95462 David Lord 1621346970 mark top-level names as exported
+b42e478a929e77ced059cc38b56a9a73557accda David Lord 1620774336 Merge remote-tracking branch 'origin/2.0.x'
+56823cd7db35a435029626e5679e546aa260bbd6 David Lord 1620774288 Merge pull request #236 from pallets/default-branch
+b9c36cc5c0b79be80c4c35227db0370a3bc4990f David Lord 1620773718 rename default branch in files
+d21128d16131e77de453570f19958945724ee3be David Lord 1620763917 start version 2.1.0.dev0
+0f372436f47a85a23023abb510e7cc6bc563c392 David Lord 1620763842 start version 2.0.1.dev0
+d101100c395958d67368b8c37d95a9c404598c2e David Lord 1620763456 Merge pull request #235 from pallets/release-2.0.0
+ca0f59ac73507014729a5857e985229604e5e83b David Lord 1620763239 release version 2.0.0
+d1ed89f6ac50d58fa43ce37f92db371bebc20bc5 David Lord 1620763194 update requirements
+d1722ea35b4239b6d08e8d418edc74d6594eebd6 David Lord 1620742201 Merge pull request #234 from pallets/pre-commit-ci-schedule
+d1eb7aa76756268061f2d31551f79da7882b45a9 David Lord 1620741960 update pre-commit monthly
+acbc456c91d4a9e9f63b9230be5a1cf3d5a1d767 David Lord 1620679310 Merge pull request #233 from pallets/pre-commit-ci-update-config
+04e485a0b0b00d8b2dc73a287852d642d3366c72 pre-commit-ci[bot] 1620678351 [pre-commit.ci] pre-commit autoupdate
+c0e6b484a6cdc92c38bec74ffcf350bc42f20e2b David Lord 1620065626 Merge pull request #232 from pallets/pre-commit-ci-update-config
+6a9df8338ce39b780cebd8a7f54b8a7cb75eeab4 pre-commit-ci[bot] 1620062541 [pre-commit.ci] pre-commit autoupdate
+477f42c3e74f1a823deb3d7c3ab94a5b534d545b dependabot[bot] 1619643334 Merge pull request #231 from pallets/dependabot/pip/pre-commit-2.12.1
+75fd5a1b81b795f15eed9496d936bea2aa489b14 dependabot[bot] 1619643219 Bump pre-commit from 2.12.0 to 2.12.1
+4c57181a9aae4e06a15d01fe914358c84e19b718 David Lord 1619643148 Merge pull request #230 from pallets/dependabot/add-v2-config-file
+abaf98406b498614945376fc6a10521f53d27687 dependabot-preview[bot] 1619628401 Upgrade to GitHub-native Dependabot
+1a506824433582df139d2227dafee441b6c32b3a David Lord 1619530085 Merge pull request #229 from pallets/pre-commit-ci-update-config
+beed3f972a0f1a1f4b4db0e0ba0b6b00c12d2231 pre-commit-ci[bot] 1619457739 [pre-commit.ci] pre-commit autoupdate
+5220a78b4d2ce489ba3d461bc2d98a6c59459093 David Lord 1618584673 Merge pull request #228 from pallets/release-2.0.0rc2
+4d52c63b40ac361c0ffc7d6ee8d33659a8be6479 David Lord 1618584550 release version 2.0.0rc2
+315506e298fb0aae98a1863794c541b718202648 David Lord 1618584524 update deprecated pre-commit hook
+70c25b04d3762b8f29e5a995e2f316283d574b41 David Lord 1618584506 update requirements
+499681c7bae5a530ed3c732a2ca2b15de5d7eb17 David Lord 1618584387 update pallets-sphinx-themes
+195e5f77308d5464c085ba77d247c5589afab47f David Lord 1618525561 mention itsdangerous in deprecation message
+05e5f04851f0e618a5ccee8296f039d3c471e7d2 David Lord 1618248210 Merge pull request #227 from pallets/pre-commit-ci-update-config
+d10f64a77821e06025a4d5ea07555bc0ec985f20 pre-commit-ci[bot] 1618247562 [pre-commit.ci] pre-commit autoupdate
+30cb9602fd51be58918b8786a70c2c8ba4541f08 dependabot-preview[bot] 1617732569 Merge pull request #226 from pallets/dependabot/pip/urllib3-1.26.4
+95bd4afc3b9c2b5f5533399b5811f94465bf239e dependabot-preview[bot] 1617732484 [Security] Bump urllib3 from 1.26.3 to 1.26.4
+7b987f4eca3898a7e65d889adfbdd4c079e25aa9 David Lord 1617643478 Merge pull request #225 from pallets/pre-commit-ci-update-config
+8bba4e7cfa75cc723572c2818a101f44ffd65ec4 pre-commit-ci[bot] 1617642739 [pre-commit.ci] pre-commit autoupdate
+4c3a0ffc981aaf4302a1a159fdb5c967d6cd51b2 David Lord 1616435422 Merge pull request #223 from pallets/pre-commit-ci-update-config
+c0317f0f5207b4cfda19eb2eb910ca1dc5304b5a pre-commit-ci[bot] 1616432745 [pre-commit.ci] pre-commit autoupdate
+2d8e5b9ea3c2a7c3334752cb6e423d1565a486f1 David Lord 1615833431 Merge pull request #222 from pallets/pre-commit-ci-update-config
+13c1e05226243f3b34ebec6875042d742a87bf73 pre-commit-ci[bot] 1615827684 [pre-commit.ci] pre-commit autoupdate
+21e6d37d0d0945056a365f57c2446a115f57eb18 dependabot-preview[bot] 1614602201 Merge pull request #220 from pallets/dependabot/pip/mypy-0.812
+febee9f10fdcee52eff82bca17a9207385691998 dependabot-preview[bot] 1614602128 Merge pull request #221 from pallets/dependabot/pip/sphinx-3.5.1
+e9f25d2fafb408d0f876f477df794d1c12cd9f84 dependabot-preview[bot] 1614601979 Bump mypy from 0.800 to 0.812
+7501133706c240d2de8a9ecdfaff9721ab1cbd2f dependabot-preview[bot] 1614601875 Bump sphinx from 3.4.3 to 3.5.1
+187dcdf12833391251c2865cbc5a48342ccf8aea dependabot-preview[bot] 1614601872 Merge pull request #219 from pallets/dependabot/pip/tox-3.22.0
+841ef5be8c7a291e2eff075056383548d2ef7bbe dependabot-preview[bot] 1614601725 Bump tox from 3.21.4 to 3.22.0
+a71806e8f77c036525722cbc172f0949e3eeef8e David Lord 1614191901 Merge pull request #218 from pallets/consistency
+d9b95143dc84c762b50ac7b3723c74483e40ca7a David Lord 1614189712 consistent typing config
+b39f96ebe965bc9b2f1326ec4ebb03353f5fd384 David Lord 1614189704 update project links
+c3f7666f7a843436e3e0d2d6225883f2b43f807e David Lord 1614189685 use rtd to build docs for prs
+c23001855d36962ee19e19f9c7286c1b2ec534b8 David Lord 1613407807 prerelease version 2.0.0rc1
+4bda48f53fac93ddd0b0fcf8b920a55a3f4f8f28 David Lord 1612895747 reduce lock schedule to daily
+2048fdd38754940a77f26982009876a0ff1c6f62 David Lord 1612836639 add lock threads workflow
+3d0b87ec0e5d5cba524d1aa3386fb00a22f50714 David Lord 1612815834 Merge pull request #217 from pallets/update-project
+b12ca43eecdff92727ab85c66f049451cd810ed1 David Lord 1612815654 test python 3.9
+b6968e71b4ae30e414cdf272d1b38d467210b961 David Lord 1612815566 update requirements
+16b95f5d9f38885af246b6d00ead4248224bd0bd David Lord 1612815115 add issue templates
+6425a65643646e4229c2f31406ad7210e8537fcb David Lord 1612814659 update links and dev install
+08e8ded92c29c34f5220300c83b8267d890b4545 David Lord 1612814461 swap install order
+b2ebe981e23943a4857b0e21052532c040a64fb7 David Lord 1612804395 Merge pull request #216 from pallets/pre-commit-ci-update-config
+2292549675fe2afba29faca3aec1f017fb118ca0 pre-commit-ci[bot] 1612803107 [pre-commit.ci] pre-commit autoupdate
+efaa1c2aa3eb23cffcd3dea161875d7a798bc1ec pre-commit-ci[bot] 1612198692 [pre-commit.ci] pre-commit autoupdate (#215)
+ceb886aa5bcaae3a809d9246e99530eb5587b263 dependabot-preview[bot] 1612174638 Merge pull request #213 from pallets/dependabot/pip/pre-commit-2.10.0
+953be63fe36a1d95768af74b5942309d07b9ff22 dependabot-preview[bot] 1612174592 Merge pull request #211 from pallets/dependabot/pip/pytest-6.2.2
+f6f59ed43ad977ea66dd634687a8e345f391b002 dependabot-preview[bot] 1612174464 Merge pull request #214 from pallets/dependabot/pip/sphinx-3.4.3
+b60560a1e505fdf30100f4ca52845e4e82d722c8 dependabot-preview[bot] 1612174014 Bump pre-commit from 2.9.3 to 2.10.0
+af6b462d98f160b579b9f5e11714d3535873d708 dependabot-preview[bot] 1612174005 Bump pytest from 6.2.1 to 6.2.2
+95571560ef9ab3ed07dda7ba454931776081e717 dependabot-preview[bot] 1612173902 Merge pull request #212 from pallets/dependabot/pip/freezegun-1.1.0
+d53ea70acc5818b0427db7a71ec0f4cbe2c29cb1 dependabot-preview[bot] 1612173845 Bump sphinx from 3.4.1 to 3.4.3
+04b30ef6f23c4412ab1adfe929ce7188d0c84715 dependabot-preview[bot] 1612173699 Merge pull request #209 from pallets/dependabot/pip/tox-3.21.3
+317a573b368c6f2939aa3d7cd68a793577aca9c0 dependabot-preview[bot] 1612173159 Bump freezegun from 1.0.0 to 1.1.0
+ae6e6b22ba55d6e0ebb2528231bc03fc10e03892 dependabot-preview[bot] 1612173156 Bump tox from 3.20.1 to 3.21.3
+bd2777d1006c418838e5603b48c152e8450706bb dependabot-preview[bot] 1612173053 Merge pull request #210 from pallets/dependabot/pip/mypy-0.800
+d661a88ab4dea3ab583acdb6bf04e7a2de7c0189 dependabot-preview[bot] 1612172901 Bump mypy from 0.790 to 0.800
+a3cad5506ff8684231e2b749eb0f3cf8705d8578 pre-commit-ci[bot] 1611953385 [pre-commit.ci] pre-commit autoupdate (#203)
+00cc5c7277b8e278e2ecb62071b73441d48645ff dependabot-preview[bot] 1609490631 Merge pull request #208 from pallets/dependabot/pip/pre-commit-2.9.3
+1849fc497dcd56b7b68addad32388d462c288772 dependabot-preview[bot] 1609490476 Bump pre-commit from 2.9.2 to 2.9.3
+05d08f9c8131b736a7662256c6a9b7ecde0d1c4e dependabot-preview[bot] 1609490359 Merge pull request #207 from pallets/dependabot/pip/pip-tools-5.5.0
+a6766130ed64b62b10a2ef139a086b96404e0392 dependabot-preview[bot] 1609489954 Bump pip-tools from 5.4.0 to 5.5.0
+d96b2afca62956d6e3288ae42c7f1392cf7c5ec0 dependabot-preview[bot] 1609489911 Merge pull request #206 from pallets/dependabot/pip/pytest-6.2.1
+9d54f749ac7d29ea0c7968d6f25d2fa5ba42c4a2 dependabot-preview[bot] 1609489849 Merge pull request #205 from pallets/dependabot/pip/sphinx-3.4.1
+67a56d7b2630f273893e7e197a905c1be9367759 dependabot-preview[bot] 1609489753 Bump pytest from 6.1.2 to 6.2.1
+868383a971c26542b4d22c151a9c466d9176316c dependabot-preview[bot] 1609489714 Bump sphinx from 3.3.1 to 3.4.1
+5dc90166c3df22f1ce4d5d5eba0e2e7a90204382 dependabot-preview[bot] 1606814278 Merge pull request #202 from pallets/dependabot/pip/pip-tools-5.4.0
+e093c5362864b75443d6237387eee6ec852d157c dependabot-preview[bot] 1606813684 Bump pip-tools from 5.3.1 to 5.4.0
+2acf899bb399bd47d2e26cb35a9827d8bebbc59d dependabot-preview[bot] 1606813552 Merge pull request #201 from pallets/dependabot/pip/pre-commit-2.9.2
+e5f89f1949aadaa70d00acdeda3e60abdfc291f6 dependabot-preview[bot] 1606813309 Merge pull request #200 from pallets/dependabot/pip/sphinx-3.3.1
+ee0036ad060e5fd06c0b276fd8688e95cbfce258 dependabot-preview[bot] 1606813006 Bump pre-commit from 2.8.2 to 2.9.2
+b2053d9e0af45aba57f951a8c109660ce1dd2af7 dependabot-preview[bot] 1606812957 Bump sphinx from 3.2.1 to 3.3.1
+8206d1190e2314623c58cb194dd400bc3193149a pre-commit-ci[bot] 1606277698 [pre-commit.ci] pre-commit autoupdate (#199)
+dcf5fdef9bccb47b2fc6f7701a427f8207fa7272 pre-commit-ci[bot] 1605546395 [pre-commit.ci] pre-commit autoupdate
+ee5108e9886d7d33af7167d1ec24f4912e082558 dependabot-preview[bot] 1604219923 Merge pull request #195 from pallets/dependabot/pip/pre-commit-2.8.2
+c17885091cf139edb990b96423b21ff7f3bd3b2b dependabot-preview[bot] 1604219912 Merge pull request #196 from pallets/dependabot/pip/pytest-6.1.2
+ed61b2d8f7ae0e195ed9708b75b2f9d3d7687248 dependabot-preview[bot] 1604219823 Bump pre-commit from 2.7.1 to 2.8.2
+45a3159cb859ddf02930531b6ea4581484fdf64c dependabot-preview[bot] 1604219820 Bump pytest from 6.1.0 to 6.1.2
+f439d83e234a42fbf968f116417072f4d8192246 dependabot-preview[bot] 1604219724 Merge pull request #197 from pallets/dependabot/pip/tox-3.20.1
+d87826a94acff6f6b66d16f225c299d10250b204 dependabot-preview[bot] 1604219603 Bump tox from 3.20.0 to 3.20.1
+9649c7ab4a302af31eabf2bebc2848d5e5693c17 dependabot-preview[bot] 1604219500 Merge pull request #194 from pallets/dependabot/pip/mypy-0.790
+b375f75b64acb1b9d49d677d90ebfb0fa17c023b dependabot-preview[bot] 1604219250 Bump mypy from 0.782 to 0.790
+b45bad49e8e4fea6d183a990d29f44c7821be57f dependabot-preview[bot] 1601541005 Merge pull request #192 from pallets/dependabot/pip/pytest-6.1.0
+aa1058b2f1516f875a994cf20a35adb406463a72 dependabot-preview[bot] 1601540683 Bump pytest from 6.0.2 to 6.1.0
+fa0703b77501cfc541107308feba8131ed180d3b dependabot-preview[bot] 1600071657 Merge pull request #191 from pallets/dependabot/pip/pytest-6.0.2
+e78781a96e9f2831895bc7a8f3238cc274dc52be dependabot-preview[bot] 1600071494 Bump pytest from 6.0.1 to 6.0.2
+474e6ed489d1b06ee3aff33898626422c25c889c dependabot-preview[bot] 1599467089 Merge pull request #190 from pallets/dependabot/pip/tox-3.20.0
+a685aa87f7adeaba9e3f9d5a82e344b7033a6414 dependabot-preview[bot] 1599466956 Bump tox from 3.19.0 to 3.20.0
+928a4127725d2e7e5c58eeb2b88acb8ef2170b13 dependabot-preview[bot] 1599466859 Merge pull request #189 from pallets/dependabot/pip/freezegun-1.0.0
+8b5e7b1da045c2fbe1d520e911fee3555428398b dependabot-preview[bot] 1599466737 Bump freezegun from 0.3.15 to 1.0.0
+6785c5edf4d3c0f4ecc2dfb7ffb8aff40006798a David Lord 1598901686 add typing with mypy
+4559e76d632ecfda09515746790670be3c59b726 David Lord 1598899836 Merge pull request #186 from pallets/typing
+aed5b260111c19e91af839c2c64d771c794250a0 David Lord 1598584795 add typing with mypy
+e0e50841f91c1d2c77145f475aab67bf02ce1973 G. Fioravante 1598890959 add CONTRIBUTING.rst (#188)
+b2ac67e17e82657b38a7cd8fdcea093977bcaafc dependabot-preview[bot] 1598257179 Merge pull request #184 from pallets/dependabot/pip/pre-commit-2.7.1
+e1d88a4bca11feeaaef40ca692a895d824303d0a dependabot-preview[bot] 1598257045 Bump pre-commit from 2.6.0 to 2.7.1
+97b5efe1484e1163715b64656cfb850cadb8be60 dependabot-preview[bot] 1597652610 Merge pull request #183 from pallets/dependabot/pip/sphinx-3.2.1
+c5a710744a0d8e2c0aaecde71abaef77ff53d787 dependabot-preview[bot] 1597652493 Bump sphinx from 3.2.0 to 3.2.1
+d42e21ffc2a4074a94a3fc460b81698b43fadea3 dependabot-preview[bot] 1597046944 Merge pull request #182 from pallets/dependabot/pip/sphinx-3.2.0
+4db0b75fdaa8341959d8b3a0269777e8c94034fa dependabot-preview[bot] 1597046803 Bump sphinx from 3.1.2 to 3.2.0
+224a0d62c071fb3632780399c5ac651e37591e9a dependabot-preview[bot] 1596786753 Merge pull request #181 from pallets/dependabot/pip/tox-3.19.0
+1327cf5f4cacc5aa5bf251493e741d2fcfce02a1 dependabot-preview[bot] 1596786610 Bump tox from 3.18.1 to 3.19.0
+13b06a06680f01d6b74646ea1d2f2f776b1df56b dependabot-preview[bot] 1596183907 Merge pull request #180 from pallets/dependabot/pip/pytest-6.0.1
+d5020070896291e89a408203f2279397f0b781f6 dependabot-preview[bot] 1596183816 Bump pytest from 6.0.0 to 6.0.1
+2dd9fbcb84f2d87b804592e747d5cf309efd7880 dependabot-preview[bot] 1596011407 Merge pull request #179 from pallets/dependabot/pip/tox-3.18.1
+17303ecd12de77b3b416621b87b5fb38d732a4d6 dependabot-preview[bot] 1596011263 Bump tox from 3.18.0 to 3.18.1
+884744e02c3055f6b0d6fbf4068b2e025d02576d dependabot-preview[bot] 1596010957 Merge pull request #178 from pallets/dependabot/pip/pytest-6.0.0
+ff18ca27de077c47a09f1c8b33d22db5a7d92c09 dependabot-preview[bot] 1596010793 Bump pytest from 5.4.3 to 6.0.0
+3a18c9e91b5181f9a39f8926e0c1b5592610fd8f dependabot-preview[bot] 1595577698 Merge pull request #177 from pallets/dependabot/pip/tox-3.18.0
+f8228e5cf004f2a61bdbaefdf318fe0a10b5b091 dependabot-preview[bot] 1595577554 Bump tox from 3.17.1 to 3.18.0
+81d6e2d17e377b89e16439a8a8b67c7f44c0ccb8 dependabot-preview[bot] 1594887041 Merge pull request #176 from pallets/dependabot/pip/tox-3.17.1
+ea188ea431dd9db3889992334aa2d9b586118f63 dependabot-preview[bot] 1594886849 Bump tox from 3.17.0 to 3.17.1
+0f242ab78e5d475688636ec79c1524d947f31bc9 dependabot-preview[bot] 1594800249 Merge pull request #175 from pallets/dependabot/pip/tox-3.17.0
+fba280826c3e43638ab9ab54f39c3d580869f1c3 dependabot-preview[bot] 1594800150 Bump tox from 3.16.1 to 3.17.0
+4b72d7ebf5ff612da0d6a297b90cc31658d24e69 dependabot-preview[bot] 1594024293 Merge pull request #174 from pallets/dependabot/pip/sphinx-3.1.2
+3d18ece18fa9d79fdcd7201074e017da5ea1a173 dependabot-preview[bot] 1594024163 Bump sphinx from 3.1.1 to 3.1.2
+d43f85102beb9f1424807b1363830bba4ddeb33a dependabot-preview[bot] 1593677013 Merge pull request #173 from pallets/dependabot/pip/pre-commit-2.6.0
+5d4558f475ddfaf3e01b347acb8393ce1b28f2e4 dependabot-preview[bot] 1593676916 Bump pre-commit from 2.5.1 to 2.6.0
+d23c2c2ab281e6dc370ebd24278ad4474cdfee20 David Lord 1593621549 update metadata
+c8542fee57d414272ae73833d1db3cff04aabbc8 David Lord 1590687634 pre-release version 2.0.0a1
+9e2ce23eca11eefd5cb216ad5421109aa298abd6 dependabot-preview[bot] 1593504406 Merge pull request #172 from pallets/dependabot/pip/tox-3.16.1
+2f94f0c5635f0bbf8e42419bf2c9612df1415eb1 dependabot-preview[bot] 1593504276 Bump tox from 3.16.0 to 3.16.1
+4b1172198b4b077e8b75ff0b39a9151a8507b376 dependabot-preview[bot] 1593419600 Merge pull request #171 from pallets/dependabot/pip/tox-3.16.0
+590166ac794bdd281f1cd2e0ab39169148e273fb dependabot-preview[bot] 1593419446 Bump tox from 3.15.2 to 3.16.0
+5693997be6b25c3691603bf5dcac267f5175cdbb dependabot-preview[bot] 1592210914 Merge pull request #170 from pallets/dependabot/pip/sphinx-3.1.1
+14037f93de97f3c05f9de9cf067d38a6277c9106 dependabot-preview[bot] 1592210707 Bump sphinx from 3.1.0 to 3.1.1
+afe862c11fc76f285d784b3cb5a8eb410536a254 dependabot-preview[bot] 1591777616 Merge pull request #169 from pallets/dependabot/pip/pre-commit-2.5.1
+7983c06f760206bfdaa4fdf5dff15688774ef1b1 dependabot-preview[bot] 1591777499 Bump pre-commit from 2.5.0 to 2.5.1
+06ea0f170cad7d9945f278d83ac1adebeafca164 dependabot-preview[bot] 1591690578 Merge pull request #168 from pallets/dependabot/pip/pre-commit-2.5.0
+4c154b080ea2847703c0f2b91a4c5297c429b582 dependabot-preview[bot] 1591690530 Merge pull request #167 from pallets/dependabot/pip/sphinx-3.1.0
+ebed1edcfcda503f244ba2904a7b6f96e6495576 dependabot-preview[bot] 1591690446 Bump pre-commit from 2.4.0 to 2.5.0
+eefa42c141773b95947a9b722221d522edbb06cf dependabot-preview[bot] 1591690417 Bump sphinx from 3.0.4 to 3.1.0
+df984c7a4d1395ee9ff887be87670c1a53ab7709 dependabot-preview[bot] 1591605159 Merge pull request #166 from pallets/dependabot/pip/tox-3.15.2
+350d78d4dee43b3a20820e48dbc0c7898a5d7865 dependabot-preview[bot] 1591605040 Bump tox from 3.15.1 to 3.15.2
+dabbc5742a8d13cb54d6e77182cf15e9ba41339c dependabot-preview[bot] 1591173221 Merge pull request #165 from pallets/dependabot/pip/pytest-5.4.3
+e0e29c7da8728b6bbb833431afdf0d1c563cfce8 dependabot-preview[bot] 1591173078 Bump pytest from 5.4.2 to 5.4.3
+40884060e98d804e5034a37a5cdeffe905288bd3 dependabot-preview[bot] 1590587188 Bump sphinx from 3.0.3 to 3.0.4 (#164)
+6d95a9fcec80e40b55fdd8166a12dd97e650c227 David Lord 1590265184 fix pip update on Windows
+73e252d0a2c90f303b5f7b4aa168b24d25c741b8 David Lord 1590077937 Merge pull request #163 from pallets/dependabot/pip/tox-3.15.1
+779b7ebb5c5c686f7adc84a1cfcd4d1d0edfd8a2 dependabot-preview[bot] 1590049536 Bump tox from 3.15.0 to 3.15.1
+d2871e872d7e1af047fb963aad5407388fac26d3 David Lord 1589834032 Merge pull request #162 from pallets/test-envs
+f92617c46e5d2b38ea4dea880e28d84be142372c David Lord 1589833565 fix pip cache and runner os
+39ce5717567d308533aaf9779b729025f720bded David Lord 1589820091 Merge pull request #161 from pallets/pip-compile
+1c2892d5aaa7ad44ec881bf6926e06944bfb237a David Lord 1589819629 remove pip-compile-multi
+473173b2d1d8e194e5a39d713da440012768500c David Lord 1589421553 remove test status link
+b0545d77e5279cb54636803834de1a0eb1efe7fa David Lord 1589421358 Merge pull request #160 from pallets/github-actions
+c32e675c35b0496f29fd58fe74b64a1dbeb135fd David Lord 1589420086 use GitHub Actions for CI
+3ca36c12abd8450d587a7e5cebb64ec4223c9144 David Lord 1589335977 Merge pull request #159 from pallets/pin-requirements
+e1934d18c175fd0845494d5efef80c9849a16706 David Lord 1589334403 pin requirements
+c6a3eff06af1e287c8c35d7de08962cefba9738e David Lord 1589332594 Merge pull request #158 from pallets/rtd-config
+50793b9d03e076b0adaf170f5c7b6d8f39a121bc David Lord 1589332227 add readthedocs config
+a361058f27467db535ecc073d3109e32c985f17e David Lord 1589328709 Merge pull request #157 from pallets/remove-fallback
+2fed33e4b9d5d3275dd9461e26554219b173acc9 David Lord 1589328226 remove default SHA-512 fallback signer
+786f5de1616e359a2a4c25d5524c181d400e4edd David Lord 1589327188 Merge pull request #156 from pallets/docs-concepts
+6b0d0377151e1d3f711bb5be2e976f986b39c428 David Lord 1589326331 create a new doc for general concepts
+2881d93e31c3e80641e28b858cbff71d3899afa0 David Lord 1589325373 Merge pull request #141 from lepture/key-rotate
+4fef308d571f34eab709c52f689c16eb65a402c1 David Lord 1588434687 add secret_key compat property
+a0872fc4928b250d8b05d8c1b53a2e21957aacd9 Hsiaoming Yang 1569341826 Add tests for secret_keys
+9b7b635a46d83288fd91a455c7b5cb402166edb1 Hsiaoming Yang 1569340807 Serializer can accept secret keys
+e22b352151d767137aa6ee894d135a55d5b3bd14 Hsiaoming Yang 1569255997 Signer can accept secret keys
+1776c8f73c38aebfebcc19cdd56b4854b0ad5997 David Lord 1587153082 Merge pull request #154 from pallets/date-signed-datetime
+526b1ea02934f529606dcbf3c3340ab429dcde04 David Lord 1587152795 date_signed is datetime not int
+b11475aa0e1534f1fe7736d56140d81e872b1f5f David Lord 1587151130 Merge pull request #153 from pallets/deprecate-jws
+53f34c9a8fed28aa0f58502001ed2d75d23d3104 David Lord 1587150872 deprecate jws
+981ade6e73ff9ce420aa29143039de0aaccb9770 David Lord 1587143711 Merge pull request #152 from pallets/remove-simplejson
+602915da418ea257608abbfaf25d222766344cd2 David Lord 1587143344 remove simplejson
+542fad1e9627a402620453610b3e6923f879fd84 David Lord 1587140023 Merge pull request #133 from zhugnou/zhugnou/issue-126
+c30678d19e37011890e2374cca04f7789e101793 Zach Hugnou 1559358744 don't allow timestamps from the future
+1a9b8d1f9968eb248bda69f39d373a6330b692ba David Lord 1587139819 Merge pull request #151 from pallets/timezone-aware
+910a7a94ee88b15d0677f65ed87d7ccbbd998048 David Lord 1587139554 datetimes are timezone-aware utc
+3703fbdedd13b2630dd9be75a3638408c193765d David Lord 1586908110 Merge pull request #149 from pallets/drop-python2
+0e255fc2ad4726af5062fb0527688eaf96f2edab David Lord 1586907801 manual cleanup
+7104e55812bb4a75ccbe5efcf55ad2dc692a849f David Lord 1586906779 apply pyupgrade
+228b7b1b2f26e98b82ae43aee1576cf5aa1322ea David Lord 1586883350 remove _compat module
+e085f3eedf94fe42391aaa9fc349927f8feaa367 David Lord 1586882548 drop support for Python 2 and 3.5
+64048c1106eb4e0ed70e64d16e230553a464087b David Lord 1564980125 Merge branch '1.1.x'
+5574351e275cbe742a7e0c5a8cb3fec9a3c09d89 David Lord 1564980107 update tests url
+49370a7c740e5285877872fb2ca1803799fe5a8c David Lord 1564979956 Merge branch '1.1.x'
+076917002441928efa1074dcd6411bbdf561ebf2 David Lord 1564979879 versions are strings in yaml
+5a455d5f2ec0228ebe633e7dfa979c4aff19c90f David Lord 1564979368 Merge branch '1.1.x'
+7857e870a5bab1b3bdf16abd3a7ecce2646ca1b2 David Lord 1564977517 switch ci to azure pipelines
+24a5087a8af84d6954e9de69bfe5e3cf9ee615c7 David Lord 1564976547 use latest sphinx theme
+51851ac439b23246d61858f308fdfeec24f5c732 David Lord 1564782666 update docs config
+230665d604f46996bde7f9a4ff8e29e7f10d1515 David Lord 1564757210 update pre-commit and import order
+c880f85ccdaee29adab8b47ad79eb7bdec507b57 David Lord 1563374800 standardize license
+c96e82d42ed46b889321989569d40ce7b205bded David Lord 1562433780 Merge pull request #138 from minho42/Fix-typo
+1e3a10002994f15f882fe8170cc388dd82ccf722 Min ho Kim 1562426512 Fix typo
+afc94f47cf3184df4553781d138005a92927ebda David Lord 1557154105 Merge pull request #130 from pwlandoll/1.1.x
+59fb62f023da9ab8b96d5e92e657553416f01850 Peter Landoll 1557152273 Add link to official Discord chat server
+ea267c1d3b16cf1fffd3c21d0ea174fc8bcbe73c David Lord 1548269696 formatting
+5c0ce92125808f0acc55edaf5455892f78b3421c David Lord 1548269237 Merge pull request #125 from jaraco/docs/compatibility-recipe
+382304069f687e522df15242a8a29993949f8508 Jason R. Coombs 1548268264 Update changelog to present a technique for cross-version compatibility in timestamp signers. Fixes #120.
+6e6359864be6055860adf1e11d8bb0db69ff1840 David Lord 1540599073 release 1.1.0
+66c931920251540130e512cb04c1c0a9e57a31a7 David Lord 1540597259 link #114 changelog
+85618914af03b35340e8add170f938d386f5cb5a David Lord 1540596909 test iter_unsigners
+e52959388bc027e8a336c3a835856e7b08519166 David Lord 1540595062 add compat import for itsdangerous.want_bytes do not import this, it's only for backwards compat
+920993c48a41a322ae85ecfaa6fa43fcce1b1089 Armin Ronacher 1540596168 Added SHA-512 fallback by default
+d79c74ac6b56e7802f3e3ead948cd3454f55ab95 Armin Ronacher 1540595675 Added SHA-512 fallback by default
+ef8fd9894efab262761d2dcf24671592a8fc8bbf David Lord 1540594358 more name cleanup, parametrize fallback test
+af4856aeaa648369b3bc8176089221b038b7a873 Armin Ronacher 1540593911 Added fallback signers and switch back to sha1
+92a642339f9babb7397d9ff228ef2199fca4cd5d Armin Ronacher 1540590950 Document change to lowercase
+2fd3237035ccf4d5b7dfe3c2ab8b5423be326564 Armin Ronacher 1540590911 Change package back to lowercase
+be8a66ab961764f653e31703ff005e3c384d88b7 Armin Ronacher 1540590572 Updated changelog and docs
+6910fe0a745cbe22d65583d7031d97bb9a92ce49 Armin Ronacher 1540589194 Fix typo
+e569397e31892d7ddadfaa16997b732cddb79e2b Armin Ronacher 1540587204 Stylecheck
+c30eec084aee113614bc8d933868fc085411d0f0 Armin Ronacher 1540587143 Added test and updated README to ensure SHA1
+6c58e969a513646c8e37260417929770a4ab1b67 Armin Ronacher 1540586882 Added fallback signer support to timed serializer
+f966a62e4c0031b885566b529cc33fe9f6ae9f18 Armin Ronacher 1540586649 Added fallback signers and switch back to sha1
+2ef8fe08c159de9f1232dbab86f8606aecd6392b David Lord 1539895818 release 1.0.0
+c493cd846e9dc4750e07c9e46785d265e26bf2ca David Lord 1539883869 move tests to package prevents pytest from adding the base project dir to the path
+f685200bda58808ca78735372e6d39fee971c00d David Lord 1539880753 include tests in sdist
+5b25e9ee4ea47f39a88d1ba9a7b19dec7fbc133b David Lord 1539870866 add EditorConfig
+1e7ec63a845877cd818be61d791a8609c5be98b1 David Lord 1539870834 compat for older freezegun version
+8e611d7373acc874cc8bd3fc480cf3cf7b5b6a10 David Lord 1539832645 Merge pull request #107 from pallets/split
+a8c7d1b9737fda3b3092d5950a021398f06955b5 David Lord 1539792760 split tests into modules, use pytest, 100% coverage
+ccc67a137fb912eb65c6959107d0d5bc69db3890 David Lord 1539195257 split docs into pages
+0635526a8291da42aa0055a8207d7afe85154830 David Lord 1538859772 split into modules
+7bd9f35e6e390c3357369896dcb4f63e19f3134b David Lord 1538162184 update changelog
+9a1937a45a841c2d903f866dc845f7c6b36a2931 David Lord 1538163955 Merge pull request #105 from pallets/style-checks
+93124678292c819f0a07fa40fe4b1e0a75f7bcf4 David Lord 1538154859 add style checks
+a04a4bc3ab9d3ff9c92e620899e223377c13b96c David Lord 1538162936 Merge pull request #104 from pallets/src-dir
+d4950c0913f7f5695b5af299c55ba40a79195b98 David Lord 1538153411 move to src directory
+75bbbda0c7df241636a9157cf08ad850e0ffe020 David Lord 1538162579 Merge pull request #103 from pallets/update
+82887fe43756b0ce57f31d620038358d87deba6c David Lord 1537994845 use pallets sphinx theme
+6f3663ffedb3fac777dcf08c0f4fc2ed265c3745 David Lord 1537975139 update metadata
+66121f486520c26114ae209e8e0ea4b6ab67a147 David Lord 1537557023 Merge pull request #99 from SananGuliyev/patch-1
+5ceb29aa41cfbc2c28f37b3f09250ce42230a5a5 David Lord 1537556955 Merge pull request #100 from cos-forks/changelog
+24ff6764b67d1e05ba71bbcdba006119324464fd Steven Loria 1533242659 Update changelog for 1.0
+e8da1da26b4c1627229a1144fa310673ac2649ef Sanan Guliyev 1524606139 Convert `exp` header to int if it is valid IntDate
+07659517a6dbc60ebe80095052585293f00e9125 David Lord 1524149932 Merge pull request #98 from lepture/patch-versions
+811f63b66720d1312e369dd94969c3685267ef72 Hsiaoming Yang 1524148897 Drop testing for 2.6 and 3.3. Add 3.6.
+8b1550601f8ed587aa5754cbf5df149615258add David Lord 1519318061 document SHA-512 default closes #85
+f5124e7d32ca293da1773bee1b0243bed5ae50b0 David Lord 1489698929 Merge pull request #80 from davidism/sha2
+9f73bc2e89bf483928d7a45fa39f5b929c90a4d3 David Lord 1489698184 change default intermediate hash from SHA-1 to SHA-512
+220c38ee0e33eaf68b86cdfe54de064d5908fb98 Markus Unterwaditzer 1483741818 HTTPS links
+4b8a13bac91ddbd91baf340dbd4d702eab8b16a3 Markus Unterwaditzer 1483741281 We can't reasonably test pypy3
+b00d8fd9dc3d74bdafb6b90b691bbb9616cff835 Łukasz Langa 1483741200 Make `load_payload()` signature consistent between types (#75)
+f1480f375d3c709075b732642bcf1e3a6ee3faa6 Philippe Ombredanne 1478031087 Add license_file to setup.cfg metadata (#70)
+ce5e2cd0afebadb5dd732ee1c151824a0de8b5d4 Markus Unterwaditzer 1471809173 Forbid unsafe separators
+10d548995409eee7632d911164013112b1b07d9f Markus Unterwaditzer 1471809108 Fix test setup
+c9fa8050870e342ef3c3f31e5eb28c50ef9dfcd8 Markus Unterwaditzer 1471808960 Fix test setup
+b738f972c7a81410ac671a154c996b0c339f33d6 Markus Unterwaditzer 1471807934 Revamp test setup
+d58ce8a607191ba9c46d8c9b656f1e869e7cef8a Markus Unterwaditzer 1471807805 Add a shortcut for easy PyPI publishing
+9c4f63cd68117f6677efe129fa73e56875b62a20 Markus Unterwaditzer 1471807690 Fix frontpage example
+0f6d5c5992cf9c3e857474ca6d7ccfa604df60da Christian Rotzoll 1469300455 Fix typo (wheather ~> whether) (#65)
+5aec583ecd980a032941c3dc700fbe8f748d6a33 Steve Perkins 1467925337 Fix misleading EPOCH comment. (#64)
+32c01b740f89243b0675e8023311f19e68185b9c John Vandenberg 1462195870 Add PyPy 3 to travis build matrix (#60)
+0b6975b570cea81ff4dd7d5f78fe2052001663c6 David Lord 1460534882 Revert "JWT Serializer sets default media type header"
+f513b48dba9a5adb02380873f44f57d3d495e40f Russell Davies 1410625656 JWT Serializer sets default media type header
+ec69312709b42add477a6c00131c3d2155b2fe23 Lucian Branescu Mihaila 1376390543 Replace base64 decoding errors with BadData.
+f1ecd770cb0d15e053f8e4f2beb100ac5fe6bdfc David Lord 1460443844 fix tests, pickle doesn't support sort_keys
+a1f192ff7946f07fc514f80f3647875d5c2d543b David Lord 1460441711 clean up serializer_kwargs, closes pr #36
+07cfb648bd407ec493d60c442222deb880dcc1a6 Marcus McCurdy 1412968997 Allows kwargs to be passed to serializer's dumps
+3b531f1a25950953df6a200aa9d93cd23b936c11 Taha Jahangir 1460438635 More compact JSON dumps for unicode strings (#38)
+9981a90b46160ac71505cb790c4bda4ee037ebb4 David Lord 1460428454 use full timestamps, no cutoff at 2011, fixes #46
+838f5d947b56987be9d8f2700a5d93d4eabe80d4 David Lord 1460427361 fix docs theme logo height
+cd800d8871fc2dbc152e95288a65aa52fb518f8e David Lord 1460424231 organize files included with manifest
+f7d6c8a8bc5b202ec43ea8e9e70db906f14696ad David Lord 1460423689 use themes submodule
+2f2ff784768a872c23cc7642964d4c8502a3ab8b David Lord 1460422350 docs show copyright range to current year use first year of copyright
+5c25179460f686cc68bf9e7d0afea1be67ba62a8 David Lord 1460421988 docs get version using pkg_resources
+a8b386aa74c751b56af6749fd0f9f2349ab23953 David Lord 1460409632 tag dev builds add version string add license for setup, closes #52
+7929b1b1024feeca54d721e6faeef24f5f4e011f David Lord 1460403191 fix url in TimedJSONWebSignatureSerializer docstring, close #31
+090e9e2d8fad6b6db302244721cce2981d43abf3 David Lord 1460363113 use struct to convert int to/from bytes directly alias constant_time_compare to compare_digest if possible
+5a952ce9535a56bcafc79822c3844dd6ee1b0dbb David Lord 1460301295 use tox and pytest runner, update test envs
+32ee38995c878528e748fb1b80bdadae3a6018e4 José Carlos García 1459725745 Change to Pallets project
+82e58939e02af40638cfe6f1329cdbba4e2dc4a8 Thomas Grainger 1459619867 Support universal wheels
+1f0332c6f4ac697a69db6d8031988c982a0d3c9c Eeo Jun 1459619680 Use rstrip instead of strip
+ec3c731b7583a4965719e03381ac41a5f186fa54 Tristan Escalada 1459619303 typo in Serializer docstring
+f5b3c8b71aae47fc8926a73e6e176f775a1af53f Max Countryman 1459619280 fix typo
+4c3923561fd7d3aa53013b0b6b27bb3221bd473a Armin Ronacher 1396004953 This is 0.24
+3059374468be85f96ad7f8c96325badf80248f50 Armin Ronacher 1396004943 Make signature verification not fail on invalid padding.
+be7a12ae15eeef6f23d37df8228982678f163896 Armin Ronacher 1396004901 Bump the date
+2af6ef11079e94b06931c8df87f943bc89a1d4be Armin Ronacher 1384375930 Fixed a typo
+1e4bf00220cbb6fd1445712716ae640bcc2d6475 Armin Ronacher 1376049517 Added a BadHeader exception
+ccc9c1e43030da167bffbc35ee059dede1b30b60 Armin Ronacher 1375981770 Added changelog entry for 0.23
+cf424920eacf9809e3caa1d0b2b8c2a3a8de515e Armin Ronacher 1375981688 This is 0.23
+074e458fac440a3fe39580f2ea6ab8659d137857 Armin Ronacher 1375981674 Added missing MANIFEST.in
+72f11600534b2c77aa4f72d406b122eb1cb7c282 Armin Ronacher 1372846236 This is 0.22
+0cde8bb31ed2830a680a78d295af0c978e9ad12c Armin Ronacher 1372846206 Added changelog entry
+2a4f83246487cb3b23368b5971f8e4527aeb4b2f Armin Ronacher 1372845824 Changed the documentation about the TImedJSONWebSignatureSerializer
+558dd6456a8cd1cb770571db35b7930e01b27aa4 Armin Ronacher 1372763769 Merge pull request #23 from RR2DO2/algverify
+dbbd999dcf5a05a61e63e5a75f11fe8549dbd494 Arnout van Meer 1372676614 Moved signature verification to the SigningAlgorithm class to allow for asymmetrical algorithms
+e3ddd84800db28e3c468b14ef0e670a03e735ee8 Armin Ronacher 1370213842 Merge pull request #20 from RR2DO2/timedjws
+238ac5c734d701edbe99f1d17ee5e811596e3b42 Arnout van Meer 1370213625 Removed code duplication and prevents mutating passed in header_fields
+9ef8a00ca7f149fb97dd5559702503171678ac19 Armin Ronacher 1370208318 Fixed tests for 3.3
+f913bd262d8096df0c9195f180eda4bef37b5cb7 Armin Ronacher 1370208315 Updated traivs config
+09c775b06370cfef031cfed5c64fec7d30c1b665 Armin Ronacher 1370207864 Documented new serializer
+86b11dbb9ceb356ebf6a388af0cb17a854576fd1 Armin Ronacher 1370207807 Fixed and cleaned up implementation for pull request 19
+1a280faa740f39a5df2820c529c8bdb9182d7db6 Jan Brauer 1369947180 Use assertEqual
+e56d4cf8cb671851b77e33b00d84bc3a054d8cab Jan Brauer 1369947168 Check for type and constraint in one go
+12b3a6da696b6c1c6e16de39a4a16f9725d9a319 Jan Brauer 1369946630 Don't use assertIn for 2.6 compatibility
+674b7b4a43ca22d23115e09eb1afcdbd7d49f5e1 Jan Brauer 1369946248 Fix assertRaises syntax for 2.6
+753a814f1067321a4062ec8c24c0af3d0fb241c7 Jan Brauer 1369945499 Add TimedJSONWebSignatureSerializer
+1803415a5d195b825f993611b911898e7ba7b058 Armin Ronacher 1369561950 Added changelog entry and bumped to 0.21
+76c6d79908cea86457ba799baf0185f56a3a1d3d Armin Ronacher 1369561730 Merge pull request #17 from DasIch/want_bytes-py26
+9a7c7d0940f47c6b71dfbfaf6d53e826cf2307da Armin Ronacher 1369561717 Merge pull request #18 from ThomasWaldmann/master
+13963243459dbcd6b84c78eef533d392878dfde8 Thomas Waldmann 1369520479 load_payload: fix wrong compression check, fix wrong datatype in test
+e0ba072367aee910f3e1254fdd5ea70da44fcc16 Armin Ronacher 1369314814 This is 0.20
+0631049e93b84337aa966e9e4c5e3cf7e7f65724 Armin Ronacher 1369314801 Fixed a bug in Python 2.6
+650b303e678402e73212957174ba3a1526f9f9b9 Daniel Neuhäuser 1369244085 ''.encode(errors=) is missing on 2.6
+07193791336b5314b17d294aed5e0b451315d7c4 Armin Ronacher 1369216419 Use the stdlib digest_compare if available
+f119c1b35e63659d3ce8bf9b3d6e6547ca46683e Armin Ronacher 1369216134 Fixed a docstring and introduced a use of want_bytes
+901feb5c50e85d905dddd9007298fe087eec2b63 Armin Ronacher 1369185501 Updated upload-docs command
+e434dd49c898f9d9cc234eaf7ff6d490038174ea Armin Ronacher 1369184894 Added changelog entry
+8b1661408ea2633521435b794a7457639ca986de Armin Ronacher 1369184835 Added travis.yml
+113ef4dfbb8189749eef2d0438b387b79e816cba Armin Ronacher 1369184807 Current version is 0.19
+6185966b1b5bff7b2d09af705e5637bc95126958 Armin Ronacher 1369184761 Fundamentally changed unicode/byte dumping behavior for Python 3
+5a15d437122cd6b980b74b8a05cbd32753a4d4c3 Armin Ronacher 1369177783 Removed six and fixed support for Python 3 stdlib JSON.
+819d6d31bafcc72729554565b4c0d5a213e2085f Thomas Waldmann 1368927186 py3 compat: manually fix unicode/bytes
+8ce5ea36aea7096849eaa892bfc87b7f35087c12 Thomas Waldmann 1368927033 fix default salt bug in make_signer
+0994288880cf95ed3e67b0de8f9fc2dbb24c52e5 Thomas Waldmann 1368910000 do not use %s%s to concatenate bytestrings (doesn't work with py3), cleanup exception msgs
+2397209e4062f94944b0168e919f84de395ad171 Thomas Waldmann 1368908894 py3 compat: fix base64_(en|de)code, int_to_bytes / bytes_to_int
+10972c200b1d31e16c344d840acee913109f732b Thomas Waldmann 1368902853 py3 compat: fix str/unicode for exception base class
+75db112ab70289b0618c28ec146d3fdb4ba397db Thomas Waldmann 1368901557 manual py3 compat fixes
+f4dff39ac492ad0b4d7a87cdb8d30282450b6a30 Thomas Waldmann 1368901033 setup.py: require 'six', add classifiers for 2.6 and 2.7
+97f296df4fdc4c7daaffc9f9c92561d0aa55247b Thomas Waldmann 1368900624 automated changes by python-modernize (without fix_unicode for now)
+2a84d010fa66b13ff39688c3ec424833c7618d18 Armin Ronacher 1368611574 This is going to be 0.19
+d936d4ad0f2a54f4d994dbfccc694344b1eb8eb5 Armin Ronacher 1367587735 Allow header to remain JSON even if someone changes the payload serializer
+437687d3997e692bf1f6fdced626dabe5dcb78aa Armin Ronacher 1367587365 Sanity check in case the header payload is not a dictionary
+8b06e134dbd6e8e6995c6adf025f5692dece9bf0 Armin Ronacher 1367586899 Added alg back to the header and added support for loads_unsafe
+d36a45d6e9c77beab98bc95dac8e9e8b35b2a4ad Armin Ronacher 1367584750 Added changelog entry
+241716735054e04eec5cae82cec7575bcc243f5e Armin Ronacher 1367584679 Some code style cleanup
+b9b08b4677352997ce8d712db81595980455c5a4 Arnout van Meer 1367584371 Updated docs with JOSE additions
+c609bd4d5ef2d224a72f5cc17d50578efbe29e9d Arnout van Meer 1367346991 Implemented support for JWS Compact Serialization from the JSON Web Signature specification
+ba57cfdfaeb1ffd29ab4f0753030e440027d6845 Arnout van Meer 1367346823 Removed salt parameter from validate as it is unused and causes an error at runtime.
+d3fef96cc7c220dc862cbd6e83ac0ec4e5855641 Armin Ronacher 1344652008 Fixed a bug that caused with custom digest methods and hmac key derivation.
+dfa3a8c7573836aa7cdbc57bf6a13c3780710b5a Armin Ronacher 1342019770 This is 0.16
+f04f792c764471714aa43fa706f128d2f3010134 Armin Ronacher 1342019767 Added a test case for load_payload with unicode
+098b4b043730badf4734fc0c5578a17944312d64 Armin Ronacher 1342019745 Added support for unicode values passed to load_payload
+0c75b301f0d3eaf4e846509ad51a435c096582b4 Armin Ronacher 1342019110 Added another test for passing unicode data to unsafe loads
+56ddae16b77ef23efc4ded9d3411c13ef9ce3cf2 Armin Ronacher 1342017692 This is 0.15
+90c42a0af678ca82bde1c2c65537a5820ee4a4d5 Armin Ronacher 1342017683 Greatly refactored exception system for itsdangerous
+1848718e1386ebeaec990ff34c20fb05ec3008d7 Armin Ronacher 1340967324 This is 0.14
+0030c0bd9c05c8b02458ca2116dd9870c2e4d36b Armin Ronacher 1340967296 Added exception attributes for itsdangerous and improved API
+fb96906c9cd58a1631709ddc8027e8b46abd7016 Armin Ronacher 1339343519 Updated setup.cfg
+847cbb85b1c4e2a431d8547759495bb56a2e6c83 Armin Ronacher 1339343445 This is 0.13
+3b86f4c02703f1fd0b1078690a380612b678f559 Armin Ronacher 1339343437 Merge branch 'master' of github:mitsuhiko/itsdangerous
+47bc7e3f0df243c7023fac11cdd623715f6c8ce4 Armin Ronacher 1339343422 Added a simple method to change the digestmod
+8b8eca94b4f8b6a6ab41b8e3b3e6da25880f7a2f Armin Ronacher 1339329379 Merge pull request #9 from jhorneman/master
+41ee5ea087defe9c3564381470e0277f55cfa641 Armin Ronacher 1339328784 Fixed typo and improved wording in the docs
+1a7a68f56a717950604ec2afc704fb2b9bdcd585 Jurie Horneman 1339327970 Proofread. Fixed some issues.
+59f3bf7877e21af8e5571993edb6834744858583 Armin Ronacher 1329912212 Fixed an issue with wrong timezones being used for EPOCH calculation.
+249a517060d0d290541cf5795435221884e7e9d6 Armin Ronacher 1323548379 Merge pull request #5 from jparise/patch-1
+08138bf6f2be27f7c3b1f21a2a579a53506bd17f Jon Parise 1323547218 Fix a small typo: 'might me' => 'might be'
+3a153b0d567bd5cf9d114369c59c4ee42cf77608 Armin Ronacher 1313669753 Merge pull request #4 from daniele-nicolodi/master
+ea10d2dbec992bb9ee807638f701775765fb2462 Daniele Nicolodi 1313616740 Fix issue #3 and add proper unit test.
+59067a939ce5d838622b11a5a70c2eceefcacb54 Armin Ronacher 1310144025 Merge branch 'master' of github.com:mitsuhiko/itsdangerous
+4d73f96c0464c09b85418d67695298db530f539e Armin Ronacher 1310143311 Fixed a typo.
+534cb16e79532d5ddb9c116d6201886434b70695 Armin Ronacher 1310042145 Merge pull request #2 from derdon/patch-1
+933a0488eae41ad3d6709770ba942ac8bc7d3947 Simon Liedtke 1310041971 fixed a typo (don't -> won't)
+b5352b34c57cd680aaef53d07238c41c021c2032 Armin Ronacher 1310031479 This is 0.11
+5d4acbb330c36e4923cddc17f4be6a175fb15720 Armin Ronacher 1310031467 Fixed an uncought value error
+7643dbc168ca4e42fbdcd72aae68c5d1efb6366e Armin Ronacher 1309346827 Fixed a naming issue in the testsuite
+18c9844cdfa2727d5951e8627ab97b70186065a2 Armin Ronacher 1309346679 Bump to 0.10
+f5a21581cbf64d795a884e962a3f628bea924d68 Armin Ronacher 1309346663 Updated implementation to accept serializers from parameters to match Djangos improved interface.
+6648bc08f22cc3092f3a4174f8d8fd735f4ee0f2 Armin Ronacher 1309346652 Added missing changelog file
+d0e7a41b0e801b8afefc895e9b19a660bf9973f2 Armin Ronacher 1309346632 Updated docs
+d5552e560232e9fb7867835046956b2ffc7f7d4e Armin Ronacher 1309345054 Explained the purpose of the salt.
+d5b350b46bc26b738bd5262f482fbf11001b3b4a Armin Ronacher 1309045017 Fixed a bug that caused the library not to accept unicode strings
+736a57b35a190d6d1fc10bc2efb00ce2d8445625 Armin Ronacher 1308933463 The actual tagline
+f7b55500be1182ae26769ea741d0077ecc6ec2de Armin Ronacher 1308913578 Fixed an embarrasing typo in the unittests
+49ae3b3bfbf80e212ce40364f7fa60c7ced7abce Armin Ronacher 1308913499 Removed unnecessary constant
+f5472ac9ff6c9ad2e115a299dc0b10d51868737d Armin Ronacher 1308913323 One more example
+313e1cabf6b09ada48eed165ea89c4b43064f1e7 Armin Ronacher 1308913203 Added example use cases
+aaf0860add8eb36d7a67b8ab22ba45c9eed3f66c Armin Ronacher 1308913197 Added gitignore
+dcf53a797c008fbce491c87a8b2481a982287186 Armin Ronacher 1308911654 Removed duplicated error from the docs.
+a2c92b9b55e5bff2e3266b5711afcae7cf8527f5 Armin Ronacher 1308876957 Its released :)
+23ab9411ed400647a85d3137d4973a6ef652c044 Armin Ronacher 1308876884 Updated makefile
+5549bc2e34ba309eeea561f6fcaf44e6bd4d5b16 Armin Ronacher 1308876803 Added setup.cfg
+2769c5bca1651c28f28a31b49d62e341d6d33557 Armin Ronacher 1308876775 Added documentation
+f4f95108394905171af50822361ab1945a58ab3a Armin Ronacher 1308876682 Updated implementation and added setup.py
+e2de0c4d69ce3117f417af66b3f2222859fecef5 Armin Ronacher 1308874322 make "make test" test
+b393ac71cb83e67b037b5766a765b9138fbd15e5 Armin Ronacher 1308874145 Initial version

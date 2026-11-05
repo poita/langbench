@@ -1,0 +1,71 @@
+[message]
+id 0030
+source "mbox:30"
+
+[headers]
+received: "from mail.example.net (mx4.apache.org [217.211.95.191]) by students.example.ac.jp (Postfix) with ESMTP id 97D91A4265 for <rmller.98@corp.example.co.uk>; Fri, 26 May 2005 09:18:57 +0000"
+received: "from dev.example.io (mx5.post.example.fr [147.92.193.138]) by dev.example.io (Postfix) with ESMTP id 36B8F350EC for <sobrien@post.example.fr>; Fri, 13 Apr 2025 01:28:54 EST"
+received: "from example.org (mx8.example.org [118.29.169.202]) by students.example.ac.jp (Postfix) with ESMTP id C25070DCAC for <bgarca@dev.example.io>; Tue, 3 Sep 2003 00:58:10 -0330"
+return-path: "<vsmith@students.example.ac.jp>"
+message-id: "<347.cf99c4fe.61392@dev.example.io>"
+date: "Wed, 15 Jan 2009 22:29:34 -0000"
+from: "Erik Müller <emller.25@corp.example.co.uk>"
+reply-to: "Carl Fernández <cfernndez@students.example.ac.jp>"
+to: "kim@eu.example.de, Dana Иванов <d@example.com>,\tikim@example.com (Ivan Kim)"
+cc: "Nils Papadopoulos <npapadopoulos@apache.org>,\t\"Kowalski, Olga\" <okowalski@dev.example.io>"
+subject: "RE: Is read try"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 26\""
+
+[addresses]
+from 0 display="Erik Müller" spec="emller.25@corp.example.co.uk"
+reply-to 0 display="Carl Fernández" spec="cfernndez@students.example.ac.jp"
+to 0 display="" spec="kim@eu.example.de"
+to 1 display="Dana Иванов" spec="d@example.com"
+to 2 display="" spec="ikim@example.com"
+cc 0 display="Nils Papadopoulos" spec="npapadopoulos@apache.org"
+cc 1 display="Kowalski, Olga" spec="okowalski@dev.example.io"
+
+[date]
+raw " Wed, 15 Jan 2009 22:29:34 -0000"
+valid yes
+utc 2009-01-15T22:29:34Z
+offset +0000
+epoch 1232058574
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 26" parts=3 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="Apple-Mail=_98AC815EAF5C6276" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=us-ascii cte=7bit size=384 adler32=139a8602 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=620 adler32=96bed7d5 role=html
+  4 application/pdf cte=base64 disposition=attachment filename="you.pdf" size=6443 adler32=a8267863 role=attachment
+  5 image/png cte=base64 disposition=inline filename="piñata_picture_these_it.png" size=3931 adler32=d8b89db7 role=attachment
+
+[body]
+text 2 chars 384
+| Server can sound think and mother the as look when been like but the
+| Krak?w like which! Such before but as had will is animal cache after a
+| the with so write all Z?rich? Paulo alias people differ what also that
+| way about high to no. Said have to off proxy form will want the do each
+| trunk before two httpd like hot with. Cr?me made new or as day now their
+| that most?
+| 
+| -- 
+| R?mi Taylor
+html 3 chars 620
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Server can sound think and mother the as look when been like but the<br>
+| Kraków like which! Such before but as had will is animal cache after a<br>
+| the with so write all Zürich? Paulo alias people differ what also that<br>
+| way about high to no. Said have to off proxy form will want the do each<br>
+| trunk before two httpd like hot with. Crème made new or as day now their<br>
+| that most?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Rémi Taylor<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="you.pdf" size=6443 adler32=a8267863 file=parts/0030/004.bin
+5 type=image/png filename="piñata_picture_these_it.png" size=3931 adler32=d8b89db7 file=parts/0030/005.bin

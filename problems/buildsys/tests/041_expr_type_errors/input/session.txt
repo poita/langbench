@@ -1,0 +1,69 @@
+build
+edit main.kiln
+let x = "a" + 1
+---
+build
+edit main.kiln
+let x = 1 - true
+---
+build
+edit main.kiln
+let x = true * 2
+---
+build
+edit main.kiln
+let x = [1] / 2
+---
+build
+edit main.kiln
+let x = 1 % "a"
+---
+build
+edit main.kiln
+let x = 1 ~ "a"
+---
+build
+edit main.kiln
+let x = "a" ~ 1
+---
+build
+edit main.kiln
+let x = [1] ++ "a"
+---
+build
+edit main.kiln
+let x = 1 && true
+---
+build
+edit main.kiln
+let x = true && 1
+---
+build
+edit main.kiln
+let x = 1 || true
+---
+build
+edit main.kiln
+let x = false || [1]
+---
+build
+edit main.kiln
+let x = !1
+---
+build
+edit main.kiln
+let x = -"a"
+---
+build
+edit main.kiln
+let x = [1]["a"]
+---
+build
+edit main.kiln
+let x = 1[0]
+---
+build
+edit main.kiln
+let x = true[0]
+---
+build

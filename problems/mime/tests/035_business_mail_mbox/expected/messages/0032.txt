@@ -1,0 +1,118 @@
+[message]
+id 0032
+source "mbox:32"
+
+[headers]
+received: "from eu.example.de (mx8.students.example.ac.jp [39.151.178.118]) by example.com (Postfix) with ESMTP id 279BEFF971 for <rjohansson@dev.example.io>; Thu, 9 Feb 2012 09:34:16 +0200"
+received: "from apache.org (mx6.dev.example.io [154.218.233.221]) by example.com (Postfix) with ESMTP id 9156C4CB98 for <erossi@example.com>; Sun, 07 Jun 2024 01:52:17 +0000 (CET)"
+return-path: "<amller@example.com>"
+message-id: "<356.ac6a28b0.50546@lists.example.edu>"
+date: "Sun, 11 Jul 2009 04:00:23 +0100 (PST)"
+from: "cobrien@apache.org"
+to: "Ελένη Kowalski <kowalski@example.org>,\tFiona Müller <fmller@example.com>"
+cc: "Bob Иванов <b.98@example.com>,\tZoë Dubois <zdubois@eu.example.de>"
+subject: "[VOTE] Point thing and does Paulo"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_c4616ec341ef59fa7192be2da4c40bce\""
+
+[addresses]
+from 0 display="" spec="cobrien@apache.org"
+to 0 display="Ελένη Kowalski" spec="kowalski@example.org"
+to 1 display="Fiona Müller" spec="fmller@example.com"
+cc 0 display="Bob Иванов" spec="b.98@example.com"
+cc 1 display="Zoë Dubois" spec="zdubois@eu.example.de"
+
+[date]
+raw " Sun, 11 Jul 2009 04:00:23 +0100 (PST)"
+valid yes
+utc 2009-07-11T03:00:23Z
+offset +0100
+epoch 1247281223
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_c4616ec341ef59fa7192be2da4c40bce" parts=4 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="000000000000efbd706374ef" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=quoted-printable size=1535 adler32=e8ca0e94 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=2099 adler32=c0aad17f role=html
+  4 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="Málaga_at.csv" size=4956 adler32=ba7c24a1 role=attachment
+  5 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=inline filename="Ørsted_hand_why_who.docx" size=7637 adler32=1d42c552 role=attachment
+  6 application/zip cte=base64 disposition=attachment filename="Kraków_why_put.zip" size=5085 adler32=6a11c200 role=attachment
+
+[body]
+text 2 chars 1535
+| Make were his people coöperate try number Paulo he. Line the act the
+| large word handler our you he light high may some! An try directive
+| smörgåsbord be man São me look out the one air with have with picture
+| here. With the would your my sentence connection all his water for. As
+| you you of by.
+| 
+| In error backport mother one are right? I and all small high look that
+| have turn sentence of café help? Act the in will he are see hot them
+| also thing in the see. A act hot your but can to must the is two him
+| client certificate or.
+| 
+| Of very large with it again make that air the some of you and and.
+| Directive error line say were the has! Of end the alias be that for
+| change low house did are it but smörgåsbord! Review way build it self.
+| Before of you but a try thing hot side been live filter as the the three
+| small.
+| 
+| Their same header he than thing when commit her land branch thing the
+| after. With in how know read much warning them are! Would socket with
+| she error the day that even they of they! Proxy see release the for
+| timeout an like do every for call that think by to. Been would your in
+| day the just? Off release which but this see are men more what differ no
+| was we the! Port this before he would other more?
+| 
+| Line an will status was has call the people patch three then filter. To
+| very sound were did to. To sentence to one if be been there vhost for
+| came!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| ??????? Schröder
+html 3 chars 2084
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Make were his people coöperate try number Paulo he. Line the act the<br>
+| large word handler our you he light high may some! An try directive<br>
+| smörgåsbord be man São me look out the one air with have with picture<br>
+| here. With the would your my sentence connection all his water for. As<br>
+| you you of by.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">In error backport mother one are right? I and all small high look that<br>
+| have turn sentence of café help? Act the in will he are see hot them<br>
+| also thing in the see. A act hot your but can to must the is two him<br>
+| client certificate or.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Of very large with it again make that air the some of you and and.<br>
+| Directive error line say were the has! Of end the alias be that for<br>
+| change low house did are it but smörgåsbord! Review way build it self.<br>
+| Before of you but a try thing hot side been live filter as the the three<br>
+| small.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Their same header he than thing when commit her land branch thing the<br>
+| after. With in how know read much warning them are! Would socket with<br>
+| she error the day that even they of they! Proxy see release the for<br>
+| timeout an like do every for call that think by to. Been would your in<br>
+| day the just? Off release which but this see are men more what differ no<br>
+| was we the! Port this before he would other more?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Line an will status was has call the people patch three then filter. To<br>
+| very sound were did to. To sentence to one if be been there vhost for<br>
+| came!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Дмитрий Schröder<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/csv filename="Málaga_at.csv" size=4956 adler32=ba7c24a1 file=parts/0032/004.bin
+5 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="Ørsted_hand_why_who.docx" size=7637 adler32=1d42c552 file=parts/0032/005.bin
+6 type=application/zip filename="Kraków_why_put.zip" size=5085 adler32=6a11c200 file=parts/0032/006.bin

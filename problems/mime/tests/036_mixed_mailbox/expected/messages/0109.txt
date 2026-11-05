@@ -1,0 +1,93 @@
+[message]
+id 0109
+source "mbox:109"
+
+[headers]
+received: "from dev.example.io (mx7.apache.org [143.91.172.144]) by example.com (Postfix) with ESMTP id 8EDE52B4C1 for <znakamura@mail.example.net>; Sun, 24 Nov 2009 15:39:28 Z"
+received: "from post.example.fr (mx7.example.com [254.114.131.121]) by students.example.ac.jp (Postfix) with ESMTP id CCF5B5AD3F for <brown.12@corp.example.co.uk>; Fri, 4 Jan 2004 16:29:29 +0900"
+return-path: "<estergaard@post.example.fr>"
+message-id: "<846.dbb889f8.6687@example.com>"
+date: "Wed, 5 Oct 2025 13:02:56 GMT"
+from: "María Papadopoulos <mpapadopoulos@eu.example.de>"
+to: "afernndez@lists.example.edu (Someone),    Rémi Rossi <rrossi.57@corp.example.co.uk>,    Olga Müller <omller.85@example.org>"
+subject: "Re: And set picture follow"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_7107_242281751.931662460882\""
+
+[addresses]
+from 0 display="María Papadopoulos" spec="mpapadopoulos@eu.example.de"
+to 0 display="" spec="afernndez@lists.example.edu"
+to 1 display="Rémi Rossi" spec="rrossi.57@corp.example.co.uk"
+to 2 display="Olga Müller" spec="omller.85@example.org"
+
+[date]
+raw " Wed, 5 Oct 2025 13:02:56 GMT"
+valid yes
+utc 2025-10-05T13:02:56Z
+offset +0000
+epoch 1759669376
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_7107_242281751.931662460882" parts=5 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_8378_509091201.950508982990" parts=3 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 267" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=windows-1252 cte=quoted-printable size=900 adler32=c2873a9c role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1306 adler32=b026c268 role=html
+    5 image/png cte=base64 disposition=attachment filename="timeout.png" size=873 adler32=4135a76b role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="brûlée_before_tell.jpg" size=1571 adler32=74480beb role=attachment
+  7 image/png cte=base64 disposition=attachment filename="with_he.png" size=4055 adler32=5a9bcf2a role=attachment
+  8 application/zip cte=base64 disposition=attachment filename="piñata_be.zip" size=4347 adler32=5b426a22 role=attachment
+  9 image/jpeg cte=base64 disposition=attachment filename="you_the_make.jpg" size=7495 adler32=a3bd4e75 role=attachment
+  10 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="or_give_good_and.docx" size=6404 adler32=2f36526a role=attachment
+
+[body]
+text 3 chars 900
+| Help first that up said on tell. His their animal is had?
+| 
+| Is in config config me config your side for or the the the up! Would up
+| earth little long way with air then up you people are the the! The
+| little would each über be than at in is time could can him hot. To to
+| word give the down are is and.
+| 
+| The use but by what the use on have build trunk live set it also some
+| self? Thread request that as what port of or it line this sound! Is of
+| the back men animal made apr year of hot vote if of the up a. That to
+| place the rewrite you the of the. To move have one are! In with under
+| each will one directive help. Differ you about no connection up more
+| show ssl and the at the?
+| 
+| They good jalapeño connection their must low only are act him water act
+| of my differ where were? And world the of out is review this the mean
+| über the same of the. Only year call by cause be earth you think!
+| 
+| -- 
+| Vera Rossi
+html 4 chars 1303
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Help first that up said on tell. His their animal is had?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Is in config config me config your side for or the the the up! Would up<br>
+| earth little long way with air then up you people are the the! The<br>
+| little would each über be than at in is time could can him hot. To to<br>
+| word give the down are is and.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The use but by what the use on have build trunk live set it also some<br>
+| self? Thread request that as what port of or it line this sound! Is of<br>
+| the back men animal made apr year of hot vote if of the up a. That to<br>
+| place the rewrite you the of the. To move have one are! In with under<br>
+| each will one directive help. Differ you about no connection up more<br>
+| show ssl and the at the?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">They good jalapeño connection their must low only are act him water act<br>
+| of my differ where were? And world the of out is review this the mean<br>
+| über the same of the. Only year call by cause be earth you think!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Vera Rossi<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="timeout.png" size=873 adler32=4135a76b file=parts/0109/005.bin
+6 type=image/jpeg filename="brûlée_before_tell.jpg" size=1571 adler32=74480beb file=parts/0109/006.bin
+7 type=image/png filename="with_he.png" size=4055 adler32=5a9bcf2a file=parts/0109/007.bin
+8 type=application/zip filename="piñata_be.zip" size=4347 adler32=5b426a22 file=parts/0109/008.bin
+9 type=image/jpeg filename="you_the_make.jpg" size=7495 adler32=a3bd4e75 file=parts/0109/009.bin
+10 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="or_give_good_and.docx" size=6404 adler32=2f36526a file=parts/0109/010.bin

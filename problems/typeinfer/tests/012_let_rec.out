@@ -1,0 +1,25 @@
+len : 'a list -> int
+sum : int list -> int
+mymap : ('a -> 'b) -> 'a list -> 'b list
+fix : ('a -> 'a) -> 'a
+forever : 'a -> 'b
+fact : int -> int
+app : 'a list -> 'a list -> 'a list
+rev : 'a list -> 'a list
+f : 'a -> 'a
+g : 'a -> int
+h : bool -> 'a -> 'a
+error: occurs
+error: unify
+ok : 'a -> 'b
+- : int * bool
+- : 'a -> 'b * 'c
+- : int * int
+count : int -> int -> int
+zip : 'a list -> 'b list -> ('a * 'b) list
+- : (int * bool) list
+iter : ('a -> 'a) -> int -> 'a -> 'a
+error: unify
+error: unify
+error: unify
+- : 'a -> 'a * 'a

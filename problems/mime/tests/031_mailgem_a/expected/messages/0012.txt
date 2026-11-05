@@ -1,0 +1,21 @@
+[message]
+id 0012
+source "bad_encoded_subject.eml"
+
+[headers]
+subject: "TEST"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=0468014b role=text
+
+[body]
+text 0 chars 5
+| TEST
+html none
+
+[attachments]

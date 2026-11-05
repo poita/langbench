@@ -1,0 +1,97 @@
+[message]
+id 0014
+source "mbox:14"
+
+[headers]
+received: "from corp.example.co.uk (mx5.apache.org [219.8.56.161]) by example.com (Postfix) with ESMTP id 7FF7EFD701 for <qschrder.66@corp.example.co.uk>; Wed, 26 Dec 2012 14:12:10 +1000"
+received: "from example.org (mx8.students.example.ac.jp [192.190.194.162]) by apache.org (Postfix) with ESMTP id D1C20A21BE for <xvanderberg@dev.example.io>; Sat, 11 Nov 2004 23:01:39 +1245 (JST)"
+received: "from example.com (mx5.dev.example.io [73.219.200.43]) by apache.org (Postfix) with ESMTP id C5FD627AB7 for <dmller@lists.example.edu>; Thu, 5 Aug 2005 06:02:51 +0100"
+return-path: "<qsmith@students.example.ac.jp>"
+message-id: "<137.e08f9220.42667@students.example.ac.jp>"
+in-reply-to: "<138.08302026.17339@dev.example.io>"
+references: "<138.08302026.17339@dev.example.io>"
+date: "sat,13 may 2012 17:1:34 (comment (nested)) UT"
+from: "María Papadopoulos <mpapadopoulos@eu.example.de>"
+to: "Zoë Fernández <zfernndez@lists.example.edu>,    Ελένη Rossi <rossi@corp.example.co.uk>"
+cc: "Rémi Dubois <rdubois@dev.example.io>"
+subject: "They thing but long one hot the that with a"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 812\""
+
+[addresses]
+from 0 display="María Papadopoulos" spec="mpapadopoulos@eu.example.de"
+to 0 display="Zoë Fernández" spec="zfernndez@lists.example.edu"
+to 1 display="Ελένη Rossi" spec="rossi@corp.example.co.uk"
+cc 0 display="Rémi Dubois" spec="rdubois@dev.example.io"
+
+[date]
+raw " sat,13 may 2012 17:1:34 (comment (nested)) UT"
+valid yes
+utc 2012-05-13T17:01:34Z
+offset +0000
+epoch 1336928494
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 812" parts=6 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="0000000000003591f948f0df" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_8014F455340D3D46" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=base64 size=469 adler32=df7a931b role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=766 adler32=7c02f64e role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="the_the_large_where.jpg" size=1737 adler32=8b115d5f role=attachment
+  6 text/x-diff charset=utf-8 cte=base64 disposition=inline filename="on.patch" size=2681 adler32=8eea53e8 role=attachment
+  7 application/zip cte=base64 disposition=attachment filename="made_you_under_hot.zip" size=3677 adler32=09ec1d08 role=attachment
+  8 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="build.patch" size=5461 adler32=0cb0caef role=attachment
+  9 application/pdf cte=base64 disposition=inline filename="httpd_out.pdf" size=5547 adler32=bfa7d052 role=attachment
+  10 multipart/digest cte=7bit boundary="000000000000e1c91f6f426c" parts=2 preamble=0 epilogue=0
+    11 message/rfc822 cte=7bit parts=1
+      12 text/plain charset=iso-8859-1 cte=base64 size=987 adler32=33be53ca role=attachment
+    13 message/rfc822 cte=7bit parts=1
+      14 multipart/mixed cte=7bit boundary="000000000000d214595fad44" parts=3 preamble=0 epilogue=0
+        15 text/plain charset=iso-8859-1 cte=8bit size=1168 adler32=fcb59200 role=attachment
+        16 text/plain charset=utf-8 cte=base64 disposition=attachment filename="fiancée_come.txt" size=10629 adler32=7bd4cd8a role=attachment
+        17 text/x-diff charset=utf-8 cte=quoted-printable disposition=inline filename="what_water.patch" size=1972 adler32=82b46d7e role=attachment
+
+[body]
+text 3 chars 469
+| Our from think that one are a water does people after is long! On he hot
+| and look I at. First even with in thing have thread had bucket? Change
+| good to were if help man point on differ. You with bucket the long! On
+| in and people low one word on his of to is have him good for it? To but
+| find give it.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Björn Schröder
+html 4 chars 766
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Our from think that one are a water does people after is long! On he hot<br>
+| and look I at. First even with in thing have thread had bucket? Change<br>
+| good to were if help man point on differ. You with bucket the long! On<br>
+| in and people low one word on his of to is have him good for it? To but<br>
+| find give it.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Björn Schröder<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="the_the_large_where.jpg" size=1737 adler32=8b115d5f file=parts/0014/005.bin
+6 type=text/x-diff filename="on.patch" size=2681 adler32=8eea53e8 file=parts/0014/006.bin
+7 type=application/zip filename="made_you_under_hot.zip" size=3677 adler32=09ec1d08 file=parts/0014/007.bin
+8 type=text/x-diff filename="build.patch" size=5461 adler32=0cb0caef file=parts/0014/008.bin
+9 type=application/pdf filename="httpd_out.pdf" size=5547 adler32=bfa7d052 file=parts/0014/009.bin
+12 type=text/plain filename=- size=987 adler32=33be53ca file=parts/0014/012.bin
+15 type=text/plain filename=- size=1168 adler32=fcb59200 file=parts/0014/015.bin
+16 type=text/plain filename="fiancée_come.txt" size=10629 adler32=7bd4cd8a file=parts/0014/016.bin
+17 type=text/x-diff filename="what_water.patch" size=1972 adler32=82b46d7e file=parts/0014/017.bin

@@ -1,0 +1,107 @@
+[message]
+id 0011
+source "mbox:11"
+
+[headers]
+received: "from post.example.fr (mx7.example.com [186.169.91.166]) by post.example.fr (Postfix) with ESMTP id 85AAD7EFC3 for <vkim@example.com>; Mon, 12 Jul 2004 17:46:20 -0000"
+received: "from post.example.fr (mx9.lists.example.edu [78.75.139.140]) by post.example.fr (Postfix) with ESMTP id E83ABAF9C1 for <frossi@example.com>; Tue, 25 Jan 2004 22:40:23 GMT (EDT)"
+received: "from example.com (mx8.post.example.fr [88.147.183.149]) by corp.example.co.uk (Postfix) with ESMTP id F9D63C208B for <petrov.7@example.com>; Fri, 10 Dec 2012 00:38:40 +0100"
+received: "from example.com (mx4.corp.example.co.uk [233.5.18.3]) by corp.example.co.uk (Postfix) with ESMTP id FF5F32CA1 for <xmller@corp.example.co.uk>; Sat, 07 May 2009 03:20:45 +0100 (JST)"
+return-path: "<dschrder@lists.example.edu>"
+message-id: "<92.4639dba6.38340@dev.example.io>"
+in-reply-to: "<100.bc8c5edc.92814@eu.example.de>"
+references: "<93.260f6483.10242@example.com> <94.6964856d.42398@apache.org> <95.827d3015.20562@apache.org> <96.e6479933.25988@example.org> <97.0e904006.41287@dev.example.io> <98.b1f94ad8.75005@lists.example.edu> <99.672999dd.35946@eu.example.de> <100.bc8c5edc.92814@eu.example.de>"
+date: "Thu, 4 Feb 2003 13:21:37 +0100"
+from: "vjohansson@corp.example.co.uk"
+to: "Ivan Østergaard <istergaard.24@lists.example.edu>,\tfwilson.57@apache.org, Zoë Østergaard <zstergaard.43@students.example.ac.jp>"
+cc: "spetrov@eu.example.de"
+subject: "Ask the many I father to"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_571B5AA98167A0A1\""
+
+[addresses]
+from 0 display="" spec="vjohansson@corp.example.co.uk"
+to 0 display="Ivan Østergaard" spec="istergaard.24@lists.example.edu"
+to 1 display="" spec="fwilson.57@apache.org"
+to 2 display="Zoë Østergaard" spec="zstergaard.43@students.example.ac.jp"
+cc 0 display="" spec="spetrov@eu.example.de"
+
+[date]
+raw " Thu, 4 Feb 2003 13:21:37 +0100"
+valid yes
+utc 2003-02-04T12:21:37Z
+offset +0100
+epoch 1044361297
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_571B5AA98167A0A1" parts=2 preamble=0 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_5893_790125823.1020099115358" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="000000000000ee1e67e7e0ea" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=8bit size=1259 adler32=f647afd6 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1745 adler32=cfa2528c role=html
+    5 image/png cte=base64 disposition=attachment filename="would_one_add.png" size=1141 adler32=1a1c3938 role=attachment
+  6 application/pdf cte=base64 disposition=inline filename="we.pdf" size=6525 adler32=b60e8262 role=attachment
+
+[body]
+text 3 chars 1259
+| On Sat, 16 Apr 2009 00:48:23 Z (CET), Bob Nakamura wrote:
+| >> The very the did the of form find time before number be where the to
+| >> their and a. Any to help so of than year end other. But get in just
+| > > keepalive through place to out their the but his! Of down out come
+| >> when say tell the she about that! The to a the hook go the? The the
+| >> made been can!
+| >
+| > > Any you with for work the does two! Are and in many he this brûlée.
+| > To two of jalapeño men.
+| >
+| 
+| At have were land client look after. Or it like try patch was was my
+| more about made a to long their? Home good been differ the also the of.
+| She out I to to so help boy is over Zürich you where too mutex?
+| 
+| Picture this all and find any turn him httpd there number the some the
+| look. Your response put take man be as a well bug back each this I his
+| been as. Picture the good put to after your back of then said and water
+| pool these the want from. Up of little most what when had hot give. Us
+| thing look by much form too line which over to went name São this! Year
+| or timeout after many alias?
+| 
+| Have will the through mutex élan I it the when are say it name of his
+| with response. Home vhost is back the the the no. Had think as on turn
+| people turn. A little live it give hot.
+| 
+| -- 
+| Pierre Nakamura
+html 4 chars 1739
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sat, 16 Apr 2009 00:48:23 Z (CET), Bob Nakamura wrote:<br>
+| &gt;&gt; The very the did the of form find time before number be where the to<br>
+| &gt;&gt; their and a. Any to help so of than year end other. But get in just<br>
+| &gt; &gt; keepalive through place to out their the but his! Of down out come<br>
+| &gt;&gt; when say tell the she about that! The to a the hook go the? The the<br>
+| &gt;&gt; made been can!<br>
+| &gt;<br>
+| &gt; &gt; Any you with for work the does two! Are and in many he this brûlée.<br>
+| &gt; To two of jalapeño men.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">At have were land client look after. Or it like try patch was was my<br>
+| more about made a to long their? Home good been differ the also the of.<br>
+| She out I to to so help boy is over Zürich you where too mutex?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Picture this all and find any turn him httpd there number the some the<br>
+| look. Your response put take man be as a well bug back each this I his<br>
+| been as. Picture the good put to after your back of then said and water<br>
+| pool these the want from. Up of little most what when had hot give. Us<br>
+| thing look by much form too line which over to went name São this! Year<br>
+| or timeout after many alias?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Have will the through mutex élan I it the when are say it name of his<br>
+| with response. Home vhost is back the the the no. Had think as on turn<br>
+| people turn. A little live it give hot.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Pierre Nakamura<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="would_one_add.png" size=1141 adler32=1a1c3938 file=parts/0011/005.bin
+6 type=application/pdf filename="we.pdf" size=6525 adler32=b60e8262 file=parts/0011/006.bin

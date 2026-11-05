@@ -1,0 +1,10 @@
+build -j 4
+delete src/m1/f2.txt
+build -j 4
+build -j 1
+create src/m1/f2.txt
+restored
+---
+build -j 4
+clean
+build -j 8

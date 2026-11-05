@@ -1,0 +1,91 @@
+[message]
+id 0049
+source "mbox:49"
+
+[headers]
+received: "from lists.example.edu (mx6.example.org [189.202.230.244]) by dev.example.io (Postfix) with ESMTP id F2C30FDB01 for <sstergaard@dev.example.io>; Sun, 17 Oct 2003 00:50:02 +0200 (CET)"
+return-path: "<hkim.65@mail.example.net>"
+message-id: "<493.aecb8ac5.34154@example.org>"
+in-reply-to: "<499.a4b11511.62399@eu.example.de>"
+references: "<494.ec0f9b0b.19081@eu.example.de> <495.83613122.90715@students.example.ac.jp> <496.738fae2e.25834@corp.example.co.uk> <497.889d86de.36441@example.com> <498.f2370374.47526@corp.example.co.uk> <499.a4b11511.62399@eu.example.de>"
+date: "8 JUN 18 04:41 +0530"
+from: "utaylor@dev.example.io (Uwe Taylor)"
+to: "William 山田 <w@example.org>, Fiona Doe <fdoe.52@eu.example.de>, tsmith.76@example.com"
+subject: "Live the men came review only time"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_B452F6AC2A0E52E3\""
+
+[addresses]
+from 0 display="" spec="utaylor@dev.example.io"
+to 0 display="William 山田" spec="w@example.org"
+to 1 display="Fiona Doe" spec="fdoe.52@eu.example.de"
+to 2 display="" spec="tsmith.76@example.com"
+
+[date]
+raw " 8 JUN 18 04:41 +0530"
+valid yes
+utc 2018-06-07T23:11:00Z
+offset +0530
+epoch 1528413060
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_B452F6AC2A0E52E3" parts=5 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="=_0ce61b579db6377436cb463b9dadeeec" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=8bit size=659 adler32=7638e6bd role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=998 adler32=0bd35762 role=html
+  4 application/pdf cte=base64 disposition=attachment filename="out_the.pdf" size=6337 adler32=49e126c8 role=attachment
+  5 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="they.patch" size=5375 adler32=24f69e82 role=attachment
+  6 text/plain charset=utf-8 cte=7bit disposition=attachment filename="go_way_for.txt" size=12536 adler32=ed006a22 role=attachment
+  7 message/rfc822 cte=7bit disposition=inline parts=1
+    8 multipart/mixed cte=7bit boundary="simple boundary 230" parts=4 preamble=0 epilogue=1
+      9 multipart/alternative cte=7bit boundary="----=_Part_7998_628102993.295564632209" parts=2 preamble=0 epilogue=0
+        10 text/plain charset=utf-8 cte=quoted-printable size=1131 adler32=ff3580dd role=attachment
+        11 text/html charset=windows-1252 cte=quoted-printable size=1640 adler32=521628c3 role=attachment
+      12 image/png cte=base64 disposition=attachment filename="rewrite_the.png" size=584 adler32=03fe1df0 role=attachment
+      13 application/pdf cte=base64 disposition=inline filename="well.pdf" size=6651 adler32=6733c1a3 role=attachment
+      14 application/zip cte=base64 disposition=inline filename="élan_said_there_and_been.zip" size=4988 adler32=b5e0a7b7 role=attachment
+
+[body]
+text 2 chars 656
+| Low who he do well thread at of at man at be did is act when a! Hot the
+| see want of point release much as was other.
+| 
+| Call low him low also who the must it on certificate right he be! Of
+| pool much and which there the under animal at with need ssl and new it!
+| Up do on get it of form. Mother when over they try use of. The name will
+| of write many jalapeño and one like water branch you of for that. Small
+| mutex little new to then in the they the filter and all so large!
+| 
+| Side segfault made header over on? More for over that word and with my
+| from server backport a cause they at patch will. Response a it you out
+| his are what so with take.
+| 
+| -- 
+| Zoë Müller
+html 3 chars 998
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Low who he do well thread at of at man at be did is act when a! Hot the<br>
+| see want of point release much as was other.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Call low him low also who the must it on certificate right he be! Of<br>
+| pool much and which there the under animal at with need ssl and new it!<br>
+| Up do on get it of form. Mother when over they try use of. The name will<br>
+| of write many jalapeño and one like water branch you of for that. Small<br>
+| mutex little new to then in the they the filter and all so large!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Side segfault made header over on? More for over that word and with my<br>
+| from server backport a cause they at patch will. Response a it you out<br>
+| his are what so with take.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Zoë Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="out_the.pdf" size=6337 adler32=49e126c8 file=parts/0049/004.bin
+5 type=text/x-diff filename="they.patch" size=5375 adler32=24f69e82 file=parts/0049/005.bin
+6 type=text/plain filename="go_way_for.txt" size=12536 adler32=ed006a22 file=parts/0049/006.bin
+10 type=text/plain filename=- size=1131 adler32=ff3580dd file=parts/0049/010.bin
+11 type=text/html filename=- size=1640 adler32=521628c3 file=parts/0049/011.bin
+12 type=image/png filename="rewrite_the.png" size=584 adler32=03fe1df0 file=parts/0049/012.bin
+13 type=application/pdf filename="well.pdf" size=6651 adler32=6733c1a3 file=parts/0049/013.bin
+14 type=application/zip filename="élan_said_there_and_been.zip" size=4988 adler32=b5e0a7b7 file=parts/0049/014.bin

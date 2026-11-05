@@ -1,0 +1,3 @@
+{% if tags %}{{ tags|length }} tags{% else %}none{% endif %}
+{% for t in tags %}{{ t.name }}={{ t.slug }} {% endfor %}
+{% if "Logic" == tags|first|default("")|default("") %}?{% endif %}

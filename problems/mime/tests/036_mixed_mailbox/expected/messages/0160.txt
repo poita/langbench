@@ -1,0 +1,63 @@
+[message]
+id 0160
+source "mbox:160"
+
+[headers]
+received: "from mail.example.net (mx9.example.org [151.125.68.97]) by students.example.ac.jp (Postfix) with ESMTP id A342AA41CF for <fdubois@dev.example.io>; 6 MAY 12 04:36 +0100"
+received: "from example.org (mx4.eu.example.de [57.226.225.128]) by example.com (Postfix) with ESMTP id AA41FCE3CE for <sschrder@corp.example.co.uk>; Thu, 5 Nov 2025 00:26:43 CST"
+received: "from corp.example.co.uk (mx3.eu.example.de [82.240.99.241]) by mail.example.net (Postfix) with ESMTP id A954FF6F7D for <zobrien@mail.example.net>; Wed, 27 Sep 2003 03:42:08 CST"
+received: "from corp.example.co.uk (mx2.mail.example.net [20.67.143.35]) by example.org (Postfix) with ESMTP id 2803A6DE96 for <gtaylor@post.example.fr>; Mon, 10 Nov 2012 00:22:20 EST"
+received: "from example.org (mx9.corp.example.co.uk [68.53.197.17]) by post.example.fr (Postfix) with ESMTP id 677E2FFA00 for <iwilson@students.example.ac.jp>; Sun, 28 Mar 2003 06:50:30 +1245 (CET)"
+return-path: "<v@corp.example.co.uk>"
+message-id: "<1190.98d9d37b.8235@example.org>"
+in-reply-to: "<1196.814950cc.46548@lists.example.edu>"
+references: "<1191.4189e873.15590@example.org> <1192.208845e9.5191@students.example.ac.jp> <1193.bb13315c.8693@lists.example.edu> <1194.daf746fc.82196@lists.example.edu> <1195.598c1611.34604@example.org> <1196.814950cc.46548@lists.example.edu>"
+date: "5 AUG 03 17:36 +0200"
+from: "Uwe Østergaard <ustergaard@eu.example.de>"
+reply-to: "François 山田 <f@students.example.ac.jp>"
+to: "María Nakamura <mnakamura@example.org>,\ty.49@lists.example.edu (Someone)"
+subject: "Re: [PATCH] In number fiancée does his before the light"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=utf-8"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Uwe Østergaard" spec="ustergaard@eu.example.de"
+reply-to 0 display="François 山田" spec="f@students.example.ac.jp"
+to 0 display="María Nakamura" spec="mnakamura@example.org"
+to 1 display="" spec="y.49@lists.example.edu"
+
+[date]
+raw " 5 AUG 03 17:36 +0200"
+valid yes
+utc 2003-08-05T15:36:00Z
+offset +0200
+epoch 1060097760
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=567 adler32=ec8bca11 role=text
+
+[body]
+text 0 chars 558
+| Hot find add much a right for other give! A which set you with hot on
+| such of.
+| 
+| Build request men your bucket I call was need to build the down and need
+| how a will. Have back time Kraków more that this been that would only
+| you the of Größe!
+| 
+| Part give config with come made. Move your of with even who with! As of
+| is show I had name need than it house about smörgåsbord how must trunk
+| animal the. Hot had year that light the pool as give every over were
+| could the are I see. Number out on would I? Backport look through mutex
+| other her!
+| 
+| -- 
+| 太郎 van der Berg
+html none
+
+[attachments]

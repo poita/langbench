@@ -1,0 +1,105 @@
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    depfile "out/z.txt"
+    in "src/a.txt"
+    cmd preprocess()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write("1\n")
+}
+step {
+    out "out/u.txt"
+    depfile "out/z.txt"
+    in "src/a.txt"
+    cmd preprocess()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "src/missing.txt"]
+    cmd concat()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    after "src/gone.txt"
+    cmd copy()
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "@nophony"
+    cmd write("x\n")
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+phony p = ["src/a.txt", "@q"]
+step {
+    out "out/z.txt"
+    cmd write("x\n")
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write("x\n")
+}
+default "out/other.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write("x\n")
+}
+default "@nope"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write("x\n")
+}
+default "not a path"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write("x\n")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    in "src/missing.txt"
+    after "src/other.txt"
+    cmd concat()
+}
+phony p = ["src/nope.txt"]
+default "out/z.txt"
+---
+build

@@ -1,0 +1,17 @@
+step 1: build (default) -j 3
+  run 0 6 w0 out/doc.txt preprocess()
+  run 0 1 w1 out/ok.txt write("ok\n")
+  run 0 30 w2 out/late.txt write("late\n")
+  ok ran=3 hit=0 time=30
+step 2: delete src/p.txt
+  ok
+step 3: build (default) -j 3
+  fail 0 6 w0 out/doc.txt preprocess()
+  hit 0 out/ok.txt
+  hit 0 out/late.txt
+  error E_NEED_MISSING src/p.txt needed by src/m.txt
+step 4: build (default) -j 3
+  fail 0 6 w0 out/doc.txt preprocess()
+  hit 0 out/ok.txt
+  hit 0 out/late.txt
+  error E_NEED_MISSING src/p.txt needed by src/m.txt

@@ -1,0 +1,72 @@
+[message]
+id 0053
+source "mbox:53"
+
+[headers]
+received: "from post.example.fr (mx7.students.example.ac.jp [242.129.192.35]) by example.org (Postfix) with ESMTP id 9A72843329 for <jstergaard@example.com>; Fri, 2 Feb 2024 12:04:42 CST"
+received: "from lists.example.edu (mx5.students.example.ac.jp [111.70.97.66]) by students.example.ac.jp (Postfix) with ESMTP id ABB91A1A73 for <upapadopoulos@corp.example.co.uk>; fri,7 nov 2005 15:23:13 (comment (nested)) CST"
+received: "from post.example.fr (mx4.corp.example.co.uk [16.144.211.78]) by apache.org (Postfix) with ESMTP id D70BC318F5 for <ukim@dev.example.io>; Sat, 23 Jan 2024 05:28:32 -0700"
+received: "from eu.example.de (mx5.corp.example.co.uk [104.4.25.36]) by apache.org (Postfix) with ESMTP id ECDBBDB78E for <sgarca.47@students.example.ac.jp>; Tue, 13 Sep 2018 07:27:23 +1245 (GMT)"
+received: "from corp.example.co.uk (mx9.students.example.ac.jp [173.107.74.148]) by corp.example.co.uk (Postfix) with ESMTP id DD4CBC338F for <bobrien@mail.example.net>; Tue Apr 15 06:08:20 2012 EST"
+return-path: "<garca@apache.org>"
+message-id: "<545.26ad899d.2131@lists.example.edu>"
+date: "Tue, 26 May 2005 07:28:23 -0330"
+from: "\"Nakamura, Pierre\" <pnakamura.39@example.com>"
+to: "Karin Fernández <kfernndez@corp.example.co.uk>,\tRémi Petrov <rpetrov.36@lists.example.edu>, nguyen@dev.example.io (Someone)"
+subject: "Re: Your long segfault be help über"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 380\""
+
+[addresses]
+from 0 display="Nakamura, Pierre" spec="pnakamura.39@example.com"
+to 0 display="Karin Fernández" spec="kfernndez@corp.example.co.uk"
+to 1 display="Rémi Petrov" spec="rpetrov.36@lists.example.edu"
+to 2 display="" spec="nguyen@dev.example.io"
+
+[date]
+raw " Tue, 26 May 2005 07:28:23 -0330"
+valid yes
+utc 2005-05-26T10:58:23Z
+offset -0330
+epoch 1117105103
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 380" parts=5 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="=_087d64fa29fdfd140d0897f78e52d2f3" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=quoted-printable size=420 adler32=473393c9 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=656 adler32=f625e2d8 role=html
+  4 text/x-diff charset=utf-8 cte=base64 disposition=attachment filename="mother_are.patch" size=4965 adler32=2b720f28 role=attachment
+  5 text/plain charset=utf-8 cte=7bit disposition=attachment filename="response.txt" size=4731 adler32=f5c49769 role=attachment
+  6 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="you_my_server_alias.docx" size=6287 adler32=e08812d0 role=attachment
+  7 application/zip cte=base64 disposition=attachment filename="he_when_some_then.zip" size=6358 adler32=49ee2ab0 role=attachment
+
+[body]
+text 2 chars 420
+| Socket he you handler the are very water any the of think much there
+| more one and our. And connection by build been that form all you people
+| was he why the house when. Side of each had but play your me you at a I
+| sentence write. The year after all by in I through hot an to your
+| warning and? High will come where does connection. Thing his help no or
+| a a résumé some land does a was each is will hook.
+| 
+| -- 
+| Björn Nguyen
+html 3 chars 656
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Socket he you handler the are very water any the of think much there<br>
+| more one and our. And connection by build been that form all you people<br>
+| was he why the house when. Side of each had but play your me you at a I<br>
+| sentence write. The year after all by in I through hot an to your<br>
+| warning and? High will come where does connection. Thing his help no or<br>
+| a a résumé some land does a was each is will hook.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Björn Nguyen<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/x-diff filename="mother_are.patch" size=4965 adler32=2b720f28 file=parts/0053/004.bin
+5 type=text/plain filename="response.txt" size=4731 adler32=f5c49769 file=parts/0053/005.bin
+6 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="you_my_server_alias.docx" size=6287 adler32=e08812d0 file=parts/0053/006.bin
+7 type=application/zip filename="he_when_some_then.zip" size=6358 adler32=49ee2ab0 file=parts/0053/007.bin

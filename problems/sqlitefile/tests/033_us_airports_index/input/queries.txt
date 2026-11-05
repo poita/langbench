@@ -1,0 +1,11 @@
+.tables
+.schema usap
+COUNT usap
+INDEX usap_region 'US-AK'
+INDEX usap_region 'US-DC'
+INDEX usap_region 'US-ZZ'
+INDEX usap_type 'large_airport'
+INDEX usap_type 'balloonport'
+INDEX usap_type NULL
+INDEX usap_name 'x'
+INDEX usap 'x'

@@ -1,0 +1,14 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/l0.txt write("4 10 -21 -2 1 0 -3 -7 -4\n")
+  run 1 2 w0 out/l1.txt write("5 9 4 2 3 -3 -3 -1\n")
+  run 2 3 w0 out/l2.txt write("abcd 3 true true\n")
+  run 3 4 w0 out/l3.txt write("cf2010\n")
+  run 4 5 w0 out/l4.txt write("false true true false\n")
+  ok ran=5 hit=0 time=5
+step 2: build (default) -j 1
+  hit 0 out/l0.txt
+  hit 0 out/l1.txt
+  hit 0 out/l2.txt
+  hit 0 out/l3.txt
+  hit 0 out/l4.txt
+  ok ran=0 hit=5 time=0

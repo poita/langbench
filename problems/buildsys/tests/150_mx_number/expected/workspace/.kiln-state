@@ -1,0 +1,41 @@
+kiln-state 1
+step out/number_0.txt
+cmd number()
+in src/e.txt cbf29ce484222325
+out out/number_0.txt cbf29ce484222325
+end
+step out/number_1.txt
+cmd number()
+in src/n.txt dc3add5ecc4ba006
+out out/number_1.txt 85e611d8a0fcd634
+end
+step out/number_2.txt
+cmd number()
+in src/x.txt 07c7d73947cbe1de
+out out/number_2.txt eeb12c1784271987
+end
+step out/number_3.txt
+cmd number()
+in src/c.txt 25fd018afddd7cc5
+out out/number_3.txt ddf705bb0f632378
+end
+step out/number_4.txt
+cmd number()
+in src/u.txt 883ac19acb748cf1
+out out/number_4.txt 0cd1daf91003c64e
+end
+step out/number_5.txt
+cmd number()
+in src/b.txt 1c2c1cfae3c07157
+out out/number_5.txt dc22ce59b9b53f2a
+end
+step out/number_pin.txt
+cmd hash()
+in out/number_0.txt cbf29ce484222325
+in out/number_1.txt 85e611d8a0fcd634
+in out/number_2.txt eeb12c1784271987
+in out/number_3.txt ddf705bb0f632378
+in out/number_4.txt 0cd1daf91003c64e
+in out/number_5.txt dc22ce59b9b53f2a
+out out/number_pin.txt 2e74f9c775f8f3cb
+end

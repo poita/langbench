@@ -1,0 +1,89 @@
+5
+0123456789
+ab
+
+0123456789abcdef
+xyz
+goto 0 7
+move down
+print
+move down
+print
+move down
+print
+move down
+print
+move down
+print
+move up
+print
+move up
+print
+move up
+print
+move up
+print
+move up
+print
+move down
+print
+goto 3 12
+move up
+print
+move left
+move down
+print
+move down
+print
+goto 0 5
+move down
+move down
+insert Q
+move up
+print
+move down
+move down
+print
+goto 3 9
+move up
+move up
+move right
+move down
+move down
+print
+goto 0 8
+move down
+move end
+move down
+print
+goto 0 9
+move down
+move home
+move down
+print
+goto 4 2
+move down
+move up
+print
+goto 0 6
+move up
+move down
+print
+goto 3 12
+add-cursor 4 1
+move down
+print
+move up
+print
+move down
+move down
+print
+move up
+print
+goto 3 12
+add-cursor 4 1
+move down
+move up
+move up
+move down
+print

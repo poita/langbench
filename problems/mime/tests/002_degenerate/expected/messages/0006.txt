@@ -1,0 +1,21 @@
+[message]
+id 0006
+source "no-newline.eml"
+
+[headers]
+subject: "x"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=19 adler32=4919076a role=text
+
+[body]
+text 0 chars 19
+| no trailing newline
+html none
+
+[attachments]

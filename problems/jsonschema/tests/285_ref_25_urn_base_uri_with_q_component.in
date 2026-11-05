@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "$comment": "RFC 8141 §2.3.2",
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "urn:example:weather?=op=map&lat=39.56&lon=-104.85&datetime=1969-07-21T02:56:15Z",
+    "properties": {
+      "foo": {
+        "$ref": "#/$defs/bar"
+      }
+    },
+    "$defs": {
+      "bar": {
+        "type": "string"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "a string is valid",
+      "data": {
+        "foo": "bar"
+      }
+    },
+    {
+      "description": "a non-string is invalid",
+      "data": {
+        "foo": 12
+      }
+    }
+  ]
+}

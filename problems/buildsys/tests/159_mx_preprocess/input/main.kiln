@@ -1,0 +1,12 @@
+step {
+    out "out/doc.txt"
+    depfile "out/doc.d"
+    in "src/doc.src"
+    cmd preprocess()
+}
+step {
+    out "out/pin.txt"
+    in ["out/doc.txt", "out/doc.d"]
+    cmd hash()
+}
+default "out/pin.txt"

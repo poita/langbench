@@ -1,0 +1,4 @@
+{}
+--
+=== main
+{% macro m(a, b) %}{% endmacro %}{{ m(a=1, 2) }}

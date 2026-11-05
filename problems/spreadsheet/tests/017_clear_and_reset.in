@@ -1,0 +1,27 @@
+set A1 5
+set A2 =A1*2
+set A3 =SUM(A1:A2)
+set A4 =A3&"/"&A1
+dump
+clear A1
+dump
+set A1 7
+dump
+clear A2
+dump
+clear A2
+clear B7
+dump
+set B1 =B2
+set B2 =B1
+get B1
+clear B2
+get B1
+get B2
+set B2 =B1
+get B1
+clear B1
+get B1
+get B2
+clear B2
+dump

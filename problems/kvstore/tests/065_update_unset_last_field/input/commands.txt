@@ -1,0 +1,13 @@
+put "a" {only:1}
+unset "a" only
+get "a"
+update "a" only 2
+get "a"
+put "b" {x:{y:{z:1}}}
+unset "b" x.y.z
+get "b"
+unset "b" x.y
+get "b"
+unset "b" x
+get "b"
+stat

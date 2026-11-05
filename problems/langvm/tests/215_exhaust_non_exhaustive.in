@@ -1,0 +1,2 @@
+@module main
+fn main() { match 1 { 0 -> print("z") } }

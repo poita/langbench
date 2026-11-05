@@ -1,0 +1,35 @@
+[1] ok put created
+[2] ok stat
+  pages 67
+  free 0
+  freehead 0
+  docs 1
+  root 67
+  height 1
+  commits 1
+  indexes 0
+  wal 70272
+[3] error doc-too-large
+[4] ok put created
+[5] ok stat
+  pages 132
+  free 0
+  freehead 0
+  docs 2
+  root 67
+  height 1
+  commits 2
+  indexes 0
+  wal 140512
+[6] ok delete removed
+[7] ok delete removed
+[8] ok stat
+  pages 132
+  free 131
+  freehead 67
+  docs 0
+  root 0
+  height 0
+  commits 4
+  indexes 0
+  wal 32

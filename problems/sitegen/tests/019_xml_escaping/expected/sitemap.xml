@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://amp.example/s?q="x"&amp;n=1/</loc>
+  </url>
+  <url>
+    <loc>https://amp.example/s?q="x"&amp;n=1/posts/quotes/</loc>
+    <lastmod>2021-03-02</lastmod>
+  </url>
+  <url>
+    <loc>https://amp.example/s?q="x"&amp;n=1/posts/amp/</loc>
+    <lastmod>2021-03-01</lastmod>
+  </url>
+  <url>
+    <loc>https://amp.example/s?q="x"&amp;n=1/tags/</loc>
+  </url>
+  <url>
+    <loc>https://amp.example/s?q="x"&amp;n=1/tags/a-b/</loc>
+  </url>
+  <url>
+    <loc>https://amp.example/s?q="x"&amp;n=1/tags/r-d/</loc>
+  </url>
+</urlset>

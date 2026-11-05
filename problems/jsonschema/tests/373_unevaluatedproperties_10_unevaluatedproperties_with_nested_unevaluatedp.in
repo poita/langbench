@@ -1,0 +1,34 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "type": "string"
+      }
+    },
+    "allOf": [
+      {
+        "unevaluatedProperties": true
+      }
+    ],
+    "unevaluatedProperties": {
+      "type": "string",
+      "maxLength": 2
+    }
+  },
+  "tests": [
+    {
+      "description": "with no nested unevaluated properties",
+      "data": {
+        "foo": "foo"
+      }
+    },
+    {
+      "description": "with nested unevaluated properties",
+      "data": {
+        "foo": "foo",
+        "bar": "bar"
+      }
+    }
+  ]
+}

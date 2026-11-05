@@ -1,0 +1,321 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "uniqueItems": true
+  },
+  "tests": [
+    {
+      "description": "unique array of integers is valid",
+      "data": [
+        1,
+        2
+      ]
+    },
+    {
+      "description": "non-unique array of integers is invalid",
+      "data": [
+        1,
+        1
+      ]
+    },
+    {
+      "description": "non-unique array of more than two integers is invalid",
+      "data": [
+        1,
+        2,
+        1
+      ]
+    },
+    {
+      "description": "numbers are unique if mathematically unequal",
+      "data": [
+        1.0,
+        1.0,
+        1
+      ]
+    },
+    {
+      "description": "false is not equal to zero",
+      "data": [
+        0,
+        false
+      ]
+    },
+    {
+      "description": "true is not equal to one",
+      "data": [
+        1,
+        true
+      ]
+    },
+    {
+      "description": "unique array of strings is valid",
+      "data": [
+        "foo",
+        "bar",
+        "baz"
+      ]
+    },
+    {
+      "description": "non-unique array of strings is invalid",
+      "data": [
+        "foo",
+        "bar",
+        "foo"
+      ]
+    },
+    {
+      "description": "unique array of objects is valid",
+      "data": [
+        {
+          "foo": "bar"
+        },
+        {
+          "foo": "baz"
+        }
+      ]
+    },
+    {
+      "description": "non-unique array of objects is invalid",
+      "data": [
+        {
+          "foo": "bar"
+        },
+        {
+          "foo": "bar"
+        }
+      ]
+    },
+    {
+      "description": "property order of array of objects is ignored",
+      "data": [
+        {
+          "foo": "bar",
+          "bar": "foo"
+        },
+        {
+          "bar": "foo",
+          "foo": "bar"
+        }
+      ]
+    },
+    {
+      "description": "unique array of nested objects is valid",
+      "data": [
+        {
+          "foo": {
+            "bar": {
+              "baz": true
+            }
+          }
+        },
+        {
+          "foo": {
+            "bar": {
+              "baz": false
+            }
+          }
+        }
+      ]
+    },
+    {
+      "description": "non-unique array of nested objects is invalid",
+      "data": [
+        {
+          "foo": {
+            "bar": {
+              "baz": true
+            }
+          }
+        },
+        {
+          "foo": {
+            "bar": {
+              "baz": true
+            }
+          }
+        }
+      ]
+    },
+    {
+      "description": "unique array of arrays is valid",
+      "data": [
+        [
+          "foo"
+        ],
+        [
+          "bar"
+        ]
+      ]
+    },
+    {
+      "description": "non-unique array of arrays is invalid",
+      "data": [
+        [
+          "foo"
+        ],
+        [
+          "foo"
+        ]
+      ]
+    },
+    {
+      "description": "non-unique array of more than two arrays is invalid",
+      "data": [
+        [
+          "foo"
+        ],
+        [
+          "bar"
+        ],
+        [
+          "foo"
+        ]
+      ]
+    },
+    {
+      "description": "1 and true are unique",
+      "data": [
+        1,
+        true
+      ]
+    },
+    {
+      "description": "0 and false are unique",
+      "data": [
+        0,
+        false
+      ]
+    },
+    {
+      "description": "[1] and [true] are unique",
+      "data": [
+        [
+          1
+        ],
+        [
+          true
+        ]
+      ]
+    },
+    {
+      "description": "[0] and [false] are unique",
+      "data": [
+        [
+          0
+        ],
+        [
+          false
+        ]
+      ]
+    },
+    {
+      "description": "nested [1] and [true] are unique",
+      "data": [
+        [
+          [
+            1
+          ],
+          "foo"
+        ],
+        [
+          [
+            true
+          ],
+          "foo"
+        ]
+      ]
+    },
+    {
+      "description": "nested [0] and [false] are unique",
+      "data": [
+        [
+          [
+            0
+          ],
+          "foo"
+        ],
+        [
+          [
+            false
+          ],
+          "foo"
+        ]
+      ]
+    },
+    {
+      "description": "unique heterogeneous types are valid",
+      "data": [
+        {},
+        [
+          1
+        ],
+        true,
+        null,
+        1,
+        "{}"
+      ]
+    },
+    {
+      "description": "non-unique heterogeneous types are invalid",
+      "data": [
+        {},
+        [
+          1
+        ],
+        true,
+        null,
+        {},
+        1
+      ]
+    },
+    {
+      "description": "different objects are unique",
+      "data": [
+        {
+          "a": 1,
+          "b": 2
+        },
+        {
+          "a": 2,
+          "b": 1
+        }
+      ]
+    },
+    {
+      "description": "objects are non-unique despite key order",
+      "data": [
+        {
+          "a": 1,
+          "b": 2
+        },
+        {
+          "b": 2,
+          "a": 1
+        }
+      ]
+    },
+    {
+      "description": "{\"a\": false} and {\"a\": 0} are unique",
+      "data": [
+        {
+          "a": false
+        },
+        {
+          "a": 0
+        }
+      ]
+    },
+    {
+      "description": "{\"a\": true} and {\"a\": 1} are unique",
+      "data": [
+        {
+          "a": true
+        },
+        {
+          "a": 1
+        }
+      ]
+    }
+  ]
+}

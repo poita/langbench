@@ -1,0 +1,24 @@
+step {
+    out "out/z0.txt"
+    cmd write("0\n")
+    cost 0
+}
+step {
+    out "out/z1.txt"
+    in "out/z0.txt"
+    cmd copy()
+    cost 0
+}
+step {
+    out "out/z2.txt"
+    in "out/z1.txt"
+    cmd copy()
+    cost 1
+}
+step {
+    out "out/z3.txt"
+    cmd write("3\n")
+    cost 0
+}
+phony all = ["out/z2.txt", "out/z3.txt"]
+default "@all"

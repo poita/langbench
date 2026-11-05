@@ -1,0 +1,22 @@
+let   a   =   1   ;;
+let b
+  =
+  fun x
+    ->
+      x
+;;
+let c = (
+  1,
+  true
+);;
+	let d = [ 1 ;
+	2 ;
+	3 ] ;;
+let e=fun f g->f g;;let f=e;;f;;
+(1,2);;((1),(2));;
+let g = if true
+        then fun x -> x
+        else fun y -> y
+;;
+g;;
+

@@ -1,0 +1,443 @@
+@module main
+use lex;
+use ast;
+use eval;
+
+fn main() {
+    let progs = [
+        "let p = 0; let q = 1; let k = 0; while k < 2 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q;",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "let v = 379 * 48 - (379 + 48) / 3; print v; if v > 30 { print 1; } else { print 0; }",
+        "let m = 34; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let s = 0; let i = 1; while i <= 37 { s = s + i * i; i = i + 1; } print s;",
+        "print zz52;",
+        "let m = 496; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let v = 1183 * 5 - (1183 + 5) / 3; print v; if v > 59 { print 1; } else { print 0; }",
+        "let x = 859; print x / (46 - 46);",
+        "let y = (111 + 46; print y;",
+        "let m = 123; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let a = 1312; let b = 43; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a;",
+        "let x = 1333; print x / (34 - 34);",
+        "let n = 22; let f = 1; while n > 1 { f = f * n; n = n - 1; } print f;",
+        "let m = 1099; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let n = 4; let f = 1; while n > 1 { f = f * n; n = n - 1; } print f;",
+        "let y = (1604 + 3; print y;",
+        "let p = 0; let q = 1; let k = 0; while k < 5 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q;",
+        "let x = 1227; print x / (15 - 15);",
+        "let x = 427; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps;",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "print zz54;",
+        "let a = 1277; let b = 40; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a;",
+        "let v = 1257 * 1 - (1257 + 1) / 3; print v; if v > 25 { print 1; } else { print 0; }",
+        "let p = 0; let q = 1; let k = 0; while k < 16 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q;",
+        "let s = 0; let i = 1; while i <= 28 { s = s + i * i; i = i + 1; } print s;",
+        "let v = 1705 * 43 - (1705 + 43) / 3; print v; if v > 18 { print 1; } else { print 0; }",
+        "let x = 85; print x / (24 - 24);",
+        "let m = 1470; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "print zz35;",
+        "let m = 510; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let a = 382; let b = 21; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a;",
+        "let m = 1644; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let a = 1703; let b = 19; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a;",
+        "let y = (1535 + 43; print y;",
+        "let v = 1311 * 47 - (1311 + 47) / 3; print v; if v > 6 { print 1; } else { print 0; }",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "let s = 0; let i = 1; while i <= 43 { s = s + i * i; i = i + 1; } print s;",
+        "print zz59;",
+        "let n = 18; let f = 1; while n > 1 { f = f * n; n = n - 1; } print f;",
+        "print zz34;",
+        "let v = 1554 * 2 - (1554 + 2) / 3; print v; if v > 6 { print 1; } else { print 0; }",
+        "let a = 1786; let b = 5; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a;",
+        "print zz25;",
+        "let x = 325; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps;",
+        "print zz54;",
+        "let y = (574 + 36; print y;",
+        "let c = 0; let i = 2; while i < 48 { let j = 2; let prime = 1; while j * j <= i { if i - i / j * j == 0 { prime = 0; } j = j + 1; } c = c + prime; i = i + 1; } print c;",
+        "let v = 341 * 31 - (341 + 31) / 3; print v; if v > 32 { print 1; } else { print 0; }",
+        "let p = 0; let q = 1; let k = 0; while k < 3 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q;",
+        "let p = 0; let q = 1; let k = 0; while k < 26 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q;",
+        "let c = 0; let i = 2; while i < 8 { let j = 2; let prime = 1; while j * j <= i { if i - i / j * j == 0 { prime = 0; } j = j + 1; } c = c + prime; i = i + 1; } print c;",
+        "let a = 65; let b = 28; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a;",
+        "let x = 955; print x / (1 - 1);",
+        "let x = 935; print x / (33 - 33);",
+        "let v = 1178 * 3 - (1178 + 3) / 3; print v; if v > 13 { print 1; } else { print 0; }",
+        "let s = 0; let i = 1; while i <= 50 { s = s + i * i; i = i + 1; } print s;",
+        "print zz20;",
+        "let v = 477 * 41 - (477 + 41) / 3; print v; if v > 42 { print 1; } else { print 0; }",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "let x = 1736; print x / (37 - 37);",
+        "let n = 28; let f = 1; while n > 1 { f = f * n; n = n - 1; } print f;",
+        "let n = 7; let f = 1; while n > 1 { f = f * n; n = n - 1; } print f;",
+        "let m = 858; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let v = 672 * 7 - (672 + 7) / 3; print v; if v > 21 { print 1; } else { print 0; }",
+        "let p = 0; let q = 1; let k = 0; while k < 8 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q;",
+        "let p = 0; let q = 1; let k = 0; while k < 51 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q;",
+        "let m = 513; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "let s = 0; let i = 1; while i <= 58 { s = s + i * i; i = i + 1; } print s;",
+        "let x = 781; print x / (25 - 25);",
+        "let v = 353 * 10 - (353 + 10) / 3; print v; if v > 24 { print 1; } else { print 0; }",
+        "let x = 775; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps;",
+        "let x = 321; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps;",
+        "let y = (441 + 7; print y;",
+        "let x = 871; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps;",
+        "let a = 312; let b = 48; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a;",
+        "let x = 1085; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps;",
+        "let x = 1677; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps;",
+        "let m = 1161; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r;",
+        "print zz19;",
+        "print zz27;",
+        "let y = (1772 + 35; print y;",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "print zz42;",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "let y = (1773 + 10; print y;",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "let y = (20 + 5; print y;",
+        "let w = 0; while 1 { w = w + 1; } print w;",
+        "let s = 0; let i = 1; while i <= 53 { s = s + i * i; i = i + 1; } print s;",
+    ];
+    for p in progs {
+        emit(padRight(p, 70, '.'));
+        emit(" => ");
+        match eval::runProgram(p) {
+            Ok(out) -> print(out),
+            Err(e) -> print("error: " ++ e),
+        }
+    }
+}
+@module lex
+pub enum Tok {
+    Num(Int),
+    Name(Str),
+    Sym(Str),
+    Kw(Str),
+}
+
+pub fn isKeyword(s: Str) -> Bool {
+    listContains(["let", "print", "while", "if", "else"], s)
+}
+
+pub fn tokenize(src: Str) -> Result<[Tok], Str> {
+    var out: [Tok] = listNew();
+    var i = 0;
+    let n = strLen(src);
+    while i < n {
+        let c = charAt(src, i);
+        if isSpace(c) {
+            i = i + 1;
+        } else if isDigit(c) {
+            var v = 0;
+            while i < n && isDigit(charAt(src, i)) {
+                v = v * 10 + (ord(charAt(src, i)) - 48);
+                i = i + 1;
+            }
+            push(out, Num(v));
+        } else if isAlpha(c) || c == '_' {
+            var j = i;
+            while j < n && (isAlnum(charAt(src, j)) || charAt(src, j) == '_') {
+                j = j + 1;
+            }
+            let word = substr(src, i, j);
+            if isKeyword(word) { push(out, Kw(word)); } else { push(out, Name(word)); }
+            i = j;
+        } else {
+            let two = if i + 1 < n { substr(src, i, i + 2) } else { "" };
+            if listContains(["<=", ">=", "==", "!="], two) {
+                push(out, Sym(two));
+                i = i + 2;
+            } else if listContains(["+", "-", "*", "/", "(", ")", "{", "}", ";", "=", "<", ">"], showChar(c)) {
+                push(out, Sym(showChar(c)));
+                i = i + 1;
+            } else {
+                return Err("bad character " ++ quoteChar(c));
+            }
+        }
+    }
+    Ok(out)
+}
+@module ast
+pub enum Expr {
+    Lit(Int),
+    Var(Str),
+    Bin(Str, Expr, Expr),
+}
+
+pub enum Stmt {
+    Let(Str, Expr),
+    Assign(Str, Expr),
+    Print(Expr),
+    While(Expr, [Stmt]),
+    If(Expr, [Stmt], [Stmt]),
+}
+@module eval
+use lex;
+use ast;
+
+struct Parser { toks: [lex::Tok], pos: [Int] }
+
+fn peek(p: Parser) -> Option<lex::Tok> {
+    let i = p.pos[0];
+    if i < listLen(p.toks) { Some(p.toks[i]) } else { None }
+}
+
+fn bump(p: Parser) { p.pos[0] = p.pos[0] + 1; }
+
+fn eatSym(p: Parser, s: Str) -> Bool {
+    match peek(p) {
+        Some(lex::Sym(t)) -> if t == s { bump(p); true } else { false },
+        _ -> false,
+    }
+}
+
+fn parseStmts(p: Parser, stop: Bool) -> Result<[ast::Stmt], Str> {
+    var out: [ast::Stmt] = listNew();
+    while true {
+        match peek(p) {
+            None -> { return Ok(out); },
+            Some(lex::Sym("}")) -> { if stop { return Ok(out); } },
+            _ -> {},
+        }
+        match parseStmt(p) {
+            Ok(s) -> push(out, s),
+            Err(e) -> { return Err(e); },
+        }
+    }
+    Ok(out)
+}
+
+fn parseBlock(p: Parser) -> Result<[ast::Stmt], Str> {
+    if !eatSym(p, "{") { return Err("expected {"); }
+    let body = parseStmts(p, true);
+    match body {
+        Err(e) -> { return Err(e); },
+        Ok(_) -> {},
+    }
+    if !eatSym(p, "}") { return Err("expected }"); }
+    body
+}
+
+fn parseStmt(p: Parser) -> Result<ast::Stmt, Str> {
+    match peek(p) {
+        Some(lex::Kw("let")) -> {
+            bump(p);
+            match peek(p) {
+                Some(lex::Name(n)) -> {
+                    bump(p);
+                    if !eatSym(p, "=") { return Err("expected ="); }
+                    match parseExpr(p, 0) {
+                        Ok(e) -> {
+                            if !eatSym(p, ";") { return Err("expected ;"); }
+                            Ok(ast::Let(n, e))
+                        },
+                        Err(e) -> Err(e),
+                    }
+                },
+                _ -> Err("expected a name after let"),
+            }
+        },
+        Some(lex::Kw("print")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(e) -> {
+                    if !eatSym(p, ";") { return Err("expected ;"); }
+                    Ok(ast::Print(e))
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        Some(lex::Kw("while")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(cond) -> match parseBlock(p) {
+                    Ok(body) -> Ok(ast::While(cond, body)),
+                    Err(e) -> Err(e),
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        Some(lex::Kw("if")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(cond) -> match parseBlock(p) {
+                    Ok(then) -> {
+                        var els: [ast::Stmt] = listNew();
+                        match peek(p) {
+                            Some(lex::Kw("else")) -> {
+                                bump(p);
+                                match parseBlock(p) {
+                                    Ok(b) -> { els = b; },
+                                    Err(e) -> { return Err(e); },
+                                }
+                            },
+                            _ -> {},
+                        }
+                        Ok(ast::If(cond, then, els))
+                    },
+                    Err(e) -> Err(e),
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        Some(lex::Name(n)) -> {
+            bump(p);
+            if !eatSym(p, "=") { return Err("expected = after " ++ n); }
+            match parseExpr(p, 0) {
+                Ok(e) -> {
+                    if !eatSym(p, ";") { return Err("expected ;"); }
+                    Ok(ast::Assign(n, e))
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        _ -> Err("expected a statement"),
+    }
+}
+
+fn prec(s: Str) -> Int {
+    if s == "<" || s == ">" || s == "<=" || s == ">=" || s == "==" || s == "!=" { 1 }
+    else if s == "+" || s == "-" { 2 }
+    else if s == "*" || s == "/" { 3 }
+    else { -1 }
+}
+
+fn parseExpr(p: Parser, minPrec: Int) -> Result<ast::Expr, Str> {
+    var left = match parsePrimary(p) {
+        Ok(e) -> e,
+        Err(e) -> { return Err(e); },
+    };
+    while true {
+        let op = match peek(p) {
+            Some(lex::Sym(s)) -> s,
+            _ -> "",
+        };
+        let pr = prec(op);
+        if pr < 0 || pr < minPrec { return Ok(left); }
+        bump(p);
+        match parseExpr(p, pr + 1) {
+            Ok(right) -> { left = ast::Bin(op, left, right); },
+            Err(e) -> { return Err(e); },
+        }
+    }
+    Ok(left)
+}
+
+fn parsePrimary(p: Parser) -> Result<ast::Expr, Str> {
+    match peek(p) {
+        Some(lex::Num(v)) -> { bump(p); Ok(ast::Lit(v)) },
+        Some(lex::Name(n)) -> { bump(p); Ok(ast::Var(n)) },
+        Some(lex::Sym("(")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(e) -> {
+                    if !eatSym(p, ")") { return Err("expected )"); }
+                    Ok(e)
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        _ -> Err("expected an expression"),
+    }
+}
+
+struct Env { vars: #[Str: Int], out: [Str] }
+
+fn evalExpr(e: ast::Expr, env: Env) -> Result<Int, Str> {
+    match e {
+        ast::Lit(v) -> Ok(v),
+        ast::Var(n) -> match mapGet(env.vars, n) {
+            Some(v) -> Ok(v),
+            None -> Err("unbound " ++ n),
+        },
+        ast::Bin(op, l, r) -> match evalExpr(l, env) {
+            Err(m) -> Err(m),
+            Ok(a) -> match evalExpr(r, env) {
+                Err(m) -> Err(m),
+                Ok(b) -> applyOp(op, a, b),
+            },
+        },
+    }
+}
+
+fn applyOp(op: Str, a: Int, b: Int) -> Result<Int, Str> {
+    if op == "+" { Ok(a + b) }
+    else if op == "-" { Ok(a - b) }
+    else if op == "*" { Ok(a * b) }
+    else if op == "/" { if b == 0 { Err("division by zero") } else { Ok(a / b) } }
+    else if op == "<" { Ok(boolToInt(a < b)) }
+    else if op == ">" { Ok(boolToInt(a > b)) }
+    else if op == "<=" { Ok(boolToInt(a <= b)) }
+    else if op == ">=" { Ok(boolToInt(a >= b)) }
+    else if op == "==" { Ok(boolToInt(a == b)) }
+    else if op == "!=" { Ok(boolToInt(a != b)) }
+    else { Err("bad operator " ++ op) }
+}
+
+fn boolToInt(b: Bool) -> Int { if b { 1 } else { 0 } }
+
+fn execAll(stmts: [ast::Stmt], env: Env) -> Option<Str> {
+    for s in stmts {
+        match exec(s, env) {
+            Some(e) -> { return Some(e); },
+            None -> {},
+        }
+    }
+    None
+}
+
+fn exec(s: ast::Stmt, env: Env) -> Option<Str> {
+    match s {
+        ast::Let(n, e) -> match evalExpr(e, env) {
+            Ok(v) -> { env.vars[n] = v; None },
+            Err(m) -> Some(m),
+        },
+        ast::Assign(n, e) -> if !mapHas(env.vars, n) { Some("unbound " ++ n) } else {
+            match evalExpr(e, env) {
+                Ok(v) -> { env.vars[n] = v; None },
+                Err(m) -> Some(m),
+            }
+        },
+        ast::Print(e) -> match evalExpr(e, env) {
+            Ok(v) -> { push(env.out, showInt(v)); None },
+            Err(m) -> Some(m),
+        },
+        ast::While(cond, body) -> {
+            var guard = 0;
+            while true {
+                match evalExpr(cond, env) {
+                    Err(m) -> { return Some(m); },
+                    Ok(v) -> if v == 0 { return None; },
+                }
+                guard = guard + 1;
+                if guard > 20000 { return Some("loop limit"); }
+                match execAll(body, env) {
+                    Some(m) -> { return Some(m); },
+                    None -> {},
+                }
+            }
+            None
+        },
+        ast::If(cond, then, els) -> match evalExpr(cond, env) {
+            Err(m) -> Some(m),
+            Ok(v) -> if v != 0 { execAll(then, env) } else { execAll(els, env) },
+        },
+    }
+}
+
+pub fn runProgram(src: Str) -> Result<Str, Str> {
+    match lex::tokenize(src) {
+        Err(e) -> Err(e),
+        Ok(toks) -> {
+            let p = Parser.{ toks: toks, pos: [0] };
+            match parseStmts(p, false) {
+                Err(e) -> Err(e),
+                Ok(stmts) -> {
+                    let env = Env.{ vars: mapNew(), out: listNew() };
+                    match execAll(stmts, env) {
+                        Some(e) -> Err(e),
+                        None -> Ok(strJoin(env.out, " ")),
+                    }
+                },
+            }
+        },
+    }
+}

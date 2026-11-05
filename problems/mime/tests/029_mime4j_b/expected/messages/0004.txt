@@ -1,0 +1,32 @@
+[message]
+id 0004
+source "intl.eml"
+
+[headers]
+from: "Keith Moore <moore@cs.utk.edu>"
+to: "Keld Jørn Simonsen <keld@dkuug.dk>"
+cc: "André  Pirard <PIRARD@vm1.ulg.ac.be>"
+bcc: "Patrik Fältström <paf@nada.kth.se>"
+subject: "If you can read this you understand the example... so, cool!"
+content-type: "text/plain"
+
+[addresses]
+from 0 display="Keith Moore" spec="moore@cs.utk.edu"
+to 0 display="Keld Jørn Simonsen" spec="keld@dkuug.dk"
+cc 0 display="André  Pirard" spec="PIRARD@vm1.ulg.ac.be"
+bcc 0 display="Patrik Fältström" spec="paf@nada.kth.se"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=14 adler32=22e503fe role=text
+
+[body]
+text 0 chars 14
+| How's this?
+| 
+| 
+html none
+
+[attachments]

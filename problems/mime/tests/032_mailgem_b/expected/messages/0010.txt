@@ -1,0 +1,33 @@
+[message]
+id 0010
+source "example07.eml"
+
+[headers]
+to: "\"Mary Smith: Personal Account\" <smith@home.example>"
+from: "John Doe <jdoe@machine.example>"
+subject: "Re: Saying Hello"
+date: "Fri, 21 Nov 1997 11:00:00 -0600"
+message-id: "<abcd.1234@local.machine.tld>"
+in-reply-to: "<3456@example.net>"
+references: "<1234@local.machine.example> <3456@example.net>"
+
+[addresses]
+from 0 display="John Doe" spec="jdoe@machine.example"
+to 0 display="Mary Smith: Personal Account" spec="smith@home.example"
+
+[date]
+raw " Fri, 21 Nov 1997 11:00:00 -0600"
+valid yes
+utc 1997-11-21T17:00:00Z
+offset -0600
+epoch 880131600
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=31 adler32=af8f0ad8 role=text
+
+[body]
+text 0 chars 31
+| This is a reply to your reply.
+html none
+
+[attachments]

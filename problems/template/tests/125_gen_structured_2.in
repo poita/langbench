@@ -1,0 +1,63 @@
+{
+  "x": 3,
+  "y": "abc",
+  "nums": [
+    5,
+    2,
+    9,
+    1
+  ],
+  "names": [
+    "bob",
+    "Al",
+    "cy"
+  ],
+  "d": {
+    "k": "kv",
+    "m": [
+      1,
+      2
+    ]
+  }
+}
+--
+=== main
+{% macro tag(name, val, sep=":") %}<{{ name }}{{ sep }}{{ val }}>{% endmacro %}{% macro rep(n, ch="*") %}{% for i in range(n) %}{{ ch }}{% endfor %}{% endmacro %}{% if d.k %}{{ x * 2 + 1 }}{% set v0 = [x, y] %}{{ v0 }}{% elif nums|length > 1 %}{% set v1 = nums|first %}{{ v1 }}{% else %}{% if false %}{% set v2 = nums|first %}{{ v2 }}{% for i3 in [] %}{{ loop.index }}/{{ loop.length }}:{{ missing|default(x) }}T{{ i3 }}{% set tmp = x + 1 %}{{ tmp }}{{ x > 2 }}{% endfor %}{% endif %}{{- "S" -}}{% if x > 2 %}{{ nums|length }}{{ nums|join("+") }}{{ nums|length }}{% set v4 = y ~ "!" %}{{ v4 }}{% elif x %}{% set v5 = nums|first %}{{ v5 }} plain text
+{{ x > 2 }}{% endif %}{{ names|first }}{% endif %}{% if true %}{% if d.k %}{{ nums|length }}{{ d.k }}{{ d.q is defined }}{{ names|first }}{% elif x %}{{- "S" -}}{% set v6 = [x, y] %}{{ v6 }}{% for i7 in y %}{{ loop.index }}/{{ loop.length }}:
+  {{ y ~ x }}
+{% else %}E{% endfor %}{% endif %}{% set v8 = nums|first %}{{ v8 }}{% endif %}{% set v9 = names|length %}{{ v9 }}{{ names|sort|join }}{{ tag("n", nums|length, sep="=") }}
+{% for i10 in nums %}{{ loop.index }}/{{ loop.length }}:{{- "S" -}}{% for i11 in range(3) %}{{ loop.index }}/{{ loop.length }}:{% for i12 in range(x) -%}{{ loop.index }}/{{ loop.length }}:{{ d.k }}{{ d.q is defined }}{{- "S" -}}{%- endfor %}{% else %}E{% endfor %}{% endfor %}{{ x * 2 + 1 }}{{ tag("n", nums|length, sep="=") }}
+{% set v13 = nums|first %}{{ v13 }}{{ tag("n", nums|length, sep="=") }}
+{{- "S" -}}{{- "S" -}}{% set v14 = names|length %}{{ v14 }}{{ nums|join("+") }}{{ tag("n", nums|length, sep="=") }}
+{% if not names %}{% for i15 in nums %}{{ loop.index }}/{{ loop.length }}:{% for i16 in nums %}{{ loop.index }}/{{ loop.length }}:{{ missing|default(x) }}{# c #}{{ x * 2 + 1 }}{% endfor %}{% endfor %}{% elif x %}{{ names|sort|join }}{% for i17 in names|sort %}{{ loop.index }}/{{ loop.length }}:{% for i18 in names|sort %}{{ loop.index }}/{{ loop.length }}:{{ nums|join("+") }}{% endfor %}{% for i19 in names %}{{ loop.index }}/{{ loop.length }}:{{ names|first }}{# c #}T{{ i19 }}{% endfor %}{{ x > 2 }}{{ nums|join("+") }}{% endfor %}{% else %}{% if not names %}{{ nums|length }}{% set v20 = [x, y] %}{{ v20 }}{% elif x %}{% set v21 = nums|first %}{{ v21 }}{{ nums|length }}{% set v22 = y ~ "!" %}{{ v22 }}{% endif %}{% set v23 = x + 1 %}{{ v23 }} plain text
+{% endif %}{% set v24 = [x, y] %}{{ v24 }}{# c #}T{{ x }}{% include "sub" %}
+{% for i25 in range(3) %}{{ loop.index }}/{{ loop.length }}:{{ x * 2 + 1 }}
+  {{ y ~ x }}
+{% set tmp = x + 1 %}{{ tmp }}{% endfor %}{% for i26 in y %}{{ loop.index }}/{{ loop.length }}:{% set v27 = y ~ "!" %}{{ v27 }}{{ missing|default(x) }}{{ names|sort|join }}{% set v28 = y ~ "!" %}{{ v28 }}{% endfor %}
+  {{ y ~ x }}
+{{ y|upper }}{% include "sub" %}
+{{ nums|join("+") }}{% for i29 in d %}{{ loop.index }}/{{ loop.length }}:{% if true %}{% for i30 in [] %}{{ loop.index }}/{{ loop.length }}:{{ nums|join("+") }}{{ y|upper }}
+  {{ y ~ x }}
+{% endfor %}{% set v31 = y ~ "!" %}{{ v31 }}{% if not names %}{{ x > 2 }}{{ d.k }}{{ d.q is defined }}{{ y|upper }}{{ y|upper }}{% elif x %}{{ names|sort|join }}{{ d.k }}{{ d.q is defined }}T{{ i29 }}{% endif %}{% set v32 = y ~ "!" %}{{ v32 }}{% elif nums|length > 1 %}{% set v33 = y ~ "!" %}{{ v33 }}{% for i34 in range(3) -%}{{ loop.index }}/{{ loop.length }}:{{ d.k }}{{ d.q is defined }}T{{ i34 }}{%- endfor %}{{ missing|default(x) }}{{ x * 2 + 1 }}{% endif %}{% for i35 in d %}{{ loop.index }}/{{ loop.length }}:{{ x > 2 }}T{{ i35 }}{{ names|first }}{% endfor %}{% else %}E{% endfor %}{{ tag("n", nums|length, sep="=") }}
+{% set v36 = names|length %}{{ v36 }}{% include "sub" %}
+{% set v37 = [x, y] %}{{ v37 }}{{ nums|join("+") }}{% set v38 = y ~ "!" %}{{ v38 }}{% for i39 in d %}{{ loop.index }}/{{ loop.length }}:{% for i40 in y %}{{ loop.index }}/{{ loop.length }}:{% if x % 2 == 0 %}{{ d.k }}{{ d.q is defined }}{{ nums|length }}
+  {{ y ~ x }}
+{{ y|upper }}{% else %}{{ y|upper }}{% endif %}{% endfor %}{% set v41 = nums|first %}{{ v41 }}{% endfor %}{% include "sub" %}
+{% for i42 in d -%}{{ loop.index }}/{{ loop.length }}:{% set tmp = x + 1 %}{{ tmp }}{%- endfor %}{{ tag("x", x) }}
+{% if nums %}{% for i43 in [] %}{{ loop.index }}/{{ loop.length }}:{{ x * 2 + 1 }}{% if not names %}{{ nums|length }}T{{ i43 }} plain text
+{% else %}
+  {{ y ~ x }}
+{{ d.k }}{{ d.q is defined }}{{ nums|join("+") }}{% endif %}{% else %}E{% endfor %}{% endif %}{{ tag("n", nums|length, sep="=") }}
+{% for i44 in nums %}{{ loop.index }}/{{ loop.length }}:{% for i45 in d %}{{ loop.index }}/{{ loop.length }}:{% if x > 2 %}T{{ i45 }}{{ missing|default(x) }}{{ nums|length }}{% elif nums|length > 1 %}{{ x * 2 + 1 }}{{ y|upper }}T{{ i45 }}{% else %} plain text
+{{ x * 2 + 1 }}{% endif %}{% for i46 in y %}{{ loop.index }}/{{ loop.length }}:{{ nums|length }}
+  {{ y ~ x }}
+{{ missing|default(x) }}{% endfor %}{% else %}E{% endfor %}{% for i47 in names -%}{{ loop.index }}/{{ loop.length }}:{{ x > 2 }}{% else %}E{%- endfor %}{% set v48 = y ~ "!" %}{{ v48 }}{{ x * 2 + 1 }}{% endfor %}{% if d.k %}{# c #}{% elif false %}{% if true %}{% for i49 in range(3) %}{{ loop.index }}/{{ loop.length }}:{{ nums|join("+") }}{% set tmp = x + 1 %}{{ tmp }}{% set tmp = x + 1 %}{{ tmp }}{{ names|sort|join }}{% endfor %}{% for i50 in [] %}{{ loop.index }}/{{ loop.length }}:{{ y|upper }}{{ x * 2 + 1 }}
+  {{ y ~ x }}
+{{ y|upper }}{% endfor %}{% if d.k %}
+  {{ y ~ x }}
+{# c #}{% elif x %}{{ y|upper }}{{ y|upper }}{{ missing|default(x) }}{{ nums|join("+") }}{% endif %}{# c #}{% elif nums|length > 1 %}{{ nums|join("+") }}{{ nums|join("+") }}{% else %}{% for i51 in names -%}{{ loop.index }}/{{ loop.length }}:{{ y|upper }}{{ names|first }}{%- endfor %}{% for i52 in names %}{{ loop.index }}/{{ loop.length }}:{{ d.k }}{{ d.q is defined }}{% endfor %}{% for i53 in range(x) -%}{{ loop.index }}/{{ loop.length }}:{% set tmp = x + 1 %}{{ tmp }}{{- "S" -}}{%- endfor %}{% for i54 in d -%}{{ loop.index }}/{{ loop.length }}:{{ names|sort|join }}{% else %}E{%- endfor %}{% endif %}{% set tmp = x + 1 %}{{ tmp }}{% else %}{% for i55 in [] %}{{ loop.index }}/{{ loop.length }}:{% if x > 2 %}{% set tmp = x + 1 %}{{ tmp }}{% endif %}{{ x > 2 }}{{ missing|default(x) }}
+  {{ y ~ x }}
+{% else %}E{% endfor %}{% for i56 in d -%}{{ loop.index }}/{{ loop.length }}:{% for i57 in range(x) -%}{{ loop.index }}/{{ loop.length }}:{{ y|upper }}{%- endfor %}{{ x > 2 }}{% else %}E{%- endfor %}{% if not names %}{{ d.k }}{{ d.q is defined }}{% set tmp = x + 1 %}{{ tmp }}{% if not names %}{{ d.k }}{{ d.q is defined }}{{ x > 2 }}{{ nums|length }}{{ names|first }}{% elif x %}{{ nums|join("+") }}{{ y|upper }}{{ y|upper }}{{ missing|default(x) }}{% endif %}{{ x * 2 + 1 }}{% else %}{% for i58 in nums|reverse %}{{ loop.index }}/{{ loop.length }}:{{ x > 2 }}{{ y|upper }}T{{ i58 }}{% endfor %}{% for i59 in names %}{{ loop.index }}/{{ loop.length }}:T{{ i59 }}{{ x > 2 }}{{ x > 2 }}{% endfor %}{% endif %}{% endif %}{% set v60 = x + 1 %}{{ v60 }}{% set v61 = y ~ "!" %}{{ v61 }}
+
+=== sub
+[sub {{ x }} {{ y|upper }}{% for n in nums %}{{ n }}{% endfor %}{% if names %}{{ names|first }}{% endif %}]

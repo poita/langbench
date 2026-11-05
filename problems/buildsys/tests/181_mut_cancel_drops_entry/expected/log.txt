@@ -1,0 +1,16 @@
+step 1: build (default) -j 2
+  run 0 6 w0 out/doc.txt preprocess()
+  run 0 20 w1 out/slow.txt upper()
+  ok ran=2 hit=0 time=20
+step 2: edit src/s.txt
+  ok size=9
+step 3: delete src/p.txt
+  ok
+step 4: build (default) -j 2
+  fail 0 6 w0 out/doc.txt preprocess()
+  cancel 0 20 w1 out/slow.txt upper()
+  error E_NEED_MISSING src/p.txt needed by src/main.txt
+step 5: build (default) -j 2
+  fail 0 6 w0 out/doc.txt preprocess()
+  cancel 0 20 w1 out/slow.txt upper()
+  error E_NEED_MISSING src/p.txt needed by src/main.txt

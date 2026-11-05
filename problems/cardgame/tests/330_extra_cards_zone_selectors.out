@@ -1,0 +1,111 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #7 EXT-005
+9 PAY A ember 3
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 EXILE #1 EXT-001 vault
+14 EXILE #2 EXT-001 vault
+15 EXILE #3 EXT-001 vault
+16 EXILE #6 EXT-008 vault
+17 SPENT #7 EXT-005
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 7 cap 10 vault 2 hand 2 ash 1 rift 4
+player B spire 30 ember 10 cap 10 vault 10 hand 4 ash 3 rift 0
+hand A 1 #8 EXT-006
+hand A 2 #9 EXT-009
+hand B 1 #21 EXT-001
+hand B 2 #22 EXT-001
+hand B 3 #23 EXT-001
+hand B 4 #24 EXT-001
+field A #10 EXT-007 -/- w0 c0 ready - kw -
+ash A 1 #7 EXT-005
+ash B 1 #25 EXT-001
+ash B 2 #26 EXT-003
+ash B 3 #27 EXT-011
+rift A 1 #1 EXT-001
+rift A 2 #2 EXT-001
+rift A 3 #3 EXT-001
+rift A 4 #6 EXT-008
+effect 1 ts2 A aura modify 4 0 on -
+STATE END
+VAULT BEGIN
+vault A 1 #4 EXT-002
+vault A 2 #5 EXT-002
+vault B 1 #11 EXT-001
+vault B 2 #12 EXT-001
+vault B 3 #13 EXT-001
+vault B 4 #14 EXT-001
+vault B 5 #15 EXT-001
+vault B 6 #16 EXT-001
+vault B 7 #17 EXT-001
+vault B 8 #18 EXT-001
+vault B 9 #19 EXT-001
+vault B 10 #20 EXT-001
+VAULT END
+18 PLAY A ~2 #8 EXT-006
+19 PAY A ember 1
+20 PASS A
+21 PASS B
+22 RESOLVE ~2
+23 DAMAGE #8 B 4
+24 SPIRE B -4 26
+25 SPENT #8 EXT-006
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 6 cap 10 vault 2 hand 1 ash 2 rift 4
+player B spire 26 ember 10 cap 10 vault 10 hand 4 ash 3 rift 0
+hand A 1 #9 EXT-009
+hand B 1 #21 EXT-001
+hand B 2 #22 EXT-001
+hand B 3 #23 EXT-001
+hand B 4 #24 EXT-001
+field A #10 EXT-007 -/- w0 c0 ready - kw -
+ash A 1 #7 EXT-005
+ash A 2 #8 EXT-006
+ash B 1 #25 EXT-001
+ash B 2 #26 EXT-003
+ash B 3 #27 EXT-011
+rift A 1 #1 EXT-001
+rift A 2 #2 EXT-001
+rift A 3 #3 EXT-001
+rift A 4 #6 EXT-008
+effect 1 ts2 A aura modify 4 0 on -
+STATE END
+26 PLAY A ~3 #9 EXT-009
+27 PAY A ember 2
+28 PASS A
+29 PASS B
+30 RESOLVE ~3
+31 RECALL #25 EXT-001
+32 RECALL #27 EXT-011
+33 SPENT #9 EXT-009
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 4 cap 10 vault 2 hand 0 ash 3 rift 4
+player B spire 26 ember 10 cap 10 vault 10 hand 6 ash 1 rift 0
+hand B 1 #21 EXT-001
+hand B 2 #22 EXT-001
+hand B 3 #23 EXT-001
+hand B 4 #24 EXT-001
+hand B 5 #25 EXT-001
+hand B 6 #27 EXT-011
+field A #10 EXT-007 -/- w0 c0 ready - kw -
+ash A 1 #7 EXT-005
+ash A 2 #8 EXT-006
+ash A 3 #9 EXT-009
+ash B 1 #26 EXT-003
+rift A 1 #1 EXT-001
+rift A 2 #2 EXT-001
+rift A 3 #3 EXT-001
+rift A 4 #6 EXT-008
+effect 1 ts2 A aura modify 4 0 on -
+STATE END
+34 RESULT pending none

@@ -1,0 +1,20 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "const": 2
+  },
+  "tests": [
+    {
+      "description": "same value is valid",
+      "data": 2
+    },
+    {
+      "description": "another value is invalid",
+      "data": 5
+    },
+    {
+      "description": "another type is invalid",
+      "data": "a"
+    }
+  ]
+}

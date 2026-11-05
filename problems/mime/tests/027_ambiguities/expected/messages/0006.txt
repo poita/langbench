@@ -1,0 +1,26 @@
+[message]
+id 0006
+source "phrase-comments.eml"
+
+[headers]
+from: "John (the third) Public <jqp@x.com>"
+to: "a (c) b <ab@x.com>"
+cc: "\"quoted \\\"inner\\\"\" <qi@x.com>"
+
+[addresses]
+from 0 display="John   Public" spec="jqp@x.com"
+to 0 display="a   b" spec="ab@x.com"
+cc 0 display="quoted \"inner\"" spec="qi@x.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

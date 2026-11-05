@@ -1,0 +1,22 @@
+[message]
+id 0003
+source "extended.eml"
+
+[headers]
+content-type: "application/octet-stream"
+content-disposition: "attachment; filename*=utf-8''caf%C3%A9.txt"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 application/octet-stream cte=7bit disposition=attachment filename="café.txt" size=5 adler32=05a501a5 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=application/octet-stream filename="café.txt" size=5 adler32=05a501a5 file=parts/0003/000.bin

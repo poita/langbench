@@ -1,0 +1,55 @@
+[message]
+id 0128
+source "mbox:128"
+
+[headers]
+received: "from eu.example.de (mx2.lists.example.edu [96.191.174.72]) by corp.example.co.uk (Postfix) with ESMTP id 33DD33421B for <yrossi@mail.example.net>; Tue, 4 Jun 2004 19:04:52 +0900"
+return-path: "<wilson@example.org>"
+message-id: "<847.85cde944.62079@apache.org>"
+in-reply-to: "<855.5699fde2.9195@dev.example.io>"
+references: "<848.9bbfb50e.96233@mail.example.net> <849.8bda23f4.5838@example.com> <850.74194c45.59143@mail.example.net> <851.a2e650b7.83181@students.example.ac.jp> <852.b4b96ff2.98802@corp.example.co.uk> <853.24af1e48.17711@example.com> <854.236c6277.28567@lists.example.edu> <855.5699fde2.9195@dev.example.io>"
+date: "25 JUL 04 08:31 +0900"
+from: "Luis Nguyen <lnguyen@example.org>"
+to: "Ελένη Smith <smith@mail.example.net>,    Søren O'Brien <sobrien.68@example.com>,    \"Ivan Kowalski\" <ikowalski.88@eu.example.de>"
+subject: "[VOTE] Work their Málaga"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"utf-8\""
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Luis Nguyen" spec="lnguyen@example.org"
+to 0 display="Ελένη Smith" spec="smith@mail.example.net"
+to 1 display="Søren O'Brien" spec="sobrien.68@example.com"
+to 2 display="Ivan Kowalski" spec="ikowalski.88@eu.example.de"
+
+[date]
+raw " 25 JUL 04 08:31 +0900"
+valid yes
+utc 2004-07-24T23:31:00Z
+offset +0900
+epoch 1090711860
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=571 adler32=c779cab8 role=text
+
+[body]
+text 0 chars 564
+| Low from these the big I I. Us Straße small the can up bucket in was
+| long for a some the the filter for. There the get in the at. In résumé
+| are but and who had any as go one it! Help think the earth off bucket
+| cause. Spell find help of at look way turn of this I mutex where. Little
+| way build water made vhost what for had on bug could.
+| 
+| Was was may mutex now like? Much Ångström your change use it as mean
+| this was! Zürich the status have to release him the new response one
+| review your hot! The call try who and there a see alias error work!
+| 
+| -- 
+| Vera Fernández
+html none
+
+[attachments]

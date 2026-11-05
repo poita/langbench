@@ -1,0 +1,91 @@
+1 GAME-START A
+2 DRAW A #1 CIN-001
+3 DRAW A #2 CIN-001
+4 DRAW A #3 CIN-001
+5 DRAW A #4 CIN-001
+6 DRAW A #5 CIN-001
+7 DRAW B #24 TID-001
+8 DRAW B #25 TID-001
+9 DRAW B #26 TID-001
+10 DRAW B #27 TID-001
+11 DRAW B #28 TID-001
+12 TURN 1 A
+13 PHASE dawn
+14 EMBER A 10 10
+15 EMBER B 10 10
+16 PHASE draw
+17 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 15 hand 7 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 15 hand 5 ash 0 rift 0
+hand A 1 #21 CIN-003
+hand A 2 #22 CIN-003
+hand A 3 #1 CIN-001
+hand A 4 #2 CIN-001
+hand A 5 #3 CIN-001
+hand A 6 #4 CIN-001
+hand A 7 #5 CIN-001
+hand B 1 #24 TID-001
+hand B 2 #25 TID-001
+hand B 3 #26 TID-001
+hand B 4 #27 TID-001
+hand B 5 #28 TID-001
+field A #23 TID-031 4/6 w0 c0 ready - kw siegework
+effect 1 ts2 A aura modify 2 0 on #23
+STATE END
+18 PLAY A ~1 #21 CIN-003 B
+19 PAY A ember 1
+20 PASS A
+21 PASS B
+22 RESOLVE ~1
+23 DAMAGE #21 B 2
+24 SPIRE B -2 38
+25 SPENT #21 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 9 cap 10 vault 15 hand 6 ash 1 rift 0
+player B spire 38 ember 10 cap 10 vault 15 hand 5 ash 0 rift 0
+hand A 1 #22 CIN-003
+hand A 2 #1 CIN-001
+hand A 3 #2 CIN-001
+hand A 4 #3 CIN-001
+hand A 5 #4 CIN-001
+hand A 6 #5 CIN-001
+hand B 1 #24 TID-001
+hand B 2 #25 TID-001
+hand B 3 #26 TID-001
+hand B 4 #27 TID-001
+hand B 5 #28 TID-001
+field A #23 TID-031 4/6 w0 c0 ready - kw siegework
+ash A 1 #21 CIN-003
+effect 1 ts2 A aura modify 2 0 on #23
+STATE END
+26 PLAY A ~2 #22 CIN-003 B
+27 PAY A ember 1
+28 PASS A
+29 PASS B
+30 RESOLVE ~2
+31 DAMAGE #22 B 2
+32 SPIRE B -2 36
+33 SPENT #22 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 10 vault 15 hand 5 ash 2 rift 0
+player B spire 36 ember 10 cap 10 vault 15 hand 5 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand A 3 #3 CIN-001
+hand A 4 #4 CIN-001
+hand A 5 #5 CIN-001
+hand B 1 #24 TID-001
+hand B 2 #25 TID-001
+hand B 3 #26 TID-001
+hand B 4 #27 TID-001
+hand B 5 #28 TID-001
+field A #23 TID-031 4/6 w0 c0 ready - kw siegework
+ash A 1 #21 CIN-003
+ash A 2 #22 CIN-003
+effect 1 ts2 A aura modify 2 0 on #23
+STATE END
+34 RESULT pending none

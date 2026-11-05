@@ -1,0 +1,66 @@
+QUERY 1 (cat OR dog) AND bird
+HITS 0
+QUERY 2 cat OR (dog AND bird)
+HITS 2
+1	both	2.1368	The cat and the dog met. A dog chased the cat while cats watched dogs
+2	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+QUERY 3 ((cat))
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 4 ()
+HITS 0
+QUERY 5 cat ()
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 6 cat AND
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 7 NOT
+HITS 0
+QUERY 8 "cat
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 9 OR cat
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 10 cat ) dog
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 11 bird ) ) cat
+HITS 1
+1	birds	1.2315	Birds fly over the quiet lake at dawn, and the lake is still
+QUERY 12 cat NOT ()
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 13 cat NOT (
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 14 (dog
+HITS 2
+1	dogs	1.1021	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 15 cat OR AND dog
+HITS 3
+1	both	2.1368	The cat and the dog met. A dog chased the cat while cats watched dogs
+2	dogs	1.1021	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+3	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+QUERY 16 cat AND OR dog
+HITS 3
+1	both	2.1368	The cat and the dog met. A dog chased the cat while cats watched dogs
+2	dogs	1.1021	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+3	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+QUERY 17 dog NOT ( cat
+HITS 1
+1	dogs	1.1021	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+QUERY 18 NOT () dog
+HITS 2
+1	dogs	1.1021	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs

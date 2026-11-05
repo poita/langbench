@@ -1,0 +1,10 @@
+put "u1" {name:"ada",age:36}
+put "u2" {name:"bob",age:29}
+put "u3" {name:"cy",age:36}
+create index age
+indexes
+find age == 36
+find age > 30
+find age == 36 and name == "cy"
+find not(age == 36)
+stat

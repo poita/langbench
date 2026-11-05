@@ -1,0 +1,8 @@
+q(1). q(2). q(3).
+p(X) :- q(X), not q(X).
+s(X) :- q(X), not t(X).
+t(X) :- q(X), X > 2.
+u(X, Y) :- q(X), q(Y), not q(Z), q(Z), X < Y.
+?- p(X).
+?- s(X).
+?- u(X, Y).

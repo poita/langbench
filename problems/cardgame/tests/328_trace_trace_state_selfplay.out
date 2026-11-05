@@ -1,0 +1,3033 @@
+1 GAME-START A
+2 SHUFFLE A
+3 SHUFFLE B
+4 DRAW A #18 LOM-018
+5 DRAW A #22 LOM-022
+6 DRAW A #21 LOM-021
+7 DRAW A #23 LOM-023
+8 DRAW B #48 TID-024
+9 DRAW B #37 TID-013
+10 DRAW B #30 TID-006
+11 DRAW B #45 TID-021
+12 TURN 1 A
+13 PHASE dawn
+14 EMBER A 1 1
+15 EMBER B 0 0
+16 PHASE draw
+17 PHASE main1
+18 PASS A
+STATE BEGIN
+turn 1 active A phase main1 decision B priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 0 vault 20 hand 4 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+STATE END
+19 PASS B
+20 PHASE clash-attack
+STATE BEGIN
+turn 1 active A phase clash-attack decision A attackers
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 0 vault 20 hand 4 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+STATE END
+21 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 0 vault 20 hand 4 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+STATE END
+22 PASS A
+STATE BEGIN
+turn 1 active A phase main2 decision B priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 0 vault 20 hand 4 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+STATE END
+ERR 14 bad-syntax
+23 PASS B
+24 PHASE dusk-trigger
+STATE BEGIN
+turn 1 active A phase dusk-trigger decision A priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 0 vault 20 hand 4 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+STATE END
+25 PASS A
+STATE BEGIN
+turn 1 active A phase dusk-trigger decision B priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 0 vault 20 hand 4 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+STATE END
+26 PASS B
+27 PHASE dusk-discard
+28 PHASE dusk-cleanup
+29 TURN 2 B
+30 PHASE dawn
+31 EMBER A 1 1
+32 EMBER B 1 1
+33 PHASE draw
+34 DRAW B #42 TID-018
+35 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+36 PASS B
+STATE BEGIN
+turn 2 active B phase main1 decision A priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+37 PASS A
+38 PHASE clash-attack
+STATE BEGIN
+turn 2 active B phase clash-attack decision B attackers
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+39 PHASE main2
+STATE BEGIN
+turn 2 active B phase main2 decision B priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+40 PASS B
+STATE BEGIN
+turn 2 active B phase main2 decision A priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+41 PASS A
+42 PHASE dusk-trigger
+STATE BEGIN
+turn 2 active B phase dusk-trigger decision B priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+43 PASS B
+STATE BEGIN
+turn 2 active B phase dusk-trigger decision A priority
+player A spire 10 ember 1 cap 1 vault 20 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+44 PASS A
+45 PHASE dusk-discard
+46 PHASE dusk-cleanup
+47 TURN 3 A
+48 PHASE dawn
+49 EMBER A 2 2
+50 EMBER B 1 1
+51 PHASE draw
+52 DRAW A #9 LOM-009
+53 PHASE main1
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 10 ember 2 cap 2 vault 19 hand 5 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #22 LOM-022
+hand A 3 #21 LOM-021
+hand A 4 #23 LOM-023
+hand A 5 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+STATE END
+54 PLAY A ~1 #22 LOM-022
+55 PAY A ember 2
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+chain 1 ~1 A relic #22 0
+STATE END
+56 PASS A
+STATE BEGIN
+turn 3 active A phase main1 decision B priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+chain 1 ~1 A relic #22 0
+STATE END
+57 PASS B
+58 RESOLVE ~1
+59 ARRIVE #22 LOM-022
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+field A #22 LOM-022 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+60 PASS A
+STATE BEGIN
+turn 3 active A phase main1 decision B priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+field A #22 LOM-022 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+61 PASS B
+62 PHASE clash-attack
+STATE BEGIN
+turn 3 active A phase clash-attack decision A attackers
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+field A #22 LOM-022 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+63 PHASE main2
+STATE BEGIN
+turn 3 active A phase main2 decision A priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+field A #22 LOM-022 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+64 PASS A
+STATE BEGIN
+turn 3 active A phase main2 decision B priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+field A #22 LOM-022 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+65 PASS B
+66 PHASE dusk-trigger
+STATE BEGIN
+turn 3 active A phase dusk-trigger decision A priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+field A #22 LOM-022 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+67 PASS A
+STATE BEGIN
+turn 3 active A phase dusk-trigger decision B priority
+player A spire 10 ember 0 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 1 cap 1 vault 19 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+field A #22 LOM-022 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+68 PASS B
+69 PHASE dusk-discard
+70 PHASE dusk-cleanup
+71 TURN 4 B
+72 PHASE dawn
+73 EMBER A 2 2
+74 EMBER B 2 2
+75 PHASE draw
+76 DRAW B #47 TID-023
+77 PHASE main1
+STATE BEGIN
+turn 4 active B phase main1 decision B priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 6 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #48 TID-024
+hand B 2 #37 TID-013
+hand B 3 #30 TID-006
+hand B 4 #45 TID-021
+hand B 5 #42 TID-018
+hand B 6 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+78 PLAY B ~2 #48 TID-024
+79 PAY B ember 2
+STATE BEGIN
+turn 4 active B phase main1 decision B priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+chain 1 ~2 B relic #48 0
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+80 PASS B
+STATE BEGIN
+turn 4 active B phase main1 decision A priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+chain 1 ~2 B relic #48 0
+effect 1 ts2 A aura grant plating:1 on -
+STATE END
+81 PASS A
+82 RESOLVE ~2
+83 ARRIVE #48 TID-024
+STATE BEGIN
+turn 4 active B phase main1 decision B priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+84 PASS B
+STATE BEGIN
+turn 4 active B phase main1 decision A priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+85 PASS A
+86 PHASE clash-attack
+STATE BEGIN
+turn 4 active B phase clash-attack decision B attackers
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+ERR 40 bad-syntax
+87 PHASE main2
+STATE BEGIN
+turn 4 active B phase main2 decision B priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+88 PASS B
+STATE BEGIN
+turn 4 active B phase main2 decision A priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+89 PASS A
+90 PHASE dusk-trigger
+STATE BEGIN
+turn 4 active B phase dusk-trigger decision B priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+91 PASS B
+STATE BEGIN
+turn 4 active B phase dusk-trigger decision A priority
+player A spire 10 ember 2 cap 2 vault 19 hand 4 ash 0 rift 0
+player B spire 10 ember 0 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready settling kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+92 PASS A
+93 PHASE dusk-discard
+94 PHASE dusk-cleanup
+95 TURN 5 A
+96 PHASE dawn
+97 EMBER A 3 3
+98 EMBER B 2 2
+99 PHASE draw
+100 DRAW A #19 LOM-019
+101 PHASE main1
+STATE BEGIN
+turn 5 active A phase main1 decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+102 PASS A
+STATE BEGIN
+turn 5 active A phase main1 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+103 PASS B
+104 PHASE clash-attack
+STATE BEGIN
+turn 5 active A phase clash-attack decision A attackers
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+105 PHASE main2
+STATE BEGIN
+turn 5 active A phase main2 decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+106 PASS A
+STATE BEGIN
+turn 5 active A phase main2 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+107 PASS B
+108 PHASE dusk-trigger
+STATE BEGIN
+turn 5 active A phase dusk-trigger decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+109 PASS A
+STATE BEGIN
+turn 5 active A phase dusk-trigger decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 2 cap 2 vault 18 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+ERR 52 bad-syntax
+110 PASS B
+111 PHASE dusk-discard
+112 PHASE dusk-cleanup
+113 TURN 6 B
+114 PHASE dawn
+115 EMBER A 3 3
+116 EMBER B 3 3
+117 PHASE draw
+118 DRAW B #31 TID-007
+119 PHASE main1
+STATE BEGIN
+turn 6 active B phase main1 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 17 hand 6 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #31 TID-007
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+120 PLAY B ~3 #31 TID-007
+121 PAY B ember 2
+STATE BEGIN
+turn 6 active B phase main1 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 1 cap 3 vault 17 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+chain 1 ~3 B rite #31 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+122 PASS B
+STATE BEGIN
+turn 6 active B phase main1 decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 1 cap 3 vault 17 hand 5 ash 0 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+chain 1 ~3 B rite #31 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+123 PASS A
+124 RESOLVE ~3
+125 DRAW B #34 TID-010
+126 DRAW B #44 TID-020
+127 SPENT #31 TID-007
+STATE BEGIN
+turn 6 active B phase main1 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 1 cap 3 vault 15 hand 7 ash 1 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #44 TID-020
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+128 PASS B
+STATE BEGIN
+turn 6 active B phase main1 decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 1 cap 3 vault 15 hand 7 ash 1 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #44 TID-020
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+129 PASS A
+130 PHASE clash-attack
+STATE BEGIN
+turn 6 active B phase clash-attack decision B attackers
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 1 cap 3 vault 15 hand 7 ash 1 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #44 TID-020
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+ERR 59 bad-syntax
+131 PHASE main2
+STATE BEGIN
+turn 6 active B phase main2 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 1 cap 3 vault 15 hand 7 ash 1 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #44 TID-020
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+132 PLAY B ~4 #44 TID-020
+133 PAY B ember 1
+STATE BEGIN
+turn 6 active B phase main2 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 0 cap 3 vault 15 hand 6 ash 1 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+chain 1 ~4 B rite #44 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+134 PASS B
+STATE BEGIN
+turn 6 active B phase main2 decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 0 cap 3 vault 15 hand 6 ash 1 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+chain 1 ~4 B rite #44 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+135 PASS A
+136 RESOLVE ~4
+137 SPENT #44 TID-020
+STATE BEGIN
+turn 6 active B phase main2 decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 0 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+138 PASS B
+STATE BEGIN
+turn 6 active B phase main2 decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 0 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+139 PASS A
+140 PHASE dusk-trigger
+STATE BEGIN
+turn 6 active B phase dusk-trigger decision B priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 0 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+141 PASS B
+STATE BEGIN
+turn 6 active B phase dusk-trigger decision A priority
+player A spire 10 ember 3 cap 3 vault 18 hand 5 ash 0 rift 0
+player B spire 10 ember 0 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+142 PASS A
+143 PHASE dusk-discard
+144 PHASE dusk-cleanup
+145 TURN 7 A
+146 PHASE dawn
+147 EMBER A 4 4
+148 EMBER B 3 3
+149 PHASE draw
+150 DRAW A #14 LOM-014
+151 PHASE main1
+STATE BEGIN
+turn 7 active A phase main1 decision A priority
+player A spire 10 ember 4 cap 4 vault 17 hand 6 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #21 LOM-021
+hand A 3 #23 LOM-023
+hand A 4 #9 LOM-009
+hand A 5 #19 LOM-019
+hand A 6 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+152 PLAY A ~5 #21 LOM-021
+153 PAY A ember 3
+STATE BEGIN
+turn 7 active A phase main1 decision A priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~5 A relic #21 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+154 PASS A
+STATE BEGIN
+turn 7 active A phase main1 decision B priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~5 A relic #21 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+STATE END
+155 PASS B
+156 RESOLVE ~5
+157 ARRIVE #21 LOM-021
+STATE BEGIN
+turn 7 active A phase main1 decision A priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready settling kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+158 PASS A
+STATE BEGIN
+turn 7 active A phase main1 decision B priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready settling kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+159 PASS B
+160 PHASE clash-attack
+STATE BEGIN
+turn 7 active A phase clash-attack decision A attackers
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready settling kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+161 PHASE main2
+STATE BEGIN
+turn 7 active A phase main2 decision A priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready settling kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+162 PASS A
+STATE BEGIN
+turn 7 active A phase main2 decision B priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready settling kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+163 PASS B
+164 PHASE dusk-trigger
+STATE BEGIN
+turn 7 active A phase dusk-trigger decision A priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready settling kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+165 PASS A
+STATE BEGIN
+turn 7 active A phase dusk-trigger decision B priority
+player A spire 10 ember 1 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 3 cap 3 vault 15 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready settling kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+166 PASS B
+167 PHASE dusk-discard
+168 PHASE dusk-cleanup
+169 TURN 8 B
+170 PHASE dawn
+171 EMBER A 4 4
+172 EMBER B 4 4
+173 PHASE draw
+174 DRAW B #26 TID-002
+175 PHASE main1
+STATE BEGIN
+turn 8 active B phase main1 decision B priority
+player A spire 10 ember 4 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+176 PASS B
+STATE BEGIN
+turn 8 active B phase main1 decision A priority
+player A spire 10 ember 4 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+ERR 79 bad-syntax
+177 PASS A
+178 PHASE clash-attack
+STATE BEGIN
+turn 8 active B phase clash-attack decision B attackers
+player A spire 10 ember 4 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+179 PHASE main2
+STATE BEGIN
+turn 8 active B phase main2 decision B priority
+player A spire 10 ember 4 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+180 PASS B
+STATE BEGIN
+turn 8 active B phase main2 decision A priority
+player A spire 10 ember 4 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+ERR 83 bad-syntax
+181 PASS A
+182 PHASE dusk-trigger
+STATE BEGIN
+turn 8 active B phase dusk-trigger decision B priority
+player A spire 10 ember 4 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+183 PASS B
+STATE BEGIN
+turn 8 active B phase dusk-trigger decision A priority
+player A spire 10 ember 4 cap 4 vault 17 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+184 PASS A
+185 PHASE dusk-discard
+186 PHASE dusk-cleanup
+187 TURN 9 A
+188 PHASE dawn
+189 EMBER A 5 5
+190 EMBER B 4 4
+191 PHASE draw
+192 DRAW A #11 LOM-011
+193 PHASE main1
+STATE BEGIN
+turn 9 active A phase main1 decision A priority
+player A spire 10 ember 5 cap 5 vault 16 hand 6 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand A 6 #11 LOM-011
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+194 PLAY A ~6 #11 LOM-011
+195 PAY A ember 1
+STATE BEGIN
+turn 9 active A phase main1 decision A priority
+player A spire 10 ember 4 cap 5 vault 16 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~6 A rite #11 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+196 PASS A
+STATE BEGIN
+turn 9 active A phase main1 decision B priority
+player A spire 10 ember 4 cap 5 vault 16 hand 5 ash 0 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~6 A rite #11 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+197 PASS B
+198 RESOLVE ~6
+199 EMBERGAIN A 2 6
+200 SPENT #11 LOM-011
+STATE BEGIN
+turn 9 active A phase main1 decision A priority
+player A spire 10 ember 6 cap 5 vault 16 hand 5 ash 1 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #23 LOM-023
+hand A 3 #9 LOM-009
+hand A 4 #19 LOM-019
+hand A 5 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+201 PLAY A ~7 #23 LOM-023
+202 PAY A ember 5
+STATE BEGIN
+turn 9 active A phase main1 decision A priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 1 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~7 A rite #23 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+203 PASS A
+STATE BEGIN
+turn 9 active A phase main1 decision B priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 1 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~7 A rite #23 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+ERR 92 bad-syntax
+204 PASS B
+205 RESOLVE ~7
+206 SPENT #23 LOM-023
+STATE BEGIN
+turn 9 active A phase main1 decision A priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+207 PASS A
+STATE BEGIN
+turn 9 active A phase main1 decision B priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+208 PASS B
+209 PHASE clash-attack
+STATE BEGIN
+turn 9 active A phase clash-attack decision A attackers
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+210 PHASE main2
+STATE BEGIN
+turn 9 active A phase main2 decision A priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+211 PASS A
+STATE BEGIN
+turn 9 active A phase main2 decision B priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+212 PASS B
+213 PHASE dusk-trigger
+STATE BEGIN
+turn 9 active A phase dusk-trigger decision A priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+214 PASS A
+STATE BEGIN
+turn 9 active A phase dusk-trigger decision B priority
+player A spire 10 ember 1 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 4 cap 4 vault 14 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+215 PASS B
+216 PHASE dusk-discard
+217 PHASE dusk-cleanup
+218 TURN 10 B
+219 PHASE dawn
+220 EMBER A 5 5
+221 EMBER B 5 5
+222 PHASE draw
+223 DRAW B #28 TID-004
+224 PHASE main1
+STATE BEGIN
+turn 10 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 8 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #30 TID-006
+hand B 3 #45 TID-021
+hand B 4 #42 TID-018
+hand B 5 #47 TID-023
+hand B 6 #34 TID-010
+hand B 7 #26 TID-002
+hand B 8 #28 TID-004
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+225 PLAY B ~8 #30 TID-006
+226 PAY B ember 2
+STATE BEGIN
+turn 10 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 3 cap 5 vault 13 hand 7 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+hand B 7 #28 TID-004
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~8 B unit #30 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+227 PLAY B ~9 #28 TID-004 ~8
+228 PAY B ember 2
+STATE BEGIN
+turn 10 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~8 B unit #30 0
+chain 2 ~9 B rite #28 0 ~8
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+229 PASS B
+STATE BEGIN
+turn 10 active B phase main1 decision A priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 2 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+chain 1 ~8 B unit #30 0
+chain 2 ~9 B rite #28 0 ~8
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+230 PASS A
+231 RESOLVE ~9
+232 NEGATE ~8
+233 SPENT #30 TID-006
+234 SPENT #28 TID-004
+STATE BEGIN
+turn 10 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+235 PASS B
+STATE BEGIN
+turn 10 active B phase main1 decision A priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+236 PASS A
+237 PHASE clash-attack
+STATE BEGIN
+turn 10 active B phase clash-attack decision B attackers
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+238 PHASE main2
+STATE BEGIN
+turn 10 active B phase main2 decision B priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+ERR 108 bad-syntax
+239 PASS B
+STATE BEGIN
+turn 10 active B phase main2 decision A priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+240 PASS A
+241 PHASE dusk-trigger
+STATE BEGIN
+turn 10 active B phase dusk-trigger decision B priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+242 PASS B
+STATE BEGIN
+turn 10 active B phase dusk-trigger decision A priority
+player A spire 10 ember 5 cap 5 vault 16 hand 4 ash 2 rift 0
+player B spire 10 ember 1 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+243 PASS A
+244 PHASE dusk-discard
+245 PHASE dusk-cleanup
+246 TURN 11 A
+247 PHASE dawn
+248 EMBER A 6 6
+249 EMBER B 5 5
+250 PHASE draw
+251 DRAW A #1 LOM-001
+252 PHASE main1
+STATE BEGIN
+turn 11 active A phase main1 decision A priority
+player A spire 10 ember 6 cap 6 vault 15 hand 5 ash 2 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #9 LOM-009
+hand A 3 #19 LOM-019
+hand A 4 #14 LOM-014
+hand A 5 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+253 PLAY A ~10 #9 LOM-009
+254 PAY A ember 2
+STATE BEGIN
+turn 11 active A phase main1 decision A priority
+player A spire 10 ember 4 cap 6 vault 15 hand 4 ash 2 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #19 LOM-019
+hand A 3 #14 LOM-014
+hand A 4 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~10 A unit #9 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+255 PASS A
+STATE BEGIN
+turn 11 active A phase main1 decision B priority
+player A spire 10 ember 4 cap 6 vault 15 hand 4 ash 2 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #19 LOM-019
+hand A 3 #14 LOM-014
+hand A 4 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~10 A unit #9 0
+effect 1 ts2 A aura grant plating:1 on -
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+256 PASS B
+257 RESOLVE ~10
+258 ARRIVE #9 LOM-009
+STATE BEGIN
+turn 11 active A phase main1 decision A priority
+player A spire 10 ember 4 cap 6 vault 15 hand 4 ash 2 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #18 LOM-018
+hand A 2 #19 LOM-019
+hand A 3 #14 LOM-014
+hand A 4 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 3/3 w0 c0 ready settling kw plating:1,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+259 PLAY A ~11 #18 LOM-018
+260 PAY A ember 4
+STATE BEGIN
+turn 11 active A phase main1 decision A priority
+player A spire 10 ember 0 cap 6 vault 15 hand 3 ash 2 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand A 3 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 3/3 w0 c0 ready settling kw plating:1,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~11 A rite #18 0
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+261 PASS A
+STATE BEGIN
+turn 11 active A phase main1 decision B priority
+player A spire 10 ember 0 cap 6 vault 15 hand 3 ash 2 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand A 3 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 3/3 w0 c0 ready settling kw plating:1,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~11 A rite #18 0
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+262 PASS B
+263 RESOLVE ~11
+264 COUNTERS #9 +1 1
+265 SPENT #18 LOM-018
+STATE BEGIN
+turn 11 active A phase main1 decision A priority
+player A spire 10 ember 0 cap 6 vault 15 hand 3 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand A 3 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+266 PASS A
+STATE BEGIN
+turn 11 active A phase main1 decision B priority
+player A spire 10 ember 0 cap 6 vault 15 hand 3 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand A 3 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+267 PASS B
+268 PHASE clash-attack
+STATE BEGIN
+turn 11 active A phase clash-attack decision A attackers
+player A spire 10 ember 0 cap 6 vault 15 hand 3 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand A 3 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+269 PHASE main2
+STATE BEGIN
+turn 11 active A phase main2 decision A priority
+player A spire 10 ember 0 cap 6 vault 15 hand 3 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand A 3 #1 LOM-001
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+270 PLAY A ~12 #1 LOM-001
+STATE BEGIN
+turn 11 active A phase main2 decision A priority
+player A spire 10 ember 0 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~12 A unit #1 0
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+ERR 123 bad-syntax
+271 PASS A
+STATE BEGIN
+turn 11 active A phase main2 decision B priority
+player A spire 10 ember 0 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~12 A unit #1 0
+effect 1 ts2 A aura grant plating:1 on #9
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+272 PASS B
+273 RESOLVE ~12
+274 ARRIVE #1 LOM-001
+STATE BEGIN
+turn 11 active A phase main2 decision A priority
+player A spire 10 ember 0 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready settling kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+275 PASS A
+STATE BEGIN
+turn 11 active A phase main2 decision B priority
+player A spire 10 ember 0 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready settling kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+276 PASS B
+277 PHASE dusk-trigger
+STATE BEGIN
+turn 11 active A phase dusk-trigger decision A priority
+player A spire 10 ember 0 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready settling kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+278 PASS A
+STATE BEGIN
+turn 11 active A phase dusk-trigger decision B priority
+player A spire 10 ember 0 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 5 cap 5 vault 13 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready settling kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready settling kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+279 PASS B
+280 PHASE dusk-discard
+281 PHASE dusk-cleanup
+282 TURN 12 B
+283 PHASE dawn
+284 EMBER A 6 6
+285 EMBER B 6 6
+286 PHASE draw
+287 DRAW B #43 TID-019
+288 PHASE main1
+STATE BEGIN
+turn 12 active B phase main1 decision B priority
+player A spire 10 ember 6 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 6 cap 6 vault 12 hand 7 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+hand B 7 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready - kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+289 PASS B
+STATE BEGIN
+turn 12 active B phase main1 decision A priority
+player A spire 10 ember 6 cap 6 vault 15 hand 2 ash 3 rift 0
+player B spire 10 ember 6 cap 6 vault 12 hand 7 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand A 2 #14 LOM-014
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+hand B 7 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready - kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+290 PLAY A ~13 #14 LOM-014 #1
+291 PAY A ember 1
+STATE BEGIN
+turn 12 active B phase main1 decision A priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 3 rift 0
+player B spire 10 ember 6 cap 6 vault 12 hand 7 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+hand B 7 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready - kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~13 A rite #14 0 #1
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+292 PASS A
+STATE BEGIN
+turn 12 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 3 rift 0
+player B spire 10 ember 6 cap 6 vault 12 hand 7 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+hand B 7 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/1 w0 c0 ready - kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~13 A rite #14 0 #1
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+293 PASS B
+294 RESOLVE ~13
+295 BUFF #1 0 3
+296 WARD #1 2 2
+297 SPENT #14 LOM-014
+STATE BEGIN
+turn 12 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 4 rift 0
+player B spire 10 ember 6 cap 6 vault 12 hand 7 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #37 TID-013
+hand B 2 #45 TID-021
+hand B 3 #42 TID-018
+hand B 4 #47 TID-023
+hand B 5 #34 TID-010
+hand B 6 #26 TID-002
+hand B 7 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/4 w0 c0 ready ward2 kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash A 4 #14 LOM-014
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+effect 4 ts9 A turn modify 0 3 on #1
+STATE END
+298 PLAY B ~14 #37 TID-013
+299 PAY B ember 2
+STATE BEGIN
+turn 12 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 4 rift 0
+player B spire 10 ember 4 cap 6 vault 12 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #45 TID-021
+hand B 2 #42 TID-018
+hand B 3 #47 TID-023
+hand B 4 #34 TID-010
+hand B 5 #26 TID-002
+hand B 6 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/4 w0 c0 ready ward2 kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash A 4 #14 LOM-014
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~14 B relic #37 0
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+effect 4 ts9 A turn modify 0 3 on #1
+STATE END
+300 PASS B
+STATE BEGIN
+turn 12 active B phase main1 decision A priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 4 rift 0
+player B spire 10 ember 4 cap 6 vault 12 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #45 TID-021
+hand B 2 #42 TID-018
+hand B 3 #47 TID-023
+hand B 4 #34 TID-010
+hand B 5 #26 TID-002
+hand B 6 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/4 w0 c0 ready ward2 kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash A 4 #14 LOM-014
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~14 B relic #37 0
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+effect 4 ts9 A turn modify 0 3 on #1
+STATE END
+301 PASS A
+302 RESOLVE ~14
+303 ARRIVE #37 TID-013
+STATE BEGIN
+turn 12 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 4 rift 0
+player B spire 10 ember 4 cap 6 vault 12 hand 6 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #45 TID-021
+hand B 2 #42 TID-018
+hand B 3 #47 TID-023
+hand B 4 #34 TID-010
+hand B 5 #26 TID-002
+hand B 6 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/4 w0 c0 ready ward2 kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+field B #37 TID-013 -/- w0 c0 ready settling kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash A 4 #14 LOM-014
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+effect 4 ts9 A turn modify 0 3 on #1
+effect 5 ts11 B aura cheaper 1 on -
+STATE END
+304 PLAY B ~15 #47 TID-023
+305 PAY B ember 4
+STATE BEGIN
+turn 12 active B phase main1 decision B priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 4 rift 0
+player B spire 10 ember 0 cap 6 vault 12 hand 5 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #45 TID-021
+hand B 2 #42 TID-018
+hand B 3 #34 TID-010
+hand B 4 #26 TID-002
+hand B 5 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/4 w0 c0 ready ward2 kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+field B #37 TID-013 -/- w0 c0 ready settling kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash A 4 #14 LOM-014
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~15 B unit #47 0
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+effect 4 ts9 A turn modify 0 3 on #1
+effect 5 ts11 B aura cheaper 1 on -
+STATE END
+306 PASS B
+STATE BEGIN
+turn 12 active B phase main1 decision A priority
+player A spire 10 ember 5 cap 6 vault 15 hand 1 ash 4 rift 0
+player B spire 10 ember 0 cap 6 vault 12 hand 5 ash 4 rift 0
+hand A 1 #19 LOM-019
+hand B 1 #45 TID-021
+hand B 2 #42 TID-018
+hand B 3 #34 TID-010
+hand B 4 #26 TID-002
+hand B 5 #43 TID-019
+field A #22 LOM-022 -/- w0 c0 ready - kw -
+field A #21 LOM-021 -/- w0 c0 ready - kw -
+field A #9 LOM-009 4/4 w0 c1 ready - kw plating:1,shackled,venom
+field A #1 LOM-001 1/4 w0 c0 ready ward2 kw plating:1
+field B #48 TID-024 -/- w0 c0 ready - kw -
+field B #37 TID-013 -/- w0 c0 ready settling kw -
+ash A 1 #11 LOM-011
+ash A 2 #23 LOM-023
+ash A 3 #18 LOM-018
+ash A 4 #14 LOM-014
+ash B 1 #31 TID-007
+ash B 2 #44 TID-020
+ash B 3 #30 TID-006
+ash B 4 #28 TID-004
+chain 1 ~15 B unit #47 0
+effect 1 ts2 A aura grant plating:1 on #9,#1
+effect 2 ts4 B aura grant shackled on #9
+effect 3 ts6 A aura cheaper 1 on -
+effect 4 ts9 A turn modify 0 3 on #1
+effect 5 ts11 B aura cheaper 1 on -
+STATE END
+307 RESULT pending none

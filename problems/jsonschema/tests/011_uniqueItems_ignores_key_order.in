@@ -1,0 +1,52 @@
+{
+  "schema": {
+    "uniqueItems": true
+  },
+  "tests": [
+    {
+      "description": "same object, different key order",
+      "data": [
+        {
+          "a": 1,
+          "b": 2
+        },
+        {
+          "b": 2,
+          "a": 1
+        }
+      ]
+    },
+    {
+      "description": "1 and 1.0 are the same number",
+      "data": [
+        1,
+        1.0
+      ]
+    },
+    {
+      "description": "0, false and \"0\" all differ",
+      "data": [
+        0,
+        false,
+        "0"
+      ]
+    },
+    {
+      "description": "nested arrays differ",
+      "data": [
+        [
+          1,
+          [
+            2
+          ]
+        ],
+        [
+          1,
+          [
+            3
+          ]
+        ]
+      ]
+    }
+  ]
+}

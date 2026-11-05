@@ -1,0 +1,22 @@
+QUERY 1 well-known
+HITS 2
+1	hyphen	0.4778	A well-known state-of-the-art system
+2	spaced	0.4778	A well known state of the art system
+QUERY 2 "well known"
+HITS 2
+1	hyphen	0.4778	A well-known state-of-the-art system
+2	spaced	0.4778	A well known state of the art system
+QUERY 3 state-of-the-art
+HITS 2
+1	hyphen	0.4778	A well-known state-of-the-art system
+2	spaced	0.4778	A well known state of the art system
+QUERY 4 art
+HITS 3
+1	hyphen	0.1358	A well-known state-of-the-art system
+2	spaced	0.1358	A well known state of the art system
+3	apart	0.1293	The art is well hidden; the state is known
+QUERY 5 well known
+HITS 3
+1	hyphen	0.2715	A well-known state-of-the-art system
+2	spaced	0.2715	A well known state of the art system
+3	apart	0.2586	The art is well hidden; the state is known

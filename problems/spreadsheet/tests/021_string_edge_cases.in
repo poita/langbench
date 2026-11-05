@@ -1,0 +1,33 @@
+set A1 "café"
+set A2 "日本語"
+set A3 =A1&" "&A2
+set A4 =A2>A1
+set A5 "5"
+set A6 =A5+1
+set A7 =A5=5
+set A8 =A5&5
+set A9 "a=b"
+set A10 =A9="a=b"
+set A11 "SUM(A1:A2)"
+set A12 =A11
+set A13 =A12&"!"
+set A14 "é"
+set A15 "z"
+set A16 =A14>A15
+set A17 =""=""
+set A18 =""<"a"
+set A19 "éé"
+set A20 =A19>A14
+set A21 =A1<>A1&""
+set A22 =COUNT(A1:A21)
+set A23 =SUM(A1:A21)
+set A24 ="x"<>"x "
+set A25 =" "=""
+set A26 "😀"
+set A27 "ｚ"
+set A28 =A26>A27
+set A29 =A26<A27
+set A30 =A26&A27
+set A31 =A27>"z"
+set A32 =A26>"z"
+dump

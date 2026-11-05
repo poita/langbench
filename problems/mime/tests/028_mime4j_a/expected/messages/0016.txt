@@ -1,0 +1,30 @@
+[message]
+id 0016
+source "empty-preamble.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"t0UkRYy7tHLRMCai\""
+content-disposition: "inline"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit disposition=inline boundary="t0UkRYy7tHLRMCai" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=quoted-printable disposition=inline size=314 adler32=41b05d38 role=text
+  2 image/png cte=base64 disposition=attachment filename="dot.png" size=160 adler32=006227fd role=attachment
+
+[body]
+text 1 chars 314
+| Das ist ein Test.
+| -- 
+| sub i($){print$_[0]}*j=*ENV;sub w($){sleep$_[0]}sub _($){i\"$p:$c> \",w+01
+| ,$_=$_[0],tr;i-za-h,;a-hi-z ;,i$_,w+01,i\"\\n\"}$|=1;$f='HO';($c=$j{PWD})=~
+| s+$j{$f.\"ME\"}+~+;$p.=\"$j{USER}\\@\".`hostname`;chop$p;_\"kl\",$c='~',_\"zu,\".
+| \"-zn,*\",_\"#,epg,lw,gwc,mfmkcbm,cvsvwev,uiqt,kwvbmvb?\",i\"$p:$c> \";w+1<<07
+html none
+
+[attachments]
+2 type=image/png filename="dot.png" size=160 adler32=006227fd file=parts/0016/002.bin

@@ -1,0 +1,23 @@
+QUERY 1 alpha
+HITS 4
+1	other	0.1449	alpha alpha beta
+2	copy1	0.1054	alpha beta gamma
+3	copy2	0.1054	alpha beta gamma
+4	copy3	0.1054	alpha beta gamma
+QUERY 2 beta
+HITS 4
+1	copy1	0.1054	alpha beta gamma
+2	copy2	0.1054	alpha beta gamma
+3	copy3	0.1054	alpha beta gamma
+4	other	0.1054	alpha alpha beta
+QUERY 3 alpha beta
+HITS 4
+1	other	0.2502	alpha alpha beta
+2	copy1	0.2107	alpha beta gamma
+3	copy2	0.2107	alpha beta gamma
+4	copy3	0.2107	alpha beta gamma
+QUERY 4 gamma
+HITS 3
+1	copy1	0.3567	alpha beta gamma
+2	copy2	0.3567	alpha beta gamma
+3	copy3	0.3567	alpha beta gamma

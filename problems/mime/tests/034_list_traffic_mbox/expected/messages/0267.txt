@@ -1,0 +1,66 @@
+[message]
+id 0267
+source "mbox:267"
+
+[headers]
+received: "from post.example.fr (mx7.example.org [39.147.191.101]) by eu.example.de (Postfix) with ESMTP id EBBC70225 for <johansson.27@mail.example.net>; Sun, 10 Nov 2012 23:04:06 -0500"
+return-path: "<fsmith@example.com>"
+message-id: "<1633.be8ab66d.83733@dev.example.io>"
+in-reply-to: "<1644.6a6834ac.88554@example.org>"
+references: "<1634.f74f3907.48944@corp.example.co.uk> <1635.3061a9c9.87157@post.example.fr> <1636.0b3e5d2f.20423@example.com> <1637.8f38fc6e.47779@mail.example.net> <1638.f62fc20e.69551@eu.example.de> <1639.4770e235.76251@example.org> <1640.dce505b1.70831@mail.example.net> <1641.a6b0e507.7432@dev.example.io> <1642.d6647e80.7570@mail.example.net> <1643.c859bfa1.43208@dev.example.io> <1644.6a6834ac.88554@example.org>"
+date: "Mon, 16 Aug 2025 15:32:07 UT (JST)"
+from: "Rémi Smith <rsmith@post.example.fr>"
+to: "Olga Doe <odoe@example.org>, Björn Rossi <brossi@mail.example.net>"
+cc: "\"Rossi, Ivan\" <irossi@apache.org>,    Søren Johansson <sjohansson@students.example.ac.jp>"
+subject: "You and that new Ørsted"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_1384_221080218.1092668038710\""
+
+[addresses]
+from 0 display="Rémi Smith" spec="rsmith@post.example.fr"
+to 0 display="Olga Doe" spec="odoe@example.org"
+to 1 display="Björn Rossi" spec="brossi@mail.example.net"
+cc 0 display="Rossi, Ivan" spec="irossi@apache.org"
+cc 1 display="Søren Johansson" spec="sjohansson@students.example.ac.jp"
+
+[date]
+raw " Mon, 16 Aug 2025 15:32:07 UT (JST)"
+valid yes
+utc 2025-08-16T15:32:07Z
+offset +0000
+epoch 1755358327
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_1384_221080218.1092668038710" parts=3 preamble=45 epilogue=0
+  1 text/plain charset=windows-1252 cte=base64 size=669 adler32=3554e9f4 role=text
+  2 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="you_mother_his.patch" size=3227 adler32=406a0f49 role=attachment
+  3 text/csv charset=utf-8 cte=quoted-printable disposition=inline filename="Ångström_hot_like_the.csv" size=2169 adler32=97f1b036 role=attachment
+
+[body]
+text 1 chars 669
+| His in request year the me the good our of is want to the on many! New
+| cause the a be to! Kind think down be name may the these the all day a
+| out of two for? Of her write do an warning it use façade Paulo your of
+| an. He a now to but at?
+| 
+| Warning number is hook they low out more make connection! Just Ørsted it
+| coöperate of! Time pool her in hot again Straße for.
+| 
+| How the vhost such but father I do are him build. A when by ask it of
+| want set smörgåsbord name now only I first was what! Line brigade and
+| number the! Rewrite from get alias as just has out the all.
+| 
+| And new before live a? Large backport animal made the hook of his animal
+| request at!
+| 
+| -- 
+| Uwe Schröder
+html none
+
+[attachments]
+2 type=text/x-diff filename="you_mother_his.patch" size=3227 adler32=406a0f49 file=parts/0267/002.bin
+3 type=text/csv filename="Ångström_hot_like_the.csv" size=2169 adler32=97f1b036 file=parts/0267/003.bin

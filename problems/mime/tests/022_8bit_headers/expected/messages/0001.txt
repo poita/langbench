@@ -1,0 +1,22 @@
+[message]
+id 0001
+source "invalid-headers.eml"
+
+[headers]
+subject: "latin1 caf� here"
+x-broken: "��"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

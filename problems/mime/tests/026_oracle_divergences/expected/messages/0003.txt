@@ -1,0 +1,24 @@
+[message]
+id 0003
+source "envelope-line.eml"
+
+[headers]
+subject: "mbox envelope line inside the header block"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=96 adler32=93131e5c role=text
+
+[body]
+text 0 chars 96
+| From nobody Mon Sep  1 00:00:00 2025
+| X-Never-Seen: because the header block already ended
+| 
+| body
+html none
+
+[attachments]

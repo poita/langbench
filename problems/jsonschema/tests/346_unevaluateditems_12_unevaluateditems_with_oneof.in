@@ -1,0 +1,46 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "const": "foo"
+      }
+    ],
+    "oneOf": [
+      {
+        "prefixItems": [
+          true,
+          {
+            "const": "bar"
+          }
+        ]
+      },
+      {
+        "prefixItems": [
+          true,
+          {
+            "const": "baz"
+          }
+        ]
+      }
+    ],
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "with no unevaluated items",
+      "data": [
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "description": "with unevaluated items",
+      "data": [
+        "foo",
+        "bar",
+        42
+      ]
+    }
+  ]
+}

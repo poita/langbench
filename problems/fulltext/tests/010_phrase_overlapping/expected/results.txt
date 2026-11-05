@@ -1,0 +1,12 @@
+QUERY 1 "aa aa"
+HITS 2
+1	run	0.7954	aa aa aa aa aa
+2	pair	0.6463	aa aa bb aa aa
+QUERY 2 "aa aa aa"
+HITS 1
+1	run	1.5413	aa aa aa aa aa
+QUERY 3 aa
+HITS 3
+1	run	0.2369	aa aa aa aa aa
+2	pair	0.2260	aa aa bb aa aa
+3	once	0.2098	aa bb aa bb aa

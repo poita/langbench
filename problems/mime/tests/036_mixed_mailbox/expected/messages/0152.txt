@@ -1,0 +1,99 @@
+[message]
+id 0152
+source "mbox:152"
+
+[headers]
+received: "from apache.org (mx3.apache.org [112.15.16.171]) by lists.example.edu (Postfix) with ESMTP id 2D4ADC9CC7 for <svanderberg@post.example.fr>; Fri, 28 Jul 2018 19:52:09 +0000 (JST)"
+received: "from eu.example.de (mx5.post.example.fr [31.109.166.253]) by mail.example.net (Postfix) with ESMTP id B586C19D7 for <mller.95@dev.example.io>; Sat, 7 Oct 2025 02:26:33 -0800"
+received: "from example.com (mx2.lists.example.edu [190.61.79.83]) by students.example.ac.jp (Postfix) with ESMTP id 41CFE5CC15 for <ckim.15@lists.example.edu>; Fri, 26 Nov 2005 04:58:27 +0000 (PST)"
+received: "from example.com (mx4.lists.example.edu [19.153.1.180]) by corp.example.co.uk (Postfix) with ESMTP id 7E03B4039 for <grossi@example.com>; Sat, 20 Aug 2018 22:51:38 -0700"
+return-path: "<pmller@example.org>"
+message-id: "<1153.a59d64c9.42612@example.com>"
+date: "11 SEP 03 02:57 +1000"
+from: "Đorđe García <garca@dev.example.io>"
+to: "Zoë Lefèvre <zlefvre@eu.example.de>, \"Bob O'Brien\" <bobrien@post.example.fr>"
+cc: "Łukasz Rossi <rossi.38@corp.example.co.uk>,\tv.70@corp.example.co.uk"
+subject: "Great if or of why the rewrite it filter"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"=_d13a48f670164bed931942549ce7595b\""
+
+[addresses]
+from 0 display="Đorđe García" spec="garca@dev.example.io"
+to 0 display="Zoë Lefèvre" spec="zlefvre@eu.example.de"
+to 1 display="Bob O'Brien" spec="bobrien@post.example.fr"
+cc 0 display="Łukasz Rossi" spec="rossi.38@corp.example.co.uk"
+cc 1 display="" spec="v.70@corp.example.co.uk"
+
+[date]
+raw " 11 SEP 03 02:57 +1000"
+valid yes
+utc 2003-09-10T16:57:00Z
+offset +1000
+epoch 1063213020
+
+[structure]
+0 multipart/alternative cte=7bit boundary="=_d13a48f670164bed931942549ce7595b" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=windows-1252 cte=7bit size=1131 adler32=ba638894 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1694 adler32=615e4543 role=html
+
+[body]
+text 1 chars 1131
+| Server it build man old my were as the! The but had the if at thread
+| were a of as she on release if to when! Was the does kind and is at
+| status for the the form.
+| 
+| At for the timeout no only them the look just great vhost out great as
+| differ you was. High port to cache was end. Config thing said way no how
+| home? In of can as your kind? She on your be where!
+| 
+| Two word you error earth we. Great rewrite most handler follow you from
+| now at. Long and so I again only?
+| 
+| Is only brigade and good their élan were her brigade men be what. Near
+| timeout said said to his the there a what the sentence every the but?
+| Certificate proxy log mean boy of will on and number to from vote an
+| people!
+| 
+| Work or of be before she year could hand it I alias men of the through.
+| Of of her alias small them? Help the did keepalive round to. All about
+| this long by at!
+| 
+| Out which make only big the form do be of of big kind in number! Go an
+| for the out pool über to for. At now is I is need two brûlée by.
+| 
+| To trunk long bucket sound boy there error brigade to! And error brigade
+| made it it him was when an or the sound are so year them.
+| 
+| -- 
+| ?ukasz Doe
+html 2 chars 1689
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Server it build man old my were as the! The but had the if at thread<br>
+| were a of as she on release if to when! Was the does kind and is at<br>
+| status for the the form.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">At for the timeout no only them the look just great vhost out great as<br>
+| differ you was. High port to cache was end. Config thing said way no how<br>
+| home? In of can as your kind? She on your be where!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Two word you error earth we. Great rewrite most handler follow you from<br>
+| now at. Long and so I again only?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Is only brigade and good their élan were her brigade men be what. Near<br>
+| timeout said said to his the there a what the sentence every the but?<br>
+| Certificate proxy log mean boy of will on and number to from vote an<br>
+| people!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Work or of be before she year could hand it I alias men of the through.<br>
+| Of of her alias small them? Help the did keepalive round to. All about<br>
+| this long by at!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Out which make only big the form do be of of big kind in number! Go an<br>
+| for the out pool über to for. At now is I is need two brûlée by.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">To trunk long bucket sound boy there error brigade to! And error brigade<br>
+| made it it him was when an or the sound are so year them.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Łukasz Doe<br>
+| </p>
+| </body></html>
+
+[attachments]

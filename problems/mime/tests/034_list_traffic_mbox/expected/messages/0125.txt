@@ -1,0 +1,75 @@
+[message]
+id 0125
+source "mbox:125"
+
+[headers]
+received: "from students.example.ac.jp (mx1.corp.example.co.uk [185.99.101.98]) by corp.example.co.uk (Postfix) with ESMTP id F8C003FC67 for <dubois@mail.example.net>; Tue, 10 Nov 2003 19:54:01 -0500"
+received: "from corp.example.co.uk (mx4.post.example.fr [239.114.167.55]) by example.com (Postfix) with ESMTP id FAAA6F62BE for <cbrown.22@lists.example.edu>; Mon, 3 Mar 2005 20:17:36 -0700"
+return-path: "<crossi@corp.example.co.uk>"
+message-id: "<822.511f896f.53780@post.example.fr>"
+in-reply-to: "<832.b263c310.23236@corp.example.co.uk>"
+references: "<823.788a8114.67738@students.example.ac.jp> <824.21e7f39c.74224@dev.example.io> <825.fd41494f.35637@eu.example.de> <826.ec9f7f04.59836@corp.example.co.uk> <827.b0667600.29189@mail.example.net> <828.2e69d4ad.94002@apache.org> <829.c5f7dc95.22967@example.org> <830.2898391e.40377@post.example.fr> <831.295a3857.31678@post.example.fr> <832.b263c310.23236@corp.example.co.uk>"
+date: "Fri, 3 Jan 2005 02:06:44 +1000"
+from: "Ivan Lefèvre <ilefvre.48@eu.example.de>"
+to: "\"Taylor, Karin\" <ktaylor@lists.example.edu>, Erik Kim <ekim@mail.example.net>"
+cc: "María Petrov <mpetrov@example.com>,    Pierre Smith <psmith@example.org>"
+subject: "Fwd: Man day was a if my was"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=utf-8"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Ivan Lefèvre" spec="ilefvre.48@eu.example.de"
+to 0 display="Taylor, Karin" spec="ktaylor@lists.example.edu"
+to 1 display="Erik Kim" spec="ekim@mail.example.net"
+cc 0 display="María Petrov" spec="mpetrov@example.com"
+cc 1 display="Pierre Smith" spec="psmith@example.org"
+
+[date]
+raw " Fri, 3 Jan 2005 02:06:44 +1000"
+valid yes
+utc 2005-01-02T16:06:44Z
+offset +1000
+epoch 1104682004
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=1279 adler32=946ac668 role=text
+
+[body]
+text 0 chars 1261
+| You did been the way the timeout! Me the you a mother were men have.
+| 
+| What now at in the time he no long some backport you and I? A your the
+| the round way very spell the but to you can façade. Use went end number
+| the is very big could home? Through as in many pool about they him be
+| how many us my a brûlée? Must year follow us our. He that again her
+| this!
+| 
+| I too just that could differ pool a than on from has request back. Your
+| to live help side a Straße port. Rewrite in these Ångström back branch
+| back in is earth but did? Review élan house are a you of and part a but
+| under then word and more? Piñata were will how help it! Up it very on
+| fiancée people?
+| 
+| All one all up thread on by the add been are be much did the have light?
+| What take part on this man naïve for mother the up! Thing the round turn
+| the and number. Jalapeño in for could may that home do in the by our he
+| out he. Many out long with vhost what two no and. But I set side turn
+| and can the!
+| 
+| Of who old your and well to of it these was change rewrite. To large up
+| have as. The you bug play be of!
+| 
+| Is at who proxy your call! The father of and one alias the the in the in
+| animal if! Live out déjà cache great think résumé your every the by.
+| Hook jalapeño mean from name it.
+| 
+| -- 
+| Tomás Müller
+html none
+
+[attachments]

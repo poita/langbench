@@ -1,0 +1,10 @@
+qr tall.mtx
+svd tall.mtx
+svd wide.mtx
+lstsq tall.mtx y.mtx
+mul wide.mtx tall.mtx
+mul tall.mtx wide.mtx
+transpose wide.mtx
+normfro tall.mtx
+cond tall.mtx
+cond wide.mtx

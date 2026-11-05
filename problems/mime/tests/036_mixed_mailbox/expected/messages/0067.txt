@@ -1,0 +1,68 @@
+[message]
+id 0067
+source "mbox:67"
+
+[headers]
+received: "from lists.example.edu (mx5.example.org [36.67.14.45]) by apache.org (Postfix) with ESMTP id C433B3CA20 for <x.42@eu.example.de>; Sun, 10 Oct 2009 09:50:22 +0900"
+return-path: "<mller@apache.org>"
+message-id: "<552.42f47832.78472@apache.org>"
+in-reply-to: "<564.d031591b.92354@corp.example.co.uk>"
+references: "<553.bba3f51b.26272@students.example.ac.jp> <554.653e0814.27003@apache.org> <555.f0581068.42968@apache.org> <556.dfb5549b.31585@dev.example.io> <557.568e312e.37738@post.example.fr> <558.8248fca5.39025@example.com> <559.5832f162.46569@dev.example.io> <560.58fd9e62.48129@corp.example.co.uk> <561.65193cfc.61026@dev.example.io> <562.fdff1ea3.64674@students.example.ac.jp> <563.9ef66f9c.24006@post.example.fr> <564.d031591b.92354@corp.example.co.uk>"
+date: "Sat, 10 Oct 2025 08:29:34 +0530"
+from: "\"Nguyen, Bob\" <bnguyen.41@dev.example.io>"
+to: "Xavier Fernández <xfernndez.97@eu.example.de>, \"Wilson, Yuki\" <ywilson.29@eu.example.de>,\tFiona Rossi <frossi@corp.example.co.uk>"
+cc: "Søren Wilson <swilson.79@example.com>"
+subject: "Write way only this Zürich the to is her"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_7555_954013039.775813621666\""
+
+[addresses]
+from 0 display="Nguyen, Bob" spec="bnguyen.41@dev.example.io"
+to 0 display="Xavier Fernández" spec="xfernndez.97@eu.example.de"
+to 1 display="Wilson, Yuki" spec="ywilson.29@eu.example.de"
+to 2 display="Fiona Rossi" spec="frossi@corp.example.co.uk"
+cc 0 display="Søren Wilson" spec="swilson.79@example.com"
+
+[date]
+raw " Sat, 10 Oct 2025 08:29:34 +0530"
+valid yes
+utc 2025-10-10T02:59:34Z
+offset +0530
+epoch 1760065174
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_7555_954013039.775813621666" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=8bit size=1009 adler32=4ea86119 role=text
+  2 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="mean_great.patch" size=5531 adler32=593ede79 role=attachment
+
+[body]
+text 1 chars 1009
+| Have large as other that we for up go but well is. Could too the in that
+| great a the down it he. Been in to find came word boy socket of? He hot
+| you response like man trunk? On the no on say.
+| 
+| Year to Straße why over this animal is thing other no air is three they.
+| Were world an came kind small the are down said went are under are. The
+| after warning Kraków ask good great déjà side will it?
+| 
+| Of a has sound high. Put thing any them time why rewrite vote handler!
+| Bug year what they father with animal then a Ørsted say were set word
+| said how place! Port my been that need are help live his you the of how.
+| He off your small from!
+| 
+| Of a module hand again he the even him on hook good only? How see under
+| great the? More brigade up me were way and water the you off by São. The
+| the boy the or even again near air go was. Find what did where had that
+| with to where time the. Status round each can the this that my to have
+| go move. Thing people need in have sentence find of these if each do!
+| 
+| -- 
+| François Doe
+html none
+
+[attachments]
+2 type=text/x-diff filename="mean_great.patch" size=5531 adler32=593ede79 file=parts/0067/002.bin

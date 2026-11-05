@@ -1,0 +1,7 @@
+.dub/
+sat
+*.o
+*.a
+dub.selections.json
+__test__*
+sat-test-*

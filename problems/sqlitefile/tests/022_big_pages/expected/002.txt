@@ -1,0 +1,6 @@
+CREATE TABLE doc(
+        id INTEGER PRIMARY KEY,
+        title TEXT,
+        words INTEGER,
+        ratio REAL);
+CREATE INDEX doc_words ON doc(words);

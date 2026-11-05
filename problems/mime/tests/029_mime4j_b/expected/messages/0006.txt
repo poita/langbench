@@ -1,0 +1,59 @@
+[message]
+id 0006
+source "lennie.eml"
+
+[headers]
+return-path: "<lbj_ccsi@atl.mindspring.com>"
+received: "from brickbat8.mindspring.com (brickbat8.mindspring.com [207.69.200.11]) by camel10.mindspring.com (8.8.5/8.8.5) with ESMTP id GAA27894 for <lbj_ccsi@atl.mindspring.com>; Fri, 25 Jul 1997 06:58:07 -0400 (EDT)"
+received: "from lennie (user-2k7i8oq.dialup.mindspring.com [168.121.35.26]) by brickbat8.mindspring.com (8.8.5/8.8.5) with SMTP id GAA22488 for <lbj_ccsi@atl.mindspring.com>; Fri, 25 Jul 1997 06:58:05 -0400 (EDT)"
+message-id: "<33D89532.29EA@atl.mindspring.com>"
+date: "Fri, 25 Jul 1997 06:59:46 -0500"
+from: "Lennie Jarratt <lbj_ccsi@mindspring.com>"
+reply-to: "lbj_ccsi@mindspring.com"
+organization: "Custom Computer Services Inc."
+x-mailer: "Mozilla 3.01Gold (Win95; I)"
+mime-version: "1.0"
+to: "lbj_ccsi@atl.mindspring.com"
+subject: "Test Mail Again"
+content-type: "multipart/mixed; boundary=\"------------52E03A8932B4\""
+
+[addresses]
+from 0 display="Lennie Jarratt" spec="lbj_ccsi@mindspring.com"
+reply-to 0 display="" spec="lbj_ccsi@mindspring.com"
+to 0 display="" spec="lbj_ccsi@atl.mindspring.com"
+
+[date]
+raw " Fri, 25 Jul 1997 06:59:46 -0500"
+valid yes
+utc 1997-07-25T11:59:46Z
+offset -0500
+epoch 869831986
+
+[structure]
+0 multipart/mixed cte=7bit boundary="------------52E03A8932B4" parts=3 preamble=45 epilogue=2
+  1 text/plain charset=us-ascii cte=7bit size=63 adler32=c4d71610 role=text
+  2 text/html charset=us-ascii cte=7bit disposition=inline filename="Pull3.html" size=247 adler32=f7ce473c role=html
+  3 image/gif cte=base64 disposition=inline filename="WWWIcon.gif" size=1325 adler32=3f04e90e role=attachment
+
+[body]
+text 1 chars 63
+| This is the message body.  A picture should also be displayed.
+html 2 chars 247
+| <BASE HREF=\"file:///E|/ChckFree/Html/Pull3.html\">
+| 
+| <HTML>
+| <HEAD>
+| <TITLE>Client Pull Rolling Page Demo></TITLE>
+| 
+| <META HTTP-EQUIV=\"REFRESH\" CONTENT=\"10; URL=Pull1.html\">
+| 
+| </HEAD>
+| 
+| <BODY>
+| This is Page 3 of my rolling web page demo.
+| </BODY>
+| 
+| </HTML>
+
+[attachments]
+3 type=image/gif filename="WWWIcon.gif" size=1325 adler32=3f04e90e file=parts/0006/003.bin

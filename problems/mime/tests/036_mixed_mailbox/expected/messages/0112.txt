@@ -1,0 +1,89 @@
+[message]
+id 0112
+source "mbox:112"
+
+[headers]
+received: "from dev.example.io (mx8.dev.example.io [34.51.75.103]) by example.org (Postfix) with ESMTP id E0EBA61D5 for <fdubois@students.example.ac.jp>; Wed, 12 Sep 2012 15:39:47 +1000"
+received: "from apache.org (mx3.mail.example.net [128.192.73.220]) by example.org (Postfix) with ESMTP id 22FCFD1A5C for <bstergaard@corp.example.co.uk>; sun,25 feb 2009 19:8:8 (comment (nested)) +0000"
+received: "from example.org (mx4.example.org [133.138.107.171]) by example.org (Postfix) with ESMTP id 2F83C7002A for <lstergaard.98@students.example.ac.jp>; Fri, 6 Jul 2009 11:18:08 GMT"
+received: "from post.example.fr (mx8.corp.example.co.uk [116.38.59.120]) by lists.example.edu (Postfix) with ESMTP id E661349BAA for <ttaylor@post.example.fr>; Tue, 7 Dec 2024 12:27:04 +0100"
+return-path: "<wilson@corp.example.co.uk>"
+message-id: "<859.5d2a1af4.28993@students.example.ac.jp>"
+in-reply-to: "<871.7f508ea5.60600@students.example.ac.jp>"
+references: "<860.92f2bc93.9628@post.example.fr> <861.b47d1aef.73808@lists.example.edu> <862.2f2e2ada.49481@students.example.ac.jp> <863.ea2d2c9e.7339@post.example.fr> <864.16d2fe26.50257@apache.org> <865.8919e1be.75517@lists.example.edu> <866.9ca3536e.27021@mail.example.net> <867.b6e39855.68064@apache.org> <868.6f5efbb9.37687@eu.example.de> <869.58646cae.46089@apache.org> <870.11247c4c.36711@students.example.ac.jp> <871.7f508ea5.60600@students.example.ac.jp>"
+date: "Thu, 12 Sep 2012 20:23:57 -0000"
+from: "Tomás Müller <tmller@students.example.ac.jp>"
+reply-to: "Zoë Wilson <zwilson.80@mail.example.net>"
+to: "William Johansson <wjohansson@dev.example.io>,    Uwe Smith <usmith@dev.example.io>, Fiona van der Berg <fvanderberg@eu.example.de>"
+cc: "Jörg 山田 <j@corp.example.co.uk>,\t\"van der Berg, William\" <wvanderberg@example.com>"
+subject: "RE: These the small come it it spell her of see"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=windows-1252"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Tomás Müller" spec="tmller@students.example.ac.jp"
+reply-to 0 display="Zoë Wilson" spec="zwilson.80@mail.example.net"
+to 0 display="William Johansson" spec="wjohansson@dev.example.io"
+to 1 display="Uwe Smith" spec="usmith@dev.example.io"
+to 2 display="Fiona van der Berg" spec="fvanderberg@eu.example.de"
+cc 0 display="Jörg 山田" spec="j@corp.example.co.uk"
+cc 1 display="van der Berg, William" spec="wvanderberg@example.com"
+
+[date]
+raw " Thu, 12 Sep 2012 20:23:57 -0000"
+valid yes
+utc 2012-09-12T20:23:57Z
+offset +0000
+epoch 1347481437
+
+[structure]
+0 text/plain charset=windows-1252 cte=quoted-printable size=1585 adler32=8cb811ff role=text
+
+[body]
+text 0 chars 1585
+| On Fri Jan 21 02:09:09 2009 -0800, Carl Nakamura wrote:
+| > > What like of this long the want mean I the two you tell crème of
+| >> animal. Crash thing add as of act all what work every differ
+| > response self.
+| >
+| >> He cause also give is? Work point act before crème kind he did one
+| > > über the large big log alias been vhost too? So from place his the
+| >> vhost show than what. There it call sound and it you animal tell.
+| > > When house the time for module would in we number work right to.
+| >
+| > The tell add to know. To went socket on some what header such come
+| > > of of server the over they change. Bug of line our I the first out
+| >> the of line thread round!
+| >
+| >> See find a timeout water connection trunk but out word the we are I
+| > went was? Light say the in again self how façade see cause the
+| > number if that.
+| >
+| 
+| Play log we two the first land he sound bug number live so were why many
+| of the. The little back he coöperate this from know. Water of do most
+| time any as keepalive way. Have the of what name many when!
+| 
+| People number that most we before that the? Write and client two would
+| say the branch ssl came that. Name where to were then of! And no it
+| differ think same and no good him high port the you is client your with.
+| And that build one an he mother of more backport more they house land
+| São of she. In make the how at in down cache little said. Set world from
+| branch went came like did a tell has like!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| ?or?e Taylor
+html none
+
+[attachments]

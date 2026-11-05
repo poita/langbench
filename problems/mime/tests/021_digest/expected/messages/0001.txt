@@ -1,0 +1,29 @@
+[message]
+id 0001
+source "digest.eml"
+
+[headers]
+subject: "weekly digest"
+content-type: "multipart/digest; boundary=\"D\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/digest cte=7bit boundary="D" parts=3 preamble=0 epilogue=0
+  1 message/rfc822 cte=7bit parts=1
+    2 text/plain charset=us-ascii cte=7bit size=10 adler32=15da03f7 role=attachment
+  3 message/rfc822 cte=7bit parts=1
+    4 text/plain charset=us-ascii cte=7bit size=11 adler32=19f1044b role=attachment
+  5 text/plain charset=us-ascii cte=7bit size=21 adler32=576c080e role=text
+
+[body]
+text 5 chars 21
+| an explicit text part
+html none
+
+[attachments]
+2 type=text/plain filename=- size=10 adler32=15da03f7 file=parts/0001/002.bin
+4 type=text/plain filename=- size=11 adler32=19f1044b file=parts/0001/004.bin

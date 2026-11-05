@@ -1,0 +1,16 @@
++++
+title = "The Ass and the Old Shepherd"
+date = "2019-03-30"
+slug = "the-ass-and-the-old-shepherd"
+tags = ["Asses", "Shepherds"]
++++
+A **SHEPHERD**, watching his Ass feeding in a meadow, was alarmed all of a
+sudden by the cries of the enemy. He appealed to the Ass to fly with
+him, lest they should both be captured, but the animal lazily replied,
+“Why should I, pray? Do you think it likely the conqueror will place on
+me two sets of panniers?” “No,” rejoined the Shepherd. “Then,” said the
+Ass, “as long as I carry the panniers, what matters it to me whom I
+serve?”
+
+In a change of government the poor change nothing beyond the name of
+their master.

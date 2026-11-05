@@ -1,0 +1,17 @@
+[1] ok indexes 1
+  0 v root 3 entries 2
+[2] ok find 1 plan index v
+  "b" = {"v":2}
+[3] ok put created
+[4] ok indexes 1
+  0 v root 3 entries 3
+[5] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 3
+  root 2
+  height 1
+  commits 4
+  indexes 1
+  wal 10608

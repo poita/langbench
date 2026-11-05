@@ -1,0 +1,13 @@
+COUNT edge
+SELECT id FROM edge
+SELECT b FROM edge WHERE id = 472
+SELECT b FROM edge WHERE id = 473
+SELECT b FROM edge WHERE id = 474
+SELECT id,b FROM edge WHERE id >= 470 AND id <= 478
+COUNT ikey
+SELECT id,s FROM ikey WHERE id <= 92
+SELECT id FROM ikey ORDER BY s LIMIT 6
+INDEX ikey_s 'k096-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
+INDEX ikey_s 'k097-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
+INDEX ikey_s 'k098-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'
+INDEX ikey_s 'k110-yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'

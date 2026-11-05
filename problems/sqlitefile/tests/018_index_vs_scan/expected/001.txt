@@ -1,0 +1,10 @@
+CREATE TABLE emp(
+        emp_id INTEGER PRIMARY KEY,
+        dept TEXT,
+        salary INTEGER,
+        grade REAL,
+        manager INTEGER);
+CREATE INDEX emp_dept ON emp(dept);
+CREATE INDEX emp_manager ON emp(manager);
+CREATE INDEX emp_grade ON emp(grade);
+CREATE INDEX emp_dept_salary ON emp(dept, salary);

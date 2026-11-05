@@ -1,0 +1,20 @@
+[message]
+id 0002
+source "body-only.eml"
+
+[headers]
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=12 adler32=1cd20420 role=text
+
+[body]
+text 0 chars 12
+| just a body
+html none
+
+[attachments]

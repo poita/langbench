@@ -1,0 +1,56 @@
+[message]
+id 0239
+source "mbox:239"
+
+[headers]
+received: "from students.example.ac.jp (mx2.apache.org [32.138.228.41]) by mail.example.net (Postfix) with ESMTP id 3DEB737A44 for <xschrder.35@example.org>; mon,23 jun 2004 23:24:17 (comment (nested)) EST"
+received: "from mail.example.net (mx6.mail.example.net [227.127.48.224]) by lists.example.edu (Postfix) with ESMTP id 8F235E910B for <ybrown.70@mail.example.net>; Mon, 1 Apr 2005 08:19:41 +0200"
+return-path: "<zfernndez.44@students.example.ac.jp>"
+message-id: "<1518.3f09e121.16465@post.example.fr>"
+in-reply-to: "<1525.d571f348.20300@example.com>"
+references: "<1519.aeca44c2.98500@eu.example.de> <1520.39251be6.27900@lists.example.edu> <1521.8557a8ba.93949@corp.example.co.uk> <1522.b9603f8f.43127@dev.example.io> <1523.f41ae289.86842@example.com> <1524.1c854e08.48127@lists.example.edu> <1525.d571f348.20300@example.com>"
+date: "Sat, 14 Jun 2003 19:12:08 -0500"
+from: "Dana Doe <ddoe@eu.example.de>"
+to: "Erik Kim <ekim@example.com>"
+subject: "RE: Like which came élan are through"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; charset=\"iso-8859-1\""
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="Dana Doe" spec="ddoe@eu.example.de"
+to 0 display="Erik Kim" spec="ekim@example.com"
+
+[date]
+raw " Sat, 14 Jun 2003 19:12:08 -0500"
+valid yes
+utc 2003-06-15T00:12:08Z
+offset -0500
+epoch 1055635928
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=base64 size=611 adler32=511ad4f5 role=text
+
+[body]
+text 0 chars 611
+| Read so many call the again turn. Round no all word the kind. Connection
+| crash change be day an said word the by try brûlée the the of. In the
+| there of home we the big round as get say! To I at you vhost long then
+| great on go as how of them Paulo after cause who. The every move Straße
+| a your to little they bucket he water at. Round so of the by by when
+| back to.
+| 
+| Them and the an word the certificate big the will are! Now and config
+| think many with does the read right are? Do the that than went was you
+| of in of about more one? To her would he now in proxy. Any way you right
+| from round is!
+| 
+| -- 
+| Chloé Brown
+html none
+
+[attachments]

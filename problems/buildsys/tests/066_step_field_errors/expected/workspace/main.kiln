@@ -1,0 +1,5 @@
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd indent(0 - 1)
+}

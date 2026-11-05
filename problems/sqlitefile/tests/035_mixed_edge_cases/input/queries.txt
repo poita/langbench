@@ -1,0 +1,16 @@
+.tables
+.schema vals
+SELECT k,v FROM vals WHERE v IS NULL
+SELECT k,v FROM vals WHERE v = ''
+SELECT k,v FROM vals WHERE v = X''
+SELECT k,v FROM vals WHERE v = '007'
+SELECT k,v FROM vals WHERE v = 7
+SELECT k,v FROM vals WHERE v > X'00'
+SELECT k,v FROM vals WHERE v >= 'a'
+SELECT k,v FROM vals WHERE v = 0.1
+SELECT k,v FROM vals WHERE v = 1.0
+SELECT k,v FROM vals ORDER BY v DESC LIMIT 6
+SELECT rowid,k FROM vals LIMIT 4
+SELECT k,v FROM vals WHERE v >= 1e14 AND v <= 1e15
+SELECT k,v FROM vals WHERE v > 0 AND v < 0.001
+SELECT k,v FROM vals ORDER BY v LIMIT 8

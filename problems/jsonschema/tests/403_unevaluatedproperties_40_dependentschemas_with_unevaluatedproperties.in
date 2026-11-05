@@ -1,0 +1,38 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo2": {}
+    },
+    "dependentSchemas": {
+      "foo": {},
+      "foo2": {
+        "properties": {
+          "bar": {}
+        }
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "unevaluatedProperties doesn't consider dependentSchemas",
+      "data": {
+        "foo": ""
+      }
+    },
+    {
+      "description": "unevaluatedProperties doesn't see bar when foo2 is absent",
+      "data": {
+        "bar": ""
+      }
+    },
+    {
+      "description": "unevaluatedProperties sees bar when foo2 is present",
+      "data": {
+        "foo2": "",
+        "bar": ""
+      }
+    }
+  ]
+}

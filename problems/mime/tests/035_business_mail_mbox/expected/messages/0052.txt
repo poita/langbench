@@ -1,0 +1,94 @@
+[message]
+id 0052
+source "mbox:52"
+
+[headers]
+received: "from eu.example.de (mx9.dev.example.io [71.51.116.60]) by lists.example.edu (Postfix) with ESMTP id 9A40261513 for <nkowalski@post.example.fr>; 13 NOV 12 11:43 +0900"
+received: "from mail.example.net (mx4.eu.example.de [15.157.0.39]) by corp.example.co.uk (Postfix) with ESMTP id 6824085D41 for <xkowalski.3@eu.example.de>; Tue, 8 Apr 2005 09:40:22 +0200"
+received: "from lists.example.edu (mx2.eu.example.de [133.19.246.65]) by mail.example.net (Postfix) with ESMTP id B7B687FC7D for <cbrown@dev.example.io>; Thu, 12 Feb 2005 15:57:51 -0700"
+received: "from example.org (mx6.example.com [207.184.234.246]) by eu.example.de (Postfix) with ESMTP id 37846088B9 for <akowalski@example.org>; sun,1 jan 2025 11:48:17 (comment (nested)) +0200"
+received: "from students.example.ac.jp (mx5.post.example.fr [244.231.20.5]) by post.example.fr (Postfix) with ESMTP id D774CE213C for <t@dev.example.io>; Wed, 3 Apr 2025 15:38:50 EST"
+return-path: "<cmller.22@lists.example.edu>"
+message-id: "<538.3542003e.64196@eu.example.de>"
+in-reply-to: "<544.b482ef09.46727@mail.example.net>"
+references: "<539.aed4b9b3.28442@students.example.ac.jp> <540.9ad9f291.64714@dev.example.io> <541.d0eb901c.1915@apache.org> <542.fc48960d.57428@example.org> <543.8ceaea6c.33509@example.org> <544.b482ef09.46727@mail.example.net>"
+date: "Wed, 27 Mar 2024 02:38:03 MET (PST)"
+from: "Zoë van der Berg <zvanderberg@students.example.ac.jp>"
+to: "Carl Østergaard <cstergaard@apache.org>, \"Brown, Quinn\" <qbrown@example.org>"
+subject: "Fwd: Air thing each timeout"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 713\""
+
+[addresses]
+from 0 display="Zoë van der Berg" spec="zvanderberg@students.example.ac.jp"
+to 0 display="Carl Østergaard" spec="cstergaard@apache.org"
+to 1 display="Brown, Quinn" spec="qbrown@example.org"
+
+[date]
+raw " Wed, 27 Mar 2024 02:38:03 MET (PST)"
+valid yes
+utc 2024-03-27T02:38:03Z
+offset +0000
+epoch 1711507083
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 713" parts=4 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_6684_868271376.182324354015" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="----=_Part_7969_744483720.950005499028" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=utf-8 cte=7bit size=622 adler32=9a1dde74 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=919 adler32=c89c41b6 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="my.jpg" size=636 adler32=c30a380b role=attachment
+  6 application/pdf cte=base64 disposition=inline filename="were_go_façade_on.pdf" size=2817 adler32=17e766ae role=attachment
+  7 text/plain charset=utf-8 cte=base64 disposition=attachment filename="which_about.txt" size=10253 adler32=a98341af role=attachment
+  8 message/rfc822 cte=7bit disposition=inline parts=1
+    9 multipart/mixed cte=7bit boundary="----=_Part_1463_40243850.620459283521" parts=4 preamble=0 epilogue=0
+      10 multipart/alternative cte=7bit boundary="=_76738ccf7623c5172b9a62d10a101516" parts=2 preamble=45 epilogue=0
+        11 text/plain charset=windows-1252 cte=quoted-printable size=524 adler32=24ccb0cf role=attachment
+        12 text/html charset=utf-8 cte=quoted-printable size=857 adler32=36f22679 role=attachment
+      13 image/png cte=base64 disposition=inline filename="ask.png" size=4854 adler32=c6d3464c role=attachment
+      14 image/jpeg cte=base64 disposition=attachment filename="of.jpg" size=7075 adler32=da9a9a75 role=attachment
+      15 application/pdf cte=base64 disposition=attachment filename="read_it_of_little.pdf" size=1260 adler32=2e6576e9 role=attachment
+
+[body]
+text 3 chars 612
+| Some set no for are Málaga to in water had mean and right very had.
+| Picture play in this new get. Smörgåsbord play there would ssl a have is
+| way of live we world for of write boy. Keepalive has config on and most
+| kind. Us some out big self most had down in keepalive or to some by
+| config then? Right could if filter came rewrite for if their have word
+| here before.
+| 
+| Up to back kind other I. Ørsted now my they by and he mutex him me such
+| down may land. Or side with the two has read write down the air Ørsted
+| he you just was find? In is think café on I the of new some or Größe
+| with he I café!
+| 
+| -- 
+| Björn Wilson
+html 4 chars 909
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Some set no for are Málaga to in water had mean and right very had.<br>
+| Picture play in this new get. Smörgåsbord play there would ssl a have is<br>
+| way of live we world for of write boy. Keepalive has config on and most<br>
+| kind. Us some out big self most had down in keepalive or to some by<br>
+| config then? Right could if filter came rewrite for if their have word<br>
+| here before.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Up to back kind other I. Ørsted now my they by and he mutex him me such<br>
+| down may land. Or side with the two has read write down the air Ørsted<br>
+| he you just was find? In is think café on I the of new some or Größe<br>
+| with he I café!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Björn Wilson<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="my.jpg" size=636 adler32=c30a380b file=parts/0052/005.bin
+6 type=application/pdf filename="were_go_façade_on.pdf" size=2817 adler32=17e766ae file=parts/0052/006.bin
+7 type=text/plain filename="which_about.txt" size=10253 adler32=a98341af file=parts/0052/007.bin
+11 type=text/plain filename=- size=524 adler32=24ccb0cf file=parts/0052/011.bin
+12 type=text/html filename=- size=857 adler32=36f22679 file=parts/0052/012.bin
+13 type=image/png filename="ask.png" size=4854 adler32=c6d3464c file=parts/0052/013.bin
+14 type=image/jpeg filename="of.jpg" size=7075 adler32=da9a9a75 file=parts/0052/014.bin
+15 type=application/pdf filename="read_it_of_little.pdf" size=1260 adler32=2e6576e9 file=parts/0052/015.bin

@@ -1,0 +1,26 @@
+[message]
+id 0009
+source "named-zone.eml"
+
+[headers]
+subject: "date test"
+date: "Sun, 29 Feb 2004 22:03:22 PST"
+
+[addresses]
+
+[date]
+raw " Sun, 29 Feb 2004 22:03:22 PST"
+valid yes
+utc 2004-03-01T06:03:22Z
+offset -0800
+epoch 1078121002
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

@@ -1,0 +1,28 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "const": {
+      "a": true
+    }
+  },
+  "tests": [
+    {
+      "description": "{\"a\": true} is valid",
+      "data": {
+        "a": true
+      }
+    },
+    {
+      "description": "{\"a\": 1} is invalid",
+      "data": {
+        "a": 1
+      }
+    },
+    {
+      "description": "{\"a\": 1.0} is invalid",
+      "data": {
+        "a": 1.0
+      }
+    }
+  ]
+}

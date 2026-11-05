@@ -1,0 +1,42 @@
+mul 7f7fffff 40000000
+mul 7f7fffff 3f800001
+mul 7f7fffff 3f800001
+mul 7f7fffff 7f7fffff
+mul ff7fffff 7f7fffff
+mul 5f800000 5f800000
+mul 5f800000 5f000000
+mul 5f800000 df000001
+mul 71800000 4d800000
+mul 71800000 4d7fffff
+mul 71800000 4d7ffffe
+add 7f7fffff 7f7fffff
+add ff7fffff ff7fffff
+sub 7f7fffff ff7fffff
+add 7f7fffff 73800000
+add 7f7fffff 73000000
+add 7f7fffff 72ffffff
+add 7f7fffff 73000001
+add 7f7fffff 72800000
+add 7f7fffff 3f800000
+add 7f000000 7f000000
+add 7f000000 7effffff
+sub ff7fffff 73000000
+sub ff7fffff 72800000
+div 7f7fffff 3f000000
+div 7f7fffff 3effffff
+div 7f7fffff 3f7fffff
+div 3f800000 00000001
+div 3f800000 00800000
+div 40000000 00800000
+div 40800000 00800000
+div 71800000 31800000
+div 71800000 32000000
+div 71800000 32000001
+div 7f7fffff 00000001
+div ff7fffff 00000001
+div 00800000 00000001
+div 007fffff 00000001
+div 4b000000 00000001
+sqrt 7f7fffff
+sqrt 7f000000
+sqrt 7e800000

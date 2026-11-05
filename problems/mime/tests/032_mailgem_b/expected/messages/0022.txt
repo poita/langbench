@@ -1,0 +1,35 @@
+[message]
+id 0022
+source "missing_content_disposition.eml"
+
+[headers]
+message-id: "<200201221435.g0MEZP927213@mailman.enron.com>"
+content-type: "multipart/related; boundary=\"_----------=_10117101281980\""
+mime-version: "1.0"
+date: "Tue, 22 Jan 2002 14:35:28 UT"
+subject: "Redacted"
+to: "redacted@example.com"
+from: "redacted@example.com"
+return-path: "redacted@example.com"
+
+[addresses]
+from 0 display="" spec="redacted@example.com"
+to 0 display="" spec="redacted@example.com"
+
+[date]
+raw " Tue, 22 Jan 2002 14:35:28 UT"
+valid yes
+utc 2002-01-22T14:35:28Z
+offset +0000
+epoch 1011710128
+
+[structure]
+0 multipart/related cte=7bit boundary="_----------=_10117101281980" parts=1 preamble=0 epilogue=0
+  1 image/jpg cte=base64 disposition=inline size=1311 adler32=8750b20a role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+1 type=image/jpg filename=- size=1311 adler32=8750b20a file=parts/0022/001.bin

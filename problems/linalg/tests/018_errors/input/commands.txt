@@ -1,0 +1,25 @@
+add r23.mtx r32.mtx
+mul r23.mtx r23.mtx
+det r23.mtx
+inv r23.mtx
+lu r32.mtx
+chol r23.mtx
+eig r23.mtx
+chol sq3.mtx
+eig sq3.mtx
+chol indef.mtx
+chol zero2.mtx
+inv sing.mtx
+solve sing.mtx b2.mtx
+lu zerocol.mtx
+inv zerocol.mtx
+solve sq3.mtx b2.mtx
+qr r23.mtx
+lstsq r23.mtx b2.mtx
+lstsq r32.mtx b2.mtx
+cond zero2.mtx
+det sing.mtx
+det zerocol.mtx
+solve r23.mtx b3r.mtx
+lstsq lowrank.mtx b2.mtx
+qr lowrank.mtx

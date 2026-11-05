@@ -1,0 +1,26 @@
+25
+insert 2 v
+insert 4 v
+insert 6 v
+insert 8 v
+insert 10 v
+range 2 10
+range 1 11
+range 4 4
+range 3 3
+range 5 5
+range 3 9
+range 4 8
+range 10 2
+range 11 20
+range -10 1
+range 2 2
+range 10 10
+range 9 10
+range 10 11
+range 6 5
+range 0 0
+range -9223372036854775808 9223372036854775807
+delete 6
+range 3 9
+range 6 6

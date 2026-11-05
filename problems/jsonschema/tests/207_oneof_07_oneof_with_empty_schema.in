@@ -1,0 +1,21 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "oneOf": [
+      {
+        "type": "number"
+      },
+      {}
+    ]
+  },
+  "tests": [
+    {
+      "description": "one valid - valid",
+      "data": "foo"
+    },
+    {
+      "description": "both valid - invalid",
+      "data": 123
+    }
+  ]
+}

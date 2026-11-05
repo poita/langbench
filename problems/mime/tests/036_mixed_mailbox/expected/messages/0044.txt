@@ -1,0 +1,89 @@
+[message]
+id 0044
+source "mbox:44"
+
+[headers]
+received: "from example.com (mx7.eu.example.de [214.114.209.201]) by example.org (Postfix) with ESMTP id CA5D083F63 for <znguyen.50@students.example.ac.jp>; Sun, 12 Sep 2009 23:50:54 MET"
+return-path: "<uvanderberg@lists.example.edu>"
+message-id: "<384.70e9667e.74669@students.example.ac.jp>"
+in-reply-to: "<387.b65a64a7.81979@dev.example.io>"
+references: "<385.6045821a.43890@dev.example.io> <386.6da5345a.47197@lists.example.edu> <387.b65a64a7.81979@dev.example.io>"
+date: "Thu, 18 Nov 2012 23:22:58 -0400"
+from: "María 山田 <m@dev.example.io>"
+to: "\"Johansson, Karin\" <kjohansson@example.org>,\tKarin Taylor <ktaylor@eu.example.de>, Greg Lefèvre <glefvre@eu.example.de>"
+subject: "Long the Kraków the to side"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"000000000000adc0a034df24\""
+
+[addresses]
+from 0 display="María 山田" spec="m@dev.example.io"
+to 0 display="Johansson, Karin" spec="kjohansson@example.org"
+to 1 display="Karin Taylor" spec="ktaylor@eu.example.de"
+to 2 display="Greg Lefèvre" spec="glefvre@eu.example.de"
+
+[date]
+raw " Thu, 18 Nov 2012 23:22:58 -0400"
+valid yes
+utc 2012-11-19T03:22:58Z
+offset -0400
+epoch 1353295378
+
+[structure]
+0 multipart/mixed cte=7bit boundary="000000000000adc0a034df24" parts=5 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="----=_Part_3107_186750519.970129831942" parts=4 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 306" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=8bit size=557 adler32=ff6ec584 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=846 adler32=e318262a role=html
+    5 image/png cte=base64 disposition=attachment filename="right.png" size=1354 adler32=36a99d11 role=attachment
+    6 image/png cte=base64 disposition=attachment filename="house_the_the.png" size=1924 adler32=e82ab568 role=attachment
+    7 image/jpeg cte=base64 disposition=attachment filename="through.jpg" size=712 adler32=0cc752a2 role=attachment
+  8 text/csv charset=utf-8 cte=7bit disposition=attachment filename="come_the_her_each.csv" size=2699 adler32=0cda5800 role=attachment
+  9 text/x-diff charset=utf-8 cte=quoted-printable disposition=inline filename="façade_Straße.patch" size=5227 adler32=35908b54 role=attachment
+  10 application/zip cte=base64 disposition=attachment filename="ask.zip" size=7426 adler32=08233fbf role=attachment
+  11 message/rfc822 cte=7bit disposition=inline parts=1
+    12 multipart/mixed cte=7bit boundary="----=_Part_3382_430597894.461778659102" parts=2 preamble=0 epilogue=1
+      13 multipart/alternative cte=7bit boundary="Apple-Mail=_2478BEBD6AA8C0F7" parts=2 preamble=0 epilogue=0
+        14 text/plain charset=utf-8 cte=quoted-printable size=1141 adler32=428c8b93 role=attachment
+        15 text/html charset=windows-1252 cte=quoted-printable size=1630 adler32=ae372d33 role=attachment
+      16 text/plain charset=utf-8 cte=base64 disposition=inline filename="a_they_it.txt" size=10090 adler32=72d9125b role=attachment
+
+[body]
+text 3 chars 553
+| Before turn port set name good with old to! And of most filter in these
+| of also release bug of keepalive why hand make the said!
+| 
+| Need people even came we was man off the but his use you any house could
+| number! Down time home directive great. We spell their the can where
+| that the ssl? Did branch timeout when bucket hot! Than he could release
+| work some release had does do sentence many as sentence I same at. What
+| it after your with brûlée than are tell under form put up self the now
+| in when! He long the need use if out the in!
+| 
+| -- 
+| François García
+html 4 chars 842
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Before turn port set name good with old to! And of most filter in these<br>
+| of also release bug of keepalive why hand make the said!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Need people even came we was man off the but his use you any house could<br>
+| number! Down time home directive great. We spell their the can where<br>
+| that the ssl? Did branch timeout when bucket hot! Than he could release<br>
+| work some release had does do sentence many as sentence I same at. What<br>
+| it after your with brûlée than are tell under form put up self the now<br>
+| in when! He long the need use if out the in!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| François García<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="right.png" size=1354 adler32=36a99d11 file=parts/0044/005.bin
+6 type=image/png filename="house_the_the.png" size=1924 adler32=e82ab568 file=parts/0044/006.bin
+7 type=image/jpeg filename="through.jpg" size=712 adler32=0cc752a2 file=parts/0044/007.bin
+8 type=text/csv filename="come_the_her_each.csv" size=2699 adler32=0cda5800 file=parts/0044/008.bin
+9 type=text/x-diff filename="façade_Straße.patch" size=5227 adler32=35908b54 file=parts/0044/009.bin
+10 type=application/zip filename="ask.zip" size=7426 adler32=08233fbf file=parts/0044/010.bin
+14 type=text/plain filename=- size=1141 adler32=428c8b93 file=parts/0044/014.bin
+15 type=text/html filename=- size=1630 adler32=ae372d33 file=parts/0044/015.bin
+16 type=text/plain filename="a_they_it.txt" size=10090 adler32=72d9125b file=parts/0044/016.bin

@@ -1,0 +1,93 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "if": {
+      "contains": {
+        "const": "a"
+      }
+    },
+    "then": {
+      "if": {
+        "contains": {
+          "const": "b"
+        }
+      },
+      "then": {
+        "if": {
+          "contains": {
+            "const": "c"
+          }
+        }
+      }
+    },
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "empty array is valid",
+      "data": []
+    },
+    {
+      "description": "only a's are valid",
+      "data": [
+        "a",
+        "a"
+      ]
+    },
+    {
+      "description": "a's and b's are valid",
+      "data": [
+        "a",
+        "b",
+        "a",
+        "b",
+        "a"
+      ]
+    },
+    {
+      "description": "a's, b's and c's are valid",
+      "data": [
+        "c",
+        "a",
+        "c",
+        "c",
+        "b",
+        "a"
+      ]
+    },
+    {
+      "description": "only b's are invalid",
+      "data": [
+        "b",
+        "b"
+      ]
+    },
+    {
+      "description": "only c's are invalid",
+      "data": [
+        "c",
+        "c"
+      ]
+    },
+    {
+      "description": "only b's and c's are invalid",
+      "data": [
+        "c",
+        "b",
+        "c",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "description": "only a's and c's are invalid",
+      "data": [
+        "c",
+        "a",
+        "c",
+        "a",
+        "c"
+      ]
+    }
+  ]
+}

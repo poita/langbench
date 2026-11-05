@@ -1,0 +1,4 @@
+(define (check x) (if (< x 0) (error "negative" x) x))
+(check 5)
+(check -1)
+(check 7)

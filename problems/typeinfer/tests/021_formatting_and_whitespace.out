@@ -1,0 +1,11 @@
+a : int
+b : 'a -> 'a
+c : int * bool
+d : int list
+e : ('a -> 'b) -> 'a -> 'b
+f : ('a -> 'b) -> 'a -> 'b
+- : ('a -> 'b) -> 'a -> 'b
+- : int * int
+- : int * int
+g : 'a -> 'a
+- : 'a -> 'a

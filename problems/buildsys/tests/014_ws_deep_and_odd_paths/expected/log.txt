@@ -1,0 +1,6 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/deep/sub/list.txt count_lines()
+  ok ran=1 hit=0 time=2
+step 2: build (default) -j 1
+  hit 0 out/deep/sub/list.txt
+  ok ran=0 hit=1 time=0

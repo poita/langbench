@@ -1,0 +1,5 @@
+(let* ((a 1) (f (lambda () a))) (define a 2) (list a (f)))
+(let* ((a 1) (f (lambda () a))) (set! a 2) (list a (f)))
+(let* ((a 1) (a (+ a 1)) (f (lambda () a)) (a (* a 10))) (list a (f)))
+(let* ((x 1) (y (+ x 1))) (define x 100) (list x y))
+(let* ((g (lambda () b)) (b 2)) (define b 3) (list b (g)))

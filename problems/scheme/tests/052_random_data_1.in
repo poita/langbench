@@ -1,0 +1,1375 @@
+'( () ; comment
+ (#f
+ #t
+ "\n"
+ (8W . ( -32066 ) ) ) )
+(display '( () ; comment
+ (#f
+ #t
+ "\n"
+ (8W . ( -32066 ) ) ) )) (newline)
+(car '( () ; comment
+ (#f
+ #t
+ "\n"
+ (8W . ( -32066 ) ) ) ))
+(cdr '( () ; comment
+ (#f
+ #t
+ "\n"
+ (8W . ( -32066 ) ) ) ))
+(pair? '( () ; comment
+ (#f
+ #t
+ "\n"
+ (8W . ( -32066 ) ) ) ))
+(equal? '( () ; comment
+ (#f
+ #t
+ "\n"
+ (8W . ( -32066 ) ) ) ) '(() . ((#f
+ .
+ ( #t "\n" (8W  -32066 )) ))))
+'(#f
+ ( -64945 "\t(" (() ) #t)
+ ( #f () ( #t ) ( () ))
+ "" )
+(display '(#f
+ ( -64945 "\t(" (() ) #t)
+ ( #f () ( #t ) ( () ))
+ "" )) (newline)
+(car '(#f
+ ( -64945 "\t(" (() ) #t)
+ ( #f () ( #t ) ( () ))
+ "" ))
+(cdr '(#f
+ ( -64945 "\t(" (() ) #t)
+ ( #f () ( #t ) ( () ))
+ "" ))
+(pair? '(#f
+ ( -64945 "\t(" (() ) #t)
+ ( #f () ( #t ) ( () ))
+ "" ))
+(equal? '(#f
+ ( -64945 "\t(" (() ) #t)
+ ( #f () ( #t ) ( () ))
+ "" ) '(#f  ( -64945
+ "\t("
+ ( ())
+ #t)  (#f
+ ()
+ ( #t)
+ ( ()) )  "" ))
+'(( ()  ( ( ()
+ -16277 )  .  ( ";\ny( "
+ ( "x\")a\\" ; comment
+ . ; comment
+ (#t  ""  E*a  .  -32630 ))
+ ( -750975  ()  648590 )
+ .
+ "'y"))  .  -184229) ; comment
+ -703340 ; comment
+ . ; comment
+ (yAs9N6 ) )
+(display '(( ()  ( ( ()
+ -16277 )  .  ( ";\ny( "
+ ( "x\")a\\" ; comment
+ . ; comment
+ (#t  ""  E*a  .  -32630 ))
+ ( -750975  ()  648590 )
+ .
+ "'y"))  .  -184229) ; comment
+ -703340 ; comment
+ . ; comment
+ (yAs9N6 ) )) (newline)
+(car '(( ()  ( ( ()
+ -16277 )  .  ( ";\ny( "
+ ( "x\")a\\" ; comment
+ . ; comment
+ (#t  ""  E*a  .  -32630 ))
+ ( -750975  ()  648590 )
+ .
+ "'y"))  .  -184229) ; comment
+ -703340 ; comment
+ . ; comment
+ (yAs9N6 ) ))
+(cdr '(( ()  ( ( ()
+ -16277 )  .  ( ";\ny( "
+ ( "x\")a\\" ; comment
+ . ; comment
+ (#t  ""  E*a  .  -32630 ))
+ ( -750975  ()  648590 )
+ .
+ "'y"))  .  -184229) ; comment
+ -703340 ; comment
+ . ; comment
+ (yAs9N6 ) ))
+(pair? '(( ()  ( ( ()
+ -16277 )  .  ( ";\ny( "
+ ( "x\")a\\" ; comment
+ . ; comment
+ (#t  ""  E*a  .  -32630 ))
+ ( -750975  ()  648590 )
+ .
+ "'y"))  .  -184229) ; comment
+ -703340 ; comment
+ . ; comment
+ (yAs9N6 ) ))
+(equal? '(( ()  ( ( ()
+ -16277 )  .  ( ";\ny( "
+ ( "x\")a\\" ; comment
+ . ; comment
+ (#t  ""  E*a  .  -32630 ))
+ ( -750975  ()  648590 )
+ .
+ "'y"))  .  -184229) ; comment
+ -703340 ; comment
+ . ; comment
+ (yAs9N6 ) ) '(( () ; comment
+ ( (()
+ -16277) ";\ny( " ("x\")a\\" ; comment
+ #t ; comment
+ "" ; comment
+ . ; comment
+ (E*a . -32630 )) (-750975  ()  648590) . "'y" ) ; comment
+ . ; comment
+ -184229 )
+ -703340
+ .
+ ( yAs9N6) ))
+(quote zY)
+(display 'zY) (newline)
+(equal? 'zY 'zY)
+'()
+(display '()) (newline)
+(equal? '() '())
+'#t
+(display '#t) (newline)
+(equal? '#t '#t)
+'()
+(display '()) (newline)
+(equal? '() '())
+(quote ((( ()  (qiy
+ ()
+ .
+ ")( ")  #f  () ) -385289 . "\t\txc" )))
+(display '((( ()  (qiy
+ ()
+ .
+ ")( ")  #f  () ) -385289 . "\t\txc" ))) (newline)
+(car '((( ()  (qiy
+ ()
+ .
+ ")( ")  #f  () ) -385289 . "\t\txc" )))
+(cdr '((( ()  (qiy
+ ()
+ .
+ ")( ")  #f  () ) -385289 . "\t\txc" )))
+(pair? '((( ()  (qiy
+ ()
+ .
+ ")( ")  #f  () ) -385289 . "\t\txc" )))
+(equal? '((( ()  (qiy
+ ()
+ .
+ ")( ")  #f  () ) -385289 . "\t\txc" )) '((( () (qiy  ()  .  ")( " ) #f () )  -385289  .  "\t\txc") ))
+'( k)
+(display '( k)) (newline)
+(car '( k))
+(cdr '( k))
+(pair? '( k))
+(equal? '( k) '( k))
+'#f
+(display '#f) (newline)
+(equal? '#f '#f)
+'(6uS>6 )
+(display '(6uS>6 )) (newline)
+(car '(6uS>6 ))
+(cdr '(6uS>6 ))
+(pair? '(6uS>6 ))
+(equal? '(6uS>6 ) '( 6uS>6))
+(quote ( ()))
+(display '( ())) (newline)
+(car '( ()))
+(cdr '( ()))
+(pair? '( ()))
+(equal? '( ()) '( () ))
+(quote ())
+(display '()) (newline)
+(equal? '() '())
+(quote (-299860 ; comment
+ ( (()  .  (#t ; comment
+ ( Gm4 ) ; comment
+ . ; comment
+ ( ()))) (( #f)  ( -149920
+ ")z\tb("
+ #f
+ "" )  .  ( () )) . ("c \ta'\n" ))))
+(display '(-299860 ; comment
+ ( (()  .  (#t ; comment
+ ( Gm4 ) ; comment
+ . ; comment
+ ( ()))) (( #f)  ( -149920
+ ")z\tb("
+ #f
+ "" )  .  ( () )) . ("c \ta'\n" )))) (newline)
+(car '(-299860 ; comment
+ ( (()  .  (#t ; comment
+ ( Gm4 ) ; comment
+ . ; comment
+ ( ()))) (( #f)  ( -149920
+ ")z\tb("
+ #f
+ "" )  .  ( () )) . ("c \ta'\n" ))))
+(cdr '(-299860 ; comment
+ ( (()  .  (#t ; comment
+ ( Gm4 ) ; comment
+ . ; comment
+ ( ()))) (( #f)  ( -149920
+ ")z\tb("
+ #f
+ "" )  .  ( () )) . ("c \ta'\n" ))))
+(pair? '(-299860 ; comment
+ ( (()  .  (#t ; comment
+ ( Gm4 ) ; comment
+ . ; comment
+ ( ()))) (( #f)  ( -149920
+ ")z\tb("
+ #f
+ "" )  .  ( () )) . ("c \ta'\n" ))))
+(equal? '(-299860 ; comment
+ ( (()  .  (#t ; comment
+ ( Gm4 ) ; comment
+ . ; comment
+ ( ()))) (( #f)  ( -149920
+ ")z\tb("
+ #f
+ "" )  .  ( () )) . ("c \ta'\n" ))) '( -299860 ( (() ; comment
+ #t ; comment
+ ( Gm4) ; comment
+ . ; comment
+ ( ()) ) ; comment
+ ((#f) (-149920 ; comment
+ ")z\tb(" ; comment
+ #f ; comment
+ . ; comment
+ ( "") ) () ) ; comment
+ . ; comment
+ ( "c \ta'\n"))))
+'(() )
+(display '(() )) (newline)
+(car '(() ))
+(cdr '(() ))
+(pair? '(() ))
+(equal? '(() ) '(()))
+(quote ( (( ( cxcLgp "\\" )
+ ()) ("\"\"" gV2) . ( UpJ ; comment
+ ( ()
+ (#f  #t)
+ ( -968703 ; comment
+ "b\"ycx(" ; comment
+ X>l ; comment
+ ())
+ .
+ ( ( ()  #t  .  ( "bzx\n\t"  "'c\ta("  .  "b))\"" ) ) ) ) ) )
+ #f
+ .
+ ( -801201 )))
+(display '( (( ( cxcLgp "\\" )
+ ()) ("\"\"" gV2) . ( UpJ ; comment
+ ( ()
+ (#f  #t)
+ ( -968703 ; comment
+ "b\"ycx(" ; comment
+ X>l ; comment
+ ())
+ .
+ ( ( ()  #t  .  ( "bzx\n\t"  "'c\ta("  .  "b))\"" ) ) ) ) ) )
+ #f
+ .
+ ( -801201 ))) (newline)
+(car '( (( ( cxcLgp "\\" )
+ ()) ("\"\"" gV2) . ( UpJ ; comment
+ ( ()
+ (#f  #t)
+ ( -968703 ; comment
+ "b\"ycx(" ; comment
+ X>l ; comment
+ ())
+ .
+ ( ( ()  #t  .  ( "bzx\n\t"  "'c\ta("  .  "b))\"" ) ) ) ) ) )
+ #f
+ .
+ ( -801201 )))
+(cdr '( (( ( cxcLgp "\\" )
+ ()) ("\"\"" gV2) . ( UpJ ; comment
+ ( ()
+ (#f  #t)
+ ( -968703 ; comment
+ "b\"ycx(" ; comment
+ X>l ; comment
+ ())
+ .
+ ( ( ()  #t  .  ( "bzx\n\t"  "'c\ta("  .  "b))\"" ) ) ) ) ) )
+ #f
+ .
+ ( -801201 )))
+(pair? '( (( ( cxcLgp "\\" )
+ ()) ("\"\"" gV2) . ( UpJ ; comment
+ ( ()
+ (#f  #t)
+ ( -968703 ; comment
+ "b\"ycx(" ; comment
+ X>l ; comment
+ ())
+ .
+ ( ( ()  #t  .  ( "bzx\n\t"  "'c\ta("  .  "b))\"" ) ) ) ) ) )
+ #f
+ .
+ ( -801201 )))
+(equal? '( (( ( cxcLgp "\\" )
+ ()) ("\"\"" gV2) . ( UpJ ; comment
+ ( ()
+ (#f  #t)
+ ( -968703 ; comment
+ "b\"ycx(" ; comment
+ X>l ; comment
+ ())
+ .
+ ( ( ()  #t  .  ( "bzx\n\t"  "'c\ta("  .  "b))\"" ) ) ) ) ) )
+ #f
+ .
+ ( -801201 )) '((( ( cxcLgp "\\")  () )  .  ( ("\"\""  gV2)
+ UpJ
+ (()
+ ( #f
+ #t )
+ .
+ ( (-968703  .  ("b\"ycx(" X>l . ( () )) ) ; comment
+ (() ; comment
+ #t ; comment
+ "bzx\n\t" ; comment
+ "'c\ta(" ; comment
+ . ; comment
+ "b))\"") ) )) ) ; comment
+ #f ; comment
+ -801201))
+'( "b" ; comment
+ ((#t
+ R
+ #t
+ .
+ #t ) . N! ) )
+(display '( "b" ; comment
+ ((#t
+ R
+ #t
+ .
+ #t ) . N! ) )) (newline)
+(car '( "b" ; comment
+ ((#t
+ R
+ #t
+ .
+ #t ) . N! ) ))
+(cdr '( "b" ; comment
+ ((#t
+ R
+ #t
+ .
+ #t ) . N! ) ))
+(pair? '( "b" ; comment
+ ((#t
+ R
+ #t
+ .
+ #t ) . N! ) ))
+(equal? '( "b" ; comment
+ ((#t
+ R
+ #t
+ .
+ #t ) . N! ) ) '( "b"
+ ((#t R #t . #t) . N! )))
+(quote "ca;")
+(display '"ca;") (newline)
+(equal? '"ca;" '"ca;")
+'(( () ; comment
+ ( ( ()  VIURe) (#t)) ; comment
+ . ; comment
+ (A) ) ( ( Fjy
+ -968216
+ -200272
+ ( I ; comment
+ . ; comment
+ (962640 ; comment
+ #f ; comment
+ #t ) ))  otV2  (( J.  ()  () )  ()  (#f ; comment
+ . ; comment
+ ( #t ))) ))
+(display '(( () ; comment
+ ( ( ()  VIURe) (#t)) ; comment
+ . ; comment
+ (A) ) ( ( Fjy
+ -968216
+ -200272
+ ( I ; comment
+ . ; comment
+ (962640 ; comment
+ #f ; comment
+ #t ) ))  otV2  (( J.  ()  () )  ()  (#f ; comment
+ . ; comment
+ ( #t ))) ))) (newline)
+(car '(( () ; comment
+ ( ( ()  VIURe) (#t)) ; comment
+ . ; comment
+ (A) ) ( ( Fjy
+ -968216
+ -200272
+ ( I ; comment
+ . ; comment
+ (962640 ; comment
+ #f ; comment
+ #t ) ))  otV2  (( J.  ()  () )  ()  (#f ; comment
+ . ; comment
+ ( #t ))) )))
+(cdr '(( () ; comment
+ ( ( ()  VIURe) (#t)) ; comment
+ . ; comment
+ (A) ) ( ( Fjy
+ -968216
+ -200272
+ ( I ; comment
+ . ; comment
+ (962640 ; comment
+ #f ; comment
+ #t ) ))  otV2  (( J.  ()  () )  ()  (#f ; comment
+ . ; comment
+ ( #t ))) )))
+(pair? '(( () ; comment
+ ( ( ()  VIURe) (#t)) ; comment
+ . ; comment
+ (A) ) ( ( Fjy
+ -968216
+ -200272
+ ( I ; comment
+ . ; comment
+ (962640 ; comment
+ #f ; comment
+ #t ) ))  otV2  (( J.  ()  () )  ()  (#f ; comment
+ . ; comment
+ ( #t ))) )))
+(equal? '(( () ; comment
+ ( ( ()  VIURe) (#t)) ; comment
+ . ; comment
+ (A) ) ( ( Fjy
+ -968216
+ -200272
+ ( I ; comment
+ . ; comment
+ (962640 ; comment
+ #f ; comment
+ #t ) ))  otV2  (( J.  ()  () )  ()  (#f ; comment
+ . ; comment
+ ( #t ))) )) '( (()  ((()  VIURe) ; comment
+ ( #t) )  A)
+ ((Fjy  -968216  -200272  (I
+ 962640
+ #f
+ #t) ) ; comment
+ otV2 ; comment
+ . ; comment
+ (((J. () ())  ()  .  ( (#f ; comment
+ #t ) ))) )))
+'()
+(display '()) (newline)
+(equal? '() '())
+'( ((#f ; comment
+ -239706 ; comment
+ #t) (() ) () "c\t" ) "\nc)b" 339522 ( ( (()
+ 526917
+ #f
+ .
+ 244603 )
+ ()
+ .
+ "x\t\\b" )  (() )  ( F5!0!* (#t  afA  "\t "  #f))  O?))
+(display '( ((#f ; comment
+ -239706 ; comment
+ #t) (() ) () "c\t" ) "\nc)b" 339522 ( ( (()
+ 526917
+ #f
+ .
+ 244603 )
+ ()
+ .
+ "x\t\\b" )  (() )  ( F5!0!* (#t  afA  "\t "  #f))  O?))) (newline)
+(car '( ((#f ; comment
+ -239706 ; comment
+ #t) (() ) () "c\t" ) "\nc)b" 339522 ( ( (()
+ 526917
+ #f
+ .
+ 244603 )
+ ()
+ .
+ "x\t\\b" )  (() )  ( F5!0!* (#t  afA  "\t "  #f))  O?)))
+(cdr '( ((#f ; comment
+ -239706 ; comment
+ #t) (() ) () "c\t" ) "\nc)b" 339522 ( ( (()
+ 526917
+ #f
+ .
+ 244603 )
+ ()
+ .
+ "x\t\\b" )  (() )  ( F5!0!* (#t  afA  "\t "  #f))  O?)))
+(pair? '( ((#f ; comment
+ -239706 ; comment
+ #t) (() ) () "c\t" ) "\nc)b" 339522 ( ( (()
+ 526917
+ #f
+ .
+ 244603 )
+ ()
+ .
+ "x\t\\b" )  (() )  ( F5!0!* (#t  afA  "\t "  #f))  O?)))
+(equal? '( ((#f ; comment
+ -239706 ; comment
+ #t) (() ) () "c\t" ) "\nc)b" 339522 ( ( (()
+ 526917
+ #f
+ .
+ 244603 )
+ ()
+ .
+ "x\t\\b" )  (() )  ( F5!0!* (#t  afA  "\t "  #f))  O?)) '( ( (#f  -239706  #t)
+ ( () )
+ ()
+ .
+ ( "c\t" )) ; comment
+ "\nc)b" ; comment
+ 339522 ; comment
+ . ; comment
+ (((( ()
+ 526917
+ #f
+ .
+ 244603 ) ; comment
+ () ; comment
+ . ; comment
+ "x\t\\b")  (() )  ( F5!0!*
+ ( #t ; comment
+ afA ; comment
+ "\t " ; comment
+ . ; comment
+ (#f) ))  O?)) ))
+'"a"
+(display '"a") (newline)
+(equal? '"a" '"a")
+'((#f  2:l1  #f  .  #t ) ( ( ( ()
+ ()
+ .
+ (#f #t)) )  ()  ( (385872
+ AJxv:5
+ -536157 )  ( 32226  ew  ()  .  ( -299227 . 0))  (*C  IPh  792588  .  530058)  .  dzoCwB )  -811018) ((() . ( 301161 ) )
+ (*RB #t () )
+ ()
+ ( ( "\n \nz)y" ; comment
+ 309632 ; comment
+ -375826 ; comment
+ . ; comment
+ -28139) ; comment
+ (()  -126668  >JHl  .  -477987 ) ; comment
+ () )) O . "\\b\\" )
+(display '((#f  2:l1  #f  .  #t ) ( ( ( ()
+ ()
+ .
+ (#f #t)) )  ()  ( (385872
+ AJxv:5
+ -536157 )  ( 32226  ew  ()  .  ( -299227 . 0))  (*C  IPh  792588  .  530058)  .  dzoCwB )  -811018) ((() . ( 301161 ) )
+ (*RB #t () )
+ ()
+ ( ( "\n \nz)y" ; comment
+ 309632 ; comment
+ -375826 ; comment
+ . ; comment
+ -28139) ; comment
+ (()  -126668  >JHl  .  -477987 ) ; comment
+ () )) O . "\\b\\" )) (newline)
+(car '((#f  2:l1  #f  .  #t ) ( ( ( ()
+ ()
+ .
+ (#f #t)) )  ()  ( (385872
+ AJxv:5
+ -536157 )  ( 32226  ew  ()  .  ( -299227 . 0))  (*C  IPh  792588  .  530058)  .  dzoCwB )  -811018) ((() . ( 301161 ) )
+ (*RB #t () )
+ ()
+ ( ( "\n \nz)y" ; comment
+ 309632 ; comment
+ -375826 ; comment
+ . ; comment
+ -28139) ; comment
+ (()  -126668  >JHl  .  -477987 ) ; comment
+ () )) O . "\\b\\" ))
+(cdr '((#f  2:l1  #f  .  #t ) ( ( ( ()
+ ()
+ .
+ (#f #t)) )  ()  ( (385872
+ AJxv:5
+ -536157 )  ( 32226  ew  ()  .  ( -299227 . 0))  (*C  IPh  792588  .  530058)  .  dzoCwB )  -811018) ((() . ( 301161 ) )
+ (*RB #t () )
+ ()
+ ( ( "\n \nz)y" ; comment
+ 309632 ; comment
+ -375826 ; comment
+ . ; comment
+ -28139) ; comment
+ (()  -126668  >JHl  .  -477987 ) ; comment
+ () )) O . "\\b\\" ))
+(pair? '((#f  2:l1  #f  .  #t ) ( ( ( ()
+ ()
+ .
+ (#f #t)) )  ()  ( (385872
+ AJxv:5
+ -536157 )  ( 32226  ew  ()  .  ( -299227 . 0))  (*C  IPh  792588  .  530058)  .  dzoCwB )  -811018) ((() . ( 301161 ) )
+ (*RB #t () )
+ ()
+ ( ( "\n \nz)y" ; comment
+ 309632 ; comment
+ -375826 ; comment
+ . ; comment
+ -28139) ; comment
+ (()  -126668  >JHl  .  -477987 ) ; comment
+ () )) O . "\\b\\" ))
+(equal? '((#f  2:l1  #f  .  #t ) ( ( ( ()
+ ()
+ .
+ (#f #t)) )  ()  ( (385872
+ AJxv:5
+ -536157 )  ( 32226  ew  ()  .  ( -299227 . 0))  (*C  IPh  792588  .  530058)  .  dzoCwB )  -811018) ((() . ( 301161 ) )
+ (*RB #t () )
+ ()
+ ( ( "\n \nz)y" ; comment
+ 309632 ; comment
+ -375826 ; comment
+ . ; comment
+ -28139) ; comment
+ (()  -126668  >JHl  .  -477987 ) ; comment
+ () )) O . "\\b\\" ) '(( #f
+ 2:l1
+ #f
+ .
+ #t) ; comment
+ ( (( () . (() #f #t ))) ; comment
+ () ; comment
+ ( (385872 AJxv:5 -536157) ; comment
+ ( 32226 ew () . ( -299227 ; comment
+ . ; comment
+ 0)) ; comment
+ ( *C IPh 792588 . 530058) ; comment
+ . ; comment
+ dzoCwB) ; comment
+ -811018) ; comment
+ ((() ; comment
+ 301161) ; comment
+ (*RB
+ .
+ (#t ()) ) ; comment
+ () ; comment
+ (( "\n \nz)y" ; comment
+ 309632 ; comment
+ -375826 ; comment
+ . ; comment
+ -28139 ) ; comment
+ . ; comment
+ ((() ; comment
+ -126668 ; comment
+ >JHl ; comment
+ . ; comment
+ -477987) () ) )) ; comment
+ . ; comment
+ (O  .  "\\b\\")))
+'( #t
+ ( mC./. ; comment
+ #t ; comment
+ () ; comment
+ ( "\nc'c" ) ) )
+(display '( #t
+ ( mC./. ; comment
+ #t ; comment
+ () ; comment
+ ( "\nc'c" ) ) )) (newline)
+(car '( #t
+ ( mC./. ; comment
+ #t ; comment
+ () ; comment
+ ( "\nc'c" ) ) ))
+(cdr '( #t
+ ( mC./. ; comment
+ #t ; comment
+ () ; comment
+ ( "\nc'c" ) ) ))
+(pair? '( #t
+ ( mC./. ; comment
+ #t ; comment
+ () ; comment
+ ( "\nc'c" ) ) ))
+(equal? '( #t
+ ( mC./. ; comment
+ #t ; comment
+ () ; comment
+ ( "\nc'c" ) ) ) '(#t  ( mC./. . (#t
+ ()
+ ("\nc'c" ) )) ))
+'()
+(display '()) (newline)
+(equal? '() '())
+(quote (( () ; comment
+ 398527 )))
+(display '(( () ; comment
+ 398527 ))) (newline)
+(car '(( () ; comment
+ 398527 )))
+(cdr '(( () ; comment
+ 398527 )))
+(pair? '(( () ; comment
+ 398527 )))
+(equal? '(( () ; comment
+ 398527 )) '( ( ()  .  ( 398527 ) )))
+'()
+(display '()) (newline)
+(equal? '() '())
+'((( ( "\\(\\z\\" "cz;\"a") () ) () "a" ( #f)) ; comment
+ !8g5X ; comment
+ . ; comment
+ 0 )
+(display '((( ( "\\(\\z\\" "cz;\"a") () ) () "a" ( #f)) ; comment
+ !8g5X ; comment
+ . ; comment
+ 0 )) (newline)
+(car '((( ( "\\(\\z\\" "cz;\"a") () ) () "a" ( #f)) ; comment
+ !8g5X ; comment
+ . ; comment
+ 0 ))
+(cdr '((( ( "\\(\\z\\" "cz;\"a") () ) () "a" ( #f)) ; comment
+ !8g5X ; comment
+ . ; comment
+ 0 ))
+(pair? '((( ( "\\(\\z\\" "cz;\"a") () ) () "a" ( #f)) ; comment
+ !8g5X ; comment
+ . ; comment
+ 0 ))
+(equal? '((( ( "\\(\\z\\" "cz;\"a") () ) () "a" ( #f)) ; comment
+ !8g5X ; comment
+ . ; comment
+ 0 ) '(( ( ("\\(\\z\\"  "cz;\"a") ; comment
+ ())
+ .
+ ( ()  "a"  (#f ) ) ) ; comment
+ !8g5X ; comment
+ . ; comment
+ 0))
+'"; b\tc"
+(display '"; b\tc") (newline)
+(equal? '"; b\tc" '"; b\tc")
+'BUQZ
+(display 'BUQZ) (newline)
+(equal? 'BUQZ 'BUQZ)
+'( ( ( (#t "\nb\"\n'") . #f) ( 554866  ()  <  () ) () ( () () ) . pyHxE )  (( ");\tyza"  ( #t
+ .
+ (()
+ () ))  (")(" ) ) "\"a" () . ( ( VSc ( ()) ) . 0) ) )
+(display '( ( ( (#t "\nb\"\n'") . #f) ( 554866  ()  <  () ) () ( () () ) . pyHxE )  (( ");\tyza"  ( #t
+ .
+ (()
+ () ))  (")(" ) ) "\"a" () . ( ( VSc ( ()) ) . 0) ) )) (newline)
+(car '( ( ( (#t "\nb\"\n'") . #f) ( 554866  ()  <  () ) () ( () () ) . pyHxE )  (( ");\tyza"  ( #t
+ .
+ (()
+ () ))  (")(" ) ) "\"a" () . ( ( VSc ( ()) ) . 0) ) ))
+(cdr '( ( ( (#t "\nb\"\n'") . #f) ( 554866  ()  <  () ) () ( () () ) . pyHxE )  (( ");\tyza"  ( #t
+ .
+ (()
+ () ))  (")(" ) ) "\"a" () . ( ( VSc ( ()) ) . 0) ) ))
+(pair? '( ( ( (#t "\nb\"\n'") . #f) ( 554866  ()  <  () ) () ( () () ) . pyHxE )  (( ");\tyza"  ( #t
+ .
+ (()
+ () ))  (")(" ) ) "\"a" () . ( ( VSc ( ()) ) . 0) ) ))
+(equal? '( ( ( (#t "\nb\"\n'") . #f) ( 554866  ()  <  () ) () ( () () ) . pyHxE )  (( ");\tyza"  ( #t
+ .
+ (()
+ () ))  (")(" ) ) "\"a" () . ( ( VSc ( ()) ) . 0) ) ) '(((( #t ; comment
+ "\nb\"\n'" )
+ .
+ #f )
+ ( 554866 () < () )
+ .
+ ( () ; comment
+ . ; comment
+ ( (() () ) ; comment
+ . ; comment
+ pyHxE )) )  ((");\tyza" (#t () ()) ( ")(" )) "\"a" () ( VSc
+ ( () ) ) . 0) ))
+'( ((()  .  (() ()) ) "b;" ())  WxvoG9  ( ((#t  ()  828340  "\"\nyz'"  .  Z)  ()  (())  (F
+ -767681
+ .
+ 320672 )) ; comment
+ Zy+FT5 )  .  ( -682331 . F+PKY) )
+(display '( ((()  .  (() ()) ) "b;" ())  WxvoG9  ( ((#t  ()  828340  "\"\nyz'"  .  Z)  ()  (())  (F
+ -767681
+ .
+ 320672 )) ; comment
+ Zy+FT5 )  .  ( -682331 . F+PKY) )) (newline)
+(car '( ((()  .  (() ()) ) "b;" ())  WxvoG9  ( ((#t  ()  828340  "\"\nyz'"  .  Z)  ()  (())  (F
+ -767681
+ .
+ 320672 )) ; comment
+ Zy+FT5 )  .  ( -682331 . F+PKY) ))
+(cdr '( ((()  .  (() ()) ) "b;" ())  WxvoG9  ( ((#t  ()  828340  "\"\nyz'"  .  Z)  ()  (())  (F
+ -767681
+ .
+ 320672 )) ; comment
+ Zy+FT5 )  .  ( -682331 . F+PKY) ))
+(pair? '( ((()  .  (() ()) ) "b;" ())  WxvoG9  ( ((#t  ()  828340  "\"\nyz'"  .  Z)  ()  (())  (F
+ -767681
+ .
+ 320672 )) ; comment
+ Zy+FT5 )  .  ( -682331 . F+PKY) ))
+(equal? '( ((()  .  (() ()) ) "b;" ())  WxvoG9  ( ((#t  ()  828340  "\"\nyz'"  .  Z)  ()  (())  (F
+ -767681
+ .
+ 320672 )) ; comment
+ Zy+FT5 )  .  ( -682331 . F+PKY) ) '(( (() () ()) ; comment
+ . ; comment
+ ( "b;"
+ () ))
+ WxvoG9
+ ( ( ( #t ; comment
+ () ; comment
+ 828340 ; comment
+ . ; comment
+ ("\"\nyz'"  .  Z))
+ ()
+ (())
+ ( F ; comment
+ -767681 ; comment
+ . ; comment
+ 320672)) Zy+FT5)
+ -682331
+ .
+ F+PKY ))
+'FSu
+(display 'FSu) (newline)
+(equal? 'FSu 'FSu)
+(quote 485443)
+(display '485443) (newline)
+(equal? '485443 '485443)
+'(( #t  ( "cy\n" ; comment
+ #t)) ; comment
+ -767270 ; comment
+ ( (Ek5
+ ())
+ .
+ ((719047 "(\t \n" (55232  #t  466833) ( #f #f -982328) )  .  0 ) ) ; comment
+ . ; comment
+ Dhc<)
+(display '(( #t  ( "cy\n" ; comment
+ #t)) ; comment
+ -767270 ; comment
+ ( (Ek5
+ ())
+ .
+ ((719047 "(\t \n" (55232  #t  466833) ( #f #f -982328) )  .  0 ) ) ; comment
+ . ; comment
+ Dhc<)) (newline)
+(car '(( #t  ( "cy\n" ; comment
+ #t)) ; comment
+ -767270 ; comment
+ ( (Ek5
+ ())
+ .
+ ((719047 "(\t \n" (55232  #t  466833) ( #f #f -982328) )  .  0 ) ) ; comment
+ . ; comment
+ Dhc<))
+(cdr '(( #t  ( "cy\n" ; comment
+ #t)) ; comment
+ -767270 ; comment
+ ( (Ek5
+ ())
+ .
+ ((719047 "(\t \n" (55232  #t  466833) ( #f #f -982328) )  .  0 ) ) ; comment
+ . ; comment
+ Dhc<))
+(pair? '(( #t  ( "cy\n" ; comment
+ #t)) ; comment
+ -767270 ; comment
+ ( (Ek5
+ ())
+ .
+ ((719047 "(\t \n" (55232  #t  466833) ( #f #f -982328) )  .  0 ) ) ; comment
+ . ; comment
+ Dhc<))
+(equal? '(( #t  ( "cy\n" ; comment
+ #t)) ; comment
+ -767270 ; comment
+ ( (Ek5
+ ())
+ .
+ ((719047 "(\t \n" (55232  #t  466833) ( #f #f -982328) )  .  0 ) ) ; comment
+ . ; comment
+ Dhc<) '( (#t  ( "cy\n" #t ) ) -767270 (( Ek5 () ) (719047 ; comment
+ "(\t \n" ; comment
+ ( 55232 ; comment
+ #t ; comment
+ 466833 ) ; comment
+ ( #f #f -982328 ) ) . 0 ) . Dhc< ))
+(quote ( oSrXK ))
+(display '( oSrXK )) (newline)
+(car '( oSrXK ))
+(cdr '( oSrXK ))
+(pair? '( oSrXK ))
+(equal? '( oSrXK ) '(oSrXK))
+'()
+(display '()) (newline)
+(equal? '() '())
+'( (751624)
+ ( ")bzy" ; comment
+ "\\\"\\)" ; comment
+ #f ; comment
+ (()
+ ("'a;("  .  0 )))
+ (( #f  =Zs )
+ ")"
+ ( (899315 0_9BL )))
+ ()
+ .
+ 0 )
+(display '( (751624)
+ ( ")bzy" ; comment
+ "\\\"\\)" ; comment
+ #f ; comment
+ (()
+ ("'a;("  .  0 )))
+ (( #f  =Zs )
+ ")"
+ ( (899315 0_9BL )))
+ ()
+ .
+ 0 )) (newline)
+(car '( (751624)
+ ( ")bzy" ; comment
+ "\\\"\\)" ; comment
+ #f ; comment
+ (()
+ ("'a;("  .  0 )))
+ (( #f  =Zs )
+ ")"
+ ( (899315 0_9BL )))
+ ()
+ .
+ 0 ))
+(cdr '( (751624)
+ ( ")bzy" ; comment
+ "\\\"\\)" ; comment
+ #f ; comment
+ (()
+ ("'a;("  .  0 )))
+ (( #f  =Zs )
+ ")"
+ ( (899315 0_9BL )))
+ ()
+ .
+ 0 ))
+(pair? '( (751624)
+ ( ")bzy" ; comment
+ "\\\"\\)" ; comment
+ #f ; comment
+ (()
+ ("'a;("  .  0 )))
+ (( #f  =Zs )
+ ")"
+ ( (899315 0_9BL )))
+ ()
+ .
+ 0 ))
+(equal? '( (751624)
+ ( ")bzy" ; comment
+ "\\\"\\)" ; comment
+ #f ; comment
+ (()
+ ("'a;("  .  0 )))
+ (( #f  =Zs )
+ ")"
+ ( (899315 0_9BL )))
+ ()
+ .
+ 0 ) '( (751624) (")bzy"  "\\\"\\)"  #f  ( () ; comment
+ ("'a;("  .  0 ))) ((#f  =Zs)  ")"  ( (899315 0_9BL ) ) ) () . 0 ))
+'()
+(display '()) (newline)
+(equal? '() '())
+'( ( (("c' ca" ; comment
+ ()))
+ #f
+ tCN
+ .
+ #t)  ( (( q  ";\\(z("  .  2_!m.B )
+ .
+ ( ( #t) ("y \ty;;" ) >mYbNv) )
+ -437831
+ .
+ (( () ; comment
+ ( -445932 ) ; comment
+ (#t ()) ; comment
+ . ; comment
+ "a\tya'") ; comment
+ ( () "\n" "bx" ( 263567 ) . -650557 ) )) )
+(display '( ( (("c' ca" ; comment
+ ()))
+ #f
+ tCN
+ .
+ #t)  ( (( q  ";\\(z("  .  2_!m.B )
+ .
+ ( ( #t) ("y \ty;;" ) >mYbNv) )
+ -437831
+ .
+ (( () ; comment
+ ( -445932 ) ; comment
+ (#t ()) ; comment
+ . ; comment
+ "a\tya'") ; comment
+ ( () "\n" "bx" ( 263567 ) . -650557 ) )) )) (newline)
+(car '( ( (("c' ca" ; comment
+ ()))
+ #f
+ tCN
+ .
+ #t)  ( (( q  ";\\(z("  .  2_!m.B )
+ .
+ ( ( #t) ("y \ty;;" ) >mYbNv) )
+ -437831
+ .
+ (( () ; comment
+ ( -445932 ) ; comment
+ (#t ()) ; comment
+ . ; comment
+ "a\tya'") ; comment
+ ( () "\n" "bx" ( 263567 ) . -650557 ) )) ))
+(cdr '( ( (("c' ca" ; comment
+ ()))
+ #f
+ tCN
+ .
+ #t)  ( (( q  ";\\(z("  .  2_!m.B )
+ .
+ ( ( #t) ("y \ty;;" ) >mYbNv) )
+ -437831
+ .
+ (( () ; comment
+ ( -445932 ) ; comment
+ (#t ()) ; comment
+ . ; comment
+ "a\tya'") ; comment
+ ( () "\n" "bx" ( 263567 ) . -650557 ) )) ))
+(pair? '( ( (("c' ca" ; comment
+ ()))
+ #f
+ tCN
+ .
+ #t)  ( (( q  ";\\(z("  .  2_!m.B )
+ .
+ ( ( #t) ("y \ty;;" ) >mYbNv) )
+ -437831
+ .
+ (( () ; comment
+ ( -445932 ) ; comment
+ (#t ()) ; comment
+ . ; comment
+ "a\tya'") ; comment
+ ( () "\n" "bx" ( 263567 ) . -650557 ) )) ))
+(equal? '( ( (("c' ca" ; comment
+ ()))
+ #f
+ tCN
+ .
+ #t)  ( (( q  ";\\(z("  .  2_!m.B )
+ .
+ ( ( #t) ("y \ty;;" ) >mYbNv) )
+ -437831
+ .
+ (( () ; comment
+ ( -445932 ) ; comment
+ (#t ()) ; comment
+ . ; comment
+ "a\tya'") ; comment
+ ( () "\n" "bx" ( 263567 ) . -650557 ) )) ) '( ( (( "c' ca" ; comment
+ ()))  #f  .  ( tCN
+ .
+ #t) )
+ ( ( (q
+ .
+ ( ";\\(z("  .  2_!m.B ) ) ( #t) ( "y \ty;;" ) >mYbNv ) ; comment
+ -437831 ; comment
+ ( () ( -445932) ( #t () ) . "a\tya'" ) ; comment
+ ( () ; comment
+ "\n" ; comment
+ . ; comment
+ ( "bx"
+ (263567 )
+ .
+ -650557)) )))
+'791317
+(display '791317) (newline)
+(equal? '791317 '791317)
+'ve
+(display 've) (newline)
+(equal? 've 've)
+'()
+(display '()) (newline)
+(equal? '() '())
+'(()  "y\\\nx'"  ()  .  20789 )
+(display '(()  "y\\\nx'"  ()  .  20789 )) (newline)
+(car '(()  "y\\\nx'"  ()  .  20789 ))
+(cdr '(()  "y\\\nx'"  ()  .  20789 ))
+(pair? '(()  "y\\\nx'"  ()  .  20789 ))
+(equal? '(()  "y\\\nx'"  ()  .  20789 ) '(()
+ "y\\\nx'"
+ ()
+ .
+ 20789 ))
+'n
+(display 'n) (newline)
+(equal? 'n 'n)
+'()
+(display '()) (newline)
+(equal? '() '())
+'(() )
+(display '(() )) (newline)
+(car '(() ))
+(cdr '(() ))
+(pair? '(() ))
+(equal? '(() ) '(()))
+'()
+(display '()) (newline)
+(equal? '() '())
+'( ("\t" ; comment
+ ( ("b"  -132103 )
+ ( "\"ax\\"  "")
+ -898244) ; comment
+ . ; comment
+ IK/DGT ))
+(display '( ("\t" ; comment
+ ( ("b"  -132103 )
+ ( "\"ax\\"  "")
+ -898244) ; comment
+ . ; comment
+ IK/DGT ))) (newline)
+(car '( ("\t" ; comment
+ ( ("b"  -132103 )
+ ( "\"ax\\"  "")
+ -898244) ; comment
+ . ; comment
+ IK/DGT )))
+(cdr '( ("\t" ; comment
+ ( ("b"  -132103 )
+ ( "\"ax\\"  "")
+ -898244) ; comment
+ . ; comment
+ IK/DGT )))
+(pair? '( ("\t" ; comment
+ ( ("b"  -132103 )
+ ( "\"ax\\"  "")
+ -898244) ; comment
+ . ; comment
+ IK/DGT )))
+(equal? '( ("\t" ; comment
+ ( ("b"  -132103 )
+ ( "\"ax\\"  "")
+ -898244) ; comment
+ . ; comment
+ IK/DGT )) '( ("\t"
+ ( ( "b" . ( -132103 ) )  ( "\"ax\\"
+ "" )  -898244 )
+ .
+ IK/DGT ) ))
+(quote ( ( (() . (-482754 ) ) ; comment
+ . ; comment
+ +)  () ))
+(display '( ( (() . (-482754 ) ) ; comment
+ . ; comment
+ +)  () )) (newline)
+(car '( ( (() . (-482754 ) ) ; comment
+ . ; comment
+ +)  () ))
+(cdr '( ( (() . (-482754 ) ) ; comment
+ . ; comment
+ +)  () ))
+(pair? '( ( (() . (-482754 ) ) ; comment
+ . ; comment
+ +)  () ))
+(equal? '( ( (() . (-482754 ) ) ; comment
+ . ; comment
+ +)  () ) '(((() ; comment
+ -482754 ) . + )  ()))
+(quote "\tb)yc")
+(display '"\tb)yc") (newline)
+(equal? '"\tb)yc" '"\tb)yc")
+'(( "cy(" ; comment
+ ( (()) ) ; comment
+ . ; comment
+ (( ( =) #f) ) ))
+(display '(( "cy(" ; comment
+ ( (()) ) ; comment
+ . ; comment
+ (( ( =) #f) ) ))) (newline)
+(car '(( "cy(" ; comment
+ ( (()) ) ; comment
+ . ; comment
+ (( ( =) #f) ) )))
+(cdr '(( "cy(" ; comment
+ ( (()) ) ; comment
+ . ; comment
+ (( ( =) #f) ) )))
+(pair? '(( "cy(" ; comment
+ ( (()) ) ; comment
+ . ; comment
+ (( ( =) #f) ) )))
+(equal? '(( "cy(" ; comment
+ ( (()) ) ; comment
+ . ; comment
+ (( ( =) #f) ) )) '( ( "cy("
+ ((() ))
+ ( ( =) #f) ) ))
+'(#f)
+(display '(#f)) (newline)
+(car '(#f))
+(cdr '(#f))
+(pair? '(#f))
+(equal? '(#f) '(#f))
+'WY15.e
+(display 'WY15.e) (newline)
+(equal? 'WY15.e 'WY15.e)
+'(63168 () ( ( (() () #t ())  (#t  "zc\n"  vNl  ()  .  #t)  (-209820  -924233  -735215)) ; comment
+ "" ; comment
+ ( ( ())
+ ("" () () HC)
+ ( #t "" )
+ #f
+ .
+ ";za" )) . #f)
+(display '(63168 () ( ( (() () #t ())  (#t  "zc\n"  vNl  ()  .  #t)  (-209820  -924233  -735215)) ; comment
+ "" ; comment
+ ( ( ())
+ ("" () () HC)
+ ( #t "" )
+ #f
+ .
+ ";za" )) . #f)) (newline)
+(car '(63168 () ( ( (() () #t ())  (#t  "zc\n"  vNl  ()  .  #t)  (-209820  -924233  -735215)) ; comment
+ "" ; comment
+ ( ( ())
+ ("" () () HC)
+ ( #t "" )
+ #f
+ .
+ ";za" )) . #f))
+(cdr '(63168 () ( ( (() () #t ())  (#t  "zc\n"  vNl  ()  .  #t)  (-209820  -924233  -735215)) ; comment
+ "" ; comment
+ ( ( ())
+ ("" () () HC)
+ ( #t "" )
+ #f
+ .
+ ";za" )) . #f))
+(pair? '(63168 () ( ( (() () #t ())  (#t  "zc\n"  vNl  ()  .  #t)  (-209820  -924233  -735215)) ; comment
+ "" ; comment
+ ( ( ())
+ ("" () () HC)
+ ( #t "" )
+ #f
+ .
+ ";za" )) . #f))
+(equal? '(63168 () ( ( (() () #t ())  (#t  "zc\n"  vNl  ()  .  #t)  (-209820  -924233  -735215)) ; comment
+ "" ; comment
+ ( ( ())
+ ("" () () HC)
+ ( #t "" )
+ #f
+ .
+ ";za" )) . #f) '( 63168 () (( (()
+ .
+ (() ; comment
+ #t ; comment
+ ()) ) ; comment
+ ( #t
+ "zc\n"
+ vNl
+ ()
+ .
+ #t) ; comment
+ (-209820 ; comment
+ -924233 ; comment
+ -735215)) "" (( ()) . (( ""  ()  .  ( ()  HC) ) (#t ; comment
+ "") #f . ";za"))) . #f))
+'5947
+(display '5947) (newline)
+(equal? '5947 '5947)
+(quote #f)
+(display '#f) (newline)
+(equal? '#f '#f)
+'( "y\tac\n"
+ ( ()  ( ( "b(y\"\\'")  .  (( () . (j
+ ()
+ "by'b" ))  ()  (v )  .  SVUuDl) )  115711  ( "a a \t" () . #f)  .  0 )
+ .
+ #f)
+(display '( "y\tac\n"
+ ( ()  ( ( "b(y\"\\'")  .  (( () . (j
+ ()
+ "by'b" ))  ()  (v )  .  SVUuDl) )  115711  ( "a a \t" () . #f)  .  0 )
+ .
+ #f)) (newline)
+(car '( "y\tac\n"
+ ( ()  ( ( "b(y\"\\'")  .  (( () . (j
+ ()
+ "by'b" ))  ()  (v )  .  SVUuDl) )  115711  ( "a a \t" () . #f)  .  0 )
+ .
+ #f))
+(cdr '( "y\tac\n"
+ ( ()  ( ( "b(y\"\\'")  .  (( () . (j
+ ()
+ "by'b" ))  ()  (v )  .  SVUuDl) )  115711  ( "a a \t" () . #f)  .  0 )
+ .
+ #f))
+(pair? '( "y\tac\n"
+ ( ()  ( ( "b(y\"\\'")  .  (( () . (j
+ ()
+ "by'b" ))  ()  (v )  .  SVUuDl) )  115711  ( "a a \t" () . #f)  .  0 )
+ .
+ #f))
+(equal? '( "y\tac\n"
+ ( ()  ( ( "b(y\"\\'")  .  (( () . (j
+ ()
+ "by'b" ))  ()  (v )  .  SVUuDl) )  115711  ( "a a \t" () . #f)  .  0 )
+ .
+ #f) '("y\tac\n"  .  ( ( () (( "b(y\"\\'") ; comment
+ (() ; comment
+ j ; comment
+ () ; comment
+ "by'b" ) ; comment
+ () ; comment
+ . ; comment
+ ((v)
+ .
+ SVUuDl )) 115711 ("a a \t"
+ ()
+ .
+ #f ) . 0 )  .  #f)))
+'"by\nx"
+(display '"by\nx") (newline)
+(equal? '"by\nx" '"by\nx")
+'()
+(display '()) (newline)
+(equal? '() '())

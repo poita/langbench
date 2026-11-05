@@ -1,0 +1,40 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$defs": {
+      "reffed": {
+        "type": "array"
+      }
+    },
+    "properties": {
+      "foo": {
+        "$ref": "#/$defs/reffed",
+        "maxItems": 2
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "ref valid, maxItems valid",
+      "data": {
+        "foo": []
+      }
+    },
+    {
+      "description": "ref valid, maxItems invalid",
+      "data": {
+        "foo": [
+          1,
+          2,
+          3
+        ]
+      }
+    },
+    {
+      "description": "ref invalid",
+      "data": {
+        "foo": "string"
+      }
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+put "k000" {m:0,s:"s000"}
+put "k001" {m:1,s:"s001"}
+put "k002" {m:2,s:"s002"}
+put "k003" {m:3,s:"s003"}
+put "k004" {m:4,s:"s004"}
+put "k005" {m:5,s:"s005"}
+put "k006" {m:6,s:"s006"}
+put "k007" {m:0,s:"s007"}
+put "k008" {m:1,s:"s008"}
+put "k009" {m:2,s:"s009"}
+put "k010" {m:3,s:"s010"}
+put "k011" {m:4,s:"s011"}
+put "k012" {m:5,s:"s012"}
+put "k013" {m:6,s:"s013"}
+put "k014" {m:0,s:"s014"}
+put "k015" {m:1,s:"s015"}
+put "k016" {m:2,s:"s016"}
+put "k017" {m:3,s:"s017"}
+put "k018" {m:4,s:"s018"}
+put "k019" {m:5,s:"s019"}
+put "k020" {m:6,s:"s020"}
+put "k021" {m:0,s:"s021"}
+put "k022" {m:1,s:"s022"}
+put "k023" {m:2,s:"s023"}
+put "k024" {m:3,s:"s024"}
+put "k025" {m:4,s:"s025"}
+put "k026" {m:5,s:"s026"}
+put "k027" {m:6,s:"s027"}
+put "k028" {m:0,s:"s028"}
+put "k029" {m:1,s:"s029"}
+put "k030" {m:2,s:"s030"}
+put "k031" {m:3,s:"s031"}
+put "k032" {m:4,s:"s032"}
+put "k033" {m:5,s:"s033"}
+put "k034" {m:6,s:"s034"}
+put "k035" {m:0,s:"s035"}
+put "k036" {m:1,s:"s036"}
+put "k037" {m:2,s:"s037"}
+put "k038" {m:3,s:"s038"}
+put "k039" {m:4,s:"s039"}
+put "k040" {m:5,s:"s040"}
+put "k041" {m:6,s:"s041"}
+put "k042" {m:0,s:"s042"}
+put "k043" {m:1,s:"s043"}
+put "k044" {m:2,s:"s044"}
+put "k045" {m:3,s:"s045"}
+put "k046" {m:4,s:"s046"}
+put "k047" {m:5,s:"s047"}
+put "k048" {m:6,s:"s048"}
+put "k049" {m:0,s:"s049"}
+put "k050" {m:1,s:"s050"}
+put "k051" {m:2,s:"s051"}
+put "k052" {m:3,s:"s052"}
+put "k053" {m:4,s:"s053"}
+put "k054" {m:5,s:"s054"}
+put "k055" {m:6,s:"s055"}
+put "k056" {m:0,s:"s056"}
+put "k057" {m:1,s:"s057"}
+put "k058" {m:2,s:"s058"}
+put "k059" {m:3,s:"s059"}
+create index m
+find m == 3
+find m > 3
+find m <= 1 limit 5
+find m == 3 and s > "s030"
+create index s
+find s == "s042"
+find s >= "s055"
+find m == 3 and s == "s003"
+indexes
+stat

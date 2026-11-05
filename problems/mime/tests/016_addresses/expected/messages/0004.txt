@@ -1,0 +1,26 @@
+[message]
+id 0004
+source "multiple-fields.eml"
+
+[headers]
+to: "first@example.com"
+to: "second@example.com"
+cc: "third@example.com"
+
+[addresses]
+to 0 display="" spec="first@example.com"
+to 1 display="" spec="second@example.com"
+cc 0 display="" spec="third@example.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

@@ -1,0 +1,836 @@
+#!/usr/bin/env python3
+"""lbench: build and benchmark the langbench implementations with chosen toolchains.
+
+The agent-written implementations under implementations/ are a
+corpus of real programs, verified by test suites. lbench builds a chosen set of
+them out of tree, optionally with a different toolchain for any language, runs
+each problem's benchmark inputs, checks every output, and records wall time,
+CPU time, instructions retired, cycles and peak memory, plus compile time and
+compiler instructions. Results are saved under a tag, so two toolchains (or two
+revisions of one) can be compared:
+
+    ./lbench build --tag base --langs rust && ./lbench run --tag base
+    ./lbench ab --base base --tag new --toolchain rust=$HOME/rust-dev/bin/rustc
+
+Subcommands: suites, build, run, ab, compare, show, list. See --help on each.
+Only the Python standard library is used. Hardware counters come from
+/usr/bin/time -l on macOS and perf stat on Linux.
+"""
+import argparse
+import csv
+import datetime
+import functools
+import glob
+import json
+import math
+import os
+import platform
+import re
+import shlex
+import shutil
+import statistics
+import subprocess
+import sys
+import tempfile
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+
+ROOT = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, ROOT)
+import run_tests  # noqa: E402
+
+STATE = os.environ.get("LBENCH_DIR", os.path.join(ROOT, ".lbench"))
+LANGS = ["cpp", "rust", "go", "d", "python"]
+# Every repetition of the canonical implementations (implementations/rep1, rep2, ...).
+ROOTS = sorted(os.path.relpath(d, ROOT) for d in glob.glob(os.path.join(ROOT, "implementations", "rep*"))
+               if os.path.isdir(d))
+# Suites: which implementations and inputs to use. "one" picks the first root (in
+# this order) that has an implementation of each problem; "all" takes every root.
+# "first_input" runs only each problem's first benchmark input; "tier" picks short inputs (bench/) or
+# long ones (bench-long/, at least 5 s each for the fastest implementation).
+SUITES = {
+    "fast": {"langs": LANGS, "pick": "one", "roots": ["implementations/rep1"], "first_input": True, "tier": "short",
+             "reps": 1, "warmup": False,
+             "about": "one implementation per problem and language, first input only, one run; the inner loop"},
+    "quick": {"langs": LANGS, "pick": "one", "roots": ["implementations/rep1"],
+              "tier": "long",
+              "about": "one implementation per problem and language, all three long inputs, warm-up plus three runs"},
+    "all": {"langs": LANGS, "pick": "all", "roots": ROOTS, "tier": "long",
+            "about": "every canonical implementation, including repetitions"},
+}
+
+MACHO = (b"\xcf\xfa\xed\xfe", b"\xca\xfe\xba\xbe", b"\xfe\xed\xfa\xcf", b"!<arch>")
+BUILD_DIRS = {".dub", "bin", "build", "target", "obj", "__pycache__"}
+
+
+# ---------------------------------------------------------------- selection
+
+def problems_all():
+    return sorted(d for d in os.listdir(os.path.join(ROOT, "problems"))
+                  if os.path.isdir(os.path.join(ROOT, "problems", d, "bench")))
+
+
+def select(suite, problems=None, langs=None, roots=None):
+    """Return [(root, lang, slug)] for a suite, optionally filtered.
+
+    Explicit roots (e.g. a freshly generated runs-new/rep1) replace the suite's
+    roots and select every implementation found there."""
+    spec = dict(SUITES[suite])
+    if roots:
+        spec.update(roots=list(roots), pick="all")
+    langs = [l for l in spec["langs"] if not langs or l in langs]
+    probs = [p for p in problems_all() if (not problems or p in problems)
+             and ("inputs" not in spec or p in spec["inputs"])]
+    out = []
+    for lang in langs:
+        for slug in probs:
+            for root in spec["roots"]:
+                if os.path.exists(os.path.join(ROOT, root, lang, slug, "run.sh")):
+                    out.append((root, lang, slug))
+                    if spec["pick"] == "one":
+                        break
+    return out
+
+
+# ---------------------------------------------------------------- compilers
+
+VERSION_ARGS = {"d": ["--version"], "cpp": ["--version"], "rust": ["-V"], "go": ["version"], "python": ["--version"]}
+DEFAULT_TOOLS = {"cpp": "c++", "rust": "rustc", "go": "go", "python": "python3"}
+
+
+def parse_toolchains(specs):
+    """Turn ["d=ldc2", "go=/x/bin/go"] into {lang: path}."""
+    out = {}
+    for spec in specs:
+        lang, sep, path = spec.partition("=")
+        if not sep or not path:
+            sys.exit(f"--toolchain wants LANG=PATH, not {spec!r}")
+        if lang not in LANGS:
+            sys.exit(f"--toolchain: unknown language {lang!r} (one of {', '.join(LANGS)})")
+        out[lang] = path
+    return out
+
+
+def toolchain_info(lang, tool):
+    """Describe a toolchain binary: path, version line, git revision; for D also its kind (dmd or ldc)."""
+    path = shutil.which(tool) or tool
+    path = os.path.abspath(path) if os.path.exists(path) else path
+    try:
+        r = subprocess.run([path] + VERSION_ARGS[lang], capture_output=True, text=True, timeout=30)
+        ver = ((r.stdout or r.stderr).split("\n")[0]).strip()
+    except OSError:
+        ver = "unknown"
+    info = {"lang": lang, "path": path, "version": ver, "git": "", "flags": []}
+    if lang == "d":
+        info["kind"] = "ldc" if "ldc" in os.path.basename(path) else "dmd"
+    d = os.path.dirname(path)
+
+    def common_dir(path):
+        r = subprocess.run(["git", "-C", path, "rev-parse", "--path-format=absolute", "--git-common-dir"],
+                           capture_output=True, text=True)
+        return r.stdout.strip() if r.returncode == 0 else None
+    # A snapshot copied into this benchmark's repository has no revision of its own;
+    # its PROVENANCE.txt, if present, says where it came from.
+    if common_dir(d) and common_dir(d) == common_dir(ROOT):
+        prov = os.path.join(os.path.dirname(d), "PROVENANCE.txt")
+        info["provenance"] = open(prov).read().strip() if os.path.exists(prov) else ""
+        return info
+    g = subprocess.run(["git", "-C", d, "rev-parse", "--short", "HEAD"], capture_output=True, text=True)
+    if g.returncode == 0:
+        dirty = subprocess.run(["git", "-C", d, "status", "--porcelain", "-uno"], capture_output=True, text=True).stdout.strip()
+        info["git"] = g.stdout.strip() + ("-dirty" if dirty else "")
+    return info
+
+
+def compiler_info(dc):
+    """Describe a D compiler (kept for callers that only deal with D)."""
+    return toolchain_info("d", dc)
+
+
+D_COMPILER = re.compile(r"(^|[\s;&|(]|exec\s)(?:[^\s=\-\"'][^\s=]*/)?(ldc2|ldmd2|dmd)(?=\s)", re.M)
+
+
+def d_compiler_in(build_sh):
+    """The D compiler a build script names (via dub --compiler= or as a command), or None."""
+    m = re.search(r"--compiler=(\"[^\"]*\"|'[^']*'|\S+)", build_sh)
+    if m:
+        return m.group(1).strip("\"'")
+    for line in build_sh.splitlines():
+        if not line.lstrip().startswith("#"):
+            c = D_COMPILER.search(line)
+            if c:
+                return c.group(2)
+    return None
+
+
+def write_script(path, text):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w") as f:
+        f.write(text)
+    os.chmod(path, 0o755)
+    return path
+
+
+def counting_wrapper(real, path, extra=()):
+    """A script at path that runs real with its arguments (then extra), logging the process's own
+    instructions and cycles to $LBENCH_TIMELOG when that is set."""
+    tail = "".join(" " + shlex.quote(x) for x in extra)
+    counters = " ".join(shlex.quote(x) for x in counter_prefix("LOG", append=True)).replace("LOG", '"$LBENCH_TIMELOG"')
+    return write_script(path, "#!/bin/bash\n"
+                              "if [ -n \"$LBENCH_TIMELOG\" ]; then\n"
+                              f"  exec {counters} \"{real}\" \"$@\"{tail}\n"
+                              "fi\n"
+                              f"exec \"{real}\" \"$@\"{tail}\n")
+
+
+@functools.lru_cache(maxsize=None)
+def version_line(lang, tool):
+    try:
+        r = subprocess.run([tool] + VERSION_ARGS[lang], capture_output=True, text=True, timeout=30)
+        return ((r.stdout or r.stderr).split("\n")[0]).strip()
+    except OSError:
+        return ""
+
+
+def build_env(lang, tc, wrapdir, log, dst):
+    """Environment for building one implementation: the chosen toolchain (or the default one on PATH),
+    routed through counting wrappers so compile instructions are measured for every language."""
+    env = dict(os.environ, LBENCH_TIMELOG=log)
+    flags = " ".join((tc or {}).get("flags", []))
+    path = (tc or {}).get("path")
+    if lang == "cpp":
+        real = path or shutil.which("c++") or "c++"
+        # clang may run its compile stage (cc1) as a child process, which per-process counters
+        # miss; -fintegrated-cc1 keeps it in the measured process without changing the output.
+        ver = (tc or {}).get("version") or version_line("cpp", real)
+        extra = ("-fintegrated-cc1",) if "clang" in ver.lower() else ()
+        env["CXX"] = counting_wrapper(real, os.path.join(wrapdir, "cpp", os.path.basename(real)), extra)
+        if flags:
+            env["CXXFLAGS"] = flags
+    elif lang == "rust":
+        real = path or shutil.which("rustc") or "rustc"
+        env["RUSTC"] = counting_wrapper(real, os.path.join(wrapdir, "rust", "rustc"))
+        if flags:
+            env["RUSTFLAGS"] = flags
+    elif lang == "go":
+        if path:
+            env["PATH"] = os.path.dirname(os.path.abspath(path)) + os.pathsep + env.get("PATH", "")
+        # go build -toolexec runs "toolexec <tool> <args>" for the compiler, assembler and linker.
+        counters = " ".join(shlex.quote(x) for x in counter_prefix("LOG", append=True)).replace("LOG", '"$LBENCH_TIMELOG"')
+        toolexec = write_script(os.path.join(wrapdir, "go", "toolexec"), "#!/bin/bash\n"
+                                "if [ -n \"$LBENCH_TIMELOG\" ]; then\n"
+                                f"  exec {counters} \"$@\"\n"
+                                "fi\n"
+                                "exec \"$@\"\n")
+        env["GOFLAGS"] = " ".join(x for x in (env.get("GOFLAGS", ""), f"-toolexec={toolexec}", flags) if x)
+        env["GOCACHE"] = os.path.join(wrapdir, "go", "cache")
+    elif lang == "python" and path:
+        bindir = os.path.join(wrapdir, "python", "bin")
+        os.makedirs(bindir, exist_ok=True)
+        link = os.path.join(bindir, "python3")
+        if os.path.lexists(link):
+            os.unlink(link)
+        os.symlink(os.path.abspath(shutil.which(path) or path), link)
+        env["PATH"] = bindir + os.pathsep + env.get("PATH", "")
+    return env
+
+
+def run_env(toolchains, wrapdir):
+    """Environment for running implementations: only an interpreter swap (Python) matters at run time."""
+    env = dict(os.environ)
+    if "python" in toolchains:
+        env["PATH"] = os.path.join(wrapdir, "python", "bin") + os.pathsep + env.get("PATH", "")
+    return env
+
+
+def retarget_d(build_sh, dc_path, kind):
+    """Rewrite a D build script to use compiler dc_path. Returns the new text or None."""
+    text = build_sh
+    new = re.sub(r"--compiler=(\"[^\"]*\"|'[^']*'|\S+)", f"--compiler={dc_path}", text)
+    # A compiler used as a command word: optionally a path, but never part of an
+    # option such as --compiler=..., which is handled above.
+    cmd_re = re.compile(r"(^|[\s;&|(]|exec\s)(?:[^\s=\-\"'][^\s=]*/)?(ldc2|ldmd2|dmd)(?=\s)", re.M)
+
+    def swap(m):
+        return f"{m.group(1)}\"{dc_path}\""
+    new = "".join(line if line.lstrip().startswith("#") else cmd_re.sub(swap, line)
+                  for line in new.splitlines(keepends=True))
+    if kind == "dmd":
+        new = re.sub(r"--boundscheck=", "-boundscheck=", new)
+        new = re.sub(r"(\s)-O[23s]?(\s)", r"\1-O\2", new)
+        new = re.sub(r"\s-mcpu=\S+|\s--?flto=\S+|\s--ffast-math", "", new)
+    else:
+        new = re.sub(r"(\s)-inline(\s)", r"\1-enable-inlining\2", new)
+        new = re.sub(r"(\s)-boundscheck=", r"\1--boundscheck=", new)
+    has_compiler = re.search(r"--compiler=", text) or any(
+        cmd_re.search(line) for line in text.splitlines() if not line.lstrip().startswith("#"))
+    return new if has_compiler else None
+
+
+# ---------------------------------------------------------------- measuring
+
+def counter_prefix(log, append=False):
+    """Command prefix that records the process's own instructions retired and cycles into `log`:
+    BSD /usr/bin/time -l on macOS, `perf stat` on Linux; empty when neither is available."""
+    if sys.platform == "darwin":
+        return ["/usr/bin/time", "-l"] + (["-a"] if append else []) + ["-o", log]
+    if shutil.which("perf"):
+        return (["perf", "stat", "-x", ",", "-e", "task-clock,instructions,cycles"]
+                + (["--append"] if append else []) + ["-o", log, "--"])
+    return []
+
+
+def parse_counter_log(text):
+    return parse_time_log(text) if sys.platform == "darwin" else parse_perf_stat(text)
+
+
+def timed(cmd, cwd, stdin_path=None, stdout_path=None, timeout=None, env=None):
+    """Run cmd with hardware counters. Returns a dict with rc, wall, cpu, instr, cycles, rss (bytes).
+
+    The child is reaped with a blocking os.wait4, so wall time is exact; Popen.wait(timeout) polls
+    with back-off up to 50 ms, which would bunch short runs at its poll instants. A timer enforces
+    the timeout by killing the process group, and rc is then None."""
+    with tempfile.NamedTemporaryFile("r", suffix=".counters", delete=False) as tf:
+        tpath = tf.name
+    fin = open(stdin_path, "rb") if stdin_path else subprocess.DEVNULL
+    fout = open(stdout_path, "wb") if stdout_path else subprocess.DEVNULL
+    start = time.perf_counter()
+    proc = subprocess.Popen(counter_prefix(tpath) + cmd, cwd=cwd, stdin=fin, stdout=fout,
+                            stderr=subprocess.DEVNULL, start_new_session=True, env=env)
+    killed = []
+
+    def kill():
+        killed.append(True)
+        try:
+            os.killpg(proc.pid, 9)
+        except ProcessLookupError:
+            pass
+    timer = threading.Timer(timeout, kill) if timeout else None
+    if timer:
+        timer.start()
+    _, status, usage = os.wait4(proc.pid, 0)
+    wall = time.perf_counter() - start
+    if timer:
+        timer.cancel()
+    proc.returncode = os.waitstatus_to_exitcode(status)
+    rc = None if killed else proc.returncode
+    for f in (fin, fout):
+        if hasattr(f, "close"):
+            f.close()
+    txt = open(tpath).read()
+    os.unlink(tpath)
+    counters = parse_counter_log(txt)
+    rss = usage.ru_maxrss if sys.platform == "darwin" else usage.ru_maxrss * 1024
+    return {"rc": rc, "wall": wall, "cpu": usage.ru_utime + usage.ru_stime,
+            "instr": float(counters["instr"]), "cycles": float(counters["cycles"]), "rss": float(rss)}
+
+
+def parse_perf_stat(text):
+    """Sum `perf stat -x ,` reports (one per run, possibly appended to one log)."""
+    instr = cycles = 0
+    cpu_ms = 0.0
+    runs = 0
+    for line in text.splitlines():
+        f = line.split(",")
+        if len(f) < 3 or line.startswith("#"):
+            continue
+        event = f[2].split(":")[0]
+        try:
+            v = float(f[0])
+        except ValueError:
+            v = 0.0
+        if event == "instructions":
+            instr += int(v)
+            runs += 1
+        elif event == "cycles":
+            cycles += int(v)
+        elif event == "task-clock":
+            cpu_ms += v
+    return {"invocations": runs, "instr": instr, "cycles": cycles, "cpu": round(cpu_ms / 1000.0, 6)}
+
+
+def parse_time_log(text):
+    """Sum the /usr/bin/time -l reports appended to one log, one per compiler invocation.
+
+    Instruction and cycle counts cover only the measured process itself, so the
+    compiler is measured directly (through a wrapper) rather than through dub or a shell."""
+    instr = [int(x) for x in re.findall(r"(\d+)\s+instructions retired", text)]
+    cycles = [int(x) for x in re.findall(r"(\d+)\s+cycles elapsed", text)]
+    cpu = sum(float(u) + float(sy) for u, sy in re.findall(r"([\d.]+) user\s+([\d.]+) sys", text))
+    return {"invocations": len(instr), "instr": sum(instr), "cycles": sum(cycles), "cpu": round(cpu, 6)}
+
+
+def compiler_wrapper(dc, where, extra=()):
+    """A counting wrapper named like the D compiler (dub infers the compiler kind from the name).
+    Flags in `extra` follow the build's own arguments, so they override them (e.g. -boundscheck=on
+    after -release)."""
+    name = "ldc2" if dc["kind"] == "ldc" else "dmd"
+    return counting_wrapper(dc["path"], os.path.join(where, name), extra)
+
+
+TIER_DIRS = {"short": "bench", "long": "bench-long"}
+
+
+def bench_cases(slug, tier="short"):
+    """A problem's benchmark inputs in one tier: short (bench/, the quick loop) or long (bench-long/,
+    each input at least 5 s for the fastest implementation)."""
+    tdir = os.path.join(ROOT, "problems", slug, TIER_DIRS[tier])
+    entries = os.listdir(tdir) if os.path.isdir(tdir) else []
+    dirs = sorted(d for d in entries if os.path.isdir(os.path.join(tdir, d, "input")))
+    if dirs:
+        return tdir, [(d, "dir") for d in dirs]
+    files = [(f, "stdin") for f in sorted(entries) if f.endswith(".in")]
+    if not files:
+        target, flag = ("bench", "") if tier == "short" else ("bench-long", " --long")
+        sys.exit(f"no {tier} benchmark data for {slug}: generate it once with `make {target}` "
+                 f"(or `python3 problems/{slug}/bench/gen_bench.py{flag}`)")
+    return tdir, files
+
+
+def effective_tier(slug, tier):
+    """The tier to run for one problem: the requested one, except that a problem with no long inputs (its
+    work is proportional to data size beyond the budget) falls back to its short inputs."""
+    if tier == "long" and not os.path.isdir(os.path.join(ROOT, "problems", slug, TIER_DIRS["long"])):
+        return "short"
+    return tier
+
+
+def suite_tier(suite):
+    return SUITES.get(suite, {}).get("tier", "long")
+
+
+def suite_cases(suite, slug, tier=None):
+    """The benchmark inputs a suite uses for one problem: all of them, or the one it names."""
+    tdir, cases = bench_cases(slug, tier or suite_tier(suite))
+    spec = SUITES.get(suite, {})
+    want = spec.get("inputs", {}).get(slug)
+    if want:
+        return [c for c in cases if c[0] == want]
+    return cases[:1] if spec.get("first_input") else cases
+
+
+def run_defaults(suite):
+    spec = SUITES.get(suite, {})
+    return {"reps": spec.get("reps", 3), "warmup": spec.get("warmup", True)}
+
+
+def run_case(run_sh, slug, tdir, name, mode, timeout, env=None):
+    """Run one benchmark input; returns (status, measurement)."""
+    pdir = os.path.join(ROOT, "problems", slug)
+    verifier = os.path.join(pdir, "verify.py")
+    if mode == "dir":
+        case = os.path.join(tdir, name)
+        out_dir = tempfile.mkdtemp(prefix="lbench_")
+        try:
+            m = timed([run_sh, os.path.join(case, "input"), out_dir], pdir, timeout=timeout, env=env)
+            if m["rc"] is None:
+                return "timeout", m
+            if m["rc"] != 0:
+                return "error", m
+            expected = os.path.join(case, "expected")
+            if os.path.exists(verifier):
+                v = subprocess.run([sys.executable, verifier, os.path.join(case, "input"), out_dir]
+                                   + ([expected] if os.path.isdir(expected) else []), capture_output=True)
+                return ("ok" if v.returncode == 0 else "wrong"), m
+            return ("ok" if run_tests.compare_trees(expected, out_dir) is None else "wrong"), m
+        finally:
+            shutil.rmtree(out_dir, ignore_errors=True)
+    in_path = os.path.join(tdir, name)
+    with tempfile.NamedTemporaryFile(suffix=".out", delete=False) as of:
+        out_path = of.name
+    try:
+        m = timed([run_sh], pdir, stdin_path=in_path, stdout_path=out_path, timeout=timeout, env=env)
+        if m["rc"] is None:
+            return "timeout", m
+        if m["rc"] != 0:
+            return "error", m
+        exp = in_path[:-3] + ".out"
+        if os.path.exists(verifier):
+            v = subprocess.run([sys.executable, verifier, in_path, out_path] + ([exp] if os.path.exists(exp) else []),
+                               capture_output=True)
+            return ("ok" if v.returncode == 0 else "wrong"), m
+        a = open(out_path, encoding="utf-8", errors="replace").read()
+        e = open(exp, encoding="utf-8").read()
+        return ("ok" if run_tests.normalize(a) == run_tests.normalize(e) else "wrong"), m
+    finally:
+        os.unlink(out_path)
+
+
+# ---------------------------------------------------------------- state
+
+def tag_dir(tag):
+    return os.path.join(STATE, "tags", tag)
+
+
+def build_dir(tag, root, lang, slug):
+    return os.path.join(STATE, "builds", tag, root.replace("/", "__"), lang, slug)
+
+
+def write_csv(path, rows, fields):
+    with open(path, "w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=fields)
+        w.writeheader()
+        w.writerows(rows)
+
+
+def read_csv(path):
+    return list(csv.DictReader(open(path))) if os.path.exists(path) else []
+
+
+# ---------------------------------------------------------------- commands
+
+def build_one(tag, root, lang, slug, toolchains):
+    src = os.path.join(ROOT, root, lang, slug)
+    dst = build_dir(tag, root, lang, slug)
+    shutil.rmtree(dst, ignore_errors=True)
+    shutil.copytree(src, dst, ignore=shutil.ignore_patterns(*BUILD_DIRS, "*.o", "*.a"))
+    for dp, _, fns in os.walk(dst):
+        for fn in fns:
+            p = os.path.join(dp, fn)
+            with open(p, "rb") as f:
+                head = f.read(8)
+            if head.startswith(MACHO):
+                os.unlink(p)
+    note = ""
+    log = os.path.join(dst, ".lbench-compile.log")
+    wrapdir = os.path.join(STATE, "wrap", tag)
+    tc = toolchains.get(lang)
+    if lang == "d":
+        # D build scripts name their compiler; route it (or the chosen one) through a counting wrapper.
+        bs = os.path.join(dst, "build.sh")
+        text = open(bs).read()
+        dc = tc or (toolchain_info("d", d_compiler_in(text)) if d_compiler_in(text) else None)
+        if dc:
+            wrap = compiler_wrapper(dc, os.path.join(wrapdir, "d", dc["kind"]), dc.get("flags", ()))
+            new = retarget_d(text, wrap, dc["kind"])
+            if new is None:
+                return {"root": root, "lang": lang, "slug": slug, "status": "build-failed",
+                        "note": "could not retarget build.sh"}
+            open(bs, "w").write(new)
+    env = build_env(lang, tc, wrapdir, log, dst)
+    # Each build starts from a fresh copy with no build cache, so it is a clean build.
+    m = timed(["/bin/bash", "-c", "ulimit -n 65536; exec ./build.sh"], dst, timeout=1800, env=env)
+    comp = parse_counter_log(open(log).read() if os.path.exists(log) else "")
+    if m["rc"] != 0:
+        p = subprocess.run(["/bin/bash", "-c", "ulimit -n 65536; ./build.sh"], cwd=dst, capture_output=True, text=True,
+                           env=env)
+        note = " ".join((p.stdout + p.stderr).split())[-300:]
+    return {"root": root, "lang": lang, "slug": slug, "status": "ok" if m["rc"] == 0 else "build-failed",
+            "wall": round(m["wall"], 3), "cpu": round(m["cpu"], 3), "instr": comp["instr"],
+            "compiler_cpu": comp["cpu"], "invocations": comp["invocations"], "note": note}
+
+
+def describe_toolchains(meta):
+    """One line naming a tag's chosen toolchains (or its D compiler, for tags recorded before toolchains)."""
+    tcs = meta.get("toolchains")
+    if tcs:
+        return "; ".join(f"{l}: {i.get('version', '?')}{' ' + i['git'] if i.get('git') else ''}"
+                         + (f" {' '.join(i['flags'])}" if i.get("flags") else "") for l, i in sorted(tcs.items()))
+    c = meta.get("compiler") or {}
+    return (c.get("version", "") + (" " + c["git"] if c.get("git") else "")) or "(default toolchains)"
+
+
+def machine():
+    if sys.platform == "darwin":
+        return subprocess.run(["sysctl", "-n", "machdep.cpu.brand_string"], capture_output=True, text=True).stdout.strip()
+    try:
+        for line in open("/proc/cpuinfo"):
+            if line.startswith("model name"):
+                return line.split(":", 1)[1].strip()
+    except OSError:
+        pass
+    return platform.processor() or platform.machine()
+
+
+def cmd_build(a):
+    sel = select(a.suite, set(a.problems.split(",")) if a.problems else None,
+                 set(a.langs.split(",")) if a.langs else None,
+                 [r for r in a.roots.split(",") if r] if a.roots else None)
+    chosen = parse_toolchains(a.toolchain or [])
+    if a.dc:
+        chosen["d"] = a.dc
+    flags = {k: shlex.split(v) for k, v in parse_toolchains(a.flags or []).items()}
+    if a.dflags:
+        flags["d"] = shlex.split(a.dflags)
+    toolchains = {lang: toolchain_info(lang, path) for lang, path in chosen.items()}
+    for lang, f in flags.items():
+        toolchains.setdefault(lang, toolchain_info(lang, DEFAULT_TOOLS.get(lang, "")) if lang != "d" else
+                              {"lang": "d", "path": "", "version": "as named by each build script", "git": "",
+                               "kind": "", "flags": []})
+        toolchains[lang]["flags"] = f
+    if "d" in toolchains and not toolchains["d"]["path"]:
+        sys.exit("--flags d=... needs --toolchain d=<compiler> (or --dc)")
+    os.makedirs(tag_dir(a.tag), exist_ok=True)
+    langs = sorted({lang for _, lang, _ in sel})
+    defaults = {lang: toolchain_info(lang, DEFAULT_TOOLS[lang]) for lang in langs
+                if lang not in toolchains and lang in DEFAULT_TOOLS}
+    meta = {"tag": a.tag, "suite": a.suite, "toolchains": toolchains, "default_toolchains": defaults,
+            "built": datetime.datetime.now().isoformat(timespec="seconds"), "machine": machine(),
+            "problems": a.problems or "", "langs": a.langs or "", "roots": a.roots or "", "note": a.note or ""}
+    json.dump(meta, open(os.path.join(tag_dir(a.tag), "meta.json"), "w"), indent=2)
+    print(f"building {len(sel)} implementations for tag '{a.tag}'"
+          + (f" with {describe_toolchains(meta)}" if toolchains else ""), flush=True)
+    if "go" in langs:
+        # Compile Go's standard library into the tag's build cache first, so each timed build
+        # compiles only its own packages (C++, Rust and D link against prebuilt standard libraries).
+        wrapdir = os.path.join(STATE, "wrap", a.tag)
+        shutil.rmtree(os.path.join(wrapdir, "go", "cache"), ignore_errors=True)
+        env = build_env("go", toolchains.get("go"), wrapdir, os.devnull, wrapdir)
+        env.pop("LBENCH_TIMELOG")
+        gobin = (toolchains.get("go") or {}).get("path") or "go"
+        subprocess.run([gobin, "build", "std"], env=env, capture_output=True)
+    rows = []
+    with ThreadPoolExecutor(max_workers=a.jobs) as ex:
+        for r in ex.map(lambda s: build_one(a.tag, s[0], s[1], s[2], toolchains), sel):
+            rows.append(r)
+            flag = "" if r["status"] == "ok" else "  BUILD FAILED " + r.get("note", "")[:120]
+            print(f"  {r['root']:18} {r['lang']:6} {r['slug']:12} {r.get('wall', 0):6.1f}s{flag}", flush=True)
+    write_csv(os.path.join(tag_dir(a.tag), "builds.csv"), rows,
+              ["root", "lang", "slug", "status", "wall", "cpu", "instr", "compiler_cpu", "invocations", "note"])
+    bad = sum(r["status"] != "ok" for r in rows)
+    print(f"built {len(rows) - bad}/{len(rows)}")
+    for lang in langs:
+        rs = [r for r in rows if r["lang"] == lang and r["status"] == "ok"]
+        print(f"  {lang:6} compile {sum(r['wall'] for r in rs):7.1f}s wall, "
+              f"{sum(r['instr'] for r in rs) / 1e9:8.2f}G compiler instructions over {len(rs)} builds")
+
+
+def cmd_run(a):
+    builds = [r for r in read_csv(os.path.join(tag_dir(a.tag), "builds.csv")) if r["status"] == "ok"]
+    if not builds:
+        sys.exit(f"no successful builds for tag '{a.tag}'; run `lbench build` first")
+    if a.problems:
+        keep = set(a.problems.split(","))
+        builds = [b for b in builds if b["slug"] in keep]
+    meta = json.load(open(os.path.join(tag_dir(a.tag), "meta.json")))
+    suite = meta.get("suite", "quick")
+    tier = a.tier or suite_tier(suite)
+    env = run_env(meta.get("toolchains") or {}, os.path.join(STATE, "wrap", a.tag))
+    d = run_defaults(suite)
+    a.reps = d["reps"] if a.reps is None else a.reps
+    a.warmup = d["warmup"] if a.warmup is None else a.warmup
+    rows = []
+    print(f"running {len(builds)} implementations on {tier} inputs, {a.reps} timed run(s) per input"
+          f"{' after a warm-up' if a.warmup else ''}", flush=True)
+    fields = ["root", "lang", "slug", "tier", "input", "status", "wall_min", "wall_med", "cpu_min", "instr_min",
+              "cycles_min", "rss_mb", "runs"]
+    for b in builds:
+        run_sh = os.path.join(build_dir(a.tag, b["root"], b["lang"], b["slug"]), "run.sh")
+        t = effective_tier(b["slug"], tier)
+        tdir, _ = bench_cases(b["slug"], t)
+        for name, mode in suite_cases(suite, b["slug"], t):
+            status, first = run_case(run_sh, b["slug"], tdir, name, mode, a.timeout, env)
+            samples = [first]
+            if status == "ok" and first["wall"] < a.slow:
+                extra = a.reps if a.warmup else a.reps - 1
+                if a.warmup:
+                    samples = []
+                for _ in range(extra):
+                    s, m = run_case(run_sh, b["slug"], tdir, name, mode, a.timeout, env)
+                    if s != "ok":
+                        status = s
+                        break
+                    samples.append(m)
+                samples = samples or [first]
+            walls = [s["wall"] for s in samples]
+            row = {"root": b["root"], "lang": b["lang"], "slug": b["slug"], "tier": t, "input": name, "status": status,
+                   "wall_min": round(min(walls), 4), "wall_med": round(statistics.median(walls), 4),
+                   "cpu_min": round(min(s["cpu"] for s in samples), 4),
+                   "instr_min": int(min(s["instr"] for s in samples)), "cycles_min": int(min(s["cycles"] for s in samples)),
+                   "rss_mb": round(max(s["rss"] for s in samples) / 1048576, 1), "runs": len(samples)}
+            rows.append(row)
+            # Saved after every input, so an interrupted run keeps what it measured.
+            write_csv(os.path.join(tag_dir(a.tag), "runs.csv"), rows, fields)
+            print(f"  {b['lang']:6} {b['slug']:12} {name[:34]:34} {status:7} {row['wall_min']:8.3f}s "
+                  f"{row['instr_min'] / 1e9:8.3f}G instr{'  (short tier)' if t != tier else ''}", flush=True)
+    write_csv(os.path.join(tag_dir(a.tag), "runs.csv"), rows, fields)
+    meta_p = os.path.join(tag_dir(a.tag), "meta.json")
+    meta = json.load(open(meta_p))
+    meta["ran"] = datetime.datetime.now().isoformat(timespec="seconds")
+    meta["tier"] = tier
+    meta["load"] = os.getloadavg()[0]
+    json.dump(meta, open(meta_p, "w"), indent=2)
+    ok = sum(r["status"] == "ok" for r in rows)
+    print(f"{ok}/{len(rows)} inputs correct; results in {tag_dir(a.tag)}")
+
+
+def gmean(xs):
+    xs = [x for x in xs if x > 0]
+    return math.exp(sum(math.log(x) for x in xs) / len(xs)) if xs else float("nan")
+
+
+METRICS = {"instr": "instr_min", "wall": "wall_min", "cpu": "cpu_min", "cycles": "cycles_min", "rss": "rss_mb"}
+
+
+def cmd_compare(a):
+    base_r = read_csv(os.path.join(tag_dir(a.base), "runs.csv"))
+    new_r = read_csv(os.path.join(tag_dir(a.new), "runs.csv"))
+    base_b = {(r["root"], r["lang"], r["slug"]): r for r in read_csv(os.path.join(tag_dir(a.base), "builds.csv"))}
+    new_b = {(r["root"], r["lang"], r["slug"]): r for r in read_csv(os.path.join(tag_dir(a.new), "builds.csv"))}
+    col = METRICS[a.metric]
+    key = lambda r: (r["root"], r["lang"], r["slug"], r["input"])
+    B = {key(r): r for r in base_r}
+    N = {key(r): r for r in new_r}
+    pairs, status_changes = [], []
+    for k in sorted(set(B) & set(N)):
+        b, n = B[k], N[k]
+        if b["status"] != n["status"]:
+            status_changes.append((k, b["status"], n["status"]))
+        if b["status"] == "ok" and n["status"] == "ok" and float(b[col]) > 0 and float(n[col]) > 0:
+            pairs.append((k, float(n[col]) / float(b[col])))
+    bm = {}
+    for tag in (a.base, a.new):
+        p = os.path.join(tag_dir(tag), "meta.json")
+        bm[tag] = json.load(open(p)) if os.path.exists(p) else {}
+    for tag in (a.base, a.new):
+        print(f"{tag:>12}: {describe_toolchains(bm[tag])}  ran {bm[tag].get('ran', '?')}  load {bm[tag].get('load', '?')}")
+    if not pairs:
+        print("no comparable results")
+        return
+    print(f"\nruntime {a.metric}: new/base geomean {gmean([p[1] for p in pairs]):.3f}x over {len(pairs)} inputs "
+          f"(lower is better)")
+    cb = [(k, float(new_b[k]["instr"]) / float(base_b[k]["instr"])) for k in set(base_b) & set(new_b)
+          if base_b[k]["status"] == "ok" and new_b[k]["status"] == "ok" and float(base_b[k]["instr"] or 0) > 0
+          and float(new_b[k]["instr"] or 0) > 0]
+    cw = [(k, float(new_b[k]["wall"]) / float(base_b[k]["wall"])) for k in set(base_b) & set(new_b)
+          if base_b[k]["status"] == "ok" and new_b[k]["status"] == "ok" and float(base_b[k]["wall"] or 0) > 0]
+    if cb:
+        print(f"compile instructions: new/base geomean {gmean([x for _, x in cb]):.3f}x over {len(cb)} builds; "
+              f"compile wall {gmean([x for _, x in cw]):.3f}x")
+    per = {}
+    for (root, lang, slug, inp), x in pairs:
+        per.setdefault((lang, slug), []).append(x)
+    print(f"\nper problem ({a.metric}, new/base):")
+    for (lang, slug), xs in sorted(per.items(), key=lambda kv: gmean(kv[1])):
+        g = gmean(xs)
+        mark = "  faster" if g < 1 - a.threshold else ("  SLOWER" if g > 1 + a.threshold else "")
+        print(f"  {lang:6} {slug:12} {g:6.3f}x{mark}")
+    worse = sorted([p for p in pairs if p[1] > 1 + a.threshold], key=lambda p: -p[1])[:a.top]
+    better = sorted([p for p in pairs if p[1] < 1 - a.threshold], key=lambda p: p[1])[:a.top]
+    for title, lst in (("largest regressions", worse), ("largest improvements", better)):
+        if lst:
+            print(f"\n{title} (beyond {100 * a.threshold:.0f}%):")
+            for (root, lang, slug, inp), x in lst:
+                print(f"  {x:6.3f}x  {lang} {slug} {inp}  [{root}]")
+    if status_changes:
+        print("\nCORRECTNESS CHANGES:")
+        for (root, lang, slug, inp), s0, s1 in status_changes:
+            print(f"  {lang} {slug} {inp} [{root}]: {s0} -> {s1}")
+    fails = [k for k in set(base_b) | set(new_b) if (base_b.get(k, {}).get("status") == "ok") != (new_b.get(k, {}).get("status") == "ok")]
+    for k in fails:
+        print(f"  BUILD STATUS CHANGED: {k}: {base_b.get(k, {}).get('status')} -> {new_b.get(k, {}).get('status')}")
+
+
+def cmd_show(a):
+    rows = read_csv(os.path.join(tag_dir(a.tag), "runs.csv"))
+    meta = json.load(open(os.path.join(tag_dir(a.tag), "meta.json")))
+    print(json.dumps(meta, indent=2))
+    per = {}
+    for r in rows:
+        if r["status"] == "ok":
+            per.setdefault((r["lang"], r["slug"]), []).append(r)
+    print(f"\n{'lang':6} {'problem':12} {'wall (s)':>9} {'instr (G)':>10} {'rss (MB)':>9}")
+    for (lang, slug), rs in sorted(per.items()):
+        print(f"{lang:6} {slug:12} {gmean([float(r['wall_min']) for r in rs]):9.3f} "
+              f"{gmean([float(r['instr_min']) for r in rs]) / 1e9:10.3f} {max(float(r['rss_mb']) for r in rs):9.1f}")
+    bad = [r for r in rows if r["status"] != "ok"]
+    for r in bad:
+        print(f"  {r['status']}: {r['lang']} {r['slug']} {r['input']} [{r['root']}]")
+
+
+def cmd_list(a):
+    d = os.path.join(STATE, "tags")
+    for t in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+        p = os.path.join(d, t, "meta.json")
+        m = json.load(open(p)) if os.path.exists(p) else {}
+        print(f"{t:20} {m.get('suite', ''):8} {m.get('ran', 'not run'):20} {describe_toolchains(m)}  {m.get('note', '')}")
+
+
+def cmd_suites(a):
+    for name, spec in SUITES.items():
+        print(f"{name:8} {len(select(name)):4} implementations  {spec['about']}")
+
+
+def cmd_ab(a):
+    if not os.path.exists(os.path.join(tag_dir(a.base), "runs.csv")):
+        sys.exit(f"base tag '{a.base}' has no results; build and run it first")
+    base_meta = json.load(open(os.path.join(tag_dir(a.base), "meta.json")))
+    a.suite = a.suite or base_meta.get("suite", "fast")
+    a.problems = a.problems or base_meta.get("problems", "")
+    a.langs = a.langs or base_meta.get("langs", "")
+    a.roots = a.roots or base_meta.get("roots", "")
+    cmd_build(a)
+    cmd_run(a)
+    a.new = a.tag
+    cmd_compare(a)
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="lbench", description=__doc__.split("\n")[0])
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    def common_build(p):
+        p.add_argument("--tag", required=True, help="name to save this build and its results under")
+        p.add_argument("--toolchain", action="append", metavar="LANG=PATH",
+                       help="build LANG with this toolchain instead of the default on PATH: a C++ compiler, rustc, "
+                       "a go binary, a Python interpreter or a D compiler; repeatable")
+        p.add_argument("--flags", action="append", metavar="LANG=FLAGS",
+                       help="extra compiler flags for LANG (CXXFLAGS, RUSTFLAGS, GOFLAGS; appended to D compiler "
+                       "invocations); repeatable")
+        p.add_argument("--dc", help="same as --toolchain d=PATH")
+        p.add_argument("--suite", default=None, choices=list(SUITES), help="implementation set (default fast)")
+        p.add_argument("--problems", default="", help="comma-separated problem names to restrict to")
+        p.add_argument("--langs", default="", help="comma-separated languages to restrict to")
+        p.add_argument("--roots", default="", help="comma-separated implementation roots to use instead of the suite's "
+                       "(e.g. runs-new/rep1); every implementation found there is included")
+        p.add_argument("--jobs", type=int, default=max(1, (os.cpu_count() or 2) // 2), help="parallel builds")
+        p.add_argument("--dflags", default="", help="same as --flags d=FLAGS")
+        p.add_argument("--note", default="", help="free-text note stored with the tag")
+
+    def common_run(p):
+        p.add_argument("--reps", type=int, default=None, help="timed runs per input (default: the suite's, 1 for fast, 3 otherwise)")
+        p.add_argument("--warmup", dest="warmup", action="store_true", default=None, help="discard a first, untimed run")
+        p.add_argument("--no-warmup", dest="warmup", action="store_false", help="count the first run too")
+        p.add_argument("--timeout", type=float, default=600.0, help="seconds per run")
+        p.add_argument("--tier", choices=list(TIER_DIRS), help="input tier: short (bench/) or long (bench-long/); "
+                       "default the suite's")
+        p.add_argument("--slow", type=float, default=15.0, help="inputs slower than this run only once")
+
+    def common_compare(p):
+        p.add_argument("--metric", default="instr", choices=list(METRICS), help="what to compare (default instr)")
+        p.add_argument("--threshold", type=float, default=0.02, help="relative change to flag (default 0.02)")
+        p.add_argument("--top", type=int, default=10, help="how many regressions/improvements to list")
+
+    p = sub.add_parser("suites", help="list implementation suites")
+    p.set_defaults(fn=cmd_suites)
+    p = sub.add_parser("build", help="build a suite (optionally with chosen toolchains) and save it under a tag")
+    common_build(p)
+    p.set_defaults(fn=lambda a: (setattr(a, "suite", a.suite or "fast"), cmd_build(a)))
+    p = sub.add_parser("run", help="run the benchmark inputs for a built tag")
+    p.add_argument("--tag", required=True)
+    p.add_argument("--problems", default="")
+    common_run(p)
+    p.set_defaults(fn=cmd_run)
+    p = sub.add_parser("compare", help="compare two tags")
+    p.add_argument("base")
+    p.add_argument("new")
+    common_compare(p)
+    p.set_defaults(fn=cmd_compare)
+    p = sub.add_parser("ab", help="build and run a new tag, then compare it with a base tag")
+    p.add_argument("--base", required=True)
+    common_build(p)
+    common_run(p)
+    common_compare(p)
+    p.set_defaults(fn=cmd_ab)
+    p = sub.add_parser("show", help="summarise one tag")
+    p.add_argument("tag")
+    p.set_defaults(fn=cmd_show)
+    p = sub.add_parser("list", help="list saved tags")
+    p.set_defaults(fn=cmd_list)
+    a = ap.parse_args()
+    a.fn(a)
+
+
+if __name__ == "__main__":
+    main()

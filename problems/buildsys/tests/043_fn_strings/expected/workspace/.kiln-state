@@ -1,0 +1,21 @@
+kiln-state 1
+step out/l0.txt
+cmd write("12 HELLO, WORLD hello, world 0\n")
+out out/l0.txt caf2ba2e1e9ad618
+end
+step out/l1.txt
+cmd write("[x y] [x] [] []\n")
+out out/l1.txt 42958a7ca4493404
+end
+step out/l2.txt
+cmd write("HeLLo, WorLd ba \n")
+out out/l2.txt e53a487f85c8752c
+end
+step out/l3.txt
+cmd write("true true false true true true true false\n")
+out out/l3.txt bbd9ec7166da7427
+end
+step out/l4.txt
+cmd write("ell|ld|ld||Hello, World|He|\n")
+out out/l4.txt b06068b8712ac5fd
+end

@@ -1,0 +1,12 @@
+11
+LIMIT !"#$%&'()*+,-./ BUY 10 1
+LIMIT :;<=>?@[\]^_`{|}~ SELL 20 1
+LIMIT 0123456789abcdefghijklmnopqrstuv BUY 10 1
+LIMIT BUY SELL 30 2
+LIMIT SELL BUY 9 2
+LIMIT BOOK SELL 9 3
+BOOK
+CANCEL !"#$%&'()*+,-./
+CANCEL sell
+REPLACE BUY 30 1
+BOOK

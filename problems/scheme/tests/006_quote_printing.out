@@ -1,0 +1,25 @@
+a
+(1 2 3)
+(1 . 2)
+(1 2 . 3)
+((1 2) (3 . 4) ())
+(a "b" #t #f 5 -5)
+(quote a)
+(quote a)
+(quote)
+(quote a b)
+(1 2 3)
+(1 2 . 3)
+(() ())
+((()))
+(#t . #f)
+(quote (quote x))
+(define (f x) (+ x 1))
+|weird|
+set!
+...
+("a\"b" "c\\d" "e\nf")
+5
+"s"
+(spaced out)
+(a b c)

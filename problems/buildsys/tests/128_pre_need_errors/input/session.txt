@@ -1,0 +1,43 @@
+edit src/root.txt
+@need ../x
+---
+build
+edit src/root.txt
+@need /abs/x
+---
+build
+edit src/root.txt
+@need src/a b.txt
+---
+build
+edit src/root.txt
+@need src/missing.txt
+---
+build
+edit src/root.txt
+ok
+@need src/mid.txt
+---
+build
+edit src/root.txt
+@need src/root.txt
+---
+build
+edit src/root.txt
+@need src/selfloop.txt
+---
+build
+edit src/root.txt
+@need src/cyc1.txt
+---
+build
+edit src/root.txt
+@need src/missing.txt
+@need ../later
+---
+build
+edit src/root.txt
+@need src/ok.txt
+@need src/missing.txt
+---
+build

@@ -1,0 +1,23 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "allOf": [
+      {
+        "properties": {
+          "foo": true
+        }
+      },
+      {
+        "unevaluatedProperties": false
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "always fails",
+      "data": {
+        "foo": 1
+      }
+    }
+  ]
+}

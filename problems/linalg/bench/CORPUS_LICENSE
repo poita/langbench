@@ -1,0 +1,21 @@
+Matrices in this directory come from the SuiteSparse Matrix Collection
+(https://sparse.tamu.edu), group HB: the Harwell-Boeing Collection assembled
+by Iain Duff, Roger Grimes and John Lewis at the Rutherford Appleton
+Laboratory and Boeing Computer Services.
+
+The SuiteSparse Matrix Collection licenses the matrices under the Creative
+Commons Attribution 4.0 International licence (CC BY 4.0), reproduced in
+LICENSE-CC-BY-4.0.txt (https://creativecommons.org/licenses/by/4.0/). It asks
+that the collection be cited:
+
+  T. A. Davis and Y. Hu, "The University of Florida Sparse Matrix
+  Collection", ACM Transactions on Mathematical Software, 38(1), 2011.
+
+The .mtx files in corpus/ are the unmodified Matrix Market files as
+downloaded from https://suitesparse-collection-website.herokuapp.com/MM/HB/<name>.tar.gz
+on 2026-09-21, with the original banner and comment blocks intact.
+
+Test and benchmark inputs either copy these files unchanged or adapt them
+(a principal submatrix, the symmetric part, an added diagonal, and similar);
+an adapted matrix carries a comment line naming the source matrix and
+stating the change.

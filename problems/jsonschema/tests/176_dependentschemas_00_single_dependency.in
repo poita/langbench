@@ -1,0 +1,67 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "dependentSchemas": {
+      "bar": {
+        "properties": {
+          "foo": {
+            "type": "integer"
+          },
+          "bar": {
+            "type": "integer"
+          }
+        }
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "valid",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "no dependency",
+      "data": {
+        "foo": "quux"
+      }
+    },
+    {
+      "description": "wrong type",
+      "data": {
+        "foo": "quux",
+        "bar": 2
+      }
+    },
+    {
+      "description": "wrong type other",
+      "data": {
+        "foo": 2,
+        "bar": "quux"
+      }
+    },
+    {
+      "description": "wrong type both",
+      "data": {
+        "foo": "quux",
+        "bar": "quux"
+      }
+    },
+    {
+      "description": "ignores arrays",
+      "data": [
+        "bar"
+      ]
+    },
+    {
+      "description": "ignores strings",
+      "data": "foobar"
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    }
+  ]
+}

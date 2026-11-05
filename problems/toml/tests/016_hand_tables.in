@@ -1,0 +1,14 @@
+decode
+[table-1]
+key1 = "some string"
+key2 = 123
+
+[table-2]
+key1 = "another string"
+
+[dog."tater.man"]
+type.name = "pug"
+
+[x.y.z.w]
+[x]
+a = 1

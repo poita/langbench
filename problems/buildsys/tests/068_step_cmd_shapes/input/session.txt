@@ -1,0 +1,89 @@
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ["src/a.txt", "src/b.txt"]
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd concat()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd count_lines()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd hash()
+}
+---
+build
+edit main.kiln
+step {
+    out ["out/z.txt", "out/y.txt"]
+    in "src/a.txt"
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    out "out/y.txt"
+    in "src/a.txt"
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    depfile "out/z.d"
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd preprocess()
+}
+---
+build
+edit main.kiln
+step {
+    out ["out/z.txt", "out/y.txt"]
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    depfile "out/z.d"
+    cmd preprocess()
+    cost 0
+}
+default "out/z.txt"
+---
+build

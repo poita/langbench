@@ -1,0 +1,27 @@
+'hello-world
+'a.b
+'1+
+'->
+'<=?
+'CamelCase
+(eq? 'abc 'ABC)
+(eq? 'abc 'abc)
+(symbol? 'x) (symbol? "x") (symbol? 5) (symbol? '())
+(number? 5) (number? -5) (number? "5") (number? '())
+(boolean? #t) (boolean? #f) (boolean? 0) (boolean? '())
+(string? "") (string? 's)
+(procedure? car) (procedure? 'car) (procedure? (lambda () 1))
+(define + -)
+(+ 10 3)
+(define (if-like c a b) (if c a b))
+(if-like #t 1 2)
+(symbol->string 'abc)
+(string-append (symbol->string 'foo) "-" (symbol->string 'bar))
+(list 'a 'b (list 'c 'd) "e" 'f)
+'(#t #f)
+'(1 . (2 3))
+(number->string (* 99 99))
+(pair? 'pair?)
+(define list 'not-a-procedure)
+list
+(list 1 2)

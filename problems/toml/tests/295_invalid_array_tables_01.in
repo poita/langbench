@@ -1,0 +1,5 @@
+decode
+# INVALID TOML DOC
+fruit = []
+
+[[fruit]] # Not allowed

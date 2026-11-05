@@ -1,0 +1,27 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "if": {
+      "prefixItems": [
+        {
+          "const": "a"
+        }
+      ]
+    },
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "valid in case if is evaluated",
+      "data": [
+        "a"
+      ]
+    },
+    {
+      "description": "invalid in case if is evaluated",
+      "data": [
+        "b"
+      ]
+    }
+  ]
+}

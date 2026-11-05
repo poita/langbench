@@ -1,0 +1,110 @@
+step 1: build (default) -j 1
+  error E_TYPE fn join element 0: expected str|int, got list
+step 2: edit main.kiln
+  ok size=29
+step 3: build (default) -j 1
+  error E_TYPE fn join element 1: expected str|int, got bool
+step 4: edit main.kiln
+  ok size=22
+step 5: build (default) -j 1
+  error E_TYPE fn map element 0: expected str, got int
+step 6: edit main.kiln
+  ok size=27
+step 7: build (default) -j 1
+  error E_TYPE fn map element 1: expected str, got int
+step 8: edit main.kiln
+  ok size=22
+step 9: build (default) -j 1
+  error E_TYPE fn sum element 1: expected int, got str
+step 10: edit main.kiln
+  ok size=19
+step 11: build (default) -j 1
+  error E_TYPE fn sum element 0: expected int, got list
+step 12: edit main.kiln
+  ok size=30
+step 13: build (default) -j 1
+  error E_TYPE fn filter element 1: expected str, got int
+step 14: edit main.kiln
+  ok size=28
+step 15: build (default) -j 1
+  error E_TYPE fn reject element 0: expected str, got bool
+step 16: edit main.kiln
+  ok size=30
+step 17: build (default) -j 1
+  error E_ARG fn replace: empty pattern
+step 18: edit main.kiln
+  ok size=23
+step 19: build (default) -j 1
+  error E_ARG fn split: empty separator
+step 20: edit main.kiln
+  ok size=19
+step 21: build (default) -j 1
+  error E_ARG fn int: bad integer
+step 22: edit main.kiln
+  ok size=18
+step 23: build (default) -j 1
+  error E_ARG fn int: bad integer
+step 24: edit main.kiln
+  ok size=18
+step 25: build (default) -j 1
+  error E_ARG fn int: bad integer
+step 26: edit main.kiln
+  ok size=16
+step 27: build (default) -j 1
+  error E_ARG fn int: bad integer
+step 28: edit main.kiln
+  ok size=36
+step 29: build (default) -j 1
+  error E_ARG fn int: bad integer
+step 30: edit main.kiln
+  ok size=18
+step 31: build (default) -j 1
+  error E_ARG fn first: empty list
+step 32: edit main.kiln
+  ok size=17
+step 33: build (default) -j 1
+  error E_ARG fn last: empty list
+step 34: edit main.kiln
+  ok size=18
+step 35: build (default) -j 1
+  error E_ARG fn range: negative
+step 36: edit main.kiln
+  ok size=17
+step 37: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 38: edit main.kiln
+  ok size=19
+step 39: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 40: edit main.kiln
+  ok size=19
+step 41: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 42: edit main.kiln
+  ok size=21
+step 43: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 44: edit main.kiln
+  ok size=20
+step 45: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 46: edit main.kiln
+  ok size=21
+step 47: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 48: edit main.kiln
+  ok size=22
+step 49: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 50: edit main.kiln
+  ok size=24
+step 51: build (default) -j 1
+  error E_ARG fn glob: bad pattern
+step 52: edit main.kiln
+  ok size=24
+step 53: build (default) -j 1
+  error E_ARG fn filter: bad pattern
+step 54: edit main.kiln
+  ok size=27
+step 55: build (default) -j 1
+  error E_ARG fn reject: bad pattern

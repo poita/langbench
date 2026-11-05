@@ -1,0 +1,24 @@
+[message]
+id 0004
+source "folded-boundary.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"simple boundary\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary" parts=2 preamble=8 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=27 adler32=96e60aa0 role=text
+  2 text/plain charset=us-ascii cte=7bit size=27 adler32=97980aa7 role=attachment
+
+[body]
+text 1 chars 27
+| implicitly typed plain text
+html none
+
+[attachments]
+2 type=text/plain filename=- size=27 adler32=97980aa7 file=parts/0004/002.bin

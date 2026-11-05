@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Roomy</title>
+  <id>https://roomy.example/</id>
+  <updated>2020-09-03T00:00:00Z</updated>
+  <link href="https://roomy.example/" rel="alternate"/>
+  <link href="https://roomy.example/feed.xml" rel="self"/>
+  <author>
+    <name>R. Oomy</name>
+  </author>
+  <entry>
+    <title>Roomy 2</title>
+    <id>https://roomy.example/posts/r2/</id>
+    <updated>2020-09-03T00:00:00Z</updated>
+    <link href="https://roomy.example/posts/r2/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Plenty of room.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Roomy 1</title>
+    <id>https://roomy.example/posts/r1/</id>
+    <updated>2020-09-02T00:00:00Z</updated>
+    <link href="https://roomy.example/posts/r1/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Plenty of room.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Roomy 0</title>
+    <id>https://roomy.example/posts/r0/</id>
+    <updated>2020-09-01T00:00:00Z</updated>
+    <link href="https://roomy.example/posts/r0/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Plenty of room.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

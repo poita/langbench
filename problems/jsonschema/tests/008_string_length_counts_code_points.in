@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "type": "string",
+    "minLength": 2,
+    "maxLength": 3
+  },
+  "tests": [
+    {
+      "description": "two astral code points",
+      "data": "💩💩"
+    },
+    {
+      "description": "one astral code point is too short",
+      "data": "💩"
+    },
+    {
+      "description": "three combining characters",
+      "data": "é̂"
+    },
+    {
+      "description": "four characters",
+      "data": "abcd"
+    }
+  ]
+}

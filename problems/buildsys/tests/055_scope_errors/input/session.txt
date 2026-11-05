@@ -1,0 +1,97 @@
+build
+edit main.kiln
+each i in [1] {
+    let i = 2
+}
+---
+build
+edit main.kiln
+rule r() {
+}
+rule r() {
+}
+---
+build
+edit main.kiln
+set y = 1
+---
+build
+edit main.kiln
+when true {
+    set z = 1
+}
+---
+build
+edit main.kiln
+let x = 1
+when true {
+    let x = 2
+}
+let x = 3
+---
+build
+edit main.kiln
+use nosuch()
+---
+build
+edit main.kiln
+rule r(a) {
+}
+use r(1, 2)
+---
+build
+edit main.kiln
+rule r(a) {
+}
+use r()
+use r(b = 1)
+---
+build
+edit main.kiln
+rule r(a, b) {
+}
+use r(1, a = 2)
+---
+build
+edit main.kiln
+rule r(a, b) {
+}
+use r(1)
+---
+build
+edit main.kiln
+rule r(a = undefined_name) {
+}
+use r()
+---
+build
+edit main.kiln
+when 1 {
+}
+---
+build
+edit main.kiln
+each x in "ab" {
+}
+---
+build
+edit main.kiln
+include 1
+---
+build
+edit main.kiln
+abort 1
+---
+build
+edit main.kiln
+rule r(a) {
+}
+use r(1, b = 2)
+---
+build
+edit main.kiln
+rule r(a, b = 1) {
+}
+use r(b = 2, a = 3)
+---
+build

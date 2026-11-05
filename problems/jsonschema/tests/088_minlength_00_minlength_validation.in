@@ -1,0 +1,28 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "minLength": 2
+  },
+  "tests": [
+    {
+      "description": "longer is valid",
+      "data": "foo"
+    },
+    {
+      "description": "exact length is valid",
+      "data": "fo"
+    },
+    {
+      "description": "too short is invalid",
+      "data": "f"
+    },
+    {
+      "description": "ignores non-strings",
+      "data": 1
+    },
+    {
+      "description": "one grapheme is not long enough",
+      "data": "💩"
+    }
+  ]
+}

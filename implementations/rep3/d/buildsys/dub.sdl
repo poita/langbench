@@ -1,0 +1,32 @@
+name "kiln"
+description "Kiln: an incremental build system simulator with a small build language (KBL)"
+authors "kiln contributors"
+license "MIT"
+copyright "Copyright (c) kiln contributors"
+targetPath "bin"
+importPaths "source"
+
+// The command-line tool (default): `dub build -b release --compiler=ldc2`.
+configuration "cli" {
+    targetType "executable"
+    targetName "kiln"
+    sourcePaths "source"
+    mainSourceFile "source/app.d"
+}
+
+// The reusable library, for use as a dub dependency.
+configuration "library" {
+    targetType "library"
+    targetName "kiln"
+    sourcePaths "source"
+    excludedSourceFiles "source/app.d"
+}
+
+// Unit tests live in tests/ and are kept out of the library sources.
+configuration "unittest" {
+    targetType "executable"
+    targetName "kiln-test"
+    sourcePaths "source" "tests"
+    excludedSourceFiles "source/app.d"
+    mainSourceFile "tests/runner.d"
+}

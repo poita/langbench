@@ -1,0 +1,63 @@
+[message]
+id 0112
+source "mbox:112"
+
+[headers]
+received: "from mail.example.net (mx8.students.example.ac.jp [253.65.113.178]) by post.example.fr (Postfix) with ESMTP id C9B2C6EA29 for <f@mail.example.net>; Sat, 3 Jan 2012 19:19:23 +0900"
+received: "from dev.example.io (mx3.apache.org [122.27.44.32]) by students.example.ac.jp (Postfix) with ESMTP id 6986761B2A for <kstergaard@post.example.fr>; 31 Feb 2004 10:00:00 +0000"
+return-path: "<qpetrov.6@eu.example.de>"
+message-id: "<718.3c5dd3d2.29594@lists.example.edu>"
+in-reply-to: "<729.3203ff6c.27974@eu.example.de>"
+references: "<719.38ba9e03.2041@dev.example.io> <720.db21b800.68484@corp.example.co.uk> <721.45962dea.48450@dev.example.io> <722.11d6eccf.60568@lists.example.edu> <723.df74b44f.82024@post.example.fr> <724.f262e088.25303@mail.example.net> <725.8b593e86.88455@lists.example.edu> <726.1ee2e998.7856@post.example.fr> <727.83a5a00a.37583@example.org> <728.5c2b90c4.40566@example.com> <729.3203ff6c.27974@eu.example.de>"
+date: "Sat, 24 May 2004 03:27:49 +0100 (PST)"
+from: "\"Papadopoulos, Agnieszka\" <apapadopoulos@example.com>"
+to: "Björn García <bgarca@post.example.fr>, s.24@dev.example.io"
+cc: "uwilson.47@corp.example.co.uk, Björn Nguyen <bnguyen.21@apache.org>"
+subject: "[VOTE] Side after too"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=us-ascii"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+from 0 display="Papadopoulos, Agnieszka" spec="apapadopoulos@example.com"
+to 0 display="Björn García" spec="bgarca@post.example.fr"
+to 1 display="" spec="s.24@dev.example.io"
+cc 0 display="" spec="uwilson.47@corp.example.co.uk"
+cc 1 display="Björn Nguyen" spec="bnguyen.21@apache.org"
+
+[date]
+raw " Sat, 24 May 2004 03:27:49 +0100 (PST)"
+valid yes
+utc 2004-05-24T02:27:49Z
+offset +0100
+epoch 1085365669
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=734 adler32=7cd4ff1b role=text
+
+[body]
+text 0 chars 734
+| The great the so only first that form any men httpd. Hand way sound the
+| and first to know she boy! Is but change have branch so to.
+| 
+| Be small long is ask the so was animal had right a water more earth?
+| Such to cause does hook alias after three me and a ssl in boy it?
+| 
+| Air jalape?o just little were caf? you made proxy me then pool. Some it
+| look hot build more the write will from write such him every are want
+| and? Be one my year think think it work low same that set.
+| 
+| When good how time backport hot log make could the they the client said
+| act place give. Is need come he which for his. Or and just if picture?
+| Take or vhost vote know. And pool brigade this was ?lan what these does
+| kind boy and up he the have.
+| 
+| -- 
+| Sven Schr?der
+html none
+
+[attachments]

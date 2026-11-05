@@ -1,0 +1,19 @@
+create src/a.txt
+alpha
+---
+build
+create src/b.txt
+beta
+---
+build
+touch src/a.txt
+build
+edit src/a.txt
+ALPHA
+more
+---
+build
+delete src/b.txt
+build
+clean
+build

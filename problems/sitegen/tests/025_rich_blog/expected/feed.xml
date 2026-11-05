@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>The Rich Blog</title>
+  <id>https://rich.example/site/</id>
+  <updated>2022-05-20T00:00:00Z</updated>
+  <link href="https://rich.example/site/" rel="alternate"/>
+  <link href="https://rich.example/site/feed.xml" rel="self"/>
+  <author>
+    <name>Rich Text</name>
+  </author>
+  <entry>
+    <title>Release 1.0</title>
+    <id>https://rich.example/site/posts/release-1-0/</id>
+    <updated>2022-05-20T00:00:00Z</updated>
+    <link href="https://rich.example/site/posts/release-1-0/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Version 1.0 is out.&lt;/p&gt;
+&lt;p&gt;Changes since 0.9:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;pagination on the index&lt;/li&gt;
+&lt;li&gt;Atom feed&lt;/li&gt;
+&lt;li&gt;tag pages&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;Upgrade with:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;pip install --upgrade sitegen
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Thanks to everybody who sent patches.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>A note on typography</title>
+    <id>https://rich.example/site/posts/a-note-on-typography/</id>
+    <updated>2022-04-02T00:00:00Z</updated>
+    <link href="https://rich.example/site/posts/a-note-on-typography/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Three rules:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;one typeface is usually enough&lt;/li&gt;
+&lt;li&gt;measure beats size&lt;/li&gt;
+&lt;li&gt;whitespace is not empty&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;&lt;img src="/img/pixel.png" alt="A diagram" title="the diagram" /&gt;&lt;/p&gt;
+&lt;p&gt;Read the classics if you disagree.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

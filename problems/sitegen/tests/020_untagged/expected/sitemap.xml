@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://example.com/</loc>
+  </url>
+  <url>
+    <loc>https://example.com/page/2/</loc>
+  </url>
+  <url>
+    <loc>https://example.com/posts/explicit-empty/</loc>
+    <lastmod>2020-07-09</lastmod>
+  </url>
+  <url>
+    <loc>https://example.com/posts/n3/</loc>
+    <lastmod>2020-07-04</lastmod>
+  </url>
+  <url>
+    <loc>https://example.com/posts/n2/</loc>
+    <lastmod>2020-07-03</lastmod>
+  </url>
+  <url>
+    <loc>https://example.com/posts/n1/</loc>
+    <lastmod>2020-07-02</lastmod>
+  </url>
+  <url>
+    <loc>https://example.com/posts/n0/</loc>
+    <lastmod>2020-07-01</lastmod>
+  </url>
+  <url>
+    <loc>https://example.com/tags/</loc>
+  </url>
+</urlset>

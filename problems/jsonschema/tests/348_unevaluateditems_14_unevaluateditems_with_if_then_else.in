@@ -1,0 +1,76 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "const": "foo"
+      }
+    ],
+    "if": {
+      "prefixItems": [
+        true,
+        {
+          "const": "bar"
+        }
+      ]
+    },
+    "then": {
+      "prefixItems": [
+        true,
+        true,
+        {
+          "const": "then"
+        }
+      ]
+    },
+    "else": {
+      "prefixItems": [
+        true,
+        true,
+        true,
+        {
+          "const": "else"
+        }
+      ]
+    },
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "when if matches and it has no unevaluated items",
+      "data": [
+        "foo",
+        "bar",
+        "then"
+      ]
+    },
+    {
+      "description": "when if matches and it has unevaluated items",
+      "data": [
+        "foo",
+        "bar",
+        "then",
+        "else"
+      ]
+    },
+    {
+      "description": "when if doesn't match and it has no unevaluated items",
+      "data": [
+        "foo",
+        42,
+        42,
+        "else"
+      ]
+    },
+    {
+      "description": "when if doesn't match and it has unevaluated items",
+      "data": [
+        "foo",
+        42,
+        42,
+        "else",
+        42
+      ]
+    }
+  ]
+}

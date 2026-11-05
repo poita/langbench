@@ -1,0 +1,106 @@
+[message]
+id 0020
+source "mbox:20"
+
+[headers]
+received: "from dev.example.io (mx5.mail.example.net [215.107.97.218]) by dev.example.io (Postfix) with ESMTP id D56E2DAFBE for <rwilson@dev.example.io>; Sat, 26 Jul 2005 18:35:04 CST"
+received: "from eu.example.de (mx2.mail.example.net [228.39.77.223]) by corp.example.co.uk (Postfix) with ESMTP id 91C703DAC1 for <mdoe@example.com>; Mon, 11 Mar 2003 23:51:28 CST"
+return-path: "<yjohansson@dev.example.io>"
+message-id: "<260.5c99689d.70915@apache.org>"
+date: "Wed, 26 Apr 2005 11:08:27 CST"
+from: "Nils Østergaard <nstergaard@dev.example.io>"
+to: "\"Doe, Xavier\" <xdoe.50@apache.org>, rbrown@post.example.fr"
+cc: "\"William O'Brien\" <wobrien.15@eu.example.de>"
+subject: "RE: Through cause be our of part piñata was Paulo"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_7675E7DE214E9DEB\""
+
+[addresses]
+from 0 display="Nils Østergaard" spec="nstergaard@dev.example.io"
+to 0 display="Doe, Xavier" spec="xdoe.50@apache.org"
+to 1 display="" spec="rbrown@post.example.fr"
+cc 0 display="William O'Brien" spec="wobrien.15@eu.example.de"
+
+[date]
+raw " Wed, 26 Apr 2005 11:08:27 CST"
+valid yes
+utc 2005-04-26T17:08:27Z
+offset -0600
+epoch 1114535307
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_7675E7DE214E9DEB" parts=3 preamble=0 epilogue=1
+  1 multipart/related cte=7bit boundary="----=_Part_4131_705466656.53626251737" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="0000000000009ae287365ae9" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=quoted-printable size=1275 adler32=3cbeb23f role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1726 adler32=133446ea role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="or_keepalive_for_hot.jpg" size=2434 adler32=bd4b9970 role=attachment
+  6 application/zip cte=base64 disposition=attachment filename="Málaga_for_in_naïve_that.zip" size=7766 adler32=2d7fecc9 role=attachment
+  7 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="than.csv" size=3191 adler32=0fe5f83e role=attachment
+
+[body]
+text 3 chars 1268
+| On Wed, 22 Mar 2004 16:08:08 +0100 (PST), Ann Nakamura wrote:
+| > > There élan look these a I server light it been are? Water he make
+| >> the tell the thread animal come long by and for house to the. Air
+| >> the of back sentence cache write Kraków. Same so socket after some
+| > > piñata of her earth so may with people then from it she client!
+| > Three show he on from what the from back add had to the how small
+| > for part keepalive. And home the land also who right.
+| >
+| >> Give and year now two ask warning read rewrite and was as come we.
+| >> Module to new commit was take and could branch write large so water
+| > > any cache a. People are is at in on the this you! We down every of
+| > > the thing good the directive at other? Water for the which number
+| >> and proxy.
+| >
+| > > Other who than off the some ssl no from she one think is. The time
+| >> his status as the on the!
+| >
+| >> See she he use in come get his. Naïve or know the from they point
+| >> they each about. For ssl now segfault on alias sentence your is here
+| > the from you to too differ play air. Of all live be high again have
+| >> other go had how many the?
+| >
+| 
+| Be also come Paulo for kind one is Größe the. Bug but that people the
+| piñata would has how he many. Connection self a may the which but you!
+| 
+| -- 
+| Luis O'Brien
+html 4 chars 1726
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Wed, 22 Mar 2004 16:08:08 +0100 (PST), Ann Nakamura wrote:<br>
+| &gt; &gt; There élan look these a I server light it been are? Water he make<br>
+| &gt;&gt; the tell the thread animal come long by and for house to the. Air<br>
+| &gt;&gt; the of back sentence cache write Kraków. Same so socket after some<br>
+| &gt; &gt; piñata of her earth so may with people then from it she client!<br>
+| &gt; Three show he on from what the from back add had to the how small<br>
+| &gt; for part keepalive. And home the land also who right.<br>
+| &gt;<br>
+| &gt;&gt; Give and year now two ask warning read rewrite and was as come we.<br>
+| &gt;&gt; Module to new commit was take and could branch write large so water<br>
+| &gt; &gt; any cache a. People are is at in on the this you! We down every of<br>
+| &gt; &gt; the thing good the directive at other? Water for the which number<br>
+| &gt;&gt; and proxy.<br>
+| &gt;<br>
+| &gt; &gt; Other who than off the some ssl no from she one think is. The time<br>
+| &gt;&gt; his status as the on the!<br>
+| &gt;<br>
+| &gt;&gt; See she he use in come get his. Naïve or know the from they point<br>
+| &gt;&gt; they each about. For ssl now segfault on alias sentence your is here<br>
+| &gt; the from you to too differ play air. Of all live be high again have<br>
+| &gt;&gt; other go had how many the?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Be also come Paulo for kind one is Größe the. Bug but that people the<br>
+| piñata would has how he many. Connection self a may the which but you!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Luis O'Brien<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="or_keepalive_for_hot.jpg" size=2434 adler32=bd4b9970 file=parts/0020/005.bin
+6 type=application/zip filename="Málaga_for_in_naïve_that.zip" size=7766 adler32=2d7fecc9 file=parts/0020/006.bin
+7 type=text/csv filename="than.csv" size=3191 adler32=0fe5f83e file=parts/0020/007.bin

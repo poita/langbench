@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "propertyNames": {
+      "maxLength": 1
+    },
+    "unevaluatedProperties": {
+      "type": "number"
+    }
+  },
+  "tests": [
+    {
+      "description": "allows only number properties",
+      "data": {
+        "a": 1
+      }
+    },
+    {
+      "description": "string property is invalid",
+      "data": {
+        "a": "b"
+      }
+    }
+  ]
+}

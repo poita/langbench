@@ -1,0 +1,6 @@
+r(1). r(2).
+p(X) :- r(X), not never(X).
+q(X) :- r(X), not never(X, X).
+?- p(X).
+?- q(X).
+?- never(X).

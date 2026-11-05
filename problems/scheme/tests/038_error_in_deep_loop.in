@@ -1,0 +1,4 @@
+(define (loop i) (if (= i 500000) (car i) (loop (+ i 1))))
+(display "start")
+(newline)
+(loop 0)

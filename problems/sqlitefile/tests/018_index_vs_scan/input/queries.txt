@@ -1,0 +1,9 @@
+.schema emp
+SELECT emp_id,dept,salary FROM emp WHERE dept = 'hr' ORDER BY salary DESC LIMIT 10
+SELECT emp_id FROM emp WHERE manager IS NULL LIMIT 20
+SELECT emp_id,grade FROM emp ORDER BY grade LIMIT 15
+SELECT emp_id,grade FROM emp ORDER BY grade DESC LIMIT 15
+SELECT emp_id,dept FROM emp WHERE dept IS NULL LIMIT 25
+SELECT name,weight FROM tag WHERE weight >= 150
+COUNT tag
+SELECT * FROM seq

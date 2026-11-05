@@ -1,0 +1,8 @@
+{
+  "name": "langbench",
+  "tags": ["a", "b", "c"],
+  "nested": {"z": {"y": {"x": [1, [2, [3, {}]]]}}},
+  "count": 3,
+  "ok": true,
+  "nothing": null
+}

@@ -1,0 +1,24 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "maximum": 300
+  },
+  "tests": [
+    {
+      "description": "below the maximum is valid",
+      "data": 299.97
+    },
+    {
+      "description": "boundary point integer is valid",
+      "data": 300
+    },
+    {
+      "description": "boundary point float is valid",
+      "data": 300.0
+    },
+    {
+      "description": "above the maximum is invalid",
+      "data": 300.5
+    }
+  ]
+}

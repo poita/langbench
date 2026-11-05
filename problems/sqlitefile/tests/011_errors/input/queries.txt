@@ -1,0 +1,13 @@
+SELECT * FROM nosuch
+SELECT nope FROM people
+COUNT nosuch
+INDEX nosuchindex 1
+SELECT * FROM people WHERE
+SELECT * FROM people ORDER
+SELECT FROM people
+DROP TABLE people
+.dump
+SELECT * FROM people LIMIT x
+SELECT * FROM people WHERE age == 3
+.schema nosuch
+SELECT * FROM people WHERE age = 999

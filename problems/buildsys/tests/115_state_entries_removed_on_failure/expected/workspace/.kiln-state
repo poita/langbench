@@ -1,0 +1,9 @@
+kiln-state 1
+step out/late.txt
+cmd write("late\n")
+out out/late.txt 9ee6b4ec38340ab1
+end
+step out/ok.txt
+cmd write("ok\n")
+out out/ok.txt 1a19f91921d9561f
+end

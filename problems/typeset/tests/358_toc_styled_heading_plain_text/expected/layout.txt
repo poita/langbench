@@ -1,0 +1,25 @@
+layout 1
+pages 2
+page 1 i 200000 120000 20000 20000 160000 80000
+  text body sans-bold 20000 20000 35460 82500 "Contents"
+  text body serif 10000 20000 59630 4920 "1"
+  text body serif 10000 30920 59630 19210 "Bold"
+  text body serif 10000 52670 59630 5520 "it"
+  text body serif 10000 60730 59630 18860 "nbsp"
+  text body serif 10000 82130 59630 12770 "esc"
+  text body serif 10000 97440 59630 14600 "{x}"
+  text body serif 10000 114580 59630 26580 "discret"
+  text body serif 10000 20000 73630 22650 "mono"
+  text body serif 10000 45190 73630 27200 "spaced"
+  text body serif 10000 75940 73630 96140 "......................................"
+  text body serif 10000 175080 73630 4920 "1"
+page 2 1 200000 120000 20000 20000 160000 80000
+  text body sans-bold 20000 20000 35460 11400 "1"
+  text body sans-bold 20000 37400 35460 44620 "Bold"
+  text body sans-bold-italic 20000 88060 35460 12660 "it"
+  text body sans-bold 20000 106760 35460 42980 "nbsp"
+  text body sans-bold 20000 155780 35460 29560 "esc"
+  text body sans-bold 20000 191380 35460 34060 "{x}"
+  text body sans-bold 20000 231480 35460 61420 "discret"
+  text body mono 20000 298940 35460 48000 "mono"
+  text body sans-bold 20000 352980 35460 62580 "spaced"

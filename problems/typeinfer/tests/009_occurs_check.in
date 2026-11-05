@@ -1,0 +1,15 @@
+fun x -> x x;;
+fun f -> f f;;
+let rec f x = f;;
+let rec g x = (g, x);;
+fun x -> [x; [x]];;
+fun x -> (x, x) :: x;;
+fun f x -> f (f) x;;
+(let omega = fun x -> x x in omega);;
+fun x -> x :: x;;
+fun f -> f (fun x -> f);;
+fun x -> (x, x x);;
+let rec loop x = loop;;
+fun x -> let y = x in y y;;
+(let f x = x x in f);;
+fun f -> (fun x -> f (x x)) (fun x -> f (x x));;

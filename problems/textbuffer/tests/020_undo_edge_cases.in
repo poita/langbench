@@ -1,0 +1,60 @@
+1
+ab
+undo
+redo
+print
+insert x
+undo
+delete
+print
+redo
+print
+undo
+goto 0 2
+delete-forward
+print
+redo
+print
+undo
+move end
+move left
+add-cursor 0 0
+print
+redo
+print
+undo
+goto 0 1
+insert Q
+redo
+print
+undo
+undo
+print
+goto 0 2
+add-cursor 0 0
+delete
+print
+undo
+print
+redo
+print
+goto 0 0
+add-cursor 0 2
+delete-forward
+print
+undo
+print
+redo
+print
+insert a\nb
+goto 1 0
+delete
+print
+undo
+print
+undo
+print
+redo
+print
+redo
+print

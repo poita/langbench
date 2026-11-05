@@ -1,0 +1,77 @@
+[message]
+id 0057
+source "mbox:57"
+
+[headers]
+received: "from students.example.ac.jp (mx6.post.example.fr [105.122.4.149]) by corp.example.co.uk (Postfix) with ESMTP id 719F57A995 for <nnakamura.74@students.example.ac.jp>; 27 MAY 24 19:16 -0800"
+received: "from eu.example.de (mx9.post.example.fr [147.100.246.232]) by dev.example.io (Postfix) with ESMTP id 7E7C2C9314 for <nakamura@post.example.fr>; fri,10 dec 2005 10:5:34 (comment (nested)) -0000"
+return-path: "<emller.19@post.example.fr>"
+message-id: "<578.8136874b.92466@dev.example.io>"
+in-reply-to: "<580.7a7529a3.76535@example.com>"
+references: "<579.ec547a2e.31229@mail.example.net> <580.7a7529a3.76535@example.com>"
+date: "Wed, 19 Feb 2009 08:54:51 -0330 (GMT)"
+from: "François Johansson <fjohansson.64@students.example.ac.jp>"
+to: "Luis Johansson <ljohansson@corp.example.co.uk>,\tajohansson.42@post.example.fr (Agnieszka Johansson)"
+cc: "Pierre Wilson <pwilson@eu.example.de>, Tomás 山田 <t.24@example.org>"
+subject: "[VOTE] The most the much to year with"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_8b1726fd9fd2ceaf00005b26ac3a3d14\""
+
+[addresses]
+from 0 display="François Johansson" spec="fjohansson.64@students.example.ac.jp"
+to 0 display="Luis Johansson" spec="ljohansson@corp.example.co.uk"
+to 1 display="" spec="ajohansson.42@post.example.fr"
+cc 0 display="Pierre Wilson" spec="pwilson@eu.example.de"
+cc 1 display="Tomás 山田" spec="t.24@example.org"
+
+[date]
+raw " Wed, 19 Feb 2009 08:54:51 -0330 (GMT)"
+valid yes
+utc 2009-02-19T12:24:51Z
+offset -0330
+epoch 1235046291
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_8b1726fd9fd2ceaf00005b26ac3a3d14" parts=2 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="simple boundary 340" parts=2 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="00000000000023fa819aea30" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=utf-8 cte=quoted-printable size=430 adler32=54ae86a1 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=722 adler32=4e71e803 role=html
+    5 image/png cte=base64 disposition=attachment filename="Ørsted_home_write_his.png" size=840 adler32=cf519c0c role=attachment
+  6 application/pdf cte=base64 disposition=attachment filename="hook.pdf" size=7937 adler32=347e375b role=attachment
+
+[body]
+text 3 chars 429
+| Write part her turn it go tell he your back man it get he the many our
+| are? Through to also place the and just there no can she timeout said
+| was home is. Request any there bug log an of then of these the to server
+| was. Was did many get line the more low said!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Sven Østergaard
+html 4 chars 722
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Write part her turn it go tell he your back man it get he the many our<br>
+| are? Through to also place the and just there no can she timeout said<br>
+| was home is. Request any there bug log an of then of these the to server<br>
+| was. Was did many get line the more low said!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Sven Østergaard<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="Ørsted_home_write_his.png" size=840 adler32=cf519c0c file=parts/0057/005.bin
+6 type=application/pdf filename="hook.pdf" size=7937 adler32=347e375b file=parts/0057/006.bin

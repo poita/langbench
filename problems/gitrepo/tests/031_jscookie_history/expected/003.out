@@ -1,0 +1,100 @@
+dd0d558b067da8fbf8d080ee09ff24247df71973 dependabot[bot] 1784583148 Bump actions/setup-node from 6.4.0 to 7.0.0
+cfd0f9a5eed1bd69e7080ff903070da300092e29 dependabot[bot] 1784323968 Bump prettier from 3.8.1 to 3.9.5
+31d94fc168b6f2b21600241f2bb528225e9be7d8 dependabot[bot] 1784310384 Bump eslint from 10.5.0 to 10.6.0
+91e57302b7f3d2c6092e11a766c6a8e8f81c0d38 dependabot[bot] 1784310166 Bump rollup from 4.61.0 to 4.62.2
+c9e748f49411fd0c47ca26db0d54c95170dd8fea dependabot[bot] 1784309958 Bump globals from 17.6.0 to 17.7.0
+cc8cc3e991bf665bac30421d064cd079798b4579 dependabot[bot] 1784309791 Bump browserstack-node-sdk from 1.56.1 to 1.63.2
+0f0853fe53c431182c4a975857926f538c2073d4 dependabot[bot] 1784309627 Bump selenium-webdriver from 4.44.0 to 4.45.0
+6b396d562e66b2d2bae2879f8c9e6eef84a3f91d dependabot[bot] 1784237563 Bump actions/stale from 10.3.0 to 10.4.0
+35f9e8a56a62c2b164e9ff7da7bae63d19dfa08c dependabot[bot] 1782336758 Bump actions/checkout from 6.0.2 to 7.0.0
+db8c4d3cbe1dd3a374f53ed21acb1fd01b1d2dc9 dependabot[bot] 1781904754 Bump eslint from 10.4.0 to 10.5.0
+0c113724311a8f2d3c95193e6bfe54c4db468971 dependabot[bot] 1781559261 Bump browserstack-node-sdk from 1.55.0 to 1.56.1
+98494f5bf51391a603bdbc4265939619159199e8 dependabot[bot] 1780968703 Bump rollup from 4.60.0 to 4.61.0
+79c88cb9e4711ac97da3ccd661c0bbd4df84ad51 dependabot[bot] 1780968406 Bump qunit from 2.25.0 to 2.26.0
+935e08d92f0d1f25433f1856e6a1943e0d629d01 dependabot[bot] 1780967759 Bump the npm_and_yarn group across 1 directory with 2 updates
+b008288e6a494c312f366eb3bbaf357fd78f04aa dependabot[bot] 1780954382 Bump release-it from 20.0.0 to 20.2.0
+d40a7e6df4832065abb578d89271d0eb9dec044c Klaus Hartl 1780235673 Delete orphaned test file
+13e4ac8d7451588a9056868e9e4cee65d8737f22 Klaus Hartl 1780058869 Update release process description
+49a660964a0b5f3f5ca4a750476ffd8172dde908 Klaus Hartl 1780051823 Revert "Disable Node deprecation DEP0044 for release workflow"
+4ddeabd6438f603e8bdbd5fe9b03b2a25c91cc55 dependabot[bot] 1780053003 Bump browserstack-node-sdk from 1.53.0 to 1.55.0
+faa03d1f34132ce03ecc0a087865e1a09cadce06 dependabot[bot] 1779845348 Bump actions/stale from 10.2.0 to 10.3.0
+0ec404a9dba9f7c76bc8159205a6302a78606fe0 dependabot[bot] 1780052831 Bump eslint from 10.3.0 to 10.4.0
+2c87940531f4650141571235e863f40699a94c2d dependabot[bot] 1780052688 Bump @tootallnate/once in the npm_and_yarn group across 1 directory
+84ffd7826bd0b7708df50e605c6bbddaac8a20fe dependabot[bot] 1780052516 Bump selenium-webdriver from 4.43.0 to 4.44.0
+d7a10966e3f2cbcbfa96e34e7544d23aab9e3372 Release 1780051899 Craft v3.0.8 release
+248e685e20c7aa9553453f0084f14a62173462d2 Klaus Hartl 1780051432 Use existing Chrome with puppeteer
+fc04269d83cae5536c08fdb71c9fd1d35e148f7a Klaus Hartl 1780046865 Remove QUnit related workaround in Grunt config
+265a6853d04eefa6f7a4d8acdd118d3f5c4dddc3 Klaus Hartl 1780050241 Tidy up package lock file
+478e59129f8f1e5c80fc71fecd37b04cd8ed1575 Klaus Hartl 1780039204 Disable Node deprecation DEP0044 for release workflow
+331d5240db232da6748abbdde7a35823f681e9a7 Klaus Hartl 1779973161 Fix node version config for E2E test job
+11d773d413f680a4ccf23a5375e82fa14df1b7a7 Klaus Hartl 1779960183 Ensure ECMAScript compatibility
+d78864600f3ee9c3780c3f3d0072342beb722f45 Klaus Hartl 1779948233 Remove `engines` property from package
+e7d9a4dff0d5ebc51a200819e3ab3a2dbe87979a Klaus Hartl 1779948076 Fix typo in test assertion message
+b5fca24b9bc03b20e8751f7eea6c14c40095f7e8 Klaus Hartl 1778910797 Make credentials use explicit in release workflow
+17bacba0171dd022728d8fdeba3203c60791bf58 Release 1778909158 Craft v3.0.7 release
+adb823cb7e95ead47f3af4d4951e589acbde2077 Klaus Hartl 1778873319 Fix release workflow halting at `git tag`
+5f9e759b07d2752e8407a3a43fb5f879bf384c5e Klaus Hartl 1778873217 May remove Git user config from release workflow
+6ac921184c7b3b7d9431c88707f56521acd72ab4 Klaus Hartl 1778868928 Fix release workflow not able to push commit + tag
+2278bc55e1804c4c2d9bd2110a9b449949a52751 Klaus Hartl 1778868711 Fix missing package version bump
+eb3c40e89731e99b8970faaf35ddad249c6c0020 Klaus Hartl 1778837024 Prevent cookie attribute injection
+f6f157f430d707d2ffd0c9c9138227a6cea564e5 dependabot[bot] 1778275988 Bump globals from 17.5.0 to 17.6.0
+f409d022da50a0c6fa8724f087fbc50fab9a9533 dependabot[bot] 1778275976 Bump eslint from 10.2.0 to 10.3.0
+a686883c03a754c04546cfc1653911a70a640b40 dependabot[bot] 1778629666 Bump protobufjs in the npm_and_yarn group across 1 directory
+c6112d2d4f2881a12aaf89d9e2996ef6870eb6d0 dependabot[bot] 1778608705 Bump @protobufjs/utf8 in the npm_and_yarn group across 1 directory
+cfb9a5cc3d7b69db724ef8f3c4e87bf1eea7d320 dependabot[bot] 1778290597 Bump fast-uri in the npm_and_yarn group across 1 directory
+3ce899183e1bb92e9f20a445abc468851f0fe360 dependabot[bot] 1778189573 Bump browserstack-node-sdk from 1.52.2 to 1.53.0
+406ad384705cba24f6deaac014b79ee5bad78775 dependabot[bot] 1778115668 Bump ip-address in the npm_and_yarn group across 1 directory
+87359a4973f4117dacc94a58f0c22b5301b581f1 Klaus Hartl 1777485012 Harden GitHub actions workflows w/ zizmor
+52a5d6567f94862effd73cc1e075efc8030c914a dependabot[bot] 1777498376 Bump grunt-contrib-qunit from 10.1.1 to 10.2.0
+17087621c460d1bfc8b30a04916253f900ba8136 Klaus Hartl 1777454785 Tweak introduction part of readme a bit
+a83027f11b2d78d9c73ef3ed98953a90126a9173 Klaus Hartl 1777454450 Remove defunct CodeClimate badge
+64a1355ab32ba41977bb56b29f7b2c498cacba99 dependabot[bot] 1777454092 Bump lodash in the npm_and_yarn group across 1 directory
+a8e97bfdf60a01d29a98ff8d9779835493142728 Klaus Hartl 1777362501 Silence noisy Node warnings for BrowserStack SDK
+85f19b7e8c019711815aab73f700120d2b449f66 Klaus Hartl 1777360259 Use npm script for running BrowserStack test
+0dbe9b5e97a2327d077b641e166058db695decdf Klaus Hartl 1777359041 Revert "Activate Browserstack testing for PRs"
+0f881dcac1e205da8d137ca146ad89b337313dea Klaus Hartl 1777357356 Make test summary count failed tests
+148ecd74e7fbcc92a09f2ab9e0348a4ecaa21801 Klaus Hartl 1777131122 Revert "Verify test failure reports correctly"
+f7a793a46b5e2486d8ee62d44c999f95ee69daec Klaus Hartl 1777127155 Verify test failure reports correctly
+29ebadd0ee1fcb583c5aa9e36f7b0a78ceca36ed Klaus Hartl 1777098426 Migrate BrowserStack browser testing to Node SDK
+a5de5eb048e3fa63afa7fe47e6f131cc3261e6d2 Klaus Hartl 1776925670 Activate Browserstack testing for PRs
+38bbd57161ec03cc02213c641334dfb47faefc20 dependabot[bot] 1777336642 Bump actions/setup-node from 6.3.0 to 6.4.0
+8a7bf279f55864f5f8c34bf5c5cdc12141eb9b69 Fayner Brack 1777010096 Revert "Enable browserstack.local for iPhone 17"
+9f37cecfc756bf194b57b894596fe150d701e076 Fayner Brack 1777008260 Enable browserstack.local for iPhone 17
+9a5e5ce4e1bd5c36a69290e56436a43bd9747214 dependabot[bot] 1776979978 Bump grunt-contrib-qunit from 10.1.1 to 10.2.0
+55c9cf78cd1a6c9a3501b30b4513930e3a3cab29 Klaus Hartl 1776884696 Bump up Appium version to random newer
+110c13909497a275a5c59b0ccc5396730f785954 Klaus Hartl 1776883577 Specify explicit Safari versions for Browserstack
+2e7262ce8a1835e553372f1a3c9f317ea35c7fbe Klaus Hartl 1776883228 Update Pixel/Android to run Browserstack tests for
+bae06ca24f3a1a9ade2d236c1135c6165e648840 Klaus Hartl 1776883174 Update iPhone/iOS to run Browserstack tests for
+f910da3f8ec9180343b59341fde8bd611436ecca Klaus Hartl 1776882745 Update macOS to run Browserstack tests for
+0859b01fe35814cef63d789320b3fca9614fb39c dependabot[bot] 1776782777 Bump undici and release-it
+cdb4e7dc195868fd1f67188b131ef059b2ef36dc dependabot[bot] 1776782808 Bump globals from 17.4.0 to 17.5.0
+6a82dc40e37de966dc2e55e62bd91e8ece8b8a77 dependabot[bot] 1776726092 Bump actions/setup-node from 6 to 6.3.0
+46890857b36fa90afb81339d6f28b9e28eb6d4e6 dependabot[bot] 1776288768 Bump nano-staged from 0.9.0 to 1.0.2
+136c3d704cd90a075a26be87e686fa09e353feea dependabot[bot] 1775867617 Bump eslint from 10.1.0 to 10.2.0
+8d12b08a96961c5a05f4fc5979f3ae02d073621a dependabot[bot] 1775858155 Bump basic-ftp from 5.2.1 to 5.2.2
+bc8ad965b4bb8a732d5b7140ec3828c831f1ba9a dependabot[bot] 1775680505 Bump basic-ftp from 5.2.0 to 5.2.1
+4f8d49afc120d6345a386906c4e3042e4e2bb1c9 dependabot[bot] 1775283551 Bump defu from 6.1.4 to 6.1.6
+8c60d2019c82cbf19a217bec6a15fa255221ba8f dependabot[bot] 1774908896 Bump rollup from 4.59.0 to 4.60.0
+3ba69e4aa09dff76980d35e2dfab2fa5ae13144b dependabot[bot] 1774650318 Bump serialize-javascript from 7.0.4 to 7.0.5
+15ae96a3782a2b87f8a44b7e1f796dd3cd5e5ddd dependabot[bot] 1774647159 Bump eslint from 10.0.1 to 10.1.0
+8a3ff5f4920d1d1579cd2673da114054d9fc3082 dependabot[bot] 1773966930 Bump flatted from 3.3.1 to 3.4.2
+ed40a99a6ad0dd5531ce8e257d4e6eaed8ebb0d2 dependabot[bot] 1773071606 Bump serialize-javascript and @rollup/plugin-terser
+c481ab960f7342c501b9b5e98dd636dd71e495bf dependabot[bot] 1773067185 Bump globals from 17.3.0 to 17.4.0
+dfd62608172aba232fde75da5d1137edfff19507 Klaus Hartl 1773067059 Set up cooldown period for GitHub Actions as well
+b9947683bf0b7ad1d072c3a49371ba745cc33fab Klaus Hartl 1772266918 Add Partitioned attribute to readme
+4ad090290050e26a7a6d5678304f0f8a5f7d6678 Klaus Hartl 1772266449 Migrate to ESLint 10
+9321e7f5a4e498c4f127ebc7ae1faf4414d1b898 dependabot[bot] 1772086424 Bump rollup from 4.57.1 to 4.59.0
+b9445c803083dbc61b3e5cc90a697d75b329d85d dependabot[bot] 1772058933 Bump basic-ftp from 5.0.5 to 5.2.0
+b93c1cb9711f1af096ec8c501c56b41b257d7484 dependabot[bot] 1771887053 Bump rollup-plugin-license from 3.6.0 to 3.7.0
+0518904822e0732d40d15eb44b58225bc2edf4d1 dependabot[bot] 1771363962 Bump actions/stale from 10.1.0 to 10.2.0
+89ab6189932ca5bc78f3f1a8fceb32b1666af1de dependabot[bot] 1771073008 Bump qs from 6.14.1 to 6.14.2
+4ca29e34e249fdad6f789089dc5dd5908854282a Klaus Hartl 1770890123 Revert "Bring back e2e testing in IE"
+5fad2accaeefed63325c9de46423ccd32dd52700 Klaus Hartl 1770889010 Bring back e2e testing in IE
+c8b921a7f526df53886311ca04a4ab1f27fae0fd dependabot[bot] 1770845555 Bump chainguard-dev/actions from 1.5.10 to 1.6.0
+637fab32faeee9ca37a141898afaed706f6e8d30 dependabot[bot] 1770413570 Bump rollup from 4.56.0 to 4.57.1
+f52cd1f6a43fb5a336884daf59baf266d9fc1168 dependabot[bot] 1769931286 Bump lodash from 4.17.21 to 4.17.23
+08f83954dd37f99de0a7e9e1d78cac21d83657b0 dependabot[bot] 1769931148 Bump qunit from 2.24.2 to 2.25.0
+148fd51f37cf87e2cec1789965e1f165677b23bd dependabot[bot] 1769931029 Bump release-it from 19.0.6 to 19.2.2
+016918b8bec0f516ed595e0dbdc6996ab7a3e0bc dependabot[bot] 1769930895 Bump qs from 6.11.2 to 6.14.1
+b597993b8e18214d0b6aa985bd2f6fcb649b5bda dependabot[bot] 1769930757 Bump rollup from 4.53.3 to 4.54.0
+df2f3aabe104527d735f00e57f46bc5fd94f0267 dependabot[bot] 1769930585 Bump prettier from 3.6.2 to 3.7.4

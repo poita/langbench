@@ -1,0 +1,8 @@
+simulate
+endpoint ep_a whsec_c2VjcmV0 * 500,500,200
+endpoint ep_b whsec_b3RoZXItc2VjcmV0 * 200
+event ev_late 5000 t 7b7d
+event ev_early 0 t 7b7d
+event ev_same 0 t 7b7d
+event ev_neg -10000 t 7b7d
+end

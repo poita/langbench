@@ -1,0 +1,120 @@
+[message]
+id 0022
+source "mbox:22"
+
+[headers]
+received: "from dev.example.io (mx5.example.com [40.157.42.9]) by dev.example.io (Postfix) with ESMTP id 9A645F1176 for <hkim.38@students.example.ac.jp>; Fri Mar 24 18:23:25 2004 Z"
+received: "from lists.example.edu (mx8.apache.org [16.127.139.234]) by mail.example.net (Postfix) with ESMTP id FF98052F47 for <dkowalski@dev.example.io>; Mon, 22 Jan 2025 13:20:26 -0000"
+return-path: "<fwilson@example.org>"
+message-id: "<174.e84a1205.56753@corp.example.co.uk>"
+date: "Mon, 11 Jan 2018 08:24:22 +0900"
+from: "petrov@example.org (Someone)"
+to: "\"Nakamura, Dana\" <dnakamura.46@post.example.fr>,    bpetrov@post.example.fr (Someone), \"Nguyen, Karin\" <knguyen@dev.example.io>"
+cc: "\"Brown, Ann\" <abrown.36@post.example.fr>"
+subject: "Re: The will this the differ to many"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_7311_225403836.20737964461\""
+
+[addresses]
+from 0 display="" spec="petrov@example.org"
+to 0 display="Nakamura, Dana" spec="dnakamura.46@post.example.fr"
+to 1 display="" spec="bpetrov@post.example.fr"
+to 2 display="Nguyen, Karin" spec="knguyen@dev.example.io"
+cc 0 display="Brown, Ann" spec="abrown.36@post.example.fr"
+
+[date]
+raw " Mon, 11 Jan 2018 08:24:22 +0900"
+valid yes
+utc 2018-01-10T23:24:22Z
+offset +0900
+epoch 1515626662
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_7311_225403836.20737964461" parts=3 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="Apple-Mail=_A549C0B56124CD0A" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 999" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=windows-1252 cte=quoted-printable size=1196 adler32=a9079c1b role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1660 adler32=da0c3679 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="São_for_the_a.jpg" size=2479 adler32=471ddc5f role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="now_change_it.jpg" size=3324 adler32=b6de756c role=attachment
+    7 image/jpeg cte=base64 disposition=inline filename="São_two_act_act_the.jpg" size=3150 adler32=d0121929 role=attachment
+  8 application/pdf cte=base64 disposition=inline filename="are_most.pdf" size=5484 adler32=3b068772 role=attachment
+  9 message/rfc822 cte=7bit disposition=inline parts=1
+    10 multipart/mixed cte=7bit boundary="----=_Part_2932_33951532.802588268389" parts=5 preamble=0 epilogue=0
+      11 multipart/alternative cte=7bit boundary="simple boundary 187" parts=2 preamble=0 epilogue=0
+        12 text/plain charset=windows-1252 cte=base64 size=414 adler32=76118a09 role=attachment
+        13 text/html charset=utf-8 cte=quoted-printable size=728 adler32=9243f4c3 role=attachment
+      14 application/zip cte=base64 disposition=attachment filename="take.zip" size=7338 adler32=f063fe79 role=attachment
+      15 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="jalapeño_on.docx" size=4647 adler32=5e3c0ce1 role=attachment
+      16 text/csv charset=utf-8 cte=7bit disposition=inline filename="über_place.csv" size=8980 adler32=90102987 role=attachment
+      17 image/jpeg cte=base64 disposition=inline filename="the_may_had_your.jpg" size=956 adler32=6047df5b role=attachment
+
+[body]
+text 3 chars 1196
+| On Wed, 04 Apr 2004 02:31:51 MET (GMT), Luis García wrote:
+| >> Work request the the how? All the I handler number call two can when
+| >> use my again the round? Connection of our before which add keepalive
+| >> smörgåsbord up to place name say commit coöperate.
+| >
+| > Take time the and by little his can and a build my! You in help came
+| > > other just an try same live as.
+| >
+| 
+| Write again when are then work no build that the. Port and find do and
+| can of see why man the. From in end kind is is give naïve help have set
+| differ this place did by be. Will well of as in were did again the the.
+| Cause under day he déjà these and mutex. People this house it point hook
+| it animal on off each! You alias long the move über say of men must or
+| mutex server.
+| 
+| After the been of each the with there see. Near back the men a round two
+| form of I up made go light you of move be. Only the come if hot of
+| number the now all tell through and use mean turn! That mutex year or
+| sentence in as little and than from tell be no httpd can old have! Large
+| he have up said.
+| 
+| All near coöperate have came water call or it at? On are animal move the
+| right he it look just to how such more of? People the as of as.
+| 
+| -- 
+| Björn Doe
+html 4 chars 1660
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Wed, 04 Apr 2004 02:31:51 MET (GMT), Luis García wrote:<br>
+| &gt;&gt; Work request the the how? All the I handler number call two can when<br>
+| &gt;&gt; use my again the round? Connection of our before which add keepalive<br>
+| &gt;&gt; smörgåsbord up to place name say commit coöperate.<br>
+| &gt;<br>
+| &gt; Take time the and by little his can and a build my! You in help came<br>
+| &gt; &gt; other just an try same live as.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Write again when are then work no build that the. Port and find do and<br>
+| can of see why man the. From in end kind is is give naïve help have set<br>
+| differ this place did by be. Will well of as in were did again the the.<br>
+| Cause under day he déjà these and mutex. People this house it point hook<br>
+| it animal on off each! You alias long the move über say of men must or<br>
+| mutex server.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">After the been of each the with there see. Near back the men a round two<br>
+| form of I up made go light you of move be. Only the come if hot of<br>
+| number the now all tell through and use mean turn! That mutex year or<br>
+| sentence in as little and than from tell be no httpd can old have! Large<br>
+| he have up said.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">All near coöperate have came water call or it at? On are animal move the<br>
+| right he it look just to how such more of? People the as of as.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Björn Doe<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="São_for_the_a.jpg" size=2479 adler32=471ddc5f file=parts/0022/005.bin
+6 type=image/jpeg filename="now_change_it.jpg" size=3324 adler32=b6de756c file=parts/0022/006.bin
+7 type=image/jpeg filename="São_two_act_act_the.jpg" size=3150 adler32=d0121929 file=parts/0022/007.bin
+8 type=application/pdf filename="are_most.pdf" size=5484 adler32=3b068772 file=parts/0022/008.bin
+12 type=text/plain filename=- size=414 adler32=76118a09 file=parts/0022/012.bin
+13 type=text/html filename=- size=728 adler32=9243f4c3 file=parts/0022/013.bin
+14 type=application/zip filename="take.zip" size=7338 adler32=f063fe79 file=parts/0022/014.bin
+15 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="jalapeño_on.docx" size=4647 adler32=5e3c0ce1 file=parts/0022/015.bin
+16 type=text/csv filename="über_place.csv" size=8980 adler32=90102987 file=parts/0022/016.bin
+17 type=image/jpeg filename="the_may_had_your.jpg" size=956 adler32=6047df5b file=parts/0022/017.bin

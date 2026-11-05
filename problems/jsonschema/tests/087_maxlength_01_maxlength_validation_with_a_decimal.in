@@ -1,0 +1,16 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "maxLength": 2.0
+  },
+  "tests": [
+    {
+      "description": "shorter is valid",
+      "data": "f"
+    },
+    {
+      "description": "too long is invalid",
+      "data": "foo"
+    }
+  ]
+}

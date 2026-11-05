@@ -1,0 +1,20 @@
+
+CREATE TABLE p (id INTEGER, name TEXT, price INTEGER, qty INTEGER);
+INSERT INTO p VALUES (1, 'apple', 30, 10), (2, 'banana', 15, 0), (3, 'cherry', 300, 5),
+  (4, 'date', 30, NULL), (5, 'elderberry', NULL, 7), (6, 'fig', 8, 12), (7, 'grape', 45, 3);
+SELECT id FROM p WHERE price > 20;
+SELECT id FROM p WHERE price >= 30 AND qty < 10;
+SELECT id FROM p WHERE price < 30 OR qty > 8;
+SELECT id FROM p WHERE price * qty >= 150;
+SELECT id, price * qty FROM p WHERE price * qty IS NULL;
+SELECT id FROM p WHERE name > 'c';
+SELECT id FROM p WHERE name >= 'date' AND name <= 'fig';
+SELECT id FROM p WHERE name = 'Apple';
+SELECT id FROM p WHERE price = 30 AND NOT qty IS NULL;
+SELECT id FROM p WHERE NOT price > 20;
+SELECT id FROM p WHERE price % 15 = 0;
+SELECT id FROM p WHERE (price / 10) * 10 = price;
+SELECT id FROM p WHERE id - 1 = qty OR id + 1 = qty;
+SELECT name FROM p WHERE price > qty * 5 AND qty > 0;
+SELECT id FROM p WHERE price;
+SELECT id FROM p WHERE qty;

@@ -1,0 +1,93 @@
+[message]
+id 0157
+source "mbox:157"
+
+[headers]
+received: "from mail.example.net (mx2.example.com [43.62.183.77]) by mail.example.net (Postfix) with ESMTP id BCA17E62AA for <fjohansson.9@lists.example.edu>; Fri, 11 Dec 2003 19:33:53 +0530"
+received: "from example.com (mx6.post.example.fr [231.98.56.86]) by corp.example.co.uk (Postfix) with ESMTP id 39F124ED39 for <bobrien@post.example.fr>; Tue, 23 Oct 2024 07:34:10 CST"
+received: "from eu.example.de (mx9.apache.org [48.83.148.198]) by post.example.fr (Postfix) with ESMTP id A64E021845 for <r@students.example.ac.jp>; Thu, 26 Oct 2024 06:36:06 +0530 (CET)"
+received: "from students.example.ac.jp (mx5.mail.example.net [33.156.125.28]) by example.com (Postfix) with ESMTP id 46B55B3EDC for <jgarca@students.example.ac.jp>; Wed, 24 Jan 2003 23:17:27 Z"
+received: "from mail.example.net (mx7.mail.example.net [43.112.51.202]) by dev.example.io (Postfix) with ESMTP id 4C35CFE41D for <cpetrov@corp.example.co.uk>; Tue, 28 Aug 2004 11:03:47 +1245 (JST)"
+return-path: "<dubois@post.example.fr>"
+message-id: "<1025.15ab6eaf.82450@apache.org>"
+in-reply-to: "<1032.d39df548.92864@lists.example.edu>"
+references: "<1026.5f5bdd7f.62564@lists.example.edu> <1027.f6e52c8a.47705@students.example.ac.jp> <1028.2f50f93c.61040@corp.example.co.uk> <1029.1f031402.5183@students.example.ac.jp> <1030.75dc51d7.28637@example.com> <1031.dfc4d01e.33442@lists.example.edu> <1032.d39df548.92864@lists.example.edu>"
+date: "Thu, 25 Jan 2009 08:27:29 CST"
+from: "vanderberg@post.example.fr"
+to: "Jörg García <jgarca@apache.org>"
+cc: "rwilson.70@eu.example.de, Carl Smith <csmith@dev.example.io>"
+subject: "Re: [PATCH] Hot be good he you word every the client"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=\"=_f2fc522ec1eb3684040a575e284ec803\""
+
+[addresses]
+from 0 display="" spec="vanderberg@post.example.fr"
+to 0 display="Jörg García" spec="jgarca@apache.org"
+cc 0 display="" spec="rwilson.70@eu.example.de"
+cc 1 display="Carl Smith" spec="csmith@dev.example.io"
+
+[date]
+raw " Thu, 25 Jan 2009 08:27:29 CST"
+valid yes
+utc 2009-01-25T14:27:29Z
+offset -0600
+epoch 1232893649
+
+[structure]
+0 multipart/alternative cte=7bit boundary="=_f2fc522ec1eb3684040a575e284ec803" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=us-ascii cte=quoted-printable size=919 adler32=15cf3f24 role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1378 adler32=e4b1da69 role=html
+
+[body]
+text 1 chars 919
+| Their before cause men us the her word about like in are have the at
+| these the. In you who of which good and was look the act through is
+| there two give?
+| 
+| Look are the with the see have. Again on Krak?w to error came. A if same
+| right a one with thing to word first is about!
+| 
+| S?o good ask see each hand the this you ?rsted little act get they get
+| the the config! Was out which new one when where turn will one that some
+| help is read side of of? Than but out one part every down to just as but
+| down were error.
+| 
+| Other differ other connection have so them. The now one picture any the
+| filter is the boy the a to.
+| 
+| Was self they you them large our of number for! And the be of earth
+| build father with of of? Have build first make in a part it but many
+| look! Such know set did a the most good long! The but every great has
+| been a the more name near write timeout use been! Been timeout about any
+| to round!
+| 
+| -- 
+| Quinn Dubois
+html 2 chars 1375
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Their before cause men us the her word about like in are have the at<br>
+| these the. In you who of which good and was look the act through is<br>
+| there two give?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Look are the with the see have. Again on Kraków to error came. A if same<br>
+| right a one with thing to word first is about!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">São good ask see each hand the this you Ørsted little act get they get<br>
+| the the config! Was out which new one when where turn will one that some<br>
+| help is read side of of? Than but out one part every down to just as but<br>
+| down were error.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Other differ other connection have so them. The now one picture any the<br>
+| filter is the boy the a to.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Was self they you them large our of number for! And the be of earth<br>
+| build father with of of? Have build first make in a part it but many<br>
+| look! Such know set did a the most good long! The but every great has<br>
+| been a the more name near write timeout use been! Been timeout about any<br>
+| to round!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Quinn Dubois<br>
+| </p>
+| </body></html>
+
+[attachments]

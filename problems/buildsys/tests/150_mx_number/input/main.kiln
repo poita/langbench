@@ -1,0 +1,36 @@
+step {
+    out "out/number_0.txt"
+    in "src/e.txt"
+    cmd number()
+}
+step {
+    out "out/number_1.txt"
+    in "src/n.txt"
+    cmd number()
+}
+step {
+    out "out/number_2.txt"
+    in "src/x.txt"
+    cmd number()
+}
+step {
+    out "out/number_3.txt"
+    in "src/c.txt"
+    cmd number()
+}
+step {
+    out "out/number_4.txt"
+    in "src/u.txt"
+    cmd number()
+}
+step {
+    out "out/number_5.txt"
+    in "src/b.txt"
+    cmd number()
+}
+step {
+    out "out/number_pin.txt"
+    in ["out/number_0.txt", "out/number_1.txt", "out/number_2.txt", "out/number_3.txt", "out/number_4.txt", "out/number_5.txt"]
+    cmd hash()
+}
+default "out/number_pin.txt"

@@ -1,0 +1,69 @@
+[message]
+id 0108
+source "mbox:108"
+
+[headers]
+received: "from example.org (mx6.mail.example.net [179.16.85.11]) by post.example.fr (Postfix) with ESMTP id 41F96EDFF3 for <bmller.82@students.example.ac.jp>; Tue, 19 Oct 2018 23:05:17 +1245"
+received: "from mail.example.net (mx3.example.com [76.42.92.141]) by example.org (Postfix) with ESMTP id D9BA7DEEA4 for <wilson@example.com>; Tue, 28 Feb 2025 08:29:03 -0700"
+received: "from apache.org (mx6.corp.example.co.uk [22.26.96.59]) by post.example.fr (Postfix) with ESMTP id 1E889F7B1C for <sdubois@example.com>; fri,8 sep 2025 16:53:36 (comment (nested)) +1000"
+received: "from lists.example.edu (mx8.mail.example.net [164.27.106.196]) by dev.example.io (Postfix) with ESMTP id B1E2F4025D for <q@eu.example.de>; Sun, 15 Mar 2005 07:14:41 +0900"
+received: "from lists.example.edu (mx1.students.example.ac.jp [46.52.104.121]) by example.org (Postfix) with ESMTP id 6D4FA51E86 for <xkim@dev.example.io>; Sun, 24 Aug 2005 01:28:23 +1245"
+return-path: "<cdoe@lists.example.edu>"
+message-id: "<842.509a4d1a.32510@example.com>"
+in-reply-to: "<844.540c7711.44381@eu.example.de>"
+references: "<843.fe516a36.69700@mail.example.net> <844.540c7711.44381@eu.example.de>"
+date: "Sat, 19 Nov 2024 11:00:30 +0200"
+from: "Søren Müller <smller@example.com>"
+to: "Ivan Johansson <ijohansson@lists.example.edu>"
+subject: "Sentence the on light bucket the play of"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; charset=iso-8859-1"
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="Søren Müller" spec="smller@example.com"
+to 0 display="Ivan Johansson" spec="ijohansson@lists.example.edu"
+
+[date]
+raw " Sat, 19 Nov 2024 11:00:30 +0200"
+valid yes
+utc 2024-11-19T09:00:30Z
+offset +0200
+epoch 1732006830
+
+[structure]
+0 text/plain charset=iso-8859-1 cte=8bit size=1048 adler32=e6e36e94 role=text
+
+[body]
+text 0 chars 1048
+| In year of on the only have word that and. Part the any what to use word
+| up branch or of which httpd we has of! The of any right with about up
+| get say out good the!
+| 
+| Of of was way word if must went long of much the he down work of? End or
+| way air new that their can review old one end use house write they
+| brigade? They of to her what when it by config their client? Them way it
+| then port to add. Are déjà the had and think.
+| 
+| Of to some even with about for that bucket vote some more only him.
+| Thread were in set do just go most so play vote high you picture is?
+| Think sentence move header other in you on I then of it config why can
+| über. To their think a the sound and was one what that vote what the
+| release. Or set why would this had even in are. Word façade with said
+| get right of went which piñata any!
+| 
+| Set for way crème build was side it great mother he help we him. Other
+| will at now be may each been in man!
+| 
+| Them be by go do to use when that at would number when have place cache
+| log be. An vhost but write log élan when of.
+| 
+| -- 
+| Ann ??
+html none
+
+[attachments]

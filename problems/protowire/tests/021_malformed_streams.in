@@ -1,0 +1,35 @@
+message X { int32 a = 1; string s = 2; fixed32 f = 3; fixed64 g = 4; X x = 5; repeated int32 r = 6; }
+--
+decode X 08
+decode X 0880
+decode X 08ffff
+decode X 12
+decode X 1205
+decode X 120561
+decode X 1201
+decode X 12ffffffff0f
+decode X 1d
+decode X 1d0102
+decode X 1d010203
+decode X 21
+decode X 2101020304050607
+decode X 2a
+decode X 2a01
+decode X 2a0108
+decode X 2a021205
+decode X 2a032a0108
+decode X 3201
+decode X 3202018
+decode X 32ff
+decode X 0801120178ff
+decode X 0801f
+decode X 08011
+decode X zz
+decode X 0G
+decode X 0801 
+decode X
+decode X 
+decode X 08 01
+decode X 0801 1201
+decode X ffffffffffffffffffffffff
+decode X 0801f8ffffffff01

@@ -1,0 +1,42 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "allOf": [
+      {
+        "contains": {
+          "multipleOf": 2
+        }
+      },
+      {
+        "contains": {
+          "multipleOf": 3
+        }
+      }
+    ],
+    "unevaluatedItems": {
+      "multipleOf": 5
+    }
+  },
+  "tests": [
+    {
+      "description": "5 not evaluated, passes unevaluatedItems",
+      "data": [
+        2,
+        3,
+        4,
+        5,
+        6
+      ]
+    },
+    {
+      "description": "7 not evaluated, fails unevaluatedItems",
+      "data": [
+        2,
+        3,
+        4,
+        7,
+        8
+      ]
+    }
+  ]
+}

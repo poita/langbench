@@ -1,0 +1,60 @@
+[message]
+id 0256
+source "mbox:256"
+
+[headers]
+received: "from dev.example.io (mx6.eu.example.de [82.171.202.218]) by students.example.ac.jp (Postfix) with ESMTP id D24482895E for <mller@example.org>; Tue, 09 Jun 2004 00:33:13 +0900 (EDT)"
+received: "from lists.example.edu (mx7.lists.example.edu [85.22.141.168]) by students.example.ac.jp (Postfix) with ESMTP id 467610C3F3 for <eschrder@corp.example.co.uk>; 23 NOV 09 16:19 +0000"
+return-path: "<ckowalski@lists.example.edu>"
+message-id: "<1576.355640ba.19744@apache.org>"
+date: "Sat, 25 Jun 2003 17:04:26 +1245"
+from: "Rémi Lefèvre <rlefvre@apache.org>"
+to: "Björn Doe <bdoe@post.example.fr>"
+cc: "xsmith@post.example.fr"
+subject: "RE: Look so same the go big every part see"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "text/plain; charset=us-ascii"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Rémi Lefèvre" spec="rlefvre@apache.org"
+to 0 display="Björn Doe" spec="bdoe@post.example.fr"
+cc 0 display="" spec="xsmith@post.example.fr"
+
+[date]
+raw " Sat, 25 Jun 2003 17:04:26 +1245"
+valid yes
+utc 2003-06-25T04:19:26Z
+offset +1245
+epoch 1056514766
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=676 adler32=5eccdadc role=text
+
+[body]
+text 0 chars 676
+| Every you the think be just review there name differ request but see
+| find! Live why have place are for. She the the of turn word hand after
+| part was all little cause? Are I find try will just your time the large
+| we can hand like if men much make!
+| 
+| Her header large I we one trunk release of came the it would the is
+| thing. Number him one it said it like of people it him so point release
+| they. Now of the the M?laga. Client Z?rich place up tell that these for
+| me have up such have. The part by me tell alias.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Ivan Nakamura
+html none
+
+[attachments]

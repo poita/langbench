@@ -1,0 +1,64 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "const": "foo"
+      }
+    ],
+    "anyOf": [
+      {
+        "prefixItems": [
+          true,
+          {
+            "const": "bar"
+          }
+        ]
+      },
+      {
+        "prefixItems": [
+          true,
+          true,
+          {
+            "const": "baz"
+          }
+        ]
+      }
+    ],
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "when one schema matches and has no unevaluated items",
+      "data": [
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "description": "when one schema matches and has unevaluated items",
+      "data": [
+        "foo",
+        "bar",
+        42
+      ]
+    },
+    {
+      "description": "when two schemas match and has no unevaluated items",
+      "data": [
+        "foo",
+        "bar",
+        "baz"
+      ]
+    },
+    {
+      "description": "when two schemas match and has unevaluated items",
+      "data": [
+        "foo",
+        "bar",
+        "baz",
+        42
+      ]
+    }
+  ]
+}

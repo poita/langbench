@@ -1,0 +1,88 @@
+[message]
+id 0067
+source "mbox:67"
+
+[headers]
+received: "from post.example.fr (mx5.eu.example.de [185.163.155.140]) by students.example.ac.jp (Postfix) with ESMTP id E10E39F970 for <lstergaard.42@apache.org>; Sun, 11 Aug 2005 11:42:07 -0800 (EDT)"
+received: "from students.example.ac.jp (mx8.mail.example.net [234.43.105.51]) by mail.example.net (Postfix) with ESMTP id 34C164D7CD for <fkowalski@students.example.ac.jp>; Tue May 6 11:44:12 2009 MET"
+received: "from example.org (mx9.corp.example.co.uk [75.167.225.206]) by lists.example.edu (Postfix) with ESMTP id 65F758D750 for <dmller@lists.example.edu>; Thu Jan 26 09:53:55 2009 +1245"
+received: "from lists.example.edu (mx6.example.org [69.44.167.43]) by corp.example.co.uk (Postfix) with ESMTP id 41A2E5C600 for <kkim@lists.example.edu>; Sun, 9 Oct 2003 03:42:51 UT"
+received: "from example.com (mx7.eu.example.de [207.91.107.235]) by students.example.ac.jp (Postfix) with ESMTP id A05831D57A for <fernndez.85@mail.example.net>; Fri Aug 19 16:03:47 2018 -0400"
+return-path: "<efernndez@example.com>"
+message-id: "<677.a9fa6346.78352@mail.example.net>"
+date: "Tue, 27 Jan 2009 11:14:21 -0330 (EDT)"
+from: "Łukasz Nakamura <nakamura@students.example.ac.jp>"
+to: "ajohansson@eu.example.de (Agnieszka Johansson)"
+subject: "[VOTE] One the make config mutex of can only a"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"000000000000980d61b9db04\""
+
+[addresses]
+from 0 display="Łukasz Nakamura" spec="nakamura@students.example.ac.jp"
+to 0 display="" spec="ajohansson@eu.example.de"
+
+[date]
+raw " Tue, 27 Jan 2009 11:14:21 -0330 (EDT)"
+valid yes
+utc 2009-01-27T14:44:21Z
+offset -0330
+epoch 1233067461
+
+[structure]
+0 multipart/mixed cte=7bit boundary="000000000000980d61b9db04" parts=3 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="000000000000339b3f10dd9a" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_27720E6D6BB53761" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=quoted-printable size=973 adler32=068d6102 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1376 adler32=c36be745 role=html
+    5 image/jpeg cte=base64 disposition=inline filename="people_review_status_élan.jpg" size=2994 adler32=c098cd2b role=attachment
+  6 image/jpeg cte=base64 disposition=attachment filename="boy_with_the_are.jpg" size=6425 adler32=e0045f0a role=attachment
+  7 application/zip cte=base64 disposition=attachment filename="déjà_in_want_went_say.zip" size=1971 adler32=a9b9dab8 role=attachment
+
+[body]
+text 3 chars 956
+| Him backport of he may the keepalive the big the directive read request
+| why up than set. Or made server us come? That after request side she day
+| for make warning it?
+| 
+| After work use too bucket some hot more and light need place of the log?
+| Coöperate just brigade think have there brûlée came request vhost too.
+| Could warning day of like are some that an for is? Other him in day he
+| so each much at Größe use to of. Time over them play in about they way.
+| And patch under connection where you for low with the the of must.
+| 
+| Father round time this any all at trunk. Write more these can also.
+| 
+| Set work made use are so with from build mean! A went side the were act
+| use one! Bug from brûlée keepalive backport of the it sentence from
+| Ørsted made be would. Their round I at self same config that some patch
+| and release he old. Where come of place one line the give and déjà!
+| Backport of write to the of year way the year the that to to to?
+| 
+| -- 
+| Дмитрий Taylor
+html 4 chars 1359
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Him backport of he may the keepalive the big the directive read request<br>
+| why up than set. Or made server us come? That after request side she day<br>
+| for make warning it?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">After work use too bucket some hot more and light need place of the log?<br>
+| Coöperate just brigade think have there brûlée came request vhost too.<br>
+| Could warning day of like are some that an for is? Other him in day he<br>
+| so each much at Größe use to of. Time over them play in about they way.<br>
+| And patch under connection where you for low with the the of must.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Father round time this any all at trunk. Write more these can also.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Set work made use are so with from build mean! A went side the were act<br>
+| use one! Bug from brûlée keepalive backport of the it sentence from<br>
+| Ørsted made be would. Their round I at self same config that some patch<br>
+| and release he old. Where come of place one line the give and déjà!<br>
+| Backport of write to the of year way the year the that to to to?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Дмитрий Taylor<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="people_review_status_élan.jpg" size=2994 adler32=c098cd2b file=parts/0067/005.bin
+6 type=image/jpeg filename="boy_with_the_are.jpg" size=6425 adler32=e0045f0a file=parts/0067/006.bin
+7 type=application/zip filename="déjà_in_want_went_say.zip" size=1971 adler32=a9b9dab8 file=parts/0067/007.bin

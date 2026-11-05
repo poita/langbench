@@ -1,0 +1,33 @@
+name "sat"
+description "A CDCL SAT solver for DIMACS CNF: reusable library plus a command-line tool"
+authors "sat authors"
+copyright "Copyright (c) sat authors"
+license "MIT"
+
+# Default configuration: the command-line tool (binary: bin/sat).
+configuration "cli" {
+    targetType "executable"
+    targetName "sat"
+    targetPath "bin"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
+}
+
+# Library only; this is what other dub projects get when they depend on "sat".
+configuration "library" {
+    targetType "library"
+    targetName "sat"
+    targetPath "bin"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+# Used by `dub test`: library sources plus the unit tests under tests/.
+configuration "unittest" {
+    targetType "library"
+    targetName "sat-test"
+    targetPath "bin"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+}

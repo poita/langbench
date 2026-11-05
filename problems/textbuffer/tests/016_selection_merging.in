@@ -1,0 +1,93 @@
+4
+abcdefgh
+ijklmnop
+qrstuvwx
+yz
+goto 0 1
+add-cursor 0 3
+move right select
+move right select
+print
+move right select
+print
+delete
+print
+undo
+print
+move left
+print
+goto 0 5
+add-cursor 0 3
+move left select
+move left select
+print
+move left select
+print
+insert Z
+print
+undo
+print
+move right
+print
+goto 0 4
+move left select
+move left select
+add-cursor 0 3
+print
+add-cursor 0 4
+print
+add-cursor 0 2
+print
+move right
+print
+goto 0 2
+move right select
+move right select
+add-cursor 0 3
+add-cursor 0 2
+add-cursor 0 4
+print
+move left
+print
+goto 0 0
+add-cursor 1 0
+add-cursor 2 0
+move down select
+print
+insert #
+print
+undo
+print
+move end select
+print
+delete
+print
+undo
+print
+goto 0 3
+move down select
+move down select
+add-cursor 1 4
+print
+add-cursor 2 3
+print
+add-cursor 2 4
+print
+delete-forward
+print
+undo
+print
+move up
+print
+goto 1 2
+add-cursor 2 6
+move up select
+print
+move up select
+print
+move home select
+print
+insert Q
+print
+undo
+print

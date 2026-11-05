@@ -1,0 +1,27 @@
+[message]
+id 0006
+source "obsolete.eml"
+
+[headers]
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=200 adler32=6dce410f role=text
+
+[body]
+text 0 chars 200
+| Subject :The obsolete syntax allow spaces before the colon
+|        
+|  and also empty lines in folding.
+| Date    :     Malformed Date.
+| Inval�d-Header: this is not valid.
+| HeaderWithWSP \t  \t:\t\tvalue.
+| 
+| body
+html none
+
+[attachments]

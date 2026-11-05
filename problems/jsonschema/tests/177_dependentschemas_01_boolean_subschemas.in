@@ -1,0 +1,34 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "dependentSchemas": {
+      "foo": true,
+      "bar": false
+    }
+  },
+  "tests": [
+    {
+      "description": "object with property having schema true is valid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "object with property having schema false is invalid",
+      "data": {
+        "bar": 2
+      }
+    },
+    {
+      "description": "object with both properties is invalid",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "empty object is valid",
+      "data": {}
+    }
+  ]
+}

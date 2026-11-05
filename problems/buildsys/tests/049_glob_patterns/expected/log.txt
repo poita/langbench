@@ -1,0 +1,60 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/g0.txt write("src/.txt src/7.txt src/a.txt src/a1.txt src/ab.txt src/b.txt src/c.txt src/t.txt src/t_1.txt\n")
+  run 1 2 w0 out/g1.txt write("src/.txt src/7.txt src/a.txt src/a/b/t_2.txt src/a1.txt src/ab.txt src/b.txt src/c.txt src/notes.md src/sub/c.txt src/t.txt src/t_1.txt src/x/y/z.txt\n")
+  run 2 3 w0 out/g2.txt write("a.txt src/.txt src/7.txt src/a.txt src/a/b/t_2.txt src/a1.txt src/ab.txt src/b.txt src/c.txt src/sub/c.txt src/t.txt src/t_1.txt src/x/y/z.txt\n")
+  run 3 4 w0 out/g3.txt write("src/a/b/t_2.txt src/t_1.txt\n")
+  run 4 5 w0 out/g4.txt write("src/7.txt src/a.txt src/b.txt src/c.txt src/t.txt\n")
+  run 5 6 w0 out/g5.txt write("src/a.txt src/a1.txt src/ab.txt src/b.txt\n")
+  run 6 7 w0 out/g6.txt write("src/7.txt src/c.txt src/t.txt src/t_1.txt\n")
+  run 7 8 w0 out/g7.txt write("src/7.txt\n")
+  run 8 9 w0 out/g8.txt write("ab axyzb\n")
+  run 9 10 w0 out/g9.txt write("lib\n")
+  run 10 11 w0 out/g10.txt write("a.txt ab axyzb lib main.kiln src/.txt src/7.txt src/a.txt src/a/b/t_2.txt src/a1.txt src/ab.txt src/b.txt src/c.txt src/notes.md src/sub/c.txt src/t.txt src/t_1.txt src/x/y/z.txt\n")
+  run 11 12 w0 out/g11.txt write("src/.txt src/7.txt src/a.txt src/a/b/t_2.txt src/a1.txt src/ab.txt src/b.txt src/c.txt src/sub/c.txt src/t.txt src/t_1.txt src/x/y/z.txt\n")
+  run 12 13 w0 out/g12.txt write("a.txt ab axyzb\n")
+  run 13 14 w0 out/g13.txt write("src/a.txt src/a1.txt src/ab.txt\n")
+  run 14 15 w0 out/g14.txt write("\n")
+  run 15 16 w0 out/g15.txt write("src/sub/c.txt\n")
+  run 16 17 w0 out/g16.txt write("a.txt\n")
+  run 17 18 w0 out/g17.txt write("src/a/b/t_2.txt\n")
+  run 18 19 w0 out/g18.txt write("src/a/b/t_2.txt src/t_1.txt\n")
+  run 19 20 w0 out/g19.txt write("src/sub/c.txt\n")
+  run 20 21 w0 out/g20.txt write("src/a.txt src/b.txt src/c.txt\n")
+  run 21 22 w0 out/g21.txt write("src/.txt\n")
+  run 22 23 w0 out/g22.txt write("a.txt ab axyzb lib main.kiln src/.txt src/7.txt src/a.txt src/a/b/t_2.txt src/a1.txt src/ab.txt src/b.txt src/c.txt src/notes.md src/sub/c.txt src/t.txt src/t_1.txt src/x/y/z.txt\n")
+  run 23 24 w0 out/g23.txt write("src/c.txt src/sub/c.txt\n")
+  run 24 25 w0 out/g24.txt write("src/a1.txt src/ab.txt src/t_1.txt\n")
+  run 25 26 w0 out/g25.txt write("src/.txt src/7.txt src/a.txt src/a1.txt src/ab.txt src/b.txt src/c.txt src/t.txt src/t_1.txt\n")
+  run 26 27 w0 out/g26.txt write("src/a.txt src/a1.txt src/ab.txt\n")
+  run 27 28 w0 out/g27.txt write("\n")
+  ok ran=28 hit=0 time=28
+step 2: build (default) -j 1
+  hit 0 out/g0.txt
+  hit 0 out/g1.txt
+  hit 0 out/g2.txt
+  hit 0 out/g3.txt
+  hit 0 out/g4.txt
+  hit 0 out/g5.txt
+  hit 0 out/g6.txt
+  hit 0 out/g7.txt
+  hit 0 out/g8.txt
+  hit 0 out/g9.txt
+  hit 0 out/g10.txt
+  hit 0 out/g11.txt
+  hit 0 out/g12.txt
+  hit 0 out/g13.txt
+  hit 0 out/g14.txt
+  hit 0 out/g15.txt
+  hit 0 out/g16.txt
+  hit 0 out/g17.txt
+  hit 0 out/g18.txt
+  hit 0 out/g19.txt
+  hit 0 out/g20.txt
+  hit 0 out/g21.txt
+  hit 0 out/g22.txt
+  hit 0 out/g23.txt
+  hit 0 out/g24.txt
+  hit 0 out/g25.txt
+  hit 0 out/g26.txt
+  hit 0 out/g27.txt
+  ok ran=0 hit=28 time=0

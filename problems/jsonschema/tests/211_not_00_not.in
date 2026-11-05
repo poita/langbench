@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "not": {
+      "type": "integer"
+    }
+  },
+  "tests": [
+    {
+      "description": "allowed",
+      "data": "foo"
+    },
+    {
+      "description": "disallowed",
+      "data": 1
+    }
+  ]
+}

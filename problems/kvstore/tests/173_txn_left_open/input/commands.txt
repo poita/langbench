@@ -1,0 +1,5 @@
+put "a" 1
+begin
+put "b" 2
+delete "a"
+stat

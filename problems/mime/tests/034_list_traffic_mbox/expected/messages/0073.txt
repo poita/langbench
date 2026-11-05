@@ -1,0 +1,70 @@
+[message]
+id 0073
+source "mbox:73"
+
+[headers]
+received: "from students.example.ac.jp (mx7.students.example.ac.jp [234.166.205.66]) by corp.example.co.uk (Postfix) with ESMTP id 4DF724ACAB for <opetrov@eu.example.de>; Thu, 14 Jan 2005 22:29:49 +0000 (JST)"
+received: "from example.com (mx3.eu.example.de [140.87.57.237]) by corp.example.co.uk (Postfix) with ESMTP id FCD08AAF7F for <unakamura.38@dev.example.io>; Sun, 18 Apr 2005 12:19:36 -0700"
+received: "from eu.example.de (mx1.lists.example.edu [147.202.229.184]) by mail.example.net (Postfix) with ESMTP id 337ECF6E19 for <nkowalski@eu.example.de>; Mon, 16 Mar 2018 08:08:29 +1000"
+return-path: "<papadopoulos@lists.example.edu>"
+message-id: "<471.d042b2c5.9479@apache.org>"
+in-reply-to: "<473.095aa2a1.14577@post.example.fr>"
+references: "<472.99636cdd.22580@mail.example.net> <473.095aa2a1.14577@post.example.fr>"
+date: "Sat, 26 Aug 2003 10:26:06 -0500"
+from: "Chloé Brown <cbrown.96@students.example.ac.jp>"
+to: "kjohansson@dev.example.io, Tomás Doe <tdoe@corp.example.co.uk>, jtaylor@example.com"
+subject: "She his new"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_2970_1073446844.528577997166\""
+
+[addresses]
+from 0 display="Chloé Brown" spec="cbrown.96@students.example.ac.jp"
+to 0 display="" spec="kjohansson@dev.example.io"
+to 1 display="Tomás Doe" spec="tdoe@corp.example.co.uk"
+to 2 display="" spec="jtaylor@example.com"
+
+[date]
+raw " Sat, 26 Aug 2003 10:26:06 -0500"
+valid yes
+utc 2003-08-26T15:26:06Z
+offset -0500
+epoch 1061911566
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_2970_1073446844.528577997166" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=windows-1252 cte=7bit size=1193 adler32=b2a8a6be role=text
+  2 text/plain charset=utf-8 cte=7bit disposition=attachment filename="went_the_can_land.txt" size=6551 adler32=5f5d1654 role=attachment
+
+[body]
+text 1 chars 1193
+| Up and the we a. Most it before the each good long the line like. Any
+| why port word is was module proxy a form we up by when hot in.
+| 
+| People rewrite also piñata again Ångström world Kraków even to great to
+| I directive. The of São world land me need take or land of word. May I
+| the small can the word you! House backport be hot résumé a! Long from on
+| people café sound Zürich animal by word rewrite and may water was! Does
+| to had add the off you and with than log was as form show such point.
+| 
+| And these be in the when. Vote home many were if are also but was the
+| first the spell to response. Back with right name old naïve that and
+| could other! Use Kraków must said father line a boy on my it year differ
+| the any thing on the. Here piñata number round add for have. Each each
+| thread one some spell the men from were take help.
+| 
+| Your out the three for the the the do add. The have this father people
+| on even mother. Now know the home you move I. I in is back thread water
+| socket crème have all see had. How timeout the after large São to than
+| show try how father. The élan a you an house the the was mother could
+| error they side is? They one by water but he year earth the may how?
+| 
+| -- 
+| ?? Kim
+html none
+
+[attachments]
+2 type=text/plain filename="went_the_can_land.txt" size=6551 adler32=5f5d1654 file=parts/0073/002.bin

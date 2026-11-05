@@ -1,0 +1,21 @@
+kiln-state 1
+step out/a.txt
+cmd upper()
+in src/a.txt 53b13354c230e35e
+out out/a.txt e6fa145c761b50fe
+end
+step out/b.txt
+cmd copy()
+in out/a.txt e6fa145c761b50fe
+out out/b.txt e6fa145c761b50fe
+end
+step out/c.txt
+cmd copy()
+in out/b.txt e6fa145c761b50fe
+out out/c.txt e6fa145c761b50fe
+end
+step out/d.txt
+cmd number()
+in out/c.txt e6fa145c761b50fe
+out out/d.txt 63da047e1ef89959
+end

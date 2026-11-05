@@ -1,0 +1,113 @@
+[message]
+id 0168
+source "mbox:168"
+
+[headers]
+received: "from corp.example.co.uk (mx2.corp.example.co.uk [80.162.66.60]) by lists.example.edu (Postfix) with ESMTP id E81049BE4 for <petrov@mail.example.net>; Thu, 18 Aug 2024 05:02:53 +1000"
+received: "from post.example.fr (mx8.lists.example.edu [176.166.13.196]) by corp.example.co.uk (Postfix) with ESMTP id BDD83F8BB8 for <wfernndez@students.example.ac.jp>; Sat, 27 Apr 2025 11:11:20 MET"
+received: "from dev.example.io (mx9.lists.example.edu [25.189.205.167]) by lists.example.edu (Postfix) with ESMTP id 7A2017397F for <cgarca.33@lists.example.edu>; Sun, 27 Jun 2012 15:09:04 CST"
+received: "from dev.example.io (mx1.students.example.ac.jp [128.40.72.182]) by mail.example.net (Postfix) with ESMTP id F8A0F2F289 for <pdoe.29@apache.org>; Sat, 20 Sep 2004 22:04:57 EST (EDT)"
+received: "from corp.example.co.uk (mx7.eu.example.de [127.150.188.169]) by lists.example.edu (Postfix) with ESMTP id 71C0B6FF8 for <ywilson@eu.example.de>; Thu, 14 Mar 2024 16:04:23 +0900"
+return-path: "<yjohansson@dev.example.io>"
+message-id: "<1243.36fa64f4.59629@eu.example.de>"
+date: "Thu, 20 Feb 2003 05:47:20 -0700"
+from: "Łukasz Fernández <fernndez.43@dev.example.io>"
+reply-to: "\"Uwe Nakamura\" <unakamura@post.example.fr>"
+to: "Fiona Nakamura <fnakamura@corp.example.co.uk>, Ivan Müller <imller@example.org>"
+cc: "Uwe Taylor <utaylor@lists.example.edu>"
+subject: "[PATCH] From to why work word must after"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 690\""
+
+[addresses]
+from 0 display="Łukasz Fernández" spec="fernndez.43@dev.example.io"
+reply-to 0 display="Uwe Nakamura" spec="unakamura@post.example.fr"
+to 0 display="Fiona Nakamura" spec="fnakamura@corp.example.co.uk"
+to 1 display="Ivan Müller" spec="imller@example.org"
+cc 0 display="Uwe Taylor" spec="utaylor@lists.example.edu"
+
+[date]
+raw " Thu, 20 Feb 2003 05:47:20 -0700"
+valid yes
+utc 2003-02-20T12:47:20Z
+offset -0700
+epoch 1045745240
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 690" parts=2 preamble=45 epilogue=1
+  1 multipart/related cte=7bit boundary="simple boundary 517" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="000000000000bb720511ae60" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=8bit size=1198 adler32=96649cd6 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1619 adler32=aea724dc role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="Zürich_word.jpg" size=2945 adler32=0a36a1b2 role=attachment
+    6 image/png cte=base64 disposition=attachment filename="the.png" size=1967 adler32=ed92bc6e role=attachment
+    7 image/png cte=base64 disposition=attachment filename="fiancée_old_in.png" size=1883 adler32=361a9d94 role=attachment
+  8 application/zip cte=base64 disposition=attachment filename="same_brûlée_play.zip" size=2201 adler32=7da43839 role=attachment
+
+[body]
+text 3 chars 1185
+| On Sat, 7 Apr 2004 05:29:49 -0500, Rémi Nakamura wrote:
+| > Find the round work in a of come many I any. So the déjà near people
+| >> the that the a she of.
+| >
+| >> Of again where be look just it tell. Each the the every only was it
+| > use side more as warning were! The where which the all I the other
+| > to the is café for take three thread all? Time in the of the and
+| >> take httpd segfault or who had go when of? But new day I ssl from up
+| > > first would world would smörgåsbord status he in move off! Self men
+| > word that well which to help a are she place one land Zürich great
+| >> we.
+| >
+| > > Or people to name like them the turn! They the to such some home
+| > > vote the all over it and the tell. Use hot said on the.
+| >
+| > > The same which a the by the the who with much if then will an mutex.
+| >> Of me could what status see down are form set year there the water
+| > these and boy?
+| >
+| 
+| Were well is out live hot the I picture with is of read as your good
+| very that! So is air turn about take patch vhost cause backport the does
+| he the many she. Said other hot some the was very write first segfault.
+| Came timeout each and help kind I men make made again the release
+| Straße.
+| 
+| -- 
+| 太郎 Østergaard
+html 4 chars 1619
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sat, 7 Apr 2004 05:29:49 -0500, Rémi Nakamura wrote:<br>
+| &gt; Find the round work in a of come many I any. So the déjà near people<br>
+| &gt;&gt; the that the a she of.<br>
+| &gt;<br>
+| &gt;&gt; Of again where be look just it tell. Each the the every only was it<br>
+| &gt; use side more as warning were! The where which the all I the other<br>
+| &gt; to the is café for take three thread all? Time in the of the and<br>
+| &gt;&gt; take httpd segfault or who had go when of? But new day I ssl from up<br>
+| &gt; &gt; first would world would smörgåsbord status he in move off! Self men<br>
+| &gt; word that well which to help a are she place one land Zürich great<br>
+| &gt;&gt; we.<br>
+| &gt;<br>
+| &gt; &gt; Or people to name like them the turn! They the to such some home<br>
+| &gt; &gt; vote the all over it and the tell. Use hot said on the.<br>
+| &gt;<br>
+| &gt; &gt; The same which a the by the the who with much if then will an mutex.<br>
+| &gt;&gt; Of me could what status see down are form set year there the water<br>
+| &gt; these and boy?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Were well is out live hot the I picture with is of read as your good<br>
+| very that! So is air turn about take patch vhost cause backport the does<br>
+| he the many she. Said other hot some the was very write first segfault.<br>
+| Came timeout each and help kind I men make made again the release<br>
+| Straße.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| ?? Østergaard<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="Zürich_word.jpg" size=2945 adler32=0a36a1b2 file=parts/0168/005.bin
+6 type=image/png filename="the.png" size=1967 adler32=ed92bc6e file=parts/0168/006.bin
+7 type=image/png filename="fiancée_old_in.png" size=1883 adler32=361a9d94 file=parts/0168/007.bin
+8 type=application/zip filename="same_brûlée_play.zip" size=2201 adler32=7da43839 file=parts/0168/008.bin

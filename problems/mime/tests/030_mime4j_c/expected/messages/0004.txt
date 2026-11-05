@@ -1,0 +1,31 @@
+[message]
+id 0004
+source "multipartnestedemptypartsnorfc822.eml"
+
+[headers]
+return-path: "something@example.com"
+date: "Thu, 11 Apr 1996 01:10:30 -0500"
+from: "Me <me@example.com>"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"------------299A70B339B65A93542D2AE\""
+
+[addresses]
+from 0 display="Me" spec="me@example.com"
+
+[date]
+raw " Thu, 11 Apr 1996 01:10:30 -0500"
+valid yes
+utc 1996-04-11T06:10:30Z
+offset -0500
+epoch 829203030
+
+[structure]
+0 multipart/mixed cte=7bit boundary="------------299A70B339B65A93542D2AE" parts=1 preamble=45 epilogue=10
+  1 multipart/mixed cte=7bit boundary="------------299A70B339B65A93542D2AF" parts=1 preamble=52 epilogue=16
+    2 text/plain charset=us-ascii cte=7bit size=0 adler32=00000001 role=text
+
+[body]
+text 2 chars 0
+html none
+
+[attachments]

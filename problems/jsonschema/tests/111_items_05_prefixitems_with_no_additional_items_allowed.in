@@ -1,0 +1,47 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {},
+      {},
+      {}
+    ],
+    "items": false
+  },
+  "tests": [
+    {
+      "description": "empty array",
+      "data": []
+    },
+    {
+      "description": "fewer number of items present (1)",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "fewer number of items present (2)",
+      "data": [
+        1,
+        2
+      ]
+    },
+    {
+      "description": "equal number of items present",
+      "data": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "description": "additional items are not permitted",
+      "data": [
+        1,
+        2,
+        3,
+        4
+      ]
+    }
+  ]
+}

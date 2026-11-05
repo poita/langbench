@@ -1,0 +1,36 @@
+step {
+    out "out/n0.txt"
+    in "src/blank.txt"
+    cmd number()
+}
+step {
+    out "out/n1.txt"
+    in "src/cr.txt"
+    cmd number()
+}
+step {
+    out "out/n2.txt"
+    in "src/empty.txt"
+    cmd number()
+}
+step {
+    out "out/n3.txt"
+    in "src/nl.txt"
+    cmd number()
+}
+step {
+    out "out/n4.txt"
+    in "src/nonl.txt"
+    cmd number()
+}
+step {
+    out "out/nh.txt"
+    in ["out/n0.txt", "out/n1.txt", "out/n2.txt", "out/n3.txt", "out/n4.txt"]
+    cmd hash()
+}
+step {
+    out "out/nn.txt"
+    in ["src/blank.txt", "src/cr.txt", "src/empty.txt", "src/nl.txt", "src/nonl.txt"]
+    cmd count_lines()
+}
+default ["out/nh.txt", "out/nn.txt"]

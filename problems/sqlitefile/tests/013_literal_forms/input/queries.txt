@@ -1,0 +1,23 @@
+SELECT id FROM aff WHERE i = +5
+SELECT id FROM aff WHERE i = 5.
+SELECT id FROM aff WHERE r = -3.25
+SELECT id FROM aff WHERE n = 1.05e1
+SELECT id,x FROM aff WHERE x > -2.5e-3
+SELECT id FROM aff WHERE r > '.5'
+SELECT id FROM aff WHERE i > '.5'
+SELECT id FROM aff WHERE n >= '-.5'
+SELECT id FROM aff WHERE i >= ' 5 '
+SELECT id FROM aff WHERE i > '5.'
+SELECT id FROM aff WHERE i = '+5'
+SELECT id FROM aff WHERE r = '5e0'
+SELECT id FROM aff WHERE n = '-3.0'
+SELECT id FROM aff WHERE i > '-'
+SELECT id FROM aff WHERE i > ''
+SELECT id FROM aff WHERE i > '5 x'
+SELECT id FROM aff WHERE t = -3
+SELECT id FROM aff WHERE t = 2
+SELECT id FROM aff WHERE t = 10.5
+SELECT id FROM aff WHERE i = .5
+SELECT id FROM aff WHERE i = 1e
+SELECT id FROM aff WHERE i = 1.2.3
+SELECT id FROM aff WHERE i = 5 5

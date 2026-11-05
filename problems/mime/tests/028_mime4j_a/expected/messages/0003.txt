@@ -1,0 +1,25 @@
+[message]
+id 0003
+source "attachment-filename-encoding-UTF8.eml"
+
+[headers]
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"------------050706070100080203090004\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="------------050706070100080203090004" parts=2 preamble=44 epilogue=0
+  1 text/plain charset=utf-8 cte=7bit size=16 adler32=33fb05d4 role=text
+  2 text/plain charset=us-ascii cte=base64 disposition=attachment filename="attachment.äöü" size=5 adler32=058801ab role=attachment
+
+[body]
+text 1 chars 16
+| Attachment Test
+html none
+
+[attachments]
+2 type=text/plain filename="attachment.äöü" size=5 adler32=058801ab file=parts/0003/002.bin

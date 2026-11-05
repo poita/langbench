@@ -1,0 +1,50 @@
+[message]
+id 0019
+source "german-qp.eml"
+
+[headers]
+content-type: "text/plain; charset=\"iso-8859-15\""
+content-disposition: "inline"
+content-transfer-encoding: "quoted-printable"
+mime-version: "1.0"
+x-mailer: "JaM - Just A Mailer"
+subject: "Testnachricht"
+return-path: "<joern@zyn.de>"
+date: "Wed, 21 Dec 2005 22:02:44 +0100"
+to: "joern@zyn.de"
+from: "Jörn Reder <joern@zyn.de>"
+
+[addresses]
+from 0 display="Jörn Reder" spec="joern@zyn.de"
+to 0 display="" spec="joern@zyn.de"
+
+[date]
+raw " Wed, 21 Dec 2005 22:02:44 +0100"
+valid yes
+utc 2005-12-21T21:02:44Z
+offset +0100
+epoch 1135198964
+
+[structure]
+0 text/plain charset=iso-8859-15 cte=quoted-printable disposition=inline size=264 adler32=bf6f5733 role=text
+
+[body]
+text 0 chars 264
+| 
+| Hallo,
+| 
+| das ist eine Testnachricht mit 8 Bit Sönderzäichen, und obendrein noch 
+| quoted-printable kodiert.
+| 
+| Grüße,
+| 
+| Jörn
+| 
+| -- 
+|  .''`.  Jörn Reder <joern@zyn.de>
+| : :' :  http://www.exit1.org/ http://www.zyn.de/
+| `. `'
+|   `-    Debian GNU/Linux -- The power of freedom
+html none
+
+[attachments]

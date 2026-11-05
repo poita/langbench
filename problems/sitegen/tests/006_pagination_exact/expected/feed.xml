@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Exact</title>
+  <id>https://exact.example/</id>
+  <updated>2020-02-06T00:00:00Z</updated>
+  <link href="https://exact.example/" rel="alternate"/>
+  <link href="https://exact.example/feed.xml" rel="self"/>
+  <author>
+    <name>P. Ager</name>
+  </author>
+  <entry>
+    <title>Post 5</title>
+    <id>https://exact.example/posts/p5/</id>
+    <updated>2020-02-06T00:00:00Z</updated>
+    <link href="https://exact.example/posts/p5/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Body of post 5.&lt;/p&gt;
+</content>
+  </entry>
+  <entry>
+    <title>Post 4</title>
+    <id>https://exact.example/posts/p4/</id>
+    <updated>2020-02-05T00:00:00Z</updated>
+    <link href="https://exact.example/posts/p4/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Body of post 4.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

@@ -1,0 +1,21 @@
+build
+edit main.kiln
+step {
+    out "out/j.txt"
+    in ["src/a.txt", "src/b.txt"]
+    cmd concat()
+    cost 5
+}
+default "out/j.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/j.txt"
+    in ["src/b.txt", "src/a.txt"]
+    cmd concat()
+    cost 5
+}
+default "out/j.txt"
+---
+build

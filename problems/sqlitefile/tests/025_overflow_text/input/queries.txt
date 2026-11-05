@@ -1,0 +1,6 @@
+COUNT texts
+SELECT id FROM texts
+SELECT body FROM texts WHERE id = 1
+SELECT body FROM texts WHERE id = 3
+SELECT id,body FROM texts WHERE id = 5
+SELECT id FROM texts ORDER BY body

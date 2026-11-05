@@ -1,0 +1,29 @@
+name "jtemplate"
+description "A Jinja-style template engine: library and command-line tool"
+authors "template authors"
+copyright "Copyright (c) the jtemplate authors"
+license "MIT"
+
+sourcePaths "source"
+importPaths "source"
+
+# The default configuration: the command-line tool.
+configuration "cli" {
+    targetType "executable"
+    targetName "jtemplate"
+    mainSourceFile "app/main.d"
+    sourcePaths "source" "app"
+}
+
+# The reusable library only (depend on this package from another project).
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+}
+
+# `dub test` uses this configuration: library sources plus the unit tests,
+# which live in tests/ rather than next to the library code.
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+}

@@ -1,0 +1,17 @@
++++
+title = "The Hen and the Golden Eggs"
+date = "2019-03-26"
+slug = "the-hen-and-the-golden-eggs"
+tags = ["Fables"]
++++
+A **COTTAGER** and his wife had a Hen that laid a golden egg every day.
+They supposed that the Hen must contain a great lump of gold in its
+inside, and in order to get the gold they killed it. Having done so,
+they found to their surprise that the Hen differed in no respect from
+their other hens. The foolish pair, thus hoping to become rich all at
+once, deprived themselves of the gain of which they were assured day by
+day.
+
+Themes:
+
+- fables

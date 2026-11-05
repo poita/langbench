@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "prefixItems": [
+      {
+        "type": "null"
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "allows null elements",
+      "data": [
+        null
+      ]
+    }
+  ]
+}

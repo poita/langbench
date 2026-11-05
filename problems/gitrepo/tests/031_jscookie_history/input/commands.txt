@@ -1,0 +1,6 @@
+count-objects
+log HEAD
+log HEAD 100
+rev-parse HEAD
+rev-parse HEAD~1000
+ls-tree HEAD

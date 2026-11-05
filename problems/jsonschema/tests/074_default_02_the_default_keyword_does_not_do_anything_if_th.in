@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "alpha": {
+        "type": "number",
+        "maximum": 3,
+        "default": 5
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "an explicit property value is checked against maximum (passing)",
+      "data": {
+        "alpha": 1
+      }
+    },
+    {
+      "description": "an explicit property value is checked against maximum (failing)",
+      "data": {
+        "alpha": 5
+      }
+    },
+    {
+      "description": "missing properties are not filled in with the default",
+      "data": {}
+    }
+  ]
+}

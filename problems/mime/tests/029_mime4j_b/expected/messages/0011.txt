@@ -1,0 +1,23 @@
+[message]
+id 0011
+source "misplaced-boundary.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"boundary\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="boundary" parts=1 preamble=0 epilogue=9
+  1 text/plain charset=us-ascii cte=7bit size=98 adler32=d8f3236b role=text
+
+[body]
+text 1 chars 98
+| This should be a text including the --boundary
+| string and should not be parsed as multiple bodies
+html none
+
+[attachments]

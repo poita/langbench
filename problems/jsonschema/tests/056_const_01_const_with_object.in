@@ -1,0 +1,38 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "const": {
+      "foo": "bar",
+      "baz": "bax"
+    }
+  },
+  "tests": [
+    {
+      "description": "same object is valid",
+      "data": {
+        "foo": "bar",
+        "baz": "bax"
+      }
+    },
+    {
+      "description": "same object with different property order is valid",
+      "data": {
+        "baz": "bax",
+        "foo": "bar"
+      }
+    },
+    {
+      "description": "another object is invalid",
+      "data": {
+        "foo": "bar"
+      }
+    },
+    {
+      "description": "another type is invalid",
+      "data": [
+        1,
+        2
+      ]
+    }
+  ]
+}

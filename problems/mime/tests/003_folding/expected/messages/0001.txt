@@ -1,0 +1,24 @@
+[message]
+id 0001
+source "bad-separator.eml"
+
+[headers]
+subject: "ok"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=49 adler32=b6dc1100 role=text
+
+[body]
+text 0 chars 49
+| this line has no colon
+| Subject: never seen
+| 
+| body
+html none
+
+[attachments]

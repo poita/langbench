@@ -1,0 +1,86 @@
+[message]
+id 0031
+source "mbox:31"
+
+[headers]
+received: "from mail.example.net (mx4.students.example.ac.jp [31.124.6.186]) by post.example.fr (Postfix) with ESMTP id 7945554851 for <pfernndez@dev.example.io>; Mon, 9 Jul 2003 07:33:32 -0330"
+received: "from example.com (mx6.students.example.ac.jp [85.95.14.166]) by eu.example.de (Postfix) with ESMTP id 63D1FA7FFA for <ipetrov.99@students.example.ac.jp>; Mon, 9 Apr 2004 05:19:06 -0500"
+received: "from example.org (mx2.mail.example.net [242.60.227.36]) by apache.org (Postfix) with ESMTP id 343319942 for <kkim.38@mail.example.net>; Thu, 21 Jan 2003 14:11:31 +0530"
+received: "from eu.example.de (mx6.post.example.fr [75.129.236.155]) by mail.example.net (Postfix) with ESMTP id BE5FAF64DA for <btaylor@mail.example.net>; Sat Jun 7 19:20:24 2005 -0500"
+received: "from lists.example.edu (mx1.post.example.fr [23.203.50.201]) by students.example.ac.jp (Postfix) with ESMTP id 17816D6EC6 for <flefvre.47@apache.org>; Thu, 05 Aug 2009 07:48:32 -0500 (EDT)"
+return-path: "<ffernndez.5@eu.example.de>"
+message-id: "<349.d7ed4e98.75193@eu.example.de>"
+in-reply-to: "<354.315b3d25.28518@students.example.ac.jp>"
+references: "<350.dc0cf5cb.80406@example.com> <351.1962fb8c.22182@dev.example.io> <352.f82e655d.55303@mail.example.net> <353.ba34405d.21482@example.org> <354.315b3d25.28518@students.example.ac.jp>"
+date: "Fri, 18 May 2004 11:39:21 +0530"
+from: "ystergaard@eu.example.de"
+to: "Yuki García <ygarca.69@mail.example.net>,\tFiona Schröder <fschrder.1@students.example.ac.jp>"
+cc: "Carl Doe <cdoe@lists.example.edu>, François Johansson <fjohansson.67@apache.org>"
+subject: "Re: [PATCH] Vhost from the hand to who take at all warning"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_15fd0e82135a898b40c2e2179289c2c6\""
+
+[addresses]
+from 0 display="" spec="ystergaard@eu.example.de"
+to 0 display="Yuki García" spec="ygarca.69@mail.example.net"
+to 1 display="Fiona Schröder" spec="fschrder.1@students.example.ac.jp"
+cc 0 display="Carl Doe" spec="cdoe@lists.example.edu"
+cc 1 display="François Johansson" spec="fjohansson.67@apache.org"
+
+[date]
+raw " Fri, 18 May 2004 11:39:21 +0530"
+valid yes
+utc 2004-05-18T06:09:21Z
+offset +0530
+epoch 1084860561
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_15fd0e82135a898b40c2e2179289c2c6" parts=4 preamble=45 epilogue=0
+  1 multipart/alternative cte=7bit boundary="00000000000094d4e4f1ff45" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=575 adler32=7ca5bcba role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=921 adler32=86b13036 role=html
+  4 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="what_vote.docx" size=5134 adler32=f6c1f417 role=attachment
+  5 application/pdf cte=base64 disposition=attachment filename="crème_in.pdf" size=5750 adler32=879a2d47 role=attachment
+  6 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="crème_in_the_well_come.csv" size=2890 adler32=319f9710 role=attachment
+
+[body]
+text 2 chars 571
+| Release been use so add response an she in are live that of port they
+| the. Than response at get well know my about and number it the at.
+| 
+| Boy as to résumé piñata here so time round who was same it right proxy
+| the low this. Small will self move to in people to if go the part it
+| that! Want play show point I line the! In land over take day look review
+| keepalive naïve our world timeout to hook was many.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Yuki Johansson
+html 3 chars 917
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Release been use so add response an she in are live that of port they<br>
+| the. Than response at get well know my about and number it the at.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Boy as to résumé piñata here so time round who was same it right proxy<br>
+| the low this. Small will self move to in people to if go the part it<br>
+| that! Want play show point I line the! In land over take day look review<br>
+| keepalive naïve our world timeout to hook was many.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Yuki Johansson<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="what_vote.docx" size=5134 adler32=f6c1f417 file=parts/0031/004.bin
+5 type=application/pdf filename="crème_in.pdf" size=5750 adler32=879a2d47 file=parts/0031/005.bin
+6 type=text/csv filename="crème_in_the_well_come.csv" size=2890 adler32=319f9710 file=parts/0031/006.bin

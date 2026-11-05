@@ -1,0 +1,12 @@
+Content-Type: multipart/mixed; boundary="simple
+ boundary"
+
+preamble
+--simple boundary
+
+implicitly typed plain text
+--simple boundary
+Content-Type: text/plain; charset=us-ascii
+
+explicitly typed plain text
+--simple boundary--

@@ -1,0 +1,20 @@
+QUERY 1 cat NOT dog
+HITS 1
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+QUERY 2 NOT cat
+HITS 2
+1	birds	0.0000	Birds fly over the quiet lake at dawn, and the lake is still
+2	dogs	0.0000	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+QUERY 3 NOT unicorn
+HITS 4
+1	birds	0.0000	Birds fly over the quiet lake at dawn, and the lake is still
+2	both	0.0000	The cat and the dog met. A dog chased the cat while cats watched dogs
+3	cats	0.0000	The cat sat on the mat. Cats are running, and the running cat runs
+4	dogs	0.0000	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+QUERY 4 cat AND NOT dog
+HITS 1
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+QUERY 5 NOT NOT cat
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs

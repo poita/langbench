@@ -1,0 +1,13 @@
+create index a
+create index b
+indexes
+drop index a
+indexes
+create index c
+indexes
+drop index b
+indexes
+create index d
+create index e
+indexes
+stat

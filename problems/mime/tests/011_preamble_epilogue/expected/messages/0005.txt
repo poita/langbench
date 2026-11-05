@@ -1,0 +1,22 @@
+[message]
+id 0005
+source "preamble-only.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=1 preamble=8 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=4 adler32=041a01af role=text
+
+[body]
+text 1 chars 4
+| body
+html none
+
+[attachments]

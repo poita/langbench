@@ -1,0 +1,44 @@
+[message]
+id 0001
+source "mbox:1"
+
+[headers]
+subject: "Quarterly report — Q3"
+from: "\"Reports, Automated\" <reports@example.com>"
+to: "team@example.com, René <rene@example.fr>"
+date: "Fri, 3 Oct 2025 09:15:42 -0400"
+message-id: "<20251003.091542@example.com>"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_out_42\""
+
+[addresses]
+from 0 display="Reports, Automated" spec="reports@example.com"
+to 0 display="" spec="team@example.com"
+to 1 display="René" spec="rene@example.fr"
+
+[date]
+raw " Fri, 3 Oct 2025 09:15:42 -0400"
+valid yes
+utc 2025-10-03T13:15:42Z
+offset -0400
+epoch 1759497342
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_out_42" parts=3 preamble=44 epilogue=24
+  1 multipart/alternative cte=7bit boundary="=_alt_42" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=windows-1252 cte=quoted-printable size=99 adler32=e0d52428 role=text
+    3 text/html charset=utf-8 cte=base64 size=72 adler32=a2ed18d5 role=html
+  4 application/pdf cte=base64 disposition=attachment filename="Q3 résumé.pdf" size=72 adler32=2c7c15d9 role=attachment
+  5 image/png cte=base64 disposition=inline filename="chart.png" size=70 adler32=bfb50ff5 role=attachment
+
+[body]
+text 2 chars 99
+| Revenue rose 12% this quarter — see the attached report.
+| Regards, 
+| The “automated” reporting system
+html 3 chars 70
+| <html><body><p>Revenue rose 12% — see the attached.</p></body></html>
+
+[attachments]
+4 type=application/pdf filename="Q3 résumé.pdf" size=72 adler32=2c7c15d9 file=parts/0001/004.bin
+5 type=image/png filename="chart.png" size=70 adler32=bfb50ff5 file=parts/0001/005.bin

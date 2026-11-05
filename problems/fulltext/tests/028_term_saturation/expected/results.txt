@@ -1,0 +1,18 @@
+QUERY 1 signal
+HITS 4
+1	twenty	0.2187	signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal noise noise noise noise noise noise noise noise noise noise
+2	five	0.1869	signal signal signal signal signal noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+3	two	0.1449	signal signal noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+4	one	0.1054	signal noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+QUERY 2 noise
+HITS 4
+1	one	0.2250	noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+2	two	0.2249	noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+3	five	0.2243	noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+4	twenty	0.2193	signal signal signal signal signal signal signal signal signal noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+QUERY 3 signal noise
+HITS 4
+1	twenty	0.4379	signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal signal noise noise noise noise noise noise noise noise noise noise
+2	five	0.4112	signal signal signal signal signal noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+3	two	0.3697	signal signal noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise
+4	one	0.3304	signal noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise noise

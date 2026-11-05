@@ -1,0 +1,22 @@
+kiln-state 1
+step out/join.txt
+cmd concat()
+in out/left.txt 3427df123bb2bebd
+in out/right.txt 0dbf621762dc0fc0
+out out/join.txt 02a18ee63ce5f058
+end
+step out/left.txt
+cmd wrap("left:", "\n")
+in out/top.txt 089bdc07b544e7b2
+out out/left.txt 3427df123bb2bebd
+end
+step out/right.txt
+cmd wrap("right:", "\n")
+in out/top.txt 089bdc07b544e7b2
+out out/right.txt 0dbf621762dc0fc0
+end
+step out/top.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/top.txt 089bdc07b544e7b2
+end

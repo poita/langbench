@@ -1,0 +1,152 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-024 #55
+9 PAY A ember 5
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 PREVENT #55 2
+14 DAMAGE #21 #55 2
+15 SPENT #21 CIN-024
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 46 cap 51 vault 20 hand 4 ash 6 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-029
+hand A 2 #23 CIN-038
+hand A 3 #24 DSK-035
+hand A 4 #25 NEU-027
+field A #26 TOK-001 1/1 w0 c0 ready - kw -
+field A #27 TOK-001 1/1 w0 c0 ready - kw -
+field A #28 TOK-001 1/1 w0 c0 ready - kw -
+field A #29 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #55 TID-019 6/6 w2 c0 ready - kw plating:2
+field B #56 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #30 CIN-001
+ash A 2 #31 CIN-001
+ash A 3 #32 CIN-001
+ash A 4 #33 CIN-001
+ash A 5 #34 CIN-001
+ash A 6 #21 CIN-024
+STATE END
+16 PLAY A ~2 #23 CIN-038 #55
+17 PAY A ember 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 PREVENT #55 2
+22 SPENT #23 CIN-038
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 45 cap 51 vault 20 hand 3 ash 7 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-029
+hand A 2 #24 DSK-035
+hand A 3 #25 NEU-027
+field A #26 TOK-001 1/1 w0 c0 ready - kw -
+field A #27 TOK-001 1/1 w0 c0 ready - kw -
+field A #28 TOK-001 1/1 w0 c0 ready - kw -
+field A #29 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #55 TID-019 6/6 w2 c0 ready - kw plating:2
+field B #56 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #30 CIN-001
+ash A 2 #31 CIN-001
+ash A 3 #32 CIN-001
+ash A 4 #33 CIN-001
+ash A 5 #34 CIN-001
+ash A 6 #21 CIN-024
+ash A 7 #23 CIN-038
+STATE END
+23 PLAY A ~3 #22 CIN-029 #56
+24 PAY A ember 2
+25 PASS A
+26 PASS B
+27 RESOLVE ~3
+28 DAMAGE #22 #56 2
+29 SPENT #22 CIN-029
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 43 cap 51 vault 20 hand 2 ash 8 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #24 DSK-035
+hand A 2 #25 NEU-027
+field A #26 TOK-001 1/1 w0 c0 ready - kw -
+field A #27 TOK-001 1/1 w0 c0 ready - kw -
+field A #28 TOK-001 1/1 w0 c0 ready - kw -
+field A #29 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #55 TID-019 6/6 w2 c0 ready - kw plating:2
+field B #56 LOM-007 4/6 w2 c0 ready - kw siegework
+ash A 1 #30 CIN-001
+ash A 2 #31 CIN-001
+ash A 3 #32 CIN-001
+ash A 4 #33 CIN-001
+ash A 5 #34 CIN-001
+ash A 6 #21 CIN-024
+ash A 7 #23 CIN-038
+ash A 8 #22 CIN-029
+STATE END
+30 PLAY A ~4 #25 NEU-027 #29 #56
+31 PAY A ember 2
+32 PASS A
+33 PASS B
+34 RESOLVE ~4
+35 DAMAGE #25 #56 8
+36 SPENT #25 NEU-027
+37 DESTROY #56 LOM-007
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 41 cap 51 vault 20 hand 1 ash 9 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+hand A 1 #24 DSK-035
+field A #26 TOK-001 1/1 w0 c0 ready - kw -
+field A #27 TOK-001 1/1 w0 c0 ready - kw -
+field A #28 TOK-001 1/1 w0 c0 ready - kw -
+field A #29 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #55 TID-019 6/6 w2 c0 ready - kw plating:2
+ash A 1 #30 CIN-001
+ash A 2 #31 CIN-001
+ash A 3 #32 CIN-001
+ash A 4 #33 CIN-001
+ash A 5 #34 CIN-001
+ash A 6 #21 CIN-024
+ash A 7 #23 CIN-038
+ash A 8 #22 CIN-029
+ash A 9 #25 NEU-027
+ash B 1 #56 LOM-007
+STATE END
+38 PLAY A ~5 #24 DSK-035 #55
+39 PAY A ember 4
+40 PASS A
+41 PASS B
+42 RESOLVE ~5
+43 PREVENT #55 2
+44 DAMAGE #24 #55 7
+45 SPENT #24 DSK-035
+46 DESTROY #55 TID-019
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 37 cap 51 vault 20 hand 0 ash 10 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 2 rift 0
+field A #26 TOK-001 1/1 w0 c0 ready - kw -
+field A #27 TOK-001 1/1 w0 c0 ready - kw -
+field A #28 TOK-001 1/1 w0 c0 ready - kw -
+field A #29 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+ash A 1 #30 CIN-001
+ash A 2 #31 CIN-001
+ash A 3 #32 CIN-001
+ash A 4 #33 CIN-001
+ash A 5 #34 CIN-001
+ash A 6 #21 CIN-024
+ash A 7 #23 CIN-038
+ash A 8 #22 CIN-029
+ash A 9 #25 NEU-027
+ash A 10 #24 DSK-035
+ash B 1 #56 LOM-007
+ash B 2 #55 TID-019
+STATE END
+47 RESULT pending none

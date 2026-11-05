@@ -1,0 +1,63 @@
+1	ann	110
+2	bob	50
+3	cy	NULL
+4	ann	10
+5	dee	75
+-- 5 rows
+1	110
+2	50
+3	0
+4	10
+5	75
+-- 5 rows
+1	ann	110
+2	bob	50
+3	cy	0
+4	x	20
+5	x	150
+-- 5 rows
+110	ann	1
+50	bob	2
+0	cy	3
+20	x	4
+150	x	5
+-- 5 rows
+110	ann	1
+50	bob	2
+0	cy	3
+20	NULL	4
+150	NULL	5
+-- 5 rows
+110	ann	1
+50	bob	2
+0	cy	3
+20	NULL	4
+150	NULL	5
+-- 5 rows
+110	ann	1
+50	bob	2
+0	cy	3
+20	NULL	-4
+150	NULL	-5
+-- 5 rows
+110	ann	1
+50	bob	2
+0	cy	3
+-- 3 rows
+110	ann	1
+50	bob	2
+0	cy	3
+-- 3 rows
+3
+-- 1 rows
+-- 0 rows
+9	z	9
+-- 1 rows
+9	z	1
+-- 1 rows
+1
+-- 1 rows
+9	q	2
+-- 1 rows
+0
+-- 1 rows

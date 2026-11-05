@@ -1,0 +1,66 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "__proto__": {
+        "type": "number"
+      },
+      "toString": {
+        "properties": {
+          "length": {
+            "type": "string"
+          }
+        }
+      },
+      "constructor": {
+        "type": "number"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "ignores arrays",
+      "data": []
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    },
+    {
+      "description": "none of the properties mentioned",
+      "data": {}
+    },
+    {
+      "description": "__proto__ not valid",
+      "data": {
+        "__proto__": "foo"
+      }
+    },
+    {
+      "description": "toString not valid",
+      "data": {
+        "toString": {
+          "length": 37
+        }
+      }
+    },
+    {
+      "description": "constructor not valid",
+      "data": {
+        "constructor": {
+          "length": 37
+        }
+      }
+    },
+    {
+      "description": "all present and valid",
+      "data": {
+        "__proto__": 12,
+        "toString": {
+          "length": "foo"
+        },
+        "constructor": 37
+      }
+    }
+  ]
+}

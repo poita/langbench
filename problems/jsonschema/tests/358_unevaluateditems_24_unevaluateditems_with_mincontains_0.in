@@ -1,0 +1,36 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "contains": {
+      "type": "string"
+    },
+    "minContains": 0,
+    "unevaluatedItems": false
+  },
+  "tests": [
+    {
+      "description": "empty array is valid",
+      "data": []
+    },
+    {
+      "description": "no items evaluated by contains",
+      "data": [
+        0
+      ]
+    },
+    {
+      "description": "some but not all items evaluated by contains",
+      "data": [
+        "foo",
+        0
+      ]
+    },
+    {
+      "description": "all items evaluated by contains",
+      "data": [
+        "foo",
+        "bar"
+      ]
+    }
+  ]
+}

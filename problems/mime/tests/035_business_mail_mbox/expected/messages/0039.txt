@@ -1,0 +1,124 @@
+[message]
+id 0039
+source "mbox:39"
+
+[headers]
+received: "from corp.example.co.uk (mx3.lists.example.edu [134.169.101.130]) by example.com (Postfix) with ESMTP id A322DAFC4A for <kowalski@lists.example.edu>; Sat, 7 Sep 2009 05:22:59 +1000"
+received: "from dev.example.io (mx5.students.example.ac.jp [180.188.34.125]) by students.example.ac.jp (Postfix) with ESMTP id DBBFA44134 for <kjohansson.94@lists.example.edu>; 31 Feb 2004 10:00:00 +0000"
+received: "from post.example.fr (mx5.mail.example.net [189.98.136.188]) by students.example.ac.jp (Postfix) with ESMTP id 8C1E02FD2C for <rossi.60@dev.example.io>; Sun, 02 Jun 2012 04:48:38 +1000 (PST)"
+received: "from example.org (mx6.post.example.fr [44.151.207.187]) by apache.org (Postfix) with ESMTP id ED870A13D4 for <wdoe@apache.org>; Sun, 15 Aug 2009 21:53:21 +0000"
+return-path: "<lefvre@mail.example.net>"
+message-id: "<415.40d191ea.14545@dev.example.io>"
+in-reply-to: "<418.a84d1575.20917@eu.example.de>"
+references: "<416.b13f80ad.21944@post.example.fr> <417.4d30fedb.85077@mail.example.net> <418.a84d1575.20917@eu.example.de>"
+date: "Thu, 11 Aug 2004 22:36:09 -0000"
+from: "\"Brown, Dana\" <dbrown@dev.example.io>"
+to: "Đorđe Nguyen <nguyen.27@corp.example.co.uk>"
+subject: "The how branch you were"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_6ed9cd3580c2382042cd16da2322d930\""
+
+[addresses]
+from 0 display="Brown, Dana" spec="dbrown@dev.example.io"
+to 0 display="Đorđe Nguyen" spec="nguyen.27@corp.example.co.uk"
+
+[date]
+raw " Thu, 11 Aug 2004 22:36:09 -0000"
+valid yes
+utc 2004-08-11T22:36:09Z
+offset +0000
+epoch 1092263769
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_6ed9cd3580c2382042cd16da2322d930" parts=5 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="Apple-Mail=_293CB6E83ACD62E1" parts=4 preamble=45 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 27" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=us-ascii cte=7bit size=1692 adler32=ac654059 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=2234 adler32=0256fe73 role=html
+    5 image/png cte=base64 disposition=inline filename="crème_has_have_Ørsted.png" size=1972 adler32=73bcdd0b role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="of_call.jpg" size=2909 adler32=bf8a96e8 role=attachment
+    7 image/png cte=base64 disposition=attachment filename="other_ask_earth.png" size=2958 adler32=d71cb27d role=attachment
+  8 text/x-diff charset=utf-8 cte=7bit disposition=attachment filename="about_the_crème_just.patch" size=4527 adler32=84f18e95 role=attachment
+  9 text/csv charset=utf-8 cte=7bit disposition=attachment filename="of.csv" size=1454 adler32=414ece8d role=attachment
+  10 application/zip cte=base64 disposition=attachment filename="were.zip" size=1605 adler32=39da0b2d role=attachment
+  11 application/zip cte=base64 disposition=attachment filename="for_bug_be.zip" size=783 adler32=1abf7af9 role=attachment
+
+[body]
+text 3 chars 1692
+| On Tue, 10 Jul 2005 22:46:37 +0200 (JST), Chlo? Papadopoulos wrote:
+| > > Take warning it the you. Pi?ata take their form the for bug the my
+| > > be? Word the the many see the a big fianc?e help is great out side
+| > > day large? Word was we turn then your!
+| >
+| > Earth are or move make had with timeout think have it then them all
+| > > place? The by warning that that trunk water differ help live are
+| >> her. Then differ the why her at some the.
+| >
+| 
+| Brigade good pool back that before play that the. Any and hot any trunk.
+| These r?sum? man down the than with you. These the two the the call them
+| the find and is from fianc?e. Then have an on made. Be some down point
+| well the think. And review the to vhost the of was this.
+| 
+| Picture then boy first the? It how use d?j? think like br?l?e put the
+| handler must what the? Of of M?laga the their backport can about good
+| them but he of day now in. Before to this he what and other add of. One
+| some number or have each pool form end? For hook said she backport which
+| vhost day one word cache turn differ so status the a act!
+| 
+| >From set even thing who. The had place br?l?e then is is did me. And
+| land light could commit old the build would the look sound of went than
+| be had! Too if on the some form near there the did you over little
+| world. The has us of commit a other that of much house I patch do number
+| there we. Play the the the and and backport us has a name and?
+| 
+| That and much an do him or mother. Read the socket off is he r?sum? been
+| out the if hot is cause. Came the there want by you much over made ssl
+| the can may hand. Turn do for had how have as! Came commit are been a
+| old been same out how hot are will his a if alias to!
+| 
+| -- 
+| Quinn Brown
+html 4 chars 2234
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Tue, 10 Jul 2005 22:46:37 +0200 (JST), Chloé Papadopoulos wrote:<br>
+| &gt; &gt; Take warning it the you. Piñata take their form the for bug the my<br>
+| &gt; &gt; be? Word the the many see the a big fiancée help is great out side<br>
+| &gt; &gt; day large? Word was we turn then your!<br>
+| &gt;<br>
+| &gt; Earth are or move make had with timeout think have it then them all<br>
+| &gt; &gt; place? The by warning that that trunk water differ help live are<br>
+| &gt;&gt; her. Then differ the why her at some the.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Brigade good pool back that before play that the. Any and hot any trunk.<br>
+| These résumé man down the than with you. These the two the the call them<br>
+| the find and is from fiancée. Then have an on made. Be some down point<br>
+| well the think. And review the to vhost the of was this.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Picture then boy first the? It how use déjà think like brûlée put the<br>
+| handler must what the? Of of Málaga the their backport can about good<br>
+| them but he of day now in. Before to this he what and other add of. One<br>
+| some number or have each pool form end? For hook said she backport which<br>
+| vhost day one word cache turn differ so status the a act!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">&gt;From set even thing who. The had place brûlée then is is did me. And<br>
+| land light could commit old the build would the look sound of went than<br>
+| be had! Too if on the some form near there the did you over little<br>
+| world. The has us of commit a other that of much house I patch do number<br>
+| there we. Play the the the and and backport us has a name and?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">That and much an do him or mother. Read the socket off is he résumé been<br>
+| out the if hot is cause. Came the there want by you much over made ssl<br>
+| the can may hand. Turn do for had how have as! Came commit are been a<br>
+| old been same out how hot are will his a if alias to!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Quinn Brown<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="crème_has_have_Ørsted.png" size=1972 adler32=73bcdd0b file=parts/0039/005.bin
+6 type=image/jpeg filename="of_call.jpg" size=2909 adler32=bf8a96e8 file=parts/0039/006.bin
+7 type=image/png filename="other_ask_earth.png" size=2958 adler32=d71cb27d file=parts/0039/007.bin
+8 type=text/x-diff filename="about_the_crème_just.patch" size=4527 adler32=84f18e95 file=parts/0039/008.bin
+9 type=text/csv filename="of.csv" size=1454 adler32=414ece8d file=parts/0039/009.bin
+10 type=application/zip filename="were.zip" size=1605 adler32=39da0b2d file=parts/0039/010.bin
+11 type=application/zip filename="for_bug_be.zip" size=783 adler32=1abf7af9 file=parts/0039/011.bin

@@ -1,0 +1,15 @@
++++
+title = "The Raven and the Swan"
+date = "2019-01-16"
+slug = "the-raven-and-the-swan"
+tags = ["Swans"]
++++
+A **RAVEN** saw a Swan and desired to secure for himself the same beautiful
+plumage. Supposing that the Swan’s splendid white color arose from his
+washing in the water in which he swam, the Raven left the altars in the
+neighborhood where he picked up his living, and took up residence in
+the lakes and pools. But cleansing his feathers as often as he would,
+he could not change their color, while through want of food he
+perished.
+
+Change of habit cannot alter Nature.

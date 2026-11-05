@@ -1,0 +1,29 @@
+name "mdiff"
+description "Exact line-oriented Myers diff and patch: linear-space O(ND) shortest edit scripts."
+authors "mdiff authors"
+copyright "Copyright © 2026, mdiff authors"
+license "MIT"
+
+# Default configuration: the command-line tool (links the library sources).
+configuration "cli" {
+    targetType "executable"
+    targetName "mdiff"
+    targetPath "bin"
+    sourcePaths "source" "app"
+    mainSourceFile "app/main.d"
+}
+
+# The reusable library only (no `main`), for use as a dub dependency.
+configuration "library" {
+    targetType "library"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+# Used by `dub test`: library sources plus the unit-test modules in tests/.
+configuration "unittest" {
+    targetType "library"
+    targetPath "bin"
+    sourcePaths "source" "tests"
+    importPaths "source"
+}

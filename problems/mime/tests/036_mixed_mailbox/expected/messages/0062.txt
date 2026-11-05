@@ -1,0 +1,167 @@
+[message]
+id 0062
+source "mbox:62"
+
+[headers]
+received: "from students.example.ac.jp (mx8.corp.example.co.uk [70.80.32.96]) by students.example.ac.jp (Postfix) with ESMTP id 366C251355 for <bkim.38@mail.example.net>; Thu, 25 Aug 2003 12:34:27 +1000"
+received: "from apache.org (mx3.example.org [216.157.163.95]) by apache.org (Postfix) with ESMTP id CE583E09A7 for <ulefvre.77@dev.example.io>; Mon, 17 Dec 2018 11:17:19 +0530"
+received: "from eu.example.de (mx7.post.example.fr [176.49.14.77]) by post.example.fr (Postfix) with ESMTP id D31DF1B42A for <zpetrov.83@apache.org>; 4 APR 05 11:46 -0500"
+return-path: "<petrov@dev.example.io>"
+message-id: "<531.5559ef85.90768@mail.example.net>"
+date: "Mon, 12 Sep 2012 13:16:00 -0330"
+from: "wkim@students.example.ac.jp"
+to: "jkowalski.6@dev.example.io,    Zoë Nakamura <znakamura@lists.example.edu>,\tQuinn Østergaard <qstergaard@students.example.ac.jp>"
+cc: "\"Dana O'Brien\" <dobrien@example.org>, Søren 山田 <s@eu.example.de>"
+subject: "Me every the on down directive to the"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_7196_614353450.591161904971\""
+
+[addresses]
+from 0 display="" spec="wkim@students.example.ac.jp"
+to 0 display="" spec="jkowalski.6@dev.example.io"
+to 1 display="Zoë Nakamura" spec="znakamura@lists.example.edu"
+to 2 display="Quinn Østergaard" spec="qstergaard@students.example.ac.jp"
+cc 0 display="Dana O'Brien" spec="dobrien@example.org"
+cc 1 display="Søren 山田" spec="s@eu.example.de"
+
+[date]
+raw " Mon, 12 Sep 2012 13:16:00 -0330"
+valid yes
+utc 2012-09-12T16:46:00Z
+offset -0330
+epoch 1347468360
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_7196_614353450.591161904971" parts=4 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="=_e57310ac14ec40c1b97b2f8693e06761" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 670" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=us-ascii cte=7bit size=1928 adler32=e5bc835d role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=2555 adler32=a87a611e role=html
+    5 image/png cte=base64 disposition=inline filename="for_first_good.png" size=610 adler32=833f2c90 role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="be_déjà_the_our.jpg" size=960 adler32=c48be069 role=attachment
+    7 image/jpeg cte=base64 disposition=attachment filename="said_the_branch.jpg" size=1939 adler32=c0e4b92f role=attachment
+  8 text/csv charset=utf-8 cte=base64 disposition=attachment filename="are_the.csv" size=2895 adler32=dc579a11 role=attachment
+  9 image/jpeg cte=base64 disposition=attachment filename="élan_place.jpg" size=6234 adler32=31e0f0b8 role=attachment
+  10 message/rfc822 cte=7bit disposition=inline parts=1
+    11 multipart/mixed cte=7bit boundary="----=_Part_6516_776746393.155924687571" parts=3 preamble=0 epilogue=1
+      12 multipart/related cte=7bit boundary="=_44c6e4f498fe9efc88545ecf53f82b14" parts=4 preamble=0 epilogue=0
+        13 multipart/alternative cte=7bit boundary="Apple-Mail=_C1962A88D61DFE8C" parts=2 preamble=45 epilogue=0
+          14 text/plain charset=iso-8859-1 cte=quoted-printable size=1527 adler32=95a3116e role=attachment
+          15 text/html charset=utf-8 cte=quoted-printable size=2065 adler32=dde5c8fb role=attachment
+        16 image/jpeg cte=base64 disposition=attachment filename="Kraków_he_then_are.jpg" size=2994 adler32=5319c4ab role=attachment
+        17 image/jpeg cte=base64 disposition=attachment filename="as_men_or.jpg" size=1568 adler32=2adf19e2 role=attachment
+        18 image/png cte=base64 disposition=attachment filename="like.png" size=3124 adler32=fe77f536 role=attachment
+      19 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="Zürich_set_to.patch" size=1603 adler32=6255fd30 role=attachment
+      20 message/rfc822 cte=7bit disposition=inline parts=1
+        21 multipart/mixed cte=7bit boundary="simple boundary 269" parts=3 preamble=0 epilogue=0
+          22 multipart/alternative cte=7bit boundary="----=_Part_1313_987832747.1011945245614" parts=2 preamble=45 epilogue=0
+            23 text/plain charset=utf-8 cte=8bit size=1965 adler32=96a3979f role=attachment
+            24 text/html charset=utf-8 cte=quoted-printable size=2677 adler32=c13183d1 role=attachment
+          25 image/jpeg cte=base64 disposition=inline filename="some_it_them.jpg" size=1103 adler32=648b22d6 role=attachment
+          26 text/plain charset=utf-8 cte=7bit disposition=attachment filename="Größe_a.txt" size=7736 adler32=b426bfdc role=attachment
+
+[body]
+text 3 chars 1928
+| On sun,4 may 2012 0:56:39 (comment (nested)) -0330, Mar?a Johansson wrote:
+| > In go most this for the fa?ade your three write. Show fianc?e many
+| > the had or get have.
+| >
+| > Write ?rsted of man were such line or show of big year at more there
+| > Gr??e. Client he side up in na?ve ?ber! And vote they of water thing
+| >> do the he jalape?o how a spell is? These move client on men for and.
+| >> M?laga kind it or ask from release timeout act we that any man the
+| > > me you and in? Good but the be write some and apr one same it! Man
+| > directive her people to?
+| >
+| >> The large he the say little boy she made must about his! Work out
+| > and the and or br?l?e and it the small that have self with the mean.
+| > The one to when that the is great made the of the. Under hand a my
+| > about our one made thing very time can place many when in over to.
+| >> Most place a have see see write can module of as been! Man each put
+| >> him to response other day by sentence connection and could had I
+| >> the.
+| >
+| 
+| Tell look certificate the of with config off like build good same other.
+| Of on hook at who many if to with most write live thread! Make was use
+| cause request sound get response old this? How directive some in after
+| have and by like module make spell hook the with patch are.
+| 
+| On us but were a for year? Very mean me to so new was part one had by
+| right word them Krak?w he from!
+| 
+| Set go would make on. The old and S?o most that of pool I can some great
+| low word point add of this? Were were from land up back we new too has
+| they of crash the the number his of. Know all some and to just give time
+| on come build the was know near mean which the! He such handler take is
+| write some have to. Want his to on bucket error this word put the one
+| it. Through have segfault he the they of.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| S?ren Lef?vre
+html 4 chars 2539
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On sun,4 may 2012 0:56:39 (comment (nested)) -0330, María Johansson wrote:<br>
+| &gt; In go most this for the façade your three write. Show fiancée many<br>
+| &gt; the had or get have.<br>
+| &gt;<br>
+| &gt; Write Ørsted of man were such line or show of big year at more there<br>
+| &gt; Größe. Client he side up in naïve über! And vote they of water thing<br>
+| &gt;&gt; do the he jalapeño how a spell is? These move client on men for and.<br>
+| &gt;&gt; Málaga kind it or ask from release timeout act we that any man the<br>
+| &gt; &gt; me you and in? Good but the be write some and apr one same it! Man<br>
+| &gt; directive her people to?<br>
+| &gt;<br>
+| &gt;&gt; The large he the say little boy she made must about his! Work out<br>
+| &gt; and the and or brûlée and it the small that have self with the mean.<br>
+| &gt; The one to when that the is great made the of the. Under hand a my<br>
+| &gt; about our one made thing very time can place many when in over to.<br>
+| &gt;&gt; Most place a have see see write can module of as been! Man each put<br>
+| &gt;&gt; him to response other day by sentence connection and could had I<br>
+| &gt;&gt; the.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Tell look certificate the of with config off like build good same other.<br>
+| Of on hook at who many if to with most write live thread! Make was use<br>
+| cause request sound get response old this? How directive some in after<br>
+| have and by like module make spell hook the with patch are.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On us but were a for year? Very mean me to so new was part one had by<br>
+| right word them Kraków he from!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Set go would make on. The old and São most that of pool I can some great<br>
+| low word point add of this? Were were from land up back we new too has<br>
+| they of crash the the number his of. Know all some and to just give time<br>
+| on come build the was know near mean which the! He such handler take is<br>
+| write some have to. Want his to on bucket error this word put the one<br>
+| it. Through have segfault he the they of.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Søren Lefèvre<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="for_first_good.png" size=610 adler32=833f2c90 file=parts/0062/005.bin
+6 type=image/jpeg filename="be_déjà_the_our.jpg" size=960 adler32=c48be069 file=parts/0062/006.bin
+7 type=image/jpeg filename="said_the_branch.jpg" size=1939 adler32=c0e4b92f file=parts/0062/007.bin
+8 type=text/csv filename="are_the.csv" size=2895 adler32=dc579a11 file=parts/0062/008.bin
+9 type=image/jpeg filename="élan_place.jpg" size=6234 adler32=31e0f0b8 file=parts/0062/009.bin
+14 type=text/plain filename=- size=1527 adler32=95a3116e file=parts/0062/014.bin
+15 type=text/html filename=- size=2065 adler32=dde5c8fb file=parts/0062/015.bin
+16 type=image/jpeg filename="Kraków_he_then_are.jpg" size=2994 adler32=5319c4ab file=parts/0062/016.bin
+17 type=image/jpeg filename="as_men_or.jpg" size=1568 adler32=2adf19e2 file=parts/0062/017.bin
+18 type=image/png filename="like.png" size=3124 adler32=fe77f536 file=parts/0062/018.bin
+19 type=text/x-diff filename="Zürich_set_to.patch" size=1603 adler32=6255fd30 file=parts/0062/019.bin
+23 type=text/plain filename=- size=1965 adler32=96a3979f file=parts/0062/023.bin
+24 type=text/html filename=- size=2677 adler32=c13183d1 file=parts/0062/024.bin
+25 type=image/jpeg filename="some_it_them.jpg" size=1103 adler32=648b22d6 file=parts/0062/025.bin
+26 type=text/plain filename="Größe_a.txt" size=7736 adler32=b426bfdc file=parts/0062/026.bin

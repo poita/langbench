@@ -1,0 +1,6 @@
+log HEAD
+log HEAD 40
+log HEAD^2
+log HEAD^
+log HEAD~10 6
+count-objects

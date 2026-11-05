@@ -1,0 +1,20 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "items": true
+  },
+  "tests": [
+    {
+      "description": "any array is valid",
+      "data": [
+        1,
+        "foo",
+        true
+      ]
+    },
+    {
+      "description": "empty array is valid",
+      "data": []
+    }
+  ]
+}

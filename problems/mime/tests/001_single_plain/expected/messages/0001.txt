@@ -1,0 +1,30 @@
+[message]
+id 0001
+source "plain.eml"
+
+[headers]
+from: "ann@example.com"
+to: "bob@example.org"
+subject: "hello"
+date: "Mon, 1 Sep 2025 12:30:00 +0200"
+
+[addresses]
+from 0 display="" spec="ann@example.com"
+to 0 display="" spec="bob@example.org"
+
+[date]
+raw " Mon, 1 Sep 2025 12:30:00 +0200"
+valid yes
+utc 2025-09-01T10:30:00Z
+offset +0200
+epoch 1756722600
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=14 adler32=250c04a1 role=text
+
+[body]
+text 0 chars 14
+| Hello, world.
+html none
+
+[attachments]

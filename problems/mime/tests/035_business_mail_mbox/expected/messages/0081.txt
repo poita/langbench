@@ -1,0 +1,95 @@
+[message]
+id 0081
+source "mbox:81"
+
+[headers]
+received: "from example.org (mx6.post.example.fr [187.126.177.4]) by eu.example.de (Postfix) with ESMTP id 7C2365CD55 for <qrossi@corp.example.co.uk>; Fri, 10 Feb 2005 01:28:10 +1000"
+received: "from post.example.fr (mx1.post.example.fr [84.6.38.100]) by lists.example.edu (Postfix) with ESMTP id C8CD0FE985 for <xobrien@eu.example.de>; Mon, 3 Mar 2005 17:12:58 +1000"
+return-path: "<xkowalski@dev.example.io>"
+message-id: "<850.aca16161.84886@students.example.ac.jp>"
+in-reply-to: "<858.75a9b1c6.81895@dev.example.io>"
+references: "<851.232ae11d.69566@example.org> <852.65a94363.28082@example.com> <853.eead8557.26794@corp.example.co.uk> <854.4e8c85a7.17660@mail.example.net> <855.5b18ebca.50631@dev.example.io> <856.1e28204b.56029@lists.example.edu> <857.fe5a818f.92953@example.com> <858.75a9b1c6.81895@dev.example.io>"
+date: "13 SEP 05 13:14 -0800"
+from: "Greg García <ggarca.93@dev.example.io>"
+to: "Nils Kowalski <nkowalski.3@apache.org>, \"Smith, Uwe\" <usmith@apache.org>"
+subject: "Fwd: Must are the and add"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_D050D25E3B64CB20\""
+
+[addresses]
+from 0 display="Greg García" spec="ggarca.93@dev.example.io"
+to 0 display="Nils Kowalski" spec="nkowalski.3@apache.org"
+to 1 display="Smith, Uwe" spec="usmith@apache.org"
+
+[date]
+raw " 13 SEP 05 13:14 -0800"
+valid yes
+utc 2005-09-13T21:14:00Z
+offset -0800
+epoch 1126646040
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_D050D25E3B64CB20" parts=5 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="----=_Part_9664_1003285396.3622605016" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_F9912060B6AD043B" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=iso-8859-1 cte=base64 size=757 adler32=c73ff771 role=text
+      4 text/html charset=utf-8 cte=quoted-printable size=1117 adler32=6c9b6fdd role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="Größe_think.jpg" size=1973 adler32=e3dfdaec role=attachment
+    6 image/png cte=base64 disposition=attachment filename="mutex.png" size=2658 adler32=237e27e9 role=attachment
+    7 image/png cte=base64 disposition=inline filename="Ångström_was_the_he.png" size=3496 adler32=ba54c2c8 role=attachment
+  8 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="self_could_does.patch" size=3528 adler32=59645fd0 role=attachment
+  9 image/jpeg cte=base64 disposition=inline filename="can_said_the.jpg" size=2883 adler32=eb128857 role=attachment
+  10 application/pdf cte=base64 disposition=inline filename="each_go_come_if.pdf" size=2049 adler32=b883fee5 role=attachment
+  11 image/jpeg cte=base64 disposition=attachment filename="these_no_over_man.jpg" size=2879 adler32=d95e8201 role=attachment
+
+[body]
+text 3 chars 757
+| With ssl the a by has the the is them after use every number from the he
+| end! The in here the long ssl in think an again. São and of can server
+| have home in through and in for home this need what are too. Them do one
+| one cause? When in request old what new we.
+| 
+| Self number small two with élan just! As she light the act name them a
+| what all and find many? Paulo the rewrite you to when from connection
+| have hot? He year can what she about the have does or. It of of the in a
+| of. Which of and the more from which the a header them people I warning
+| way father? Come the picture were to is?
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Dana Johansson
+html 4 chars 1115
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">With ssl the a by has the the is them after use every number from the he<br>
+| end! The in here the long ssl in think an again. São and of can server<br>
+| have home in through and in for home this need what are too. Them do one<br>
+| one cause? When in request old what new we.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Self number small two with élan just! As she light the act name them a<br>
+| what all and find many? Paulo the rewrite you to when from connection<br>
+| have hot? He year can what she about the have does or. It of of the in a<br>
+| of. Which of and the more from which the a header them people I warning<br>
+| way father? Come the picture were to is?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">    if (rv != APR_SUCCESS) {<br>
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,<br>
+|                      \"failed: %s\", name);<br>
+|         return rv;<br>
+|     }</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Dana Johansson<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="Größe_think.jpg" size=1973 adler32=e3dfdaec file=parts/0081/005.bin
+6 type=image/png filename="mutex.png" size=2658 adler32=237e27e9 file=parts/0081/006.bin
+7 type=image/png filename="Ångström_was_the_he.png" size=3496 adler32=ba54c2c8 file=parts/0081/007.bin
+8 type=text/x-diff filename="self_could_does.patch" size=3528 adler32=59645fd0 file=parts/0081/008.bin
+9 type=image/jpeg filename="can_said_the.jpg" size=2883 adler32=eb128857 file=parts/0081/009.bin
+10 type=application/pdf filename="each_go_come_if.pdf" size=2049 adler32=b883fee5 file=parts/0081/010.bin
+11 type=image/jpeg filename="these_no_over_man.jpg" size=2879 adler32=d95e8201 file=parts/0081/011.bin

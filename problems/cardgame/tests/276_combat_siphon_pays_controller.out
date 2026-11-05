@@ -1,0 +1,88 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 4 4
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #7 NEU-028 #21
+9 PAY A ember 3
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 CONTROL #21 A
+14 SPENT #7 NEU-028
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 20 ember 1 cap 4 vault 6 hand 0 ash 7 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 0 rift 0
+field A #8 NEU-023 -/- w0 c0 ready - kw -
+field A #21 TID-025 2/2 w0 c0 ready settling kw siphon,vanguard,vigil
+ash A 1 #9 CIN-001
+ash A 2 #10 CIN-001
+ash A 3 #11 CIN-001
+ash A 4 #12 CIN-001
+ash A 5 #13 CIN-001
+ash A 6 #14 CIN-001
+ash A 7 #7 NEU-028
+effect 1 ts2 A aura grant vanguard on #21
+effect 2 ts4 A turn control A on #21
+STATE END
+15 PASS A
+16 PASS B
+17 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+LEGAL END
+18 ATTACK #21
+19 PASS A
+20 PASS B
+21 PHASE clash-block
+LEGAL BEGIN B blockers
+LEGAL END
+22 UNBLOCKED #21
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 20 ember 1 cap 4 vault 6 hand 0 ash 7 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 0 rift 0
+field A #8 NEU-023 -/- w0 c0 ready - kw -
+field A #21 TID-025 2/2 w0 c0 ready attacking,settling kw siphon,vanguard,vigil
+ash A 1 #9 CIN-001
+ash A 2 #10 CIN-001
+ash A 3 #11 CIN-001
+ash A 4 #12 CIN-001
+ash A 5 #13 CIN-001
+ash A 6 #14 CIN-001
+ash A 7 #7 NEU-028
+effect 1 ts2 A aura grant vanguard on #21
+effect 2 ts4 A turn control A on #21
+STATE END
+23 PASS A
+24 PASS B
+25 PHASE clash-damage
+26 DAMAGE #21 B 2
+27 SPIRE B -2 18
+28 SPIRE A +2 22
+29 PASS A
+30 PASS B
+31 PHASE clash-end
+32 PASS A
+33 PASS B
+34 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 22 ember 1 cap 4 vault 6 hand 0 ash 7 rift 0
+player B spire 18 ember 0 cap 0 vault 6 hand 0 ash 0 rift 0
+field A #8 NEU-023 -/- w0 c0 ready - kw -
+field A #21 TID-025 2/2 w0 c0 ready settling kw siphon,vanguard,vigil
+ash A 1 #9 CIN-001
+ash A 2 #10 CIN-001
+ash A 3 #11 CIN-001
+ash A 4 #12 CIN-001
+ash A 5 #13 CIN-001
+ash A 6 #14 CIN-001
+ash A 7 #7 NEU-028
+effect 1 ts2 A aura grant vanguard on #21
+effect 2 ts4 A turn control A on #21
+STATE END
+35 RESULT pending none

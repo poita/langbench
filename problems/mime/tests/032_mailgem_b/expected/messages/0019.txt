@@ -1,0 +1,43 @@
+[message]
+id 0019
+source "japanese_attachment_long_name.eml"
+
+[headers]
+delivered-to: "raasdnil@gmail.com"
+received: "by 10.231.12.67 with SMTP id w3cs164325ibw; Fri, 30 Oct 2009 01:11:12 -0700 (PDT)"
+received: "by 10.150.44.2 with SMTP id r2mr2367210ybr.77.1256890271939; Fri, 30 Oct 2009 01:11:11 -0700 (PDT)"
+return-path: "<mikel@test.lindsaar.net>"
+received: "from mx1.test.lindsaar.net.au (mx1.test.lindsaar.net.au [210.14.110.240]) by mx.google.com with ESMTP id 25si7923673gxk.34.2009.10.30.01.11.11; Fri, 30 Oct 2009 01:11:11 -0700 (PDT)"
+received-spf: "neutral (google.com: 210.14.110.240 is neither permitted nor denied by domain of mikel@test.lindsaar.net) client-ip=210.14.110.240;"
+authentication-results: "mx.google.com; spf=neutral (google.com: 210.14.110.240 is neither permitted nor denied by domain of mikel@test.lindsaar.net) smtp.mail=mikel@test.lindsaar.net"
+received: "from [192.168.4.253] (60-241-138-146.static.tpgi.com.au [60.241.138.146]) (using TLSv1 with cipher AES128-SHA (128/128 bits)) (No client certificate requested) (Authenticated sender: mikel) by mx1.test.lindsaar.net.au (Postfix) with ESMTPSA id 5C0186DD4CD for <raasdnil@gmail.com>; Fri, 30 Oct 2009 19:11:08 +1100 (EST)"
+subject: "まみむめもまみむめもまみむめもまみむめもまみむめもまみむめもまみむめもまみむめもまみむめもまみむめも"
+from: "Mikel Lindsaar <mikel@test.lindsaar.net>"
+content-type: "multipart/mixed; boundary=Apple-Mail-6--589811753"
+message-id: "<60A112A8-F26C-4E23-95B8-4EB9F139D6A0@test.lindsaar.net>"
+date: "Fri, 30 Oct 2009 19:11:02 +1100"
+to: "Mikel Lindsaar <raasdnil@gmail.com>"
+mime-version: "1.0 (Apple Message framework v1076)"
+x-mailer: "Apple Mail (2.1076)"
+
+[addresses]
+from 0 display="Mikel Lindsaar" spec="mikel@test.lindsaar.net"
+to 0 display="Mikel Lindsaar" spec="raasdnil@gmail.com"
+
+[date]
+raw " Fri, 30 Oct 2009 19:11:02 +1100"
+valid yes
+utc 2009-10-30T08:11:02Z
+offset +1100
+epoch 1256890262
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail-6--589811753" parts=1 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit disposition=attachment filename="かきくけこかきくけこかきくけこかきくけこかきくけこ.txt" size=17 adler32=37ea05da role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+1 type=text/plain filename="かきくけこかきくけこかきくけこかきくけこかきくけこ.txt" size=17 adler32=37ea05da file=parts/0019/001.bin

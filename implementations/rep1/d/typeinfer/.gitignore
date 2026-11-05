@@ -1,0 +1,6 @@
+.dub/
+/typeinfer
+*.o
+*.a
+*-test-*
+dub.selections.json

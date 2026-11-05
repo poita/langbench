@@ -1,0 +1,82 @@
+kiln-state 1
+step out/00.txt
+cmd write("w\n")
+out out/00.txt 08cb7c07b56d6854
+end
+step out/01.txt
+cmd copy()
+in src/a.txt 5b413a53be05ef86
+out out/01.txt 5b413a53be05ef86
+end
+step out/02.txt
+cmd concat()
+in src/a.txt 5b413a53be05ef86
+out out/02.txt 5b413a53be05ef86
+end
+step out/03.txt
+cmd upper()
+in src/a.txt 5b413a53be05ef86
+out out/03.txt ee4b7fa6b52abf66
+end
+step out/04.txt
+cmd lower()
+in src/a.txt 5b413a53be05ef86
+out out/04.txt 5b413a53be05ef86
+end
+step out/05.txt
+cmd grep("a")
+in src/a.txt 5b413a53be05ef86
+out out/05.txt 089bdc07b544e7b2
+end
+step out/06.txt
+cmd replace("a", "A")
+in src/a.txt 5b413a53be05ef86
+out out/06.txt 595f3948f523fea6
+end
+step out/07.txt
+cmd sort_lines()
+in src/a.txt 5b413a53be05ef86
+out out/07.txt 578d41205501e50a
+end
+step out/08.txt
+cmd reverse_lines()
+in src/a.txt 5b413a53be05ef86
+out out/08.txt 5b413a53be05ef86
+end
+step out/09.txt
+cmd dedup()
+in src/a.txt 5b413a53be05ef86
+out out/09.txt e29f019b41a1da9a
+end
+step out/10.txt
+cmd number()
+in src/a.txt 5b413a53be05ef86
+out out/10.txt fbddf6c79372ccd0
+end
+step out/11.txt
+cmd indent(2)
+in src/a.txt 5b413a53be05ef86
+out out/11.txt 60960134ac6515f6
+end
+step out/12.txt
+cmd wrap("<", ">")
+in src/a.txt 5b413a53be05ef86
+out out/12.txt 5432ebc9bef6e1e2
+end
+step out/13.txt
+cmd count_lines()
+in src/a.txt 5b413a53be05ef86
+out out/13.txt 389c40a8da9a384f
+end
+step out/14.txt
+cmd hash()
+in src/a.txt 5b413a53be05ef86
+out out/14.txt b88ad42aec9631fc
+end
+step out/15.txt
+cmd preprocess()
+in src/m.txt f958e717522bdd8d
+dep src/a.txt 5b413a53be05ef86
+out out/15.txt 6d44218b1eef35d0
+out out/15.d 8f7f4f7811713d03
+end

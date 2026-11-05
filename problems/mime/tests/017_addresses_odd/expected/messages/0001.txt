@@ -1,0 +1,26 @@
+[message]
+id 0001
+source "comments.eml"
+
+[headers]
+from: "ann@example.com (Ann Example)"
+to: "bob@example.org (Bob (the second) Example)"
+cc: "(leading) carl@example.org"
+
+[addresses]
+from 0 display="" spec="ann@example.com"
+to 0 display="" spec="bob@example.org"
+cc 0 display="" spec="carl@example.org"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]

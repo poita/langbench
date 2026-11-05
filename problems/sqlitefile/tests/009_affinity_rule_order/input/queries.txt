@@ -1,0 +1,13 @@
+.schema affname
+SELECT * FROM affname
+SELECT id FROM affname WHERE s = '7'
+SELECT id FROM affname WHERE fp = '7'
+SELECT id FROM affname WHERE it = '7'
+SELECT id FROM affname WHERE cf = 7
+SELECT id FROM affname WHERE cf = '7'
+SELECT id FROM affname WHERE br = 7
+SELECT id FROM affname WHERE br = '7'
+SELECT id FROM affname WHERE nt = 7
+SELECT id FROM affname WHERE dc = '2.5'
+SELECT id FROM affname WHERE dp = 0
+SELECT id,dp,dc FROM affname ORDER BY dp

@@ -1,0 +1,37 @@
+10
+(a*)*b
+2
+aaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaab
+(a+)+b
+2
+aaaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaaaab
+^(a+)+$
+2
+aaaaaaaaaaaaaaaaaaab
+aaaaaaaaaaaaaaaaaaa
+((a*)*)*b
+2
+aaaaaaaaa
+aaaaaaaaab
+(a?){16}a{16}
+2
+aaaaaaaaaaaaaaaa
+aaaaaaaaaaaaaaa
+(.*a){10}b
+1
+aaaaaaaaaaaaaaaa
+^(\w+\s?)*$
+2
+word word word word word!
+word word word word word
+(a?){8}(b?){8}c
+1
+aaaaaaaabbbbbbbb
+(a*b*)*c
+1
+abababababababab
+((a|b)*a(a|b)*)*c
+1
+abababababab

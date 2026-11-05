@@ -1,0 +1,70 @@
+[message]
+id 0009
+source "mbox:9"
+
+[headers]
+received: "from example.com (mx1.example.com [228.255.140.76]) by dev.example.io (Postfix) with ESMTP id 5C05B3B9A5 for <odubois@eu.example.de>; Sat, 18 Dec 2025 20:31:15 +0900"
+received: "from mail.example.net (mx9.apache.org [153.215.159.224]) by example.org (Postfix) with ESMTP id 463FB4E8D5 for <w.86@lists.example.edu>; Fri, 15 Feb 2012 01:13:06 -0700"
+received: "from dev.example.io (mx4.example.org [163.105.74.78]) by dev.example.io (Postfix) with ESMTP id EE6B9E0477 for <qdoe@corp.example.co.uk>; Tue, 14 May 2003 21:17:34 -0400"
+received: "from dev.example.io (mx5.example.org [46.24.146.151]) by lists.example.edu (Postfix) with ESMTP id 59FCCC061C for <bjohansson@example.com>; 19 OCT 25 07:25 +0530"
+received: "from dev.example.io (mx6.example.com [172.100.32.219]) by eu.example.de (Postfix) with ESMTP id CB9DEC4422 for <fernndez.85@apache.org>; Wed, 19 May 2004 07:43:38 +0100"
+return-path: "<bwilson.49@eu.example.de>"
+message-id: "<87.c3ac0c9b.74231@eu.example.de>"
+in-reply-to: "<97.c0b08fea.51847@apache.org>"
+references: "<88.1704a69f.18458@example.com> <89.82e28544.92283@dev.example.io> <90.6723d8aa.20665@students.example.ac.jp> <91.0540777d.81688@students.example.ac.jp> <92.2f2596a2.43704@eu.example.de> <93.f82d6781.57708@apache.org> <94.110b084d.17627@eu.example.de> <95.8333cbc2.53505@dev.example.io> <96.921bd19e.87954@eu.example.de> <97.c0b08fea.51847@apache.org>"
+date: "16 MAY 24 08:05 +1000"
+from: "\"Nakamura, Pierre\" <pnakamura@example.org>"
+to: "hgarca@students.example.ac.jp (Someone)"
+cc: "\"Doe, Xavier\" <xdoe@apache.org>, Olga Müller <omller@corp.example.co.uk>"
+subject: "Coöperate were said him two you"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_4503b78a08d3978aa5354383b9827b48\""
+
+[addresses]
+from 0 display="Nakamura, Pierre" spec="pnakamura@example.org"
+to 0 display="" spec="hgarca@students.example.ac.jp"
+cc 0 display="Doe, Xavier" spec="xdoe@apache.org"
+cc 1 display="Olga Müller" spec="omller@corp.example.co.uk"
+
+[date]
+raw " 16 MAY 24 08:05 +1000"
+valid yes
+utc 2024-05-15T22:05:00Z
+offset +1000
+epoch 1715810700
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_4503b78a08d3978aa5354383b9827b48" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=utf-8 cte=quoted-printable size=986 adler32=77e25e0e role=text
+  2 text/x-diff charset=utf-8 cte=quoted-printable disposition=attachment filename="so_some_again_but.patch" size=5826 adler32=850a3d52 role=attachment
+
+[body]
+text 1 chars 974
+| Find module time São thing form house with call at give a change. You of
+| more of it there the! Do façade the a off coöperate for then turn now
+| sentence each and. Now Ørsted would of does. Does brûlée small people
+| you Kraków said what get cache two some a is hand!
+| 
+| Was sound other I to the said that think there from came! The have such
+| first be be the about what or a in a mother. Take been must some with
+| set end to day is and near home the crème his the you. Have with near
+| you every vhost about which and! Day add if use it who it a they are.
+| There up timeout be for then read to can has but! In father from alias
+| brigade good it piñata write much was each.
+| 
+| Then round had some any and us was light the to. One father people who
+| for end under I thread log this and the did we. Ssl façade may the mutex
+| each the and been other of if long man look get one a. For other pool
+| handler but review of about up thing way config for! Straße proxy the
+| been of?
+| 
+| -- 
+| Luis Lefèvre
+html none
+
+[attachments]
+2 type=text/x-diff filename="so_some_again_but.patch" size=5826 adler32=850a3d52 file=parts/0009/002.bin

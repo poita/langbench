@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "not": {
+      "type": [
+        "integer",
+        "boolean"
+      ]
+    }
+  },
+  "tests": [
+    {
+      "description": "valid",
+      "data": "foo"
+    },
+    {
+      "description": "mismatch",
+      "data": 1
+    },
+    {
+      "description": "other mismatch",
+      "data": true
+    }
+  ]
+}

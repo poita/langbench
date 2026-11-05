@@ -1,0 +1,17 @@
+count-objects
+log HEAD
+ls-tree HEAD
+rev-parse v1.0.1
+rev-parse v2.0.0
+rev-parse v2.0.1
+rev-parse v2.0.2
+rev-parse v2.0.3
+rev-parse v2.0.4
+rev-parse v1.0.1^{}
+rev-parse v2.0.0^{}
+rev-parse v2.0.1^{}
+rev-parse v2.0.2^{}
+rev-parse v2.0.3^{}
+rev-parse v2.0.4^{}
+diff v1.0.1 v2.0.4
+log v2.0.4 4

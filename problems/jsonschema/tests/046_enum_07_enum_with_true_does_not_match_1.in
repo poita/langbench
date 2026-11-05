@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "enum": [
+      true
+    ]
+  },
+  "tests": [
+    {
+      "description": "true is valid",
+      "data": true
+    },
+    {
+      "description": "integer one is invalid",
+      "data": 1
+    },
+    {
+      "description": "float one is invalid",
+      "data": 1.0
+    }
+  ]
+}

@@ -1,0 +1,113 @@
+[message]
+id 0024
+source "mbox:24"
+
+[headers]
+received: "from post.example.fr (mx5.mail.example.net [191.17.180.224]) by lists.example.edu (Postfix) with ESMTP id 1D8F0B894A for <wdubois.84@post.example.fr>; Thu, 10 Apr 2005 08:30:05 Z"
+received: "from post.example.fr (mx2.example.com [240.130.135.166]) by example.org (Postfix) with ESMTP id EB89A18A7A for <cpapadopoulos.34@mail.example.net>; sat,25 feb 2024 0:4:55 (comment (nested)) +1000"
+received: "from students.example.ac.jp (mx6.example.org [78.115.7.202]) by dev.example.io (Postfix) with ESMTP id 70878DE56D for <pkowalski@eu.example.de>; Tue, 2 Nov 2012 11:27:35 Z"
+received: "from eu.example.de (mx5.post.example.fr [66.16.119.92]) by example.org (Postfix) with ESMTP id 32B38C6E96 for <lkowalski.83@post.example.fr>; Fri, 26 Jun 2012 21:08:34 MET"
+return-path: "<user7582@example.org>"
+message-id: "<192.7b593b52.64910@eu.example.de>"
+date: "Sat, 21 Jun 2005 18:40:43 GMT"
+from: "Carl Fernández <cfernndez@mail.example.net>"
+to: "Hana Fernández <hfernndez@students.example.ac.jp>,\t\"Papadopoulos, Vera\" <vpapadopoulos@corp.example.co.uk>"
+subject: "Málaga the play went your Ørsted from it work up"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 604\""
+
+[addresses]
+from 0 display="Carl Fernández" spec="cfernndez@mail.example.net"
+to 0 display="Hana Fernández" spec="hfernndez@students.example.ac.jp"
+to 1 display="Papadopoulos, Vera" spec="vpapadopoulos@corp.example.co.uk"
+
+[date]
+raw " Sat, 21 Jun 2005 18:40:43 GMT"
+valid yes
+utc 2005-06-21T18:40:43Z
+offset +0000
+epoch 1119379243
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 604" parts=3 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="000000000000012b7e429480" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=iso-8859-1 cte=base64 size=1426 adler32=99a5ec29 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1934 adler32=9ae09515 role=html
+  4 application/pdf cte=base64 disposition=attachment filename="jalapeño_what.pdf" size=3763 adler32=9b0f38b6 role=attachment
+  5 message/rfc822 cte=7bit disposition=inline parts=1
+    6 multipart/mixed cte=7bit boundary="=_31500e8d49eedc4bdb3a44e31e960cac" parts=3 preamble=45 epilogue=0
+      7 multipart/alternative cte=7bit boundary="0000000000007fe673e76f89" parts=2 preamble=0 epilogue=0
+        8 text/plain charset=iso-8859-1 cte=quoted-printable size=1640 adler32=eb482d69 role=attachment
+        9 text/html charset=utf-8 cte=quoted-printable size=2246 adler32=ac0bf9aa role=attachment
+      10 image/jpeg cte=base64 disposition=attachment filename="they_it_this.jpg" size=2308 adler32=23c3888e role=attachment
+      11 text/plain charset=utf-8 cte=base64 disposition=attachment filename="but_to_at_it.txt" size=7096 adler32=33aed435 role=attachment
+
+[body]
+text 2 chars 1426
+| On Mon, 3 Mar 2004 25:00:00 +0000, Agnieszka Lefèvre wrote:
+| >> My have up old server the hook proxy as. Header had big some hot
+| > brûlée their. A a three old from and to differ why little in. His
+| >> every number a the does the know the. It timeout use thread there
+| > > after change release of add the I said our how act Ørsted we.
+| >
+| 
+| The on form off be I them picture is config be even which there with
+| give the. His with socket made that. What turn use by this water at is
+| long our up I this other façade the a. Your time a show the and déjà all
+| like are how be father go the at Ørsted.
+| 
+| Málaga a you the as people form who request Paulo over a the a! New I a
+| as so backport we have be the are get the two them she know.
+| 
+| Port water get land for. Long are these build the the know she the tell
+| branch said! One and want this take by are water be I play from this
+| this he! São may give and may place client a more the show men in an
+| which the which word. As his in word up where will follow the even and
+| crash.
+| 
+| Look and in of on it came take could hand take httpd is. People or on
+| the over most did picture of put find were. Then of the certificate I
+| high and one see trunk as word proxy. Said is her of an live line piñata
+| were cause and you little would were you try! The in one is more than
+| she! So even is spell header call first find. Which place too from have
+| but to long on for could again get we is if!
+| 
+| -- 
+| Sven Doe
+html 3 chars 1934
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Mon, 3 Mar 2004 25:00:00 +0000, Agnieszka Lefèvre wrote:<br>
+| &gt;&gt; My have up old server the hook proxy as. Header had big some hot<br>
+| &gt; brûlée their. A a three old from and to differ why little in. His<br>
+| &gt;&gt; every number a the does the know the. It timeout use thread there<br>
+| &gt; &gt; after change release of add the I said our how act Ørsted we.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The on form off be I them picture is config be even which there with<br>
+| give the. His with socket made that. What turn use by this water at is<br>
+| long our up I this other façade the a. Your time a show the and déjà all<br>
+| like are how be father go the at Ørsted.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Málaga a you the as people form who request Paulo over a the a! New I a<br>
+| as so backport we have be the are get the two them she know.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Port water get land for. Long are these build the the know she the tell<br>
+| branch said! One and want this take by are water be I play from this<br>
+| this he! São may give and may place client a more the show men in an<br>
+| which the which word. As his in word up where will follow the even and<br>
+| crash.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Look and in of on it came take could hand take httpd is. People or on<br>
+| the over most did picture of put find were. Then of the certificate I<br>
+| high and one see trunk as word proxy. Said is her of an live line piñata<br>
+| were cause and you little would were you try! The in one is more than<br>
+| she! So even is spell header call first find. Which place too from have<br>
+| but to long on for could again get we is if!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Sven Doe<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/pdf filename="jalapeño_what.pdf" size=3763 adler32=9b0f38b6 file=parts/0024/004.bin
+8 type=text/plain filename=- size=1640 adler32=eb482d69 file=parts/0024/008.bin
+9 type=text/html filename=- size=2246 adler32=ac0bf9aa file=parts/0024/009.bin
+10 type=image/jpeg filename="they_it_this.jpg" size=2308 adler32=23c3888e file=parts/0024/010.bin
+11 type=text/plain filename="but_to_at_it.txt" size=7096 adler32=33aed435 file=parts/0024/011.bin

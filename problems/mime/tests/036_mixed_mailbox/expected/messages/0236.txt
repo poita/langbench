@@ -1,0 +1,169 @@
+[message]
+id 0236
+source "mbox:236"
+
+[headers]
+received: "from students.example.ac.jp (mx6.corp.example.co.uk [124.122.74.78]) by apache.org (Postfix) with ESMTP id FBEBEB2147 for <j.79@dev.example.io>; Thu, 16 Aug 2003 06:23:01 GMT"
+received: "from eu.example.de (mx2.example.org [228.136.110.137]) by apache.org (Postfix) with ESMTP id EEDAFEA0E5 for <pgarca.74@mail.example.net>; Wed, 28 Sep 2003 23:31:22 UT"
+received: "from post.example.fr (mx1.apache.org [89.151.58.220]) by example.com (Postfix) with ESMTP id 678D548AF for <vanderberg@dev.example.io>; wed,24 jul 2024 8:47:41 (comment (nested)) Z"
+received: "from students.example.ac.jp (mx7.example.com [71.152.233.158]) by example.org (Postfix) with ESMTP id 13F547F826 for <cpetrov.23@example.com>; Wed, 19 Apr 2024 19:54:47 +1000"
+return-path: "<ljohansson@apache.org>"
+message-id: "<1681.9d7c58e9.76500@eu.example.de>"
+in-reply-to: "<1689.aefd545c.61356@eu.example.de>"
+references: "<1682.81c66e4c.48216@lists.example.edu> <1683.19b948d7.4610@lists.example.edu> <1684.0b496711.47886@example.org> <1685.123de23a.5786@example.org> <1686.8a3598b7.23108@apache.org> <1687.cba26edc.31633@mail.example.net> <1688.18826ace.62962@dev.example.io> <1689.aefd545c.61356@eu.example.de>"
+date: "Tue, 1 Sep 2012 10:56:15 +0530"
+from: "María Fernández <mfernndez@eu.example.de>"
+to: "Sven Fernández <sfernndez.61@example.com>"
+cc: "\"O'Brien, Greg\" <gobrien@dev.example.io>,\t\"Karin O'Brien\" <kobrien@apache.org>"
+subject: "Re: [PATCH] Boy smörgåsbord mean back father"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_2919_491016712.738758137347\""
+
+[addresses]
+from 0 display="María Fernández" spec="mfernndez@eu.example.de"
+to 0 display="Sven Fernández" spec="sfernndez.61@example.com"
+cc 0 display="O'Brien, Greg" spec="gobrien@dev.example.io"
+cc 1 display="Karin O'Brien" spec="kobrien@apache.org"
+
+[date]
+raw " Tue, 1 Sep 2012 10:56:15 +0530"
+valid yes
+utc 2012-09-01T05:26:15Z
+offset +0530
+epoch 1346477175
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_2919_491016712.738758137347" parts=5 preamble=45 epilogue=1
+  1 multipart/alternative cte=7bit boundary="Apple-Mail=_363128D104993A7C" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=us-ascii cte=quoted-printable size=1915 adler32=34b38f91 role=text
+    3 text/html charset=utf-8 cte=quoted-printable size=2576 adler32=537c7a71 role=html
+  4 application/zip cte=base64 disposition=inline filename="by_long_it_the.zip" size=2057 adler32=540913f4 role=attachment
+  5 text/csv charset=utf-8 cte=base64 disposition=attachment filename="of.csv" size=6250 adler32=9bc6caf8 role=attachment
+  6 application/zip cte=base64 disposition=attachment filename="may_build_of.zip" size=6349 adler32=62924397 role=attachment
+  7 message/rfc822 cte=7bit disposition=inline parts=1
+    8 multipart/mixed cte=7bit boundary="Apple-Mail=_8ACD027D1EDA75F0" parts=3 preamble=0 epilogue=0
+      9 multipart/related cte=7bit boundary="----=_Part_3199_374451310.973310296281" parts=4 preamble=45 epilogue=0
+        10 multipart/alternative cte=7bit boundary="Apple-Mail=_83A848405A03B8D9" parts=2 preamble=45 epilogue=0
+          11 text/plain charset=iso-8859-1 cte=8bit size=1210 adler32=8dc899b4 role=attachment
+          12 text/html charset=utf-8 cte=quoted-printable size=1744 adler32=20554ce9 role=attachment
+        13 image/jpeg cte=base64 disposition=attachment filename="smörgåsbord_them.jpg" size=3010 adler32=b437d0dd role=attachment
+        14 image/png cte=base64 disposition=inline filename="commit_socket_a_is.png" size=643 adler32=806e4699 role=attachment
+        15 image/png cte=base64 disposition=attachment filename="word_in.png" size=1674 adler32=7f603d88 role=attachment
+      16 image/jpeg cte=base64 disposition=inline filename="the_the_the_the.jpg" size=4361 adler32=36ab4ceb role=attachment
+      17 message/rfc822 cte=7bit disposition=inline parts=1
+        18 multipart/mixed cte=7bit boundary="----=_Part_6932_214815773.545511986919" parts=3 preamble=45 epilogue=0
+          19 multipart/related cte=7bit boundary="Apple-Mail=_9C248FDD589AD8A8" parts=4 preamble=0 epilogue=0
+            20 multipart/alternative cte=7bit boundary="000000000000c49f3acba73a" parts=2 preamble=45 epilogue=0
+              21 text/plain charset=windows-1252 cte=7bit size=1913 adler32=a99c82a2 role=attachment
+              22 text/html charset=windows-1252 cte=quoted-printable size=2619 adler32=741f6cd8 role=attachment
+            23 image/jpeg cte=base64 disposition=attachment filename="the_all_and_as.jpg" size=3613 adler32=1a4d19ad role=attachment
+            24 image/jpeg cte=base64 disposition=inline filename="you_the.jpg" size=509 adler32=c527f73b role=attachment
+            25 image/png cte=base64 disposition=attachment filename="Paulo_call_one.png" size=3419 adler32=04b8974e role=attachment
+          26 image/png cte=base64 disposition=inline filename="sound.png" size=7762 adler32=76b5e889 role=attachment
+          27 image/jpeg cte=base64 disposition=attachment filename="one_this_the_want.jpg" size=2595 adler32=c22e1132 role=attachment
+
+[body]
+text 2 chars 1915
+| On Thu, 7 Aug 2003 04:54:44 -0500, ?or?e Wilson wrote:
+| >> Vote the that of the the great up the by. Rewrite on to certificate
+| > be handler you ?ngstr?m how bug work your segfault put through word
+| > > the. And well him S?o so port more? Down us can or segfault the?
+| > Make very he was be he end in. Config keepalive all the which even
+| >> some to and or form the and no. Of thing round the the we land with
+| > the build these the.
+| >
+| > Say review only this of if big my. That to form the the down that
+| > you are port well said again warning now also man trunk. The her as
+| >> build line about of.
+| >
+| > > Have keepalive there tell word round work what the release form like
+| >> time. A co?perate of just of a boy response have and write put are
+| > > think a the.
+| >
+| 
+| Side rewrite find the part in add water line brigade mean small response
+| by other have is. Of through fianc?e in could at here pi?ata of have day
+| the little animal all.
+| 
+| Water round in in people her were the time other play there. Word where
+| are to the take trunk our show has I can said set were build. Be is
+| number act read of now port the will time take to or the his word it. A
+| than what all thing world the if have make kind people ?rsted out module
+| them part.
+| 
+| People again old or and the the. Then year the were it I they I must and
+| did was it said.
+| 
+| Have them is was of form he place down set that add segfault only Krak?w
+| ?ber to. No connection line can low server for some. To after me first
+| of their land high house error more I do line was. Was also an before
+| will? Could three made long brigade every at when you most made no no
+| have but off?
+| 
+| Socket cause new came come my the work do find hot about of so! Out all
+| is was his. I are way the house the can thing cache well this good look.
+| And much config an my error sound on a come was the fa?ade crash from.
+| Each a in a day look that picture they that the mother of as client.
+| 
+| -- 
+| Uwe ??????
+html 3 chars 2558
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Thu, 7 Aug 2003 04:54:44 -0500, Đorđe Wilson wrote:<br>
+| &gt;&gt; Vote the that of the the great up the by. Rewrite on to certificate<br>
+| &gt; be handler you Ångström how bug work your segfault put through word<br>
+| &gt; &gt; the. And well him São so port more? Down us can or segfault the?<br>
+| &gt; Make very he was be he end in. Config keepalive all the which even<br>
+| &gt;&gt; some to and or form the and no. Of thing round the the we land with<br>
+| &gt; the build these the.<br>
+| &gt;<br>
+| &gt; Say review only this of if big my. That to form the the down that<br>
+| &gt; you are port well said again warning now also man trunk. The her as<br>
+| &gt;&gt; build line about of.<br>
+| &gt;<br>
+| &gt; &gt; Have keepalive there tell word round work what the release form like<br>
+| &gt;&gt; time. A coöperate of just of a boy response have and write put are<br>
+| &gt; &gt; think a the.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Side rewrite find the part in add water line brigade mean small response<br>
+| by other have is. Of through fiancée in could at here piñata of have day<br>
+| the little animal all.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Water round in in people her were the time other play there. Word where<br>
+| are to the take trunk our show has I can said set were build. Be is<br>
+| number act read of now port the will time take to or the his word it. A<br>
+| than what all thing world the if have make kind people Ørsted out module<br>
+| them part.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">People again old or and the the. Then year the were it I they I must and<br>
+| did was it said.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Have them is was of form he place down set that add segfault only Kraków<br>
+| über to. No connection line can low server for some. To after me first<br>
+| of their land high house error more I do line was. Was also an before<br>
+| will? Could three made long brigade every at when you most made no no<br>
+| have but off?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Socket cause new came come my the work do find hot about of so! Out all<br>
+| is was his. I are way the house the can thing cache well this good look.<br>
+| And much config an my error sound on a come was the façade crash from.<br>
+| Each a in a day look that picture they that the mother of as client.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Uwe Иванов<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/zip filename="by_long_it_the.zip" size=2057 adler32=540913f4 file=parts/0236/004.bin
+5 type=text/csv filename="of.csv" size=6250 adler32=9bc6caf8 file=parts/0236/005.bin
+6 type=application/zip filename="may_build_of.zip" size=6349 adler32=62924397 file=parts/0236/006.bin
+11 type=text/plain filename=- size=1210 adler32=8dc899b4 file=parts/0236/011.bin
+12 type=text/html filename=- size=1744 adler32=20554ce9 file=parts/0236/012.bin
+13 type=image/jpeg filename="smörgåsbord_them.jpg" size=3010 adler32=b437d0dd file=parts/0236/013.bin
+14 type=image/png filename="commit_socket_a_is.png" size=643 adler32=806e4699 file=parts/0236/014.bin
+15 type=image/png filename="word_in.png" size=1674 adler32=7f603d88 file=parts/0236/015.bin
+16 type=image/jpeg filename="the_the_the_the.jpg" size=4361 adler32=36ab4ceb file=parts/0236/016.bin
+21 type=text/plain filename=- size=1913 adler32=a99c82a2 file=parts/0236/021.bin
+22 type=text/html filename=- size=2619 adler32=741f6cd8 file=parts/0236/022.bin
+23 type=image/jpeg filename="the_all_and_as.jpg" size=3613 adler32=1a4d19ad file=parts/0236/023.bin
+24 type=image/jpeg filename="you_the.jpg" size=509 adler32=c527f73b file=parts/0236/024.bin
+25 type=image/png filename="Paulo_call_one.png" size=3419 adler32=04b8974e file=parts/0236/025.bin
+26 type=image/png filename="sound.png" size=7762 adler32=76b5e889 file=parts/0236/026.bin
+27 type=image/jpeg filename="one_this_the_want.jpg" size=2595 adler32=c22e1132 file=parts/0236/027.bin

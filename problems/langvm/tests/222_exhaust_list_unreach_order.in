@@ -1,0 +1,9 @@
+@module main
+fn f(xs: [Int]) -> Int {
+    match xs {
+        [a, ..] -> a,
+        [_, _] -> 2,
+        [] -> 0,
+    }
+}
+fn main() { print("ok"); }

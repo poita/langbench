@@ -1,0 +1,16 @@
+(define loop 5)
+(let loop ((x loop)) x)
+(let loop ((i 2) (j (list 'j))) (if (= i 0) j (loop (- i 1) (cons i j))))
+loop
+(let lp ((lp2 (procedure? 'lp))) lp2)
+(define (uses-outer-name)
+  (let lp ((n 3) (acc '()))
+    (if (= n 0) acc (lp (- n 1) (cons n acc)))))
+(uses-outer-name)
+(let iter ((k (let iter ((m 3)) (if (= m 0) 'inner-done (iter (- m 1)))))) k)
+(let go ((x 1)) (procedure? go))
+(let lp ((x 1)) (set! lp 'rebound) (list x lp))
+(let f ((l (lambda () 'outer)))
+  (if (eq? (l) 'outer) (f (lambda () 'inner)) (l)))
+(let lp ((i 0)) (if (< i 3) (lp (+ i 1)) i))
+lp

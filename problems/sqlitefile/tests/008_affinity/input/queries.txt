@@ -1,0 +1,14 @@
+.schema aff
+SELECT * FROM aff
+SELECT id FROM aff WHERE i = '5'
+SELECT id FROM aff WHERE t = 5
+SELECT id FROM aff WHERE t = '5'
+SELECT id FROM aff WHERE r = '10.5'
+SELECT id FROM aff WHERE n = '10.5'
+SELECT id FROM aff WHERE b = '5'
+SELECT id FROM aff WHERE b = X'35'
+SELECT id FROM aff WHERE x = 10
+SELECT id FROM aff WHERE x = '10'
+SELECT id,x FROM aff ORDER BY x
+SELECT id FROM aff WHERE t = '02'
+SELECT id FROM aff WHERE i = 2 AND t = '02'

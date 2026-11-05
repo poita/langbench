@@ -1,0 +1,2 @@
+CREATE TABLE ev(id INTEGER PRIMARY KEY, kind TEXT, amount INTEGER, note TEXT);
+CREATE INDEX ev_kind ON ev(kind);

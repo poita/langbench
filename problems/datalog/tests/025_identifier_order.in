@@ -1,0 +1,8 @@
+w(a). w(a_b). w(ab). w(a0). w(a_). w(aa). w(b). w(a9z). w(a_9). w(abc). w(z). w(zz).
+lt(X, Y) :- w(X), w(Y), X < Y.
+first(X) :- w(X), not later(X).
+later(X) :- w(X), w(Y), Y < X.
+?- w(X).
+?- lt(a, Y).
+?- lt(X, aa).
+?- first(X).

@@ -1,0 +1,39 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "unevaluatedItems": {
+      "type": "boolean"
+    },
+    "anyOf": [
+      {
+        "items": {
+          "type": "string"
+        }
+      },
+      true
+    ]
+  },
+  "tests": [
+    {
+      "description": "with only (valid) additional items",
+      "data": [
+        true,
+        false
+      ]
+    },
+    {
+      "description": "with no additional items",
+      "data": [
+        "yes",
+        "no"
+      ]
+    },
+    {
+      "description": "with invalid additional item",
+      "data": [
+        "yes",
+        false
+      ]
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://test.json-schema.org/dynamic-resolution-with-intermediate-scopes/root",
+    "$ref": "intermediate-scope",
+    "$defs": {
+      "foo": {
+        "$dynamicAnchor": "items",
+        "type": "string"
+      },
+      "intermediate-scope": {
+        "$id": "intermediate-scope",
+        "$ref": "list"
+      },
+      "list": {
+        "$id": "list",
+        "type": "array",
+        "items": {
+          "$dynamicRef": "#items"
+        },
+        "$defs": {
+          "items": {
+            "$comment": "This is only needed to satisfy the bookending requirement",
+            "$dynamicAnchor": "items"
+          }
+        }
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "An array of strings is valid",
+      "data": [
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "description": "An array containing non-strings is invalid",
+      "data": [
+        "foo",
+        42
+      ]
+    }
+  ]
+}

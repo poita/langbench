@@ -1,0 +1,126 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #1 TID-020
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 PREVENT #7 1
+14 DAMAGE #1 #7 1
+15 SPENT #1 TID-020
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 9 cap 10 vault 0 hand 4 ash 1 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 0 ash 0 rift 0
+hand A 1 #2 TID-020
+hand A 2 #3 TID-020
+hand A 3 #4 TID-020
+hand A 4 #5 TID-020
+field A #6 TOK-001 1/1 w0 c0 ready - kw -
+field B #7 TOK-003 0/3 w1 c0 ready - kw plating:1
+field B #8 LOM-024 0/5 w0 c0 ready - kw plating:2
+field B #9 CIN-023 5/5 w0 c0 ready - kw siegework
+field B #10 TOK-007 1/2 w0 c0 ready - kw skyhook
+field B #11 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #1 TID-020
+STATE END
+16 PLAY A ~2 #2 TID-020
+17 PAY A ember 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 PREVENT #7 1
+22 DAMAGE #2 #7 1
+23 SPENT #2 TID-020
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 8 cap 10 vault 0 hand 3 ash 2 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 0 ash 0 rift 0
+hand A 1 #3 TID-020
+hand A 2 #4 TID-020
+hand A 3 #5 TID-020
+field A #6 TOK-001 1/1 w0 c0 ready - kw -
+field B #7 TOK-003 0/3 w2 c0 ready - kw plating:1
+field B #8 LOM-024 0/5 w0 c0 ready - kw plating:2
+field B #9 CIN-023 5/5 w0 c0 ready - kw siegework
+field B #10 TOK-007 1/2 w0 c0 ready - kw skyhook
+field B #11 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #1 TID-020
+ash A 2 #2 TID-020
+STATE END
+24 PLAY A ~3 #3 TID-020
+25 PAY A ember 1
+26 PASS A
+27 PASS B
+28 RESOLVE ~3
+29 DAMAGE #3 #10 2
+30 SPENT #3 TID-020
+31 DESTROY #10 TOK-007
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 7 cap 10 vault 0 hand 2 ash 3 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 0 ash 1 rift 0
+hand A 1 #4 TID-020
+hand A 2 #5 TID-020
+field A #6 TOK-001 1/1 w0 c0 ready - kw -
+field B #7 TOK-003 0/3 w2 c0 ready - kw plating:1
+field B #8 LOM-024 0/5 w0 c0 ready - kw plating:2
+field B #9 CIN-023 5/5 w0 c0 ready - kw siegework
+field B #11 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #1 TID-020
+ash A 2 #2 TID-020
+ash A 3 #3 TID-020
+ash B 1 #10 TOK-007
+STATE END
+32 PLAY A ~4 #4 TID-020
+33 PAY A ember 1
+34 PASS A
+35 PASS B
+36 RESOLVE ~4
+37 PREVENT #8 2
+38 SPENT #4 TID-020
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 6 cap 10 vault 0 hand 1 ash 4 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 0 ash 1 rift 0
+hand A 1 #5 TID-020
+field A #6 TOK-001 1/1 w0 c0 ready - kw -
+field B #7 TOK-003 0/3 w2 c0 ready - kw plating:1
+field B #8 LOM-024 0/5 w0 c0 ready - kw plating:2
+field B #9 CIN-023 5/5 w0 c0 ready - kw siegework
+field B #11 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #1 TID-020
+ash A 2 #2 TID-020
+ash A 3 #3 TID-020
+ash A 4 #4 TID-020
+ash B 1 #10 TOK-007
+STATE END
+39 PLAY A ~5 #5 TID-020
+40 PAY A ember 1
+41 PASS A
+42 PASS B
+43 RESOLVE ~5
+44 DAMAGE #5 #9 2
+45 SPENT #5 TID-020
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 5 cap 10 vault 0 hand 0 ash 5 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 0 ash 1 rift 0
+field A #6 TOK-001 1/1 w0 c0 ready - kw -
+field B #7 TOK-003 0/3 w2 c0 ready - kw plating:1
+field B #8 LOM-024 0/5 w0 c0 ready - kw plating:2
+field B #9 CIN-023 5/5 w2 c0 ready - kw siegework
+field B #11 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #1 TID-020
+ash A 2 #2 TID-020
+ash A 3 #3 TID-020
+ash A 4 #4 TID-020
+ash A 5 #5 TID-020
+ash B 1 #10 TOK-007
+STATE END
+46 RESULT pending none

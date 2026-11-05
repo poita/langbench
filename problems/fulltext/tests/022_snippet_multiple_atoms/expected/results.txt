@@ -1,0 +1,18 @@
+QUERY 1 apple OR banana OR cherry
+HITS 3
+1	dense	0.4709	gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa banana cherry
+2	close	0.4039	alpha beta gamma delta epsilon zeta eta theta iota kappa apple banana cherry alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta
+3	spread	0.4039	gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa banana cherry
+QUERY 2 apple banana cherry
+HITS 3
+1	dense	0.4709	gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa banana cherry
+2	close	0.4039	alpha beta gamma delta epsilon zeta eta theta iota kappa apple banana cherry alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta
+3	spread	0.4039	gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa banana cherry
+QUERY 3 "apple banana"
+HITS 1
+1	close	0.9888	alpha beta gamma delta epsilon zeta eta theta iota kappa apple banana cherry alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta
+QUERY 4 apple
+HITS 3
+1	dense	0.2081	apple apple apple alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta
+2	close	0.1346	alpha beta gamma delta epsilon zeta eta theta iota kappa apple banana cherry alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta
+3	spread	0.1346	apple alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota kappa alpha beta gamma delta epsilon zeta eta theta iota

@@ -1,0 +1,7 @@
+message M { uint64 u = 1; sint64 s = 2; fixed32 f = 3; bytes y = 4; repeated bool bs = 5; bool k = 6; }
+--
+decode M 08ffffffffffffffffff0110ff011dffffffff2202000f2a03010001
+decode M 3002
+decode M 3d000000
+encode M {k: true, y: x"cafe", s: -128, u: 18446744073709551615}
+encode M {u: -1}

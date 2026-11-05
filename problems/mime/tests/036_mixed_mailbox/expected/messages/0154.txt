@@ -1,0 +1,118 @@
+[message]
+id 0154
+source "mbox:154"
+
+[headers]
+received: "from example.org (mx6.apache.org [229.95.70.102]) by apache.org (Postfix) with ESMTP id 502ADE0A67 for <zdoe.49@example.com>; Sat Jul 3 01:19:25 2003 +1000"
+received: "from post.example.fr (mx4.lists.example.edu [46.227.38.115]) by lists.example.edu (Postfix) with ESMTP id B86C3B6F3D for <jdoe@lists.example.edu>; 18 AUG 09 13:18 +1245"
+received: "from mail.example.net (mx4.students.example.ac.jp [227.64.246.68]) by eu.example.de (Postfix) with ESMTP id 6CF107669 for <gkowalski@example.org>; Sat Aug 20 18:40:57 2003 -0700"
+received: "from students.example.ac.jp (mx7.mail.example.net [50.205.221.254]) by corp.example.co.uk (Postfix) with ESMTP id CD0FB9F3C0 for <bkim@example.org>; wed,12 mar 2003 14:52:37 (comment (nested)) +0530"
+received: "from lists.example.edu (mx6.example.org [17.106.200.68]) by mail.example.net (Postfix) with ESMTP id 737020FD6C for <osmith@students.example.ac.jp>; Mon, 23 Sep 2025 12:33:44 MET"
+return-path: "<c@apache.org>"
+message-id: "<1160.c5cb7f0a.9308@post.example.fr>"
+in-reply-to: "<1172.4c473671.50407@lists.example.edu>"
+references: "<1161.b7cd33c8.37188@mail.example.net> <1162.8b2cf311.58130@example.com> <1163.09f2c5a9.86308@mail.example.net> <1164.00c3e713.5549@eu.example.de> <1165.18c74ecd.17376@corp.example.co.uk> <1166.216fbe97.33112@corp.example.co.uk> <1167.1577c043.55477@post.example.fr> <1168.544891bf.64611@eu.example.de> <1169.9d2b04e9.41060@example.com> <1170.227d8bf8.98826@eu.example.de> <1171.b19252cf.3097@eu.example.de> <1172.4c473671.50407@lists.example.edu>"
+date: "Sat, 15 Oct 2024 11:21:42 -0400"
+from: "María Johansson <mjohansson.80@post.example.fr>"
+to: "Tomás 山田 <t@eu.example.de>,\tZoë Taylor <ztaylor.83@example.com>, \"Olga Smith\" <osmith@students.example.ac.jp>,\tAnn Papadopoulos <apapadopoulos@dev.example.io>,    Olga Schröder <oschrder@post.example.fr>, Pierre Fernández <pfernndez.41@mail.example.net>,    xkim@dev.example.io,    Uwe Lefèvre <ulefvre@lists.example.edu>,\tfdubois@example.org, Olga Иванов <o.89@example.org>,    \"Taylor, Nils\" <ntaylor@example.org>,\tΕλένη Papadopoulos <papadopoulos@mail.example.net>,    Fiona Müller <fmller.18@students.example.ac.jp>,    Uwe García <ugarca.49@eu.example.de>,    Yuki García <ygarca.99@example.com>,\tDana Kim <dkim@post.example.fr>,\tChloé Østergaard <cstergaard.54@eu.example.de>,    fnguyen@eu.example.de, Carl Dubois <cdubois.97@eu.example.de>,\t\"Dubois, Yuki\" <ydubois@example.com>,    Zoë Müller <zmller@students.example.ac.jp>,    Fiona Taylor <ftaylor@post.example.fr>,\tGreg Brown <gbrown@students.example.ac.jp>, fvanderberg@mail.example.net,\tTomás Иванов <t@lists.example.edu>,    Ivan Dubois <idubois@post.example.fr>,\tĐorđe 山田 <user3355.94@post.example.fr>, Yuki Fernández <yfernndez@dev.example.io>,\tBob Lefèvre <blefvre@example.com>,\tAnn Østergaard <astergaard@example.org>,\tKarin Rossi <krossi@post.example.fr>, apetrov.12@post.example.fr,    jnakamura@eu.example.de, awilson@example.com"
+cc: "Ann Petrov <apetrov@post.example.fr>,\tZoë van der Berg <zvanderberg@students.example.ac.jp>, Ελένη Schröder <schrder@apache.org>, Chloé Wilson <cwilson.61@post.example.fr>,\t\"Johansson, Sven\" <sjohansson@corp.example.co.uk>,    Quinn Papadopoulos <qpapadopoulos@students.example.ac.jp>, Bob Schröder <bschrder@corp.example.co.uk>,\t\"Nakamura, Erik\" <enakamura@dev.example.io>,    \"Xavier O'Brien\" <xobrien.23@example.com>, Yuki Fernández <yfernndez@corp.example.co.uk>, Jörg Dubois <jdubois@eu.example.de>,    gnakamura@mail.example.net"
+subject: "Fwd: Move of first also café have play"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+x-original-to: "\"Rossi, Luis\" <lrossi.98@apache.org>"
+x-original-to: "rbrown@lists.example.edu (Someone)"
+x-original-to: "Chloé 山田 <c@example.org>"
+resent-date: "Wed May 1 05:11:16 2009 -0330"
+resent-date: "15 NOV 03 12:46 CST"
+resent-date: "21 OCT 09 03:33 +0000"
+thread-topic: "Of through came some?"
+comments: "Of certificate in  filter us it  give part a part up?"
+sender: "Xavier Brown <xbrown.54@corp.example.co.uk>"
+content-type: "text/plain; charset=\"utf-8\""
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="María Johansson" spec="mjohansson.80@post.example.fr"
+sender 0 display="Xavier Brown" spec="xbrown.54@corp.example.co.uk"
+to 0 display="Tomás 山田" spec="t@eu.example.de"
+to 1 display="Zoë Taylor" spec="ztaylor.83@example.com"
+to 2 display="Olga Smith" spec="osmith@students.example.ac.jp"
+to 3 display="Ann Papadopoulos" spec="apapadopoulos@dev.example.io"
+to 4 display="Olga Schröder" spec="oschrder@post.example.fr"
+to 5 display="Pierre Fernández" spec="pfernndez.41@mail.example.net"
+to 6 display="" spec="xkim@dev.example.io"
+to 7 display="Uwe Lefèvre" spec="ulefvre@lists.example.edu"
+to 8 display="" spec="fdubois@example.org"
+to 9 display="Olga Иванов" spec="o.89@example.org"
+to 10 display="Taylor, Nils" spec="ntaylor@example.org"
+to 11 display="Ελένη Papadopoulos" spec="papadopoulos@mail.example.net"
+to 12 display="Fiona Müller" spec="fmller.18@students.example.ac.jp"
+to 13 display="Uwe García" spec="ugarca.49@eu.example.de"
+to 14 display="Yuki García" spec="ygarca.99@example.com"
+to 15 display="Dana Kim" spec="dkim@post.example.fr"
+to 16 display="Chloé Østergaard" spec="cstergaard.54@eu.example.de"
+to 17 display="" spec="fnguyen@eu.example.de"
+to 18 display="Carl Dubois" spec="cdubois.97@eu.example.de"
+to 19 display="Dubois, Yuki" spec="ydubois@example.com"
+to 20 display="Zoë Müller" spec="zmller@students.example.ac.jp"
+to 21 display="Fiona Taylor" spec="ftaylor@post.example.fr"
+to 22 display="Greg Brown" spec="gbrown@students.example.ac.jp"
+to 23 display="" spec="fvanderberg@mail.example.net"
+to 24 display="Tomás Иванов" spec="t@lists.example.edu"
+to 25 display="Ivan Dubois" spec="idubois@post.example.fr"
+to 26 display="Đorđe 山田" spec="user3355.94@post.example.fr"
+to 27 display="Yuki Fernández" spec="yfernndez@dev.example.io"
+to 28 display="Bob Lefèvre" spec="blefvre@example.com"
+to 29 display="Ann Østergaard" spec="astergaard@example.org"
+to 30 display="Karin Rossi" spec="krossi@post.example.fr"
+to 31 display="" spec="apetrov.12@post.example.fr"
+to 32 display="" spec="jnakamura@eu.example.de"
+to 33 display="" spec="awilson@example.com"
+cc 0 display="Ann Petrov" spec="apetrov@post.example.fr"
+cc 1 display="Zoë van der Berg" spec="zvanderberg@students.example.ac.jp"
+cc 2 display="Ελένη Schröder" spec="schrder@apache.org"
+cc 3 display="Chloé Wilson" spec="cwilson.61@post.example.fr"
+cc 4 display="Johansson, Sven" spec="sjohansson@corp.example.co.uk"
+cc 5 display="Quinn Papadopoulos" spec="qpapadopoulos@students.example.ac.jp"
+cc 6 display="Bob Schröder" spec="bschrder@corp.example.co.uk"
+cc 7 display="Nakamura, Erik" spec="enakamura@dev.example.io"
+cc 8 display="Xavier O'Brien" spec="xobrien.23@example.com"
+cc 9 display="Yuki Fernández" spec="yfernndez@corp.example.co.uk"
+cc 10 display="Jörg Dubois" spec="jdubois@eu.example.de"
+cc 11 display="" spec="gnakamura@mail.example.net"
+
+[date]
+raw " Sat, 15 Oct 2024 11:21:42 -0400"
+valid yes
+utc 2024-10-15T15:21:42Z
+offset -0400
+epoch 1729005702
+
+[structure]
+0 text/plain charset=utf-8 cte=8bit size=785 adler32=fc4a080e role=text
+
+[body]
+text 0 chars 777
+| Change way back thing we is are call is of? Boy day Ångström this one
+| from up keepalive much of? Had show a segfault or alias on number out is
+| call near new can men form. It end trunk word work httpd coöperate go
+| cause the or we come. Point hot where to act port the side? I out
+| directive was who as end use said they first httpd want went. Make made
+| do also that time.
+| 
+| Her have move thing time client one Größe too some there play the! Is
+| their the but déjà went came why they request there go you? In round and
+| right each what that he of? People word a year him men went for on think
+| when this in have have.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| María Petrov
+html none
+
+[attachments]

@@ -1,0 +1,16 @@
+count-objects
+log HEAD 12
+ls-tree HEAD
+rev-parse extra
+rev-parse refs/heads/extra
+diff extra HEAD
+cat-file 002a8b2c97d96a6b146088e2d99dd09346b1adc6
+cat-file 02ac7b9a6a2d56f0d2a8118d4464f7a5d89c780f
+cat-file 03e69dab6e316742816aa66a6a9288c928745a63
+cat-file 04102856f0cb56d3bcbfda2e14fa061383549966
+cat-file 0442d96e78f365c587d0241072035658f0a15ad7
+cat-file 05d8e5f833e787564534a160d9edc8837b0d086f
+cat-file 0758adf1bae175986eb0e0ebca25a5774a7c4cdd
+cat-file 07b0dca2ea5c6240cddb6964ab8cda604a47ee67
+cat-file 091b5e54e52bc79de2730e15683dc455afae999f
+cat-file 0a099109955b48fd34bd4d3b3e76178d6b37bc00

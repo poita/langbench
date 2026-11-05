@@ -1,0 +1,12 @@
+decode
+bare_key = 1
+bare-key = 2
+1234 = 3
+"127.0.0.1" = 4
+"\u00e9" = 5
+'quoted "value"' = 6
+"" = 7
+'' = 8
+physical.color = "orange"
+physical.shape = "round"
+site."google.com" = true

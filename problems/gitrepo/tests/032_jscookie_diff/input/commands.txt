@@ -1,0 +1,6 @@
+diff HEAD~1000 HEAD
+diff HEAD~500 HEAD~250
+diff latest v3.0.8
+ls-tree HEAD src
+cat-file 63fbe08585335ebd7726b7586064abf877e7664a
+log HEAD~500 20

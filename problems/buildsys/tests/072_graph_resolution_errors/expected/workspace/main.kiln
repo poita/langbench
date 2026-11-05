@@ -1,0 +1,9 @@
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    in "src/missing.txt"
+    after "src/other.txt"
+    cmd concat()
+}
+phony p = ["src/nope.txt"]
+default "out/z.txt"

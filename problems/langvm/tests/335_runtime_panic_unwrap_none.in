@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let o: Option<Int> = None; print(showInt(unwrap(o)));
+}

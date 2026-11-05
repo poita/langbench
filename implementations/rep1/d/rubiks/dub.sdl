@@ -1,0 +1,27 @@
+name "rubiks"
+description "Rubik's cube solver using Thistlethwaite's four-phase algorithm"
+authors "Peter Alexander"
+copyright "Copyright (c) the rubiks authors"
+license "MIT"
+
+# Default configuration: the command-line tool (bin/rubiks).
+configuration "cli" {
+    targetType "executable"
+    targetName "rubiks"
+    targetPath "bin"
+    mainSourceFile "source/app.d"
+}
+
+# The reusable library only (import `rubiks`).
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}
+
+# `dub test`: the library plus the unit tests in tests/.
+configuration "unittest" {
+    targetType "library"
+    sourcePaths "source" "tests"
+    importPaths "source" "tests"
+    excludedSourceFiles "source/app.d"
+}

@@ -1,0 +1,72 @@
+[message]
+id 0055
+source "mbox:55"
+
+[headers]
+received: "from dev.example.io (mx7.students.example.ac.jp [73.46.131.180]) by example.com (Postfix) with ESMTP id 9A7D53CB9 for <mtaylor.36@example.com>; 13 MAR 09 11:54 +0100"
+received: "from dev.example.io (mx4.apache.org [98.211.178.100]) by lists.example.edu (Postfix) with ESMTP id CDF5EFA4EE for <lfernndez@corp.example.co.uk>; Mon, 17 Jan 2009 16:47:37 +0100"
+return-path: "<zgarca@students.example.ac.jp>"
+message-id: "<391.6e752f71.8990@post.example.fr>"
+in-reply-to: "<392.f62057e5.27779@lists.example.edu>"
+references: "<392.f62057e5.27779@lists.example.edu>"
+date: "27 MAR 05 17:38 -0000"
+from: "太郎 山田 <user8515.6@example.org>"
+to: "\"Yuki O'Brien\" <yobrien@post.example.fr>,\tJörg Nakamura <jnakamura@example.org>, \"Nils Petrov\" <npetrov.86@students.example.ac.jp>"
+cc: "Uwe Doe <udoe.18@example.com>"
+subject: "Re: [PATCH] His after over"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_22d4cb792119c0810955e5ad90d13518\""
+
+[addresses]
+from 0 display="太郎 山田" spec="user8515.6@example.org"
+to 0 display="Yuki O'Brien" spec="yobrien@post.example.fr"
+to 1 display="Jörg Nakamura" spec="jnakamura@example.org"
+to 2 display="Nils Petrov" spec="npetrov.86@students.example.ac.jp"
+cc 0 display="Uwe Doe" spec="udoe.18@example.com"
+
+[date]
+raw " 27 MAR 05 17:38 -0000"
+valid yes
+utc 2005-03-27T17:38:00Z
+offset +0000
+epoch 1111945080
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_22d4cb792119c0810955e5ad90d13518" parts=3 preamble=0 epilogue=0
+  1 text/plain charset=iso-8859-1 cte=base64 size=863 adler32=e78f1f02 role=text
+  2 text/csv charset=utf-8 cte=quoted-printable disposition=attachment filename="build_naïve.csv" size=4666 adler32=ed47cd5e role=attachment
+  3 text/csv charset=utf-8 cte=7bit disposition=inline filename="façade_will_the_when.csv" size=10765 adler32=a2c4594c role=attachment
+
+[body]
+text 1 chars 863
+| Only what the some were build and made me were? By client certificate
+| his move change has in in can. End as your and air put look build about
+| his the. These Straße great the backport a the of could.
+| 
+| Here the in show make for that! All a hot the look kind and one want it
+| if. And right did want was through way there get build release has from
+| the. Hot large out review end brigade go made that of small vhost some I
+| to now to on?
+| 
+| Hot through live of you he a than could. To why was these find of it
+| when been on he they do they. Config the make on you the would same is
+| he good! Élan new directive has take the they or said résumé with work.
+| Word there down the the long kind find at Zürich or.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Yuki Lefèvre
+html none
+
+[attachments]
+2 type=text/csv filename="build_naïve.csv" size=4666 adler32=ed47cd5e file=parts/0055/002.bin
+3 type=text/csv filename="façade_will_the_when.csv" size=10765 adler32=a2c4594c file=parts/0055/003.bin

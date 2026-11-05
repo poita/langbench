@@ -1,0 +1,10 @@
+*em* **strong** ***both*** _em_ __strong__ ___both___
+`code` ``co`de`` ` `` `
+[link](/url "title") [l](<a b> 't') ![img](/i.png "ti") ![*alt* `x`](/y)
+<http://example.com> <foo@bar.baz> <MAILTO:X@Y.Z>
+hard  
+break\
+soft
+break
+&amp; &lt; &gt; &quot; &#35; &#x41; &#X41; &copy &foo; &#0; &#xD800; &#1234567;
+\* \_ \\ \a \

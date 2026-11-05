@@ -1,0 +1,37 @@
+name "spreadsheet"
+description "Spreadsheet engine with incremental recalculation: numbers, strings, formulas, ranges, cycle detection."
+authors "Peter Alexander"
+license "MIT"
+copyright "Copyright © 2026"
+targetType "none"
+
+# The default configuration builds the command-line tool.  Depend on the
+# "library" configuration to use the engine from another project:
+#   dependency "spreadsheet" version="*"
+#   subConfiguration "spreadsheet" "library"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "spreadsheet"
+    targetPath "bin"
+    sourcePaths "source" "cli"
+    importPaths "source"
+    mainSourceFile "cli/main.d"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "spreadsheet"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+# `dub test` builds this configuration; the tests live apart from the library.
+configuration "unittest" {
+    targetType "executable"
+    targetName "spreadsheet-test"
+    targetPath "bin"
+    sourcePaths "source" "tests"
+    mainSourceFile "tests/main.d"
+    importPaths "source"
+}

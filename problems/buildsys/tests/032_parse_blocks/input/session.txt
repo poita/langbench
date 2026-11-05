@@ -1,0 +1,50 @@
+build
+edit main.kiln
+}
+---
+build
+edit main.kiln
+when true {
+} foo
+---
+build
+edit main.kiln
+when true {
+} otherwise {
+} elsewhen false {
+}
+---
+build
+edit main.kiln
+when true {
+} otherwise {
+} otherwise {
+}
+---
+build
+edit main.kiln
+each x in [1] {
+} otherwise {
+}
+---
+build
+edit main.kiln
+{
+}
+---
+build
+edit main.kiln
+when true {
+} elsewhen false {
+---
+build
+edit main.kiln
+each x in [1] {
+} elsewhen true {
+}
+---
+build
+edit main.kiln
+rule r() {
+---
+build

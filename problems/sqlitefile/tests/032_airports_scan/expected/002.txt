@@ -1,0 +1,18 @@
+CREATE TABLE airport(
+        id INTEGER PRIMARY KEY,
+        ident TEXT NOT NULL,
+        type TEXT,
+        name TEXT,
+        latitude_deg REAL,
+        longitude_deg REAL,
+        elevation_ft INTEGER,
+        continent TEXT,
+        iso_country TEXT,
+        iso_region TEXT,
+        municipality TEXT,
+        scheduled_service TEXT,
+        gps_code TEXT,
+        iata_code TEXT);
+CREATE INDEX airport_country ON airport(iso_country);
+CREATE INDEX airport_ident ON airport(ident);
+CREATE INDEX airport_type ON airport(type);

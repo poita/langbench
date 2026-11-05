@@ -1,0 +1,65 @@
+[message]
+id 0217
+source "mbox:217"
+
+[headers]
+received: "from eu.example.de (mx7.post.example.fr [18.58.99.250]) by example.com (Postfix) with ESMTP id E167F9BA4C for <frossi@students.example.ac.jp>; Fri, 26 Jan 2012 18:03:18 +0530"
+received: "from post.example.fr (mx3.eu.example.de [154.87.110.107]) by apache.org (Postfix) with ESMTP id B768F63E22 for <user1077.8@mail.example.net>; Mon, 25 Mar 2009 15:30:32 EST"
+received: "from mail.example.net (mx1.example.com [63.118.104.144]) by example.com (Postfix) with ESMTP id B4D77E0510 for <svanderberg@students.example.ac.jp>; Thu, 11 Nov 2018 21:16:52 UT (EDT)"
+received: "from mail.example.net (mx5.post.example.fr [106.177.164.73]) by lists.example.edu (Postfix) with ESMTP id 237A8C7937 for <ugarca@example.com>; 19 OCT 25 09:56 +1245"
+return-path: "<w.15@eu.example.de>"
+message-id: "<1554.af2bd176.80692@example.org>"
+date: "Fri, 14 Aug 2024 14:50:18 -0800"
+from: "\"Papadopoulos, Uwe\" <upapadopoulos@apache.org>"
+to: "Carl Johansson <cjohansson.1@students.example.ac.jp>, Hana Lefèvre <hlefvre@apache.org>,    brown@corp.example.co.uk (Someone)"
+cc: "\"Doe, Karin\" <kdoe.22@students.example.ac.jp>"
+subject: "Their could the of you may the the ssl I"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=windows-1252"
+content-transfer-encoding: "base64"
+
+[addresses]
+from 0 display="Papadopoulos, Uwe" spec="upapadopoulos@apache.org"
+to 0 display="Carl Johansson" spec="cjohansson.1@students.example.ac.jp"
+to 1 display="Hana Lefèvre" spec="hlefvre@apache.org"
+to 2 display="" spec="brown@corp.example.co.uk"
+cc 0 display="Doe, Karin" spec="kdoe.22@students.example.ac.jp"
+
+[date]
+raw " Fri, 14 Aug 2024 14:50:18 -0800"
+valid yes
+utc 2024-08-14T22:50:18Z
+offset -0800
+epoch 1723675818
+
+[structure]
+0 text/plain charset=windows-1252 cte=base64 size=700 adler32=857ee51e role=text
+
+[body]
+text 0 chars 700
+| But how write an us some. That the tell branch make branch of the you I
+| hook father some? Again after you if patch and release certificate I for
+| the very was the! And act and of change would day is to was said thing?
+| Do can these vote good module port by the from you in men great the the
+| new Málaga.
+| 
+| Of light make had see other at my year élan the? Before then of of that
+| with same at call an the socket like must the which! At word httpd also
+| that! To the day had bucket these filter fiancée out the the crash of
+| some of long make!
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Tomás Rossi
+html none
+
+[attachments]

@@ -1,0 +1,24 @@
+[message]
+id 0001
+source "alternative.eml"
+
+[headers]
+content-type: "multipart/alternative; boundary=\"alt\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/alternative cte=7bit boundary="alt" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=us-ascii cte=7bit size=13 adler32=2415053b role=text
+  2 text/html charset=us-ascii cte=7bit size=19 adler32=459b06df role=html
+
+[body]
+text 1 chars 13
+| plain version
+html 2 chars 19
+| <p>html version</p>
+
+[attachments]

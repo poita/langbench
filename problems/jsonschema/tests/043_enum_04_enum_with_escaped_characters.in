@@ -1,0 +1,23 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "enum": [
+      "foo\nbar",
+      "foo\rbar"
+    ]
+  },
+  "tests": [
+    {
+      "description": "member 1 is valid",
+      "data": "foo\nbar"
+    },
+    {
+      "description": "member 2 is valid",
+      "data": "foo\rbar"
+    },
+    {
+      "description": "another string is invalid",
+      "data": "abc"
+    }
+  ]
+}

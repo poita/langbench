@@ -1,0 +1,66 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] error syntax
+[8] ok find 5 plan scan
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "d" = {"s":"b"}
+  "e" = {"s":"A"}
+  "f" = {"s":"é"}
+[9] ok find 4 plan scan
+  "a" = {"s":""}
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "e" = {"s":"A"}
+[10] ok find 4 plan scan
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "d" = {"s":"b"}
+  "f" = {"s":"é"}
+[11] ok find 4 plan scan
+  "a" = {"s":""}
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "e" = {"s":"A"}
+[12] ok find 1 plan scan
+  "f" = {"s":"é"}
+[13] error syntax
+[14] ok create index s entries 6
+[15] ok find 5 plan index s
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "d" = {"s":"b"}
+  "e" = {"s":"A"}
+  "f" = {"s":"é"}
+[16] ok find 4 plan index s
+  "a" = {"s":""}
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "e" = {"s":"A"}
+[17] ok find 4 plan index s
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "d" = {"s":"b"}
+  "f" = {"s":"é"}
+[18] ok find 4 plan index s
+  "a" = {"s":""}
+  "b" = {"s":"a"}
+  "c" = {"s":"ab"}
+  "e" = {"s":"A"}
+[19] ok find 1 plan index s
+  "f" = {"s":"é"}
+[20] error syntax
+[21] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 6
+  root 2
+  height 1
+  commits 7
+  indexes 1
+  wal 14872

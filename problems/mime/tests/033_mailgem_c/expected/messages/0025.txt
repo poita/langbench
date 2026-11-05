@@ -1,0 +1,50 @@
+[message]
+id 0025
+source "weird_to_header.eml"
+
+[headers]
+delivered-to: "e-s-a-s-2200@app.ar.com"
+received: "by 10.103.1.1 with SMTP id w10cs50835muo; Thu, 14 Oct 2010 20:25:16 -0700 (PDT)"
+received: "by 10.150.205.4 with SMTP id c4mr736200ybg.26.1287113115711; Thu, 14 Oct 2010 20:25:15 -0700 (PDT)"
+return-path: "<anonymous@i.tp.host>"
+received: "from i.tp.host ([172.1.1.1]) by mx.google.com with ESMTP id s21si2123456.90.2010.10.14.20.25.15; Thu, 14 Oct 2010 20:25:15 -0700 (PDT)"
+received-spf: "neutral (google.com: 172.1.1.1 is neither permitted nor denied by best guess record for domain of anonymous@i.tp.host) client-ip=172.1.1.1;"
+authentication-results: "mx.google.com; spf=neutral (google.com: 172.1.1.1 is neither permitted nor denied by best guess record for domain of anonymous@i.tp.host) smtp.mail=anonymous@i.tp.host"
+received: "(qmail 28454 invoked by uid 48); 14 Oct 2010 23:25:06 -0400"
+date: "14 Oct 2010 23:25:06 -0400"
+message-id: "<20101015032506.28448.qmail@i.tp.host>"
+from: "anonymous@i.tp.host"
+to: ", user-example@aol.com, e-s-a-s-2200@app.ar.com"
+subject: ""
+
+[addresses]
+from 0 display="" spec="anonymous@i.tp.host"
+to 0 display="" spec="user-example@aol.com"
+to 1 display="" spec="e-s-a-s-2200@app.ar.com"
+
+[date]
+raw " 14 Oct 2010 23:25:06 -0400"
+valid yes
+utc 2010-10-15T03:25:06Z
+offset -0400
+epoch 1287113106
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=45 adler32=dde609c3 role=text
+
+[body]
+text 0 chars 45
+| 
+| CONTACT:
+| 
+| 
+| 
+| 
+| COMMENT:
+| 
+| 
+| PAGE THEY WERE ON:
+| 
+html none
+
+[attachments]

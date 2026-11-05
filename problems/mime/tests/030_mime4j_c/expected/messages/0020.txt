@@ -1,0 +1,31 @@
+[message]
+id 0020
+source "x-gzip64.eml"
+
+[headers]
+content-type: "text/plain; name=\".signature\""
+content-disposition: "inline; filename=\".signature\""
+content-transfer-encoding: "x-gzip64"
+mime-version: "1.0"
+x-mailer: "MIME-tools 3.204  (ME 3.204 )"
+subject: "Testing!"
+content-length: "281"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=x-gzip64 disposition=inline filename=".signature" size=281 adler32=4f465bca role=text
+
+[body]
+text 0 chars 281
+| H4sIAJ+A5jIAA0VPTWvDMAy9+1e8nbpCsS877bRS1vayXdJDDwURbJEEEqez
+| VdKC6W+fnQ0iwdN7ktAHQEQAzV7irAv9DI8fvHLGD/bCobai7TisFUyuXxJW
+| lDB70aucxfHWtBxRnc4bfG+rrTmMztXBobrWlrHvu6YV7LwErVLZZP4n0IJA
+| K3J9N2aaJj3YqD2LeZYzFC75tlTaCtsg/SGRwmJZklnI1wOxa3wtt8Dgu2V2
+| EdIyAudnBvaOHd7Qd57ji/oFWju6Pg4BAAA=
+html none
+
+[attachments]

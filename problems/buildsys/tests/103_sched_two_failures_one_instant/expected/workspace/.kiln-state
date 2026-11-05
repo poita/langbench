@@ -1,0 +1,5 @@
+kiln-state 1
+step out/quick.txt
+cmd write("quick\n")
+out out/quick.txt 9298df53555935e2
+end

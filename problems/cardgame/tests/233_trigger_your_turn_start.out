@@ -1,0 +1,83 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 TRIGGER A ~1 #21 1
+7 TRIGGER A ~2 #22 1
+8 RESOLVE ~1
+9 COUNTERS #21 +1 1
+10 RESOLVE ~2
+11 CREATE #44 TOK-002 field
+12 ARRIVE #44 TOK-002
+13 PHASE draw
+14 PHASE main1
+15 PASS A
+16 PASS B
+17 PHASE clash-attack
+18 PHASE main2
+19 PASS A
+20 PASS B
+21 PHASE dusk-trigger
+22 PASS A
+23 PASS B
+24 PHASE dusk-discard
+25 PHASE dusk-cleanup
+26 TURN 2 B
+27 PHASE dawn
+28 EMBER A 10 10
+29 EMBER B 10 10
+30 TRIGGER B ~3 #43 1
+31 RESOLVE ~3
+32 COUNTERS #43 +1 1
+33 PHASE draw
+34 DRAW B #23 TID-001
+35 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 19 hand 1 ash 0 rift 0
+hand B 1 #23 TID-001
+field A #21 LOM-001 2/2 w0 c1 ready - kw -
+field A #22 TID-033 4/5 w0 c0 ready - kw -
+field A #44 TOK-002 1/1 w0 c0 ready - kw ghostwalk
+field B #43 LOM-001 2/2 w0 c1 ready - kw -
+STATE END
+36 PASS B
+37 PASS A
+38 PHASE clash-attack
+39 PHASE main2
+40 PASS B
+41 PASS A
+42 PHASE dusk-trigger
+43 PASS B
+44 PASS A
+45 PHASE dusk-discard
+46 PHASE dusk-cleanup
+47 TURN 3 A
+48 PHASE dawn
+49 EMBER A 10 10
+50 EMBER B 10 10
+51 TRIGGER A ~4 #21 1
+52 TRIGGER A ~5 #22 1
+53 RESOLVE ~4
+54 COUNTERS #21 +1 2
+55 RESOLVE ~5
+56 CREATE #45 TOK-002 field
+57 ARRIVE #45 TOK-002
+58 PHASE draw
+59 DRAW A #1 CIN-001
+60 PHASE main1
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 19 hand 1 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 19 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #23 TID-001
+field A #21 LOM-001 3/3 w0 c2 ready - kw -
+field A #22 TID-033 4/5 w0 c0 ready - kw -
+field A #44 TOK-002 1/1 w0 c0 ready - kw ghostwalk
+field A #45 TOK-002 1/1 w0 c0 ready settling kw ghostwalk
+field B #43 LOM-001 2/2 w0 c1 ready - kw -
+STATE END
+61 RESULT pending none

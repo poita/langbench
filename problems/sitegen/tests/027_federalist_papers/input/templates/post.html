@@ -1,0 +1,10 @@
+{% extends "article.html" %}
+{% block title %}{{ post.title }} &middot; {{ super() }}{% endblock %}
+{% block article %}
+<h1>{{ post.title }}</h1>
+<p class="byline">{{ post.date_long }} &middot; {{ authorlist(post.tags) }}</p>
+{{ post.content }}<p class="seq">
+{%- if post.newer %}<a href="{{ post.newer.url }}">previous in order</a>{% endif %}
+{%- if post.older %} <a href="{{ post.older.url }}">next in order</a>{% endif %}
+</p>
+{%- endblock %}

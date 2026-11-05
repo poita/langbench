@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "if": {
+      "exclusiveMaximum": 0
+    },
+    "else": {
+      "multipleOf": 2
+    }
+  },
+  "tests": [
+    {
+      "description": "valid when if test passes",
+      "data": -1
+    },
+    {
+      "description": "valid through else",
+      "data": 4
+    },
+    {
+      "description": "invalid through else",
+      "data": 3
+    }
+  ]
+}

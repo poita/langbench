@@ -1,0 +1,21 @@
+[1] ok put created
+[2] ok update updated
+[3] ok update updated
+[4] ok get value
+  {"addr":{"city":"oslo"},"age":36,"name":"ada"}
+[5] ok unset updated
+[6] ok get value
+  {"addr":{},"age":36,"name":"ada"}
+[7] error no-field
+[8] error not-object
+[9] error not-found
+[10] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 4
+  indexes 0
+  wal 8512

@@ -1,0 +1,11 @@
+Content-Type: multipart/mixed; boundary="B"
+
+this is the preamble
+second line
+--B
+Content-Type: text/plain
+
+body
+--B--
+epilogue line
+and another

@@ -1,0 +1,33 @@
+one 2 three
+four five
+six
+cursor 0 5
+--
+one  three
+four five
+six
+cursor 0 4
+--
+one hree
+four five
+six
+cursor 0 4
+--
+one hree
+four five
+six
+cursor 2 3
+--
+one|
+cursor 0 4
+--
+on
+cursor 0 2
+--
+
+cursor 0 0
+--
+A
+B
+cursor 1 1
+--

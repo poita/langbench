@@ -1,0 +1,11 @@
+norm1 can_24.mtx
+norminf can_24.mtx
+normfro can_24.mtx
+transpose can_24.mtx
+lu can_24.mtx
+det can_24.mtx
+inv can_24.mtx
+chol can_24.mtx
+solve can_24.mtx rhs.mtx
+qr can_24.mtx
+cond can_24.mtx

@@ -1,0 +1,19 @@
+{
+  "s": "  Hello, World!  ",
+  "l": [
+    3,
+    1,
+    2
+  ],
+  "w": "mixed CASE",
+  "e": [],
+  "d": {
+    "b": 1,
+    "a": 2
+  }
+}
+--
+=== main
+[{{ s|trim }}] [{{ s|upper }}] [{{ w|lower }}] {{ s|length }} {{ s|trim|length }} {{ l|length }} {{ d|length }} {{ ""|length }}
+{{ l|reverse|join(",") }} {{ "abc"|reverse }} {{ l|first }} {{ l|last }} {{ "abc"|first }} {{ "abc"|last }} {{ d|first }} {{ d|last }} {{ d|reverse|join(",") }}
+{{ e|first is defined }} {{ e|last is defined }} {{ ""|first is defined }} {{ 5|upper }} {{ none|lower }} {{ true|upper }} {{ 1.5|trim }} {{ "héllo wörld"|length }}

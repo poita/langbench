@@ -1,0 +1,9 @@
+put "u1" {name:"ada"}
+update "u1" age 36
+update "u1" addr.city "oslo"
+get "u1"
+unset "u1" addr.city
+get "u1"
+unset "u1" addr.zip
+unset "u1" name.first
+update "u2" age 1

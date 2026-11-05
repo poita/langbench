@@ -1,0 +1,12 @@
+- : int
+- : int
+- : int -> int -> int
+- : bool
+- : int -> int -> bool
+- : int -> int -> bool
+- : bool
+- : bool
+- : bool -> bool -> bool
+- : ('a -> int) -> 'a -> int
+- : ('a -> int) -> ('a -> int) -> 'a -> int
+- : int -> int

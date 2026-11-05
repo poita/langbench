@@ -1,0 +1,35 @@
+[message]
+id 0009
+source "example06.eml"
+
+[headers]
+from: "Mary Smith <mary@example.net>"
+to: "John Doe <jdoe@machine.example>"
+reply-to: "\"Mary Smith: Personal Account\" <smith@home.example>"
+subject: "Re: Saying Hello"
+date: "Fri, 21 Nov 1997 10:01:10 -0600"
+message-id: "<3456@example.net>"
+in-reply-to: "<1234@local.machine.example>"
+references: "<1234@local.machine.example>"
+
+[addresses]
+from 0 display="Mary Smith" spec="mary@example.net"
+reply-to 0 display="Mary Smith: Personal Account" spec="smith@home.example"
+to 0 display="John Doe" spec="jdoe@machine.example"
+
+[date]
+raw " Fri, 21 Nov 1997 10:01:10 -0600"
+valid yes
+utc 1997-11-21T16:01:10Z
+offset -0600
+epoch 880128070
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=31 adler32=af170ac0 role=text
+
+[body]
+text 0 chars 31
+| This is a reply to your hello.
+html none
+
+[attachments]

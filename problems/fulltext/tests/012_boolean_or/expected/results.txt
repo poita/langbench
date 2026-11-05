@@ -1,0 +1,20 @@
+QUERY 1 cat OR dog
+HITS 3
+1	both	2.1368	The cat and the dog met. A dog chased the cat while cats watched dogs
+2	dogs	1.1021	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+3	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+QUERY 2 cat OR bird
+HITS 3
+1	birds	1.2315	Birds fly over the quiet lake at dawn, and the lake is still
+2	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+3	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs
+QUERY 3 cat OR dog OR lake
+HITS 4
+1	both	2.1368	The cat and the dog met. A dog chased the cat while cats watched dogs
+2	birds	1.6813	Birds fly over the quiet lake at dawn, and the lake is still
+3	dogs	1.1021	A dog barks at noon. Dogs bark loudly; the barking dog ran away
+4	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+QUERY 4 unicorn OR cat
+HITS 2
+1	cats	1.0850	The cat sat on the mat. Cats are running, and the running cat runs
+2	both	1.0684	The cat and the dog met. A dog chased the cat while cats watched dogs

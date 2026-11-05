@@ -1,0 +1,2 @@
+CREATE TABLE k(id INTEGER PRIMARY KEY, key TEXT, payload TEXT);
+CREATE INDEX k_key ON k(key);

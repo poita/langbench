@@ -1,0 +1,13 @@
+put "k" {b:1}
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[,
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[99999999999999999999]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[{x:[[1]],x:1}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[{x:1,x:[[1]]}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+get "a"
+create index aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
+create index aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
+update "k" aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa. 1
+find aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
+get "k" "\ud800"
+stat

@@ -1,0 +1,50 @@
+[message]
+id 0001
+source "new_line_in_to_header.eml"
+
+[headers]
+delivered-to: "e-s-a-g-8718@app.ar.com"
+received: "by 10.2.1.1 with SMTP id c60cs12954wel; Wed, 13 Oct 2010 07:44:39 -0700 (PDT)"
+received: "by 10.15.1.1 with SMTP id f12mr1139775ybe.360.1286981078364; Wed, 13 Oct 2010 07:44:38 -0700 (PDT)"
+return-path: "<l@gcn-example.com>"
+received: "from services.travidiabamboo.com (services.travidiabamboo.com [72.21.1.1]) by mx.google.com with ESMTP id v33si16714378yba.88.2010.10.13.07.44.37; Wed, 13 Oct 2010 07:44:38 -0700 (PDT)"
+received-spf: "pass (google.com: domain of l@gcn-example.com designates 72.21.1.1 as permitted sender) client-ip=72.21.1.1;"
+authentication-results: "mx.google.com; spf=pass (google.com: domain of l@gcn-example.com designates 72.21.1.1 as permitted sender) smtp.mail=l@gcn-example.com"
+received: "from travidiabamboo.com (services [10.0.0.2]) by services.travidiabamboo.com (Postfix) with ESMTP id A532170702; Wed, 13 Oct 2010 07:53:04 -0700 (PDT)"
+date: "Wed, 13 Oct 2010 07:53:04 -0700"
+from: "l@gcn-example.com"
+to: "leads@sg.dc.com,\t sag@leads.gs.ry.com,\t sn@example-hotmail.com,\t e-s-a-g-8718@app.ar.com,\t jp@t-exmaple.com,\t\tcc@c-l-example.com"
+message-id: "<4cb5c7d0a3cce_120e..fdbed2b861958562@s.t-example.com.tmail>"
+subject: "[Online Lead] Online Lead #1111111"
+mime-version: "1.0"
+content-type: "text/plain; charset=utf-8"
+
+[addresses]
+from 0 display="" spec="l@gcn-example.com"
+to 0 display="" spec="leads@sg.dc.com"
+to 1 display="" spec="sag@leads.gs.ry.com"
+to 2 display="" spec="sn@example-hotmail.com"
+to 3 display="" spec="e-s-a-g-8718@app.ar.com"
+to 4 display="" spec="jp@t-exmaple.com"
+to 5 display="" spec="cc@c-l-example.com"
+
+[date]
+raw " Wed, 13 Oct 2010 07:53:04 -0700"
+valid yes
+utc 2010-10-13T14:53:04Z
+offset -0700
+epoch 1286981584
+
+[structure]
+0 text/plain charset=utf-8 cte=7bit size=163 adler32=5dce2f1e role=text
+
+[body]
+text 0 chars 163
+| <?xml version=\"1.0\" encoding=\"UTF-8\"?>
+| <?ADF version=\"1.0\"?><adf>
+|   <prospect>
+|     <requestdate>2010-10-13T07:53:04-09:00</requestdate>
+|     ... (not important) ...
+html none
+
+[attachments]

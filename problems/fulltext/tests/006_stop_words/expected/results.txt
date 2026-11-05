@@ -1,0 +1,15 @@
+QUERY 1 the
+HITS 0
+QUERY 2 the of and
+HITS 0
+QUERY 3 the cat
+HITS 1
+1	first	0.7176	The cat is on the mat and the mat is red
+QUERY 4 cat OR the
+HITS 1
+1	first	0.7176	The cat is on the mat and the mat is red
+QUERY 5 NOT the
+HITS 0
+QUERY 6 "the cat"
+HITS 1
+1	first	0.7176	The cat is on the mat and the mat is red

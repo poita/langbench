@@ -1,0 +1,13 @@
+TAGS {{ tags|length }}
+{% for t in tags %}{{ t.slug }} | {{ t.name }} | {{ t.url }} | {{ t.post_count }}
+{% endfor %}site: {{ site.title }} <{{ site.base_url }}> by {{ site.author }}, {{ site.posts_per_page }}/page
+keys:{% for k in site %} {{ k }}{% endfor %}
+tagline=[{{ site.tagline }}]
+year={{ site.year }} plus one={{ site.year + 1 }}
+zero={{ site.zero }}
+enabled={{ site.enabled }} truthy={% if site.enabled %}yes{% else %}no{% endif %}
+keywords=[{{ site.keywords|join("|") }}] n={{ site.keywords|length }}
+empty_list n={{ site.empty_list|length }} truthy={% if site.empty_list %}yes{% else %}no{% endif %}
+hash_inside=[{{ site.hash_inside }}]
+unicode_escape=[{{ site.unicode_escape }}]
+carriage length={{ site.carriage|length }}

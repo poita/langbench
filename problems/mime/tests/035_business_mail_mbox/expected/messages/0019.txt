@@ -1,0 +1,102 @@
+[message]
+id 0019
+source "mbox:19"
+
+[headers]
+received: "from example.com (mx1.example.org [246.185.232.142]) by post.example.fr (Postfix) with ESMTP id B75FDBC83 for <yjohansson@eu.example.de>; 1 APR 03 22:46 -0000"
+received: "from example.org (mx3.corp.example.co.uk [40.98.239.227]) by mail.example.net (Postfix) with ESMTP id 314811C2DC for <anguyen.51@eu.example.de>; Fri, 9 Sep 2024 14:22:29 -0330"
+received: "from eu.example.de (mx9.apache.org [154.157.95.129]) by corp.example.co.uk (Postfix) with ESMTP id D7DBC8F1B0 for <afernndez@corp.example.co.uk>; Thu, 14 Aug 2012 14:31:20 GMT"
+received: "from corp.example.co.uk (mx6.post.example.fr [107.246.8.113]) by post.example.fr (Postfix) with ESMTP id 3E8542EB73 for <fdubois@example.com>; yesterday"
+return-path: "<taylor@lists.example.edu>"
+message-id: "<241.d8b4dc84.72272@example.org>"
+in-reply-to: "<247.59128742.77576@eu.example.de>"
+references: "<242.3f0e2539.7369@eu.example.de> <243.d2f6a3cb.31996@example.com> <244.b9144d91.52431@apache.org> <245.5e7d6052.8144@example.com> <246.b2b801e2.53427@mail.example.net> <247.59128742.77576@eu.example.de>"
+date: "Wed, 10 Nov 2004 14:48:00 MET"
+from: "Jörg Østergaard <jstergaard@example.org>"
+to: "Sven Иванов <s.78@corp.example.co.uk>"
+cc: "\"O'Brien, Xavier\" <xobrien.97@example.com>,\tBjörn García <bgarca@mail.example.net>"
+subject: "In a of hot three number of pool write"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"00000000000052b546e19e04\""
+
+[addresses]
+from 0 display="Jörg Østergaard" spec="jstergaard@example.org"
+to 0 display="Sven Иванов" spec="s.78@corp.example.co.uk"
+cc 0 display="O'Brien, Xavier" spec="xobrien.97@example.com"
+cc 1 display="Björn García" spec="bgarca@mail.example.net"
+
+[date]
+raw " Wed, 10 Nov 2004 14:48:00 MET"
+valid yes
+utc 2004-11-10T14:48:00Z
+offset +0000
+epoch 1100098080
+
+[structure]
+0 multipart/mixed cte=7bit boundary="00000000000052b546e19e04" parts=3 preamble=45 epilogue=1
+  1 multipart/alternative cte=7bit boundary="=_80c8bfb5e16f4d9d1d65b03634257edc" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=8bit size=1167 adler32=437f939a role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1670 adler32=ebb1397a role=html
+  4 image/jpeg cte=base64 disposition=attachment filename="in.jpg" size=1048 adler32=a43af5bf role=attachment
+  5 application/pdf cte=base64 disposition=inline filename="there_like_jalapeño.pdf" size=1621 adler32=a9592bf6 role=attachment
+
+[body]
+text 2 chars 1159
+| On Sun, 6 Sep 2012 20:47:40 +1245, Chloé Johansson wrote:
+| > Out some mean with and how. Had you after crème for him no
+| > > smörgåsbord more high word this a but status then.
+| >
+| > > With that small on made act and as try point find well come. Way
+| >> does have mutex all air review header him two way new line air the
+| >> large some out. Her in follow the they large and the. Write of low
+| > > most find by. An part form went any?
+| >
+| 
+| Up see but déjà some three for out! Too use alias make three again crash
+| the may sound? Think these boy is that as you it but as follow at filter
+| little big commit great like. Year to know each the go.
+| 
+| Release and in the one log his ask. Sentence end which the with of would
+| even boy is review can for on of world sound!
+| 
+| Who my socket crash good the at. I the over good she I about who all to
+| follow to. Say the of request her also show old great the! Would then
+| round have have the the him word one look and!
+| 
+| And any put with they when each could turn many by can then little. Play
+| can need we out line back it a brigade their a and on. Earth when the
+| directive thing at? What such über crème the mutex do to.
+| 
+| -- 
+| Ann Taylor
+html 3 chars 1670
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sun, 6 Sep 2012 20:47:40 +1245, Chloé Johansson wrote:<br>
+| &gt; Out some mean with and how. Had you after crème for him no<br>
+| &gt; &gt; smörgåsbord more high word this a but status then.<br>
+| &gt;<br>
+| &gt; &gt; With that small on made act and as try point find well come. Way<br>
+| &gt;&gt; does have mutex all air review header him two way new line air the<br>
+| &gt;&gt; large some out. Her in follow the they large and the. Write of low<br>
+| &gt; &gt; most find by. An part form went any?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Up see but déjà some three for out! Too use alias make three again crash<br>
+| the may sound? Think these boy is that as you it but as follow at filter<br>
+| little big commit great like. Year to know each the go.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Release and in the one log his ask. Sentence end which the with of would<br>
+| even boy is review can for on of world sound!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Who my socket crash good the at. I the over good she I about who all to<br>
+| follow to. Say the of request her also show old great the! Would then<br>
+| round have have the the him word one look and!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">And any put with they when each could turn many by can then little. Play<br>
+| can need we out line back it a brigade their a and on. Earth when the<br>
+| directive thing at? What such über crème the mutex do to.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Ann Taylor<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=image/jpeg filename="in.jpg" size=1048 adler32=a43af5bf file=parts/0019/004.bin
+5 type=application/pdf filename="there_like_jalapeño.pdf" size=1621 adler32=a9592bf6 file=parts/0019/005.bin

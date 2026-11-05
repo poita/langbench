@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "maxItems": 2.0
+  },
+  "tests": [
+    {
+      "description": "shorter is valid",
+      "data": [
+        1
+      ]
+    },
+    {
+      "description": "too long is invalid",
+      "data": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}

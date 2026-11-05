@@ -1,0 +1,81 @@
+set A1 =D2<="B"&-A1
+set D3 =B3+-C3
+set B4 "x y"
+set B4 =MAX((IF((B3),C4>"zz",IF("a",0,3))),C1:A2,A2)
+set A1 =A1
+dump
+set C1 =("hello world")
+get A1
+clear C1
+clear C1
+set C1 90.19
+set A2 3
+dump
+set D2 =19
+set B1 4
+get D1
+set B1 =C2
+get C4
+set B1 ="a"
+get A1
+get A2
+get D4
+clear B4
+set D2 =3/"zz"
+set C1 =AVG(A2:A4)
+set D4 =A3
+get B4
+get D3
+set C2 =D3
+set A1 1
+set C4 =D4
+set D4 "10"
+set D2 2
+set A1 =SUM(D3*A3,A4:B3,7)
+set B3 =-"x y"
+set C4 =("x y"*-100*AVG(A1:B4,IF(17,18,"zz"),"x y"))
+set D2 3.14159
+get D1
+set D1 "B"
+set A4 "B"
+get C4
+set A2 =A4&(-A3*C3)
+clear D3
+set B1 =16<12
+set C2 =("hello world")/(23.45)+D3
+set C3 "B"
+set A3 =-A4-"hello world"-"abc"<=B2/D2*C1-MIN(B3:A3)&COUNT(D1:D4,D1)
+set B4 =A2
+set A2 ="a"+AVG("abc"-"")+""
+set B3 ="hello world"
+get A2
+set C4 91.67
+set A2 "abc"
+set B2 =SUM(C3:C4,A2:B1,A4:A2)-AVG(B2:A3,"abc"*14,"10"*2)
+set A4 =SUM(D3:D2)
+set D2 "B"
+set B3 15
+set C3 =MIN((0)*C3,SUM(C1:B2,A4:C4),MIN(MIN(19)))
+set B4 8
+set D2 "a"
+set D4 =A1
+set A1 =("zz")
+set B4 =A2-"10"
+set A1 4
+dump
+set D3 =C3&IF("10",IF(D3,17,"a"),(7))
+set A2 =IF(B1,A2,A4)<>D4*13+""
+set D2 "zz"
+get C2
+get B3
+set C4 "zz"
+set D4 =D1&COUNT("hello world",C4:B4)
+set D2 =(AVG(D4:D1))
+set C3 =(52.33)&C3>"x y"
+set D2 =-"x y"
+get A3
+set D4 3
+set A3 =""&73.26*"abc"
+clear D4
+set A3 =1
+dump

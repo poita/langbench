@@ -1,0 +1,89 @@
+[message]
+id 0038
+source "mbox:38"
+
+[headers]
+received: "from apache.org (mx8.example.org [226.148.169.239]) by example.com (Postfix) with ESMTP id 83EEDA7C46 for <ekowalski.21@apache.org>; Sat, 5 Dec 2003 23:45:01 -0800"
+received: "from corp.example.co.uk (mx2.eu.example.de [164.53.107.127]) by post.example.fr (Postfix) with ESMTP id 4114EC9724 for <lkim@eu.example.de>; 11 JUN 03 18:44 Z"
+return-path: "<stergaard@students.example.ac.jp>"
+message-id: "<401.f19e9b44.68410@students.example.ac.jp>"
+in-reply-to: "<413.91f51a98.67193@eu.example.de>"
+references: "<402.361f6564.88081@eu.example.de> <403.fe8fc74f.70095@eu.example.de> <404.bd1ab0d2.2158@apache.org> <405.524db2fd.16486@apache.org> <406.bd769c47.52964@example.com> <407.ed06fd81.31994@lists.example.edu> <408.db629363.52396@corp.example.co.uk> <409.736c87ca.22669@students.example.ac.jp> <410.3af575c9.58079@lists.example.edu> <411.3b438d68.67672@lists.example.edu> <412.43649fab.41769@corp.example.co.uk> <413.91f51a98.67193@eu.example.de>"
+date: "Tue, 17 Feb 2012 04:03:38 -0330"
+from: "Rémi Rossi <rrossi.96@eu.example.de>"
+to: "Yuki Wilson <ywilson@eu.example.de>,    Carl Nakamura <cnakamura@students.example.ac.jp>"
+subject: "The the is rewrite find or live Kraków"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_976C37595BE9366E\""
+
+[addresses]
+from 0 display="Rémi Rossi" spec="rrossi.96@eu.example.de"
+to 0 display="Yuki Wilson" spec="ywilson@eu.example.de"
+to 1 display="Carl Nakamura" spec="cnakamura@students.example.ac.jp"
+
+[date]
+raw " Tue, 17 Feb 2012 04:03:38 -0330"
+valid yes
+utc 2012-02-17T07:33:38Z
+offset -0330
+epoch 1329464018
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_976C37595BE9366E" parts=4 preamble=0 epilogue=0
+  1 multipart/alternative cte=7bit boundary="=_2279e9d471ce73b426f2c6d92ee45172" parts=2 preamble=0 epilogue=0
+    2 text/plain charset=utf-8 cte=quoted-printable size=688 adler32=933ef8b0 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=1015 adler32=f85f620c role=html
+  4 text/csv charset=utf-8 cte=base64 disposition=attachment filename="jalapeño_the_me_to.csv" size=6317 adler32=c738d7ca role=attachment
+  5 text/x-diff charset=utf-8 cte=base64 disposition=inline filename="of_and.patch" size=2223 adler32=e029b7c9 role=attachment
+  6 message/rfc822 cte=7bit disposition=inline parts=1
+    7 multipart/mixed cte=7bit boundary="00000000000098468798d97a" parts=4 preamble=0 epilogue=1
+      8 multipart/alternative cte=7bit boundary="Apple-Mail=_216221EA15C090FC" parts=2 preamble=45 epilogue=0
+        9 text/plain charset=iso-8859-1 cte=quoted-printable size=860 adler32=ffac2c7a role=attachment
+        10 text/html charset=windows-1252 cte=quoted-printable size=1312 adler32=ae3bc2f7 role=attachment
+      11 image/png cte=base64 disposition=attachment filename="coöperate_low_the.png" size=5708 adler32=449afe5b role=attachment
+      12 application/zip cte=base64 disposition=attachment filename="and_request.zip" size=6381 adler32=ff1360b2 role=attachment
+      13 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="light_year.docx" size=6711 adler32=49e6ea5e role=attachment
+
+[body]
+text 2 chars 673
+| Über long a two one déjà call may proxy have must then live give. Over
+| you by header she then bug they on long back for in? Or déjà line are
+| the act her it were word place I same the of. The of boy résumé the
+| world. Of one been Ørsted is about I will Ørsted one cache low bug with!
+| 
+| The who people out in to is number was you build the call is other. Was
+| just the world the are the error response this large been a hand the
+| port long come! As on tell then good most why number like. The set from
+| much a the a too the about right and brûlée build.
+| 
+| The from add thing we who Málaga bucket. Of move from been mutex which
+| made than review of most near from?
+| 
+| -- 
+| Đorđe Müller
+html 3 chars 1015
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Über long a two one déjà call may proxy have must then live give. Over<br>
+| you by header she then bug they on long back for in? Or déjà line are<br>
+| the act her it were word place I same the of. The of boy résumé the<br>
+| world. Of one been Ørsted is about I will Ørsted one cache low bug with!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The who people out in to is number was you build the call is other. Was<br>
+| just the world the are the error response this large been a hand the<br>
+| port long come! As on tell then good most why number like. The set from<br>
+| much a the a too the about right and brûlée build.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The from add thing we who Málaga bucket. Of move from been mutex which<br>
+| made than review of most near from?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| ?or?e Müller<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=text/csv filename="jalapeño_the_me_to.csv" size=6317 adler32=c738d7ca file=parts/0038/004.bin
+5 type=text/x-diff filename="of_and.patch" size=2223 adler32=e029b7c9 file=parts/0038/005.bin
+9 type=text/plain filename=- size=860 adler32=ffac2c7a file=parts/0038/009.bin
+10 type=text/html filename=- size=1312 adler32=ae3bc2f7 file=parts/0038/010.bin
+11 type=image/png filename="coöperate_low_the.png" size=5708 adler32=449afe5b file=parts/0038/011.bin
+12 type=application/zip filename="and_request.zip" size=6381 adler32=ff1360b2 file=parts/0038/012.bin
+13 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="light_year.docx" size=6711 adler32=49e6ea5e file=parts/0038/013.bin

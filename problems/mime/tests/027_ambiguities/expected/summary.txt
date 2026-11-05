@@ -1,0 +1,10 @@
+messages 9
+0001 source="boundary-bad-utf8.eml" bytes=90 parts=1 attachments=0 text=- html=-
+0002 source="boundary-utf8.eml" bytes=93 parts=2 attachments=0 text=1 html=-
+0003 source="extended-empty-charset.eml" bytes=101 parts=1 attachments=1 text=- html=-
+0004 source="huge-zone.eml" bytes=97 parts=1 attachments=0 text=0 html=-
+0005 source="nested-angles.eml" bytes=98 parts=1 attachments=0 text=0 html=-
+0006 source="phrase-comments.eml" bytes=129 parts=1 attachments=0 text=0 html=-
+0007 source="quoted-backslash.eml" bytes=112 parts=1 attachments=1 text=- html=-
+0008 source="segment-order.eml" bytes=174 parts=1 attachments=1 text=- html=-
+0009 source="unterminated-quote.eml" bytes=93 parts=1 attachments=1 text=- html=-

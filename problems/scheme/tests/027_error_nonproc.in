@@ -1,0 +1,4 @@
+(define x 5)
+(display "a")
+(x (display "operand") (display "s"))
+(display "after")

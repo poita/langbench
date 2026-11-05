@@ -1,0 +1,109 @@
+build
+edit main.kiln
+let x = join([1, true], ",")
+---
+build
+edit main.kiln
+let x = map([1], "%")
+---
+build
+edit main.kiln
+let x = map(["a", 2], "%")
+---
+build
+edit main.kiln
+let x = sum([1, "a"])
+---
+build
+edit main.kiln
+let x = sum([[1]])
+---
+build
+edit main.kiln
+let x = filter(["a", 1], "*")
+---
+build
+edit main.kiln
+let x = reject([true], "*")
+---
+build
+edit main.kiln
+let x = replace("a", "", "b")
+---
+build
+edit main.kiln
+let x = split("a", "")
+---
+build
+edit main.kiln
+let x = int("12a")
+---
+build
+edit main.kiln
+let x = int("+1")
+---
+build
+edit main.kiln
+let x = int(" 1")
+---
+build
+edit main.kiln
+let x = int("")
+---
+build
+edit main.kiln
+let x = int("99999999999999999999")
+---
+build
+edit main.kiln
+let x = first([])
+---
+build
+edit main.kiln
+let x = last([])
+---
+build
+edit main.kiln
+let x = range(-1)
+---
+build
+edit main.kiln
+let x = glob("")
+---
+build
+edit main.kiln
+let x = glob("/a")
+---
+build
+edit main.kiln
+let x = glob("a/")
+---
+build
+edit main.kiln
+let x = glob("a//b")
+---
+build
+edit main.kiln
+let x = glob("a[b")
+---
+build
+edit main.kiln
+let x = glob("a[]b")
+---
+build
+edit main.kiln
+let x = glob("a[!]b")
+---
+build
+edit main.kiln
+let x = glob("a[z-a]b")
+---
+build
+edit main.kiln
+let x = filter([1], "")
+---
+build
+edit main.kiln
+let x = reject([], "a//b")
+---
+build

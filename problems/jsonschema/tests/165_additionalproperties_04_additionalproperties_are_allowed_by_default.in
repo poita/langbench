@@ -1,0 +1,19 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {},
+      "bar": {}
+    }
+  },
+  "tests": [
+    {
+      "description": "additional properties are allowed",
+      "data": {
+        "foo": 1,
+        "bar": 2,
+        "quux": true
+      }
+    }
+  ]
+}

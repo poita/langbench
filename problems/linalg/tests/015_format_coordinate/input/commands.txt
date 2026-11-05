@@ -1,0 +1,10 @@
+chol sym.mtx
+norm1 sym.mtx
+mul pat.mtx pat2.mtx
+norminf pat.mtx
+transpose pat.mtx
+mul psym.mtx psym.mtx
+det psym.mtx
+normfro psym.mtx
+det int.mtx
+mul int.mtx int.mtx

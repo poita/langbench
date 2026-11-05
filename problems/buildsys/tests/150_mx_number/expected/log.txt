@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/number_0.txt number()
+  run 2 4 w0 out/number_1.txt number()
+  run 4 6 w0 out/number_2.txt number()
+  run 6 8 w0 out/number_3.txt number()
+  run 8 10 w0 out/number_4.txt number()
+  run 10 12 w0 out/number_5.txt number()
+  run 12 15 w0 out/number_pin.txt hash()
+  ok ran=7 hit=0 time=15
+step 2: build (default) -j 1
+  hit 0 out/number_0.txt
+  hit 0 out/number_1.txt
+  hit 0 out/number_2.txt
+  hit 0 out/number_3.txt
+  hit 0 out/number_4.txt
+  hit 0 out/number_5.txt
+  hit 0 out/number_pin.txt
+  ok ran=0 hit=7 time=0

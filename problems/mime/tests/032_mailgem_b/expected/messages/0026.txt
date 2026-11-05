@@ -1,0 +1,38 @@
+[message]
+id 0026
+source "must_supply_encoding.eml"
+
+[headers]
+x-ymail-umid: "1_132725_AEe3iGIAAGS4TOAfWQ3foSiBC54"
+x-apparently-to: "anyone@yahoo.com via 98.136.183.71; Sun, 14 Nov 2010 09:41:45 -0800"
+message-id: "<201011141741.oAEHfiKs020181@app9.msg2u.net>"
+mime-version: "1.0"
+content-transfer-encoding: "binary"
+content-type: "multipart/alternative; boundary=\"_----------=_128975650412616235\""
+x-mailer: "MIME::Lite 3.020 (F2.73; T1.21; A1.77; B3.01; Q3.01)"
+date: "Sun, 14 Nov 2010 17:41:44 +0000"
+from: "Biz Phone Systems from EclipseMediaOnline��  <info@here2there-travelers-msgs.net>"
+to: "anyone@YAHOO.COM"
+subject: "Impress your clients with a business phone���"
+reply-to: "Biz Phone Systems from EclipseMediaOnline��  <44.41.17.14.11.2010.1139.1.328.1477949.614@reply.here2there-travelers-msgs.net>"
+
+[addresses]
+from 0 display="Biz Phone Systems from EclipseMediaOnline��" spec="info@here2there-travelers-msgs.net"
+reply-to 0 display="Biz Phone Systems from EclipseMediaOnline��" spec="44.41.17.14.11.2010.1139.1.328.1477949.614@reply.here2there-travelers-msgs.net"
+to 0 display="" spec="anyone@YAHOO.COM"
+
+[date]
+raw " Sun, 14 Nov 2010 17:41:44 +0000"
+valid yes
+utc 2010-11-14T17:41:44Z
+offset +0000
+epoch 1289756504
+
+[structure]
+0 multipart/alternative cte=binary boundary="_----------=_128975650412616235" parts=0 preamble=0 epilogue=none
+
+[body]
+text none
+html none
+
+[attachments]

@@ -1,0 +1,33 @@
+[message]
+id 0007
+source "example04.eml"
+
+[headers]
+from: "Pete <pete@silly.example>"
+to: "A Group:Chris Jones <c@a.test>,joe@where.test,John <jdoe@one.test>;"
+cc: "Undisclosed recipients:;"
+date: "Thu, 13 Feb 1969 23:32:54 -0330"
+message-id: "<testabcd.1234@silly.example>"
+
+[addresses]
+from 0 display="Pete" spec="pete@silly.example"
+to 0 display="Chris Jones" spec="c@a.test"
+to 1 display="" spec="joe@where.test"
+to 2 display="John" spec="jdoe@one.test"
+
+[date]
+raw " Thu, 13 Feb 1969 23:32:54 -0330"
+valid yes
+utc 1969-02-14T03:02:54Z
+offset -0330
+epoch -27723426
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=9 adler32=11620317 role=text
+
+[body]
+text 0 chars 9
+| Testing.
+html none
+
+[attachments]

@@ -1,0 +1,5 @@
+@module main
+fn grade(n: Int) -> Str {
+    if n > 90 { "a" } else if n > 80 { "b" } else { "c" }
+}
+fn main() { print(grade(95) ++ grade(85) ++ grade(10)); }

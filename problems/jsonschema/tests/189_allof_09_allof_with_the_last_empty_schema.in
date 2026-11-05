@@ -1,0 +1,21 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "allOf": [
+      {
+        "type": "number"
+      },
+      {}
+    ]
+  },
+  "tests": [
+    {
+      "description": "number is valid",
+      "data": 1
+    },
+    {
+      "description": "string is invalid",
+      "data": "foo"
+    }
+  ]
+}

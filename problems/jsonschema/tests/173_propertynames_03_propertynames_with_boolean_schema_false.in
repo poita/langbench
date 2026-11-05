@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "propertyNames": false
+  },
+  "tests": [
+    {
+      "description": "object with any properties is invalid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "empty object is valid",
+      "data": {}
+    }
+  ]
+}

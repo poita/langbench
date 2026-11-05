@@ -1,0 +1,47 @@
+[message]
+id 0003
+source "encoding_madness.eml"
+
+[headers]
+delivered-to: "e-f5f4@app.ar-example.com"
+received: "by 10.2.1.1 with SMTP id p21cs62610wem; Wed, 22 Sep 2010 00:30:55 -0700 (PDT)"
+received: "by 10.15.2.1 with SMTP id p24mr499372ybh.380.1285140655013; Wed, 22 Sep 2010 00:30:55 -0700 (PDT)"
+return-path: "<production@aquila.el-example.org>"
+received: "from aquila.el-example.org ([174.1.8.2]) by mx.google.com with ESMTP id a6si11272839ybo.18.2010.09.22.00.30.54; Wed, 22 Sep 2010 00:30:54 -0700 (PDT)"
+received-spf: "neutral (google.com: 174.1.8.2 is neither permitted nor denied by best guess record for domain of production@aquila.el-example.org) client-ip=174.1.8.2;"
+authentication-results: "mx.google.com; spf=neutral (google.com: 174.1.8.2 is neither permitted nor denied by best guess record for domain of production@aquila.el-example.org) smtp.mail=production@aquila.el-example.org"
+received: "from aquila.el-example.org (localhost [127.0.0.1]) by aquila.el-example.org (8.14.2/8.14.2) with ESMTP id o8M7UrfD018673 for <e-f5f4@app.ar-example.com>; Wed, 22 Sep 2010 02:30:54 -0500 (CDT) (envelope-from production@aquila.el-example.org)"
+received: "(from production@localhost) by aquila.el-example.org (8.14.2/8.14.2/Submit) id o8M7Urh3018672; Wed, 22 Sep 2010 02:30:53 -0500 (CDT) (envelope-from production)"
+message-id: "<201009220730.o8M7Urh3018672@aquila.el-example.org>"
+mime-version: "1.0"
+content-disposition: "inline"
+content-transfer-encoding: "quoted-printable"
+content-type: "text/plain"
+x-mailer: "MIME::Lite 3.027 (F2.74; T1.28; A2.04; B3.07; Q3.07)"
+date: "Wed, 22 Sep 2010 02:30:53 -0500"
+from: "no-reply@crm.el-example.org"
+to: "e-f5f4@app.ar-example.com"
+reply-to: "\"KLAUS- HÄNSCHEL\" <>"
+subject: "eBay Bid - 2008 Ford Super Duty F-350 DRW King Ranch Crew Cab 4x4 (156) - Stock# XXXX"
+
+[addresses]
+from 0 display="" spec="no-reply@crm.el-example.org"
+reply-to 0 display="" spec="KLAUS- HÄNSCHEL<>"
+to 0 display="" spec="e-f5f4@app.ar-example.com"
+
+[date]
+raw " Wed, 22 Sep 2010 02:30:53 -0500"
+valid yes
+utc 2010-09-22T07:30:53Z
+offset -0500
+epoch 1285140653
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable disposition=inline size=9 adler32=0fe80354 role=text
+
+[body]
+text 0 chars 9
+| Body Text
+html none
+
+[attachments]

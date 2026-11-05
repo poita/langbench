@@ -1,0 +1,61 @@
+get B1
+get B2
+set A1 =SUM(A3:A3,A3,(IF("B",B1,1000))/37.15>=COUNT(9,64.50))
+set B1 =MAX(A3:C1)+-(COUNT(7,17,B3:B3))
+set C2 =COUNT("x y")
+set B2 16
+set B2 =MAX(0)<>MAX(A3:B2)-A3
+set C3 =-C3*IF(IF(A2,B1,69.28),16&18,B3&A1)
+clear B1
+set C2 =""
+set C1 ="x y"-"zz"
+get B3
+clear A2
+clear B2
+dump
+get C2
+set B2 =IF(C3,"hello world",A1)
+get C1
+get C2
+set B2 =91.62
+get A3
+clear A2
+set A1 ="a"
+set B2 1000
+set A1 ""
+set A1 =5
+get C1
+get A3
+set C2 "10"
+set B3 =IF(12,A1,1000)+C3
+set C2 =SUM(C3:A2,A2:A2)-MAX(C3:C3)
+get A1
+set A2 =B2+"abc"
+get A2
+set A3 =MAX(C3:A2,10)
+set C3 "hello world"
+get C2
+get C3
+get C1
+set C2 =(AVG(B3:A3,18,A3:B1)*"zz")
+set C3 =(C3)
+set B3 "hello world"
+get C1
+set A2 =-76.10&COUNT(B1:A2,63.87,B3:C2)
+set C3 "a"
+set A3 =89.10+B1
+set B2 =IF(12,6,"")+8>A3
+get B3
+set A2 =-A1-MIN(41.0+B3)*(COUNT(B2:C1,C2:C3))
+set C3 =(MAX(C3:A3,C1:C2,B2:C3))
+set C3 =-50.34&COUNT(C2:C2)
+set B1 "zz"
+get A3
+get C1
+set B1 ="abc"
+set C2 26.67
+get B2
+get C3
+set C2 9
+set C3 =-B1+84.3
+dump

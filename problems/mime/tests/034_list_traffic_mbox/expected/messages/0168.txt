@@ -1,0 +1,66 @@
+[message]
+id 0168
+source "mbox:168"
+
+[headers]
+received: "from corp.example.co.uk (mx5.mail.example.net [51.160.10.123]) by students.example.ac.jp (Postfix) with ESMTP id 3B6B36E106 for <obrien.9@students.example.ac.jp>; 28 JAN 24 18:37 +1000"
+received: "from dev.example.io (mx7.students.example.ac.jp [142.46.232.137]) by students.example.ac.jp (Postfix) with ESMTP id 6C2C3B864A for <grossi@example.com>; 4 JAN 09 03:59 -0330"
+received: "from apache.org (mx4.example.org [4.52.199.89]) by mail.example.net (Postfix) with ESMTP id E4876B2937 for <bkim@dev.example.io>; Sun, 14 Feb 2018 07:21:24 GMT"
+return-path: "<qdoe@eu.example.de>"
+message-id: "<1106.af6ca831.99693@students.example.ac.jp>"
+in-reply-to: "<1107.848fd04d.84238@apache.org>"
+references: "<1107.848fd04d.84238@apache.org>"
+date: "13 FEB 24 23:41 -0400"
+from: "François O'Brien <fobrien@mail.example.net>"
+to: "\"William Johansson\" <wjohansson@example.org>,    \"Greg Kim\" <gkim@apache.org>"
+cc: "\"Nakamura, Greg\" <gnakamura@dev.example.io>"
+subject: "[PATCH] Are keepalive round all are round a"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=windows-1252"
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="François O'Brien" spec="fobrien@mail.example.net"
+to 0 display="William Johansson" spec="wjohansson@example.org"
+to 1 display="Greg Kim" spec="gkim@apache.org"
+cc 0 display="Nakamura, Greg" spec="gnakamura@dev.example.io"
+
+[date]
+raw " 13 FEB 24 23:41 -0400"
+valid yes
+utc 2024-02-14T03:41:00Z
+offset -0400
+epoch 1707882060
+
+[structure]
+0 text/plain charset=windows-1252 cte=8bit size=737 adler32=086bf2c3 role=text
+
+[body]
+text 0 chars 737
+| Error like near on small each form is under father. Help connection I
+| thing can the and small be live big year before.
+| 
+| Boy who that our timeout over thread and me made end earth if. Bug get
+| say more no of change one. One the way about go are us the on must many
+| up I had sentence with form. The any httpd man also trunk now come
+| people on said with your what end know log self.
+| 
+| Request before the filter know fiancée their httpd cause you each. See
+| of old does long! Call point in round did give who fiancée on go of a
+| timeout word is the animal? Every of he Straße of.
+| 
+|     if (rv != APR_SUCCESS) {
+|         ap_log_error(APLOG_MARK, APLOG_ERR, rv, s,
+|                      \"failed: %s\", name);
+|         return rv;
+|     }
+| 
+| -- 
+| Greg García
+html none
+
+[attachments]

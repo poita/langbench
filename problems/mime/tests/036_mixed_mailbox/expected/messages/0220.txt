@@ -1,0 +1,90 @@
+[message]
+id 0220
+source "mbox:220"
+
+[headers]
+received: "from dev.example.io (mx5.example.com [85.236.10.209]) by apache.org (Postfix) with ESMTP id 1971ED3FEA for <gschrder@apache.org>; Sun, 17 Nov 2024 15:08:51 +1245 (JST)"
+return-path: "<b@corp.example.co.uk>"
+message-id: "<1558.ba8c15e6.64695@example.com>"
+in-reply-to: "<1565.833b5097.37449@mail.example.net>"
+references: "<1559.515dc42b.26187@dev.example.io> <1560.14646563.55397@eu.example.de> <1561.0b8a5dd4.25548@students.example.ac.jp> <1562.fc576457.36095@example.com> <1563.74a49a3d.9973@apache.org> <1564.077bb2bf.8324@example.com> <1565.833b5097.37449@mail.example.net>"
+date: "Sat, 19 Nov 2004 07:32:28 Z"
+from: "Zoë Johansson <zjohansson@post.example.fr>"
+to: "François Lefèvre <flefvre.48@eu.example.de>,    Fiona Nakamura <fnakamura@corp.example.co.uk>, petrov@post.example.fr,\tBjörn Kim <bkim@apache.org>,    Søren Wilson <swilson@example.org>"
+cc: "Greg Doe <gdoe.25@post.example.fr>, Quinn Lefèvre <qlefvre@post.example.fr>, rnakamura@example.org,\tJörg Smith <jsmith@mail.example.net>,\tMaría García <mgarca@example.com>, François Иванов <f@example.org>,\tKarin Nakamura <knakamura.91@mail.example.net>,    Björn van der Berg <bvanderberg@students.example.ac.jp>,    Quinn Kowalski <qkowalski@mail.example.net>,    Chloé Dubois <cdubois@lists.example.edu>,\tErik Иванов <e@example.org>,    Đorđe Nakamura <nakamura@lists.example.edu>,    Bob Papadopoulos <bpapadopoulos@students.example.ac.jp>, doe.57@eu.example.de (Someone), \"Taylor, Vera\" <vtaylor@example.org>, bstergaard@dev.example.io (Someone), hobrien.24@mail.example.net,    \"Xavier Nakamura\" <xnakamura.55@apache.org>,    François Papadopoulos <fpapadopoulos@eu.example.de>,\t\"Yuki O'Brien\" <yobrien.38@eu.example.de>, \"O'Brien, Pierre\" <pobrien.32@mail.example.net>, \"Uwe Wilson\" <uwilson@apache.org>,    \"Taylor, Xavier\" <xtaylor@students.example.ac.jp>, François Johansson <fjohansson@post.example.fr>,\t\"Agnieszka O'Brien\" <aobrien@example.org>, Carl Kim <ckim@dev.example.io>,\tTomás Lefèvre <tlefvre@students.example.ac.jp>, garca.74@eu.example.de, cfernndez@students.example.ac.jp (Someone), tsmith@example.com, Pierre García <pgarca@dev.example.io>,\tjvanderberg@post.example.fr (Someone)"
+subject: "Re: [PATCH] To as air try"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+x-original-to: "Carl Smith <csmith.25@apache.org>"
+x-original-to: "\"Johansson, Uwe\" <ujohansson@example.com>"
+resent-date: "wed,13 oct 2024 7:45:8 (comment (nested)) +0000"
+thread-topic: "Some the trunk."
+comments: "The  hot résumé  set one  vote sentence I naïve an  thing turn play?"
+sender: "Ann Nakamura <anakamura@students.example.ac.jp>"
+content-type: "text/plain; charset=us-ascii"
+content-transfer-encoding: "7bit"
+
+[addresses]
+from 0 display="Zoë Johansson" spec="zjohansson@post.example.fr"
+sender 0 display="Ann Nakamura" spec="anakamura@students.example.ac.jp"
+to 0 display="François Lefèvre" spec="flefvre.48@eu.example.de"
+to 1 display="Fiona Nakamura" spec="fnakamura@corp.example.co.uk"
+to 2 display="" spec="petrov@post.example.fr"
+to 3 display="Björn Kim" spec="bkim@apache.org"
+to 4 display="Søren Wilson" spec="swilson@example.org"
+cc 0 display="Greg Doe" spec="gdoe.25@post.example.fr"
+cc 1 display="Quinn Lefèvre" spec="qlefvre@post.example.fr"
+cc 2 display="" spec="rnakamura@example.org"
+cc 3 display="Jörg Smith" spec="jsmith@mail.example.net"
+cc 4 display="María García" spec="mgarca@example.com"
+cc 5 display="François Иванов" spec="f@example.org"
+cc 6 display="Karin Nakamura" spec="knakamura.91@mail.example.net"
+cc 7 display="Björn van der Berg" spec="bvanderberg@students.example.ac.jp"
+cc 8 display="Quinn Kowalski" spec="qkowalski@mail.example.net"
+cc 9 display="Chloé Dubois" spec="cdubois@lists.example.edu"
+cc 10 display="Erik Иванов" spec="e@example.org"
+cc 11 display="Đorđe Nakamura" spec="nakamura@lists.example.edu"
+cc 12 display="Bob Papadopoulos" spec="bpapadopoulos@students.example.ac.jp"
+cc 13 display="" spec="doe.57@eu.example.de"
+cc 14 display="Taylor, Vera" spec="vtaylor@example.org"
+cc 15 display="" spec="bstergaard@dev.example.io"
+cc 16 display="" spec="hobrien.24@mail.example.net"
+cc 17 display="Xavier Nakamura" spec="xnakamura.55@apache.org"
+cc 18 display="François Papadopoulos" spec="fpapadopoulos@eu.example.de"
+cc 19 display="Yuki O'Brien" spec="yobrien.38@eu.example.de"
+cc 20 display="O'Brien, Pierre" spec="pobrien.32@mail.example.net"
+cc 21 display="Uwe Wilson" spec="uwilson@apache.org"
+cc 22 display="Taylor, Xavier" spec="xtaylor@students.example.ac.jp"
+cc 23 display="François Johansson" spec="fjohansson@post.example.fr"
+cc 24 display="Agnieszka O'Brien" spec="aobrien@example.org"
+cc 25 display="Carl Kim" spec="ckim@dev.example.io"
+cc 26 display="Tomás Lefèvre" spec="tlefvre@students.example.ac.jp"
+cc 27 display="" spec="garca.74@eu.example.de"
+cc 28 display="" spec="cfernndez@students.example.ac.jp"
+cc 29 display="" spec="tsmith@example.com"
+cc 30 display="Pierre García" spec="pgarca@dev.example.io"
+cc 31 display="" spec="jvanderberg@post.example.fr"
+
+[date]
+raw " Sat, 19 Nov 2004 07:32:28 Z"
+valid yes
+utc 2004-11-19T07:32:28Z
+offset +0000
+epoch 1100849548
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=369 adler32=0ddc7de8 role=text
+
+[body]
+text 0 chars 369
+| In on ask get use is day man just on no him his? Set it would three set
+| is which you how water two could does know the a and way! Of find act
+| use the the of came? An the mean when the is you of the the he small
+| hook! Can ?lan to was mean more? Crash can put hand certificate then
+| come such what good the call some try every was through cause!
+| 
+| -- 
+| ??????? van der Berg
+html none
+
+[attachments]

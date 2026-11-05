@@ -1,0 +1,73 @@
+[message]
+id 0253
+source "mbox:253"
+
+[headers]
+received: "from dev.example.io (mx6.lists.example.edu [142.119.88.130]) by post.example.fr (Postfix) with ESMTP id D47243214B for <kowalski@corp.example.co.uk>; Wed, 13 Oct 2005 10:21:49 +0530"
+received: "from mail.example.net (mx6.post.example.fr [195.226.64.143]) by mail.example.net (Postfix) with ESMTP id B2E2BB087D for <bpetrov.95@apache.org>; Thu, 28 Sep 2009 00:44:08 -0700"
+received: "from example.org (mx8.apache.org [241.149.215.251]) by example.org (Postfix) with ESMTP id EBF2742F5 for <msmith.3@mail.example.net>; Wed, 19 Jul 2003 11:15:31 -0700"
+received: "from mail.example.net (mx1.example.com [111.61.102.145]) by mail.example.net (Postfix) with ESMTP id 2C71AF2E1F for <iwilson.39@example.org>; Sun, 5 Jan 2003 09:14:41 EST"
+received: "from post.example.fr (mx1.apache.org [123.35.42.167]) by eu.example.de (Postfix) with ESMTP id 7F0E5086DB for <cmller.2@corp.example.co.uk>; tue,24 jul 2024 20:45:27 (comment (nested)) +1245"
+return-path: "<qtaylor@dev.example.io>"
+message-id: "<1811.e1a5bbcd.89833@students.example.ac.jp>"
+date: "22 JAN 04 04:59 +0000"
+from: "zdubois.47@post.example.fr (Someone)"
+reply-to: "Ελένη Schröder <schrder@eu.example.de>"
+to: "François Johansson <fjohansson@corp.example.co.uk>, Hana Müller <hmller.40@corp.example.co.uk>, \"Taylor, Ann\" <ataylor.10@mail.example.net>"
+subject: "Day by do in how pool"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"----=_Part_4786_423274410.716522999011\""
+
+[addresses]
+from 0 display="" spec="zdubois.47@post.example.fr"
+reply-to 0 display="Ελένη Schröder" spec="schrder@eu.example.de"
+to 0 display="François Johansson" spec="fjohansson@corp.example.co.uk"
+to 1 display="Hana Müller" spec="hmller.40@corp.example.co.uk"
+to 2 display="Taylor, Ann" spec="ataylor.10@mail.example.net"
+
+[date]
+raw " 22 JAN 04 04:59 +0000"
+valid yes
+utc 2004-01-22T04:59:00Z
+offset +0000
+epoch 1074747540
+
+[structure]
+0 multipart/mixed cte=7bit boundary="----=_Part_4786_423274410.716522999011" parts=5 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="=_b2e22111b143c8b2240d828c47316387" parts=2 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="simple boundary 803" parts=2 preamble=0 epilogue=0
+      3 text/plain charset=utf-8 cte=quoted-printable size=297 adler32=19046948 role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=522 adler32=b819b432 role=html
+    5 image/png cte=base64 disposition=attachment filename="coöperate_as_he.png" size=3313 adler32=e8015de6 role=attachment
+  6 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=inline filename="so_of_just.docx" size=4189 adler32=4153fb11 role=attachment
+  7 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="act_write_the_a.docx" size=7521 adler32=3f9a69fd role=attachment
+  8 text/x-diff charset=utf-8 cte=base64 disposition=inline filename="coöperate_do_the_for.patch" size=1227 adler32=1d957ff2 role=attachment
+  9 text/csv charset=utf-8 cte=base64 disposition=inline filename="this_number_very_come.csv" size=6111 adler32=49ac97c7 role=attachment
+
+[body]
+text 3 chars 294
+| Has move of just again light of the proxy httpd but them more work the
+| and build branch. Were for and of the but coöperate with he the so word!
+| Made put well long über animal went see if these way them crash two. Are
+| what said we this old low were father people of how!
+| 
+| -- 
+| Chloé van der Berg
+html 4 chars 522
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Has move of just again light of the proxy httpd but them more work the<br>
+| and build branch. Were for and of the but coöperate with he the so word!<br>
+| Made put well long über animal went see if these way them crash two. Are<br>
+| what said we this old low were father people of how!</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Chloé van der Berg<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/png filename="coöperate_as_he.png" size=3313 adler32=e8015de6 file=parts/0253/005.bin
+6 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="so_of_just.docx" size=4189 adler32=4153fb11 file=parts/0253/006.bin
+7 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="act_write_the_a.docx" size=7521 adler32=3f9a69fd file=parts/0253/007.bin
+8 type=text/x-diff filename="coöperate_do_the_for.patch" size=1227 adler32=1d957ff2 file=parts/0253/008.bin
+9 type=text/csv filename="this_number_very_come.csv" size=6111 adler32=49ac97c7 file=parts/0253/009.bin

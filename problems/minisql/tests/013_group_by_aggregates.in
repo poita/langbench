@@ -1,0 +1,16 @@
+
+CREATE TABLE s (student TEXT, subject TEXT, score INTEGER);
+INSERT INTO s VALUES ('ann', 'math', 90), ('ann', 'art', 70), ('bob', 'math', 60), ('bob', 'art', NULL), ('cy', 'math', NULL), ('cy', 'art', 85), ('dee', 'math', 75), (NULL, 'art', 50), ('ann', 'math', 80);
+SELECT student, COUNT(*), COUNT(score), SUM(score), MIN(score), MAX(score), AVG(score) FROM s GROUP BY student;
+SELECT subject, COUNT(*), SUM(score) FROM s GROUP BY subject;
+SELECT student, subject, COUNT(*) FROM s GROUP BY student, subject;
+SELECT COUNT(*), COUNT(score), COUNT(student), SUM(score), MIN(score), MAX(score), AVG(score) FROM s;
+SELECT MIN(student), MAX(student), MIN(subject), MAX(subject) FROM s;
+SELECT student, SUM(score) / COUNT(score), SUM(score) % 7, MAX(score) - MIN(score) FROM s GROUP BY student;
+SELECT student, COUNT(*) * 2 + 1, -SUM(score), MAX(score) > 80, SUM(score) IS NULL FROM s GROUP BY student;
+SELECT student, COUNT(score) FROM s WHERE score >= 75 GROUP BY student;
+SELECT subject, MAX(score) FROM s WHERE student LIKE '%n' GROUP BY subject;
+SELECT SUM(score + 1), SUM(score * 2), COUNT(score * 0), MIN(score % 10), AVG(score - 100) FROM s;
+SELECT student, COUNT(*) FROM s WHERE student IS NOT NULL GROUP BY student;
+SELECT COUNT(*), COUNT(*) FROM s;
+SELECT student, subject, score FROM s GROUP BY student, subject, score;

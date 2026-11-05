@@ -1,0 +1,68 @@
+[message]
+id 0241
+source "mbox:241"
+
+[headers]
+received: "from example.org (mx5.eu.example.de [252.39.208.35]) by post.example.fr (Postfix) with ESMTP id 71AE70A0A0 for <bobrien@post.example.fr>; Mon, 3 Mar 2004 25:00:00 +0000"
+received: "from example.org (mx5.apache.org [7.199.176.165]) by dev.example.io (Postfix) with ESMTP id 41D75AD346 for <enakamura.98@students.example.ac.jp>; Sun, 2 Jan 2004 18:59:45 -0700"
+received: "from example.org (mx4.example.org [224.40.207.215]) by apache.org (Postfix) with ESMTP id A58F595BA for <kmller@post.example.fr>; wed,24 jun 2018 3:41:13 (comment (nested)) -0400"
+return-path: "<qjohansson.90@corp.example.co.uk>"
+message-id: "<1721.423ef293.33654@example.com>"
+in-reply-to: "<1729.e0f56649.83057@eu.example.de>"
+references: "<1722.614b6d1f.50227@lists.example.edu> <1723.a9185cc4.74597@apache.org> <1724.cc0d7928.23106@apache.org> <1725.1ce662bf.45173@mail.example.net> <1726.fcb7c176.50841@lists.example.edu> <1727.56a3c887.92891@apache.org> <1728.6a286678.94169@mail.example.net> <1729.e0f56649.83057@eu.example.de>"
+date: "Sun, 13 Dec 2024 00:17:41 UT"
+from: "Søren 山田 <s@lists.example.edu>"
+to: "Vera Taylor <vtaylor.54@students.example.ac.jp>"
+cc: "太郎 Dubois <dubois@eu.example.de>,\tgarca@example.com"
+subject: "[VOTE] His but and brûlée then and I"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Thunderbird 115.3.1"
+mime-version: "1.0"
+content-type: "text/plain; CHARSET=windows-1252"
+content-transfer-encoding: "8bit"
+
+[addresses]
+from 0 display="Søren 山田" spec="s@lists.example.edu"
+to 0 display="Vera Taylor" spec="vtaylor.54@students.example.ac.jp"
+cc 0 display="太郎 Dubois" spec="dubois@eu.example.de"
+cc 1 display="" spec="garca@example.com"
+
+[date]
+raw " Sun, 13 Dec 2024 00:17:41 UT"
+valid yes
+utc 2024-12-13T00:17:41Z
+offset +0000
+epoch 1734049061
+
+[structure]
+0 text/plain charset=windows-1252 cte=8bit size=892 adler32=1eb23ec2 role=text
+
+[body]
+text 0 chars 892
+| The in three need sentence the too them and self is water. Very this for
+| an the filter have a are.
+| 
+| My he to the and it call of up jalapeño or much new put side élan Kraków
+| animal. Air about time the before from to status the segfault. I out go
+| the make with hot vhost as down branch at header rewrite this most the
+| call.
+| 
+| Same large the me other back at hook a Zürich in light of? Long like
+| just to are in differ give the like came Straße his.
+| 
+| Only before of hot the come up you to from high well show down through
+| been. Ångström of the first are the. Your or act is segfault the may is
+| that write. Two now word how water a much Kraków men of write the with
+| it get go there did! Brûlée will live it turn.
+| 
+| Word that any by Größe of part Ångström Ørsted see old. With to us go
+| response of! The we httpd most will up way what give the every great
+| about handler find could.
+| 
+| -- 
+| Sven Nakamura
+html none
+
+[attachments]

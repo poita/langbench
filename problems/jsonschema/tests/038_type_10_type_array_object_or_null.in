@@ -1,0 +1,38 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": [
+      "array",
+      "object",
+      "null"
+    ]
+  },
+  "tests": [
+    {
+      "description": "array is valid",
+      "data": [
+        1,
+        2,
+        3
+      ]
+    },
+    {
+      "description": "object is valid",
+      "data": {
+        "foo": 123
+      }
+    },
+    {
+      "description": "null is valid",
+      "data": null
+    },
+    {
+      "description": "number is invalid",
+      "data": 123
+    },
+    {
+      "description": "string is invalid",
+      "data": "foo"
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+build
+edit main.kiln
+let y = 'unterminated
+---
+build
+edit main.kiln
+let b = f(
+  "unterminated
+)
+---
+build
+edit main.kiln
+let a = 1
+)
+---
+build
+edit main.kiln
+let a = f(
+let b = 2
+---
+build
+edit main.kiln
+let x = 1
+let y = @
+---
+build
+edit main.kiln
+let x = 1 | 2
+---
+build
+edit main.kiln
+let x = 1 & 2
+---
+build
+edit main.kiln
+let x = 1 ; 2
+---
+build

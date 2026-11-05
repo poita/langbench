@@ -1,0 +1,75 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 LOM-011
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 EMBERGAIN A 2 11
+14 SPENT #21 LOM-011
+15 PLAY A ~2 #22 CIN-009
+16 PAY A ember 1
+17 PASS A
+18 PASS B
+19 RESOLVE ~2
+20 ARRIVE #22 CIN-009
+21 TRIGGER A ~3 #22 1
+22 PASS A
+23 PASS B
+24 RESOLVE ~3
+25 EMBERGAIN A 1 11
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 11 cap 10 vault 20 hand 3 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #23 LOM-008
+hand A 2 #24 LOM-008
+hand A 3 #25 LOM-008
+field A #22 CIN-009 1/1 w0 c0 ready settling kw -
+ash A 1 #21 LOM-011
+STATE END
+26 PLAY A ~4 #23 LOM-008
+27 PAY A ember 3
+28 PASS A
+29 PASS B
+30 RESOLVE ~4
+31 CAP A 1 11
+32 DRAW A #1 CIN-001
+33 SPENT #23 LOM-008
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 11 vault 19 hand 3 ash 2 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #24 LOM-008
+hand A 2 #25 LOM-008
+hand A 3 #1 CIN-001
+field A #22 CIN-009 1/1 w0 c0 ready settling kw -
+ash A 1 #21 LOM-011
+ash A 2 #23 LOM-008
+STATE END
+34 PLAY A ~5 #24 LOM-008
+35 PAY A ember 3
+36 PASS A
+37 PASS B
+38 RESOLVE ~5
+39 CAP A 1 11
+40 DRAW A #2 CIN-001
+41 SPENT #24 LOM-008
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 5 cap 11 vault 18 hand 3 ash 3 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #25 LOM-008
+hand A 2 #1 CIN-001
+hand A 3 #2 CIN-001
+field A #22 CIN-009 1/1 w0 c0 ready settling kw -
+ash A 1 #21 LOM-011
+ash A 2 #23 LOM-008
+ash A 3 #24 LOM-008
+STATE END
+42 RESULT pending none

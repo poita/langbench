@@ -1,0 +1,11 @@
+kiln-state 1
+step out/final.txt
+cmd number()
+in out/mid.txt 93a0128ba58da453
+out out/final.txt 1ba6a9cb7869b138
+end
+step out/mid.txt
+cmd upper()
+in src/a.txt 93a0128ba58da453
+out out/mid.txt 93a0128ba58da453
+end

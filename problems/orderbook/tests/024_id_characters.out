@@ -1,0 +1,22 @@
+REST !"#$%&'()*+,-./
+REST :;<=>?@[\]^_`{|}~
+REST 0123456789abcdefghijklmnopqrstuv
+REST BUY
+REST SELL
+TRADE BOOK !"#$%&'()*+,-./ 10 1
+FILLED !"#$%&'()*+,-./
+TRADE BOOK 0123456789abcdefghijklmnopqrstuv 10 1
+FILLED 0123456789abcdefghijklmnopqrstuv
+TRADE BOOK SELL 9 1
+FILLED BOOK
+BID 9 1 1
+ASK 20 1 1
+ASK 30 2 1
+--
+REJECT !"#$%&'()*+,-./
+REJECT sell
+REST BUY
+BID 9 1 1
+ASK 20 1 1
+ASK 30 1 1
+--

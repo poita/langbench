@@ -1,0 +1,46 @@
+[message]
+id 0015
+source "dup-names.eml"
+
+[headers]
+return-path: "eryq@rhine.gsfc.nasa.gov"
+sender: "john-bigboote"
+date: "Thu, 11 Apr 1996 01:10:30 -0500"
+from: "Eryq <eryq@rhine.gsfc.nasa.gov>"
+organization: "Yoyodyne Propulsion Systems"
+x-mailer: "Mozilla 2.0 (X11; I; Linux 1.1.18 i486)"
+mime-version: "1.0"
+to: "john-bigboote@eryq.pr.mcs.net"
+subject: "Two images for you..."
+content-type: "multipart/mixed; boundary=\"------------299A70B339B65A93542D2AE\""
+
+[addresses]
+from 0 display="Eryq" spec="eryq@rhine.gsfc.nasa.gov"
+sender 0 display="" spec="john-bigboote"
+to 0 display="" spec="john-bigboote@eryq.pr.mcs.net"
+
+[date]
+raw " Thu, 11 Apr 1996 01:10:30 -0500"
+valid yes
+utc 1996-04-11T06:10:30Z
+offset -0500
+epoch 829203030
+
+[structure]
+0 multipart/mixed cte=7bit boundary="------------299A70B339B65A93542D2AE" parts=5 preamble=45 epilogue=2
+  1 image/gif cte=base64 disposition=inline filename="one.gif" size=419 adler32=a8f6b31e role=attachment
+  2 image/gif cte=base64 disposition=inline filename="one.gif" size=357 adler32=ff2d9d3e role=attachment
+  3 image/gif cte=base64 disposition=inline filename="two.nice.gif" size=419 adler32=a8f6b31e role=attachment
+  4 image/gif cte=base64 disposition=inline filename="two.nice.gif" size=357 adler32=ff2d9d3e role=attachment
+  5 image/gif cte=base64 disposition=inline filename="two.nice.gif" size=357 adler32=ff2d9d3e role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+1 type=image/gif filename="one.gif" size=419 adler32=a8f6b31e file=parts/0015/001.bin
+2 type=image/gif filename="one.gif" size=357 adler32=ff2d9d3e file=parts/0015/002.bin
+3 type=image/gif filename="two.nice.gif" size=419 adler32=a8f6b31e file=parts/0015/003.bin
+4 type=image/gif filename="two.nice.gif" size=357 adler32=ff2d9d3e file=parts/0015/004.bin
+5 type=image/gif filename="two.nice.gif" size=357 adler32=ff2d9d3e file=parts/0015/005.bin

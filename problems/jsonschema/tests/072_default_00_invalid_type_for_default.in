@@ -1,0 +1,23 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "properties": {
+      "foo": {
+        "type": "integer",
+        "default": []
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "valid when property is specified",
+      "data": {
+        "foo": 13
+      }
+    },
+    {
+      "description": "still valid when the invalid default is used",
+      "data": {}
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+[message]
+id 0017
+source "mbox:17"
+
+[headers]
+received: "from apache.org (mx4.apache.org [127.117.193.198]) by lists.example.edu (Postfix) with ESMTP id 9C986DC4C1 for <jkowalski.18@example.com>; Wed Feb 27 05:05:12 2004 GMT"
+return-path: "<kdoe@dev.example.io>"
+message-id: "<145.e864c76e.24716@example.com>"
+in-reply-to: "<154.ea9f9802.39378@apache.org>"
+references: "<146.4a993c51.99644@eu.example.de> <147.da65e6b9.47255@students.example.ac.jp> <148.4d651e3f.83837@example.com> <149.d78691be.80805@students.example.ac.jp> <150.0298a990.53799@apache.org> <151.c97f15b0.63864@example.org> <152.91127934.67214@corp.example.co.uk> <153.d2b97ee8.6712@corp.example.co.uk> <154.ea9f9802.39378@apache.org>"
+date: "24 APR 25 22:51 +0200"
+from: "svanderberg.5@students.example.ac.jp"
+reply-to: "qpapadopoulos@corp.example.co.uk (Quinn Papadopoulos)"
+to: "William 山田 <w@example.com>,\tWilliam Иванов <w.88@example.com>"
+cc: "\"Dubois, Pierre\" <pdubois.14@example.org>,\tŁukasz Иванов <user9729.73@example.org>"
+subject: "Under where you name than smörgåsbord about need"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"Apple-Mail=_9CA6A34D27A7F877\""
+
+[addresses]
+from 0 display="" spec="svanderberg.5@students.example.ac.jp"
+reply-to 0 display="" spec="qpapadopoulos@corp.example.co.uk"
+to 0 display="William 山田" spec="w@example.com"
+to 1 display="William Иванов" spec="w.88@example.com"
+cc 0 display="Dubois, Pierre" spec="pdubois.14@example.org"
+cc 1 display="Łukasz Иванов" spec="user9729.73@example.org"
+
+[date]
+raw " 24 APR 25 22:51 +0200"
+valid yes
+utc 2025-04-24T20:51:00Z
+offset +0200
+epoch 1745527860
+
+[structure]
+0 multipart/mixed cte=7bit boundary="Apple-Mail=_9CA6A34D27A7F877" parts=2 preamble=45 epilogue=0
+  1 text/plain charset=utf-8 cte=base64 size=1061 adler32=01cc7857 role=text
+  2 text/csv charset=utf-8 cte=7bit disposition=inline filename="Zürich_little_there_great.csv" size=4499 adler32=8a6597f8 role=attachment
+
+[body]
+text 1 chars 1051
+| Config round of day for be. Hook now most I could bucket if large a? The
+| his you the go you could server be people São of make with me just. Café
+| the socket the but are. Want home in as know is sound off hook error the
+| word the.
+| 
+| Some get down or the get I good in I were out home very that day on?
+| Part in is so day the in patch by from how were this with rewrite. The
+| build with the think again to directive you could that vote? Could same
+| is that at your vhost. A use module as to say Ångström the new than how
+| the this long with. That use low the the that the time the I try!
+| 
+| By Ørsted that their in picture off rewrite response down well give the
+| with say Málaga. That are be and him the want it? Home side in many can
+| the very well off other.
+| 
+| Look him when socket many more take module they the his had in it the.
+| Much crème port had so you there all Paulo new side all timeout up. Call
+| point spell Größe even from at change all have a first? Port he bucket
+| his the put through well then a so these in branch the if make!
+| 
+| -- 
+| María Johansson
+html none
+
+[attachments]
+2 type=text/csv filename="Zürich_little_there_great.csv" size=4499 adler32=8a6597f8 file=parts/0017/002.bin

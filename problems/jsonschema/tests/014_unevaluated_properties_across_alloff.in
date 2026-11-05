@@ -1,0 +1,63 @@
+{
+  "schema": {
+    "allOf": [
+      {
+        "properties": {
+          "a": {
+            "type": "integer"
+          }
+        }
+      },
+      {
+        "properties": {
+          "b": {
+            "type": "integer"
+          }
+        }
+      }
+    ],
+    "if": {
+      "required": [
+        "a"
+      ]
+    },
+    "then": {
+      "properties": {
+        "c": {
+          "type": "string"
+        }
+      }
+    },
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "a and b are evaluated by allOf",
+      "data": {
+        "a": 1,
+        "b": 2
+      }
+    },
+    {
+      "description": "c is evaluated only when a is present",
+      "data": {
+        "a": 1,
+        "c": "yes"
+      }
+    },
+    {
+      "description": "c without a is unevaluated",
+      "data": {
+        "b": 2,
+        "c": "yes"
+      }
+    },
+    {
+      "description": "d is never evaluated",
+      "data": {
+        "a": 1,
+        "d": 0
+      }
+    }
+  ]
+}

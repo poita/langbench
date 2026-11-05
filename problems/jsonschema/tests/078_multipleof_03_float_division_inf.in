@@ -1,0 +1,13 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "integer",
+    "multipleOf": 0.123456789
+  },
+  "tests": [
+    {
+      "description": "always invalid, but naive implementations may raise an overflow error",
+      "data": 1e+308
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok scan 4
+  "a" = 1
+  "b" = 2
+  "c" = 3
+  "d" = 4
+[6] ok scan 3
+  "b" = 2
+  "c" = 3
+  "d" = 4
+[7] ok scan 2
+  "a" = 1
+  "b" = 2
+[8] ok scan 2
+  "b" = 2
+  "c" = 3
+[9] ok scan 2
+  "a" = 1
+  "b" = 2
+[10] ok scan 2
+  "d" = 4
+  "c" = 3
+[11] ok scan 4
+  "d"
+  "c"
+  "b"
+  "a"
+[12] ok scan 0

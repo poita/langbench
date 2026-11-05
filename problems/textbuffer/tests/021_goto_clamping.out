@@ -1,0 +1,56 @@
+abc
+
+defgh
+cursor 2 0
+--
+abc
+
+defgh
+cursor 0 3
+--
+abc
+
+defgh
+cursor 1 0
+--
+abc
+
+defgh
+cursor 2 5
+--
+abc
+
+defgh
+cursor 2 5
+--
+abc
+
+defgh
+cursor 2 5
+--
+abc
+
+defgh
+cursor 0 3
+cursor 2 5
+--
+abc
+
+defgh
+cursor 0 3
+cursor 1 0
+cursor 2 5
+--
+abc+
++
+defgh+
+cursor 0 4
+cursor 1 1
+cursor 2 6
+--
+abc+
++
+defgh+
+cursor 2 5
+cursor 2 6
+--

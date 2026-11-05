@@ -1,0 +1,12 @@
+count-objects
+rev-parse HEAD
+rev-parse main
+rev-parse refs/heads/main
+rev-parse main^
+log HEAD
+log main
+ls-tree HEAD
+ls-tree main
+cat-file b7814cae2e925fe74c6cd5816462fff515ccb256
+diff HEAD main
+diff main HEAD

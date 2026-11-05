@@ -1,0 +1,22 @@
+[message]
+id 0004
+source "no-close.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"B\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit boundary="B" parts=1 preamble=0 epilogue=none
+  1 text/plain charset=us-ascii cte=7bit size=20 adler32=4e6b0752 role=text
+
+[body]
+text 1 chars 20
+| body runs to the end
+html none
+
+[attachments]

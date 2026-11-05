@@ -1,0 +1,12 @@
+let upper = "variable named like a function"
+let wrapper = 3
+rule wrapper(n) {
+    step {
+        out "out/{n}.txt"
+        cmd write("{upper(n)}|{len(upper)}|{wrapper}\n")
+    }
+    default "out/{n}.txt"
+}
+let all = "variable named like a phony"
+phony all = ["out/w.txt"]
+use wrapper("w")

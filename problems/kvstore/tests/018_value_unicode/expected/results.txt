@@ -1,0 +1,22 @@
+[1] ok put created
+[2] ok get value
+  {"emoji":"😀","né":"ü"}
+[3] ok put created
+[4] ok get value
+  [1,"あ"]
+[5] ok scan 2
+  "é" = {"emoji":"😀","né":"ü"}
+  "中文" = [1,"あ"]
+[6] ok scan 2
+  "é"
+  "中文"
+[7] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 4272

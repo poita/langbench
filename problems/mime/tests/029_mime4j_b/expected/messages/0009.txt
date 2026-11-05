@@ -1,0 +1,24 @@
+[message]
+id 0009
+source "malformedHeaderStartsBody-nocrlfcrlf.eml"
+
+[headers]
+subject: "this is a subject"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=101 adler32=21d62333 role=text
+
+[body]
+text 0 chars 101
+| This is an invalid header
+| AnotherHeader: is this an header or the first part of the body?
+| 
+| Body text
+html none
+
+[attachments]

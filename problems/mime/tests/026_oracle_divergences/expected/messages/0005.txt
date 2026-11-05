@@ -1,0 +1,23 @@
+[message]
+id 0005
+source "obsolete-header-syntax.eml"
+
+[headers]
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=96 adler32=75742021 role=text
+
+[body]
+text 0 chars 96
+| Subject :The obsolete syntax allows spaces before the colon
+| Date    :     Malformed Date.
+| 
+| body
+html none
+
+[attachments]

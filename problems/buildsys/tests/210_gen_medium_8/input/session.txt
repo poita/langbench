@@ -1,0 +1,15 @@
+build
+touch main.kiln
+build @m8 -j 16
+touch src/m10/f1.txt
+build @m5 -j 2
+edit src/m8/f8.txt
+gamma
+---
+build @m8
+touch src/m8/f4.txt
+build @m5
+clean
+build @m9 -j 3
+touch src/m1/f5.txt
+build @m8 -j 16

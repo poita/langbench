@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}{% if pagination.number > 1 %}Page {{ pagination.number }} &middot; {% endif %}{{ site.title }}{% endblock %}
+{% block main %}
+{% for post in posts %}
+<article class="summary">
+<h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+<p class="meta"><time datetime="{{ post.date }}">{{ post.date_long }}</time>{% for t in post.tags %} <a class="tag" href="{{ t.url }}">{{ t.name }}</a>{% endfor %}</p>
+{{ post.excerpt }}</article>
+{% else %}
+<p class="empty">Nothing has been written yet.</p>
+{% endfor %}
+<nav class="pager">
+{%- if pagination.has_prev %} <a rel="prev" href="{{ pagination.prev_url }}">Newer</a>{% endif %}
+{%- for l in pagination.links %} {% if l.current %}<strong>{{ l.number }}</strong>{% else %}<a href="{{ l.url }}">{{ l.number }}</a>{% endif %}{% endfor %}
+{%- if pagination.has_next %} <a rel="next" href="{{ pagination.next_url }}">Older</a>{% endif %}
+</nav>
+<p class="count">{{ pagination.total_posts }} posts in total.</p>
+{% endblock %}

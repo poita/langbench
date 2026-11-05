@@ -1,0 +1,18 @@
+Apache James mime4j test messages
+=================================
+
+Source
+    https://github.com/apache/james-mime4j
+    core/src/test/resources/mimetools-testmsgs/   (48 files)
+    core/src/test/resources/testmsgs/             (32 files)
+
+All 80 .msg files here are byte-identical to those in the repository; they are
+the messages mime4j itself is tested against, which is why so many of them are
+malformed on purpose (bad boundaries, truncated multiparts, obsolete header
+syntax, unusual charsets).
+
+Licence
+    testmsgs/: Apache License 2.0. mimetools-testmsgs/: the Artistic
+    License; upstream's NOTICE says they were created by Eryq and ZeeGee
+    Software Inc for the MIME-tools Perl5 toolkit. Both licences are in
+    LICENSE next to this file, and upstream's NOTICE is in NOTICE.

@@ -1,0 +1,5 @@
+indexes
+find v == 2
+put "c" {v:3}
+indexes
+stat

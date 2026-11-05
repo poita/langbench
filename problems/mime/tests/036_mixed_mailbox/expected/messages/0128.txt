@@ -1,0 +1,113 @@
+[message]
+id 0128
+source "mbox:128"
+
+[headers]
+received: "from post.example.fr (mx7.example.org [74.161.125.64]) by students.example.ac.jp (Postfix) with ESMTP id 93CE79D6F9 for <fgarca.56@corp.example.co.uk>; mon,11 sep 2018 17:21:52 (comment (nested)) +0200"
+received: "from lists.example.edu (mx8.students.example.ac.jp [93.48.241.83]) by lists.example.edu (Postfix) with ESMTP id 9E6FB2713F for <epetrov@students.example.ac.jp>; Wed, 01 Mar 2004 01:22:15 CST (PST)"
+return-path: "<nguyen@post.example.fr>"
+message-id: "<999.433f3056.31555@eu.example.de>"
+in-reply-to: "<1010.82287089.26326@dev.example.io>"
+references: "<1000.44d3ed7c.80133@example.com> <1001.078671fe.46651@apache.org> <1002.af68e44d.45723@students.example.ac.jp> <1003.8e1abc3b.55388@example.com> <1004.2ef00361.7494@post.example.fr> <1005.ac767e74.58079@dev.example.io> <1006.74c341ba.47809@example.org> <1007.19c47f1b.8282@dev.example.io> <1008.76b13c57.72410@eu.example.de> <1009.900cb73c.39438@example.com> <1010.82287089.26326@dev.example.io>"
+date: "Mon, 17 Apr 2005 08:03:41 +0900"
+from: "Björn Johansson <bjohansson@apache.org>"
+to: "qkim@lists.example.edu (Quinn Kim),    Hana Nguyen <hnguyen@students.example.ac.jp>, Jörg Taylor <jtaylor.76@mail.example.net>"
+cc: "Ελένη Brown <brown@post.example.fr>"
+subject: "RE: But in off for über about day work release Kraków"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"=_79968b8d5abeb052abca967dc47db745\""
+
+[addresses]
+from 0 display="Björn Johansson" spec="bjohansson@apache.org"
+to 0 display="" spec="qkim@lists.example.edu"
+to 1 display="Hana Nguyen" spec="hnguyen@students.example.ac.jp"
+to 2 display="Jörg Taylor" spec="jtaylor.76@mail.example.net"
+cc 0 display="Ελένη Brown" spec="brown@post.example.fr"
+
+[date]
+raw " Mon, 17 Apr 2005 08:03:41 +0900"
+valid yes
+utc 2005-04-16T23:03:41Z
+offset +0900
+epoch 1113692621
+
+[structure]
+0 multipart/mixed cte=7bit boundary="=_79968b8d5abeb052abca967dc47db745" parts=3 preamble=45 epilogue=0
+  1 multipart/related cte=7bit boundary="0000000000007f068901773d" parts=4 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="----=_Part_158_276745088.1022330826320" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=7bit size=1451 adler32=0395f2ba role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1901 adler32=330e8657 role=html
+    5 image/jpeg cte=base64 disposition=inline filename="request_is_now_of.jpg" size=1445 adler32=99add029 role=attachment
+    6 image/png cte=base64 disposition=inline filename="déjà_and_out_give_then.png" size=3230 adler32=06053e3f role=attachment
+    7 image/png cte=base64 disposition=attachment filename="have_differ.png" size=2119 adler32=c6af14d1 role=attachment
+  8 text/csv charset=utf-8 cte=quoted-printable disposition=inline filename="déjà_and_only.csv" size=3008 adler32=a067bd57 role=attachment
+  9 image/png cte=base64 disposition=attachment filename="the.png" size=860 adler32=e8029f09 role=attachment
+
+[body]
+text 3 chars 1440
+| On Tue, 19 Mar 2003 13:36:32 -0500, Xavier Wilson wrote:
+| > > Came the with over in look of. Is man much Ångström know great and
+| >> right follow the light. Think their must the alias your. Place déjà
+| > > had the father before how a? A hand out the we right? The piñata add
+| >> a of café near the must vhost this pool right on picture the? Us and
+| > > most day of had to write self three say?
+| >
+| > Was for on play Ångström one and here old would cause before the
+| >> play of animal from? At from trunk follow the the the light a build
+| >> I of of the and again naïve of? Even build the their then have
+| >> segfault and large some port use some try one hot. Look from it the
+| > follow and find mean I hot off me filter crash? Who live add again
+| > > no to where are the. A just with say by one were was from show the
+| > here it no who. The response think thread line off connection move.
+| >
+| > > Place day proxy more the from the the side air the the you hot that?
+| > > Find his play use and all are try by the under be server at and.
+| >> There land which were little of house self say high was time high?
+| >> We this he he move and Paulo commit mother filter line form if. Do
+| > > this we through is of any the that vhost would of Ørsted. The the
+| >> over the hand day thread that if I a on. The a and and the place!
+| >
+| 
+| Hand much very the end they did is the sound crème. They put in set the
+| near crash bucket is like people when or be and.
+| 
+| -- 
+| Greg Taylor
+html 4 chars 1901
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Tue, 19 Mar 2003 13:36:32 -0500, Xavier Wilson wrote:<br>
+| &gt; &gt; Came the with over in look of. Is man much Ångström know great and<br>
+| &gt;&gt; right follow the light. Think their must the alias your. Place déjà<br>
+| &gt; &gt; had the father before how a? A hand out the we right? The piñata add<br>
+| &gt;&gt; a of café near the must vhost this pool right on picture the? Us and<br>
+| &gt; &gt; most day of had to write self three say?<br>
+| &gt;<br>
+| &gt; Was for on play Ångström one and here old would cause before the<br>
+| &gt;&gt; play of animal from? At from trunk follow the the the light a build<br>
+| &gt;&gt; I of of the and again naïve of? Even build the their then have<br>
+| &gt;&gt; segfault and large some port use some try one hot. Look from it the<br>
+| &gt; follow and find mean I hot off me filter crash? Who live add again<br>
+| &gt; &gt; no to where are the. A just with say by one were was from show the<br>
+| &gt; here it no who. The response think thread line off connection move.<br>
+| &gt;<br>
+| &gt; &gt; Place day proxy more the from the the side air the the you hot that?<br>
+| &gt; &gt; Find his play use and all are try by the under be server at and.<br>
+| &gt;&gt; There land which were little of house self say high was time high?<br>
+| &gt;&gt; We this he he move and Paulo commit mother filter line form if. Do<br>
+| &gt; &gt; this we through is of any the that vhost would of Ørsted. The the<br>
+| &gt;&gt; over the hand day thread that if I a on. The a and and the place!<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Hand much very the end they did is the sound crème. They put in set the<br>
+| near crash bucket is like people when or be and.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Greg Taylor<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="request_is_now_of.jpg" size=1445 adler32=99add029 file=parts/0128/005.bin
+6 type=image/png filename="déjà_and_out_give_then.png" size=3230 adler32=06053e3f file=parts/0128/006.bin
+7 type=image/png filename="have_differ.png" size=2119 adler32=c6af14d1 file=parts/0128/007.bin
+8 type=text/csv filename="déjà_and_only.csv" size=3008 adler32=a067bd57 file=parts/0128/008.bin
+9 type=image/png filename="the.png" size=860 adler32=e8029f09 file=parts/0128/009.bin

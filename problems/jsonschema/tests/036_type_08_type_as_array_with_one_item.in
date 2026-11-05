@@ -1,0 +1,18 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": [
+      "string"
+    ]
+  },
+  "tests": [
+    {
+      "description": "string is valid",
+      "data": "foo"
+    },
+    {
+      "description": "number is invalid",
+      "data": 123
+    }
+  ]
+}

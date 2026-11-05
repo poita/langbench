@@ -1,0 +1,7 @@
+chol sym.mtx
+eig sym.mtx
+add sym.mtx gen.mtx
+mul g.mtx gt.mtx
+normfro g.mtx
+chol intsym.mtx
+eig intsym.mtx

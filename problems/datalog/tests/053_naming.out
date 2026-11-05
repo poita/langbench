@@ -1,0 +1,15 @@
+path(edge, edge)
+path(edge, not_a_keyword)
+path(edge, path)
+-- 3
+path(edge, edge)
+path(notx, notx)
+path(path, path)
+-- 3
+-- 0
+np2(1)
+np2(2)
+-- 2
+notx(1)
+notx(2)
+-- 2

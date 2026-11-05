@@ -1,0 +1,8 @@
+norm1 nos4.mtx
+normfro nos4.mtx
+chol nos4.mtx
+det nos4.mtx
+inv nos4.mtx
+cond nos4.mtx
+lu nos4.mtx
+solve nos4.mtx rhs.mtx

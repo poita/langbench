@@ -1,0 +1,52 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "dependentRequired": {
+      "quux": [
+        "foo",
+        "bar"
+      ]
+    }
+  },
+  "tests": [
+    {
+      "description": "neither",
+      "data": {}
+    },
+    {
+      "description": "nondependants",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "with dependencies",
+      "data": {
+        "foo": 1,
+        "bar": 2,
+        "quux": 3
+      }
+    },
+    {
+      "description": "missing dependency",
+      "data": {
+        "foo": 1,
+        "quux": 2
+      }
+    },
+    {
+      "description": "missing other dependency",
+      "data": {
+        "bar": 1,
+        "quux": 2
+      }
+    },
+    {
+      "description": "missing both dependencies",
+      "data": {
+        "quux": 1
+      }
+    }
+  ]
+}

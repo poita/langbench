@@ -1,0 +1,8 @@
+@module main
+struct P { a: Int, b: Int, c: Int }
+fn t(s: Str, v: Int) -> Int { emit(s); v }
+fn main() {
+    let p = P.{ c: t("c", 3), a: t("a", 1), b: t("b", 2) };
+    print("");
+    print(fmt("{} {} {}", [showInt(p.a), showInt(p.b), showInt(p.c)]));
+}

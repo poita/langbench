@@ -1,0 +1,102 @@
+[message]
+id 0070
+source "mbox:70"
+
+[headers]
+received: "from post.example.fr (mx2.apache.org [36.216.175.194]) by post.example.fr (Postfix) with ESMTP id 4CA66D81D0 for <ijohansson@mail.example.net>; Thu, 23 Jul 2009 21:27:37 Z"
+received: "from dev.example.io (mx8.students.example.ac.jp [138.75.205.244]) by example.org (Postfix) with ESMTP id 5897EA021 for <obrien@apache.org>; Wed, 15 Jul 2004 06:42:57 UT (PST)"
+received: "from dev.example.io (mx8.apache.org [189.85.171.74]) by apache.org (Postfix) with ESMTP id F4221D737D for <fstergaard@mail.example.net>; yesterday"
+received: "from mail.example.net (mx3.corp.example.co.uk [198.17.149.224]) by lists.example.edu (Postfix) with ESMTP id 2F763CFA4F for <e@lists.example.edu>; wed,4 nov 2025 4:7:42 (comment (nested)) +0200"
+return-path: "<tnakamura.40@eu.example.de>"
+message-id: "<577.f44315f6.60715@mail.example.net>"
+date: "Mon, 3 Mar 2004 25:00:00 +0000"
+from: "Đorđe Müller <mller.4@apache.org>"
+to: "ygarca@mail.example.net"
+cc: "Hana Lefèvre <hlefvre@students.example.ac.jp>, Karin Lefèvre <klefvre@example.com>"
+subject: "Re: Of some Paulo about was"
+x-mailer: "Apple Mail (2.612)"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 598\""
+
+[addresses]
+from 0 display="Đorđe Müller" spec="mller.4@apache.org"
+to 0 display="" spec="ygarca@mail.example.net"
+cc 0 display="Hana Lefèvre" spec="hlefvre@students.example.ac.jp"
+cc 1 display="Karin Lefèvre" spec="klefvre@example.com"
+
+[date]
+raw " Mon, 3 Mar 2004 25:00:00 +0000"
+valid no
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 598" parts=5 preamble=0 epilogue=0
+  1 multipart/related cte=7bit boundary="simple boundary 835" parts=3 preamble=0 epilogue=0
+    2 multipart/alternative cte=7bit boundary="Apple-Mail=_7CEAFD8E5D2343AA" parts=2 preamble=45 epilogue=0
+      3 text/plain charset=utf-8 cte=base64 size=1127 adler32=6c3d90de role=text
+      4 text/html charset=windows-1252 cte=quoted-printable size=1580 adler32=e4dd25b3 role=html
+    5 image/jpeg cte=base64 disposition=attachment filename="smörgåsbord_if.jpg" size=3278 adler32=23a06134 role=attachment
+    6 image/jpeg cte=base64 disposition=attachment filename="café_mean_through.jpg" size=1268 adler32=9e978557 role=attachment
+  7 text/csv charset=utf-8 cte=base64 disposition=attachment filename="our_out_for_on.csv" size=6315 adler32=1fa0cf4b role=attachment
+  8 image/png cte=base64 disposition=inline filename="back_would_call.png" size=5732 adler32=40b50e84 role=attachment
+  9 application/vnd.openxmlformats-officedocument.wordprocessingml.document cte=base64 disposition=attachment filename="which_light_again.docx" size=1025 adler32=4122ef2a role=attachment
+  10 image/png cte=base64 disposition=attachment filename="to_write.png" size=6660 adler32=6cf3c210 role=attachment
+
+[body]
+text 3 chars 1116
+| His must boy look status made in by about such small most? The thing
+| they mean pool log that the the come the you. Number the under on my the
+| the he now commit! The these new people the the know same the more the
+| also put.
+| 
+| Animal did the of does of for out off they thing must. Differ of then
+| the they apr. A of said the small was see good the by the name way?
+| 
+| The more the over self the little he word the hot there. The they time
+| patch São tell build little like are is São the see.
+| 
+| Tell it bug brigade will the by! Café kind such must thing? Does does
+| has build spell Ångström build through of if father they brûlée of trunk
+| the and. Which the back déjà all high for form it in are want she you
+| were my! Them try the know thread I is for brigade or of pool every and!
+| Mean was had see review. The hand by time request there to alias number
+| have?
+| 
+| Them no ssl and my through work back or release for? The before she hand
+| people server trunk your the hook when über great read been what. Cause
+| release each too the his. The she me picture there the request cause
+| could tell us read an form work?
+| 
+| -- 
+| Rémi Rossi
+html 4 chars 1580
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">His must boy look status made in by about such small most? The thing<br>
+| they mean pool log that the the come the you. Number the under on my the<br>
+| the he now commit! The these new people the the know same the more the<br>
+| also put.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Animal did the of does of for out off they thing must. Differ of then<br>
+| the they apr. A of said the small was see good the by the name way?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">The more the over self the little he word the hot there. The they time<br>
+| patch São tell build little like are is São the see.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Tell it bug brigade will the by! Café kind such must thing? Does does<br>
+| has build spell Ångström build through of if father they brûlée of trunk<br>
+| the and. Which the back déjà all high for form it in are want she you<br>
+| were my! Them try the know thread I is for brigade or of pool every and!<br>
+| Mean was had see review. The hand by time request there to alias number<br>
+| have?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Them no ssl and my through work back or release for? The before she hand<br>
+| people server trunk your the hook when über great read been what. Cause<br>
+| release each too the his. The she me picture there the request cause<br>
+| could tell us read an form work?</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Rémi Rossi<br>
+| </p>
+| </body></html>
+
+[attachments]
+5 type=image/jpeg filename="smörgåsbord_if.jpg" size=3278 adler32=23a06134 file=parts/0070/005.bin
+6 type=image/jpeg filename="café_mean_through.jpg" size=1268 adler32=9e978557 file=parts/0070/006.bin
+7 type=text/csv filename="our_out_for_on.csv" size=6315 adler32=1fa0cf4b file=parts/0070/007.bin
+8 type=image/png filename="back_would_call.png" size=5732 adler32=40b50e84 file=parts/0070/008.bin
+9 type=application/vnd.openxmlformats-officedocument.wordprocessingml.document filename="which_light_again.docx" size=1025 adler32=4122ef2a file=parts/0070/009.bin
+10 type=image/png filename="to_write.png" size=6660 adler32=6cf3c210 file=parts/0070/010.bin

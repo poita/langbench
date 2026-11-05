@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 160 90" width="160" height="90">
+  <g fill="none" stroke="#333" stroke-width="10">
+    <polyline points="10,60 30,20 50,60" stroke-linejoin="miter"/>
+    <polyline points="60,60 80,20 100,60" stroke-linejoin="round"/>
+    <polyline points="110,60 130,20 150,60" stroke-linejoin="bevel"/>
+  </g>
+  <g fill="none" stroke="#c0392b" stroke-width="8" stroke-linejoin="miter">
+    <polyline points="20,80 40,73 60,80" stroke-miterlimit="1.2"/>
+    <polyline points="100,80 120,73 140,80" stroke-miterlimit="10"/>
+  </g>
+  <polygon points="15,15 45,15 30,35" fill="none" stroke="#27ae60" stroke-width="7"
+           stroke-linejoin="miter"/>
+  <path d="M100 10 L130 10 L115 30 Z" fill="none" stroke="#8e44ad" stroke-width="7"
+        stroke-linejoin="round"/>
+  <path d="M60 30 L80 30 L60 30" fill="none" stroke="#e67e22" stroke-width="9"
+        stroke-linejoin="round" stroke-linecap="butt"/>
+</svg>

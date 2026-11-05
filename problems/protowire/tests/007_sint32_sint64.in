@@ -1,0 +1,19 @@
+message S { sint32 a = 1; sint64 b = 2; repeated sint32 ra = 3; repeated sint64 rb = 4; }
+--
+encode S {a: -1}
+encode S {a: 1}
+encode S {a: -2, b: 2}
+encode S {a: 2147483647, b: 9223372036854775807}
+encode S {a: -2147483648, b: -9223372036854775808}
+encode S {ra: [0, -1, 1, -64, 64, -65], rb: [-1, -4611686018427387904, 4611686018427387904]}
+decode S 0801
+decode S 0802
+decode S 08ffffffff0f
+decode S 08feffffff0f
+decode S 088180808010
+decode S 08ffffffffffffffffff01
+decode S 10ffffffffffffffffff01
+decode S 10feffffffffffffffff01
+decode S 1a03010203
+encode S {a: 2147483648}
+encode S {b: -9223372036854775809}

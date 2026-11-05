@@ -1,0 +1,9 @@
+SELECT * FROM Employee
+SELECT InvoiceLineId,InvoiceId,TrackId,UnitPrice,Quantity FROM InvoiceLine WHERE InvoiceId < 6
+SELECT * FROM Invoice WHERE BillingState IS NOT NULL AND Total > 13 ORDER BY Total DESC
+SELECT TrackId,Name,Bytes FROM Track WHERE Bytes > 300000000
+SELECT PlaylistId,Name FROM Playlist ORDER BY Name
+SELECT rowid,Name FROM Genre WHERE rowid > 20
+SELECT Title,AlbumId FROM Album ORDER BY Title LIMIT 30
+SELECT * FROM PlaylistTrack LIMIT 12
+SELECT rowid,PlaylistId,TrackId FROM PlaylistTrack WHERE PlaylistId = 5 LIMIT 10

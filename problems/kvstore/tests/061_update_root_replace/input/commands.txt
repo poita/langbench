@@ -1,0 +1,12 @@
+put "a" {x:1}
+update "a" x 2
+get "a"
+update "a" x [1,2,3]
+get "a"
+update "a" x {y:{z:1}}
+get "a"
+unset "a" x
+get "a"
+update "a" x null
+get "a"
+stat

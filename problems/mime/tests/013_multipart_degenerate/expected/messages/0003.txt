@@ -1,0 +1,21 @@
+[message]
+id 0003
+source "empty-boundary.eml"
+
+[headers]
+content-type: "multipart/mixed; boundary=\"\""
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 multipart/mixed cte=7bit size=15 adler32=2e080585 role=attachment
+
+[body]
+text none
+html none
+
+[attachments]
+0 type=multipart/mixed filename=- size=15 adler32=2e080585 file=parts/0003/000.bin

@@ -1,0 +1,20 @@
+@module main
+fn main() {
+    var xs = [1, 2, 3];
+    insert(xs, 0, 0);
+    print(strJoin(listMap(xs, |v| showInt(v)), ","));
+    print(showInt(removeAt(xs, 1)));
+    print(showInt(pop(xs)));
+    print(showBool(listContains(xs, 2)) ++ showInt(listIndexOf(xs, 2)));
+    let ys = listRepeat(7, 3);
+    print(strJoin(listMap(ys, |v| showInt(v)), ","));
+    print(showInt(listLen(slice(ys, 1, 3))));
+    print(strJoin(listMap(reverseList([1, 2]), |v| showInt(v)), ","));
+    print(showInt(listFindIndex([1, 2, 3], |v| v > 1)));
+    print(showBool(isNone(listFind([1], |v| v > 5))));
+    print(showInt(listLen(listZip([1, 2], ["a"]))));
+    print(showBool(listAll([1, 2], |v| v > 0)) ++ showBool(listAny([1], |v| v > 5)));
+    clear(xs);
+    print(showInt(listLen(xs)));
+    print(showInt(listFirst([9, 8])) ++ showInt(listLast([9, 8])));
+}

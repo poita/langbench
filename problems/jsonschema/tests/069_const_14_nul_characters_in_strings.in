@@ -1,0 +1,16 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "const": "hello\u0000there"
+  },
+  "tests": [
+    {
+      "description": "match string with nul",
+      "data": "hello\u0000there"
+    },
+    {
+      "description": "do not match string lacking nul",
+      "data": "hellothere"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "pattern": "a+"
+  },
+  "tests": [
+    {
+      "description": "matches a substring",
+      "data": "xxaayy"
+    }
+  ]
+}

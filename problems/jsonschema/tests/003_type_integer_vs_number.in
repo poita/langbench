@@ -1,0 +1,31 @@
+{
+  "schema": {
+    "type": "integer"
+  },
+  "tests": [
+    {
+      "description": "integer literal",
+      "data": 42
+    },
+    {
+      "description": "zero fraction is an integer",
+      "data": 1.0
+    },
+    {
+      "description": "exponent form is an integer",
+      "data": 100.0
+    },
+    {
+      "description": "true fraction",
+      "data": 1.5
+    },
+    {
+      "description": "boolean is not a number",
+      "data": true
+    },
+    {
+      "description": "string is not a number",
+      "data": "42"
+    }
+  ]
+}

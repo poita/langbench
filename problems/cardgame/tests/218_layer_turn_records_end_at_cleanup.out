@@ -1,0 +1,66 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 NEU-028 #44
+9 PAY A ember 3
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 CONTROL #44 A
+14 SPENT #21 NEU-028
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 7 cap 10 vault 20 hand 2 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-011
+hand A 2 #23 LOM-014
+field A #44 CIN-007 4/3 w0 c0 ready settling kw pierce
+field B #45 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 NEU-028
+effect 1 ts3 A turn control A on #44
+STATE END
+15 PASS A
+16 PASS B
+17 PHASE clash-attack
+18 PHASE main2
+19 PASS A
+20 PASS B
+21 PHASE dusk-trigger
+STATE BEGIN
+turn 1 active A phase dusk-trigger decision A priority
+player A spire 40 ember 7 cap 10 vault 20 hand 2 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-011
+hand A 2 #23 LOM-014
+field A #44 CIN-007 4/3 w0 c0 ready settling kw pierce
+field B #45 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 NEU-028
+effect 1 ts3 A turn control A on #44
+STATE END
+22 PASS A
+23 PASS B
+24 PHASE dusk-discard
+25 PHASE dusk-cleanup
+26 TURN 2 B
+27 PHASE dawn
+28 EMBER A 10 10
+29 EMBER B 10 10
+30 PHASE draw
+31 DRAW B #24 TID-001
+32 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 40 ember 10 cap 10 vault 20 hand 2 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 19 hand 1 ash 0 rift 0
+hand A 1 #22 CIN-011
+hand A 2 #23 LOM-014
+hand B 1 #24 TID-001
+field B #44 CIN-007 4/3 w0 c0 ready - kw pierce
+field B #45 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 NEU-028
+STATE END
+33 RESULT pending none

@@ -1,0 +1,45 @@
+{
+  "schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "minProperties": 1
+  },
+  "tests": [
+    {
+      "description": "longer is valid",
+      "data": {
+        "foo": 1,
+        "bar": 2
+      }
+    },
+    {
+      "description": "exact length is valid",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "too short is invalid",
+      "data": {}
+    },
+    {
+      "description": "ignores arrays",
+      "data": []
+    },
+    {
+      "description": "ignores strings",
+      "data": ""
+    },
+    {
+      "description": "ignores other non-objects",
+      "data": 12
+    },
+    {
+      "description": "ignores null",
+      "data": null
+    },
+    {
+      "description": "ignores booleans",
+      "data": true
+    }
+  ]
+}

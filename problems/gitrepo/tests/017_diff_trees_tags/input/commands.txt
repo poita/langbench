@@ -1,0 +1,6 @@
+diff v0.1 v1.0
+diff v1.0 HEAD
+diff v1.0-signed HEAD
+diff HEAD^{tree} HEAD~5^{tree}
+diff aa4db946751788c133acc342eb98204fa8155e18 bdb73d704a048bdc15432bd796bcd3e36a136146
+diff blobtag HEAD

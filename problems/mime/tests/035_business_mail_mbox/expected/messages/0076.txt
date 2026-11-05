@@ -1,0 +1,77 @@
+[message]
+id 0076
+source "mbox:76"
+
+[headers]
+received: "from dev.example.io (mx3.post.example.fr [16.86.155.225]) by mail.example.net (Postfix) with ESMTP id 9824BF9C4F for <anakamura@apache.org>; Fri, 24 Apr 2003 06:38:16 PDT (CET)"
+received: "from students.example.ac.jp (mx1.corp.example.co.uk [141.142.80.52]) by mail.example.net (Postfix) with ESMTP id 630B952FF4 for <vpapadopoulos.19@post.example.fr>; Wed, 7 Mar 2004 15:13:01 +0530"
+received: "from example.org (mx7.lists.example.edu [84.118.142.96]) by dev.example.io (Postfix) with ESMTP id 171136FF03 for <blefvre.32@students.example.ac.jp>; Thu, 7 Mar 2004 14:53:58 EST"
+received: "from example.com (mx6.apache.org [97.232.91.188]) by apache.org (Postfix) with ESMTP id 155D07EE26 for <ilefvre@eu.example.de>; Sat, 6 Jun 2009 10:48:31 +0900"
+received: "from corp.example.co.uk (mx5.students.example.ac.jp [240.163.240.193]) by example.org (Postfix) with ESMTP id D15404CAA for <glefvre@dev.example.io>; Tue, 5 Dec 2025 22:53:44 -0500"
+return-path: "<r@apache.org>"
+message-id: "<794.8a30e706.44755@dev.example.io>"
+date: "27 FEB 04 06:10 PDT"
+from: "Ελένη Nakamura <nakamura.84@post.example.fr>"
+to: "Erik Lefèvre <elefvre@lists.example.edu>"
+cc: "swilson@mail.example.net"
+subject: "Trunk of other number ask ssl of was write up"
+x-mailer: "Mutt/1.4.1i"
+mime-version: "1.0"
+content-type: "multipart/mixed; boundary=\"simple boundary 111\""
+
+[addresses]
+from 0 display="Ελένη Nakamura" spec="nakamura.84@post.example.fr"
+to 0 display="Erik Lefèvre" spec="elefvre@lists.example.edu"
+cc 0 display="" spec="swilson@mail.example.net"
+
+[date]
+raw " 27 FEB 04 06:10 PDT"
+valid yes
+utc 2004-02-27T13:10:00Z
+offset -0700
+epoch 1077887400
+
+[structure]
+0 multipart/mixed cte=7bit boundary="simple boundary 111" parts=4 preamble=0 epilogue=1
+  1 multipart/alternative cte=7bit boundary="Apple-Mail=_88FB2E9D68139225" parts=2 preamble=45 epilogue=0
+    2 text/plain charset=utf-8 cte=7bit size=553 adler32=5cc4bc71 role=text
+    3 text/html charset=windows-1252 cte=quoted-printable size=871 adler32=c6c225c2 role=html
+  4 application/zip cte=base64 disposition=attachment filename="cause_from_good_down.zip" size=6441 adler32=268a75ea role=attachment
+  5 application/pdf cte=base64 disposition=attachment filename="if_the_I.pdf" size=503 adler32=11adf89e role=attachment
+  6 image/jpeg cte=base64 disposition=attachment filename="see.jpg" size=3674 adler32=61c6100d role=attachment
+
+[body]
+text 2 chars 548
+| On Sat, 28 Apr 2012 13:26:16 EST (EDT), Xavier Nakamura wrote:
+| >> At down they this the live hook went out so of it he came all my it
+| >> commit. Pool get now on than three are. We him as was in to animal
+| > or animal the. In each little vote animal bug before your come day?
+| > > The but hook in the it connection some who config part? That are go
+| > > would her. Play the the came bug port number.
+| >
+| 
+| Brigade and any through we the house smörgåsbord up give Kraków. Port
+| word is side as ssl if old follow is such to naïve in after.
+| 
+| -- 
+| Björn Nguyen
+html 3 chars 871
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On Sat, 28 Apr 2012 13:26:16 EST (EDT), Xavier Nakamura wrote:<br>
+| &gt;&gt; At down they this the live hook went out so of it he came all my it<br>
+| &gt;&gt; commit. Pool get now on than three are. We him as was in to animal<br>
+| &gt; or animal the. In each little vote animal bug before your come day?<br>
+| &gt; &gt; The but hook in the it connection some who config part? That are go<br>
+| &gt; &gt; would her. Play the the came bug port number.<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Brigade and any through we the house smörgåsbord up give Kraków. Port<br>
+| word is side as ssl if old follow is such to naïve in after.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Björn Nguyen<br>
+| </p>
+| </body></html>
+
+[attachments]
+4 type=application/zip filename="cause_from_good_down.zip" size=6441 adler32=268a75ea file=parts/0076/004.bin
+5 type=application/pdf filename="if_the_I.pdf" size=503 adler32=11adf89e file=parts/0076/005.bin
+6 type=image/jpeg filename="see.jpg" size=3674 adler32=61c6100d file=parts/0076/006.bin

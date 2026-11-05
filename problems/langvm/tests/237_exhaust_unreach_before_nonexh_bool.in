@@ -1,0 +1,8 @@
+@module main
+fn f(b: Bool) -> Int {
+    match b {
+        true -> 1,
+        true -> 2,
+    }
+}
+fn main() { print(showInt(f(true))); }

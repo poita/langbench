@@ -1,0 +1,21 @@
+- : int * bool
+- : int * bool * unit
+- : (int * int) * int
+- : int * (int * int)
+- : 'a -> 'a * 'a
+- : 'a -> 'b -> 'a * 'b
+- : 'a -> 'b -> 'b * 'a
+- : int
+- : bool
+- : 'a * 'b -> 'b * 'a
+- : ('a -> 'a) * int
+- : ('a -> 'a) * ('b -> 'b)
+- : (('a -> 'a) * int) list
+- : 'a -> ('a * 'a) list
+- : ('a -> 'a * 'a list) * ('b -> 'b)
+- : (int -> 'a) -> (int -> 'a) * 'a
+- : (int * int -> 'a) -> 'a
+- : ('a -> 'b) -> ('a -> 'b) * ('a -> 'b)
+- : 'a -> ('a * 'a) * ('a * 'a)
+- : (int * int) * (bool * bool) * (unit * 'a list)
+- : 'a -> ('a * int) * 'a list

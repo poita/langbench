@@ -1,0 +1,31 @@
+step 1: build (default) -j 1
+  error E_CYCLE out/a.txt -> out/a.txt
+step 2: edit main.kiln
+  ok size=146
+step 3: build (default) -j 1
+  error E_CYCLE out/x.txt -> out/y.txt -> out/x.txt
+step 4: edit main.kiln
+  ok size=47
+step 5: build (default) -j 1
+  error E_CYCLE @a -> @b -> @a
+step 6: edit main.kiln
+  ok size=179
+step 7: build (default) -j 1
+  error E_CYCLE out/top.txt -> @p -> out/mid.txt -> out/top.txt
+step 8: edit main.kiln
+  ok size=209
+step 9: build (default) -j 1
+  error E_CYCLE out/a.txt -> out/b.txt -> out/a.txt
+step 10: edit main.kiln
+  ok size=179
+step 11: build (default) -j 1
+  error E_CYCLE out/b.txt -> out/a.txt -> out/b.txt
+step 12: edit main.kiln
+  ok size=203
+step 13: build (default) -j 1
+  run 0 1 w0 out/ok.txt write("ok\n")
+  ok ran=1 hit=0 time=1
+step 14: edit main.kiln
+  ok size=307
+step 15: build (default) -j 1
+  error E_CYCLE out/a.txt -> out/b.txt -> out/c.txt -> out/a.txt

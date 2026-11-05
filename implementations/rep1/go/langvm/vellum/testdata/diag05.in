@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(len([1, 2])));
+}

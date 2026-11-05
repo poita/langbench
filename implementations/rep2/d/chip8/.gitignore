@@ -1,0 +1,7 @@
+.dub/
+chip8
+chip8-test
+*.o
+*.a
+dub.selections.json
+chip8-test-unittest

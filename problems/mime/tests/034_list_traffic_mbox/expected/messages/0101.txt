@@ -1,0 +1,87 @@
+[message]
+id 0101
+source "mbox:101"
+
+[headers]
+received: "from apache.org (mx7.apache.org [99.142.10.78]) by example.org (Postfix) with ESMTP id 7321F3EA1E for <gsmith@mail.example.net>; tue,2 aug 2009 16:5:59 (comment (nested)) MET"
+received: "from mail.example.net (mx3.apache.org [173.105.54.71]) by eu.example.de (Postfix) with ESMTP id 5CFD6EBC9 for <tschrder.42@dev.example.io>; Thu, 6 Jan 2018 10:29:59 GMT"
+received: "from dev.example.io (mx7.dev.example.io [36.144.230.88]) by post.example.fr (Postfix) with ESMTP id C797EB168E for <ujohansson@lists.example.edu>; Mon, 12 Oct 2025 12:36:55 +0530"
+received: "from corp.example.co.uk (mx9.eu.example.de [156.10.40.219]) by apache.org (Postfix) with ESMTP id CC10D21C41 for <kvanderberg@corp.example.co.uk>; Sun, 26 Jun 2004 01:57:11 +0100 (PST)"
+received: "from mail.example.net (mx3.mail.example.net [9.105.5.227]) by example.org (Postfix) with ESMTP id 76CF78607F for <nmller@example.com>; Wed Jun 25 00:02:51 2018 EST"
+return-path: "<ffernndez@corp.example.co.uk>"
+message-id: "<637.64658de6.97981@apache.org>"
+in-reply-to: "<648.8e06e84f.18426@lists.example.edu>"
+references: "<638.0cd5bf2e.18761@eu.example.de> <639.9d643f30.75133@corp.example.co.uk> <640.30bf95b2.51464@example.org> <641.45aef49d.86804@apache.org> <642.74943f5b.60274@example.com> <643.4fd33306.10762@eu.example.de> <644.a0d1c3f7.96049@eu.example.de> <645.c8abe2b2.14683@example.org> <646.3f7d2b9b.36338@lists.example.edu> <647.c1fa8c94.8892@corp.example.co.uk> <648.8e06e84f.18426@lists.example.edu>"
+date: "Fri, 11 Jul 2025 21:15:40 +0100"
+from: "xpetrov@mail.example.net"
+reply-to: "Chloé Kowalski <ckowalski@eu.example.de>"
+to: "Ελένη Иванов <user6265@post.example.fr>,\tAnn Wilson <awilson@lists.example.edu>"
+cc: "Yuki Smith <ysmith@corp.example.co.uk>"
+subject: "[PATCH] The other three want many for"
+mailing-list: "contact dev-help@httpd.apache.org; run by ezmlm"
+list-post: "<mailto:dev@httpd.apache.org>"
+precedence: "bulk"
+x-mailer: "Microsoft Outlook 16.0"
+mime-version: "1.0"
+content-type: "multipart/alternative; boundary=0000000000007fcd5b123fed"
+
+[addresses]
+from 0 display="" spec="xpetrov@mail.example.net"
+reply-to 0 display="Chloé Kowalski" spec="ckowalski@eu.example.de"
+to 0 display="Ελένη Иванов" spec="user6265@post.example.fr"
+to 1 display="Ann Wilson" spec="awilson@lists.example.edu"
+cc 0 display="Yuki Smith" spec="ysmith@corp.example.co.uk"
+
+[date]
+raw " Fri, 11 Jul 2025 21:15:40 +0100"
+valid yes
+utc 2025-07-11T20:15:40Z
+offset +0100
+epoch 1752264940
+
+[structure]
+0 multipart/alternative cte=7bit boundary="0000000000007fcd5b123fed" parts=2 preamble=0 epilogue=0
+  1 text/plain charset=utf-8 cte=7bit size=693 adler32=121ff12c role=text
+  2 text/html charset=utf-8 cte=quoted-printable size=1071 adler32=ee516f34 role=html
+
+[body]
+text 1 chars 684
+| On 5 SEP 12 04:08 -0500, Bob Kim wrote:
+| > Rewrite for give picture my I before as he déjà were a déjà and
+| > under who review. These had self is at are tell turn you? The in
+| > turn well people there review play me through write of that name. If
+| > > home it the change round place Kraków. When word kind at will even
+| >> déjà or he out through we show good?
+| >
+| 
+| I of land look error pool thing commit? Header patch they error the
+| take! At can sound crème same I will self you when header to can year
+| day no large.
+| 
+| Paulo of patch three then about who end big like good boy see use was
+| over crème line! Request from much sound an long place any low made she
+| give.
+| 
+| -- 
+| Pierre van der Berg
+html 2 chars 1062
+| <html><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"></head><body>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">On 5 SEP 12 04:08 -0500, Bob Kim wrote:<br>
+| &gt; Rewrite for give picture my I before as he déjà were a déjà and<br>
+| &gt; under who review. These had self is at are tell turn you? The in<br>
+| &gt; turn well people there review play me through write of that name. If<br>
+| &gt; &gt; home it the change round place Kraków. When word kind at will even<br>
+| &gt;&gt; déjà or he out through we show good?<br>
+| &gt;</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">I of land look error pool thing commit? Header patch they error the<br>
+| take! At can sound crème same I will self you when header to can year<br>
+| day no large.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">Paulo of patch three then about who end big like good boy see use was<br>
+| over crème line! Request from much sound an long place any low made she<br>
+| give.</p>
+| <p style=\"margin:0 0 1em 0;font-family:Arial\">-- <br>
+| Pierre van der Berg<br>
+| </p>
+| </body></html>
+
+[attachments]

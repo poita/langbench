@@ -1,0 +1,11 @@
+[1] ok put created
+[2] ok update updated
+[3] ok update updated
+[4] ok get value
+  {"addr":{"city":"oslo"},"age":36,"name":"ada"}
+[5] ok unset updated
+[6] ok get value
+  {"addr":{},"age":36,"name":"ada"}
+[7] error no-field
+[8] error not-object
+[9] error not-found

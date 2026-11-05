@@ -1,0 +1,55 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok stat
+  pages 6
+  free 0
+  freehead 0
+  docs 11
+  root 4
+  height 2
+  commits 11
+  indexes 0
+  wal 29640
+[13] ok scan 11
+  "k00"
+  "k01"
+  "k02"
+  "k03"
+  "k04"
+  "k05"
+  "k06"
+  "k07"
+  "k08"
+  "k09"
+  "k10"
+[14] ok delete removed
+[15] ok delete removed
+[16] ok delete removed
+[17] ok stat
+  pages 6
+  free 1
+  freehead 6
+  docs 8
+  root 4
+  height 2
+  commits 14
+  indexes 0
+  wal 40192
+[18] ok scan 8
+  "k00"
+  "k01"
+  "k02"
+  "k03"
+  "k04"
+  "k05"
+  "k06"
+  "k07"

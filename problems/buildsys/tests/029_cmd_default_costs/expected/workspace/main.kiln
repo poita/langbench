@@ -1,0 +1,82 @@
+step {
+    out "out/00.txt"
+    cmd write("w\n")
+}
+step {
+    out "out/01.txt"
+    in "src/a.txt"
+    cmd copy()
+}
+step {
+    out "out/02.txt"
+    in "src/a.txt"
+    cmd concat()
+}
+step {
+    out "out/03.txt"
+    in "src/a.txt"
+    cmd upper()
+}
+step {
+    out "out/04.txt"
+    in "src/a.txt"
+    cmd lower()
+}
+step {
+    out "out/05.txt"
+    in "src/a.txt"
+    cmd grep("a")
+}
+step {
+    out "out/06.txt"
+    in "src/a.txt"
+    cmd replace("a", "A")
+}
+step {
+    out "out/07.txt"
+    in "src/a.txt"
+    cmd sort_lines()
+}
+step {
+    out "out/08.txt"
+    in "src/a.txt"
+    cmd reverse_lines()
+}
+step {
+    out "out/09.txt"
+    in "src/a.txt"
+    cmd dedup()
+}
+step {
+    out "out/10.txt"
+    in "src/a.txt"
+    cmd number()
+}
+step {
+    out "out/11.txt"
+    in "src/a.txt"
+    cmd indent(2)
+}
+step {
+    out "out/12.txt"
+    in "src/a.txt"
+    cmd wrap("<", ">")
+}
+step {
+    out "out/13.txt"
+    in "src/a.txt"
+    cmd count_lines()
+}
+step {
+    out "out/14.txt"
+    in "src/a.txt"
+    cmd hash()
+}
+step {
+    out "out/15.txt"
+    in "src/m.txt"
+    depfile "out/15.d"
+    cmd preprocess()
+}
+phony all = ["out/00.txt", "out/01.txt", "out/02.txt", "out/03.txt", "out/04.txt", "out/05.txt", "out/06.txt", "out/07.txt", "out/08.txt", "out/09.txt", "out/10.txt", "out/11.txt", "out/12.txt", "out/13.txt", "out/14.txt", "out/15.txt"]
+default "@all"

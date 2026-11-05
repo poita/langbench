@@ -1,0 +1,54 @@
+[message]
+id 0001
+source "multi-weirdspace.eml"
+
+[headers]
+return-path: "eryq@rhine.gsfc.nasa.gov"
+sender: "john-bigboote"
+date: "Thu, 11 Apr 1996 01:10:30 -0500"
+from: "Eryq <eryq@rhine.gsfc.nasa.gov>"
+organization: "Yoyodyne Propulsion Systems"
+x-mailer: "Mozilla 2.0 (X11; I; Linux 1.1.18 i486)"
+mime-version: "1.0"
+to: "john-bigboote@eryq.pr.mcs.net"
+subject: "Two images for you..."
+content-type: "multipart/mixed; boundary=\"------------299A70B339B65A93542D2AE\""
+
+[addresses]
+from 0 display="Eryq" spec="eryq@rhine.gsfc.nasa.gov"
+sender 0 display="" spec="john-bigboote"
+to 0 display="" spec="john-bigboote@eryq.pr.mcs.net"
+
+[date]
+raw " Thu, 11 Apr 1996 01:10:30 -0500"
+valid yes
+utc 1996-04-11T06:10:30Z
+offset -0500
+epoch 829203030
+
+[structure]
+0 multipart/mixed cte=7bit boundary="------------299A70B339B65A93542D2AE" parts=3 preamble=0 epilogue=2
+  1 text/plain charset=us-ascii cte=7bit size=421 adler32=60588105 role=text
+  2 image/gif cte=base64 disposition=inline filename="3d-compress.gif" size=419 adler32=a8f6b31e role=attachment
+  3 image/gif cte=base64 filename="3d-eye.gif" size=357 adler32=ff2d9d3e role=attachment
+
+[body]
+text 1 chars 421
+| When unpacked, this message should produce two GIF files:
+| 
+| \t* The 1st should be called \"3d-compress.gif\"
+| \t* The 2nd should be called \"3d-eye.gif\"
+| 
+| There is an empty preamble, and linear space after the bounds.
+| 
+| -- 
+|    ____           __
+|   / __/__________/_/  Eryq (eryq@rhine.gsfc.nasa.gov)
+|  / __/ _/ / / , /     Hughes STX Corporation, NASA/Goddard
+| /___/_/ \\  /\\  /___ 
+|         /_/ /_____/   http://selsvr.stx.com/~eryq/
+html none
+
+[attachments]
+2 type=image/gif filename="3d-compress.gif" size=419 adler32=a8f6b31e file=parts/0001/002.bin
+3 type=image/gif filename="3d-eye.gif" size=357 adler32=ff2d9d3e file=parts/0001/003.bin

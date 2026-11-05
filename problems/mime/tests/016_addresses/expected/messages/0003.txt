@@ -1,0 +1,24 @@
+[message]
+id 0003
+source "folded-list.eml"
+
+[headers]
+to: "one@example.com, two@example.com,\tThree Person <three@example.com>"
+
+[addresses]
+to 0 display="" spec="one@example.com"
+to 1 display="" spec="two@example.com"
+to 2 display="Three Person" spec="three@example.com"
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=7bit size=5 adler32=05d301b9 role=text
+
+[body]
+text 0 chars 5
+| body
+html none
+
+[attachments]
