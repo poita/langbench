@@ -32,7 +32,7 @@ hand-written one would bring back the author bias.
 | `implementations/` | Agent-written implementations (so far D and Go), with the run's record (`run.json`), prompts, transcript archive, audit and test results |
 | `lbench` | Builds implementations with chosen toolchains and benchmarks them |
 | `tools/` | Run helpers, language comparisons (`compare.py`, `agent_effort.py`) and repository checks |
-| `results/` | Results of the runs so far, generated from `implementations/` |
+| `results/` | Results of the runs so far, generated from `implementations/` by `make results` |
 
 The problems are fifteen ~1,000-line algorithmic tasks, ten text and semantics
 tasks, ten multi-thousand-line real-world libraries on real data, and five
@@ -40,30 +40,51 @@ large invented-spec systems with held-out tests.
 
 ## Quick start
 
-Requirements: Python 3.9+, Claude Code, and the toolchains of the languages you
-generate. Hardware counters come from `/usr/bin/time -l` on macOS and `perf
-stat` on Linux.
+Requirements: Python 3.9+, Claude Code (signed in, or with `ANTHROPIC_API_KEY`
+set), and the toolchains of the languages you generate. Hardware counters come
+from `/usr/bin/time -l` on macOS and `perf stat` on Linux.
+
+### Regenerate the committed implementations (D and Go)
 
 ```
-make bench-long                               # generate the benchmark inputs once (slow)
+git rm -rq implementations    # start empty, so no old files mix with the new ones
 
-# 1. generate implementations, in a sandbox outside this checkout (run-config.json says what to run)
-python3 tools/impl_run.py sandbox ~/work/run1
-python3 tools/impl_run.py launch ~/work/run1
+# a sandbox outside this checkout; give it a neutral name, since agents see its path
+python3 tools/impl_run.py sandbox ~/work/run1 --langs d,go
+python3 tools/impl_run.py launch ~/work/run1 --auth subscription   # 120 sessions, about 3.5 hours
 python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
 
-# 2. measure performance
+make results                  # rewrite results/README.md
+```
+
+`--auth subscription` uses your Claude Code login and plan; leave it out to use
+`ANTHROPIC_API_KEY`. Either way the sessions load none of your settings,
+memory or MCP servers. `run-config.json` sets everything else (model, effort,
+repetitions). Agents are not deterministic, so this repeats the procedure, not
+the exact code. The committed record has a second, six-session run only
+because three problems' test data changed after the first; the problems as
+they are now need just the one run.
+
+### Every language
+
+Leave out `--langs` to run every language in `run-config.json` (C++, Rust, Go,
+D and Python): 300 sessions, 6–8 hours and about 45M tokens.
+
+### Measure
+
+```
+# agent effectiveness: turns, output tokens and cost against a baseline language
+python3 tools/agent_effort.py implementations/transcripts/*.tar.gz --baseline go
+
+# performance
+make bench-long                               # generate the benchmark inputs once (slow)
 ./lbench build --tag new --suite all --roots implementations/rep1
 ./lbench run --tag new
 python3 tools/compare.py new --baseline go
-
-# 3. measure agent effectiveness: turns and output tokens per agent
-python3 tools/agent_effort.py implementations/transcripts/<run>.tar.gz --baseline go
 ```
 
 [docs/generating.md](docs/generating.md) covers the sandbox, the audit, the
-run configuration and cost (a full run is 300 agents, 6–8 hours and about 45M
-tokens). [docs/benchmarking.md](docs/benchmarking.md)
+run configuration and cost. [docs/benchmarking.md](docs/benchmarking.md)
 covers `lbench`: comparing languages, comparing toolchains (`--toolchain
 LANG=PATH` for any language), suites, and measurement noise.
 

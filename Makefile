@@ -1,5 +1,5 @@
 # Common commands; see README.md for details.
-.PHONY: check references test bench bench-long
+.PHONY: check references test results bench bench-long
 
 # Structure, run configuration, run provenance, canonical implementations and unit tests
 check:
@@ -11,6 +11,10 @@ references:
 
 test:
 	python3 -m unittest discover -s tests
+
+# Rewrite results/README.md from implementations/
+results:
+	python3 tools/results_report.py
 
 # Generate every problem's benchmark inputs and expected outputs (about 30 minutes, once)
 bench:

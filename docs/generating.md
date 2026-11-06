@@ -104,6 +104,12 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
    `DEST/transcripts/<run>.tar.gz`, provenance in `DEST/run.json` and one
    prompt per language in `DEST/prompts/`. `--stage` git-adds `DEST`.
 
+   `finish` adds to `DEST`: a later run's projects replace earlier ones of the
+   same task, and `run.json` lists every run in order. It copies projects
+   over whatever is there, so to replace `implementations/` with a new run,
+   empty it first (`git rm -rq implementations`); to redo some tasks, delete
+   just their project directories.
+
 `make check` fails if `implementations/` holds a run that is not canonical:
 language tips, machine notes or the efficiency note in its prompts, no
 `APPROACH.md`, or (for sandboxed runs) an audit that is missing or has
@@ -117,6 +123,9 @@ python3 tools/agent_effort.py implementations/transcripts/*.tar.gz --baseline go
 ./lbench run --tag new
 python3 tools/compare.py new --baseline go
 ```
+
+`make results` rewrites `results/README.md` from `implementations/`
+(`tools/results_report.py`), and the unit tests fail while it is out of date.
 
 The headline measure of agent effort is **output tokens**, compared problem
 by problem: for each language and problem, the median over repetitions; then
