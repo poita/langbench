@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    let f = || -> Int { 7 };
+    print(showInt(f()));
+    let g = | | 8;
+    print(showInt(g()));
+}

@@ -1,0 +1,5 @@
+step 1: build (default) -j 2
+  run 0 2 w0 out/u.txt upper()
+  run 0 2 w1 out/l.txt lower()
+  run 2 5 w0 out/h.txt hash()
+  ok ran=3 hit=0 time=5

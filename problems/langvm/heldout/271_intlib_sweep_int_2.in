@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(si(divFloor(7, 2)) ++ " " ++ si(divFloor(-7, 2)) ++ " " ++ si(divFloor(7, -2)) ++ " " ++ si(divFloor(-7, -2)));
+    print(si(modFloor(7, 2)) ++ " " ++ si(modFloor(-7, 2)) ++ " " ++ si(modFloor(7, -2)) ++ " " ++ si(modFloor(-7, -2)));
+    print(si(divFloor(intMin(), -1)) ++ " " ++ si(modFloor(intMin(), -1)));
+    print(si(powI(2, 10)) ++ " " ++ si(powI(-3, 3)) ++ " " ++ si(powI(5, 0)) ++ " " ++ si(powI(2, 64)));
+    print(si(gcdI(12, 18)) ++ " " ++ si(gcdI(-12, 18)) ++ " " ++ si(gcdI(0, 7)) ++ " " ++ si(gcdI(0, 0)));
+    print(si(popCount(0)) ++ " " ++ si(popCount(255)) ++ " " ++ si(popCount(-1)) ++ " " ++ si(popCount(intMin())));
+    print(si(clz(0)) ++ " " ++ si(clz(1)) ++ " " ++ si(clz(-1)) ++ " " ++ si(ctz(0)) ++ " " ++ si(ctz(8)) ++ " " ++ si(ctz(intMin())));
+}

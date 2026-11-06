@@ -1,0 +1,5 @@
+@module main
+use other;
+use other as other;
+fn main() {}
+@module other

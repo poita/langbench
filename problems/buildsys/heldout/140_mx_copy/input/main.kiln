@@ -1,0 +1,36 @@
+step {
+    out "out/copy_0.txt"
+    in "src/e.txt"
+    cmd copy()
+}
+step {
+    out "out/copy_1.txt"
+    in "src/n.txt"
+    cmd copy()
+}
+step {
+    out "out/copy_2.txt"
+    in "src/x.txt"
+    cmd copy()
+}
+step {
+    out "out/copy_3.txt"
+    in "src/c.txt"
+    cmd copy()
+}
+step {
+    out "out/copy_4.txt"
+    in "src/u.txt"
+    cmd copy()
+}
+step {
+    out "out/copy_5.txt"
+    in "src/b.txt"
+    cmd copy()
+}
+step {
+    out "out/copy_pin.txt"
+    in ["out/copy_0.txt", "out/copy_1.txt", "out/copy_2.txt", "out/copy_3.txt", "out/copy_4.txt", "out/copy_5.txt"]
+    cmd hash()
+}
+default "out/copy_pin.txt"

@@ -1,0 +1,11 @@
+step {
+    out "out/count_lines_all.txt"
+    in ["src/e.txt", "src/n.txt", "src/x.txt", "src/c.txt", "src/u.txt", "src/b.txt"]
+    cmd count_lines()
+}
+step {
+    out "out/count_lines_all_pin.txt"
+    in ["out/count_lines_all.txt"]
+    cmd hash()
+}
+default "out/count_lines_all_pin.txt"

@@ -1,0 +1,9 @@
+step {
+    out "out/z.txt"
+    cmd write("1\n")
+}
+step {
+    out "out/z.txt"
+    cmd write("2\n")
+}
+default "out/z.txt"

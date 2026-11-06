@@ -1,0 +1,9 @@
+kiln-state 1
+step out/b.txt
+cmd write("b\n")
+out out/b.txt 08a61e07b54dac5d
+end
+step out/c.txt
+cmd write("c\n")
+out out/c.txt 08a2b407b54ac268
+end

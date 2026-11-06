@@ -1,0 +1,17 @@
+1 GAME-START A
+2 SHUFFLE A
+3 SHUFFLE B
+4 DRAW-EMPTY A
+5 DRAW-EMPTY B
+6 LOSE A vault
+7 LOSE B vault
+8 RESULT draw vault
+STATE BEGIN
+turn 1 active A phase dawn decision - over
+result draw vault
+player A spire 25 ember 0 cap 0 vault 0 hand 0 ash 0 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 0 ash 0 rift 0
+STATE END
+LEGAL BEGIN - over
+LEGAL END
+ERR 6 game-over

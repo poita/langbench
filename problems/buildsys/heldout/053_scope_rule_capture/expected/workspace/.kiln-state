@@ -1,0 +1,13 @@
+kiln-state 1
+step out/one.txt
+cmd write("inner-one|inner\n")
+out out/one.txt 0628b6764f846f8c
+end
+step out/three.txt
+cmd write("inner-three|inner\n")
+out out/three.txt 556bb3b3792e83b4
+end
+step out/two.txt
+cmd write("given|inner\n")
+out out/two.txt de0c081b90f4e78c
+end

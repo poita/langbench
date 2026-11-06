@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let f = |a: Int, b| a;
+}

@@ -1,0 +1,58 @@
+@module main
+fn words(text: Str) -> [Str] {
+    var out: [Str] = listNew();
+    var cur: [Char] = listNew();
+    for c in text {
+        if isAlpha(c) || c == '\'' {
+            push(cur, toLowerC(c));
+        } else if listLen(cur) > 0 {
+            push(out, strOfChars(cur));
+            clear(cur);
+        }
+    }
+    if listLen(cur) > 0 { push(out, strOfChars(cur)); }
+    out
+}
+
+fn mean(xs: [Int]) -> Float {
+    toFloat(listFold(xs, 0, |a, x| a + x)) / toFloat(listLen(xs))
+}
+
+fn stddev(xs: [Int]) -> Float {
+    let m = mean(xs);
+    let ss = listFold(xs, 0.0, |a, x| a + (toFloat(x) - m) * (toFloat(x) - m));
+    sqrtF(ss / toFloat(listLen(xs)))
+}
+
+fn main() {
+    let text = "It was the best of times, it was the worst of times, it was the age of wisdom, it was the age of foolishness, it was the epoch of belief, it was the epoch of incredulity, it was the season of Light, it was the season of Darkness, it was the spring of hope, it was the winter of despair, we had everything before us, we had nothing before us, we were all going direct to Heaven, we were all going direct the other way -- in short, the period was so far like the present period, that some of its noisiest authorities insisted on its being received, for good or for evil, in the superlative degree of comparison only. There were a king with a large jaw and a queen with a plain face, on the throne of England; there were a king with a large jaw and a queen with a fair face, on the throne of France. It's clear.";
+    let ws = words(text);
+    var freq: #[Str: Int] = mapNew();
+    for w in ws { freq[w] = mapGetOr(freq, w, 0) + 1; }
+    print(fmt("words={} distinct={}", [showInt(listLen(ws)), showInt(mapLen(freq))]));
+    let ranked = sortBy(pairsOf(freq), |a, b| {
+        let c = cmpI(snd(b), snd(a));
+        if c != 0 { c } else { strCmp(fst(a), fst(b)) }
+    });
+    for (w, n) in slice(ranked, 0, 12) {
+        print(padRight(w, 10, '.') ++ padLeft(showInt(n), 4, ' ') ++ " " ++ strRepeat("*", n));
+    }
+    let lens = listMap(ws, |w| strLen(w));
+    print("mean length " ++ showFloatAt(mean(lens), 4) ++ ", stddev " ++ showFloatAt(stddev(lens), 4));
+    var byLen: #[Int: [Str]] = mapNew();
+    for w in keysOf(freq) {
+        let n = strLen(w);
+        if !mapHas(byLen, n) { byLen[n] = listNew(); }
+        push(byLen[n], w);
+    }
+    for n in sortBy(keysOf(byLen), |a, b| cmpI(a, b)) {
+        let group = sortBy(byLen[n], |a, b| strCmp(a, b));
+        if n >= 8 { print(showInt(n) ++ ": " ++ strJoin(group, " ")); }
+    }
+    let longest = listFold(ws, "", |best, w| if strLen(w) > strLen(best) { w } else { best });
+    print("longest: " ++ longest ++ " reversed: " ++ strReverse(longest) ++ " upper: " ++ upper(longest));
+    let vowels = listLen(listFilter(chars(text), |c| strContains("aeiouAEIOU", showChar(c))));
+    print("vowel ratio " ++ showFloatAt(toFloat(vowels) / toFloat(strLen(text)), 6));
+    print(strReplace(substr(text, 0, 48), "times", "TIMES"));
+    print(showInt(strIndexOf(text, "epoch")) ++ " " ++ showInt(strLastIndexOf(text, "epoch")) ++ " " ++ showInt(listLen(strSplit(text, ", "))));
+}

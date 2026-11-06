@@ -1,0 +1,5 @@
+kiln-state 1
+step out/f.txt
+cmd write("slow:2:E\n")
+out out/f.txt bc541dd4e0e75b0d
+end

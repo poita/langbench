@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let xs = [1]; print(showInt(xs[-1]));
+}

@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Builds the whole `buildsys` test suite, public and hidden.
+"""Builds the whole `buildsys` test suite, public and held-out.
 
 Every case is a directory-mode test: `tests/NNN_name/input/` holds
 `session.txt` plus the initial workspace, and `tests/NNN_name/expected/` holds
 the tree that `reference/main.py` produces from it. Cases are written to
 
   * problems/buildsys/tests/                       (public, about a quarter)
-  * $LANGBENCH_HIDDEN (default: langbench-hidden next to this checkout)/buildsys/tests/  (hidden, the rest)
+  * problems/buildsys/heldout/  (held out, the rest)
 
 sharing one `NNN` sequence so names never collide, and are stratified so every
 feature area appears in both sets.
@@ -38,8 +38,7 @@ from concurrent.futures import ThreadPoolExecutor
 HERE = os.path.dirname(os.path.abspath(__file__))
 REFERENCE = os.path.join(HERE, "reference", "main.py")
 PUBLIC_DIR = os.path.join(HERE, "tests")
-HIDDEN_DIR = os.path.join(os.environ.get("LANGBENCH_HIDDEN") or os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "langbench-hidden")), "buildsys", "tests")
+HIDDEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "heldout")
 
 CASES = []
 

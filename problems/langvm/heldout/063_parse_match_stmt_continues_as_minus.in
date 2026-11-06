@@ -1,0 +1,6 @@
+@module main
+fn main() {
+    let n = 3;
+    match n { _ -> print("x") }
+    -1;
+}

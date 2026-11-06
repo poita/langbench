@@ -1,0 +1,9 @@
+@module main
+fn f(o: Option<[Int]>) -> Int {
+    match o {
+        Some([]) -> 0,
+        Some([_, ..]) -> 1,
+        None -> -1,
+    }
+}
+fn main() { print("ok"); }

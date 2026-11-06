@@ -1,0 +1,5 @@
+kiln-state 1
+step out/z.txt
+cmd write("1 ok")
+out out/z.txt 97fb9cf146f462de
+end

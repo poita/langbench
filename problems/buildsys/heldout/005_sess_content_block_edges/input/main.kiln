@@ -1,0 +1,6 @@
+step {
+    out "out/n.txt"
+    in "src/x.txt"
+    cmd number()
+}
+default "out/n.txt"

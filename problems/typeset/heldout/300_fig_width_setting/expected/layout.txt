@@ -1,0 +1,15 @@
+layout 1
+pages 2
+page 1 1 200000 120000 20000 20000 160000 80000
+  text body serif 10000 38000 27310 23390 "Body."
+page 2 2 200000 120000 20000 20000 160000 80000
+  box float 50000 20000 100000 20000
+  text float serif 9000 58773 50579 23571 "Figure"
+  text float serif 9000 84630 50579 6705 "1."
+  text float serif 9000 95335 50579 28350 "Caption"
+  text float serif 9000 125971 50579 15255 "one."
+  box float 20000 64586 160000 10000
+  text float serif 9000 58530 85165 23571 "Figure"
+  text float serif 9000 84387 85165 6768 "2."
+  text float serif 9000 95155 85165 28350 "Caption"
+  text float serif 9000 125791 85165 15678 "two."

@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    var m = #["a": 1]; mapClear(m); print(si(mapLen(m)) ++ " " ++ ss(keysOf(m)));
+    var m = #["a": 1]; let n = mapCopy(m); n["b"] = 2; print(si(mapLen(m)) ++ si(mapLen(n)));
+    var m = #["a": 1]; let n = m; n["b"] = 2; print(si(mapLen(m)) ++ sb(m == n));
+    print(sb(#[1: "a", 2: "b"] == #[2: "b", 1: "a"]) ++ sb(#[1: "a"] == #[1: "b"]) ++ sb(#[1: "a"] == #[1: "a", 2: "b"]));
+    var m = #[1: 1, 2: 4]; print(si(m[1]) ++ si(m[2]) ++ sb(mapHas(m, 3)));
+    var m: #[Char: Int] = mapNew(); m['z'] = 1; m['a'] = 2; print(strOfChars(keysOf(m)) ++ " " ++ sl(valuesOf(m)));
+    var m: #[Bool: Int] = mapNew(); m[true] = 1; m[false] = 0; print(si(mapLen(m)) ++ si(m[true]) ++ si(m[false]));
+}

@@ -1,0 +1,77 @@
+[1] ok put created
+[2] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 1
+  root 3
+  height 1
+  commits 1
+  indexes 0
+  wal 3200
+[3] ok put replaced
+[4] ok stat
+  pages 4
+  free 0
+  freehead 0
+  docs 1
+  root 3
+  height 1
+  commits 2
+  indexes 0
+  wal 7416
+[5] ok put replaced
+[6] ok stat
+  pages 7
+  free 0
+  freehead 0
+  docs 1
+  root 3
+  height 1
+  commits 3
+  indexes 0
+  wal 14776
+[7] ok put replaced
+[8] ok stat
+  pages 7
+  free 3
+  freehead 5
+  docs 1
+  root 3
+  height 1
+  commits 4
+  indexes 0
+  wal 22136
+[9] ok put replaced
+[10] ok stat
+  pages 7
+  free 5
+  freehead 6
+  docs 1
+  root 3
+  height 1
+  commits 5
+  indexes 0
+  wal 26352
+[11] ok put replaced
+[12] ok stat
+  pages 7
+  free 5
+  freehead 6
+  docs 1
+  root 3
+  height 1
+  commits 6
+  indexes 0
+  wal 28472
+[13] ok delete removed
+[14] ok stat
+  pages 7
+  free 6
+  freehead 3
+  docs 0
+  root 0
+  height 0
+  commits 7
+  indexes 0
+  wal 30592

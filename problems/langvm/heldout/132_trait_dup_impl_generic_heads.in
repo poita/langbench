@@ -1,0 +1,11 @@
+@module main
+use other;
+struct W<T> { v: T }
+trait Count { fn count(self) -> Int; }
+impl<T> Count for [T] { fn count(self) -> Int { listLen(self) } }
+impl<T> Count for W<T> { fn count(self) -> Int { 1 } }
+impl Count for Str { fn count(self) -> Int { strLen(self) } }
+impl<U> Count for W<U> { fn count(self) -> Int { 0 } }
+fn main() { print(showInt([1, 2].count())); }
+@module other
+pub fn x() -> Int { 1 }

@@ -1,0 +1,9 @@
+@module main
+struct Node { v: Int, next: Option<Node> }
+fn main() {
+    let a = Node.{ v: 1, next: None };
+    let b = Node.{ v: 1, next: None };
+    print(showBool(a == b));
+    let c = Node.{ v: 1, next: Some(a) };
+    print(showBool(a == c));
+}

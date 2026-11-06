@@ -1,0 +1,11 @@
+build -j 16
+edit src/m6/f0.txt
+---
+build @m4 -j 16
+edit src/m1/f0.txt
+---
+build @m10 -j 8
+clean
+build @m1 -j 3
+touch src/m5/f9.txt
+build @m10 -j 4

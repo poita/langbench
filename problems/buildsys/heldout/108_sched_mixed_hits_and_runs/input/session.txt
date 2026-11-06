@@ -1,0 +1,12 @@
+build -j 3
+edit src/s2.txt
+S2
+---
+build -j 3
+edit src/s0.txt
+S0
+---
+edit src/s5.txt
+S5
+---
+build -j 2

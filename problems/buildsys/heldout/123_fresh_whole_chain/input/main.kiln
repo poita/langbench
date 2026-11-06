@@ -1,0 +1,12 @@
+let stages = ["one", "two", "three"]
+let prev = "src/a.txt"
+each i, s in stages {
+    step {
+        out "out/{s}.txt"
+        in prev
+        cmd wrap("[{i}", "]\n")
+        cost 2
+    }
+    set prev = "out/{s}.txt"
+}
+default prev

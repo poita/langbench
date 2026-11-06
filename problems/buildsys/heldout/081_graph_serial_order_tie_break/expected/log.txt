@@ -1,0 +1,8 @@
+step 1: build (default) -j 3
+  run 0 7 w0 out/s0.txt write("0\n")
+  run 0 6 w1 out/s1.txt write("1\n")
+  run 0 5 w2 out/s2.txt write("2\n")
+  run 5 9 w2 out/s3.txt write("3\n")
+  run 6 9 w1 out/s4.txt write("4\n")
+  run 7 9 w0 out/s5.txt write("5\n")
+  ok ran=6 hit=0 time=9

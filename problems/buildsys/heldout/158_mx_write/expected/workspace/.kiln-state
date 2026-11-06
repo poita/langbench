@@ -1,0 +1,50 @@
+kiln-state 1
+step out/w0.txt
+cmd write("")
+out out/w0.txt cbf29ce484222325
+end
+step out/w1.txt
+cmd write("\n")
+out out/w1.txt af63c74c8601c8dd
+end
+step out/w2.txt
+cmd write("\x00\x00")
+out out/w2.txt 08328807b4eb6fed
+end
+step out/w3.txt
+cmd write("no newline")
+out out/w3.txt 99c8bc896d040922
+end
+step out/w4.txt
+cmd write("tab\there")
+out out/w4.txt 778309ed1f28b0f9
+end
+step out/w5.txt
+cmd write("cr\rhere")
+out out/w5.txt 0cf6d6c5f94242e1
+end
+step out/w6.txt
+cmd write("quote\" and backslash\\")
+out out/w6.txt 2ee9b05751eac7e6
+end
+step out/w7.txt
+cmd write("Ünïcödé")
+out out/w7.txt 02ccbad8d957a6b2
+end
+step out/w8.txt
+cmd write("2x{brace}")
+out out/w8.txt c26b0990493f7ef6
+end
+step out/w_pin.txt
+cmd hash()
+in out/w0.txt cbf29ce484222325
+in out/w1.txt af63c74c8601c8dd
+in out/w2.txt 08328807b4eb6fed
+in out/w3.txt 99c8bc896d040922
+in out/w4.txt 778309ed1f28b0f9
+in out/w5.txt 0cf6d6c5f94242e1
+in out/w6.txt 2ee9b05751eac7e6
+in out/w7.txt 02ccbad8d957a6b2
+in out/w8.txt c26b0990493f7ef6
+out out/w_pin.txt 73d00873490265f3
+end

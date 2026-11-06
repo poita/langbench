@@ -1,0 +1,4 @@
+step 1: build (default) -j 1
+  run 0 6 w0 out/doc.txt preprocess()
+  run 6 9 w0 out/h.txt hash()
+  ok ran=2 hit=0 time=9

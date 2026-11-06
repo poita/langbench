@@ -1,0 +1,11 @@
+build -j 16
+edit src/m0/f1.txt
+ash
+hazel
+lambda
+gamma
+---
+build out/all.txt -j 16
+edit src/m0/f1.txt
+---
+build @m0 -j 16

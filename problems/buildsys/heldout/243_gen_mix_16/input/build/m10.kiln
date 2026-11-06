@@ -1,0 +1,43 @@
+let all_m10 = glob("src/m10/**/*.txt")
+let s_m10 = sort(reject(all_m10, "**/skip_*.txt"))
+let o_m10 = []
+each i, f in s_m10 {
+    when i % 3 == 0 {
+        step {
+            out "out/m10/{stem(f)}.txt"
+            in f
+            cmd copy()
+            cost 1
+        }
+    } elsewhen i % 3 == 1 {
+        step {
+            out "out/m10/{stem(f)}.txt"
+            in f
+            cmd upper()
+            cost 2
+        }
+    } otherwise {
+        step {
+            out "out/m10/{stem(f)}.txt"
+            in f
+            cmd upper()
+            cost 2
+        }
+    }
+    set o_m10 = o_m10 ++ ["out/m10/{stem(f)}.txt"]
+}
+step {
+    out "out/m10/bundle.txt"
+    in o_m10
+    cmd count_lines()
+    cost 2
+}
+use wrapper("m10/wrapped", "out/m10/bundle.txt", "<m10|", "|>\n", 3)
+step {
+    out "out/m10/doc.txt"
+    depfile "out/m10/doc.d"
+    in "src/m10/doc.src"
+    cmd preprocess()
+    cost 8
+}
+phony m10 = ["out/m10/wrapped.txt", "out/m10/doc.txt"]

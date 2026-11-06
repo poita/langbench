@@ -1,0 +1,5 @@
+step {
+    out "out/z.txt"
+    cmd write(greeting)
+}
+default "out/z.txt"

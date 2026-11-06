@@ -1,0 +1,18 @@
+kiln-state 1
+step out/c.txt
+cmd copy()
+in src/a.txt 8943a78b9f342c58
+out out/c.txt 8943a78b9f342c58
+end
+step out/cat.txt
+cmd concat()
+in src/a.txt 8943a78b9f342c58
+in src/b.txt af63ff4c86022805
+in src/a.txt 8943a78b9f342c58
+out out/cat.txt 4c374eef917c66df
+end
+step out/one.txt
+cmd concat()
+in src/b.txt af63ff4c86022805
+out out/one.txt af63ff4c86022805
+end

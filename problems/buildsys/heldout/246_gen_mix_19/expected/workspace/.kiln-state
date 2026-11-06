@@ -1,0 +1,58 @@
+kiln-state 1
+step out/m7/bundle.txt
+cmd count_lines()
+in out/m7/f0.txt 8d0d645f11e43274
+in out/m7/f1.txt 83d2cd5dae04c13f
+in out/m7/f2.txt 76475afd572e5955
+in out/m7/f4.txt cbf29ce484222325
+in out/m7/f5.txt 5d506cc1bdd98584
+in out/m7/f6.txt 17bbae57c9b07b8e
+in out/m7/g3.txt 714f08b07cbc588f
+in out/m7/g7.txt cbf29ce484222325
+out out/m7/bundle.txt 5967faa7e6b7cc6e
+end
+step out/m7/f0.txt
+cmd dedup()
+in src/m7/f0.txt 8d0d645f11e43274
+out out/m7/f0.txt 8d0d645f11e43274
+end
+step out/m7/f1.txt
+cmd upper()
+in src/m7/f1.txt c2771c07187b005f
+out out/m7/f1.txt 83d2cd5dae04c13f
+end
+step out/m7/f2.txt
+cmd upper()
+in src/m7/f2.txt 6d4425e5a97e7b55
+out out/m7/f2.txt 76475afd572e5955
+end
+step out/m7/f4.txt
+cmd dedup()
+in src/m7/f4.txt cbf29ce484222325
+out out/m7/f4.txt cbf29ce484222325
+end
+step out/m7/f5.txt
+cmd upper()
+in src/m7/f5.txt 332b017c376b22c4
+out out/m7/f5.txt 5d506cc1bdd98584
+end
+step out/m7/f6.txt
+cmd upper()
+in src/m7/f6.txt cbade8a4fd86bc2e
+out out/m7/f6.txt 17bbae57c9b07b8e
+end
+step out/m7/g3.txt
+cmd dedup()
+in src/m7/sub/g3.txt f18f92e7d3477952
+out out/m7/g3.txt 714f08b07cbc588f
+end
+step out/m7/g7.txt
+cmd upper()
+in src/m7/sub/g7.txt cbf29ce484222325
+out out/m7/g7.txt cbf29ce484222325
+end
+step out/m7/wrapped.txt
+cmd wrap("<m7|", "|>\n")
+in out/m7/bundle.txt 5967faa7e6b7cc6e
+out out/m7/wrapped.txt 1699fae16ab5123a
+end

@@ -1,0 +1,7 @@
+step 1: build (default) -j 4
+  run 0 3 w0 out/g0.txt grep("a")
+  run 0 3 w1 out/g1.txt grep("zz")
+  run 0 3 w2 out/g2.txt grep("")
+  run 0 3 w3 out/g3.txt grep("b")
+  run 3 6 w0 out/h.txt hash()
+  ok ran=5 hit=0 time=6

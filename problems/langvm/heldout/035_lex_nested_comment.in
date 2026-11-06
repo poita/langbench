@@ -1,0 +1,5 @@
+@module main
+/* a /* b */ still comment */
+fn main() { // line
+    print("ok"); /* tail */
+}

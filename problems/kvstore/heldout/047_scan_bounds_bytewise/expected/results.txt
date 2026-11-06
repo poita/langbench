@@ -1,0 +1,36 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] error syntax
+[7] ok put created
+[8] ok put created
+[9] ok scan 7
+  "A"
+  "Z"
+  "a"
+  "ab"
+  "b"
+  "~"
+  "ÿ"
+[10] ok scan 4
+  "A"
+  "Z"
+  "a"
+  "ab"
+[11] ok scan 1
+  "a"
+[12] ok scan 4
+  "ab"
+  "b"
+  "~"
+  "ÿ"
+[13] error syntax
+[14] ok scan 3
+  "ÿ"
+  "~"
+  "b"
+[15] ok scan 1
+  "ÿ"
+[16] error syntax

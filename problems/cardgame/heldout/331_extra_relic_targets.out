@@ -1,0 +1,89 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+LEGAL BEGIN A priority
+PASS
+PLAY 1 EXT-002 #26
+PLAY 1 EXT-002 #27
+PLAY 1 EXT-002 #28
+PLAY 2 EXT-012 #13
+PLAY 2 EXT-012 #14
+PLAY 2 EXT-012 #26
+PLAY 2 EXT-012 #27
+PLAY 2 EXT-012 #28
+LEGAL END
+8 PLAY A ~1 #11 EXT-002 #26
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DESTROY #26 EXT-015
+14 SPENT #11 EXT-002
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 8 cap 10 vault 10 hand 1 ash 1 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 1 ash 1 rift 0
+hand A 1 #12 EXT-012
+hand B 1 #25 EXT-012
+field A #13 EXT-010 -/- w0 c0 ready - kw -
+field A #14 EXT-007 -/- w0 c0 ready - kw -
+field B #27 EXT-010 -/- w0 c0 ready - kw -
+field B #28 EXT-007 -/- w0 c0 ready - kw -
+ash A 1 #11 EXT-002
+ash B 1 #26 EXT-015
+effect 1 ts2 A aura modify 2 2 on -
+effect 2 ts4 A aura modify 0 0 on -
+effect 4 ts8 B aura modify 2 2 on -
+effect 5 ts10 B aura modify 0 0 on -
+STATE END
+15 PLAY A ~2 #12 EXT-012 #27
+16 PAY A ember 1
+17 PASS A
+18 PASS B
+19 RESOLVE ~2
+20 BOUNCE #27 EXT-010
+21 SPENT #12 EXT-012
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 7 cap 10 vault 10 hand 0 ash 2 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 2 ash 1 rift 0
+hand B 1 #25 EXT-012
+hand B 2 #27 EXT-010
+field A #13 EXT-010 -/- w0 c0 ready - kw -
+field A #14 EXT-007 -/- w0 c0 ready - kw -
+field B #28 EXT-007 -/- w0 c0 ready - kw -
+ash A 1 #11 EXT-002
+ash A 2 #12 EXT-012
+ash B 1 #26 EXT-015
+effect 1 ts2 A aura modify 2 2 on -
+effect 2 ts4 A aura modify 0 0 on -
+effect 5 ts10 B aura modify 0 0 on -
+STATE END
+22 PASS A
+23 PLAY B ~3 #25 EXT-012 #14
+24 PAY B ember 1
+25 PASS B
+26 PASS A
+27 RESOLVE ~3
+28 BOUNCE #14 EXT-007
+29 SPENT #25 EXT-012
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 7 cap 10 vault 10 hand 1 ash 2 rift 0
+player B spire 30 ember 9 cap 10 vault 10 hand 1 ash 2 rift 0
+hand A 1 #14 EXT-007
+hand B 1 #27 EXT-010
+field A #13 EXT-010 -/- w0 c0 ready - kw -
+field B #28 EXT-007 -/- w0 c0 ready - kw -
+ash A 1 #11 EXT-002
+ash A 2 #12 EXT-012
+ash B 1 #26 EXT-015
+ash B 2 #25 EXT-012
+effect 1 ts2 A aura modify 2 2 on -
+effect 5 ts10 B aura modify 0 0 on -
+STATE END
+30 RESULT pending none

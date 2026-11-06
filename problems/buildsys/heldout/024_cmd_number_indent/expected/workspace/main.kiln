@@ -1,0 +1,21 @@
+step {
+    out "out/n.txt"
+    in "src/t.txt"
+    cmd number()
+}
+step {
+    out "out/i0.txt"
+    in "src/t.txt"
+    cmd indent(0)
+}
+step {
+    out "out/i3.txt"
+    in "src/t.txt"
+    cmd indent(3)
+}
+step {
+    out "out/h.txt"
+    in ["out/n.txt", "out/i0.txt", "out/i3.txt"]
+    cmd hash()
+}
+default "out/h.txt"

@@ -1,0 +1,28 @@
+create index i00
+create index i01
+create index i02
+create index i03
+create index i04
+create index i05
+create index i06
+create index i07
+create index i08
+create index i09
+create index i10
+create index i11
+create index i12
+create index i13
+create index i14
+create index i15
+create index extra
+drop index i07
+create index extra
+indexes
+drop index i00
+drop index i15
+indexes
+create index a
+create index b
+create index c
+indexes
+stat

@@ -1,0 +1,4 @@
+@module main
+use main as me;
+fn helper() -> Int { 5 }
+fn main() { print(showInt(me::helper())); }

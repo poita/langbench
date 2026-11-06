@@ -1,0 +1,110 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 TRIGGER A ~1 #13 1
+7 RESOLVE ~1
+8 COUNTERS #13 +1 1
+9 PHASE draw
+10 PHASE main1
+LEGAL BEGIN A priority
+PASS
+PLAY 1 EXT-001
+PLAY 2 EXT-032
+ACT #13 2 #14
+ACT #13 2 #25
+LEGAL END
+ERR 15 illegal-target
+11 ACTIVATE A ~2 #13 2 #25
+12 PAY A spire 1
+13 SPIRE A -1 29
+14 COUNTERS #13 -1 0
+15 DISCARD A #11 EXT-001
+16 PASS A
+17 PASS B
+18 RESOLVE ~2
+19 COUNTERS #25 +2 2
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 29 ember 10 cap 10 vault 10 hand 1 ash 1 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+hand A 1 #12 EXT-032
+field A #13 EXT-032 2/3 w0 c0 ready - kw vanguard
+field A #14 EXT-001 1/1 w0 c0 ready - kw -
+field B #25 EXT-001 3/3 w0 c2 ready - kw -
+ash A 1 #11 EXT-001
+STATE END
+LEGAL BEGIN A priority
+PASS
+PLAY 1 EXT-032
+LEGAL END
+ERR 21 cost-unpayable
+20 PASS A
+21 PASS B
+22 PHASE clash-attack
+23 PHASE main2
+24 PASS A
+25 PASS B
+26 PHASE dusk-trigger
+27 PASS A
+28 PASS B
+29 PHASE dusk-discard
+30 PHASE dusk-cleanup
+31 TURN 2 B
+32 PHASE dawn
+33 EMBER A 10 10
+34 EMBER B 10 10
+35 PHASE draw
+36 DRAW B #15 EXT-001
+37 PHASE main1
+38 PASS B
+39 PASS A
+40 PHASE clash-attack
+41 PHASE main2
+42 PASS B
+43 PASS A
+44 PHASE dusk-trigger
+45 PASS B
+46 PASS A
+47 PHASE dusk-discard
+48 PHASE dusk-cleanup
+49 TURN 3 A
+50 PHASE dawn
+51 EMBER A 10 10
+52 EMBER B 10 10
+53 TRIGGER A ~3 #13 1
+54 RESOLVE ~3
+55 COUNTERS #13 +1 1
+56 PHASE draw
+57 DRAW A #1 EXT-001
+58 PHASE main1
+LEGAL BEGIN A priority
+PASS
+PLAY 1 EXT-032
+PLAY 2 EXT-001
+ACT #13 2 #14
+ACT #13 2 #25
+LEGAL END
+59 ACTIVATE A ~4 #13 2 #14
+60 PAY A spire 1
+61 SPIRE A -1 28
+62 COUNTERS #13 -1 0
+63 DISCARD A #12 EXT-032
+64 PASS A
+65 PASS B
+66 RESOLVE ~4
+67 COUNTERS #14 +2 2
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 28 ember 10 cap 10 vault 9 hand 1 ash 2 rift 0
+player B spire 30 ember 10 cap 10 vault 9 hand 1 ash 0 rift 0
+hand A 1 #1 EXT-001
+hand B 1 #15 EXT-001
+field A #13 EXT-032 2/3 w0 c0 ready - kw vanguard
+field A #14 EXT-001 3/3 w0 c2 ready - kw -
+field B #25 EXT-001 3/3 w0 c2 ready - kw -
+ash A 1 #11 EXT-001
+ash A 2 #12 EXT-032
+STATE END
+68 RESULT pending none

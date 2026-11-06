@@ -1,0 +1,16 @@
+kiln-state 1
+step out/concat_all.txt
+cmd concat()
+in src/e.txt cbf29ce484222325
+in src/n.txt dc3add5ecc4ba006
+in src/x.txt 07c7d73947cbe1de
+in src/c.txt 25fd018afddd7cc5
+in src/u.txt 883ac19acb748cf1
+in src/b.txt 1c2c1cfae3c07157
+out out/concat_all.txt f80e92491a77b3d5
+end
+step out/concat_all_pin.txt
+cmd hash()
+in out/concat_all.txt f80e92491a77b3d5
+out out/concat_all_pin.txt 89355ad183144b57
+end

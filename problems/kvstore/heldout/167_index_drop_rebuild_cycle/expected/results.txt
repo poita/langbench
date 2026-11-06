@@ -1,0 +1,75 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put created
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok put created
+[21] ok put created
+[22] ok put created
+[23] ok put created
+[24] ok put created
+[25] ok put created
+[26] ok put created
+[27] ok put created
+[28] ok put created
+[29] ok put created
+[30] ok put created
+[31] ok put created
+[32] ok put created
+[33] ok put created
+[34] ok put created
+[35] ok put created
+[36] ok put created
+[37] ok put created
+[38] ok put created
+[39] ok put created
+[40] ok put created
+[41] ok create index v entries 40
+[42] ok indexes 1
+  0 v root 5 entries 40
+[43] ok drop index v pages 1
+[44] ok create index v entries 40
+[45] ok indexes 1
+  0 v root 5 entries 40
+[46] ok drop index v pages 1
+[47] ok create index v entries 40
+[48] ok indexes 1
+  0 v root 5 entries 40
+[49] ok stat
+  pages 5
+  free 0
+  freehead 0
+  docs 40
+  root 4
+  height 2
+  commits 45
+  indexes 1
+  wal 97528
+[50] ok find 2 plan index v
+  "k01" = {"v":7}
+  "k24" = {"v":7}
+[51] ok checkpoint pages 5
+[52] ok stat
+  pages 5
+  free 0
+  freehead 0
+  docs 40
+  root 4
+  height 2
+  commits 45
+  indexes 1
+  wal 32

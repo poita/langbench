@@ -1,0 +1,33 @@
+[1] ok put created
+[2] ok put created
+[3] ok create index v entries 2
+[4] ok stat
+  pages 11
+  free 0
+  freehead 0
+  docs 2
+  root 5
+  height 1
+  commits 3
+  indexes 1
+  wal 14776
+[5] ok indexes 1
+  0 v root 11 entries 2
+[6] ok find 0 plan index v
+[7] ok update updated
+[8] ok indexes 1
+  0 v root 11 entries 2
+[9] ok find 0 plan index v
+[10] ok delete removed
+[11] ok indexes 1
+  0 v root 11 entries 1
+[12] ok stat
+  pages 11
+  free 5
+  freehead 10
+  docs 1
+  root 5
+  height 1
+  commits 5
+  indexes 1
+  wal 29496

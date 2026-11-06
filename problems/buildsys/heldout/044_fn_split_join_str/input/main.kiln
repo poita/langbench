@@ -1,0 +1,15 @@
+step {
+    out "out/l0.txt"
+    cmd write("{join(split("a,,b", ","), "|")}|{join(split("", ","), "-")}|{join(split("abc", "x"), "-")}|{join([], "x")}|{join([1, "a", -2], "+")}|{count(split("a,b,c", ","))}|{count(split(",", ","))}\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{join(split("aXXb", "XX"), "/")} {join(split("XXaXX", "XX"), "/")} {join(["x"], "")}\n")
+}
+default "out/l1.txt"
+step {
+    out "out/l2.txt"
+    cmd write("{str(42)}|{str(-1)}|{str(true)}|{str(false)}|{str("x")}|{int("0042")}|{int(-7)}|{int("-9")}|{int("0")}|{int("-0")}\n")
+}
+default "out/l2.txt"

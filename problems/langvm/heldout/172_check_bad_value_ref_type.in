@@ -1,0 +1,3 @@
+@module main
+struct S { a: Int }
+fn main() { let x = S; }

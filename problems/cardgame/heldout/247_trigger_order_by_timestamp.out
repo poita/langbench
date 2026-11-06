@@ -1,0 +1,213 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #22 TID-007
+9 PAY A ember 2
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 10 vault 20 hand 1 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 TID-016
+field A #23 CIN-025 1/3 w0 c0 ready - kw -
+field A #24 CIN-025 1/3 w0 c0 ready - kw -
+field A #25 TID-005 2/3 w0 c0 ready - kw -
+field A #26 CIN-025 1/3 w0 c0 ready - kw -
+chain 1 ~1 A rite #22 0
+STATE END
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DRAW A #1 CIN-001
+14 DRAW A #2 CIN-001
+15 SPENT #22 TID-007
+16 TRIGGER A ~2 #23 1
+17 TRIGGER A ~3 #23 1
+18 TRIGGER A ~4 #24 1
+19 TRIGGER A ~5 #24 1
+20 TRIGGER A ~6 #25 1
+21 TRIGGER A ~7 #25 1
+22 TRIGGER A ~8 #26 1
+23 TRIGGER A ~9 #26 1
+24 PASS A
+25 PASS B
+26 RESOLVE ~2
+27 DAMAGE #23 B 1
+28 SPIRE B -1 39
+29 PASS A
+30 PASS B
+31 RESOLVE ~3
+32 DAMAGE #23 B 1
+33 SPIRE B -1 38
+34 PASS A
+35 PASS B
+36 RESOLVE ~4
+37 DAMAGE #24 B 1
+38 SPIRE B -1 37
+39 PASS A
+40 PASS B
+41 RESOLVE ~5
+42 DAMAGE #24 B 1
+43 SPIRE B -1 36
+44 PASS A
+45 PASS B
+46 RESOLVE ~6
+47 BUFF #25 1 0
+48 PASS A
+49 PASS B
+50 RESOLVE ~7
+51 BUFF #25 1 0
+52 PASS A
+53 PASS B
+54 RESOLVE ~8
+55 DAMAGE #26 B 1
+56 SPIRE B -1 35
+57 PASS A
+58 PASS B
+59 RESOLVE ~9
+60 DAMAGE #26 B 1
+61 SPIRE B -1 34
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 10 vault 18 hand 3 ash 1 rift 0
+player B spire 34 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 TID-016
+hand A 2 #1 CIN-001
+hand A 3 #2 CIN-001
+field A #23 CIN-025 1/3 w0 c0 ready - kw -
+field A #24 CIN-025 1/3 w0 c0 ready - kw -
+field A #25 TID-005 4/3 w0 c0 ready - kw -
+field A #26 CIN-025 1/3 w0 c0 ready - kw -
+ash A 1 #22 TID-007
+effect 1 ts5 A turn modify 1 0 on #25
+effect 2 ts6 A turn modify 1 0 on #25
+STATE END
+62 PLAY A ~10 #21 TID-016
+63 PAY A ember 3
+64 PASS A
+65 PASS B
+66 RESOLVE ~10
+67 DRAW A #3 CIN-001
+68 DRAW A #4 CIN-001
+69 DRAW A #5 CIN-001
+70 DRAW A #6 CIN-001
+71 SPENT #21 TID-016
+72 TRIGGER A ~11 #23 1
+73 TRIGGER A ~12 #23 1
+74 TRIGGER A ~13 #23 1
+75 TRIGGER A ~14 #23 1
+76 TRIGGER A ~15 #24 1
+77 TRIGGER A ~16 #24 1
+78 TRIGGER A ~17 #24 1
+79 TRIGGER A ~18 #24 1
+80 TRIGGER A ~19 #25 1
+81 TRIGGER A ~20 #25 1
+82 TRIGGER A ~21 #25 1
+83 TRIGGER A ~22 #25 1
+84 TRIGGER A ~23 #26 1
+85 TRIGGER A ~24 #26 1
+86 TRIGGER A ~25 #26 1
+87 TRIGGER A ~26 #26 1
+88 PASS A
+89 PASS B
+90 RESOLVE ~11
+91 DAMAGE #23 B 1
+92 SPIRE B -1 33
+93 PASS A
+94 PASS B
+95 RESOLVE ~12
+96 DAMAGE #23 B 1
+97 SPIRE B -1 32
+98 PASS A
+99 PASS B
+100 RESOLVE ~13
+101 DAMAGE #23 B 1
+102 SPIRE B -1 31
+103 PASS A
+104 PASS B
+105 RESOLVE ~14
+106 DAMAGE #23 B 1
+107 SPIRE B -1 30
+108 PASS A
+109 PASS B
+110 RESOLVE ~15
+111 DAMAGE #24 B 1
+112 SPIRE B -1 29
+113 PASS A
+114 PASS B
+115 RESOLVE ~16
+116 DAMAGE #24 B 1
+117 SPIRE B -1 28
+118 PASS A
+119 PASS B
+120 RESOLVE ~17
+121 DAMAGE #24 B 1
+122 SPIRE B -1 27
+123 PASS A
+124 PASS B
+125 RESOLVE ~18
+126 DAMAGE #24 B 1
+127 SPIRE B -1 26
+128 PASS A
+129 PASS B
+130 RESOLVE ~19
+131 BUFF #25 1 0
+132 PASS A
+133 PASS B
+134 RESOLVE ~20
+135 BUFF #25 1 0
+136 PASS A
+137 PASS B
+138 RESOLVE ~21
+139 BUFF #25 1 0
+140 PASS A
+141 PASS B
+142 RESOLVE ~22
+143 BUFF #25 1 0
+144 PASS A
+145 PASS B
+146 RESOLVE ~23
+147 DAMAGE #26 B 1
+148 SPIRE B -1 25
+149 PASS A
+150 PASS B
+151 RESOLVE ~24
+152 DAMAGE #26 B 1
+153 SPIRE B -1 24
+154 PASS A
+155 PASS B
+156 RESOLVE ~25
+157 DAMAGE #26 B 1
+158 SPIRE B -1 23
+159 PASS A
+160 PASS B
+161 RESOLVE ~26
+162 DAMAGE #26 B 1
+163 SPIRE B -1 22
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 5 cap 10 vault 14 hand 6 ash 2 rift 0
+player B spire 22 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand A 3 #3 CIN-001
+hand A 4 #4 CIN-001
+hand A 5 #5 CIN-001
+hand A 6 #6 CIN-001
+field A #23 CIN-025 1/3 w0 c0 ready - kw -
+field A #24 CIN-025 1/3 w0 c0 ready - kw -
+field A #25 TID-005 8/3 w0 c0 ready - kw -
+field A #26 CIN-025 1/3 w0 c0 ready - kw -
+ash A 1 #22 TID-007
+ash A 2 #21 TID-016
+effect 1 ts5 A turn modify 1 0 on #25
+effect 2 ts6 A turn modify 1 0 on #25
+effect 3 ts7 A turn modify 1 0 on #25
+effect 4 ts8 A turn modify 1 0 on #25
+effect 5 ts9 A turn modify 1 0 on #25
+effect 6 ts10 A turn modify 1 0 on #25
+STATE END
+164 RESULT pending none

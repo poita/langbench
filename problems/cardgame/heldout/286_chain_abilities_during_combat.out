@@ -1,0 +1,99 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+11 PHASE main2
+12 PASS A
+13 PASS B
+14 PHASE dusk-trigger
+15 PASS A
+16 PASS B
+17 PHASE dusk-discard
+18 PHASE dusk-cleanup
+19 TURN 2 B
+20 PHASE dawn
+21 EMBER A 51 51
+22 EMBER B 51 51
+23 PHASE draw
+24 DRAW B #23 TID-001
+25 PHASE main1
+26 PASS B
+27 PASS A
+28 PHASE clash-attack
+29 EXHAUST #43
+30 ATTACK #43
+31 EXHAUST #44
+32 ATTACK #44
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+33 PASS B
+LEGAL BEGIN A priority
+PASS
+ACT #21 1 #21
+ACT #21 1 #22
+ACT #21 1 #43
+ACT #21 1 #44
+ACT #22 1 #21
+ACT #22 1 #22
+ACT #22 1 #43
+ACT #22 1 #44
+LEGAL END
+34 ACTIVATE A ~1 #21 1 #43
+35 PAY A ember 1
+36 EXHAUST #21
+37 PASS A
+38 PASS B
+39 RESOLVE ~1
+40 DAMAGE #21 #43 1
+41 DESTROY #43 CIN-001
+42 PASS B
+43 PASS A
+44 PHASE clash-block
+45 UNBLOCKED #44
+46 PASS B
+47 ACTIVATE A ~2 #22 1 #22
+48 PAY A ember 1
+49 EXHAUST #22
+50 PASS A
+51 PASS B
+52 RESOLVE ~2
+53 WARD #22 2 2
+STATE BEGIN
+turn 2 active B phase clash-block decision B priority
+player A spire 40 ember 49 cap 51 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 51 cap 51 vault 19 hand 1 ash 1 rift 0
+hand B 1 #23 TID-001
+field A #21 CIN-027 1/2 w0 c0 exhausted - kw -
+field A #22 NEU-020 1/2 w0 c0 exhausted ward2 kw -
+field B #44 TOK-001 1/1 w0 c0 exhausted attacking kw -
+ash B 1 #43 CIN-001
+STATE END
+54 PASS B
+55 PASS A
+56 PHASE clash-damage
+57 DAMAGE #44 A 1
+58 SPIRE A -1 39
+59 PASS B
+60 PASS A
+61 PHASE clash-end
+62 PASS B
+63 PASS A
+64 PHASE main2
+STATE BEGIN
+turn 2 active B phase main2 decision B priority
+player A spire 39 ember 49 cap 51 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 51 cap 51 vault 19 hand 1 ash 1 rift 0
+hand B 1 #23 TID-001
+field A #21 CIN-027 1/2 w0 c0 exhausted - kw -
+field A #22 NEU-020 1/2 w0 c0 exhausted ward2 kw -
+field B #44 TOK-001 1/1 w0 c0 exhausted - kw -
+ash B 1 #43 CIN-001
+STATE END
+65 RESULT pending none

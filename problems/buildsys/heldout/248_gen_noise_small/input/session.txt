@@ -1,0 +1,17 @@
+build -j 16
+create src/m0/new0.txt
+mu
+birch
+---
+build -j 64
+edit src/m1/f2.txt
+omicron
+---
+build @m0 -j 2
+create src/m0/new1.txt
+0123
+epsilon
+---
+build @m1 -j 16
+touch src/m1/f1.txt
+build @m0 -j 8

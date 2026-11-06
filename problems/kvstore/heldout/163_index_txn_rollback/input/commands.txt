@@ -1,0 +1,20 @@
+put "a" {v:1}
+begin
+create index v
+indexes
+stat
+rollback
+indexes
+stat
+begin
+create index v
+put "b" {v:2}
+commit
+indexes
+stat
+begin
+drop index v
+indexes
+rollback
+indexes
+stat

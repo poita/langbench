@@ -1,0 +1,49 @@
+kiln-state 1
+step out/e0.txt
+cmd write("1:/x/|/x|a//b|a/b|/|//|a/|/a/\n")
+out out/e0.txt 2d8ef517a75a79a8
+end
+step out/e1.txt
+cmd write("9:|x/|/x|a//b|a/b|/|//|a/|/a//\n")
+out out/e1.txt 2270f27712160072
+end
+step out/e10.txt
+cmd write("4:a//b|a/b|a/|/a//|x/|/x|/|//\n")
+out out/e10.txt f4689d34f592fdcb
+end
+step out/e11.txt
+cmd write("0:/|x/|/x|a//b|a/b|/|//|a/|/a/\n")
+out out/e11.txt 8ebe24cabdc0f829
+end
+step out/e2.txt
+cmd write("0:/|x/|/x|a//b|a/b|/|//|a/|/a/\n")
+out out/e2.txt 8ebe24cabdc0f829
+end
+step out/e3.txt
+cmd write("5:x/|/x|a/b|/|a//|a//b|//|/a/\n")
+out out/e3.txt fed88cad27be8d1e
+end
+step out/e4.txt
+cmd write("2:a//b|a/b/|x/|/x|/|//|a/|/a/\n")
+out out/e4.txt 4150ab01411aa7e9
+end
+step out/e5.txt
+cmd write("1:a//b/|x/|/x|a/b|/|//|a/|/a/\n")
+out out/e5.txt 9874611a4f7eb68a
+end
+step out/e6.txt
+cmd write("1:/x/|x/|a//b|a/b|/|//|a/|/a/\n")
+out out/e6.txt 2f94b7062ac5cd8e
+end
+step out/e7.txt
+cmd write("9:|x/|/x|a//b|a/b|/|//|a/|/a//\n")
+out out/e7.txt 2270f27712160072
+end
+step out/e8.txt
+cmd write("3:a//b|//|/a//|x/|/x|a/b|/|a/\n")
+out out/e8.txt 5b5141272b323fa4
+end
+step out/e9.txt
+cmd write("3:a//b|a/b|a//|x/|/x|/|//|/a/\n")
+out out/e9.txt 023c2f803b9cde8c
+end

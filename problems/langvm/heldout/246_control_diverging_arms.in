@@ -1,0 +1,9 @@
+@module main
+fn f(n: Int) -> Int {
+    let v = match n {
+        0 -> { return -1; },
+        _ -> 5,
+    };
+    v
+}
+fn main() { print(showInt(f(0)) ++ " " ++ showInt(f(1))); }

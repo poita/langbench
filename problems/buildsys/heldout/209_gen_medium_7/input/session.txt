@@ -1,0 +1,11 @@
+build
+touch main.kiln
+build out/all.txt -j 2
+delete src/m9/f9.txt
+build @m7 -j 8
+touch src/m5/f8.txt
+build @m9 -j 64
+touch src/m0/f5.txt
+build -j 8
+clean
+build -j 2

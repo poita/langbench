@@ -209,7 +209,7 @@ def summarise(runs, langs=None, problems=None, present_in=None):
 
 def task_records(runs):
     """One record per task (last attempt) of runs made by impl_run.py launch: lang, slug, rep, whether it
-    finished (its public tests, and any hidden tests, pass on finish's rerun), output tokens, turns and cost.
+    finished (its public tests, and any held-out tests, pass on finish's rerun), output tokens, turns and cost.
     A task that a later run repeats is taken from the later run."""
     out = []
     rdirs = [run_dir(run) for run in runs]

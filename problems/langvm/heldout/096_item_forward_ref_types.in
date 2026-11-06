@@ -1,0 +1,7 @@
+@module main
+struct A { b: Option<B> }
+struct B { a: Option<A> }
+fn main() {
+    let a = A.{ b: Some(B.{ a: None }) };
+    print(showBool(isSome(a.b)));
+}

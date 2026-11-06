@@ -1,0 +1,36 @@
+step {
+    out "out/dedup_0.txt"
+    in "src/e.txt"
+    cmd dedup()
+}
+step {
+    out "out/dedup_1.txt"
+    in "src/n.txt"
+    cmd dedup()
+}
+step {
+    out "out/dedup_2.txt"
+    in "src/x.txt"
+    cmd dedup()
+}
+step {
+    out "out/dedup_3.txt"
+    in "src/c.txt"
+    cmd dedup()
+}
+step {
+    out "out/dedup_4.txt"
+    in "src/u.txt"
+    cmd dedup()
+}
+step {
+    out "out/dedup_5.txt"
+    in "src/b.txt"
+    cmd dedup()
+}
+step {
+    out "out/dedup_pin.txt"
+    in ["out/dedup_0.txt", "out/dedup_1.txt", "out/dedup_2.txt", "out/dedup_3.txt", "out/dedup_4.txt", "out/dedup_5.txt"]
+    cmd hash()
+}
+default "out/dedup_pin.txt"

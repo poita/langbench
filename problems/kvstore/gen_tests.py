@@ -7,8 +7,8 @@ three files the program must write. Expected outputs come from the reference
 implementation in ``reference/``, driven in process.
 
 Cases are numbered from one shared sequence and then split: roughly one in four
-goes to the public suite (``problems/kvstore/tests``) and the rest to the hidden
-suite (``$LANGBENCH_HIDDEN (default: langbench-hidden next to this checkout)/kvstore/tests``). The split is taken
+goes to the public suite (``problems/kvstore/tests``) and the rest to the held-out
+suite (``problems/kvstore/heldout``). The split is taken
 within each feature area, so every area appears in both suites.
 
 Run as ``python3 gen_tests.py`` from ``problems/kvstore/``; pass ``--list`` to
@@ -32,8 +32,7 @@ from tcrc import crc32  # noqa: E402
 from tengine import Store  # noqa: E402
 
 PUBLIC_DIR = os.path.join(HERE, "tests")
-HIDDEN_DIR = os.path.join(os.environ.get("LANGBENCH_HIDDEN") or os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "langbench-hidden")), "kvstore", "tests")
+HIDDEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "heldout")
 
 # One case in every PUBLIC_STRIDE, counted within a feature area, is public.
 PUBLIC_STRIDE = 4

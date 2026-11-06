@@ -1,0 +1,5 @@
+step 1: build (default) -j 3
+  run 0 1 w0 out/a.txt write("a\n")
+  run 0 1 w1 out/b.txt write("b\n")
+  run 0 1 w2 out/c.txt write("c\n")
+  ok ran=3 hit=0 time=1

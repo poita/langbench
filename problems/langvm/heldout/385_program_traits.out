@@ -1,0 +1,14 @@
+rect with area 12 | Rect(3, 4)
+circle with area 12 | Circle(2)
+triangle with area 15 | Tri(6, 5)
+square with area 25 | Rect(5, 5)
+total 64 / ints 14
+Some(Rect(5, 5))
+None
+[a=1, b=-2]
+nest=[Some("x"), None]
+#["one": [1], "two": [2, 2]]
+square7 with area 49
+circle with area 314
+"ab""ab" true 'c' 1.50
+Err("bad") Ok(3)

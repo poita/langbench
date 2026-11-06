@@ -1,0 +1,41 @@
+kiln-state 1
+step out/indent_0.txt
+cmd indent(4)
+in src/e.txt cbf29ce484222325
+out out/indent_0.txt cbf29ce484222325
+end
+step out/indent_1.txt
+cmd indent(4)
+in src/n.txt dc3add5ecc4ba006
+out out/indent_1.txt 9b60f209d51c4f46
+end
+step out/indent_2.txt
+cmd indent(4)
+in src/x.txt 07c7d73947cbe1de
+out out/indent_2.txt a692a2cfe0b9b7ac
+end
+step out/indent_3.txt
+cmd indent(4)
+in src/c.txt 25fd018afddd7cc5
+out out/indent_3.txt d6e3f7622d595665
+end
+step out/indent_4.txt
+cmd indent(4)
+in src/u.txt 883ac19acb748cf1
+out out/indent_4.txt 5724684bf3f28811
+end
+step out/indent_5.txt
+cmd indent(4)
+in src/b.txt 1c2c1cfae3c07157
+out out/indent_5.txt 7b9a1e7ccd76c9c7
+end
+step out/indent_pin.txt
+cmd hash()
+in out/indent_0.txt cbf29ce484222325
+in out/indent_1.txt 9b60f209d51c4f46
+in out/indent_2.txt a692a2cfe0b9b7ac
+in out/indent_3.txt d6e3f7622d595665
+in out/indent_4.txt 5724684bf3f28811
+in out/indent_5.txt 7b9a1e7ccd76c9c7
+out out/indent_pin.txt 048c49b7503878e5
+end

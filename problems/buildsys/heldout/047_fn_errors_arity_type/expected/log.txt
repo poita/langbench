@@ -1,0 +1,70 @@
+step 1: build (default) -j 1
+  error E_ARITY fn upper: expected 1, got 2
+step 2: edit main.kiln
+  ok size=16
+step 3: build (default) -j 1
+  error E_ARITY fn upper: expected 1, got 0
+step 4: edit main.kiln
+  ok size=19
+step 5: build (default) -j 1
+  error E_ARITY fn pathjoin: expected 1-8, got 0
+step 6: edit main.kiln
+  ok size=62
+step 7: build (default) -j 1
+  error E_ARITY fn pathjoin: expected 1-8, got 9
+step 8: edit main.kiln
+  ok size=23
+step 9: build (default) -j 1
+  error E_ARITY fn substr: expected 3, got 2
+step 10: edit main.kiln
+  ok size=17
+step 11: build (default) -j 1
+  error E_TYPE fn upper argument 1: expected str, got int
+step 12: edit main.kiln
+  ok size=28
+step 13: build (default) -j 1
+  error E_TYPE fn substr argument 2: expected int, got str
+step 14: edit main.kiln
+  ok size=29
+step 15: build (default) -j 1
+  error E_TYPE fn substr argument 3: expected int, got bool
+step 16: edit main.kiln
+  ok size=15
+step 17: build (default) -j 1
+  error E_TYPE fn len argument 1: expected str|list, got int
+step 18: edit main.kiln
+  ok size=19
+step 19: build (default) -j 1
+  error E_TYPE fn count argument 1: expected list, got str
+step 20: edit main.kiln
+  ok size=16
+step 21: build (default) -j 1
+  error E_TYPE fn sort argument 1: expected list, got int
+step 22: edit main.kiln
+  ok size=20
+step 23: build (default) -j 1
+  error E_TYPE fn zip argument 2: expected list, got int
+step 24: edit main.kiln
+  ok size=19
+step 25: build (default) -j 1
+  error E_TYPE fn range argument 1: expected int, got str
+step 26: edit main.kiln
+  ok size=20
+step 27: build (default) -j 1
+  error E_TYPE fn has argument 1: expected list, got str
+step 28: edit main.kiln
+  ok size=17
+step 29: build (default) -j 1
+  error E_TYPE fn str argument 1: expected str|int|bool, got list
+step 30: edit main.kiln
+  ok size=18
+step 31: build (default) -j 1
+  error E_TYPE fn int argument 1: expected str|int, got bool
+step 32: edit main.kiln
+  ok size=29
+step 33: build (default) -j 1
+  error E_TYPE fn replace argument 3: expected str, got int
+step 34: edit main.kiln
+  ok size=16
+step 35: build (default) -j 1
+  error E_TYPE fn glob argument 1: expected str, got int

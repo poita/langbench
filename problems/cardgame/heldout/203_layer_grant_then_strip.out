@@ -1,0 +1,44 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-011 #23
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 BUFF #23 2 0
+14 GRANT #23 pierce
+15 SPENT #21 CIN-011
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 9 cap 10 vault 20 hand 1 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 DSK-031
+field A #23 TOK-001 3/1 w0 c0 ready - kw pierce
+ash A 1 #21 CIN-011
+effect 1 ts2 A turn modify 2 0 on #23
+effect 2 ts3 A turn grant pierce on #23
+STATE END
+16 PLAY A ~2 #22 DSK-031 #23
+17 PAY A ember 2
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 STRIP #23
+22 SPENT #22 DSK-031
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 7 cap 10 vault 20 hand 0 ash 2 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #23 TOK-001 3/1 w0 c0 ready - kw -
+ash A 1 #21 CIN-011
+ash A 2 #22 DSK-031
+effect 1 ts2 A turn modify 2 0 on #23
+effect 2 ts3 A turn grant pierce on #23
+effect 3 ts4 A turn strip on #23
+STATE END
+23 RESULT pending none

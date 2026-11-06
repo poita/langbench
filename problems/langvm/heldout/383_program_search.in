@@ -1,0 +1,91 @@
+@module main
+fn queens(n: Int, row: Int, cols: [Bool], d1: [Bool], d2: [Bool], place: [Int], sols: [[Int]]) -> Int {
+    if row == n {
+        if listLen(sols) < 3 { push(sols, listCopy(place)); }
+        return 1;
+    }
+    var total = 0;
+    for c in 0 .. n {
+        let a = row + c;
+        let b = row - c + n - 1;
+        if !cols[c] && !d1[a] && !d2[b] {
+            cols[c] = true; d1[a] = true; d2[b] = true;
+            push(place, c);
+            total = total + queens(n, row + 1, cols, d1, d2, place, sols);
+            pop(place);
+            cols[c] = false; d1[a] = false; d2[b] = false;
+        }
+    }
+    total
+}
+
+fn countQueens(n: Int) -> (Int, [[Int]]) {
+    let sols: [[Int]] = listNew();
+    let t = queens(n, 0, listRepeat(false, n), listRepeat(false, 2 * n), listRepeat(false, 2 * n), listNew(), sols);
+    (t, sols)
+}
+
+fn canPlace(g: [Int], pos: Int, v: Int) -> Bool {
+    let r = pos / 9;
+    let c = pos % 9;
+    for i in 0 .. 9 {
+        if g[r * 9 + i] == v || g[i * 9 + c] == v { return false; }
+    }
+    let br = r / 3 * 3;
+    let bc = c / 3 * 3;
+    for i in 0 .. 3 {
+        for j in 0 .. 3 {
+            if g[(br + i) * 9 + bc + j] == v { return false; }
+        }
+    }
+    true
+}
+
+fn solve(g: [Int], steps: [Int]) -> Bool {
+    let pos = listIndexOf(g, 0);
+    if pos < 0 { return true; }
+    for v in 1 .. 10 {
+        if canPlace(g, pos, v) {
+            g[pos] = v;
+            steps[0] = steps[0] + 1;
+            if solve(g, steps) { return true; }
+            g[pos] = 0;
+        }
+    }
+    false
+}
+
+fn permutations(xs: [Int]) -> [[Int]] {
+    match xs {
+        [] -> [[]],
+        _ -> {
+            var out: [[Int]] = listNew();
+            for i in 0 .. listLen(xs) {
+                let rest = slice(xs, 0, i) ++ slice(xs, i + 1, listLen(xs));
+                for p in permutations(rest) {
+                    push(out, [xs[i]] ++ p);
+                }
+            }
+            out
+        }
+    }
+}
+
+fn main() {
+    for n in 1 .. 9 {
+        let (t, sols) = countQueens(n);
+        let shown = listMap(sols, |s| strJoin(listMap(s, |c| showInt(c)), ""));
+        print(fmt("queens({}) = {} first: {}", [showInt(n), showInt(t), strJoin(shown, " ")]));
+    }
+    let puzzle = "530070000600195000098000060800060003400803001700020006060000280000419005000080079";
+    var g: [Int] = listMap(chars(puzzle), |c| ord(c) - 48);
+    let steps = [0];
+    print("solved: " ++ showBool(solve(g, steps)) ++ " placements: " ++ showInt(steps[0]));
+    for r in 0 .. 9 {
+        print(strJoin(listMap(slice(g, r * 9, r * 9 + 9), |v| showInt(v)), " "));
+    }
+    let ps = permutations([1, 2, 3, 4]);
+    print(showInt(listLen(ps)) ++ " perms; last " ++ strJoin(listMap(listLast(ps), |v| showInt(v)), ""));
+    let derangements = listFilter(ps, |p| listAll(listZip(p, [1, 2, 3, 4]), |q| fst(q) != snd(q)));
+    print(showInt(listLen(derangements)) ++ " derangements: " ++ strJoin(listMap(derangements, |p| strJoin(listMap(p, |v| showInt(v)), "")), " "));
+}

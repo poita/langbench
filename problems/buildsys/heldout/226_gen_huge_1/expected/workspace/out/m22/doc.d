@@ -1,0 +1,4 @@
+kiln-deps 1
+need src/m22/f0.txt
+need src/m22/f1.txt
+need src/m22/f2.txt

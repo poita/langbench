@@ -1,0 +1,140 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN NEU-017
+name Reinforcements
+type rite
+cost 3
+tags neutral
+keywords -
+ability 1 resolve - (repeat 2 (conjure TOK-003 1 you))
+CARD END
+CARD BEGIN NEU-018
+name Oathkeeper
+type unit
+cost 4
+body 2/5
+tags neutral,soldier
+keywords provoke,vigil
+CARD END
+CARD BEGIN NEU-019
+name Second Wind
+type rite
+cost 2
+tags neutral
+keywords swift
+ability 1 resolve - (each (units yours) (ready that))
+CARD END
+CARD BEGIN NEU-020
+name Field Medic
+type unit
+cost 2
+body 1/2
+tags neutral,cleric
+keywords -
+ability 1 act (cost (ember 1) (exhaust)) (targets (unit)) (ward 2 (t 1))
+CARD END
+CARD BEGIN NEU-021
+name Clockwork Sentry
+type unit
+cost 3
+body 2/3
+tags neutral,construct
+keywords plating:1,vigil
+ability 1 on end-of-combat - (ready self)
+CARD END
+CARD BEGIN NEU-022
+name Expedition
+type rite
+cost 2
+tags neutral
+keywords -
+ability 1 resolve - (dig 4 ((type unit)) you)
+CARD END
+CARD BEGIN NEU-023
+name Monument of Ash
+type relic
+cost 4
+tags neutral
+keywords -
+ability 1 aura (when (ash you ge 6) (grant vanguard (units yours)))
+CARD END
+CARD BEGIN NEU-024
+name Tithe Rite
+type rite
+cost 2
+tags neutral
+keywords swift
+ability 1 resolve - (ember 1 you) (draw 1 you)
+CARD END
+CARD BEGIN NEU-025
+name Border Scout
+type unit
+cost 1
+body 1/1
+tags neutral,scout
+keywords vanguard
+CARD END
+CARD BEGIN NEU-026
+name Standard Bearer
+type unit
+cost 3
+body 2/2
+tags neutral,soldier
+keywords -
+ability 1 aura (modify 1 1 (units yours (other)))
+CARD END
+CARD BEGIN NEU-027
+name Mirror Pike
+type rite
+cost 2
+tags neutral
+keywords -
+ability 1 resolve (targets (unit) (unit)) (damage (edge (t 1)) (t 2))
+CARD END
+CARD BEGIN NEU-028
+name Chain of Command
+type rite
+cost 3
+tags neutral
+keywords -
+ability 1 resolve (targets (unit (enemy))) (control (t 1)) (ready (t 1))
+CARD END
+CARD BEGIN NEU-029
+name Bastion Gate
+type relic
+cost 4
+tags neutral
+keywords -
+ability 1 aura (grant (plating 2) (units yours (core ge 4)))
+CARD END
+CARD BEGIN NEU-030
+name Vault Breaker
+type unit
+cost 4
+body 3/3
+tags neutral,runner
+keywords -
+ability 1 on unblocked - (mill 2 foe)
+CARD END
+CARD BEGIN NEU-031
+name Twin Beacons
+type relic
+cost 3
+tags neutral
+keywords -
+ability 1 act (cost (ember 2) (once)) - (summon TOK-001 1 you)
+CARD END
+CARD BEGIN NEU-032
+name Final Accord
+type rite
+cost 5
+tags neutral
+keywords -
+ability 1 resolve - (each (units all) (destroy that))
+CARD END
+8 RESULT pending none

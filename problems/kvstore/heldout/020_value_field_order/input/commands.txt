@@ -1,0 +1,14 @@
+put "a" {z:1,a:2,m:3}
+get "a"
+put "b" {"z":1,a:2}
+get "b"
+put "c" {"b":1,"B":2,"ab":3,"a":4,"":5,"é":6,"z":7}
+get "c"
+put "d" {a:1,a:2}
+put "e" {"a":1,a:2}
+put "f" {a:1,}
+put "g" [1,]
+put "h" {,}
+put "i" {a}
+put "j" {1:2}
+scan

@@ -1,0 +1,7 @@
+rule emit(n, body) {
+    include "build/emit.kiln"
+}
+use emit("one", "A")
+use emit("two", "B")
+phony all = ["out/one.txt", "out/two.txt"]
+default "@all"

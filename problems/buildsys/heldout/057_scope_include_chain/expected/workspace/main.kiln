@@ -1,0 +1,15 @@
+let mode = "fast"
+let flags = []
+include "tune/a.kiln"
+when mode == "fast" {
+    set flags = flags ++ ["F"]
+} elsewhen extra == 2 {
+    set flags = flags ++ ["E"]
+} otherwise {
+    set flags = flags ++ ["S"]
+}
+step {
+    out "out/f.txt"
+    cmd write("{mode}:{extra}:{join(flags, "+")}\n")
+}
+default "out/f.txt"

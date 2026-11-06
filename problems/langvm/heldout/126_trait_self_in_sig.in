@@ -1,0 +1,12 @@
+@module main
+trait Add2 {
+    fn plus(self, other: Self) -> Self;
+    fn twice(self) -> Self { self.plus(self) }
+}
+impl Add2 for Int { fn plus(self, other: Int) -> Int { self + other } }
+impl Add2 for Str { fn plus(self, other: Str) -> Str { self ++ other } }
+fn main() {
+    print(showInt(3.plus(4)));
+    print(showInt(3.twice()));
+    print("ab".twice());
+}

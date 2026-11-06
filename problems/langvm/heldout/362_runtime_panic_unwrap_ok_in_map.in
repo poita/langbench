@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let rs: [Result<Int, Str>] = [Err("x"), Ok(2)]; for r in rs { print(unwrapErr(r)); }
+}

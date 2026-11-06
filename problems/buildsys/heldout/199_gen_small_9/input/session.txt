@@ -1,0 +1,18 @@
+build -j 4
+clean
+build @m5
+touch src/m1/sub/g3.txt
+build -j 64
+edit src/m5/f2.txt
+eta
+a-b+c
+birch
+---
+build @m0 -j 8
+clean
+build
+touch src/m5/sub/g3.txt
+build @m3 -j 3
+edit src/m0/f2.txt
+---
+build out/all.txt

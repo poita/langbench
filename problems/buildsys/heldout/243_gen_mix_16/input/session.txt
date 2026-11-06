@@ -1,0 +1,7 @@
+build -j 2
+touch src/m10/f0.txt
+build @m9 -j 4
+edit src/m3/f4.txt
+the end
+---
+build @m11 -j 8

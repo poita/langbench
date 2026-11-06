@@ -1,0 +1,6 @@
+step {
+    out "out/j.txt"
+    in ["src/a.txt", "src/a.txt", "src/b.txt"]
+    cmd hash()
+}
+default "out/j.txt"

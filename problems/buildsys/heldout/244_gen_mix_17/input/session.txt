@@ -1,0 +1,38 @@
+build -j 4
+touch src/m5/f2.txt
+build out/all.txt -j 64
+touch src/m5/f2.txt
+build @m5 -j 3
+touch src/m5/f5.txt
+build out/all.txt -j 64
+clean
+build @m4
+edit src/m2/f0.txt
+birch
+iota
+---
+build @m2 -j 16
+touch main.kiln
+build -j 4
+edit src/m1/f2.txt
+ash
+birch
+---
+build out/all.txt -j 16
+edit src/m5/f5.txt
+nu
+cedar
+fir
+pi
+---
+build @m4
+edit src/m5/f5.txt
+a-b+c
+fir
+---
+build @m0 -j 4
+clean
+build out/all.txt
+edit src/m4/f0.txt
+---
+build out/all.txt

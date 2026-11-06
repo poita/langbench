@@ -1,0 +1,8 @@
+create index age
+indexes
+stat
+put "a" {age:1}
+indexes
+drop index age
+indexes
+stat

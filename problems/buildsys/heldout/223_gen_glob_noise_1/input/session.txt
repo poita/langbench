@@ -1,0 +1,9 @@
+build -j 16
+touch main.kiln
+build out/all.txt -j 4
+delete src/m0/f5.txt
+build @m0 -j 2
+touch src/m3/f1.txt
+build out/all.txt -j 8
+touch main.kiln
+build @m3 -j 64

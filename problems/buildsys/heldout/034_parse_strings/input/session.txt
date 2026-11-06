@@ -1,0 +1,45 @@
+build
+edit main.kiln
+let x = "{ }"
+---
+build
+edit main.kiln
+let x = "{1"
+---
+build
+edit main.kiln
+let x = "{1 2}"
+---
+build
+edit main.kiln
+let x = "\q"
+---
+build
+edit main.kiln
+let x = "a}b"
+---
+build
+edit main.kiln
+when false {
+    let y = "{}"
+}
+---
+build
+edit main.kiln
+rule r() {
+    let y = "{"
+}
+---
+build
+edit main.kiln
+let x = "{foo(}"
+---
+build
+edit main.kiln
+let x = "}}}"
+---
+build
+edit main.kiln
+let x = "{'a'}" ++ 1
+---
+build

@@ -1,0 +1,7 @@
+@module main
+struct Box { f: fn(Int) -> Int, n: Int }
+fn apply(b: Box) -> Int { (b.f)(b.n) }
+fn main() {
+    let b = Box.{ f: |x: Int| x * 2, n: 21 };
+    print(showInt(apply(b)));
+}

@@ -1,0 +1,183 @@
+scan reverse limit 2 to "k00009" keys
+put "k00000" null
+stat
+drop index name
+put "k00004" {age:19,name:"n16"}
+put "k00007" -9223372036854775808
+put "k00001" 537
+put "k00001" {age:39}
+create index age
+create index age
+put "k00003" -699
+unset "k00000" age
+delete "k00003"
+delete "k00009"
+put "k00005" {age:30,name:"n12",nest:{deep:9}}
+put "k00005" {age:5,name:"n30"}
+put "k00004" true
+unset "k00001" nest.deep
+put "k00003" "sssss"
+scan limit 2 from "k00000" keys to "k00004"
+put "k00003" [1,2,3,4,5,6,7,8,9,10]
+stat
+delete "k00006"
+unset "k00008" age
+delete "k00001"
+get "k00003"
+find exists nest.deep or nest.deep == [1,2] limit 0
+unset "k00001" nest.deep
+put "k00001" true
+delete "k00007"
+scan reverse from "k00001" limit 0 keys
+delete "k00004"
+put "k00004" {nest:{deep:6}}
+delete "k00004"
+put "k00006" false
+indexes
+put "k00007" 0
+create index tag
+put "k00006" "s"
+delete "k00003"
+stat
+put "k00004" {age:1,name:"n19"}
+put "k00007" "ssss"
+stat
+find nest.deep <= 32 and tag <= 1 limit 0
+put "k00008" {age:25,name:"n29",tag:null}
+unset "k00000" tag
+indexes
+scan limit 0 keys reverse
+put "k00002" {age:33,name:"n11",tag:"t"}
+stat
+stat
+put "k00002" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19]
+put "k00005" true
+put "k00003" {age:37}
+create index age
+put "k00001" -517
+delete "k00007"
+scan limit 0 from "k00005" keys reverse
+update "k00001" name "sssssssss"
+put "k00002" {age:25,tag:false}
+scan keys reverse to "k00009" limit 1
+put "k00003" 9223372036854775807
+put "k00009" {age:33,name:"n13",tag:false}
+put "k00000" [1,2,3,4,5,6,7]
+put "k00003" null
+put "k00008" [1,2,3,4,5,6,7,8,9,10,11]
+create index tag
+put "k00000" -9223372036854775808
+delete "k00008"
+find tag <= false and age > 24 limit 0
+put "k00006" -360
+get "k00002"
+put "k00005" {age:2,nest:{deep:7}}
+put "k00004" -859
+put "k00002" {age:38,name:"n01",tag:{z:1}}
+unset "k00009" name
+put "k00007" 9223372036854775807
+find name != null limit 1
+delete "k00004"
+put "k00004" {age:3,name:"n09",tag:{z:1},nest:{deep:5}}
+delete "k00000"
+indexes
+delete "k00003"
+find age != 31 limit 1
+put "k00003" {age:2,name:"n16"}
+put "k00007" -513
+find nest.deep != 10 limit 2
+create index name
+update "k00004" age "ss"
+unset "k00002" tag
+update "k00002" age false
+put "k00009" true
+put "k00000" {age:38,name:"n00",tag:[1,2]}
+stat
+put "k00007" true
+get "k00008"
+update "k00004" name null
+put "k00007" {age:34,tag:{z:1},nest:{deep:6}}
+put "k00002" {age:34,name:"n30"}
+delete "k00005"
+update "k00009" nest.deep {}
+scan reverse keys limit 3
+stat
+put "k00006" {name:"n26",tag:7}
+put "k00003" {}
+put "k00007" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+stat
+put "k00001" {age:8,name:"n13"}
+put "k00001" "sssssss"
+put "k00001" 129
+put "k00008" {age:36,name:"n28",tag:true}
+put "k00007" false
+delete "k00001"
+delete "k00008"
+find not(name <= true) limit 0
+find nest.deep != true limit 1
+indexes
+delete "k00009"
+put "k00000" {name:"n02"}
+put "k00002" {age:25,name:"n21"}
+get "k00002"
+stat
+update "k00008" nest.deep -9223372036854775808
+indexes
+put "k00000" 227
+update "k00008" name {age:38}
+update "k00006" name true
+find not(nest.deep < {z:1} and tag > 24) limit 1
+unset "k00005" tag
+update "k00008" name [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+stat
+put "k00009" {age:39}
+put "k00008" {age:30,nest:{deep:6}}
+put "k00000" {age:12,name:"n30"}
+get "k00002"
+update "k00000" name false
+put "k00000" true
+put "k00006" -9223372036854775808
+delete "k00005"
+find nest.deep == false and tag == 26 limit 1
+delete "k00007"
+stat
+delete "k00000"
+scan to "k00004" keys limit 2
+scan limit 2 reverse keys from "k00004"
+delete "k00004"
+find name >= {z:1} limit 2
+put "k00003" false
+put "k00003" true
+put "k00004" {name:"n23"}
+put "k00001" "ssss"
+put "k00009" "ssssssss"
+find name != "n22" limit 0
+put "k00005" {name:"n09"}
+put "k00001" {name:"n03",nest:{deep:9}}
+get "k00009"
+indexes
+put "k00008" {age:28,name:"n29"}
+put "k00004" [1,2,3,4,5,6,7,8,9,10,11,12]
+drop index name
+stat
+put "k00000" {age:2,name:"n25",nest:{deep:5}}
+put "k00001" {age:24,name:"n01"}
+get "k00000"
+stat
+put "k00001" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+delete "k00002"
+create index tag
+put "k00003" {age:16,name:"n17",tag:{z:1}}
+put "k00006" {age:32,name:"n28"}
+delete "k00003"
+find nest.deep >= [1,2] and nest.deep <= 20 limit 1
+put "k00008" 9223372036854775807
+find nest.deep == true limit 0
+delete "k00008"
+stat
+put "k00005" [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+delete "k00003"
+update "k00001" age 0
+stat
+indexes
+scan keys limit 5

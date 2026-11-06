@@ -1,0 +1,36 @@
+let all_m16 = glob("src/m16/**/*.txt")
+let s_m16 = sort(reject(all_m16, "**/skip_*.txt"))
+let o_m16 = []
+each i, f in s_m16 {
+    when i % 3 == 0 {
+        step {
+            out "out/m16/{stem(f)}.txt"
+            in f
+            cmd wrap("[", "]\n")
+            cost 1
+        }
+    } elsewhen i % 3 == 1 {
+        step {
+            out "out/m16/{stem(f)}.txt"
+            in f
+            cmd upper()
+            cost 2
+        }
+    } otherwise {
+        step {
+            out "out/m16/{stem(f)}.txt"
+            in f
+            cmd upper()
+            cost 2
+        }
+    }
+    set o_m16 = o_m16 ++ ["out/m16/{stem(f)}.txt"]
+}
+step {
+    out "out/m16/bundle.txt"
+    in o_m16
+    cmd count_lines()
+    cost 2
+}
+use wrapper("m16/wrapped", "out/m16/bundle.txt", "<m16|", "|>\n", 4)
+phony m16 = ["out/m16/wrapped.txt"]

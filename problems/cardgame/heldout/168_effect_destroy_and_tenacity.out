@@ -1,0 +1,78 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 DSK-002 #46
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DESTROY #46 TOK-003
+14 SPENT #21 DSK-002
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 49 cap 51 vault 20 hand 2 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+hand A 1 #22 DSK-006
+hand A 2 #23 NEU-032
+field A #24 DSK-024 3/3 w0 c0 ready - kw tenacity
+field A #25 TOK-001 1/1 w0 c0 ready - kw -
+field B #47 DSK-024 3/3 w0 c0 ready - kw tenacity
+field B #48 TID-012 2/1 w0 c0 ready - kw -
+ash A 1 #21 DSK-002
+ash B 1 #46 TOK-003
+STATE END
+15 PLAY A ~2 #22 DSK-006 #47
+16 PAY A ember 3
+17 PASS A
+18 PASS B
+19 RESOLVE ~2
+20 TENACITY #47
+21 SPIRE A +2 42
+22 SPENT #22 DSK-006
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 42 ember 46 cap 51 vault 20 hand 1 ash 2 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+hand A 1 #23 NEU-032
+field A #24 DSK-024 3/3 w0 c0 ready - kw tenacity
+field A #25 TOK-001 1/1 w0 c0 ready - kw -
+field B #47 DSK-024 3/3 w0 c0 ready tenacity-used kw tenacity
+field B #48 TID-012 2/1 w0 c0 ready - kw -
+ash A 1 #21 DSK-002
+ash A 2 #22 DSK-006
+ash B 1 #46 TOK-003
+STATE END
+23 PLAY A ~3 #23 NEU-032
+24 PAY A ember 5
+25 PASS A
+26 PASS B
+27 RESOLVE ~3
+28 TENACITY #24
+29 DESTROY #25 TOK-001
+30 DESTROY #47 DSK-024
+31 DESTROY #48 TID-012
+32 SPENT #23 NEU-032
+33 TRIGGER B ~4 #48 1
+34 PASS A
+35 PASS B
+36 RESOLVE ~4
+37 DRAW B #26 TID-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 42 ember 41 cap 51 vault 20 hand 0 ash 4 rift 0
+player B spire 40 ember 50 cap 50 vault 19 hand 1 ash 3 rift 0
+hand B 1 #26 TID-001
+field A #24 DSK-024 3/3 w0 c0 ready tenacity-used kw tenacity
+ash A 1 #21 DSK-002
+ash A 2 #22 DSK-006
+ash A 3 #25 TOK-001
+ash A 4 #23 NEU-032
+ash B 1 #46 TOK-003
+ash B 2 #47 DSK-024
+ash B 3 #48 TID-012
+STATE END
+38 RESULT pending none

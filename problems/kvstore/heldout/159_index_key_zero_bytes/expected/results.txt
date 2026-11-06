@@ -1,0 +1,20 @@
+[1] ok create index v entries 0
+[2] ok put created
+[3] ok indexes 1
+  0 v root 3 entries 1
+[4] ok find 1 plan index v
+  "u" = {"v":"a\u0000b"}
+[5] ok put created
+[6] error index-key-too-long
+[7] ok indexes 1
+  0 v root 3 entries 2
+[8] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 3
+  indexes 1
+  wal 7440

@@ -1,0 +1,30 @@
+build -j 16
+clean
+build @m2 -j 4
+delete src/m4/sub/g3.txt
+build -j 8
+edit src/m2/f0.txt
+0123
+hazel
+xi
+---
+build @m3 -j 16
+touch src/m5/f2.txt
+build -j 16
+touch src/m0/sub/g3.txt
+build @m0
+edit src/m0/f0.txt
+epsilon
+---
+build
+edit src/m3/f0.txt
+eta
+epsilon
+pi
+cedar
+---
+build @m5 -j 3
+create src/m4/new0.txt
+a-b+c
+---
+build @m1 -j 8

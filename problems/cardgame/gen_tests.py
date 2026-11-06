@@ -3,8 +3,8 @@
 
 Builds every test case, computes its expected output with the reference
 implementation in `reference/`, and writes the public cases to
-`problems/cardgame/tests/` and the hidden cases to
-`$LANGBENCH_HIDDEN (default: langbench-hidden next to this checkout)/cardgame/tests/` using one shared numbering
+`problems/cardgame/tests/` and the held-out cases to
+`problems/cardgame/heldout/` using one shared numbering
 sequence, so a name never collides between the two directories.
 
 Cases come in two flavours:
@@ -31,8 +31,7 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 REF = os.path.join(HERE, "reference")
 PUBLIC_DIR = os.path.join(HERE, "tests")
-HIDDEN_DIR = os.path.join(os.environ.get("LANGBENCH_HIDDEN") or os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "langbench-hidden")), "cardgame", "tests")
+HIDDEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "heldout")
 
 sys.path.insert(0, REF)
 os.chdir(HERE)

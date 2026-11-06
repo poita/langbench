@@ -1,0 +1,19 @@
+build -j 64
+edit src/m4/f2.txt
+birch
+iota
+beta
+---
+build
+clean
+build @m2
+edit src/m2/f9.txt
+lambda
+
+nu
+---
+build -j 4
+edit src/m0/sub/g3.txt
+birch
+---
+build

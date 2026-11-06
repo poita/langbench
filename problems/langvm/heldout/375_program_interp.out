@@ -1,0 +1,8 @@
+let x = 3; let y = x * (2 + 4); print y;...... => 18
+let a = 10; while a > 0 { a = a - 3; } print a; => -2
+let s = 0; let i = 1; while i <= 10 { s = s + i; i = i + 1; } print s; => 55
+print 1 + 2 * 3 - 4 / 2;...................... => 5
+let b = 1; if b { print 42; } else { print 0; } => 42
+print undefinedVar;........................... => error: unbound undefinedVar
+print 1 / 0;.................................. => error: division by zero
+let q = ;..................................... => error: expected an expression

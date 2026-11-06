@@ -1,0 +1,158 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 ACTIVATE A ~1 #24 2 #51
+9 EXHAUST #24
+10 PAY A spire 2
+11 SPIRE A -2 38
+12 TRIGGER A ~2 #24 1
+13 PASS A
+14 PASS B
+15 RESOLVE ~2
+16 COUNTERS #24 +1 1
+17 PASS A
+18 PASS B
+19 RESOLVE ~1
+20 PREVENT #51 1
+21 DAMAGE #24 #51 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 38 ember 51 cap 51 vault 20 hand 3 ash 0 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 CIN-001
+hand A 2 #22 CIN-001
+hand A 3 #23 CIN-001
+field A #24 DSK-020 3/3 w0 c1 exhausted - kw -
+field A #25 TID-018 2/3 w0 c0 ready - kw -
+field A #26 TID-037 -/- w0 c0 ready - kw -
+field A #27 NEU-010 -/- w0 c0 ready - kw -
+field A #28 NEU-031 -/- w0 c0 ready - kw -
+field A #29 DSK-030 -/- w0 c0 ready - kw -
+field A #30 DSK-012 -/- w0 c0 ready - kw -
+field B #51 TOK-003 0/3 w1 c0 ready - kw plating:1
+field B #52 TOK-003 0/3 w0 c0 ready - kw plating:1
+STATE END
+22 ACTIVATE A ~3 #25 1
+23 PAY A ember 1
+24 EXHAUST #25
+25 PASS A
+26 PASS B
+27 RESOLVE ~3
+28 DRAW A #1 CIN-001
+29 ACTIVATE A ~4 #26 1
+30 PAY A ember 2
+31 PASS A
+32 PASS B
+33 RESOLVE ~4
+34 DRAW A #2 CIN-001
+35 ACTIVATE A ~5 #27 1
+36 PAY A ember 3
+37 PASS A
+38 PASS B
+39 RESOLVE ~5
+40 DRAW A #3 CIN-001
+41 EMBERGAIN A 1 46
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 38 ember 46 cap 51 vault 17 hand 6 ash 0 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 CIN-001
+hand A 2 #22 CIN-001
+hand A 3 #23 CIN-001
+hand A 4 #1 CIN-001
+hand A 5 #2 CIN-001
+hand A 6 #3 CIN-001
+field A #24 DSK-020 3/3 w0 c1 exhausted - kw -
+field A #25 TID-018 2/3 w0 c0 exhausted once1 kw -
+field A #26 TID-037 -/- w0 c0 ready once1 kw -
+field A #27 NEU-010 -/- w0 c0 ready once1 kw -
+field A #28 NEU-031 -/- w0 c0 ready - kw -
+field A #29 DSK-030 -/- w0 c0 ready - kw -
+field A #30 DSK-012 -/- w0 c0 ready - kw -
+field B #51 TOK-003 0/3 w1 c0 ready - kw plating:1
+field B #52 TOK-003 0/3 w0 c0 ready - kw plating:1
+STATE END
+42 ACTIVATE A ~6 #28 1
+43 PAY A ember 2
+44 PASS A
+45 PASS B
+46 RESOLVE ~6
+47 CREATE #53 TOK-001 field
+48 ARRIVE #53 TOK-001
+49 ACTIVATE A ~7 #29 1
+50 PAY A ember 2
+51 DISCARD A #21 CIN-001
+52 PASS A
+53 PASS B
+54 RESOLVE ~7
+55 DRAW A #4 CIN-001
+56 DRAW A #5 CIN-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 38 ember 42 cap 51 vault 15 hand 7 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-001
+hand A 2 #23 CIN-001
+hand A 3 #1 CIN-001
+hand A 4 #2 CIN-001
+hand A 5 #3 CIN-001
+hand A 6 #4 CIN-001
+hand A 7 #5 CIN-001
+field A #24 DSK-020 3/3 w0 c1 exhausted - kw -
+field A #25 TID-018 2/3 w0 c0 exhausted once1 kw -
+field A #26 TID-037 -/- w0 c0 ready once1 kw -
+field A #27 NEU-010 -/- w0 c0 ready once1 kw -
+field A #28 NEU-031 -/- w0 c0 ready once1 kw -
+field A #29 DSK-030 -/- w0 c0 ready - kw -
+field A #30 DSK-012 -/- w0 c0 ready - kw -
+field A #53 TOK-001 1/1 w0 c0 ready settling kw -
+field B #51 TOK-003 0/3 w1 c0 ready - kw plating:1
+field B #52 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash A 1 #21 CIN-001
+STATE END
+57 ACTIVATE A ~8 #30 1 #52
+58 PAY A ember 1
+59 SACRIFICE #30 DSK-012
+60 PASS A
+61 PASS B
+62 RESOLVE ~8
+63 DESTROY #52 TOK-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 38 ember 41 cap 51 vault 15 hand 7 ash 2 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+hand A 1 #22 CIN-001
+hand A 2 #23 CIN-001
+hand A 3 #1 CIN-001
+hand A 4 #2 CIN-001
+hand A 5 #3 CIN-001
+hand A 6 #4 CIN-001
+hand A 7 #5 CIN-001
+field A #24 DSK-020 3/3 w0 c1 exhausted - kw -
+field A #25 TID-018 2/3 w0 c0 exhausted once1 kw -
+field A #26 TID-037 -/- w0 c0 ready once1 kw -
+field A #27 NEU-010 -/- w0 c0 ready once1 kw -
+field A #28 NEU-031 -/- w0 c0 ready once1 kw -
+field A #29 DSK-030 -/- w0 c0 ready - kw -
+field A #53 TOK-001 1/1 w0 c0 ready settling kw -
+field B #51 TOK-003 0/3 w1 c0 ready - kw plating:1
+ash A 1 #21 CIN-001
+ash A 2 #30 DSK-012
+ash B 1 #52 TOK-003
+STATE END
+LEGAL BEGIN A priority
+PASS
+PLAY 1 CIN-001
+PLAY 2 CIN-001
+PLAY 3 CIN-001
+PLAY 4 CIN-001
+PLAY 5 CIN-001
+PLAY 6 CIN-001
+PLAY 7 CIN-001
+ACT #29 1
+LEGAL END
+64 RESULT pending none

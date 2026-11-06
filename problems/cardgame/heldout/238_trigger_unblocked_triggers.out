@@ -1,0 +1,76 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+11 EXHAUST #21
+12 ATTACK #21
+13 EXHAUST #22
+14 ATTACK #22
+15 PASS A
+16 PASS B
+17 PHASE clash-block
+18 UNBLOCKED #21
+19 UNBLOCKED #22
+20 TRIGGER A ~1 #21 1
+21 TRIGGER A ~2 #22 1
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 10 hand 3 ash 0 rift 0
+hand B 1 #33 CIN-001
+hand B 2 #34 CIN-001
+hand B 3 #35 CIN-001
+field A #21 CIN-021 2/1 w0 c0 exhausted attacking kw vanguard
+field A #22 NEU-030 3/3 w0 c0 exhausted attacking kw -
+field B #36 TOK-003 0/3 w0 c0 ready - kw plating:1
+chain 1 ~2 A trigger #22 1
+chain 2 ~1 A trigger #21 1
+STATE END
+22 PASS A
+23 PASS B
+24 RESOLVE ~1
+25 DISCARD B #33 CIN-001
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 10 hand 2 ash 1 rift 0
+hand B 1 #34 CIN-001
+hand B 2 #35 CIN-001
+field A #21 CIN-021 2/1 w0 c0 exhausted attacking kw vanguard
+field A #22 NEU-030 3/3 w0 c0 exhausted attacking kw -
+field B #36 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash B 1 #33 CIN-001
+chain 1 ~2 A trigger #22 1
+STATE END
+26 PASS A
+27 PASS B
+28 RESOLVE ~2
+29 MILL B #23 TID-001
+30 MILL B #24 TID-001
+31 PASS A
+32 PASS B
+33 PHASE clash-damage
+34 DAMAGE #21 B 2
+35 SPIRE B -2 38
+36 DAMAGE #22 B 3
+37 SPIRE B -3 35
+STATE BEGIN
+turn 1 active A phase clash-damage decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 35 ember 10 cap 10 vault 8 hand 2 ash 3 rift 0
+hand B 1 #34 CIN-001
+hand B 2 #35 CIN-001
+field A #21 CIN-021 2/1 w0 c0 exhausted attacking kw vanguard
+field A #22 NEU-030 3/3 w0 c0 exhausted attacking kw -
+field B #36 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash B 1 #33 CIN-001
+ash B 2 #23 TID-001
+ash B 3 #24 TID-001
+STATE END
+38 RESULT pending none

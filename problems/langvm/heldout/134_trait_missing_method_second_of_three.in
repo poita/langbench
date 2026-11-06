@@ -1,0 +1,14 @@
+@module main
+use shapes;
+impl shapes::Shape for Int {
+    fn area(self) -> Int { self }
+    fn corners(self) -> Int { 4 }
+}
+fn main() { print(showInt(3.area())); }
+@module shapes
+pub trait Shape {
+    fn area(self) -> Int;
+    fn name(self) -> Str;
+    fn corners(self) -> Int;
+    fn label(self) -> Str { "x" }
+}

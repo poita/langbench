@@ -1,0 +1,4 @@
+step {
+    out "out/z.txt"
+    cmd write("ok\n")
+}

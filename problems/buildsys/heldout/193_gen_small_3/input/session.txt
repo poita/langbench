@@ -1,0 +1,16 @@
+build -j 64
+build out/all.txt
+build
+edit src/m2/f0.txt
+kappa
+omicron
+---
+build @m3 -j 64
+touch src/m3/f2.txt
+build @m0 -j 16
+edit src/m2/f0.txt
+juniper
+delta
+eta
+---
+build @m0 -j 4

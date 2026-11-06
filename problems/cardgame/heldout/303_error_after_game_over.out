@@ -1,0 +1,84 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-003 B
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DAMAGE #21 B 2
+14 SPIRE B -2 0
+15 SPENT #21 CIN-003
+16 LOSE B spire
+17 RESULT A spire
+ERR 17 game-over
+ERR 18 game-over
+ERR 19 game-over
+ERR 20 bad-syntax
+ERR 21 bad-syntax
+ERR 22 game-over
+STATE BEGIN
+turn 1 active A phase main1 decision - over
+result A spire
+player A spire 2 ember 50 cap 51 vault 20 hand 1 ash 1 rift 0
+player B spire 0 ember 50 cap 50 vault 20 hand 1 ash 0 rift 0
+hand A 1 #22 CIN-003
+hand B 1 #43 CIN-003
+ash A 1 #21 CIN-003
+STATE END
+LEGAL BEGIN - over
+LEGAL END
+VAULT BEGIN
+vault A 1 #1 CIN-001
+vault A 2 #2 CIN-001
+vault A 3 #3 CIN-001
+vault A 4 #4 CIN-001
+vault A 5 #5 CIN-001
+vault A 6 #6 CIN-001
+vault A 7 #7 CIN-001
+vault A 8 #8 CIN-001
+vault A 9 #9 CIN-001
+vault A 10 #10 CIN-001
+vault A 11 #11 CIN-001
+vault A 12 #12 CIN-001
+vault A 13 #13 CIN-001
+vault A 14 #14 CIN-001
+vault A 15 #15 CIN-001
+vault A 16 #16 CIN-001
+vault A 17 #17 CIN-001
+vault A 18 #18 CIN-001
+vault A 19 #19 CIN-001
+vault A 20 #20 CIN-001
+vault B 1 #23 TID-001
+vault B 2 #24 TID-001
+vault B 3 #25 TID-001
+vault B 4 #26 TID-001
+vault B 5 #27 TID-001
+vault B 6 #28 TID-001
+vault B 7 #29 TID-001
+vault B 8 #30 TID-001
+vault B 9 #31 TID-001
+vault B 10 #32 TID-001
+vault B 11 #33 TID-001
+vault B 12 #34 TID-001
+vault B 13 #35 TID-001
+vault B 14 #36 TID-001
+vault B 15 #37 TID-001
+vault B 16 #38 TID-001
+vault B 17 #39 TID-001
+vault B 18 #40 TID-001
+vault B 19 #41 TID-001
+vault B 20 #42 TID-001
+VAULT END
+CARD BEGIN CIN-003
+name Searing Bolt
+type rite
+cost 1
+tags cinder
+keywords swift
+ability 1 resolve (targets (any)) (damage 2 (t 1))
+CARD END

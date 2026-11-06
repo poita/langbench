@@ -1,0 +1,12 @@
+kiln-state 1
+step out/flags.txt
+cmd write("S\n")
+out out/flags.txt 0945d407b5d55a18
+end
+step out/list.txt
+cmd count_lines()
+in src/a.txt e679831904b48b77
+in src/b.txt ff959c1912ade282
+in src/sub/c.txt f6862d190d6f4509
+out out/list.txt de4c4c8dab465f17
+end

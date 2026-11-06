@@ -1,0 +1,40 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+LEGAL BEGIN A priority
+PASS
+PLAY 1 EXT-023 A
+PLAY 1 EXT-023 B
+PLAY 1 EXT-023 #12
+PLAY 1 EXT-023 #13
+PLAY 1 EXT-023 #26
+LEGAL END
+8 PLAY A ~1 #11 EXT-023 #26
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DAMAGE #11 #26 2
+14 DRAW A #1 EXT-001
+15 DRAW A #2 EXT-001
+16 SPENT #11 EXT-023
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 8 cap 10 vault 8 hand 2 ash 1 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+hand A 1 #1 EXT-001
+hand A 2 #2 EXT-001
+field A #12 EXT-001 1/1 w0 c0 ready - kw -
+field A #13 EXT-001 1/1 w0 c0 ready - kw -
+field B #24 EXT-010 -/- w0 c0 ready - kw -
+field B #25 EXT-010 -/- w0 c0 ready - kw -
+field B #26 EXT-001 5/5 w2 c0 ready - kw -
+ash A 1 #11 EXT-023
+effect 1 ts4 B aura modify 2 2 on #26
+effect 2 ts6 B aura modify 2 2 on #26
+STATE END
+17 RESULT pending none

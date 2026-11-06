@@ -1,0 +1,77 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #13 TID-007
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DRAW A #1 CIN-001
+14 DRAW A #2 CIN-001
+15 SPENT #13 TID-007
+16 PLAY A ~2 #14 TID-016
+17 PAY A ember 3
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 DRAW A #3 CIN-001
+22 DRAW A #4 CIN-001
+23 SPENT #14 TID-016
+24 PLAY A ~3 #15 LOM-027 #17
+25 PAY A ember 2
+26 PASS A
+27 PASS B
+28 RESOLVE ~3
+29 COUNTERS #17 +1 1
+30 DRAW A #5 CIN-001
+31 SPENT #15 LOM-027
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 44 cap 51 vault 7 hand 6 ash 3 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #16 DSK-037
+hand A 2 #1 CIN-001
+hand A 3 #2 CIN-001
+hand A 4 #3 CIN-001
+hand A 5 #4 CIN-001
+hand A 6 #5 CIN-001
+field A #17 TOK-001 2/2 w0 c1 ready - kw -
+field A #18 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #13 TID-007
+ash A 2 #14 TID-016
+ash A 3 #15 LOM-027
+STATE END
+32 PLAY A ~4 #16 DSK-037
+33 PAY A ember 2
+34 PASS A
+35 PASS B
+36 RESOLVE ~4
+37 SPIRE A -5 35
+38 DRAW A #6 CIN-001
+39 DRAW A #7 CIN-001
+40 DRAW A #8 CIN-001
+41 SPENT #16 DSK-037
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 35 ember 42 cap 51 vault 4 hand 8 ash 4 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand A 3 #3 CIN-001
+hand A 4 #4 CIN-001
+hand A 5 #5 CIN-001
+hand A 6 #6 CIN-001
+hand A 7 #7 CIN-001
+hand A 8 #8 CIN-001
+field A #17 TOK-001 2/2 w0 c1 ready - kw -
+field A #18 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #13 TID-007
+ash A 2 #14 TID-016
+ash A 3 #15 LOM-027
+ash A 4 #16 DSK-037
+STATE END
+42 RESULT pending none

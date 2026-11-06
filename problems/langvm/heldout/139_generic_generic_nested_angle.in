@@ -1,0 +1,11 @@
+@module main
+fn wrap(x: Int) -> Option<Option<Int>> { Some(Some(x)) }
+fn main() {
+    match wrap(3) {
+        Some(Some(n)) -> print(showInt(n)),
+        Some(None) -> print("inner none"),
+        None -> print("none"),
+    }
+    let xs: [[Int]] = [[1], [2, 3]];
+    print(showInt(listLen(listFlatten(xs))));
+}

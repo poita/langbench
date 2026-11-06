@@ -1,0 +1,5 @@
+@module main
+fn main() {
+    print(showBool(#[1: "a", 2: "b"] == #[2: "b", 1: "a"]));
+    print(showBool(#[1: "a"] == #[1: "b"]));
+}

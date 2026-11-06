@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(si(listFold([1, 2, 3], 0, |a, x| a + x)) ++ " " ++ si(listFold(slice([1], 0, 0), 5, |a, x| a + x)) ++ " " ++ strJoin(listFold([1, 2], ["s"], |a, x| a ++ [showInt(x)]), "-"));
+    print(sb(listAny([1, 2], |v| v > 1)) ++ sb(listAny(slice([1], 0, 0), |v| v > 0)) ++ sb(listAll([1, 2], |v| v > 0)) ++ sb(listAll(slice([1], 0, 0), |v| false)));
+    print(so(listFind([1, 2, 3], |v| v > 1)) ++ " " ++ so(listFind([1], |v| v > 9)) ++ " " ++ si(listFindIndex([1, 2], |v| v == 2)) ++ " " ++ si(listFindIndex([1], |v| false)));
+    print(si(listIndexOf([1, 2, 1], 1)) ++ " " ++ si(listIndexOf([1], 9)) ++ " " ++ sb(listContains(["a", "b"], "b")) ++ sb(listContains([1], 2)));
+    print(si(listLen(listZip([1, 2, 3], ["a"]))) ++ " " ++ strJoin(listMap(listZip([1, 2], ["a", "b"]), |p| showInt(fst(p)) ++ snd(p)), ","));
+    print(sl(listFlatten([[1], [2, 3], []])) ++ " " ++ sl(listFlatten([])));
+    print(sl(sortBy([3, 1, 2], |a, b| cmpI(a, b))) ++ " " ++ sl(sortBy(slice([1], 0, 0), |a, b| 0)) ++ " " ++ sl(sortBy([1], |a, b| 0)));
+}

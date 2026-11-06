@@ -1,0 +1,14 @@
+@module main
+trait Greet {
+    fn name(self) -> Str;
+    fn hello(self) -> Str { "hi " ++ self.name() }
+}
+impl Greet for Int { fn name(self) -> Str { showInt(self) } }
+impl Greet for Str { fn name(self) -> Str { self } }
+impl Greet for Char { fn name(self) -> Str { showChar(self) } }
+fn main() {
+    print(1.hello());
+    print("bob".hello());
+    print('c'.hello());
+    print(Greet::hello(7));
+}

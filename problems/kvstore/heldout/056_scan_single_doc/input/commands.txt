@@ -1,0 +1,8 @@
+put "only" {a:1}
+scan
+scan keys
+scan reverse
+scan from "only"
+scan to "only"
+scan limit 1
+stat

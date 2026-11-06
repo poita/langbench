@@ -1,0 +1,16 @@
+kiln-state 1
+step out/d0.txt
+cmd preprocess()
+in src/r0.txt 9afa7c7fa03bcbf7
+dep src/shared.txt 97895b19f9fba62e
+out out/d0.txt 12c5ba4292f64328
+out out/d0.d 7ed013ef8f36b8bd
+end
+step out/d1.txt
+cmd preprocess()
+in src/r1.txt 84a93776472bb21d
+dep src/extra.txt d82cdd198d5e7f14
+dep src/shared.txt 97895b19f9fba62e
+out out/d1.txt 4aa1a791fa4a7556
+out out/d1.d dd28f8f55e085636
+end

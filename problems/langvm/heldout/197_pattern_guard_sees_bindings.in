@@ -1,0 +1,8 @@
+@module main
+fn main() {
+    match (3, 4) {
+        (a, b) when a > b -> print("gt"),
+        (a, b) when a < b -> print("lt"),
+        _ -> print("eq"),
+    }
+}

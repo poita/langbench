@@ -37,17 +37,17 @@
 | `fulltext` | Full-text search engine with BM25 on Project Gutenberg texts | verifier |
 | `svgraster` | SVG rasteriser on real icon sets, checked against resvg | verifier |
 | `jsonschema` | JSON Schema 2020-12 validator on the official test suite | exact match |
-| `langvm` | Compiler and stack VM for Vellum, an invented typed language (hidden tests) | exact match |
-| `kvstore` | Tessera: a transactional document store with WAL, B+tree and secondary indexes (hidden tests) | tree match |
-| `cardgame` | Spiremark: the full rules engine of an invented duelling-card game (hidden tests) | exact match |
-| `typeset` | Codexa: a typesetting engine with total-fit line breaking and hyphenation (hidden tests) | tree match |
-| `buildsys` | Kiln: an incremental build system with its own build language (hidden tests) | tree match |
+| `langvm` | Compiler and stack VM for Vellum, an invented typed language (held-out tests) | exact match |
+| `kvstore` | Tessera: a transactional document store with WAL, B+tree and secondary indexes (held-out tests) | tree match |
+| `cardgame` | Spiremark: the full rules engine of an invented duelling-card game (held-out tests) | exact match |
+| `typeset` | Codexa: a typesetting engine with total-fit line breaking and hyphenation (held-out tests) | tree match |
+| `buildsys` | Kiln: an incremental build system with its own build language (held-out tests) | tree match |
 
 
 ## The test harness
 
 `run_tests.py` runs one implementation against a problem's tests; agents use it
-to check their work, and `tools/impl_run.py` uses it to score hidden tests.
+to check their work, and `tools/impl_run.py` uses it to score held-out tests.
 `CONVENTIONS.md` defines the I/O contract (stdin/stdout, or an input path and an
 output directory) and the project layout every implementation follows.
 
@@ -87,10 +87,10 @@ implementations in different languages do the same work and performance
 comparisons measure the language rather than each implementer's design. Agents
 see it as an ordinary design document.
 
-## Hidden tests
+## Held-out tests
 
-The five large problems keep most of their tests in a separate repository,
-`langbench-hidden`, as `<slug>/tests/` with the same layout. Tools look for it in
-`$LANGBENCH_HIDDEN`, or else next to this checkout; the sandbox denies agents
-access to it, and `tools/impl_run.py finish` scores implementations on it. By
-hand: `python3 run_tests.py <slug> --tests-dir ../langbench-hidden/<slug>/tests -- <cmd>`.
+The five large problems keep most of their tests in `heldout/`, with the same
+layout as `tests/`; `gen_tests.py` splits each suite between the two with one
+shared numbering. Agents never see `heldout/`, and `tools/impl_run.py finish`
+scores implementations on it. By hand:
+`python3 run_tests.py <slug> --tests-dir problems/<slug>/heldout -- <cmd>`.

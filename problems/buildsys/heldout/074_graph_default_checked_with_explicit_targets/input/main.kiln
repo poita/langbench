@@ -1,0 +1,5 @@
+step {
+    out "out/a.txt"
+    cmd write("A\n")
+}
+default ["out/a.txt", "out/missing.txt"]

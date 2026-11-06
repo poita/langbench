@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Builds the whole `typeset` test suite, public and hidden.
+"""Builds the whole `typeset` test suite, public and held-out.
 
 Every case is a directory-mode test: `tests/NNN_name/input/` holds
 `document.cdx` and (usually) `settings.cfg`, and `tests/NNN_name/expected/`
 holds the tree that `reference/main.py` produces from it. Cases are written to
 
   * problems/typeset/tests/                        (public, about a quarter)
-  * $LANGBENCH_HIDDEN (default: langbench-hidden next to this checkout)/typeset/tests/   (hidden, the rest)
+  * problems/typeset/heldout/   (held out, the rest)
 
 sharing one `NNN` sequence so names never collide, and stratified by the `area`
 of each case so that every feature area appears in both sets.
@@ -37,8 +37,7 @@ from concurrent.futures import ThreadPoolExecutor
 HERE = os.path.dirname(os.path.abspath(__file__))
 REFERENCE = os.path.join(HERE, "reference", "main.py")
 PUBLIC_DIR = os.path.join(HERE, "tests")
-HIDDEN_DIR = os.path.join(os.environ.get("LANGBENCH_HIDDEN") or os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "langbench-hidden")), "typeset", "tests")
+HIDDEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "heldout")
 
 CASES = []
 

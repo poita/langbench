@@ -1,0 +1,15 @@
+rule leaf(name, n) {
+    step {
+        out "out/{name}.txt"
+        cmd write("{name}:{n}\n")
+        cost n
+    }
+    default "out/{name}.txt"
+}
+rule group(prefix, count) {
+    each i in range(count) {
+        use leaf("{prefix}_{i}", i + 1)
+    }
+}
+use group("a", 3)
+use group(prefix = "b", count = 2)

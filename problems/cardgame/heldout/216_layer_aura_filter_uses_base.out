@@ -1,0 +1,63 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 2 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 LOM-003
+hand A 2 #22 CIN-011
+field A #23 TID-024 -/- w0 c0 ready - kw -
+field B #44 CIN-039 4/1 w0 c0 ready - kw pierce,shackled,vanguard
+field B #45 TOK-001 1/1 w0 c0 ready - kw -
+field B #46 LOM-028 8/8 w0 c0 ready - kw pierce,shackled,vigil
+effect 1 ts2 A aura grant shackled on #44,#46
+STATE END
+8 PLAY A ~1 #22 CIN-011 #45
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 BUFF #45 2 0
+14 GRANT #45 pierce
+15 SPENT #22 CIN-011
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 9 cap 10 vault 20 hand 1 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 LOM-003
+field A #23 TID-024 -/- w0 c0 ready - kw -
+field B #44 CIN-039 4/1 w0 c0 ready - kw pierce,shackled,vanguard
+field B #45 TOK-001 3/1 w0 c0 ready - kw pierce
+field B #46 LOM-028 8/8 w0 c0 ready - kw pierce,shackled,vigil
+ash A 1 #22 CIN-011
+effect 1 ts2 A aura grant shackled on #44,#46
+effect 2 ts6 A turn modify 2 0 on #45
+effect 3 ts7 A turn grant pierce on #45
+STATE END
+16 PLAY A ~2 #21 LOM-003 #45
+17 PAY A ember 2
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 COUNTERS #45 +2 2
+22 SPENT #21 LOM-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 7 cap 10 vault 20 hand 0 ash 2 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #23 TID-024 -/- w0 c0 ready - kw -
+field B #44 CIN-039 4/1 w0 c0 ready - kw pierce,shackled,vanguard
+field B #45 TOK-001 5/3 w0 c2 ready - kw pierce
+field B #46 LOM-028 8/8 w0 c0 ready - kw pierce,shackled,vigil
+ash A 1 #22 CIN-011
+ash A 2 #21 LOM-003
+effect 1 ts2 A aura grant shackled on #44,#46
+effect 2 ts6 A turn modify 2 0 on #45
+effect 3 ts7 A turn grant pierce on #45
+STATE END
+23 RESULT pending none

@@ -1,0 +1,8 @@
+@module main
+fn main() {
+    let x = 1;
+    { let x = 2; print(showInt(x)); }
+    print(showInt(x));
+    let x = 3;
+    print(showInt(x));
+}

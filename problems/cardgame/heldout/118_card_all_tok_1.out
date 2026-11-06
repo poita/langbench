@@ -1,0 +1,40 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN TOK-001
+name Cinder Mote
+type unit
+cost 0
+body 1/1
+tags neutral,mote
+keywords -
+CARD END
+CARD BEGIN TOK-002
+name Ash Wisp
+type unit
+cost 0
+body 1/1
+tags neutral,spirit
+keywords ghostwalk
+CARD END
+CARD BEGIN TOK-003
+name Stone Sentinel
+type unit
+cost 0
+body 0/3
+tags neutral,construct
+keywords plating:1
+CARD END
+CARD BEGIN TOK-004
+name Tide Spark
+type unit
+cost 0
+body 1/1
+tags neutral,spirit
+keywords vanguard
+CARD END
+8 RESULT pending none

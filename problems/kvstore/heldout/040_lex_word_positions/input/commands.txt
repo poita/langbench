@@ -1,0 +1,18 @@
+put "a" {null:1,true:2,and:3,or:4,not:5,exists:6,missing:7,limit:8}
+get "a"
+update "a" null 9
+update "a" and 10
+get "a"
+put "b" {x:null}
+put "c" {x:nul}
+put "d" {x:True}
+put "e" {x:TRUE}
+find null == 9
+find and == 10
+find exists == 6
+find missing == 7
+find not == 5
+find exists null
+find missing null
+find not(null == 9)
+stat

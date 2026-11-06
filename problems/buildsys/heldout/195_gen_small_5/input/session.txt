@@ -1,0 +1,23 @@
+build -j 8
+edit src/m0/f1.txt
+---
+build @m3 -j 3
+create src/m3/new0.txt
+beta
+xi
+---
+build
+edit src/m1/f0.txt
+---
+build out/all.txt
+create src/m2/new1.txt
+alpha
+---
+build -j 8
+clean
+build @m0 -j 2
+edit src/m1/sub/g3.txt
+birch
+zeta
+---
+build out/all.txt

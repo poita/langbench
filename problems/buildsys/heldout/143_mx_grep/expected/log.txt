@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 3 w0 out/grep_0.txt grep("i")
+  run 3 6 w0 out/grep_1.txt grep("i")
+  run 6 9 w0 out/grep_2.txt grep("i")
+  run 9 12 w0 out/grep_3.txt grep("i")
+  run 12 15 w0 out/grep_4.txt grep("i")
+  run 15 18 w0 out/grep_5.txt grep("i")
+  run 18 21 w0 out/grep_pin.txt hash()
+  ok ran=7 hit=0 time=21
+step 2: build (default) -j 1
+  hit 0 out/grep_0.txt
+  hit 0 out/grep_1.txt
+  hit 0 out/grep_2.txt
+  hit 0 out/grep_3.txt
+  hit 0 out/grep_4.txt
+  hit 0 out/grep_5.txt
+  hit 0 out/grep_pin.txt
+  ok ran=0 hit=7 time=0

@@ -1,0 +1,131 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 TRIGGER A ~1 #16 1
+7 RESOLVE ~1
+8 COUNTERS #16 +2 2
+9 PHASE draw
+10 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 3 ash 0 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 1 ash 0 rift 0
+hand A 1 #11 EXT-026
+hand A 2 #12 EXT-023
+hand A 3 #13 EXT-023
+hand B 1 #27 EXT-028
+field A #14 EXT-027 7/10 w0 c0 ready - kw -
+field A #15 EXT-025 2/4 w0 c0 ready - kw -
+field A #16 EXT-011 3/6 w0 c2 ready - kw plating:1
+field B #28 EXT-018 3/4 w0 c0 ready - kw provoke,tenacity
+field B #29 EXT-025 2/4 w0 c0 ready - kw -
+field B #30 EXT-001 1/1 w0 c0 ready - kw -
+effect 1 ts2 A aura modify 0 9 on #14
+effect 2 ts3 A aura modify 6 0 on #14
+effect 3 ts7 B aura grant venom on -
+STATE END
+11 PLAY A ~2 #11 EXT-026
+12 PAY A ember 3
+13 PASS A
+14 PASS B
+15 RESOLVE ~2
+16 ARRIVE #11 EXT-026
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 7 cap 10 vault 10 hand 2 ash 0 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 1 ash 0 rift 0
+hand A 1 #12 EXT-023
+hand A 2 #13 EXT-023
+hand B 1 #27 EXT-028
+field A #14 EXT-027 7/10 w0 c0 ready - kw -
+field A #15 EXT-025 2/4 w0 c0 ready - kw -
+field A #16 EXT-011 6/3 w0 c2 ready - kw plating:1
+field A #11 EXT-026 -/- w0 c0 ready settling kw -
+field B #28 EXT-018 3/4 w0 c0 ready - kw provoke,tenacity
+field B #29 EXT-025 2/4 w0 c0 ready - kw -
+field B #30 EXT-001 2/2 w0 c0 ready - kw -
+effect 1 ts2 A aura modify 0 9 on #14
+effect 2 ts3 A aura modify 6 0 on #14
+effect 3 ts7 B aura grant venom on -
+effect 4 ts11 A aura setbody 2 2 on #30
+effect 5 ts12 A aura swapstats on #16
+STATE END
+17 PLAY A ~3 #12 EXT-023 B
+18 PAY A ember 2
+19 PASS A
+20 PASS B
+21 RESOLVE ~3
+22 DAMAGE #12 B 17
+23 SPIRE B -17 13
+24 DRAW A #1 EXT-001
+25 SPENT #12 EXT-023
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 5 cap 10 vault 9 hand 2 ash 1 rift 0
+player B spire 13 ember 10 cap 10 vault 10 hand 1 ash 0 rift 0
+hand A 1 #13 EXT-023
+hand A 2 #1 EXT-001
+hand B 1 #27 EXT-028
+field A #14 EXT-027 7/10 w0 c0 ready - kw -
+field A #15 EXT-025 2/4 w0 c0 ready - kw -
+field A #16 EXT-011 6/3 w0 c2 ready - kw plating:1
+field A #11 EXT-026 -/- w0 c0 ready settling kw -
+field B #28 EXT-018 3/4 w0 c0 ready - kw provoke,tenacity
+field B #29 EXT-025 2/4 w0 c0 ready - kw -
+field B #30 EXT-001 2/2 w0 c0 ready - kw -
+ash A 1 #12 EXT-023
+effect 1 ts2 A aura modify 0 9 on #14
+effect 2 ts3 A aura modify 6 0 on #14
+effect 3 ts7 B aura grant venom on -
+effect 4 ts11 A aura setbody 2 2 on #30
+effect 5 ts12 A aura swapstats on #16
+STATE END
+LEGAL BEGIN A priority
+PASS
+PLAY 1 EXT-023 A
+PLAY 1 EXT-023 B
+PLAY 1 EXT-023 #14
+PLAY 1 EXT-023 #30
+PLAY 2 EXT-001
+ACT #16 2 #11
+LEGAL END
+26 PLAY A ~4 #13 EXT-023 #30
+27 PAY A ember 2
+28 PASS A
+29 PASS B
+30 RESOLVE ~4
+31 DAMAGE #13 #30 17
+32 DRAW A #2 EXT-001
+33 SPENT #13 EXT-023
+34 DESTROY #30 EXT-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 3 cap 10 vault 8 hand 2 ash 2 rift 0
+player B spire 13 ember 10 cap 10 vault 10 hand 1 ash 1 rift 0
+hand A 1 #1 EXT-001
+hand A 2 #2 EXT-001
+hand B 1 #27 EXT-028
+field A #14 EXT-027 6/9 w0 c0 ready - kw -
+field A #15 EXT-025 2/4 w0 c0 ready - kw -
+field A #16 EXT-011 6/3 w0 c2 ready - kw plating:1
+field A #11 EXT-026 -/- w0 c0 ready settling kw -
+field B #28 EXT-018 3/4 w0 c0 ready - kw provoke,tenacity
+field B #29 EXT-025 2/4 w0 c0 ready - kw -
+ash A 1 #12 EXT-023
+ash A 2 #13 EXT-023
+ash B 1 #30 EXT-001
+effect 1 ts2 A aura modify 0 8 on #14
+effect 2 ts3 A aura modify 5 0 on #14
+effect 3 ts7 B aura grant venom on -
+effect 4 ts11 A aura setbody 2 2 on -
+effect 5 ts12 A aura swapstats on #16
+STATE END
+LEGAL BEGIN A priority
+PASS
+PLAY 1 EXT-001
+PLAY 2 EXT-001
+ACT #16 2 #11
+LEGAL END
+35 RESULT pending none

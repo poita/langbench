@@ -1,0 +1,125 @@
+kiln-state 1
+step out/join.txt
+cmd count_lines()
+in out/w0.txt 07fc1e07b4bd2c5f
+in out/w1.txt 07f8bc07b4ba5002
+in out/w2.txt 0802fe07b4c314ad
+in out/w3.txt 07ff9407b4c02ab8
+in out/w4.txt 07ee9607b4b1baeb
+in out/w5.txt 07eb3407b4aede8e
+in out/w6.txt 07f55607b4b76cd9
+in out/w7.txt 07f1fc07b4b49e14
+in out/w8.txt 08175e07b4d460d7
+in out/w9.txt 0813fc07b4d1847a
+in out/w10.txt 4568d118181cbfaa
+in out/w11.txt 456c3318181f9c07
+in out/w12.txt 456f891818226400
+in out/w13.txt 4572f31818254df5
+in out/w14.txt 455b2918181117d6
+in out/w15.txt 455e8b181813f433
+in out/w16.txt 4561f1181816d75c
+in out/w17.txt 45656b181819dc81
+in out/w18.txt 454d911818058b32
+in out/w19.txt 4550f3181808678f
+in out/w20.txt 603eae18278d63ef
+in out/w21.txt 603b4c18278a8792
+in out/w22.txt 60458e1827934c3d
+in out/w23.txt 6042241827906248
+out out/join.txt 20ed733997c4501b
+end
+step out/w0.txt
+cmd write("0\n")
+out out/w0.txt 07fc1e07b4bd2c5f
+end
+step out/w1.txt
+cmd write("1\n")
+out out/w1.txt 07f8bc07b4ba5002
+end
+step out/w10.txt
+cmd write("10\n")
+out out/w10.txt 4568d118181cbfaa
+end
+step out/w11.txt
+cmd write("11\n")
+out out/w11.txt 456c3318181f9c07
+end
+step out/w12.txt
+cmd write("12\n")
+out out/w12.txt 456f891818226400
+end
+step out/w13.txt
+cmd write("13\n")
+out out/w13.txt 4572f31818254df5
+end
+step out/w14.txt
+cmd write("14\n")
+out out/w14.txt 455b2918181117d6
+end
+step out/w15.txt
+cmd write("15\n")
+out out/w15.txt 455e8b181813f433
+end
+step out/w16.txt
+cmd write("16\n")
+out out/w16.txt 4561f1181816d75c
+end
+step out/w17.txt
+cmd write("17\n")
+out out/w17.txt 45656b181819dc81
+end
+step out/w18.txt
+cmd write("18\n")
+out out/w18.txt 454d911818058b32
+end
+step out/w19.txt
+cmd write("19\n")
+out out/w19.txt 4550f3181808678f
+end
+step out/w2.txt
+cmd write("2\n")
+out out/w2.txt 0802fe07b4c314ad
+end
+step out/w20.txt
+cmd write("20\n")
+out out/w20.txt 603eae18278d63ef
+end
+step out/w21.txt
+cmd write("21\n")
+out out/w21.txt 603b4c18278a8792
+end
+step out/w22.txt
+cmd write("22\n")
+out out/w22.txt 60458e1827934c3d
+end
+step out/w23.txt
+cmd write("23\n")
+out out/w23.txt 6042241827906248
+end
+step out/w3.txt
+cmd write("3\n")
+out out/w3.txt 07ff9407b4c02ab8
+end
+step out/w4.txt
+cmd write("4\n")
+out out/w4.txt 07ee9607b4b1baeb
+end
+step out/w5.txt
+cmd write("5\n")
+out out/w5.txt 07eb3407b4aede8e
+end
+step out/w6.txt
+cmd write("6\n")
+out out/w6.txt 07f55607b4b76cd9
+end
+step out/w7.txt
+cmd write("7\n")
+out out/w7.txt 07f1fc07b4b49e14
+end
+step out/w8.txt
+cmd write("8\n")
+out out/w8.txt 08175e07b4d460d7
+end
+step out/w9.txt
+cmd write("9\n")
+out out/w9.txt 0813fc07b4d1847a
+end

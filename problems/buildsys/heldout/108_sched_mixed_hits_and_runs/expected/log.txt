@@ -1,0 +1,33 @@
+step 1: build (default) -j 3
+  run 0 2 w0 out/m0.txt copy()
+  run 0 2 w1 out/m1.txt copy()
+  run 0 2 w2 out/m2.txt copy()
+  run 2 4 w0 out/m3.txt copy()
+  run 2 4 w1 out/m4.txt copy()
+  run 2 4 w2 out/m5.txt copy()
+  run 4 5 w0 out/all.txt concat()
+  ok ran=7 hit=0 time=5
+step 2: edit src/s2.txt
+  ok size=3
+step 3: build (default) -j 3
+  hit 0 out/m0.txt
+  hit 0 out/m1.txt
+  run 0 2 w0 out/m2.txt copy()
+  hit 0 out/m3.txt
+  hit 0 out/m4.txt
+  hit 0 out/m5.txt
+  run 2 3 w0 out/all.txt concat()
+  ok ran=2 hit=5 time=3
+step 4: edit src/s0.txt
+  ok size=3
+step 5: edit src/s5.txt
+  ok size=3
+step 6: build (default) -j 2
+  run 0 2 w0 out/m0.txt copy()
+  hit 0 out/m1.txt
+  hit 0 out/m2.txt
+  hit 0 out/m3.txt
+  hit 0 out/m4.txt
+  run 0 2 w1 out/m5.txt copy()
+  run 2 3 w0 out/all.txt concat()
+  ok ran=3 hit=4 time=3

@@ -1,0 +1,41 @@
+kiln-state 1
+step out/all.txt
+cmd concat()
+in out/m0.txt 97902319fa0165b4
+in out/m1.txt 818a9d195c4b94d9
+in out/m2.txt 97895b19f9fba62e
+in out/m3.txt 8183dd195c45e2eb
+in out/m4.txt 8194db195c5452b8
+in out/m5.txt 97a12519fa0fdc4d
+out out/all.txt 03c56351fa63b00e
+end
+step out/m0.txt
+cmd copy()
+in src/s0.txt 97902319fa0165b4
+out out/m0.txt 97902319fa0165b4
+end
+step out/m1.txt
+cmd copy()
+in src/s1.txt 818a9d195c4b94d9
+out out/m1.txt 818a9d195c4b94d9
+end
+step out/m2.txt
+cmd copy()
+in src/s2.txt 97895b19f9fba62e
+out out/m2.txt 97895b19f9fba62e
+end
+step out/m3.txt
+cmd copy()
+in src/s3.txt 8183dd195c45e2eb
+out out/m3.txt 8183dd195c45e2eb
+end
+step out/m4.txt
+cmd copy()
+in src/s4.txt 8194db195c5452b8
+out out/m4.txt 8194db195c5452b8
+end
+step out/m5.txt
+cmd copy()
+in src/s5.txt 97a12519fa0fdc4d
+out out/m5.txt 97a12519fa0fdc4d
+end

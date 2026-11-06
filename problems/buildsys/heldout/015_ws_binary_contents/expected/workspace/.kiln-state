@@ -1,0 +1,12 @@
+kiln-state 1
+step out/c.bin
+cmd copy()
+in src/raw.bin 5f9223256259761e
+out out/c.bin 5f9223256259761e
+end
+step out/h.txt
+cmd hash()
+in src/raw.bin 5f9223256259761e
+in src/raw.bin 5f9223256259761e
+out out/h.txt 42ce205658713dcf
+end

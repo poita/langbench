@@ -1,0 +1,11 @@
+@module main
+fn d(a: Int, b: Int) -> Result<Int, Str> {
+    if b == 0 { return Err("div0"); }
+    Ok(a / b)
+}
+fn main() {
+    print(showBool(isOk(d(4, 2))) ++ showBool(isErr(d(1, 0))));
+    print(showInt(unwrapOk(d(4, 2))));
+    print(unwrapErr(d(1, 0)));
+    print(showInt(unwrapOk(d(1, 0))));
+}

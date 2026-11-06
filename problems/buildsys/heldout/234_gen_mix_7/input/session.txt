@@ -1,0 +1,16 @@
+build -j 16
+clean
+build @m5 -j 64
+delete src/m0/f4.txt
+build @m6 -j 3
+edit src/m5/f2.txt
+---
+build @m2 -j 64
+edit src/m5/f1.txt
+cedar
+---
+build @m4 -j 64
+delete src/m4/f4.txt
+build @m1 -j 8
+clean
+build -j 4

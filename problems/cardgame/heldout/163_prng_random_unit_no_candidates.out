@@ -1,0 +1,67 @@
+1 GAME-START A
+2 SHUFFLE A
+3 SHUFFLE B
+4 TURN 1 A
+5 PHASE dawn
+6 EMBER A 6 6
+7 EMBER B 0 0
+8 PHASE draw
+9 PHASE main1
+10 PLAY A ~1 #7 TID-020
+11 PAY A ember 1
+12 PASS A
+13 PASS B
+14 RESOLVE ~1
+15 SPENT #7 TID-020
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 5 cap 6 vault 6 hand 1 ash 1 rift 0
+player B spire 25 ember 0 cap 0 vault 2 hand 0 ash 0 rift 0
+hand A 1 #8 TID-020
+ash A 1 #7 TID-020
+STATE END
+16 PASS A
+17 PASS B
+18 PHASE clash-attack
+19 PHASE main2
+20 PASS A
+21 PASS B
+22 PHASE dusk-trigger
+23 PASS A
+24 PASS B
+25 PHASE dusk-discard
+26 PHASE dusk-cleanup
+27 TURN 2 B
+28 PHASE dawn
+29 EMBER A 6 6
+30 EMBER B 1 1
+31 PHASE draw
+32 DRAW B #9 CIN-001
+33 PHASE main1
+34 PASS B
+35 PASS A
+36 PHASE clash-attack
+37 PHASE main2
+38 PASS B
+39 PASS A
+40 PHASE dusk-trigger
+41 PASS B
+42 PASS A
+43 PHASE dusk-discard
+44 PHASE dusk-cleanup
+45 TURN 3 A
+46 PHASE dawn
+47 EMBER A 7 7
+48 EMBER B 1 1
+49 PHASE draw
+50 DRAW A #4 CIN-002
+51 PHASE main1
+VAULT BEGIN
+vault A 1 #6 CIN-002
+vault A 2 #5 CIN-002
+vault A 3 #2 CIN-001
+vault A 4 #1 CIN-001
+vault A 5 #3 CIN-001
+vault B 1 #10 CIN-001
+VAULT END
+52 RESULT pending none

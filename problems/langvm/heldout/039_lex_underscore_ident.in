@@ -1,0 +1,2 @@
+@module main
+fn main() { let _x = 1; let x_ = _x; print(showInt(x_)); }

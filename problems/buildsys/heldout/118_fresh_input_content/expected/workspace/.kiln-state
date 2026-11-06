@@ -1,0 +1,6 @@
+kiln-state 1
+step out/z.txt
+cmd copy()
+in src/a.txt 08a61e07b54dac5d
+out out/z.txt 08a61e07b54dac5d
+end

@@ -1,0 +1,9 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/a.txt copy()
+  ok ran=1 hit=0 time=1
+step 2: build out/idle.txt -j 1
+  run 0 1 w0 out/idle.txt write("idle\n")
+  ok ran=1 hit=0 time=1
+step 3: build (default) -j 1
+  hit 0 out/a.txt
+  ok ran=0 hit=1 time=0

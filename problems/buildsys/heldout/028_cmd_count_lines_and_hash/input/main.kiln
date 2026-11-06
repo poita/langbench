@@ -1,0 +1,16 @@
+step {
+    out "out/n.txt"
+    in ["src/a.txt", "src/e.txt", "src/a.txt", "src/b.txt"]
+    cmd count_lines()
+}
+step {
+    out "out/h.txt"
+    in ["src/a.txt", "src/a.txt", "src/e.txt"]
+    cmd hash()
+}
+step {
+    out "out/n1.txt"
+    in "src/e.txt"
+    cmd count_lines()
+}
+default ["out/n.txt", "out/h.txt", "out/n1.txt"]

@@ -1,0 +1,14 @@
+step {
+    out "out/doc.txt"
+    depfile "out/doc.d"
+    in "src/main.txt"
+    cmd preprocess()
+}
+step {
+    out "out/slow.txt"
+    in "src/s.txt"
+    cmd upper()
+    cost 20
+}
+phony all = ["out/doc.txt", "out/slow.txt"]
+default "@all"

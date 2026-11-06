@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let xs = [1, 2]; emit("x"); print(showInt(xs[2]));
+}

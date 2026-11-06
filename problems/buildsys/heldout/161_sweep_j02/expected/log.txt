@@ -1,0 +1,30 @@
+step 1: build (default) -j 2
+  run 0 3 w0 out/s0.txt write("0\n")
+  run 0 1 w1 out/s1.txt write("1\n")
+  run 1 5 w1 out/s2.txt write("2\n")
+  run 3 4 w0 out/s3.txt write("3\n")
+  run 4 9 w0 out/s4.txt write("4\n")
+  run 5 14 w1 out/s5.txt write("5\n")
+  run 9 11 w0 out/s6.txt write("6\n")
+  run 11 17 w0 out/s7.txt write("7\n")
+  run 14 19 w1 out/s8.txt write("8\n")
+  run 17 20 w0 out/s9.txt write("9\n")
+  run 19 24 w1 out/s10.txt write("10\n")
+  run 20 28 w0 out/s11.txt write("11\n")
+  run 28 30 w0 out/join.txt count_lines()
+  ok ran=13 hit=0 time=30
+step 2: build (default) -j 2
+  hit 0 out/s0.txt
+  hit 0 out/s1.txt
+  hit 0 out/s2.txt
+  hit 0 out/s3.txt
+  hit 0 out/s4.txt
+  hit 0 out/s5.txt
+  hit 0 out/s6.txt
+  hit 0 out/s7.txt
+  hit 0 out/s8.txt
+  hit 0 out/s9.txt
+  hit 0 out/s10.txt
+  hit 0 out/s11.txt
+  hit 0 out/join.txt
+  ok ran=0 hit=13 time=0

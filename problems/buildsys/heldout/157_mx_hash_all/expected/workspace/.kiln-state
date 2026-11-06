@@ -1,0 +1,16 @@
+kiln-state 1
+step out/hash_all.txt
+cmd hash()
+in src/e.txt cbf29ce484222325
+in src/n.txt dc3add5ecc4ba006
+in src/x.txt 07c7d73947cbe1de
+in src/c.txt 25fd018afddd7cc5
+in src/u.txt 883ac19acb748cf1
+in src/b.txt 1c2c1cfae3c07157
+out out/hash_all.txt 452e781364249913
+end
+step out/hash_all_pin.txt
+cmd hash()
+in out/hash_all.txt 452e781364249913
+out out/hash_all_pin.txt 2055c8140c944f59
+end

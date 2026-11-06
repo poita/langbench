@@ -1,0 +1,102 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-001
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 ARRIVE #21 CIN-001
+14 PLAY A ~2 #22 NEU-012
+15 PAY A ember 2
+16 PASS A
+17 PASS B
+18 RESOLVE ~2
+19 ARRIVE #22 NEU-012
+ERR 21 cost-unpayable
+20 ACTIVATE A ~3 #23 1 #44
+21 PAY A ember 1
+22 SACRIFICE #23 DSK-012
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 47 cap 51 vault 20 hand 0 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-001 2/1 w0 c0 ready settling kw vanguard
+field A #22 NEU-012 -/- w0 c0 ready settling kw -
+field B #44 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #23 DSK-012
+chain 1 ~3 A ability #23 1 #44
+STATE END
+ERR 24 no-such-object
+23 PASS A
+24 PASS B
+25 RESOLVE ~3
+26 DESTROY #44 TOK-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 47 cap 51 vault 20 hand 0 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+field A #21 CIN-001 2/1 w0 c0 ready settling kw vanguard
+field A #22 NEU-012 -/- w0 c0 ready settling kw -
+ash A 1 #23 DSK-012
+ash B 1 #44 TOK-001
+STATE END
+27 PASS A
+28 PASS B
+29 PHASE clash-attack
+30 PHASE main2
+31 PASS A
+32 PASS B
+33 PHASE dusk-trigger
+34 PASS A
+35 PASS B
+36 PHASE dusk-discard
+37 PHASE dusk-cleanup
+38 TURN 2 B
+39 PHASE dawn
+40 EMBER A 51 51
+41 EMBER B 51 51
+42 PHASE draw
+43 DRAW B #24 TID-001
+44 PHASE main1
+45 PASS B
+46 PASS A
+47 PHASE clash-attack
+48 PHASE main2
+49 PASS B
+50 PASS A
+51 PHASE dusk-trigger
+52 PASS B
+53 PASS A
+54 PHASE dusk-discard
+55 PHASE dusk-cleanup
+56 TURN 3 A
+57 PHASE dawn
+58 EMBER A 52 52
+59 EMBER B 51 51
+60 PHASE draw
+61 DRAW A #1 CIN-001
+62 PHASE main1
+63 ACTIVATE A ~4 #22 1 #21
+64 PAY A ember 1
+65 EXHAUST #22
+66 PASS A
+67 PASS B
+68 RESOLVE ~4
+69 WARD #21 2 2
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 40 ember 51 cap 52 vault 19 hand 1 ash 1 rift 0
+player B spire 40 ember 51 cap 51 vault 19 hand 1 ash 1 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #24 TID-001
+field A #21 CIN-001 2/1 w0 c0 ready ward2 kw vanguard
+field A #22 NEU-012 -/- w0 c0 exhausted - kw -
+ash A 1 #23 DSK-012
+ash B 1 #44 TOK-001
+STATE END
+70 RESULT pending none

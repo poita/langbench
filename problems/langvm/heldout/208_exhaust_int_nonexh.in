@@ -1,0 +1,5 @@
+@module main
+fn f(n: Int) -> Str {
+    match n { 0 -> "z", 1 -> "o" }
+}
+fn main() { print(f(0)); }

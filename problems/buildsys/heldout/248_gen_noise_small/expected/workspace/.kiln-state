@@ -1,0 +1,86 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 599fc73d78e93354
+in out/m1/bundle.txt c06c09e40b3e40a5
+out out/all.txt 3063887feec7a50a
+end
+step out/m0/bundle.txt
+cmd concat()
+in out/m0/f0.txt 6dcf83eceb2ec933
+in out/m0/f1.txt dcd1cd1a2138b85d
+in out/m0/f2.txt 5f58092efda0a50d
+in out/m0/new0.txt 3ea7dd1317dd64c6
+in out/m0/new1.txt 2e52173c7ab2f9b7
+out out/m0/bundle.txt a5e156f6910f10d2
+end
+step out/m0/f0.txt
+cmd number()
+in src/m0/f0.txt 708d2dfddd41faf0
+out out/m0/f0.txt 6dcf83eceb2ec933
+end
+step out/m0/f1.txt
+cmd wrap("[", "]\n")
+in src/m0/f1.txt cbf29ce484222325
+out out/m0/f1.txt dcd1cd1a2138b85d
+end
+step out/m0/f2.txt
+cmd grep("e")
+in src/m0/f2.txt 677808a24199fdfb
+out out/m0/f2.txt 5f58092efda0a50d
+end
+step out/m0/new0.txt
+cmd number()
+in src/m0/new0.txt c61be9271de452bb
+out out/m0/new0.txt 3ea7dd1317dd64c6
+end
+step out/m0/new1.txt
+cmd wrap("[", "]\n")
+in src/m0/new1.txt 849b2af52f544dd1
+out out/m0/new1.txt 2e52173c7ab2f9b7
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt a5e156f6910f10d2
+out out/m0/wrapped.txt 37d440e09c8aa16d
+end
+step out/m1/bundle.txt
+cmd concat()
+in out/m1/f0.txt e3da1c7de930c216
+in out/m1/f1.txt 2834a18e94494683
+in out/m1/f2.txt f820467a0c398462
+out out/m1/bundle.txt 46406ecd7df9add7
+end
+step out/m1/doc.txt
+cmd preprocess()
+in src/m1/doc.src 5cafc8decbb7d385
+dep src/m1/f0.txt e3da1c7de930c216
+dep src/m1/f1.txt 2834a18e94494683
+dep src/m1/f2.txt f820467a0c398462
+out out/m1/doc.txt f072b4bc7d2f3692
+out out/m1/doc.d 4fe6ebd5f8376a24
+end
+step out/m1/f0.txt
+cmd copy()
+in src/m1/f0.txt e3da1c7de930c216
+out out/m1/f0.txt e3da1c7de930c216
+end
+step out/m1/f1.txt
+cmd lower()
+in src/m1/f1.txt 2834a18e94494683
+out out/m1/f1.txt 2834a18e94494683
+end
+step out/m1/f2.txt
+cmd lower()
+in src/m1/f2.txt f820467a0c398462
+out out/m1/f2.txt f820467a0c398462
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt 46406ecd7df9add7
+out out/m1/wrapped.txt 8dbdd8551f5d4ed3
+end
+step out/noise.txt
+cmd write("600:111:615\n")
+out out/noise.txt 9516d503a67073ce
+end

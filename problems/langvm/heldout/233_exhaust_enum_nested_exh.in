@@ -1,0 +1,11 @@
+@module main
+enum B { B1, B2(Int) }
+enum T { A(B), C }
+fn f(t: T) -> Int {
+    match t {
+        A(B1) -> 1,
+        A(B2(n)) -> n,
+        C -> 3,
+    }
+}
+fn main() { print("ok"); }

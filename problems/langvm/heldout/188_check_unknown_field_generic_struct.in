@@ -1,0 +1,4 @@
+@module main
+struct Pair<A, B> { left: A, right: B }
+fn swap<A, B>(p: Pair<A, B>) -> Pair<B, A> { Pair.{ left: p.right, right: p.lefft } }
+fn main() { print(showInt(swap(Pair.{ left: 1, right: "a" }).right)); }

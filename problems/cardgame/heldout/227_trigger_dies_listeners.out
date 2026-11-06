@@ -1,0 +1,95 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 DSK-002 #46
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DESTROY #46 DSK-015
+14 SPENT #21 DSK-002
+15 TRIGGER B ~2 #46 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 10 vault 20 hand 1 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 1 rift 0
+hand A 1 #22 NEU-032
+field A #23 TID-012 2/1 w0 c0 ready - kw -
+field A #24 LOM-016 2/2 w0 c0 ready - kw -
+field B #45 DSK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 DSK-002
+ash B 1 #46 DSK-015
+chain 1 ~2 B trigger #46 1
+STATE END
+16 PASS A
+17 PASS B
+18 RESOLVE ~2
+19 SPIRE A -2 38
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 38 ember 8 cap 10 vault 20 hand 1 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 1 rift 0
+hand A 1 #22 NEU-032
+field A #23 TID-012 2/1 w0 c0 ready - kw -
+field A #24 LOM-016 2/2 w0 c0 ready - kw -
+field B #45 DSK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 DSK-002
+ash B 1 #46 DSK-015
+STATE END
+20 PLAY A ~3 #22 NEU-032
+21 PAY A ember 5
+22 PASS A
+23 PASS B
+24 RESOLVE ~3
+25 DESTROY #23 TID-012
+26 DESTROY #24 LOM-016
+27 DESTROY #45 DSK-001
+28 SPENT #22 NEU-032
+29 TRIGGER A ~4 #23 1
+30 TRIGGER A ~5 #24 1
+31 TRIGGER B ~6 #45 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 38 ember 3 cap 10 vault 20 hand 0 ash 4 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 2 rift 0
+ash A 1 #21 DSK-002
+ash A 2 #23 TID-012
+ash A 3 #24 LOM-016
+ash A 4 #22 NEU-032
+ash B 1 #46 DSK-015
+ash B 2 #45 DSK-001
+chain 1 ~6 B trigger #45 1
+chain 2 ~5 A trigger #24 1
+chain 3 ~4 A trigger #23 1
+STATE END
+32 PASS A
+33 PASS B
+34 RESOLVE ~4
+35 DRAW A #1 CIN-001
+36 PASS A
+37 PASS B
+38 RESOLVE ~5
+39 CREATE #47 TOK-006 field
+40 ARRIVE #47 TOK-006
+41 PASS A
+42 PASS B
+43 RESOLVE ~6
+44 SPIRE A -1 37
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 37 ember 3 cap 10 vault 19 hand 1 ash 4 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 2 rift 0
+hand A 1 #1 CIN-001
+field A #47 TOK-006 0/2 w0 c0 ready settling kw -
+ash A 1 #21 DSK-002
+ash A 2 #23 TID-012
+ash A 3 #24 LOM-016
+ash A 4 #22 NEU-032
+ash B 1 #46 DSK-015
+ash B 2 #45 DSK-001
+STATE END
+45 RESULT pending none

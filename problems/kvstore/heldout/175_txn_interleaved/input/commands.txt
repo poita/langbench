@@ -1,0 +1,14 @@
+put "a" 1
+begin
+put "b" 2
+commit
+put "c" 3
+begin
+put "d" 4
+rollback
+put "e" 5
+begin
+delete "a"
+commit
+scan keys
+stat

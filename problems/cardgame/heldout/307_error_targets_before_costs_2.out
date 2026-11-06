@@ -1,0 +1,48 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+ERR 12 illegal-target
+ERR 13 bad-target-count
+ERR 14 illegal-target
+ERR 15 illegal-target
+ERR 16 cannot-afford
+ERR 17 illegal-target
+8 ACTIVATE A ~1 #10 1 #19
+9 PAY A ember 1
+10 SACRIFICE #10 DSK-012
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 20 ember 0 cap 1 vault 6 hand 3 ash 1 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 0 rift 0
+hand A 1 #7 LOM-003
+hand A 2 #8 DSK-002
+hand A 3 #9 CIN-005
+field A #11 TOK-003 0/3 w0 c0 ready - kw plating:1
+field B #18 NEU-002 -/- w0 c0 ready - kw -
+field B #19 TOK-001 1/2 w0 c0 ready - kw -
+ash A 1 #10 DSK-012
+chain 1 ~1 A ability #10 1 #19
+effect 1 ts4 B aura modify 0 1 on #19
+STATE END
+11 PASS A
+12 PASS B
+13 RESOLVE ~1
+14 DESTROY #19 TOK-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 20 ember 0 cap 1 vault 6 hand 3 ash 1 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 1 rift 0
+hand A 1 #7 LOM-003
+hand A 2 #8 DSK-002
+hand A 3 #9 CIN-005
+field A #11 TOK-003 0/3 w0 c0 ready - kw plating:1
+field B #18 NEU-002 -/- w0 c0 ready - kw -
+ash A 1 #10 DSK-012
+ash B 1 #19 TOK-001
+effect 1 ts4 B aura modify 0 1 on -
+STATE END
+15 RESULT pending none

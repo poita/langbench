@@ -1,0 +1,12 @@
+step {
+    out "out/gen.txt"
+    in "src/a.txt"
+    cmd copy()
+}
+step {
+    out "out/rep.txt"
+    after "out/gen.txt"
+    cmd write("report\n")
+}
+phony all = ["out/rep.txt"]
+default "@all"

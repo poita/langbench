@@ -1,0 +1,17 @@
+build -j 8
+edit src/m4/f2.txt
+---
+build -j 2
+touch src/m2/f5.txt
+build -j 3
+create src/m4/new0.txt
+kappa
+pi
+delta
+---
+build @m7 -j 3
+edit src/m2/f2.txt
+---
+build @m6 -j 16
+touch main.kiln
+build @m0 -j 8

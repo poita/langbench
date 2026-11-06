@@ -1,0 +1,20 @@
+1 GAME-START B
+2 DRAW B #4 TID-001
+3 DRAW B #5 TID-001
+4 DRAW-EMPTY B
+5 DRAW A #1 CIN-001
+6 DRAW A #2 CIN-001
+7 DRAW A #3 CIN-001
+8 LOSE B vault
+9 RESULT A vault
+STATE BEGIN
+turn 1 active B phase dawn decision - over
+result A vault
+player A spire 25 ember 0 cap 0 vault 0 hand 3 ash 0 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 2 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand A 3 #3 CIN-001
+hand B 1 #4 TID-001
+hand B 2 #5 TID-001
+STATE END

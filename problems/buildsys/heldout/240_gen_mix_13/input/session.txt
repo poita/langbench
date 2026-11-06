@@ -1,0 +1,18 @@
+build
+create src/m0/new0.txt
+beta
+---
+build @m9
+touch src/m6/f4.txt
+build @m11 -j 3
+create src/m7/new1.txt
+Ünicode
+eta
+---
+build @m15 -j 64
+edit src/m4/sub/g3.txt
+---
+build @m13 -j 64
+edit src/m4/f2.txt
+---
+build @m14

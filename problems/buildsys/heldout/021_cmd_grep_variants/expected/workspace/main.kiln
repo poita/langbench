@@ -1,0 +1,13 @@
+each i, needle in ["a", "zz", "", "b"] {
+    step {
+        out "out/g{i}.txt"
+        in "src/t.txt"
+        cmd grep(needle)
+    }
+}
+step {
+    out "out/h.txt"
+    in ["out/g0.txt", "out/g1.txt", "out/g2.txt", "out/g3.txt"]
+    cmd hash()
+}
+default "out/h.txt"

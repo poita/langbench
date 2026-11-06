@@ -1,0 +1,44 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 1efff0a89e70d124
+in out/m1/bundle.txt 8760f47cd57af667
+out out/all.txt b71e7751e543f618
+end
+step out/m0/bundle.txt
+cmd hash()
+in out/m0/f0.txt bbf0ea5cfaf0f2f5
+out out/m0/bundle.txt 1efff0a89e70d124
+end
+step out/m0/f0.txt
+cmd dedup()
+in src/m0/f0.txt 03497821a218865e
+out out/m0/f0.txt bbf0ea5cfaf0f2f5
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 1efff0a89e70d124
+out out/m0/wrapped.txt f5728a695b7ce173
+end
+step out/m1/bundle.txt
+cmd concat()
+in out/m1/f0.txt 8760f47cd57af667
+out out/m1/bundle.txt 8760f47cd57af667
+end
+step out/m1/doc.txt
+cmd preprocess()
+in src/m1/doc.src 57539400f750ca08
+dep src/m1/f0.txt 5a2093ec0e349209
+out out/m1/doc.txt 8f0e522fbc05333a
+out out/m1/doc.d a57f6ba13fdf00f5
+end
+step out/m1/f0.txt
+cmd wrap("[", "]\n")
+in src/m1/f0.txt 5a2093ec0e349209
+out out/m1/f0.txt 8760f47cd57af667
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt 8760f47cd57af667
+out out/m1/wrapped.txt 4df63f45b980d0ff
+end

@@ -1,0 +1,16 @@
+delete "k00"
+delete "k01"
+delete "k02"
+delete "k03"
+delete "k04"
+delete "k05"
+delete "k06"
+delete "k07"
+stat
+put "n00" 1
+put "n01" 1
+put "n02" 1
+put "n03" 1
+put "n04" 1
+put "n05" 1
+stat

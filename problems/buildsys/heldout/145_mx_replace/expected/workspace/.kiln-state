@@ -1,0 +1,41 @@
+kiln-state 1
+step out/replace_0.txt
+cmd replace("i", "<I>")
+in src/e.txt cbf29ce484222325
+out out/replace_0.txt cbf29ce484222325
+end
+step out/replace_1.txt
+cmd replace("i", "<I>")
+in src/n.txt dc3add5ecc4ba006
+out out/replace_1.txt 9c96349bb8c4b952
+end
+step out/replace_2.txt
+cmd replace("i", "<I>")
+in src/x.txt 07c7d73947cbe1de
+out out/replace_2.txt 32d72dbc6e60d23a
+end
+step out/replace_3.txt
+cmd replace("i", "<I>")
+in src/c.txt 25fd018afddd7cc5
+out out/replace_3.txt 7159a6cbe7df8ad9
+end
+step out/replace_4.txt
+cmd replace("i", "<I>")
+in src/u.txt 883ac19acb748cf1
+out out/replace_4.txt 883ac19acb748cf1
+end
+step out/replace_5.txt
+cmd replace("i", "<I>")
+in src/b.txt 1c2c1cfae3c07157
+out out/replace_5.txt 0aaf8b0c6692b6e3
+end
+step out/replace_pin.txt
+cmd hash()
+in out/replace_0.txt cbf29ce484222325
+in out/replace_1.txt 9c96349bb8c4b952
+in out/replace_2.txt 32d72dbc6e60d23a
+in out/replace_3.txt 7159a6cbe7df8ad9
+in out/replace_4.txt 883ac19acb748cf1
+in out/replace_5.txt 0aaf8b0c6692b6e3
+out out/replace_pin.txt c93d7bbc4617eba4
+end

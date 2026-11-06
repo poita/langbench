@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(1 << 64));
+}

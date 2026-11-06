@@ -1,0 +1,6 @@
+@module main
+fn main() {
+    var m = #[true: 1];
+    m[false] = 0;
+    print(showInt(mapLen(m)) ++ showInt(m[true]) ++ showInt(m[false]));
+}

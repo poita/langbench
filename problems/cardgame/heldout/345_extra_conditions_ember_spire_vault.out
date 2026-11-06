@@ -1,0 +1,119 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 3 3
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #9 EXT-024
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 CAP A 2 5
+14 CAP B 2 10
+15 SPENT #9 EXT-024
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 12 ember 2 cap 5 vault 8 hand 3 ash 1 rift 0
+player B spire 12 ember 10 cap 10 vault 4 hand 0 ash 0 rift 0
+hand A 1 #10 EXT-024
+hand A 2 #11 EXT-024
+hand A 3 #12 EXT-003
+ash A 1 #9 EXT-024
+STATE END
+16 PLAY A ~2 #10 EXT-024
+17 PAY A ember 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 CAP A 2 7
+22 CAP B 2 10
+23 MILL A #1 EXT-001
+24 MILL B #13 EXT-001
+25 SPENT #10 EXT-024
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 12 ember 1 cap 7 vault 7 hand 2 ash 3 rift 0
+player B spire 12 ember 10 cap 10 vault 3 hand 0 ash 1 rift 0
+hand A 1 #11 EXT-024
+hand A 2 #12 EXT-003
+ash A 1 #9 EXT-024
+ash A 2 #1 EXT-001
+ash A 3 #10 EXT-024
+ash B 1 #13 EXT-001
+STATE END
+26 PASS A
+27 PASS B
+28 PHASE clash-attack
+29 PHASE main2
+30 PASS A
+31 PASS B
+32 PHASE dusk-trigger
+33 PASS A
+34 PASS B
+35 PHASE dusk-discard
+36 PHASE dusk-cleanup
+37 TURN 2 B
+38 PHASE dawn
+39 EMBER A 7 7
+40 EMBER B 10 10
+41 PHASE draw
+42 DRAW B #14 EXT-001
+43 PHASE main1
+44 PASS B
+45 PASS A
+46 PHASE clash-attack
+47 PHASE main2
+48 PASS B
+49 PASS A
+50 PHASE dusk-trigger
+51 PASS B
+52 PASS A
+53 PHASE dusk-discard
+54 PHASE dusk-cleanup
+55 TURN 3 A
+56 PHASE dawn
+57 EMBER A 8 8
+58 EMBER B 10 10
+59 PHASE draw
+60 DRAW A #2 EXT-001
+61 PHASE main1
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 12 ember 8 cap 8 vault 6 hand 3 ash 3 rift 0
+player B spire 12 ember 10 cap 10 vault 2 hand 1 ash 1 rift 0
+hand A 1 #11 EXT-024
+hand A 2 #12 EXT-003
+hand A 3 #2 EXT-001
+hand B 1 #14 EXT-001
+ash A 1 #9 EXT-024
+ash A 2 #1 EXT-001
+ash A 3 #10 EXT-024
+ash B 1 #13 EXT-001
+STATE END
+62 PLAY A ~3 #11 EXT-024
+63 PAY A ember 1
+64 PASS A
+65 PASS B
+66 RESOLVE ~3
+67 EMBERGAIN A 1 8
+68 MILL A #3 EXT-001
+69 MILL B #15 EXT-001
+70 SPENT #11 EXT-024
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 12 ember 8 cap 8 vault 5 hand 2 ash 5 rift 0
+player B spire 12 ember 10 cap 10 vault 1 hand 1 ash 2 rift 0
+hand A 1 #12 EXT-003
+hand A 2 #2 EXT-001
+hand B 1 #14 EXT-001
+ash A 1 #9 EXT-024
+ash A 2 #1 EXT-001
+ash A 3 #10 EXT-024
+ash A 4 #3 EXT-001
+ash A 5 #11 EXT-024
+ash B 1 #13 EXT-001
+ash B 2 #15 EXT-001
+STATE END
+71 RESULT pending none

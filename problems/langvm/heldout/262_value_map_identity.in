@@ -1,0 +1,10 @@
+@module main
+fn main() {
+    let m = #[1: 1];
+    let n = m;
+    n[2] = 2;
+    print(showInt(mapLen(m)));
+    let p = mapCopy(m);
+    mapClear(m);
+    print(showInt(mapLen(p)) ++ showInt(mapLen(m)));
+}

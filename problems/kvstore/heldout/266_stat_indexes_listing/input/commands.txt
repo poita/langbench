@@ -1,0 +1,11 @@
+create index zz
+create index a.b
+create index m
+indexes
+put "k" {zz:1,a:{b:2},m:3}
+indexes
+drop index a.b
+indexes
+create index q
+indexes
+stat

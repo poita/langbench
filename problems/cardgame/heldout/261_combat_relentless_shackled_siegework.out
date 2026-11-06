@@ -1,0 +1,70 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+CANATTACK #22
+CANATTACK #24
+MUSTATTACK #21
+MUSTATTACK #22
+LEGAL END
+11 EXHAUST #21
+12 ATTACK #21
+13 EXHAUST #22
+14 ATTACK #22
+15 PASS A
+16 PASS B
+17 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #47 #21
+CANBLOCK #47 #22
+LEGAL END
+18 BLOCK #47 #21
+19 UNBLOCKED #22
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-033 3/1 w0 c0 exhausted attacking,blocked kw relentless
+field A #22 NEU-015 5/4 w0 c0 exhausted attacking kw pierce,relentless,siegework
+field A #23 TOK-008 2/2 w0 c0 ready - kw shackled
+field A #24 CIN-001 2/1 w0 c0 ready - kw vanguard
+field B #45 CIN-023 5/5 w0 c0 ready - kw siegework
+field B #46 LOM-007 4/6 w0 c0 ready - kw siegework
+field B #47 TOK-001 1/1 w0 c0 ready blocking kw -
+STATE END
+20 PASS A
+21 PASS B
+22 PHASE clash-damage
+23 DAMAGE #21 #47 3
+24 DAMAGE #22 B 5
+25 SPIRE B -5 25
+26 DAMAGE #47 #21 1
+27 DESTROY #21 CIN-033
+28 DESTROY #47 TOK-001
+29 PASS A
+30 PASS B
+31 PHASE clash-end
+32 PASS A
+33 PASS B
+34 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 1 rift 0
+player B spire 25 ember 0 cap 0 vault 20 hand 0 ash 1 rift 0
+field A #22 NEU-015 5/4 w0 c0 exhausted - kw pierce,relentless,siegework
+field A #23 TOK-008 2/2 w0 c0 ready - kw shackled
+field A #24 CIN-001 2/1 w0 c0 ready - kw vanguard
+field B #45 CIN-023 5/5 w0 c0 ready - kw siegework
+field B #46 LOM-007 4/6 w0 c0 ready - kw siegework
+ash A 1 #21 CIN-033
+ash B 1 #47 TOK-001
+STATE END
+35 RESULT pending none

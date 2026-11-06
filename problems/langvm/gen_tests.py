@@ -6,10 +6,10 @@ subprocess, exactly as the harness runs an implementation.  All randomness is
 seeded with fixed constants, so re-running this script reproduces the suite
 byte for byte.
 
-Layout (section "Hidden tests" of CONVENTIONS.md): one shared number sequence
+Layout (section "Held-out tests" of problems/README.md): one shared number sequence
 across both directories, about a quarter of each feature area public in
-problems/langvm/tests/ and the rest hidden in
-$LANGBENCH_HIDDEN (default: langbench-hidden next to this checkout)/langvm/tests/.
+problems/langvm/tests/ and the rest held out in
+problems/langvm/heldout/.
 
 Usage:
     python3 gen_tests.py            write both test directories
@@ -26,8 +26,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REF = os.path.join(HERE, 'reference')
 SPEC = os.path.join(HERE, 'SPEC.md')
 PUBLIC_DIR = os.path.join(HERE, 'tests')
-HIDDEN_DIR = os.path.join(os.environ.get("LANGBENCH_HIDDEN") or os.path.normpath(os.path.join(
-    os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "langbench-hidden")), "langvm", "tests")
+HIDDEN_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "heldout")
 
 # Areas in suite order: roughly the order of the compiler pipeline, then whole
 # programs, then the heavy workloads.  Every area must end up with cases in

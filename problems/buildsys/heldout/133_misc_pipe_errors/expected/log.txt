@@ -1,0 +1,14 @@
+step 1: build (default) -j 1
+  error E_UNKNOWN_FUNC nope
+step 2: edit main.kiln
+  ok size=18
+step 3: build (default) -j 1
+  error E_UNKNOWN_FUNC cost
+step 4: edit main.kiln
+  ok size=24
+step 5: build (default) -j 1
+  error E_ARITY fn upper: expected 1, got 2
+step 6: edit main.kiln
+  ok size=30
+step 7: build (default) -j 1
+  error E_TYPE fn upper argument 1: expected str, got int

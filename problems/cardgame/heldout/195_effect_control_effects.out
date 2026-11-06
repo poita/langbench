@@ -1,0 +1,86 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 TID-010
+9 PAY A ember 4
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 ARRIVE #21 TID-010
+14 TRIGGER A ~2 #21 1 #44
+15 PASS A
+16 PASS B
+17 RESOLVE ~2
+18 CONTROL #44 A
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 47 cap 51 vault 20 hand 2 ash 0 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 NEU-028
+hand A 2 #23 CIN-005
+field A #44 CIN-023 5/5 w0 c0 ready settling kw siegework
+field A #21 TID-010 3/3 w0 c0 ready settling kw -
+field B #45 LOM-005 2/5 w0 c0 ready - kw -
+field B #46 TOK-001 1/2 w0 c0 ready - kw -
+effect 1 ts3 B aura modify 0 1 on #45,#46
+effect 2 ts6 A turn control A on #44
+STATE END
+19 PLAY A ~3 #22 NEU-028 #45
+20 PAY A ember 3
+21 PASS A
+22 PASS B
+23 RESOLVE ~3
+24 CONTROL #45 A
+25 SPENT #22 NEU-028
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 44 cap 51 vault 20 hand 1 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #23 CIN-005
+field A #44 CIN-023 5/6 w0 c0 ready settling kw siegework
+field A #45 LOM-005 2/5 w0 c0 ready settling kw -
+field A #21 TID-010 3/4 w0 c0 ready settling kw -
+field B #46 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #22 NEU-028
+effect 1 ts3 A aura modify 0 1 on #44,#45,#21
+effect 2 ts6 A turn control A on #44
+effect 3 ts7 A turn control A on #45
+STATE END
+26 PASS A
+27 PASS B
+28 PHASE clash-attack
+LEGAL BEGIN A attackers
+LEGAL END
+29 PHASE main2
+30 PASS A
+31 PASS B
+32 PHASE dusk-trigger
+33 PASS A
+34 PASS B
+35 PHASE dusk-discard
+36 PHASE dusk-cleanup
+37 TURN 2 B
+38 PHASE dawn
+39 EMBER A 51 51
+40 EMBER B 51 51
+41 PHASE draw
+42 DRAW B #24 TID-001
+43 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 40 ember 51 cap 51 vault 20 hand 1 ash 1 rift 0
+player B spire 40 ember 51 cap 51 vault 19 hand 1 ash 0 rift 0
+hand A 1 #23 CIN-005
+hand B 1 #24 TID-001
+field A #21 TID-010 3/3 w0 c0 ready - kw -
+field B #44 CIN-023 5/6 w0 c0 ready - kw siegework
+field B #45 LOM-005 2/5 w0 c0 ready - kw -
+field B #46 TOK-001 1/2 w0 c0 ready - kw -
+ash A 1 #22 NEU-028
+effect 1 ts3 B aura modify 0 1 on #44,#45,#46
+STATE END
+44 RESULT pending none

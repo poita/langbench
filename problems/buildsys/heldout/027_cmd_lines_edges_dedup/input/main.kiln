@@ -1,0 +1,36 @@
+step {
+    out "out/d0.txt"
+    in "src/blank.txt"
+    cmd dedup()
+}
+step {
+    out "out/d1.txt"
+    in "src/cr.txt"
+    cmd dedup()
+}
+step {
+    out "out/d2.txt"
+    in "src/empty.txt"
+    cmd dedup()
+}
+step {
+    out "out/d3.txt"
+    in "src/nl.txt"
+    cmd dedup()
+}
+step {
+    out "out/d4.txt"
+    in "src/nonl.txt"
+    cmd dedup()
+}
+step {
+    out "out/dh.txt"
+    in ["out/d0.txt", "out/d1.txt", "out/d2.txt", "out/d3.txt", "out/d4.txt"]
+    cmd hash()
+}
+step {
+    out "out/dn.txt"
+    in ["src/blank.txt", "src/cr.txt", "src/empty.txt", "src/nl.txt", "src/nonl.txt"]
+    cmd count_lines()
+}
+default ["out/dh.txt", "out/dn.txt"]

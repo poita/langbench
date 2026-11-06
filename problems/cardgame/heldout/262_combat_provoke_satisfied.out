@@ -1,0 +1,79 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+CANATTACK #22
+CANATTACK #23
+LEGAL END
+11 EXHAUST #21
+12 ATTACK #21
+13 ATTACK #22
+14 EXHAUST #23
+15 ATTACK #23
+16 PASS A
+17 PASS B
+18 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #44 #21
+CANBLOCK #44 #22
+CANBLOCK #44 #23
+CANBLOCK #45 #21
+CANBLOCK #45 #22
+CANBLOCK #45 #23
+CANBLOCK #46 #21
+CANBLOCK #46 #22
+CANBLOCK #46 #23
+MUSTBLOCK #21
+MUSTBLOCK #22
+LEGAL END
+19 BLOCK #44 #21
+20 BLOCK #45 #22
+21 BLOCK #46 #22
+22 UNBLOCKED #23
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 LOM-025 3/3 w0 c0 exhausted attacking,blocked kw provoke
+field A #22 NEU-018 2/5 w0 c0 ready attacking,blocked kw provoke,vigil
+field A #23 CIN-001 2/1 w0 c0 exhausted attacking kw vanguard
+field B #44 TOK-001 1/1 w0 c0 ready blocking kw -
+field B #45 TOK-003 0/3 w0 c0 ready blocking kw plating:1
+field B #46 TOK-006 0/2 w0 c0 ready blocking kw -
+STATE END
+23 PASS A
+24 PASS B
+25 PHASE clash-damage
+26 DAMAGE #21 #44 3
+27 PREVENT #45 1
+28 DAMAGE #22 #45 1
+29 DAMAGE #23 B 2
+30 SPIRE B -2 28
+31 DAMAGE #44 #21 1
+32 DESTROY #44 TOK-001
+33 PASS A
+34 PASS B
+35 PHASE clash-end
+36 PASS A
+37 PASS B
+38 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 28 ember 0 cap 0 vault 20 hand 0 ash 1 rift 0
+field A #21 LOM-025 3/3 w1 c0 exhausted - kw provoke
+field A #22 NEU-018 2/5 w0 c0 ready - kw provoke,vigil
+field A #23 CIN-001 2/1 w0 c0 exhausted - kw vanguard
+field B #45 TOK-003 0/3 w1 c0 ready - kw plating:1
+field B #46 TOK-006 0/2 w0 c0 ready - kw -
+ash B 1 #44 TOK-001
+STATE END
+39 RESULT pending none

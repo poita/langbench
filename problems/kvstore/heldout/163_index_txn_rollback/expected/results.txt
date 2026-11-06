@@ -1,0 +1,59 @@
+[1] ok put created
+[2] ok begin
+[3] ok create index v entries 1
+[4] ok indexes 1
+  0 v root 3 entries 1
+[5] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 1
+  indexes 1
+  wal 2152
+[6] ok rollback
+[7] ok indexes 0
+[8] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 1
+  indexes 0
+  wal 2152
+[9] ok begin
+[10] ok create index v entries 1
+[11] ok put created
+[12] ok commit 2 frames 3
+[13] ok indexes 1
+  0 v root 3 entries 2
+[14] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 1
+  wal 5320
+[15] ok begin
+[16] ok drop index v pages 1
+[17] ok indexes 0
+[18] ok rollback
+[19] ok indexes 1
+  0 v root 3 entries 2
+[20] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 1
+  wal 5320

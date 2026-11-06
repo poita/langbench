@@ -1,0 +1,40 @@
+build -j 4
+edit src/m3/sub/g3.txt
+epsilon
+fir
+eta
+---
+build @m5
+create src/m5/new0.txt
+   spaced   
+nu
+---
+build @m3 -j 64
+edit src/m7/sub/g7.txt
+---
+build @m2 -j 4
+edit src/m3/f2.txt
+omicron
+alpha
+hazel
+0123
+---
+build @m5 -j 2
+touch src/m0/f4.txt
+build @m0 -j 16
+delete src/m6/f6.txt
+build @m3 -j 4
+edit src/m5/f2.txt
+xi
+a-b+c
+omicron
+---
+build @m3 -j 64
+edit src/m4/sub/g7.txt
+gamma
+alpha
+   spaced   
+---
+build @m5 -j 8
+clean
+build @m7 -j 4

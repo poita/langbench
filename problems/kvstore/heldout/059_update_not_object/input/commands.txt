@@ -1,0 +1,16 @@
+put "a" 1
+update "a" b 2
+put "b" "s"
+update "b" x.y 1
+put "c" [1]
+update "c" x 1
+put "d" {x:1}
+update "d" x.y 1
+update "d" y 2
+get "d"
+put "e" null
+update "e" x 1
+put "f" true
+update "f" x 1
+scan
+stat

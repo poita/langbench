@@ -1,0 +1,68 @@
+[1] ok put created
+[2] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 1
+  indexes 0
+  wal 2152
+[3] ok update updated
+[4] ok stat
+  pages 5
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 7416
+[5] ok update updated
+[6] ok stat
+  pages 7
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 3
+  indexes 0
+  wal 14776
+[7] ok unset updated
+[8] ok stat
+  pages 7
+  free 5
+  freehead 7
+  docs 1
+  root 2
+  height 1
+  commits 4
+  indexes 0
+  wal 22136
+[9] ok get value
+  {"x":1}
+[10] ok update updated
+[11] ok stat
+  pages 7
+  free 4
+  freehead 6
+  docs 1
+  root 2
+  height 1
+  commits 5
+  indexes 0
+  wal 25304
+[12] ok delete removed
+[13] ok stat
+  pages 7
+  free 6
+  freehead 2
+  docs 0
+  root 0
+  height 0
+  commits 6
+  indexes 0
+  wal 28472

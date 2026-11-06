@@ -1,0 +1,8 @@
+build -j 8
+create src/m2/new0.txt
+
+xi
+---
+build @m0 -j 3
+delete src/m2/f5.txt
+build out/all.txt -j 64

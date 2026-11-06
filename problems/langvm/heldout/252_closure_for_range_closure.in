@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    var fs: [fn() -> Int] = listNew();
+    for i in 0 .. 3 { push(fs, || i); }
+    for f in fs { emit(showInt(f())); }
+    print("");
+}

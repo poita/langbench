@@ -1,0 +1,11 @@
+step {
+    out "out/concat_all.txt"
+    in ["src/e.txt", "src/n.txt", "src/x.txt", "src/c.txt", "src/u.txt", "src/b.txt"]
+    cmd concat()
+}
+step {
+    out "out/concat_all_pin.txt"
+    in ["out/concat_all.txt"]
+    cmd hash()
+}
+default "out/concat_all_pin.txt"

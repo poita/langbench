@@ -1,0 +1,1393 @@
+build
+edit src/m2/f2.txt
+---
+build @m2
+touch src/m0/f2.txt
+build @m0
+edit src/m0/f0.txt
+---
+build @m2
+create src/m1/new0.txt
+cedar
+alpha
+---
+build @m2
+create src/m1/new1.txt
+Ünicode
+
+---
+build @m1 -j 4
+edit src/m0/f2.txt
+juniper
+eta
+cedar
+ash
+---
+build out/all.txt -j 64
+edit src/m1/f2.txt
+kappa
+
+ash
+alpha
+---
+build @m1 -j 8
+clean
+build @m1 -j 16
+touch main.kiln
+build @m0 -j 4
+delete src/m1/new0.txt
+build @m1 -j 64
+edit src/m0/f2.txt
+a-b+c
+0123
+kappa
+---
+build @m2 -j 2
+edit src/m0/f0.txt
+beta
+nu
+cedar
+gamma
+---
+build out/all.txt
+touch src/m0/f1.txt
+build @m1 -j 8
+touch src/m1/f2.txt
+build -j 8
+delete src/m1/new1.txt
+build -j 2
+edit src/m2/f2.txt
+fir
+kappa
+gamma
+omicron
+---
+build -j 64
+touch src/m2/f2.txt
+build -j 64
+edit src/m0/f0.txt
+the end
+   spaced   
+elm
+fir
+---
+build -j 8
+edit src/m2/f1.txt
+alpha
+ilex
+---
+build @m0 -j 4
+clean
+build @m0 -j 64
+create src/m0/new2.txt
+omicron
+xi
+zeta
+---
+build -j 64
+touch main.kiln
+build @m1
+clean
+build -j 2
+touch src/m1/f2.txt
+build
+touch src/m0/new2.txt
+build -j 4
+edit src/m1/f1.txt
+hazel
+birch
+juniper
+xi
+---
+build out/all.txt -j 3
+touch src/m2/f2.txt
+build -j 8
+edit src/m0/f1.txt
+the end
+fir
+---
+build @m2 -j 2
+edit src/m2/f1.txt
+kappa
+---
+build @m2 -j 64
+clean
+build -j 4
+edit src/m0/f1.txt
+---
+build -j 16
+touch src/m0/f1.txt
+build
+edit src/m0/f0.txt
+0123
+ilex
+epsilon
+---
+build @m1 -j 8
+edit src/m2/f0.txt
+theta
+fir
+mu
+---
+build -j 3
+edit src/m1/f0.txt
+elm
+---
+build out/all.txt -j 8
+create src/m2/new3.txt
+alpha
+omicron
+ash
+---
+build @m2 -j 16
+create src/m2/new4.txt
+nu
+elm
+---
+build @m1 -j 2
+edit src/m1/f2.txt
+---
+build @m0
+touch src/m0/new2.txt
+build @m1
+clean
+build
+touch src/m0/f0.txt
+build out/all.txt -j 16
+clean
+build @m1 -j 2
+edit src/m2/new3.txt
+a-b+c
+---
+build -j 16
+delete src/m2/new3.txt
+build @m1 -j 8
+touch src/m2/new4.txt
+build @m1 -j 8
+touch src/m2/f1.txt
+build -j 8
+touch src/m2/f1.txt
+build out/all.txt -j 4
+edit src/m0/f2.txt
+ash
+beta
+nu
+lambda
+---
+build out/all.txt -j 8
+edit src/m2/f2.txt
+epsilon
+a-b+c
+the end
+---
+build @m1
+clean
+build
+touch src/m2/f0.txt
+build
+edit src/m2/f2.txt
+the end
+---
+build @m2
+delete src/m2/new4.txt
+build -j 3
+edit src/m0/f0.txt
+0123
+ash
+kappa
+---
+build @m0 -j 3
+touch src/m2/f2.txt
+build
+touch main.kiln
+build @m0 -j 16
+touch main.kiln
+build -j 2
+touch src/m0/f0.txt
+build out/all.txt -j 4
+touch src/m2/f0.txt
+build out/all.txt -j 64
+edit src/m0/f1.txt
+Ünicode
+zeta
+pi
+---
+build @m1 -j 8
+touch src/m1/f1.txt
+build @m0 -j 4
+clean
+build -j 8
+touch main.kiln
+build -j 4
+clean
+build @m1 -j 16
+delete src/m0/new2.txt
+build @m0 -j 2
+touch src/m1/f2.txt
+build @m1 -j 16
+edit src/m1/f2.txt
+Ünicode
+elm
+eta
+mu
+---
+build -j 2
+edit src/m2/f1.txt
+epsilon
+a-b+c
+---
+build -j 3
+build out/all.txt -j 4
+edit src/m0/f0.txt
+omicron
+theta
+theta
+lambda
+---
+build @m2 -j 64
+touch main.kiln
+build -j 64
+edit src/m0/f0.txt
+
+birch
+gamma
+0123
+---
+build @m1
+edit src/m1/f2.txt
+cedar
+xi
+alpha
+birch
+---
+build -j 64
+edit src/m1/f0.txt
+eta
+birch
+---
+build -j 3
+clean
+build @m2 -j 64
+edit src/m1/f1.txt
+---
+build @m0 -j 16
+edit src/m1/f1.txt
+eta
+---
+build @m1 -j 4
+clean
+build out/all.txt -j 8
+touch src/m2/f1.txt
+build -j 64
+touch src/m0/f1.txt
+build @m1 -j 4
+edit src/m0/f1.txt
+a-b+c
+---
+build @m2 -j 3
+edit src/m2/f2.txt
+the end
+gamma
+ash
+kappa
+---
+build @m2
+create src/m0/new5.txt
+xi
+cedar
+---
+build -j 16
+edit src/m1/f1.txt
+ilex
+epsilon
+---
+build -j 2
+edit src/m0/new5.txt
+beta
+iota
+cedar
+theta
+---
+build @m1 -j 3
+touch src/m0/f0.txt
+build -j 8
+edit src/m0/f0.txt
+---
+build out/all.txt -j 16
+touch src/m0/f2.txt
+build @m0 -j 16
+touch main.kiln
+build @m1 -j 64
+delete src/m0/new5.txt
+build @m2 -j 2
+edit src/m1/f2.txt
+the end
+fir
+zeta
+---
+build @m2 -j 2
+clean
+build @m2 -j 4
+touch src/m2/f2.txt
+build -j 3
+touch src/m0/f2.txt
+build @m0 -j 4
+edit src/m2/f0.txt
+xi
+
+Ünicode
+a-b+c
+---
+build out/all.txt
+clean
+build
+build -j 8
+touch main.kiln
+build -j 64
+create src/m1/new6.txt
+iota
+---
+build out/all.txt -j 4
+edit src/m2/f0.txt
+cedar
+0123
+---
+build @m2 -j 4
+clean
+build out/all.txt -j 2
+touch src/m0/f0.txt
+build @m2 -j 64
+edit src/m1/f1.txt
+ash
+iota
+lambda
+---
+build out/all.txt
+touch src/m0/f0.txt
+build @m1 -j 16
+touch src/m2/f1.txt
+build
+edit src/m2/f1.txt
+kappa
+theta
+---
+build @m0
+edit src/m2/f2.txt
+iota
+---
+build @m1 -j 16
+touch src/m0/f2.txt
+build -j 8
+edit src/m1/f1.txt
+ilex
+elm
+kappa
+---
+build @m1 -j 4
+clean
+build @m1 -j 8
+edit src/m0/f2.txt
+delta
+xi
+---
+build @m0 -j 8
+clean
+build out/all.txt -j 8
+touch src/m1/f2.txt
+build @m1
+touch main.kiln
+build @m2 -j 3
+edit src/m1/f2.txt
+---
+build -j 4
+touch src/m1/new6.txt
+build -j 2
+edit src/m2/f0.txt
+---
+build out/all.txt
+edit src/m1/new6.txt
+iota
+   spaced   
+xi
+---
+build -j 16
+edit src/m2/f0.txt
+xi
+---
+build -j 16
+touch src/m0/f2.txt
+build out/all.txt -j 2
+edit src/m0/f0.txt
+elm
+omicron
+juniper
+---
+build @m2 -j 16
+edit src/m2/f0.txt
+---
+build @m1
+delete src/m1/new6.txt
+build -j 4
+touch src/m1/f0.txt
+build @m1
+create src/m0/new7.txt
+gamma
+beta
+juniper
+---
+build out/all.txt -j 4
+delete src/m0/new7.txt
+build @m2 -j 3
+clean
+build -j 3
+touch src/m2/f1.txt
+build -j 4
+edit src/m2/f2.txt
+a-b+c
+xi
+hazel
+nu
+---
+build -j 16
+clean
+build
+touch main.kiln
+build @m2 -j 8
+touch main.kiln
+build -j 8
+touch src/m2/f0.txt
+build @m0
+edit src/m2/f1.txt
+hazel
+a-b+c
+---
+build @m2
+touch src/m1/f0.txt
+build @m0 -j 8
+edit src/m1/f0.txt
+hazel
+theta
+xi
+---
+build @m2 -j 8
+touch main.kiln
+build out/all.txt -j 8
+touch src/m2/f2.txt
+build @m0
+edit src/m1/f2.txt
+---
+build -j 4
+edit src/m1/f1.txt
+hazel
+---
+build -j 16
+clean
+build -j 4
+touch src/m0/f1.txt
+build out/all.txt -j 2
+create src/m0/new8.txt
+fir
+---
+build out/all.txt -j 8
+touch main.kiln
+build @m2
+touch main.kiln
+build @m2 -j 64
+edit src/m2/f0.txt
+the end
+fir
+Ünicode
+omicron
+---
+build @m0
+edit src/m0/f2.txt
+the end
+---
+build @m0 -j 4
+touch src/m0/new8.txt
+build
+clean
+build out/all.txt -j 4
+edit src/m1/f1.txt
+hazel
+---
+build out/all.txt -j 3
+edit src/m2/f1.txt
+---
+build @m1
+touch src/m1/f1.txt
+build @m0 -j 2
+touch main.kiln
+build out/all.txt -j 64
+edit src/m0/f1.txt
+zeta
+---
+build out/all.txt -j 16
+edit src/m0/f0.txt
+---
+build -j 3
+create src/m0/new9.txt
+elm
+alpha
+---
+build @m0 -j 4
+delete src/m0/new9.txt
+build @m1 -j 4
+touch main.kiln
+build @m0
+edit src/m1/f0.txt
+nu
+ilex
+---
+build
+touch src/m1/f1.txt
+build @m2 -j 2
+create src/m0/new10.txt
+nu
+---
+build -j 2
+clean
+build @m2 -j 16
+clean
+build @m1 -j 4
+clean
+build out/all.txt -j 4
+edit src/m2/f0.txt
+ilex
+alpha
+0123
+the end
+---
+build -j 3
+create src/m1/new11.txt
+the end
+gamma
+---
+build
+touch src/m2/f1.txt
+build out/all.txt -j 16
+edit src/m0/new8.txt
+the end
+
+kappa
+---
+build out/all.txt -j 16
+edit src/m0/f0.txt
+kappa
+0123
+
+---
+build @m1 -j 8
+create src/m0/new12.txt
+gamma
+beta
+---
+build @m0 -j 2
+touch src/m1/f2.txt
+build -j 16
+touch src/m1/f2.txt
+build @m2 -j 3
+touch src/m1/f0.txt
+build @m2 -j 8
+clean
+build -j 64
+edit src/m0/new12.txt
+ash
+---
+build
+edit src/m0/new10.txt
+alpha
+---
+build -j 4
+clean
+build @m2 -j 8
+edit src/m1/f0.txt
+   spaced   
+beta
+---
+build -j 4
+edit src/m2/f0.txt
+delta
+hazel
+cedar
+---
+build @m2 -j 2
+touch main.kiln
+build @m1 -j 8
+edit src/m1/f1.txt
+delta
+mu
+0123
+alpha
+---
+build @m2
+edit src/m0/f1.txt
+elm
+epsilon
+---
+build
+create src/m2/new13.txt
+zeta
+ilex
+---
+build -j 4
+touch src/m0/new8.txt
+build -j 16
+delete src/m0/new12.txt
+build @m2 -j 2
+clean
+build -j 64
+delete src/m2/new13.txt
+build -j 64
+edit src/m0/new10.txt
+birch
+epsilon
+the end
+---
+build @m2 -j 16
+touch src/m2/f2.txt
+build -j 4
+edit src/m2/f0.txt
+theta
+---
+build @m2 -j 16
+create src/m2/new14.txt
+epsilon
+---
+build -j 16
+edit src/m1/f2.txt
+pi
+
+theta
+omicron
+---
+build -j 8
+clean
+build @m2 -j 64
+touch src/m1/f2.txt
+build
+touch src/m2/f1.txt
+build -j 16
+touch main.kiln
+build @m1 -j 16
+create src/m0/new15.txt
+zeta
+ilex
+a-b+c
+---
+build @m0 -j 64
+edit src/m1/f0.txt
+xi
+a-b+c
+---
+build @m0 -j 16
+touch src/m0/f1.txt
+build @m2 -j 4
+clean
+build @m2 -j 16
+create src/m2/new16.txt
+0123
+ash
+---
+build -j 16
+edit src/m2/f1.txt
+cedar
+juniper
+fir
+cedar
+---
+build @m2 -j 4
+edit src/m2/new16.txt
+ash
+alpha
+Ünicode
+ash
+---
+build -j 4
+edit src/m2/new16.txt
+   spaced   
+---
+build @m1 -j 8
+clean
+build -j 2
+delete src/m2/new16.txt
+build @m2 -j 16
+edit src/m2/f2.txt
+mu
+beta
+Ünicode
+fir
+---
+build @m1 -j 3
+create src/m0/new17.txt
+birch
+eta
+0123
+---
+build -j 64
+edit src/m0/new17.txt
+theta
+---
+build -j 2
+touch main.kiln
+build -j 64
+touch src/m2/f1.txt
+build @m1 -j 64
+touch src/m2/f2.txt
+build @m1 -j 64
+touch src/m1/new11.txt
+build -j 16
+touch main.kiln
+build -j 2
+create src/m2/new18.txt
+theta
+
+---
+build out/all.txt -j 3
+clean
+build @m2 -j 3
+edit src/m2/new18.txt
+Ünicode
+theta
+alpha
+---
+build -j 4
+touch main.kiln
+build out/all.txt -j 64
+touch main.kiln
+build -j 4
+edit src/m0/f1.txt
+   spaced   
+iota
+---
+build -j 8
+edit src/m1/f2.txt
+lambda
+---
+build @m0 -j 64
+edit src/m1/f2.txt
+Ünicode
+fir
+alpha
+eta
+---
+build -j 16
+edit src/m2/f0.txt
+ash
+alpha
+lambda
+---
+build @m1
+edit src/m0/new15.txt
+kappa
+hazel
+beta
+---
+build @m0 -j 8
+create src/m2/new19.txt
+kappa
+elm
+gamma
+---
+build -j 4
+touch main.kiln
+build @m2 -j 8
+touch main.kiln
+build out/all.txt -j 8
+edit src/m1/f0.txt
+gamma
+---
+build @m0
+delete src/m0/new15.txt
+build -j 4
+edit src/m0/new17.txt
+eta
+iota
+---
+build -j 64
+clean
+build @m0 -j 2
+touch src/m0/f0.txt
+build out/all.txt -j 3
+clean
+build @m1
+delete src/m2/new14.txt
+build out/all.txt -j 3
+touch src/m0/f0.txt
+build
+edit src/m0/new10.txt
+0123
+---
+build @m0 -j 8
+create src/m1/new20.txt
+
+beta
+---
+build @m2 -j 8
+edit src/m2/f2.txt
+eta
+cedar
+gamma
+---
+build @m2 -j 4
+edit src/m2/new18.txt
+---
+build out/all.txt -j 64
+edit src/m0/f2.txt
+ash
+---
+build out/all.txt -j 2
+edit src/m2/new19.txt
+beta
+---
+build @m1
+delete src/m2/new19.txt
+build -j 16
+clean
+build @m1 -j 4
+edit src/m0/new8.txt
+hazel
+epsilon
+alpha
+
+---
+build @m0
+delete src/m0/new17.txt
+build @m1 -j 3
+create src/m0/new21.txt
+mu
+
+---
+build -j 3
+delete src/m1/new11.txt
+build out/all.txt -j 8
+touch src/m0/new21.txt
+build
+edit src/m2/new18.txt
+pi
+cedar
+---
+build @m1 -j 64
+edit src/m0/f2.txt
+gamma
+mu
+the end
+mu
+---
+build -j 2
+delete src/m0/new10.txt
+build out/all.txt -j 8
+create src/m0/new22.txt
+zeta
+---
+build @m1 -j 4
+edit src/m0/f0.txt
+---
+build @m0 -j 2
+touch src/m0/new8.txt
+build @m0 -j 2
+delete src/m0/new8.txt
+build -j 3
+clean
+build -j 2
+touch src/m1/f2.txt
+build @m0
+edit src/m1/f2.txt
+---
+build @m0
+edit src/m0/f1.txt
+---
+build @m0
+clean
+build @m2 -j 4
+edit src/m2/f2.txt
+gamma
+ash
+---
+build @m1 -j 4
+touch src/m0/f2.txt
+build
+touch src/m0/new21.txt
+build -j 8
+touch src/m0/f1.txt
+build out/all.txt -j 8
+edit src/m1/new20.txt
+beta
+gamma
+hazel
+eta
+---
+build @m2 -j 3
+touch src/m1/f0.txt
+build @m1 -j 64
+edit src/m2/f2.txt
+the end
+---
+build -j 8
+touch src/m1/new20.txt
+build out/all.txt
+edit src/m2/f2.txt
+---
+build @m0 -j 3
+edit src/m1/new20.txt
+beta
+alpha
+xi
+---
+build @m0 -j 4
+touch src/m2/f1.txt
+build out/all.txt
+touch src/m2/new18.txt
+build @m2
+touch main.kiln
+build -j 8
+edit src/m1/f0.txt
+juniper
+---
+build @m2 -j 64
+create src/m1/new23.txt
+omicron
+
+---
+build -j 2
+edit src/m2/f2.txt
+beta
+ilex
+---
+build
+edit src/m2/f2.txt
+mu
+the end
+delta
+0123
+---
+build -j 4
+edit src/m2/new18.txt
+cedar
+nu
+birch
+---
+build @m1 -j 64
+touch src/m0/f2.txt
+build -j 64
+touch src/m1/f2.txt
+build @m1 -j 3
+delete src/m0/new22.txt
+build
+edit src/m0/f1.txt
+gamma
+iota
+theta
+---
+build out/all.txt -j 8
+edit src/m1/f0.txt
+kappa
+the end
+juniper
+---
+build -j 3
+create src/m2/new24.txt
+ash
+alpha
+Ünicode
+---
+build @m0 -j 8
+delete src/m1/new20.txt
+build @m0
+edit src/m2/f2.txt
+ash
+ilex
+juniper
+---
+build -j 3
+touch main.kiln
+build out/all.txt -j 4
+edit src/m2/f1.txt
+epsilon
+delta
+---
+build -j 8
+edit src/m1/f1.txt
+pi
+Ünicode
+ilex
+0123
+---
+build out/all.txt -j 16
+clean
+build @m0 -j 4
+clean
+build @m1
+touch src/m1/f1.txt
+build @m1 -j 4
+edit src/m1/f0.txt
+nu
+---
+build @m1 -j 4
+edit src/m1/f1.txt
+---
+build @m0
+touch main.kiln
+build @m1 -j 16
+delete src/m2/new24.txt
+build @m1 -j 8
+edit src/m2/new18.txt
+
+epsilon
+---
+build @m2 -j 3
+edit src/m1/f1.txt
+omicron
+theta
+nu
+---
+build @m2
+edit src/m2/new18.txt
+nu
+delta
+eta
+---
+build -j 2
+delete src/m1/new23.txt
+build @m1 -j 2
+touch src/m2/f1.txt
+build @m1 -j 64
+edit src/m0/f0.txt
+   spaced   
+epsilon
+---
+build out/all.txt
+create src/m2/new25.txt
+birch
+theta
+0123
+---
+build -j 4
+touch src/m0/f0.txt
+build @m1 -j 2
+edit src/m2/f0.txt
+iota
+---
+build out/all.txt -j 4
+touch main.kiln
+build -j 8
+delete src/m2/new18.txt
+build @m1
+create src/m1/new26.txt
+iota
+fir
+---
+build @m2 -j 4
+edit src/m2/f1.txt
+---
+build
+touch src/m1/f2.txt
+build @m1 -j 16
+edit src/m2/f2.txt
+beta
+---
+build @m0 -j 64
+touch src/m2/f2.txt
+build @m2 -j 3
+edit src/m1/f2.txt
+
+nu
+eta
+---
+build out/all.txt -j 2
+touch main.kiln
+build out/all.txt -j 3
+delete src/m2/new25.txt
+build -j 3
+touch main.kiln
+build @m2
+delete src/m1/new26.txt
+build out/all.txt -j 16
+touch src/m0/new21.txt
+build out/all.txt -j 3
+touch src/m0/f0.txt
+build
+edit src/m0/f1.txt
+a-b+c
+---
+build
+touch src/m1/f1.txt
+build -j 3
+touch main.kiln
+build -j 8
+touch src/m2/f0.txt
+build -j 64
+edit src/m1/f2.txt
+0123
+---
+build @m2
+create src/m1/new27.txt
+cedar
+birch
+---
+build @m1
+edit src/m0/f2.txt
+a-b+c
+juniper
+---
+build @m2 -j 8
+edit src/m1/f1.txt
+iota
+pi
+pi
+ash
+---
+build out/all.txt -j 64
+touch main.kiln
+build @m0 -j 8
+edit src/m1/f2.txt
+---
+build @m2 -j 4
+touch src/m1/f1.txt
+build -j 2
+edit src/m2/f0.txt
+Ünicode
+beta
+the end
+---
+build @m1
+delete src/m0/new21.txt
+build @m0 -j 8
+delete src/m1/new27.txt
+build out/all.txt -j 4
+edit src/m0/f1.txt
+cedar
+lambda
+---
+build @m1
+edit src/m1/f1.txt
+birch
+---
+build -j 16
+clean
+build @m1 -j 3
+clean
+build out/all.txt -j 8
+create src/m2/new28.txt
+fir
+---
+build out/all.txt -j 64
+edit src/m1/f1.txt
+birch
+pi
+kappa
+---
+build -j 4
+edit src/m1/f0.txt
+zeta
+---
+build -j 3
+create src/m2/new29.txt
+gamma
+juniper
+fir
+---
+build @m0 -j 64
+touch src/m0/f1.txt
+build @m2 -j 64
+edit src/m0/f1.txt
+mu
+beta
+alpha
+iota
+---
+build
+edit src/m0/f0.txt
+xi
+lambda
+---
+build @m1 -j 2
+delete src/m2/new29.txt
+build @m1 -j 8
+touch src/m0/f1.txt
+build -j 4
+touch src/m2/new28.txt
+build @m1
+touch main.kiln
+build @m0
+delete src/m2/new28.txt
+build @m1 -j 16
+clean
+build -j 2
+edit src/m1/f0.txt
+ash
+---
+build @m1 -j 2
+edit src/m1/f1.txt
+delta
+Ünicode
+lambda
+birch
+---
+build @m1
+touch main.kiln
+build @m0 -j 4
+touch src/m0/f2.txt
+build @m1 -j 2
+build @m0 -j 16
+edit src/m1/f0.txt
+kappa
+ash
+0123
+beta
+---
+build @m0 -j 2
+build -j 3
+edit src/m0/f2.txt
+nu
+epsilon
+xi
+a-b+c
+---
+build out/all.txt
+touch main.kiln
+build @m0 -j 64
+touch src/m0/f0.txt
+build @m0 -j 16
+edit src/m2/f2.txt
+hazel
+birch
+---
+build out/all.txt -j 8
+clean
+build @m0 -j 16
+build @m0
+touch src/m2/f1.txt
+build @m1
+edit src/m2/f0.txt
+fir
+elm
+gamma
+---
+build -j 3
+touch src/m0/f2.txt
+build out/all.txt -j 64
+clean
+build
+edit src/m2/f1.txt
+0123
+theta
+epsilon
+eta
+---
+build @m2 -j 16
+touch src/m1/f1.txt
+build @m2 -j 2
+clean
+build -j 16
+touch src/m2/f1.txt
+build out/all.txt -j 2
+clean
+build -j 64
+edit src/m1/f2.txt
+juniper
+iota
+---
+build @m1 -j 8
+touch src/m1/f1.txt
+build out/all.txt -j 2
+build @m1 -j 2
+build
+edit src/m1/f0.txt
+gamma
+pi
+Ünicode
+birch
+---
+build out/all.txt -j 8
+clean
+build @m1 -j 64
+edit src/m0/f1.txt
+Ünicode
+xi
+iota
+xi
+---
+build
+edit src/m2/f1.txt
+theta
+delta
+birch
+hazel
+---
+build @m2 -j 64
+build @m2 -j 4
+edit src/m0/f1.txt
+elm
+lambda
+---
+build @m1 -j 4
+touch src/m0/f1.txt
+build @m1 -j 64
+edit src/m0/f1.txt
+a-b+c
+ilex
+lambda
+---
+build @m0
+create src/m0/new30.txt
+lambda
+---
+build @m0 -j 16
+create src/m1/new31.txt
+omicron
+epsilon
+hazel
+---
+build @m0
+touch src/m1/new31.txt
+build @m0 -j 3
+edit src/m2/f1.txt
+delta
+elm
+cedar
+Ünicode
+---
+build @m2 -j 4
+edit src/m1/f1.txt
+---
+build @m0 -j 4
+touch main.kiln
+build @m0
+clean
+build @m2 -j 64
+touch src/m1/f2.txt
+build @m0 -j 2
+touch src/m1/f1.txt
+build out/all.txt -j 16
+edit src/m1/new31.txt
+---
+build -j 8
+edit src/m2/f1.txt
+theta
+a-b+c
+---
+build out/all.txt -j 64
+create src/m1/new32.txt
+ilex
+a-b+c
+---
+build out/all.txt -j 16
+edit src/m2/f1.txt
+Ünicode
+ilex
+0123
+nu
+---
+build @m1 -j 3
+edit src/m0/f0.txt
+pi
+lambda
+
+gamma
+---
+build -j 2
+create src/m0/new33.txt
+hazel
+---
+build -j 64

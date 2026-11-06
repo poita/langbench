@@ -1,0 +1,31 @@
+build
+edit main.kiln
+step {
+    out "out/doc.txt"
+    depfile "out/d1.d"
+    in "src/m.txt"
+    cmd preprocess()
+}
+default "out/doc.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/doc.txt"
+    depfile "out/d2.d"
+    in "src/m.txt"
+    cmd preprocess()
+}
+default "out/doc.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/doc.txt"
+    depfile "out/d2.d"
+    in "src/m.txt"
+    cmd preprocess()
+}
+default "out/doc.txt"
+---
+build

@@ -1,0 +1,16 @@
+let names = ["alpha", "beta", "gamma"]
+let outs = map(names, "out/%.txt")
+each i, n in names {
+    step {
+        out "out/{n}.txt"
+        cmd write("{i}:{n}\n")
+        cost 1
+    }
+}
+step {
+    out "out/index.txt"
+    in outs
+    cmd concat()
+}
+phony all = ["out/index.txt"]
+default "@all"

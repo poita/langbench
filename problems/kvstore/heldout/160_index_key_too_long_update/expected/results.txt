@@ -1,0 +1,21 @@
+[1] ok create index v entries 0
+[2] ok put created
+[3] ok update updated
+[4] error index-key-too-long
+[5] ok get value
+  {"v":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"}
+[6] ok indexes 1
+  0 v root 3 entries 1
+[7] ok unset updated
+[8] ok indexes 1
+  0 v root 0 entries 0
+[9] ok stat
+  pages 3
+  free 1
+  freehead 3
+  docs 1
+  root 2
+  height 1
+  commits 4
+  indexes 1
+  wal 10608

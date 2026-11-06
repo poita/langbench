@@ -1,0 +1,10 @@
+@block indent=30pt size=8pt font=sans
+@h2 Heading not affected
+@ul
+@li listed
+@end
+@table cols=2
+a | b
+@end
+@rule
+@end

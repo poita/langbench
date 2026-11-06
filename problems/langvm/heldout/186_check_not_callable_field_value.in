@@ -1,0 +1,8 @@
+@module main
+struct Cfg { limit: Int, f: fn(Int) -> Int }
+fn main() {
+    let c = Cfg.{ limit: 3, f: |x: Int| x + 1 };
+    print(showInt((c.f)(1)));
+    let n = c.limit;
+    print(showInt(n(2)));
+}

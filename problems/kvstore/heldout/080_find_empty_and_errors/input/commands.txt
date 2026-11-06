@@ -1,0 +1,18 @@
+find exists a
+find a == 1
+put "x" {a:1}
+find a ==
+find a == 1 and
+find a == 1 or
+find and a == 1
+find a
+find
+find exists
+find missing
+find not
+find not a
+find exists a.b.c.d.e.f.g.h.i
+find a == {x:1,x:2}
+find a == 9223372036854775808
+find exists a limit 1 extra
+stat

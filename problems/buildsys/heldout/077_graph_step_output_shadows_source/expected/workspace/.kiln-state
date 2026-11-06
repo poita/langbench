@@ -1,0 +1,11 @@
+kiln-state 1
+step out/gen.txt
+cmd upper()
+in src/a.txt 089bdc07b544e7b2
+out out/gen.txt 09089c07b5a14cd2
+end
+step out/use.txt
+cmd copy()
+in out/gen.txt 09089c07b5a14cd2
+out out/use.txt 09089c07b5a14cd2
+end

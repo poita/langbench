@@ -1,0 +1,61 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 7 7
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+ERR 17 bad-target-count
+ERR 18 bad-target-count
+ERR 19 bad-target-count
+ERR 20 illegal-target
+ERR 21 illegal-target
+ERR 22 illegal-target
+ERR 23 illegal-target
+ERR 24 illegal-target
+ERR 25 illegal-target
+ERR 26 illegal-target
+ERR 27 illegal-target
+ERR 28 illegal-target
+ERR 29 illegal-target
+ERR 30 illegal-target
+ERR 31 cannot-afford
+ERR 32 bad-target-count
+LEGAL BEGIN A priority
+PASS
+PLAY 1 CIN-003 A
+PLAY 1 CIN-003 B
+PLAY 1 CIN-003 #30
+PLAY 1 CIN-003 #54
+PLAY 2 CIN-005 #30
+PLAY 2 CIN-005 #54
+PLAY 3 CIN-015 #30 #54
+PLAY 3 CIN-015 #54 #30
+PLAY 5 DSK-014 #30
+PLAY 8 CIN-016
+PLAY 9 CIN-001
+LEGAL END
+8 PLAY A ~1 #22 CIN-005 #54
+9 PAY A ember 2
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 5 cap 7 vault 20 hand 8 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+hand A 1 #21 CIN-003
+hand A 2 #23 CIN-015
+hand A 3 #24 LOM-028
+hand A 4 #25 DSK-014
+hand A 5 #26 DSK-008
+hand A 6 #27 TID-004
+hand A 7 #28 CIN-016
+hand A 8 #29 CIN-001
+field A #30 TOK-001 1/2 w0 c0 ready - kw -
+field A #31 NEU-002 -/- w0 c0 ready - kw -
+field B #53 DSK-021 3/2 w0 c0 ready - kw spectral
+field B #54 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash A 1 #32 CIN-005
+ash B 1 #55 CIN-001
+chain 1 ~1 A rite #22 0 #54
+effect 1 ts3 A aura modify 0 1 on #30
+STATE END
+10 RESULT pending none

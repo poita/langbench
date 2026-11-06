@@ -1,0 +1,82 @@
+step 1: build (default) -j 1
+  error E_OUTPUT_PATH z.txt
+step 2: edit main.kiln
+  ok size=49
+step 3: build (default) -j 1
+  error E_OUTPUT_PATH outx/z.txt
+step 4: edit main.kiln
+  ok size=51
+step 5: build (default) -j 1
+  error E_BAD_PATH ../out/z.txt
+step 6: edit main.kiln
+  ok size=49
+step 7: build (default) -j 1
+  error E_BAD_PATH /out/z.txt
+step 8: edit main.kiln
+  ok size=49
+step 9: build (default) -j 1
+  error E_BAD_PATH out//z.txt
+step 10: edit main.kiln
+  ok size=49
+step 11: build (default) -j 1
+  error E_BAD_PATH out/z.txt/
+step 12: edit main.kiln
+  ok size=50
+step 13: build (default) -j 1
+  error E_BAD_PATH out/z z.txt
+step 14: edit main.kiln
+  ok size=48
+step 15: build (default) -j 1
+  error E_BAD_PATH out/*.txt
+step 16: edit main.kiln
+  ok size=39
+step 17: build (default) -j 1
+  error E_BAD_PATH 
+step 18: edit main.kiln
+  ok size=50
+step 19: build (default) -j 1
+  error E_BAD_PATH out/./z.txt
+step 20: edit main.kiln
+  ok size=303
+step 21: build (default) -j 1
+  error E_BAD_PATH out/nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn.txt
+step 22: edit main.kiln
+  ok size=1153
+step 23: build (default) -j 1
+  error E_BAD_PATH out/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd
+step 24: edit main.kiln
+  ok size=61
+step 25: build (default) -j 1
+  error E_OUTPUT_PATH bad.txt
+step 26: edit main.kiln
+  ok size=87
+step 27: build (default) -j 1
+  error E_OUTPUT_PATH z.d
+step 28: edit main.kiln
+  ok size=91
+step 29: build (default) -j 1
+  error E_BAD_PATH out/d d
+step 30: edit main.kiln
+  ok size=62
+step 31: build (default) -j 1
+  error E_BAD_PATH bad path
+step 32: edit main.kiln
+  ok size=61
+step 33: build (default) -j 1
+  error E_BAD_PATH @1x
+step 34: edit main.kiln
+  ok size=62
+step 35: build (default) -j 1
+  error E_BAD_PATH @
+step 36: edit main.kiln
+  ok size=56
+step 37: build (default) -j 1
+  error E_BAD_PATH ..
+step 38: edit main.kiln
+  ok size=60
+step 39: build (default) -j 1
+  error E_OUTPUT_PATH bad.txt
+step 40: edit main.kiln
+  ok size=85
+step 41: build (default) -j 1
+  error E_BAD_PATH bad after

@@ -1,0 +1,16 @@
+step {
+    out "out/u.txt"
+    in "src/m.txt"
+    cmd upper()
+}
+step {
+    out "out/l.txt"
+    in "src/m.txt"
+    cmd lower()
+}
+step {
+    out "out/h.txt"
+    in ["out/u.txt", "out/l.txt"]
+    cmd hash()
+}
+default "out/h.txt"

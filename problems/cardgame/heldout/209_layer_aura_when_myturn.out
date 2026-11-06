@@ -1,0 +1,74 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #21 LOM-006 -/- w0 c0 ready - kw -
+field A #22 TOK-001 2/1 w0 c0 ready - kw -
+field B #43 TOK-003 0/3 w0 c0 ready - kw plating:1
+effect 1 ts2 A aura modify 1 0 on #22
+STATE END
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+11 PHASE main2
+12 PASS A
+13 PASS B
+14 PHASE dusk-trigger
+15 PASS A
+16 PASS B
+17 PHASE dusk-discard
+18 PHASE dusk-cleanup
+19 TURN 2 B
+20 PHASE dawn
+21 EMBER A 10 10
+22 EMBER B 10 10
+23 PHASE draw
+24 DRAW B #23 TID-001
+25 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 19 hand 1 ash 0 rift 0
+hand B 1 #23 TID-001
+field A #21 LOM-006 -/- w0 c0 ready - kw -
+field A #22 TOK-001 1/1 w0 c0 ready - kw -
+field B #43 TOK-003 0/3 w0 c0 ready - kw plating:1
+effect 1 ts2 A aura modify 1 0 on -
+STATE END
+26 PASS B
+27 PASS A
+28 PHASE clash-attack
+29 PHASE main2
+30 PASS B
+31 PASS A
+32 PHASE dusk-trigger
+33 PASS B
+34 PASS A
+35 PHASE dusk-discard
+36 PHASE dusk-cleanup
+37 TURN 3 A
+38 PHASE dawn
+39 EMBER A 10 10
+40 EMBER B 10 10
+41 PHASE draw
+42 DRAW A #1 CIN-001
+43 PHASE main1
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 19 hand 1 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 19 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #23 TID-001
+field A #21 LOM-006 -/- w0 c0 ready - kw -
+field A #22 TOK-001 2/1 w0 c0 ready - kw -
+field B #43 TOK-003 0/3 w0 c0 ready - kw plating:1
+effect 1 ts2 A aura modify 1 0 on #22
+STATE END
+44 RESULT pending none

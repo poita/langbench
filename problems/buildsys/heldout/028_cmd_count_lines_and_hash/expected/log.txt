@@ -1,0 +1,10 @@
+step 1: build (default) -j 2
+  run 0 2 w0 out/n.txt count_lines()
+  run 0 3 w1 out/h.txt hash()
+  run 2 4 w0 out/n1.txt count_lines()
+  ok ran=3 hit=0 time=4
+step 2: build (default) -j 1
+  hit 0 out/n.txt
+  hit 0 out/h.txt
+  hit 0 out/n1.txt
+  ok ran=0 hit=3 time=0

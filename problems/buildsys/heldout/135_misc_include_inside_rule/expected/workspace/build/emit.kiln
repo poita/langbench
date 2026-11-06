@@ -1,0 +1,5 @@
+let text = body ~ "-" ~ n
+step {
+    out "out/{n}.txt"
+    cmd write("{text}\n")
+}

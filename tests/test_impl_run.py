@@ -61,25 +61,6 @@ class FindImpls(unittest.TestCase):
             self.assertEqual(found, [("rep1", "d", "sat"), ("rep2", "go", "toml")])
 
 
-class HiddenDir(unittest.TestCase):
-    def test_environment_variable_wins(self):
-        old = os.environ.get("LANGBENCH_HIDDEN")
-        os.environ["LANGBENCH_HIDDEN"] = "/somewhere/hidden"
-        try:
-            self.assertEqual(ir.hidden_dir("/repo"), "/somewhere/hidden")
-        finally:
-            if old is None:
-                del os.environ["LANGBENCH_HIDDEN"]
-            else:
-                os.environ["LANGBENCH_HIDDEN"] = old
-
-    def test_default_is_sibling_of_main_checkout(self):
-        old = os.environ.pop("LANGBENCH_HIDDEN", None)
-        try:
-            self.assertEqual(ir.hidden_dir("/x/langbench", main_checkout="/x/langbench"), "/x/langbench-hidden")
-        finally:
-            if old is not None:
-                os.environ["LANGBENCH_HIDDEN"] = old
 
 
 PROMPT = """

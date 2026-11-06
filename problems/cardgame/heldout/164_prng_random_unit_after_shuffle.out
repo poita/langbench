@@ -1,0 +1,64 @@
+1 GAME-START A
+2 SHUFFLE A
+3 SHUFFLE B
+4 TURN 1 A
+5 PHASE dawn
+6 EMBER A 6 6
+7 EMBER B 0 0
+8 PHASE draw
+9 PHASE main1
+VAULT BEGIN
+vault A 1 #4 CIN-004
+vault A 2 #5 CIN-005
+vault A 3 #7 CIN-007
+vault A 4 #8 CIN-008
+vault A 5 #2 CIN-002
+vault A 6 #6 CIN-006
+vault A 7 #3 CIN-003
+vault A 8 #1 CIN-001
+vault B 1 #12 TID-001
+vault B 2 #16 TID-005
+vault B 3 #15 TID-004
+vault B 4 #13 TID-002
+vault B 5 #19 TID-008
+vault B 6 #18 TID-007
+vault B 7 #17 TID-006
+vault B 8 #14 TID-003
+VAULT END
+10 PLAY A ~1 #9 TID-020
+11 PAY A ember 1
+12 PASS A
+13 PASS B
+14 RESOLVE ~1
+15 DAMAGE #9 #22 2
+16 SPENT #9 TID-020
+17 DESTROY #22 TOK-001
+18 PLAY A ~2 #10 TID-020
+19 PAY A ember 1
+20 PASS A
+21 PASS B
+22 RESOLVE ~2
+23 DAMAGE #10 #23 2
+24 SPENT #10 TID-020
+25 DESTROY #23 TOK-001
+26 PLAY A ~3 #11 TID-020
+27 PAY A ember 1
+28 PASS A
+29 PASS B
+30 RESOLVE ~3
+31 DAMAGE #11 #20 2
+32 SPENT #11 TID-020
+33 DESTROY #20 TOK-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 3 cap 6 vault 8 hand 0 ash 3 rift 0
+player B spire 25 ember 0 cap 0 vault 8 hand 0 ash 3 rift 0
+field B #21 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #9 TID-020
+ash A 2 #10 TID-020
+ash A 3 #11 TID-020
+ash B 1 #22 TOK-001
+ash B 2 #23 TOK-001
+ash B 3 #20 TOK-001
+STATE END
+34 RESULT pending none

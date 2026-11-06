@@ -1,0 +1,22 @@
+layout 1
+pages 2
+page 1 1 200000 120000 20000 20000 160000 80000
+  text body serif 7000 56470 25117 3444 "1"
+  text body serif 10000 30560 28117 3440 "•"
+  text body serif 10000 38000 28117 18470 "Item"
+  text body serif 7000 80550 41464 3493 "2"
+  text body serif 10000 56000 44464 24550 "Quote"
+  rule footnote 20000 79336 120000 400
+  text footnote serif 6000 25048 86584 2952 "1"
+  text footnote serif 8000 30000 88584 12528 "List"
+  text footnote serif 8000 44560 88584 15800 "note."
+  text footnote serif 6000 25006 96216 2994 "2"
+  text footnote serif 8000 30000 98216 19640 "Quote"
+  text footnote serif 8000 51672 98216 15800 "note."
+page 2 2 200000 120000 20000 20000 160000 80000
+  text body serif 7000 55184 25772 3542 "3"
+  text body serif 12000 38000 28772 17184 "Big"
+  rule footnote 20000 88968 120000 400
+  text footnote serif 6000 24964 96216 3036 "3"
+  text footnote serif 8000 30000 98216 18864 "Block"
+  text footnote serif 8000 50896 98216 15800 "note."

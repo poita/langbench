@@ -1,0 +1,8 @@
+let xs = ["", "x/", "/x", "a//b", "a/b", "/", "//", "a/", "/a/"]
+each i, p in ["*", "**", "?", "*/*", "**/b", "a/*/b", "*/x", "**/*", "*/*/*", "a/**", "**/a/**", "[!a]*"] {
+    step {
+        out "out/e{i}.txt"
+        cmd write("{count(filter(xs, p))}:{join(filter(xs, p), "|")}/{join(reject(xs, p), "|")}\n")
+    }
+    default "out/e{i}.txt"
+}

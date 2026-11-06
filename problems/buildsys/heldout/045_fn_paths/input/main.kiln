@@ -1,0 +1,25 @@
+step {
+    out "out/l0.txt"
+    cmd write("{dirname("src/a.txt")}|{dirname("a.txt")}|{dirname("a/b/c")}|{dirname("")}\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{basename("src/a.txt")}|{basename("a.txt")}|{basename("a/b/")}\n")
+}
+default "out/l1.txt"
+step {
+    out "out/l2.txt"
+    cmd write("{stem("src/a.txt")}|{stem("src/a.b.txt")}|{stem("src/a")}|{stem("src/.hidden")}|{stem("a.txt")}|{stem("src/x.")}\n")
+}
+default "out/l2.txt"
+step {
+    out "out/l3.txt"
+    cmd write("{ext("src/a.txt")}|{ext("src/a.b.txt")}|{ext("src/a")}|{ext("src/.hidden")}|{ext("a.txt")}|{ext("src/x.")}\n")
+}
+default "out/l3.txt"
+step {
+    out "out/l4.txt"
+    cmd write("{pathjoin("out", "", "a.txt")}|{pathjoin("out/")}|{pathjoin("")}|{pathjoin("a", "b", "c", "d", "e", "f", "g", "h")}\n")
+}
+default "out/l4.txt"

@@ -1,0 +1,14 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/e0.txt write("1:/x/|/x|a//b|a/b|/|//|a/|/a/\n")
+  run 1 2 w0 out/e1.txt write("9:|x/|/x|a//b|a/b|/|//|a/|/a//\n")
+  run 2 3 w0 out/e2.txt write("0:/|x/|/x|a//b|a/b|/|//|a/|/a/\n")
+  run 3 4 w0 out/e3.txt write("5:x/|/x|a/b|/|a//|a//b|//|/a/\n")
+  run 4 5 w0 out/e4.txt write("2:a//b|a/b/|x/|/x|/|//|a/|/a/\n")
+  run 5 6 w0 out/e5.txt write("1:a//b/|x/|/x|a/b|/|//|a/|/a/\n")
+  run 6 7 w0 out/e6.txt write("1:/x/|x/|a//b|a/b|/|//|a/|/a/\n")
+  run 7 8 w0 out/e7.txt write("9:|x/|/x|a//b|a/b|/|//|a/|/a//\n")
+  run 8 9 w0 out/e8.txt write("3:a//b|//|/a//|x/|/x|a/b|/|a/\n")
+  run 9 10 w0 out/e9.txt write("3:a//b|a/b|a//|x/|/x|/|//|/a/\n")
+  run 10 11 w0 out/e10.txt write("4:a//b|a/b|a/|/a//|x/|/x|/|//\n")
+  run 11 12 w0 out/e11.txt write("0:/|x/|/x|a//b|a/b|/|//|a/|/a/\n")
+  ok ran=12 hit=0 time=12

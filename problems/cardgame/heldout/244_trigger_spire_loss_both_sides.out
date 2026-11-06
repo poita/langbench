@@ -1,0 +1,105 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 DSK-004
+9 PAY A ember 2
+10 TRIGGER B ~2 #45 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 10 vault 20 hand 1 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 DSK-037
+field A #23 DSK-020 2/2 w0 c0 ready - kw -
+field B #44 DSK-020 2/2 w0 c0 ready - kw -
+field B #45 NEU-014 2/4 w0 c0 ready - kw -
+chain 1 ~1 A rite #21 0
+chain 2 ~2 B trigger #45 1
+STATE END
+11 PASS A
+12 PASS B
+13 RESOLVE ~2
+14 SPIRE A -1 39
+15 TRIGGER A ~3 #23 1
+16 TRIGGER B ~4 #45 2
+17 PASS A
+18 PASS B
+19 RESOLVE ~3
+20 COUNTERS #23 +1 1
+21 PASS A
+22 PASS B
+23 RESOLVE ~4
+24 SPIRE B +1 41
+25 PASS A
+26 PASS B
+27 RESOLVE ~1
+28 SPIRE B -2 39
+29 SPIRE A +2 41
+30 SPENT #21 DSK-004
+31 TRIGGER B ~5 #44 1
+32 PASS A
+33 PASS B
+34 RESOLVE ~5
+35 COUNTERS #44 +1 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 41 ember 8 cap 10 vault 20 hand 1 ash 1 rift 0
+player B spire 39 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 DSK-037
+field A #23 DSK-020 3/3 w0 c1 ready - kw -
+field B #44 DSK-020 3/3 w0 c1 ready - kw -
+field B #45 NEU-014 2/4 w0 c0 ready - kw -
+ash A 1 #21 DSK-004
+STATE END
+36 PLAY A ~6 #22 DSK-037
+37 PAY A ember 2
+38 TRIGGER B ~7 #45 1
+39 PASS A
+40 PASS B
+41 RESOLVE ~7
+42 SPIRE A -1 40
+43 TRIGGER A ~8 #23 1
+44 TRIGGER B ~9 #45 2
+45 PASS A
+46 PASS B
+47 RESOLVE ~8
+48 COUNTERS #23 +1 2
+49 PASS A
+50 PASS B
+51 RESOLVE ~9
+52 SPIRE B +1 40
+53 PASS A
+54 PASS B
+55 RESOLVE ~6
+56 SPIRE A -5 35
+57 DRAW A #1 CIN-001
+58 DRAW A #2 CIN-001
+59 DRAW A #3 CIN-001
+60 SPENT #22 DSK-037
+61 TRIGGER A ~10 #23 1
+62 TRIGGER B ~11 #45 2
+63 PASS A
+64 PASS B
+65 RESOLVE ~10
+66 COUNTERS #23 +1 3
+67 PASS A
+68 PASS B
+69 RESOLVE ~11
+70 SPIRE B +1 41
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 35 ember 6 cap 10 vault 17 hand 3 ash 2 rift 0
+player B spire 41 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand A 3 #3 CIN-001
+field A #23 DSK-020 5/5 w0 c3 ready - kw -
+field B #44 DSK-020 3/3 w0 c1 ready - kw -
+field B #45 NEU-014 2/4 w0 c0 ready - kw -
+ash A 1 #21 DSK-004
+ash A 2 #22 DSK-037
+STATE END
+71 RESULT pending none

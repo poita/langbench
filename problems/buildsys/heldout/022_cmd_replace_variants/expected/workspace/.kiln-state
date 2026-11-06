@@ -1,0 +1,23 @@
+kiln-state 1
+step out/h.txt
+cmd hash()
+in out/r0.txt c2ed25165387e291
+in out/r1.txt 9e95534f70c475ad
+in out/r2.txt f03465aa03428671
+out out/h.txt 388c57ec43b34595
+end
+step out/r0.txt
+cmd replace("aa", "b")
+in src/t.txt 8d3313cf1078f573
+out out/r0.txt c2ed25165387e291
+end
+step out/r1.txt
+cmd replace("a", "")
+in src/t.txt 8d3313cf1078f573
+out out/r1.txt 9e95534f70c475ad
+end
+step out/r2.txt
+cmd replace("\n", "|")
+in src/t.txt 8d3313cf1078f573
+out out/r2.txt f03465aa03428671
+end

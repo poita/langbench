@@ -1,0 +1,160 @@
+[1] error not-object
+[2] ok delete removed
+[3] ok put replaced
+[4] ok scan 3
+  "k00000"
+  "k00003"
+  "k00004"
+[5] ok put replaced
+[6] ok put replaced
+[7] ok put replaced
+[8] ok put replaced
+[9] ok indexes 1
+  0 name root 0 entries 0
+[10] ok begin
+[11] error not-object
+[12] ok scan 3
+  "k00009"
+  "k00010"
+  "k00011"
+[13] ok stat
+  pages 20
+  free 0
+  freehead 0
+  docs 8
+  root 16
+  height 2
+  commits 31
+  indexes 1
+  wal 164264
+[14] ok delete removed
+[15] ok stat
+  pages 20
+  free 1
+  freehead 5
+  docs 7
+  root 16
+  height 2
+  commits 31
+  indexes 1
+  wal 164264
+[16] error not-object
+[17] error not-found
+[18] error not-found
+[19] ok put replaced
+[20] ok indexes 1
+  0 name root 0 entries 0
+[21] ok stat
+  pages 20
+  free 1
+  freehead 5
+  docs 7
+  root 16
+  height 2
+  commits 31
+  indexes 1
+  wal 164264
+[22] ok put replaced
+[23] ok delete removed
+[24] ok put created
+[25] ok delete removed
+[26] error not-found
+[27] ok put created
+[28] ok stat
+  pages 20
+  free 5
+  freehead 15
+  docs 7
+  root 16
+  height 2
+  commits 31
+  indexes 1
+  wal 164264
+[29] ok stat
+  pages 20
+  free 5
+  freehead 15
+  docs 7
+  root 16
+  height 2
+  commits 31
+  indexes 1
+  wal 164264
+[30] ok delete removed
+[31] ok put created
+[32] ok put replaced
+[33] ok put replaced
+[34] ok put replaced
+[35] error index-exists
+[36] ok put created
+[37] ok put created
+[38] error not-found
+[39] ok put replaced
+[40] error not-object
+[41] ok create index tag entries 0
+[42] ok put replaced
+[43] ok delete removed
+[44] ok put replaced
+[45] ok find 0 plan scan
+[46] ok create index age entries 2
+[47] error not-object
+[48] ok rollback
+[49] ok put replaced
+[50] ok find 1 plan scan
+  "k00000" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+[51] ok stat
+  pages 20
+  free 0
+  freehead 0
+  docs 8
+  root 16
+  height 2
+  commits 32
+  indexes 1
+  wal 167432
+[52] ok delete removed
+[53] ok put replaced
+[54] ok create index age entries 1
+[55] ok put replaced
+[56] error not-object
+[57] ok put created
+[58] ok put replaced
+[59] ok stat
+  pages 20
+  free 1
+  freehead 14
+  docs 8
+  root 16
+  height 2
+  commits 38
+  indexes 2
+  wal 190632
+[60] ok stat
+  pages 20
+  free 1
+  freehead 14
+  docs 8
+  root 16
+  height 2
+  commits 38
+  indexes 2
+  wal 190632
+[61] ok stat
+  pages 20
+  free 1
+  freehead 14
+  docs 8
+  root 16
+  height 2
+  commits 38
+  indexes 2
+  wal 190632
+[62] ok indexes 2
+  0 name root 7 entries 3
+  1 age root 5 entries 3
+[63] ok scan 5
+  "k00000"
+  "k00003"
+  "k00004"
+  "k00007"
+  "k00008"

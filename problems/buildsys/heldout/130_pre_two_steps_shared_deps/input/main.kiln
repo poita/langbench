@@ -1,0 +1,10 @@
+each i, root in ["src/r0.txt", "src/r1.txt"] {
+    step {
+        out "out/d{i}.txt"
+        depfile "out/d{i}.d"
+        in root
+        cmd preprocess()
+        cost 2
+    }
+    default "out/d{i}.txt"
+}

@@ -1,0 +1,6 @@
+step 1: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 2: clean
+  ok removed=0
+step 3: build (default) -j 1
+  error E_PARSE main.kiln:1

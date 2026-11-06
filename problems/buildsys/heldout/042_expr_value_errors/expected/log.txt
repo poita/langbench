@@ -1,0 +1,55 @@
+step 1: build (default) -j 1
+  error E_DIV_ZERO
+step 2: edit main.kiln
+  ok size=14
+step 3: build (default) -j 1
+  error E_DIV_ZERO
+step 4: edit main.kiln
+  ok size=21
+step 5: build (default) -j 1
+  error E_DIV_ZERO
+step 6: edit main.kiln
+  ok size=18
+step 7: build (default) -j 1
+  error E_ARG fn index: out of range
+step 8: edit main.kiln
+  ok size=19
+step 9: build (default) -j 1
+  error E_ARG fn index: out of range
+step 10: edit main.kiln
+  ok size=16
+step 11: build (default) -j 1
+  error E_ARG fn index: out of range
+step 12: edit main.kiln
+  ok size=17
+step 13: build (default) -j 1
+  error E_ARG fn index: out of range
+step 14: edit main.kiln
+  ok size=14
+step 15: build (default) -j 1
+  error E_ARG fn index: out of range
+step 16: edit main.kiln
+  ok size=84
+step 17: build (default) -j 1
+  error E_INTERP list
+step 18: edit main.kiln
+  ok size=90
+step 19: build (default) -j 1
+  run 0 1 w0 out/z.txt write("1 ok")
+  ok ran=1 hit=0 time=1
+step 20: edit main.kiln
+  ok size=76
+step 21: build (default) -j 1
+  error E_UNKNOWN_VAR missing_var
+step 22: edit main.kiln
+  ok size=16
+step 23: build (default) -j 1
+  error E_UNKNOWN_FUNC nope
+step 24: edit main.kiln
+  ok size=29
+step 25: build (default) -j 1
+  error E_UNKNOWN_FUNC nope
+step 26: edit main.kiln
+  ok size=33
+step 27: build (default) -j 1
+  error E_UNKNOWN_VAR undefined_name

@@ -1,0 +1,36 @@
+step {
+    out "out/grep_0.txt"
+    in "src/e.txt"
+    cmd grep("i")
+}
+step {
+    out "out/grep_1.txt"
+    in "src/n.txt"
+    cmd grep("i")
+}
+step {
+    out "out/grep_2.txt"
+    in "src/x.txt"
+    cmd grep("i")
+}
+step {
+    out "out/grep_3.txt"
+    in "src/c.txt"
+    cmd grep("i")
+}
+step {
+    out "out/grep_4.txt"
+    in "src/u.txt"
+    cmd grep("i")
+}
+step {
+    out "out/grep_5.txt"
+    in "src/b.txt"
+    cmd grep("i")
+}
+step {
+    out "out/grep_pin.txt"
+    in ["out/grep_0.txt", "out/grep_1.txt", "out/grep_2.txt", "out/grep_3.txt", "out/grep_4.txt", "out/grep_5.txt"]
+    cmd hash()
+}
+default "out/grep_pin.txt"

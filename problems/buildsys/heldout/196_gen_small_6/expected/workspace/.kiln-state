@@ -1,0 +1,193 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 3c0b6fc5b3e8092f
+in out/m1/bundle.txt 906c27faa6dbd03b
+in out/m2/bundle.txt fae94a39433fb26d
+in out/m3/bundle.txt 955bcd9e5fb28192
+in out/m4/bundle.txt 7002d640520ec74b
+out out/all.txt d166cc3b4735d92a
+end
+step out/m0/bundle.txt
+cmd hash()
+in out/m0/f0.txt cbf29ce484222325
+in out/m0/f1.txt 8fb5df9ebeb8a504
+in out/m0/f2.txt 3b995c22edca187d
+in out/m0/g3.txt e6b56d31a4c8e3a0
+out out/m0/bundle.txt 3c0b6fc5b3e8092f
+end
+step out/m0/f0.txt
+cmd sort_lines()
+in src/m0/f0.txt cbf29ce484222325
+out out/m0/f0.txt cbf29ce484222325
+end
+step out/m0/f1.txt
+cmd indent(2)
+in src/m0/f1.txt ea922e568cf07d44
+out out/m0/f1.txt 8fb5df9ebeb8a504
+end
+step out/m0/f2.txt
+cmd number()
+in src/m0/f2.txt af553a8ddadb3074
+out out/m0/f2.txt 3b995c22edca187d
+end
+step out/m0/g3.txt
+cmd sort_lines()
+in src/m0/sub/g3.txt a081630875e89ad6
+out out/m0/g3.txt e6b56d31a4c8e3a0
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 3c0b6fc5b3e8092f
+out out/m0/wrapped.txt 05b3cc8b340a6f18
+end
+step out/m1/bundle.txt
+cmd concat()
+in out/m1/f0.txt 3ff1fb1b4a92d995
+in out/m1/f1.txt 405952871ff42cd8
+in out/m1/f2.txt 5cd9dcbaadf2148c
+in out/m1/g3.txt 1bdcb6f7607dad65
+out out/m1/bundle.txt 906c27faa6dbd03b
+end
+step out/m1/doc.txt
+cmd preprocess()
+in src/m1/doc.src 5cafc8decbb7d385
+dep src/m1/f0.txt 3ff1fb1b4a92d995
+dep src/m1/f1.txt 9cc0c0327ac9ebb4
+dep src/m1/f2.txt e0ca0b853b53fcb8
+out out/m1/doc.txt 0ada9694eebb7eb0
+out out/m1/doc.d 4fe6ebd5f8376a24
+end
+step out/m1/f0.txt
+cmd reverse_lines()
+in src/m1/f0.txt 3ff1fb1b4a92d995
+out out/m1/f0.txt 3ff1fb1b4a92d995
+end
+step out/m1/f1.txt
+cmd reverse_lines()
+in src/m1/f1.txt 9cc0c0327ac9ebb4
+out out/m1/f1.txt 405952871ff42cd8
+end
+step out/m1/f2.txt
+cmd wrap("[", "]\n")
+in src/m1/f2.txt e0ca0b853b53fcb8
+out out/m1/f2.txt 5cd9dcbaadf2148c
+end
+step out/m1/g3.txt
+cmd reverse_lines()
+in src/m1/sub/g3.txt bf9f636bc2980d51
+out out/m1/g3.txt 1bdcb6f7607dad65
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt 906c27faa6dbd03b
+out out/m1/wrapped.txt 34da61da4ca737d3
+end
+step out/m2/bundle.txt
+cmd count_lines()
+in out/m2/f0.txt df06b21a2c4c8e11
+in out/m2/f1.txt cbf29ce484222325
+in out/m2/f2.txt 696259111f830a6f
+in out/m2/g3.txt 65049540d0609d9d
+out out/m2/bundle.txt fae94a39433fb26d
+end
+step out/m2/f0.txt
+cmd upper()
+in src/m2/f0.txt 7633e560255a38f1
+out out/m2/f0.txt df06b21a2c4c8e11
+end
+step out/m2/f1.txt
+cmd number()
+in src/m2/f1.txt cbf29ce484222325
+out out/m2/f1.txt cbf29ce484222325
+end
+step out/m2/f2.txt
+cmd reverse_lines()
+in src/m2/f2.txt ddb7f1307c67bea7
+out out/m2/f2.txt 696259111f830a6f
+end
+step out/m2/g3.txt
+cmd upper()
+in src/m2/sub/g3.txt f253413a38d0aadd
+out out/m2/g3.txt 65049540d0609d9d
+end
+step out/m2/wrapped.txt
+cmd wrap("<m2|", "|>\n")
+in out/m2/bundle.txt fae94a39433fb26d
+out out/m2/wrapped.txt 78364ffbcffdc2c6
+end
+step out/m3/bundle.txt
+cmd hash()
+in out/m3/f0.txt 06f4fb9802700c68
+in out/m3/f1.txt 678634a5f24a5171
+in out/m3/f2.txt dcd1cd1a2138b85d
+in out/m3/g3.txt cbf29ce484222325
+out out/m3/bundle.txt 955bcd9e5fb28192
+end
+step out/m3/f0.txt
+cmd reverse_lines()
+in src/m3/f0.txt c69ceb234279293a
+out out/m3/f0.txt 06f4fb9802700c68
+end
+step out/m3/f1.txt
+cmd wrap("[", "]\n")
+in src/m3/f1.txt 0b0b885ea62985f7
+out out/m3/f1.txt 678634a5f24a5171
+end
+step out/m3/f2.txt
+cmd wrap("[", "]\n")
+in src/m3/f2.txt cbf29ce484222325
+out out/m3/f2.txt dcd1cd1a2138b85d
+end
+step out/m3/g3.txt
+cmd reverse_lines()
+in src/m3/sub/g3.txt cbf29ce484222325
+out out/m3/g3.txt cbf29ce484222325
+end
+step out/m3/wrapped.txt
+cmd wrap("<m3|", "|>\n")
+in out/m3/bundle.txt 955bcd9e5fb28192
+out out/m3/wrapped.txt c92eb53e0b55daaa
+end
+step out/m4/bundle.txt
+cmd count_lines()
+in out/m4/f0.txt b79ae41beea0fcb7
+in out/m4/f1.txt bfb7ecfb64e12490
+in out/m4/f2.txt 1e83ce1f7c77bd76
+in out/m4/g3.txt eb7ce382fe9a1a86
+out out/m4/bundle.txt 7002d640520ec74b
+end
+step out/m4/doc.txt
+cmd preprocess()
+in src/m4/doc.src 40c70ed6e6d529fb
+dep src/m4/f0.txt 13013d15c9a38557
+dep src/m4/f1.txt 716da4d3f67145d0
+dep src/m4/f2.txt 09636a98f2f90d42
+out out/m4/doc.txt 4cc495c3c6341d89
+out out/m4/doc.d 9f3ba99ec6145191
+end
+step out/m4/f0.txt
+cmd replace("a", "A")
+in src/m4/f0.txt 13013d15c9a38557
+out out/m4/f0.txt b79ae41beea0fcb7
+end
+step out/m4/f1.txt
+cmd replace("a", "A")
+in src/m4/f1.txt 716da4d3f67145d0
+out out/m4/f1.txt bfb7ecfb64e12490
+end
+step out/m4/f2.txt
+cmd reverse_lines()
+in src/m4/f2.txt 09636a98f2f90d42
+out out/m4/f2.txt 1e83ce1f7c77bd76
+end
+step out/m4/g3.txt
+cmd replace("a", "A")
+in src/m4/sub/g3.txt 3c44044688a82f06
+out out/m4/g3.txt eb7ce382fe9a1a86
+end
+step out/m4/wrapped.txt
+cmd wrap("<m4|", "|>\n")
+in out/m4/bundle.txt 7002d640520ec74b
+out out/m4/wrapped.txt 819492976ca3bcfe
+end

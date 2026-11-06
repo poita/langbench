@@ -1,0 +1,17 @@
+kiln-state 1
+step out/h.txt
+cmd hash()
+in out/u.txt cfa968f4336b47aa
+in out/l.txt 793e79b568d7e24a
+out out/h.txt 4ae192c611544c9c
+end
+step out/l.txt
+cmd lower()
+in src/m.txt 0277dce26d6bdaea
+out out/l.txt 793e79b568d7e24a
+end
+step out/u.txt
+cmd upper()
+in src/m.txt 0277dce26d6bdaea
+out out/u.txt cfa968f4336b47aa
+end

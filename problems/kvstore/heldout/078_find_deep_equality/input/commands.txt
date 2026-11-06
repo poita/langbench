@@ -1,0 +1,12 @@
+put "a" {v:[1,[2,{x:3}]]}
+put "b" {v:[1,[2,{x:4}]]}
+put "c" {v:{x:1,y:2}}
+put "d" {v:{y:2,x:1}}
+find v == [1,[2,{x:3}]]
+find v == {x:1,y:2}
+find v == {y:2,x:1}
+find v != {x:1,y:2}
+find v == [1,[2,{x:3}],4]
+find v < [1]
+find v > {}
+stat

@@ -1,0 +1,67 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-011 #26
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 BUFF #26 2 0
+14 GRANT #26 pierce
+15 SPENT #21 CIN-011
+16 PLAY A ~2 #22 LOM-014 #26
+17 PAY A ember 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 BUFF #26 0 3
+22 WARD #26 2 2
+23 SPENT #22 LOM-014
+24 PLAY A ~3 #23 TID-022 #26
+25 PAY A ember 2
+26 PASS A
+27 PASS B
+28 RESOLVE ~3
+29 SETBODY #26 0 1
+30 SPENT #23 TID-022
+31 PLAY A ~4 #24 NEU-008 #26
+32 PAY A ember 1
+33 PASS A
+34 PASS B
+35 RESOLVE ~4
+36 GRANT #26 tenacity
+37 SPENT #24 NEU-008
+38 PLAY A ~5 #25 CIN-022 #26
+39 PAY A ember 2
+40 PASS A
+41 PASS B
+42 RESOLVE ~5
+43 WARD #26 3 5
+44 BUFF #26 0 1
+45 SPENT #25 CIN-022
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 3 cap 10 vault 20 hand 0 ash 5 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #26 TOK-001 3/6 w0 c0 ready ward5 kw pierce,plating:1,tenacity
+field A #27 LOM-039 -/- w0 c0 ready - kw -
+field B #48 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash A 1 #21 CIN-011
+ash A 2 #22 LOM-014
+ash A 3 #23 TID-022
+ash A 4 #24 NEU-008
+ash A 5 #25 CIN-022
+effect 1 ts3 A aura modify 1 1 on #26
+effect 2 ts4 A aura grant plating:1 on #26
+effect 3 ts6 A turn modify 2 0 on #26
+effect 4 ts7 A turn grant pierce on #26
+effect 5 ts8 A turn modify 0 3 on #26
+effect 6 ts9 A turn setbody 0 1 on #26
+effect 7 ts10 A turn grant tenacity on #26
+effect 8 ts11 A turn modify 0 1 on #26
+STATE END
+46 RESULT pending none

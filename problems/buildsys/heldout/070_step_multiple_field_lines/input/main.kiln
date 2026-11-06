@@ -1,0 +1,12 @@
+let extra = ["src/b.txt"]
+step {
+    out "out/j.txt"
+    in "src/a.txt"
+    in extra
+    in []
+    after "src/c.txt"
+    after []
+    cmd concat()
+    cost 3
+}
+default "out/j.txt"

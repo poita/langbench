@@ -1,0 +1,12 @@
+@module main
+trait Shape {
+    fn area(self) -> Int;
+    fn name(self) -> Str { "shape" }
+}
+struct Sq { s: Int }
+impl Shape for Sq {
+    fn area(self) -> Int { self.s * self.s }
+    fn name(self) -> Str { "sq" }
+    fn perimeter(self) -> Int { 4 * self.s }
+}
+fn main() { print(showInt(Sq.{ s: 2 }.area())); }

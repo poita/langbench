@@ -1,0 +1,2 @@
+@module main
+fn main() { for i in 0..3 { emit(showInt(i)); } print(""); }

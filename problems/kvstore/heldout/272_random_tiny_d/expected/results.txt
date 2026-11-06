@@ -1,0 +1,126 @@
+[1] error not-found
+[2] error not-found
+[3] ok put created
+[4] error index-missing
+[5] ok put created
+[6] ok put created
+[7] ok create index nest.deep entries 1
+[8] error not-found
+[9] error not-found
+[10] ok find 2 plan scan
+  "k00001" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+  "k00003" = {"age":3,"nest":{"deep":0},"tag":null}
+[11] ok put created
+[12] error not-found
+[13] ok indexes 1
+  0 nest.deep root 4 entries 1
+[14] ok delete removed
+[15] ok indexes 1
+  0 nest.deep root 0 entries 0
+[16] error not-found
+[17] ok put created
+[18] ok put created
+[19] error not-found
+[20] ok scan 1
+  "k00016" = {"age":1,"name":"n02"}
+[21] ok put created
+[22] ok delete removed
+[23] ok find 0 plan scan
+[24] error not-found
+[25] ok checkpoint pages 4
+[26] ok put created
+[27] ok put replaced
+[28] ok put replaced
+[29] error not-found
+[30] ok put replaced
+[31] error not-object
+[32] ok put created
+[33] ok put created
+[34] error not-found
+[35] ok create index tag entries 0
+[36] ok get value
+  "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+[37] ok put created
+[38] ok unset updated
+[39] ok scan 2
+  "k00003"
+  "k00000"
+[40] ok put replaced
+[41] ok put created
+[42] error index-exists
+[43] ok stat
+  pages 9
+  free 0
+  freehead 0
+  docs 10
+  root 9
+  height 2
+  commits 21
+  indexes 2
+  wal 31736
+[44] ok put replaced
+[45] ok indexes 2
+  0 nest.deep root 6 entries 1
+  1 tag root 0 entries 0
+[46] ok put created
+[47] ok checkpoint pages 10
+[48] ok stat
+  pages 10
+  free 0
+  freehead 0
+  docs 11
+  root 9
+  height 2
+  commits 23
+  indexes 2
+  wal 32
+[49] ok scan 3
+  "k00000" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
+  "k00003" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+  "k00006" = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+[50] ok put created
+[51] ok scan 3
+  "k00006"
+  "k00007"
+  "k00009"
+[52] ok put replaced
+[53] ok find 1 plan scan
+  "k00014" = {"age":14,"nest":{"deep":6}}
+[54] ok find 0 plan scan
+[55] ok put replaced
+[56] ok indexes 2
+  0 nest.deep root 6 entries 1
+  1 tag root 0 entries 0
+[57] error not-found
+[58] ok put replaced
+[59] ok create index age entries 5
+[60] ok stat
+  pages 12
+  free 1
+  freehead 7
+  docs 12
+  root 9
+  height 2
+  commits 28
+  indexes 3
+  wal 16920
+[61] ok stat
+  pages 12
+  free 1
+  freehead 7
+  docs 12
+  root 9
+  height 2
+  commits 28
+  indexes 3
+  wal 16920
+[62] ok indexes 3
+  0 nest.deep root 6 entries 1
+  1 tag root 0 entries 0
+  2 age root 2 entries 5
+[63] ok scan 5
+  "k00000"
+  "k00003"
+  "k00006"
+  "k00007"
+  "k00009"

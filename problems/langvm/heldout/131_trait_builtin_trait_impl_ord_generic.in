@@ -1,0 +1,6 @@
+@module main
+struct W<T> { v: T }
+trait Size { fn size(self) -> Int; }
+impl<T> Size for W<T> { fn size(self) -> Int { 1 } }
+impl<T> Ord for W<T> { }
+fn main() { print(showInt(W.{ v: 1 }.size())); }

@@ -1,0 +1,84 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 TRIGGER A ~1 #15 1
+7 TRIGGER A ~2 #16 1
+8 RESOLVE ~1
+9 COUNTERS #15 +1 1
+10 RESOLVE ~2
+11 COUNTERS #16 +2 2
+12 PHASE draw
+13 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 2 ash 0 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 1 ash 0 rift 0
+hand A 1 #11 EXT-022
+hand A 2 #12 EXT-026
+hand B 1 #27 EXT-026
+field A #13 EXT-008 2/3 w0 c0 ready - kw vanguard
+field A #14 EXT-001 1/1 w0 c0 ready - kw vanguard
+field A #15 EXT-032 3/4 w0 c1 ready - kw vanguard
+field A #16 EXT-011 3/6 w0 c2 ready - kw plating:1,vanguard
+field B #28 EXT-032 2/3 w0 c0 ready - kw vanguard
+field B #29 EXT-011 1/4 w0 c0 ready - kw plating:1
+field B #30 EXT-001 1/1 w0 c0 ready - kw -
+effect 1 ts2 A aura grant vanguard on #13,#14,#15,#16
+STATE END
+14 PLAY A ~3 #12 EXT-026
+15 PAY A ember 3
+16 PASS A
+17 PASS B
+18 RESOLVE ~3
+19 ARRIVE #12 EXT-026
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 7 cap 10 vault 10 hand 1 ash 0 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 1 ash 0 rift 0
+hand A 1 #11 EXT-022
+hand B 1 #27 EXT-026
+field A #13 EXT-008 2/3 w0 c0 ready - kw vanguard
+field A #14 EXT-001 1/1 w0 c0 ready - kw vanguard
+field A #15 EXT-032 3/4 w0 c1 ready - kw vanguard
+field A #16 EXT-011 6/3 w0 c2 ready - kw plating:1,vanguard
+field A #12 EXT-026 -/- w0 c0 ready settling kw -
+field B #28 EXT-032 2/3 w0 c0 ready - kw vanguard
+field B #29 EXT-011 2/2 w0 c0 ready - kw plating:1
+field B #30 EXT-001 2/2 w0 c0 ready - kw -
+effect 1 ts2 A aura grant vanguard on #13,#14,#15,#16
+effect 2 ts10 A aura setbody 2 2 on #29,#30
+effect 3 ts11 A aura swapstats on #16
+STATE END
+20 PLAY A ~4 #11 EXT-022
+21 PAY A ember 2
+22 PASS A
+23 PASS B
+24 RESOLVE ~4
+25 BOUNCE #15 EXT-032
+26 BOUNCE #28 EXT-032
+27 COUNTERS #13 +1 1
+28 COUNTERS #14 +1 1
+29 COUNTERS #30 +1 1
+30 EXILE #29 EXT-011 field
+31 SPENT #11 EXT-022
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 5 cap 10 vault 10 hand 1 ash 1 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 2 ash 0 rift 1
+hand A 1 #15 EXT-032
+hand B 1 #27 EXT-026
+hand B 2 #28 EXT-032
+field A #13 EXT-008 3/4 w0 c1 ready - kw vanguard
+field A #14 EXT-001 2/2 w0 c1 ready - kw vanguard
+field A #16 EXT-011 6/3 w0 c2 ready - kw plating:1,vanguard
+field A #12 EXT-026 -/- w0 c0 ready settling kw -
+field B #30 EXT-001 2/2 w0 c1 ready - kw -
+ash A 1 #11 EXT-022
+rift B 1 #29 EXT-011
+effect 1 ts2 A aura grant vanguard on #13,#14,#16
+effect 2 ts10 A aura setbody 2 2 on -
+effect 3 ts11 A aura swapstats on #16
+STATE END
+32 RESULT pending none

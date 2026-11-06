@@ -1,0 +1,16 @@
+put "a" {v:null}
+put "b" {v:true}
+put "c" {v:false}
+put "d" {v:0}
+put "e" {v:-1}
+put "f" {v:"s"}
+put "g" {v:[]}
+put "h" {v:{}}
+put "i" {w:1}
+create index v
+indexes
+find v >= null
+find v == null
+find v == true
+find exists v
+stat

@@ -1,0 +1,11 @@
+step 1: clean
+  ok removed=0
+step 2: clean
+  ok removed=0
+step 3: build (default) -j 1
+  run 0 1 w0 out/hello.txt write("hello\n")
+  ok ran=1 hit=0 time=1
+step 4: clean
+  remove .kiln-state
+  remove out/hello.txt
+  ok removed=2

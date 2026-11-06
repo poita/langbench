@@ -1,0 +1,53 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 ACTIVATE A ~1 #22 1 #46
+9 PAY A ember 2
+10 PASS A
+11 PLAY B ~2 #43 TID-004 ~1
+12 PAY B ember 2
+13 PASS B
+14 PASS A
+15 RESOLVE ~2
+16 NEGATE ~1
+17 SPENT #43 TID-004
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 49 cap 51 vault 20 hand 1 ash 0 rift 0
+player B spire 40 ember 48 cap 50 vault 20 hand 2 ash 1 rift 0
+hand A 1 #21 CIN-004
+hand B 1 #44 TID-004
+hand B 2 #45 TID-004
+field A #22 CIN-014 3/3 w0 c0 ready - kw -
+field B #46 TOK-003 0/3 w0 c0 ready - kw plating:1
+field B #47 TOK-001 1/1 w0 c0 ready - kw -
+ash B 1 #43 TID-004
+STATE END
+18 PLAY A ~3 #21 CIN-004
+19 PAY A ember 3
+20 PASS A
+21 PLAY B ~4 #44 TID-004 ~3
+22 PAY B ember 2
+23 PASS B
+24 PASS A
+25 RESOLVE ~4
+26 NEGATE ~3
+27 SPENT #21 CIN-004
+28 SPENT #44 TID-004
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 46 cap 51 vault 20 hand 0 ash 1 rift 0
+player B spire 40 ember 46 cap 50 vault 20 hand 1 ash 2 rift 0
+hand B 1 #45 TID-004
+field A #22 CIN-014 3/3 w0 c0 ready - kw -
+field B #46 TOK-003 0/3 w0 c0 ready - kw plating:1
+field B #47 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 CIN-004
+ash B 1 #43 TID-004
+ash B 2 #44 TID-004
+STATE END
+29 RESULT pending none

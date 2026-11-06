@@ -1,0 +1,8 @@
+let pats = ["**", "**/**", "**/**/**", "deep/**", "deep/**/*.txt", "**/*.txt", "**/leaf.txt", "deep/1/2/**/*.txt", "deep/*/*/*.txt", "?", "?.?", "q/**", "q/r.s/*", "mix/*", "mix/[a-z]*", "mix/[A-Z]*", "mix/[!a-z]*", "mix/a[-_+]b.txt", "mix/*.*.*", "[Aa]/**/[Cc].txt", "a/**", "**/[0-9].txt", "mix/.*", "**/*.dat", "deep/1/2/3/4/5/6/7/8/9/*", "*/*", "*/*/*", "**/?.txt", "mix/a?b.txt"]
+each i, p in pats {
+    step {
+        out "out/g{i}.txt"
+        cmd write("{join(glob(p), " ")}\n")
+    }
+    default "out/g{i}.txt"
+}

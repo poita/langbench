@@ -1,0 +1,52 @@
+@module main
+use ledger;
+
+fn main() {
+    let book = ledger::open(["cash", "bank", "rent", "food"]);
+    let script = [
+        ("bank", "cash", 200), ("cash", "food", 35), ("cash", "food", 12),
+        ("bank", "rent", 900), ("cash", "food", 8), ("food", "cash", 5),
+    ];
+    for (from, to, amt) in script {
+        ledger::post(book, from, to, amt);
+        print(ledger::summary(book));
+    }
+    print("audit: " ++ showInt(ledger::audit(book)));
+    ledger::post(book, "cash", "travel", 50);
+    print("not reached");
+}
+@module ledger
+pub struct Book { bal: #[Str: Int], hist: [(Str, Str, Int)] }
+
+pub trait Report {
+    fn line(self) -> Str;
+}
+
+impl Report for Book {
+    fn line(self) -> Str {
+        strJoin(listMap(pairsOf(self.bal), |p| fst(p) ++ "=" ++ showInt(snd(p))), " ")
+    }
+}
+
+pub fn open(names: [Str]) -> Book {
+    let m: #[Str: Int] = mapNew();
+    for n in names { m[n] = 0; }
+    Book.{ bal: m, hist: listNew() }
+}
+
+fn adjust(b: Book, who: Str, delta: Int) {
+    let apply = |k: Str| { b.bal[k] = b.bal[k] + delta; };
+    apply(who);
+}
+
+pub fn post(b: Book, from: Str, to: Str, amt: Int) {
+    adjust(b, from, -amt);
+    adjust(b, to, amt);
+    push(b.hist, (from, to, amt));
+}
+
+pub fn summary(b: Book) -> Str { showInt(listLen(b.hist)) ++ ": " ++ b.line() }
+
+pub fn audit(b: Book) -> Int {
+    listFold(valuesOf(b.bal), 0, |a, v| a + v)
+}

@@ -1,0 +1,11 @@
+build
+edit src/m6/f6.txt
+0123
+omicron
+hazel
+---
+build @m8 -j 64
+delete src/m7/f6.txt
+build @m10
+touch src/m6/f5.txt
+build @m2 -j 16

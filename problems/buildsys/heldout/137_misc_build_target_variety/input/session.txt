@@ -1,0 +1,5 @@
+build src/s.txt
+build out/a.txt
+build @both out/a.txt out/b.txt
+build
+build out/b.txt out/b.txt -j 2

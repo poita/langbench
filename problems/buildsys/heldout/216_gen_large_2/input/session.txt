@@ -1,0 +1,16 @@
+build -j 8
+edit src/m10/f13.txt
+cedar
+a-b+c
+the end
+---
+build @m6 -j 4
+touch src/m13/f14.txt
+build @m7 -j 4
+edit src/m13/f4.txt
+birch
+juniper
+the end
+omicron
+---
+build @m13 -j 2

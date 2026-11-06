@@ -1,0 +1,121 @@
+@module main
+use geo;
+use show as sh;
+
+struct Tagged<T> { tag: Str, val: T }
+
+impl<T: sh::Show> sh::Show for Tagged<T> {
+    fn show(self) -> Str { self.tag ++ "=" ++ self.val.show() }
+}
+
+impl geo::Shape for Int {
+    fn area(self) -> Int { self * self }
+    fn name(self) -> Str { "square" ++ showInt(self) }
+}
+
+fn total<T: geo::Shape>(xs: [T]) -> Int { listFold(xs, 0, |a, x| a + x.area()) }
+
+fn biggest<T: geo::Shape + sh::Show>(xs: [T]) -> Option<T> {
+    var best: Option<T> = None;
+    for x in xs {
+        best = match best {
+            None -> Some(x),
+            Some(b) when x.area() > b.area() -> Some(x),
+            keep -> keep,
+        };
+    }
+    best
+}
+
+fn main() {
+    let shapes = [geo::rect(3, 4), geo::circle(2), geo::tri(6, 5), geo::rect(5, 5)];
+    for s in shapes {
+        print(s.describe() ++ " | " ++ s.show());
+    }
+    print("total " ++ showInt(total(shapes)) ++ " / ints " ++ showInt(total([1, 2, 3])));
+    print(biggest(shapes).show());
+    let noFigs: [geo::Fig] = listNew();
+    let none = biggest(noFigs);
+    print(none.show());
+    print([Tagged.{ tag: "a", val: 1 }, Tagged.{ tag: "b", val: -2 }].show());
+    print(Tagged.{ tag: "nest", val: [Some("x"), None] }.show());
+    let m = #["one": [1], "two": [2, 2]];
+    print(m.show());
+    print(7.describe());
+    print(geo::circle(10).describe());
+    print(sh::twice("ab".show()) ++ " " ++ true.show() ++ " " ++ 'c'.show() ++ " " ++ 1.5.show());
+    let r: Result<Int, Str> = Err("bad");
+    let ok: Result<Int, Str> = Ok(3);
+    print(r.show() ++ " " ++ ok.show());
+}
+@module geo
+use show;
+
+pub enum Fig { Rect(Int, Int), Circle(Int), Tri(Int, Int) }
+
+pub fn rect(w: Int, h: Int) -> Fig { Rect(w, h) }
+pub fn circle(r: Int) -> Fig { Circle(r) }
+pub fn tri(b: Int, h: Int) -> Fig { Tri(b, h) }
+
+pub trait Shape {
+    fn area(self) -> Int;
+    fn name(self) -> Str { "shape" }
+    fn describe(self) -> Str { self.name() ++ " with area " ++ showInt(self.area()) }
+}
+
+impl Shape for Fig {
+    fn area(self) -> Int {
+        match self {
+            Rect(w, h) -> w * h,
+            Circle(r) -> 314 * r * r / 100,
+            Tri(b, h) -> b * h / 2,
+        }
+    }
+    fn name(self) -> Str {
+        match self { Rect(w, h) when w == h -> "square", Rect(_, _) -> "rect", Circle(_) -> "circle", Tri(_, _) -> "triangle" }
+    }
+}
+
+impl show::Show for Fig {
+    fn show(self) -> Str {
+        match self {
+            Rect(w, h) -> fmt("Rect({}, {})", [showInt(w), showInt(h)]),
+            Circle(r) -> "Circle(" ++ showInt(r) ++ ")",
+            Tri(b, h) -> "Tri(" ++ showInt(b) ++ ", " ++ showInt(h) ++ ")",
+        }
+    }
+}
+@module show
+pub trait Show {
+    fn show(self) -> Str;
+}
+
+pub fn twice(s: Str) -> Str { s ++ s }
+
+impl Show for Int { fn show(self) -> Str { showInt(self) } }
+impl Show for Str { fn show(self) -> Str { quoteStr(self) } }
+impl Show for Bool { fn show(self) -> Str { showBool(self) } }
+impl Show for Char { fn show(self) -> Str { quoteChar(self) } }
+impl Show for Float { fn show(self) -> Str { showFloatAt(self, 2) } }
+
+impl<T: Show> Show for [T] {
+    fn show(self) -> Str { "[" ++ strJoin(listMap(self, |x| x.show()), ", ") ++ "]" }
+}
+
+impl<T: Show> Show for Option<T> {
+    fn show(self) -> Str {
+        match self { Some(x) -> "Some(" ++ x.show() ++ ")", None -> "None" }
+    }
+}
+
+impl<T: Show, E: Show> Show for Result<T, E> {
+    fn show(self) -> Str {
+        match self { Ok(x) -> "Ok(" ++ x.show() ++ ")", Err(e) -> "Err(" ++ e.show() ++ ")" }
+    }
+}
+
+impl<K: Key + Show, V: Show> Show for #[K: V] {
+    fn show(self) -> Str {
+        "#[" ++ strJoin(listMap(pairsOf(self), |p| fst(p).show() ++ ": " ++ snd(p).show()), ", ") ++ "]"
+    }
+}

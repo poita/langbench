@@ -1,0 +1,6 @@
+@module main
+use o;
+fn main() { print(showInt(3.tag())); }
+@module o
+trait Tag { fn tag(self) -> Int { 7 } }
+impl Tag for Int {}

@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    var xs: [Int] = listNew(); print(showInt(listFirst(xs)));
+}

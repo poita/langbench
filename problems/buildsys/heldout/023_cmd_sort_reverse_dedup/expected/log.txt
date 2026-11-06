@@ -1,0 +1,6 @@
+step 1: build (default) -j 2
+  run 0 4 w0 out/s.txt sort_lines()
+  run 0 2 w1 out/v.txt reverse_lines()
+  run 2 5 w1 out/d.txt dedup()
+  run 5 8 w0 out/h.txt hash()
+  ok ran=4 hit=0 time=8

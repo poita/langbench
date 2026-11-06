@@ -1,0 +1,12 @@
+@module main
+fn main() {
+    var xs = [1, 2, 3];
+    var count = 0;
+    for x in xs {
+        count = count + 1;
+        if count == 2 { push(xs, 99); }
+        if count > 10 { break; }
+    }
+    print(showInt(count));
+    print(showInt(listLen(xs)));
+}

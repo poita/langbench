@@ -1,0 +1,30 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 1 cap 1 vault 5 hand 0 ash 0 rift 0
+player B spire 25 ember 0 cap 0 vault 5 hand 0 ash 0 rift 0
+field A #6 CIN-001 3/1 w0 c0 ready - kw vanguard
+field A #7 LOM-006 -/- w0 c0 ready - kw -
+field A #8 TOK-004 2/1 w0 c0 ready - kw vanguard
+field B #14 DSK-013 3/4 w0 c0 ready - kw venom
+field B #15 DSK-003 2/2 w0 c0 ready - kw venom
+effect 1 ts3 A aura modify 1 0 on #6,#8
+effect 2 ts6 B aura grant venom on #14,#15
+STATE END
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #6
+CANATTACK #8
+LEGAL END
+11 RESULT pending none

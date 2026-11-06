@@ -1,0 +1,153 @@
+delete "k00030"
+delete "k00009"
+unset "k00012" age
+find not(name <= [1,2]) limit 2
+scan limit 3 to "k00029"
+get "k00027"
+delete "k00037"
+delete "k00000"
+put "k00023" {age:12,tag:[1,2],nest:{deep:1}}
+delete "k00018"
+put "k00015" -457
+put "k00018" {age:18,name:"n15"}
+find name != null limit 1
+delete "k00017"
+checkpoint
+put "k00035" {age:11,name:"n06"}
+unset "k00010" name
+scan limit 4 reverse
+begin
+put "k00014" false
+unset "k00037" tag
+rollback
+update "k00018" name ""
+find name == "n12" limit 1
+put "k00030" {age:23,name:"n19",nest:{deep:9}}
+put "k00017" {}
+scan limit 3 keys
+checkpoint
+begin
+drop index name
+put "k00014" -9223372036854775808
+stat
+put "k00010" {age:9,name:"n03"}
+indexes
+find age == true limit 2
+delete "k00008"
+get "k00035"
+put "k00014" null
+checkpoint
+put "k00028" {name:"n24",tag:null}
+commit
+delete "k00012"
+find not(nest.deep <= [1,2]) limit 0
+put "k00011" {age:1,name:"n18",tag:"t"}
+put "k00037" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+scan from "k00035" to "k00014" keys limit 4
+get "k00020"
+put "k00027" [1,2,3,4,5,6,7,8,9,10,11,12,13]
+put "k00012" "ssssssss"
+create index age
+put "k00035" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+delete "k00013"
+scan from "k00028" to "k00019" limit 3 keys
+unset "k00002" age
+find age <= {z:1} limit 0
+unset "k00036" tag
+find tag >= {z:1} limit 1
+put "k00008" {age:15,name:"n10",tag:7,nest:{deep:8}}
+delete "k00010"
+update "k00021" name true
+get "k00020"
+delete "k00015"
+put "k00024" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+put "k00027" {age:36,name:"n01"}
+unset "k00028" nest.deep
+put "k00017" {age:38,tag:"t",nest:{deep:6}}
+put "k00012" [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+put "k00001" [1,2,3,4,5,6,7,8,9]
+checkpoint
+put "k00011" {age:36,name:"n02"}
+put "k00019" {age:20,name:"n14",tag:[1,2]}
+delete "k00037"
+delete "k00013"
+put "k00007" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+put "k00022" {age:5,name:"n27"}
+stat
+put "k00014" "sssssss"
+begin
+put "k00017" null
+put "k00008" {age:10,name:"n06"}
+scan reverse limit 3 from "k00008"
+put "k00004" {tag:true,nest:{deep:2}}
+put "k00008" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+put "k00026" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+find name <= [1,2] limit 2
+put "k00007" 0
+put "k00013" -168
+put "k00029" {age:37,tag:true}
+update "k00030" nest.deep "ssssss"
+get "k00015"
+put "k00002" {age:7,name:"n28",nest:{deep:4}}
+put "k00007" {age:5,name:"n28",nest:{deep:5}}
+put "k00029" true
+get "k00035"
+delete "k00017"
+put "k00002" {age:22,tag:[1,2],nest:{deep:1}}
+delete "k00022"
+update "k00027" name "sssssssssss"
+put "k00039" {age:31,name:"n21"}
+put "k00005" false
+find name != "n21" limit 0
+unset "k00030" tag
+scan limit 4 from "k00010"
+update "k00023" tag null
+find tag > 29 and name > 22 limit 1
+put "k00021" {age:14,tag:7,nest:{deep:6}}
+get "k00012"
+find nest.deep <= 37 limit 1
+put "k00019" true
+checkpoint
+delete "k00033"
+rollback
+put "k00002" "ss"
+put "k00023" {age:30,name:"n07",tag:false}
+put "k00013" {age:35,name:"n15",nest:{deep:7}}
+put "k00003" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+put "k00031" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+put "k00031" [1,2,3,4,5]
+indexes
+put "k00003" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+scan reverse keys limit 2 to "k00009"
+checkpoint
+update "k00029" age 893
+put "k00016" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+scan keys limit 2 to "k00008"
+put "k00022" {age:33,name:"n26",nest:{deep:5}}
+begin
+put "k00016" null
+indexes
+delete "k00001"
+put "k00017" {age:37,nest:{deep:5}}
+delete "k00029"
+put "k00025" {age:35,name:"n26",tag:"t",nest:{deep:5}}
+find tag != [1,2] and nest.deep == 15 limit 2
+scan limit 3 from "k00036" keys
+create index nest.deep
+delete "k00000"
+put "k00037" 339
+put "k00002" {name:"n08",tag:[1,2],nest:{deep:3}}
+delete "k00024"
+put "k00003" {age:33,name:"n11"}
+put "k00030" 0
+delete "k00015"
+commit
+get "k00015"
+delete "k00000"
+put "k00027" null
+delete "k00033"
+update "k00029" nest.deep {age:32,name:"n05",nest:{deep:7}}
+put "k00022" {age:13,name:"n13"}
+stat
+indexes
+scan keys limit 5

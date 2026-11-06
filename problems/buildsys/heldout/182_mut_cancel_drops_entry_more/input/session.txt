@@ -1,0 +1,6 @@
+build -j 2
+edit src/s.txt
+changed
+---
+delete src/p.txt
+build -j 2

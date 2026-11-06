@@ -1,0 +1,104 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 6 6
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 NEU-028 #43
+9 PAY A ember 3
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 CONTROL #43 A
+14 SPENT #21 NEU-028
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 3 cap 6 vault 20 hand 0 ash 1 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #22 TOK-003 0/3 w0 c0 ready - kw plating:1
+field A #43 CIN-001 2/1 w0 c0 ready settling kw vanguard
+field B #44 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 NEU-028
+effect 1 ts4 A turn control A on #43
+STATE END
+15 PASS A
+16 PASS B
+17 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #22
+CANATTACK #43
+LEGAL END
+18 EXHAUST #43
+19 ATTACK #43
+20 PASS A
+21 PASS B
+22 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #44 #43
+LEGAL END
+23 UNBLOCKED #43
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 3 cap 6 vault 20 hand 0 ash 1 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #22 TOK-003 0/3 w0 c0 ready - kw plating:1
+field A #43 CIN-001 2/1 w0 c0 exhausted attacking,settling kw vanguard
+field B #44 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 NEU-028
+effect 1 ts4 A turn control A on #43
+STATE END
+24 PASS A
+25 PASS B
+26 PHASE clash-damage
+27 DAMAGE #43 B 2
+28 SPIRE B -2 28
+29 PASS A
+30 PASS B
+31 PHASE clash-end
+32 PASS A
+33 PASS B
+34 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 3 cap 6 vault 20 hand 0 ash 1 rift 0
+player B spire 28 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #22 TOK-003 0/3 w0 c0 ready - kw plating:1
+field A #43 CIN-001 2/1 w0 c0 exhausted settling kw vanguard
+field B #44 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 NEU-028
+effect 1 ts4 A turn control A on #43
+STATE END
+35 PASS A
+36 PASS B
+37 PHASE dusk-trigger
+38 PASS A
+39 PASS B
+40 PHASE dusk-discard
+41 PHASE dusk-cleanup
+42 TURN 2 B
+43 PHASE dawn
+44 EMBER A 6 6
+45 EMBER B 1 1
+46 READY #43
+47 PHASE draw
+48 DRAW B #23 TID-001
+49 PHASE main1
+50 PASS B
+51 PASS A
+52 PHASE clash-attack
+LEGAL BEGIN B attackers
+CANATTACK #43
+CANATTACK #44
+LEGAL END
+STATE BEGIN
+turn 2 active B phase clash-attack decision B attackers
+player A spire 30 ember 6 cap 6 vault 20 hand 0 ash 1 rift 0
+player B spire 28 ember 1 cap 1 vault 19 hand 1 ash 0 rift 0
+hand B 1 #23 TID-001
+field A #22 TOK-003 0/3 w0 c0 ready - kw plating:1
+field B #43 CIN-001 2/1 w0 c0 ready - kw vanguard
+field B #44 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 NEU-028
+STATE END
+53 RESULT pending none

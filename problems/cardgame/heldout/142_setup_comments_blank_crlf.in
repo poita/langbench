@@ -1,0 +1,18 @@
+# a match file with comments
+
+CARDS data/cards.spire
+  # indented comment
+SEED   5
+	OPENING	1
+SHUFFLE off
+DECK A CIN-001*3
+DECK B TID-001*3
+
+START
+# script
+DUMP   
+  A   PASS  
+
+B PASS
+A ZAP
+DUMP

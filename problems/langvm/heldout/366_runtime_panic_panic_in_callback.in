@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(listLen(listMap([1, 2], |v| showInt(v / (v - 1))))));
+}

@@ -1,0 +1,8 @@
+step 1: build (default) -j 2
+  run 0 2 w0 out/ok.txt write("ok\n")
+  fail 0 6 w1 out/bad.txt preprocess()
+  error E_NEED_PATH src/../x
+step 2: build (default) -j 2
+  hit 0 out/ok.txt
+  fail 0 6 w0 out/bad.txt preprocess()
+  error E_NEED_PATH src/../x

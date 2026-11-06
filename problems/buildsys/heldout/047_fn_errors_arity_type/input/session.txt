@@ -1,0 +1,69 @@
+build
+edit main.kiln
+let x = upper()
+---
+build
+edit main.kiln
+let x = pathjoin()
+---
+build
+edit main.kiln
+let x = pathjoin("a", "b", "c", "d", "e", "f", "g", "h", "i")
+---
+build
+edit main.kiln
+let x = substr("a", 1)
+---
+build
+edit main.kiln
+let x = upper(1)
+---
+build
+edit main.kiln
+let x = substr("a", "b", 1)
+---
+build
+edit main.kiln
+let x = substr("a", 1, true)
+---
+build
+edit main.kiln
+let x = len(1)
+---
+build
+edit main.kiln
+let x = count("a")
+---
+build
+edit main.kiln
+let x = sort(1)
+---
+build
+edit main.kiln
+let x = zip([1], 2)
+---
+build
+edit main.kiln
+let x = range("3")
+---
+build
+edit main.kiln
+let x = has("a", 1)
+---
+build
+edit main.kiln
+let x = str([1])
+---
+build
+edit main.kiln
+let x = int(true)
+---
+build
+edit main.kiln
+let x = replace("a", "b", 1)
+---
+build
+edit main.kiln
+let x = glob(1)
+---
+build

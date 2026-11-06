@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/upper_0.txt upper()
+  run 2 4 w0 out/upper_1.txt upper()
+  run 4 6 w0 out/upper_2.txt upper()
+  run 6 8 w0 out/upper_3.txt upper()
+  run 8 10 w0 out/upper_4.txt upper()
+  run 10 12 w0 out/upper_5.txt upper()
+  run 12 15 w0 out/upper_pin.txt hash()
+  ok ran=7 hit=0 time=15
+step 2: build (default) -j 1
+  hit 0 out/upper_0.txt
+  hit 0 out/upper_1.txt
+  hit 0 out/upper_2.txt
+  hit 0 out/upper_3.txt
+  hit 0 out/upper_4.txt
+  hit 0 out/upper_5.txt
+  hit 0 out/upper_pin.txt
+  ok ran=0 hit=7 time=0

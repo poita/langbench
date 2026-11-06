@@ -1,0 +1,5 @@
+@module main
+fn main() {
+    let f = |x: Int, y: Strng| x;
+    print(showInt(f(1, "a")));
+}

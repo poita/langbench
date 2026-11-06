@@ -1,0 +1,5 @@
+build -j 4
+touch src/m17/f42.txt
+build @m12 -j 4
+touch main.kiln
+build @m7

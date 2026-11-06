@@ -1,0 +1,142 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN NEU-001
+name Wandering Peddler
+type unit
+cost 2
+body 2/2
+tags neutral,scout
+keywords -
+ability 1 on arrive - (conjure TOK-001 1 you)
+CARD END
+CARD BEGIN NEU-002
+name Stone Marker
+type relic
+cost 1
+tags neutral
+keywords -
+ability 1 aura (modify 0 1 (units yours))
+CARD END
+CARD BEGIN NEU-003
+name Rally Horn
+type rite
+cost 2
+tags neutral
+keywords -
+ability 1 resolve - (each (units yours) (modify 1 0 that) (ready that))
+CARD END
+CARD BEGIN NEU-004
+name Spire Mender
+type unit
+cost 3
+body 2/3
+tags neutral,cleric
+keywords -
+ability 1 on turn-end - (spire 1 you)
+CARD END
+CARD BEGIN NEU-005
+name Mercenary Captain
+type unit
+cost 4
+body 3/3
+tags neutral,soldier
+keywords -
+ability 1 on arrive - (summon TOK-001 2 you)
+CARD END
+CARD BEGIN NEU-006
+name Trade Rite
+type rite
+cost 1
+tags neutral
+keywords -
+ability 1 resolve - (if (hand you ge 1) ((discard 1 you) (draw 2 you)) ((nothing)))
+CARD END
+CARD BEGIN NEU-007
+name Watchtower
+type relic
+cost 2
+tags neutral
+keywords -
+ability 1 aura (grant skyhook (units yours))
+CARD END
+CARD BEGIN NEU-008
+name Iron Resolve
+type rite
+cost 1
+tags neutral
+keywords swift
+ability 1 resolve (targets (unit)) (grant tenacity (t 1))
+CARD END
+CARD BEGIN NEU-009
+name Duelist's Mark
+type rite
+cost 1
+tags neutral
+keywords swift
+ability 1 resolve (targets (unit)) (grant provoke (t 1)) (modify 0 2 (t 1))
+CARD END
+CARD BEGIN NEU-010
+name Arcane Lockbox
+type relic
+cost 3
+tags neutral
+keywords -
+ability 1 act (cost (ember 3) (once)) - (draw 1 you) (ember 1 you)
+CARD END
+CARD BEGIN NEU-011
+name Oath Scribe
+type unit
+cost 3
+body 3/2
+tags neutral,cleric
+keywords -
+ability 1 on leave - (draw 1 you)
+CARD END
+CARD BEGIN NEU-012
+name Ward Stone
+type relic
+cost 2
+tags neutral
+keywords -
+ability 1 act (cost (ember 1) (exhaust)) (targets (unit)) (ward 2 (t 1))
+CARD END
+CARD BEGIN NEU-013
+name Grand Bazaar
+type relic
+cost 5
+tags neutral
+keywords -
+ability 1 aura (cheaper 1 (cost ge 4))
+CARD END
+CARD BEGIN NEU-014
+name Toll Collector
+type unit
+cost 3
+body 2/4
+tags neutral,cleric
+keywords -
+ability 1 on enemy-plays-rite - (spire -1 foe)
+ability 2 on enemy-spire-loss - (spire 1 you)
+CARD END
+CARD BEGIN NEU-015
+name Siege Engine
+type unit
+cost 5
+body 5/4
+tags neutral,construct
+keywords pierce,relentless,siegework
+CARD END
+CARD BEGIN NEU-016
+name Banner of Thorns
+type relic
+cost 3
+tags neutral
+keywords -
+ability 1 aura (grant provoke (units yours))
+CARD END
+8 RESULT pending none

@@ -1,0 +1,41 @@
+kiln-state 1
+step out/grep_0.txt
+cmd grep("i")
+in src/e.txt cbf29ce484222325
+out out/grep_0.txt cbf29ce484222325
+end
+step out/grep_1.txt
+cmd grep("i")
+in src/n.txt dc3add5ecc4ba006
+out out/grep_1.txt dc3add5ecc4ba006
+end
+step out/grep_2.txt
+cmd grep("i")
+in src/x.txt 07c7d73947cbe1de
+out out/grep_2.txt 04748a54ff70bb3c
+end
+step out/grep_3.txt
+cmd grep("i")
+in src/c.txt 25fd018afddd7cc5
+out out/grep_3.txt d8725d519a4e1feb
+end
+step out/grep_4.txt
+cmd grep("i")
+in src/u.txt 883ac19acb748cf1
+out out/grep_4.txt cbf29ce484222325
+end
+step out/grep_5.txt
+cmd grep("i")
+in src/b.txt 1c2c1cfae3c07157
+out out/grep_5.txt 19f35022753dec98
+end
+step out/grep_pin.txt
+cmd hash()
+in out/grep_0.txt cbf29ce484222325
+in out/grep_1.txt dc3add5ecc4ba006
+in out/grep_2.txt 04748a54ff70bb3c
+in out/grep_3.txt d8725d519a4e1feb
+in out/grep_4.txt cbf29ce484222325
+in out/grep_5.txt 19f35022753dec98
+out out/grep_pin.txt 53fcd143f47f119d
+end

@@ -1,0 +1,12 @@
+begin
+put "a" 1
+get "zz"
+put "" 1
+frobnicate
+begin
+checkpoint
+stat
+put "b" 2
+commit
+stat
+scan keys

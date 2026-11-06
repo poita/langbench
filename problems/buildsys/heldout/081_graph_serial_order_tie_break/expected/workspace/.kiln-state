@@ -1,0 +1,25 @@
+kiln-state 1
+step out/s0.txt
+cmd write("0\n")
+out out/s0.txt 07fc1e07b4bd2c5f
+end
+step out/s1.txt
+cmd write("1\n")
+out out/s1.txt 07f8bc07b4ba5002
+end
+step out/s2.txt
+cmd write("2\n")
+out out/s2.txt 0802fe07b4c314ad
+end
+step out/s3.txt
+cmd write("3\n")
+out out/s3.txt 07ff9407b4c02ab8
+end
+step out/s4.txt
+cmd write("4\n")
+out out/s4.txt 07ee9607b4b1baeb
+end
+step out/s5.txt
+cmd write("5\n")
+out out/s5.txt 07eb3407b4aede8e
+end

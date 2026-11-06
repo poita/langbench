@@ -1,0 +1,13 @@
+step {
+    out "out/one.txt"
+    in ["src/a.txt", "src/a.txt"]
+    cmd concat()
+}
+step {
+    out "out/doc.txt"
+    depfile "out/doc.d"
+    in "src/m.txt"
+    cmd preprocess()
+}
+phony all = ["out/one.txt", "out/doc.txt"]
+default "@all"

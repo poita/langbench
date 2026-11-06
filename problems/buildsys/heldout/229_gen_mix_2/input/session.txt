@@ -1,0 +1,23 @@
+build -j 2
+create src/m2/new0.txt
+a-b+c
+eta
+lambda
+---
+build
+edit src/m1/f0.txt
+delta
+zeta
+---
+build @m2 -j 64
+delete src/m1/sub/g3.txt
+build -j 3
+touch src/m2/f4.txt
+build out/all.txt -j 4
+touch src/m0/sub/g3.txt
+build @m1 -j 16
+edit src/m2/f6.txt
+alpha
+kappa
+---
+build -j 4

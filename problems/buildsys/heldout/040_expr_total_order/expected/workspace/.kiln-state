@@ -1,0 +1,13 @@
+kiln-state 1
+step out/l0.txt
+cmd write("0|2|4|6|8\n")
+out out/l0.txt d62dea687267b8b7
+end
+step out/l1.txt
+cmd write("true false false false true true false\n")
+out out/l1.txt 0659a69850012725
+end
+step out/l2.txt
+cmd write("true true true true true true true false true\n")
+out out/l2.txt 238ac3f990e86d58
+end

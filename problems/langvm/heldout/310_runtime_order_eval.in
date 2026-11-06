@@ -1,0 +1,11 @@
+@module main
+fn p(s: Str, v: Int) -> Int { emit(s); v }
+fn main() {
+    let x = p("a", 1) + p("b", 2);
+    print("");
+    let m = #[p("k", 1): p("v", 2)];
+    print("");
+    var xs = [1];
+    xs[p("i", 0)] = p("e", 9);
+    print(showInt(xs[0]));
+}

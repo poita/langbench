@@ -1,0 +1,11 @@
+kiln-state 1
+step out/a.txt
+cmd copy()
+in src/s.txt 08d91407b578f4f8
+out out/a.txt 08d91407b578f4f8
+end
+step out/b.txt
+cmd upper()
+in out/a.txt 08d91407b578f4f8
+out out/b.txt 0945d407b5d55a18
+end

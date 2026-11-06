@@ -1,0 +1,18 @@
+step {
+    out "out/ok.txt"
+    cmd write("ok\n")
+    cost 2
+}
+step {
+    out "out/bad.txt"
+    depfile "out/bad.d"
+    in "src/m.txt"
+    cmd preprocess()
+}
+step {
+    out "out/never.txt"
+    in "out/bad.txt"
+    cmd copy()
+}
+phony all = ["out/ok.txt", "out/bad.txt", "out/never.txt"]
+default "@all"

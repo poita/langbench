@@ -1,0 +1,11 @@
+build
+edit src/a.txt
+a
+---
+build
+edit src/a.txt
+b
+---
+build
+touch src/a.txt
+build

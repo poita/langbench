@@ -1,0 +1,15 @@
+build
+touch src/m1/f4.txt
+build
+touch main.kiln
+build out/all.txt -j 16
+touch main.kiln
+build @m1 -j 16
+edit src/m1/f4.txt
+hazel
+---
+build @m3
+edit src/m1/f0.txt
+mu
+---
+build @m4 -j 16

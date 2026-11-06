@@ -1,0 +1,6 @@
+let xs = sort(glob("src/*.txt"))
+step {
+    out "out/g.txt"
+    cmd write("{count(xs)}:{join(xs, ",")}\n")
+}
+default "out/g.txt"

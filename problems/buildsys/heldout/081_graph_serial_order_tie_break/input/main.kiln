@@ -1,0 +1,8 @@
+each i in range(6) {
+    step {
+        out "out/s{i}.txt"
+        cmd write("{i}\n")
+        cost 7 - i
+    }
+    default "out/s{i}.txt"
+}

@@ -1,0 +1,8 @@
+step 1: build out/a.txt out/a.txt @all -j 3
+  run 0 2 w0 out/a.txt write("A\n")
+  run 0 3 w1 out/b.txt write("B\n")
+  ok ran=2 hit=0 time=3
+step 2: build @all out/b.txt -j 1
+  hit 0 out/a.txt
+  hit 0 out/b.txt
+  ok ran=0 hit=2 time=0

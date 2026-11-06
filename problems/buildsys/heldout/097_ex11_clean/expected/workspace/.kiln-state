@@ -1,0 +1,5 @@
+kiln-state 1
+step out/hello.txt
+cmd write("hello\n")
+out out/hello.txt a9bc80cca21f28b3
+end

@@ -1,0 +1,12 @@
+create index a
+create index a
+drop index b
+create index a.b
+create index a.b
+indexes
+drop index a
+drop index a
+indexes
+drop index a.b
+indexes
+stat

@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    match [1, 2, 3] {
+        [a, ..rest] -> print(showInt(a) ++ ":" ++ showInt(listLen(rest))),
+        [] -> print("empty"),
+    }
+}

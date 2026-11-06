@@ -1,0 +1,1025 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 9ba00c2029ca754b
+in out/m1/bundle.txt b7c8437491b5c00c
+in out/m2/bundle.txt 22764542d3321982
+in out/m3/bundle.txt 80565f724264bc10
+in out/m4/bundle.txt 76d04254570a6215
+in out/m5/bundle.txt b193714f036b7230
+in out/m6/bundle.txt 5f0d3ac8b411823f
+in out/m7/bundle.txt a2fc16ddc7cc4310
+in out/m8/bundle.txt 65de4e3d967ccb9f
+in out/m9/bundle.txt f6f5fc52a7a92863
+in out/m10/bundle.txt dc36af53e0f1c3cd
+in out/m11/bundle.txt afb0f65875775d6a
+out out/all.txt 0a2cdaedc76c8219
+end
+step out/m0/bundle.txt
+cmd hash()
+in out/m0/f0.txt db35d7bdb53de06d
+in out/m0/f1.txt b09e9ead1f3331e6
+in out/m0/f10.txt cbf29ce484222325
+in out/m0/f2.txt 05ac43f0e0e3d3d5
+in out/m0/f4.txt cf62554bfb615ed9
+in out/m0/f5.txt 4b169d7cf62c04dd
+in out/m0/f6.txt 2c9164813f1173cc
+in out/m0/f8.txt 77b5d61b3585b4ec
+in out/m0/f9.txt 28394df76c910a85
+in out/m0/g11.txt 0fe4cd83883fa1e3
+in out/m0/g3.txt 69abfba55a8aed6d
+in out/m0/g7.txt bac10994b15f6ef3
+out out/m0/bundle.txt 9ba00c2029ca754b
+end
+step out/m0/f0.txt
+cmd replace("a", "A")
+in src/m0/f0.txt 0480415e8f315acd
+out out/m0/f0.txt db35d7bdb53de06d
+end
+step out/m0/f1.txt
+cmd reverse_lines()
+in src/m0/f1.txt b09e9ead1f3331e6
+out out/m0/f1.txt b09e9ead1f3331e6
+end
+step out/m0/f10.txt
+cmd copy()
+in src/m0/f10.txt cbf29ce484222325
+out out/m0/f10.txt cbf29ce484222325
+end
+step out/m0/f2.txt
+cmd replace("a", "A")
+in src/m0/f2.txt 19e6fed26682bed5
+out out/m0/f2.txt 05ac43f0e0e3d3d5
+end
+step out/m0/f4.txt
+cmd reverse_lines()
+in src/m0/f4.txt cb7941a2a0aac619
+out out/m0/f4.txt cf62554bfb615ed9
+end
+step out/m0/f5.txt
+cmd copy()
+in src/m0/f5.txt 4b169d7cf62c04dd
+out out/m0/f5.txt 4b169d7cf62c04dd
+end
+step out/m0/f6.txt
+cmd replace("a", "A")
+in src/m0/f6.txt 5682daa1cb039c6c
+out out/m0/f6.txt 2c9164813f1173cc
+end
+step out/m0/f8.txt
+cmd reverse_lines()
+in src/m0/f8.txt 5ee2b35145d8b472
+out out/m0/f8.txt 77b5d61b3585b4ec
+end
+step out/m0/f9.txt
+cmd copy()
+in src/m0/f9.txt 28394df76c910a85
+out out/m0/f9.txt 28394df76c910a85
+end
+step out/m0/g11.txt
+cmd replace("a", "A")
+in src/m0/sub/g11.txt d41d159691be1623
+out out/m0/g11.txt 0fe4cd83883fa1e3
+end
+step out/m0/g3.txt
+cmd reverse_lines()
+in src/m0/sub/g3.txt 73692c3858fcc1bb
+out out/m0/g3.txt 69abfba55a8aed6d
+end
+step out/m0/g7.txt
+cmd copy()
+in src/m0/sub/g7.txt bac10994b15f6ef3
+out out/m0/g7.txt bac10994b15f6ef3
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 9ba00c2029ca754b
+out out/m0/wrapped.txt 9e112f7bb5417798
+end
+step out/m1/bundle.txt
+cmd concat()
+in out/m1/f0.txt 2831f0710b7f605e
+in out/m1/f1.txt 9bf22480257c2fde
+in out/m1/f10.txt a9346a55c2d6aa9c
+in out/m1/f2.txt 09ae3c7d063fac51
+in out/m1/f4.txt cbf29ce484222325
+in out/m1/f5.txt 52b5c558f0d3ee5a
+in out/m1/f6.txt cbade8a4fd86bc2e
+in out/m1/f8.txt 176d9a829aa8069d
+in out/m1/f9.txt cbf29ce484222325
+in out/m1/g11.txt a9e17216c27f33b0
+in out/m1/g3.txt aa779e78efdf30e4
+in out/m1/g7.txt 9758d40e8e92be59
+out out/m1/bundle.txt b7c8437491b5c00c
+end
+step out/m1/doc.txt
+cmd preprocess()
+in src/m1/doc.src 5cafc8decbb7d385
+dep src/m1/f0.txt a6256ac81981eda4
+dep src/m1/f1.txt 41f92630fc6352fe
+dep src/m1/f2.txt 3af476c011175e5d
+out out/m1/doc.txt 9d2164d8e567fa8e
+out out/m1/doc.d 4fe6ebd5f8376a24
+end
+step out/m1/f0.txt
+cmd reverse_lines()
+in src/m1/f0.txt a6256ac81981eda4
+out out/m1/f0.txt 2831f0710b7f605e
+end
+step out/m1/f1.txt
+cmd sort_lines()
+in src/m1/f1.txt 41f92630fc6352fe
+out out/m1/f1.txt 9bf22480257c2fde
+end
+step out/m1/f10.txt
+cmd upper()
+in src/m1/f10.txt 05bbc2097fb3053c
+out out/m1/f10.txt a9346a55c2d6aa9c
+end
+step out/m1/f2.txt
+cmd reverse_lines()
+in src/m1/f2.txt 3af476c011175e5d
+out out/m1/f2.txt 09ae3c7d063fac51
+end
+step out/m1/f4.txt
+cmd sort_lines()
+in src/m1/f4.txt cbf29ce484222325
+out out/m1/f4.txt cbf29ce484222325
+end
+step out/m1/f5.txt
+cmd upper()
+in src/m1/f5.txt 0e47ab70c6ec3d1a
+out out/m1/f5.txt 52b5c558f0d3ee5a
+end
+step out/m1/f6.txt
+cmd reverse_lines()
+in src/m1/f6.txt cbade8a4fd86bc2e
+out out/m1/f6.txt cbade8a4fd86bc2e
+end
+step out/m1/f8.txt
+cmd sort_lines()
+in src/m1/f8.txt e3d364ab77968905
+out out/m1/f8.txt 176d9a829aa8069d
+end
+step out/m1/f9.txt
+cmd upper()
+in src/m1/f9.txt cbf29ce484222325
+out out/m1/f9.txt cbf29ce484222325
+end
+step out/m1/g11.txt
+cmd reverse_lines()
+in src/m1/sub/g11.txt ff188ddf011bd0c8
+out out/m1/g11.txt a9e17216c27f33b0
+end
+step out/m1/g3.txt
+cmd sort_lines()
+in src/m1/sub/g3.txt aa779e78efdf30e4
+out out/m1/g3.txt aa779e78efdf30e4
+end
+step out/m1/g7.txt
+cmd upper()
+in src/m1/sub/g7.txt c73393eaa5146159
+out out/m1/g7.txt 9758d40e8e92be59
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt b7c8437491b5c00c
+out out/m1/wrapped.txt 961da152da784a4a
+end
+step out/m10/bundle.txt
+cmd concat()
+in out/m10/f0.txt 7ac5345c2b67d84b
+in out/m10/f1.txt cf269619d87bdb6b
+in out/m10/f10.txt b4fb4fb4ac2097d3
+in out/m10/f2.txt 25cc739caddc900a
+in out/m10/f4.txt 7b8d6d7119320462
+in out/m10/f5.txt cbf29ce484222325
+in out/m10/f6.txt 138b977cb9dc874b
+in out/m10/f8.txt cbf29ce484222325
+in out/m10/f9.txt e1b354789030f65d
+in out/m10/g11.txt cbf29ce484222325
+in out/m10/g3.txt 791cba68812829d9
+in out/m10/g7.txt cbf29ce484222325
+out out/m10/bundle.txt dc36af53e0f1c3cd
+end
+step out/m10/doc.txt
+cmd preprocess()
+in src/m10/doc.src 5fea0dd3098eeb0d
+dep src/m10/f0.txt 62bd0413d275cfbf
+dep src/m10/f1.txt 19ef973c82c0ec1a
+dep src/m10/f2.txt 25cc739caddc900a
+out out/m10/doc.txt 6c7e9cdf6edf5640
+out out/m10/doc.d 947f4ab1cdf2a6ca
+end
+step out/m10/f0.txt
+cmd dedup()
+in src/m10/f0.txt 62bd0413d275cfbf
+out out/m10/f0.txt 7ac5345c2b67d84b
+end
+step out/m10/f1.txt
+cmd grep("e")
+in src/m10/f1.txt 19ef973c82c0ec1a
+out out/m10/f1.txt cf269619d87bdb6b
+end
+step out/m10/f10.txt
+cmd reverse_lines()
+in src/m10/f10.txt 477e3d640bb24a6d
+out out/m10/f10.txt b4fb4fb4ac2097d3
+end
+step out/m10/f2.txt
+cmd dedup()
+in src/m10/f2.txt 25cc739caddc900a
+out out/m10/f2.txt 25cc739caddc900a
+end
+step out/m10/f4.txt
+cmd grep("e")
+in src/m10/f4.txt 31dfc352da11a5ad
+out out/m10/f4.txt 7b8d6d7119320462
+end
+step out/m10/f5.txt
+cmd reverse_lines()
+in src/m10/f5.txt cbf29ce484222325
+out out/m10/f5.txt cbf29ce484222325
+end
+step out/m10/f6.txt
+cmd dedup()
+in src/m10/f6.txt 138b977cb9dc874b
+out out/m10/f6.txt 138b977cb9dc874b
+end
+step out/m10/f8.txt
+cmd grep("e")
+in src/m10/f8.txt b09e9ead1f3331e6
+out out/m10/f8.txt cbf29ce484222325
+end
+step out/m10/f9.txt
+cmd reverse_lines()
+in src/m10/f9.txt 035b0c208b169c75
+out out/m10/f9.txt e1b354789030f65d
+end
+step out/m10/g11.txt
+cmd dedup()
+in src/m10/sub/g11.txt cbf29ce484222325
+out out/m10/g11.txt cbf29ce484222325
+end
+step out/m10/g3.txt
+cmd grep("e")
+in src/m10/sub/g3.txt 791cba68812829d9
+out out/m10/g3.txt 791cba68812829d9
+end
+step out/m10/g7.txt
+cmd reverse_lines()
+in src/m10/sub/g7.txt cbf29ce484222325
+out out/m10/g7.txt cbf29ce484222325
+end
+step out/m10/wrapped.txt
+cmd wrap("<m10|", "|>\n")
+in out/m10/bundle.txt dc36af53e0f1c3cd
+out out/m10/wrapped.txt 4f704f6d746108d7
+end
+step out/m11/bundle.txt
+cmd count_lines()
+in out/m11/f0.txt d2ed5c2b34beeafd
+in out/m11/f1.txt 1e53ed12529d7fed
+in out/m11/f10.txt 361a34ca33f2aeee
+in out/m11/f2.txt 24057ff5114d8c72
+in out/m11/f4.txt bdc40927b4760cfe
+in out/m11/f5.txt ebde357aee577cd2
+in out/m11/f6.txt 68f595241d2719ff
+in out/m11/f8.txt 5d3b2b4d9ea1d529
+in out/m11/f9.txt 6e1c660377dca6f3
+in out/m11/g11.txt 6291512def8c1e44
+in out/m11/g3.txt e4b62db6b087c477
+in out/m11/g7.txt 242c5eddf0b30beb
+out out/m11/bundle.txt afb0f65875775d6a
+end
+step out/m11/f0.txt
+cmd wrap("[", "]\n")
+in src/m11/f0.txt ad6fef899bf8d67f
+out out/m11/f0.txt d2ed5c2b34beeafd
+end
+step out/m11/f1.txt
+cmd indent(2)
+in src/m11/f1.txt a7350265e4176d7d
+out out/m11/f1.txt 1e53ed12529d7fed
+end
+step out/m11/f10.txt
+cmd wrap("[", "]\n")
+in src/m11/f10.txt 1721e4efd22987b0
+out out/m11/f10.txt 361a34ca33f2aeee
+end
+step out/m11/f2.txt
+cmd wrap("[", "]\n")
+in src/m11/f2.txt 89c78c954b7d44d0
+out out/m11/f2.txt 24057ff5114d8c72
+end
+step out/m11/f4.txt
+cmd indent(2)
+in src/m11/f4.txt 2fbfdde08abdeab6
+out out/m11/f4.txt bdc40927b4760cfe
+end
+step out/m11/f5.txt
+cmd wrap("[", "]\n")
+in src/m11/f5.txt 3a588cb7ce81fadc
+out out/m11/f5.txt ebde357aee577cd2
+end
+step out/m11/f6.txt
+cmd wrap("[", "]\n")
+in src/m11/f6.txt 9657d474998a2235
+out out/m11/f6.txt 68f595241d2719ff
+end
+step out/m11/f8.txt
+cmd indent(2)
+in src/m11/f8.txt c94f46a2a18aed21
+out out/m11/f8.txt 5d3b2b4d9ea1d529
+end
+step out/m11/f9.txt
+cmd wrap("[", "]\n")
+in src/m11/f9.txt 400219daba1f9983
+out out/m11/f9.txt 6e1c660377dca6f3
+end
+step out/m11/g11.txt
+cmd wrap("[", "]\n")
+in src/m11/sub/g11.txt dbfff8773e46de9c
+out out/m11/g11.txt 6291512def8c1e44
+end
+step out/m11/g3.txt
+cmd indent(2)
+in src/m11/sub/g3.txt f97435d718ad4b17
+out out/m11/g3.txt e4b62db6b087c477
+end
+step out/m11/g7.txt
+cmd wrap("[", "]\n")
+in src/m11/sub/g7.txt c43a83607a3f8f77
+out out/m11/g7.txt 242c5eddf0b30beb
+end
+step out/m11/wrapped.txt
+cmd wrap("<m11|", "|>\n")
+in out/m11/bundle.txt afb0f65875775d6a
+out out/m11/wrapped.txt eb5a4e233ee7b9bf
+end
+step out/m2/bundle.txt
+cmd count_lines()
+in out/m2/f0.txt 75b626d4c9f4bd66
+in out/m2/f1.txt 7b8d6d7119320462
+in out/m2/f10.txt 36bad84784cfa84d
+in out/m2/f2.txt ca10cdae0df0b62a
+in out/m2/f4.txt 3715d54cf5e112cf
+in out/m2/f5.txt 1c4f8b5b9102528a
+in out/m2/f6.txt dcd1cd1a2138b85d
+in out/m2/f8.txt cbf29ce484222325
+in out/m2/f9.txt 68a7c9d76a483d64
+in out/m2/g11.txt 61441422ee782f7e
+in out/m2/g3.txt da1924ac6f4ec726
+in out/m2/g7.txt 5e52036ff19e30a3
+out out/m2/bundle.txt 22764542d3321982
+end
+step out/m2/f0.txt
+cmd wrap("[", "]\n")
+in src/m2/f0.txt c6e30402cba0a34c
+out out/m2/f0.txt 75b626d4c9f4bd66
+end
+step out/m2/f1.txt
+cmd grep("e")
+in src/m2/f1.txt 5beb82627cdbf62c
+out out/m2/f1.txt 7b8d6d7119320462
+end
+step out/m2/f10.txt
+cmd number()
+in src/m2/f10.txt 7b3e102bd3f1c7d4
+out out/m2/f10.txt 36bad84784cfa84d
+end
+step out/m2/f2.txt
+cmd wrap("[", "]\n")
+in src/m2/f2.txt 39e29e2052e392e2
+out out/m2/f2.txt ca10cdae0df0b62a
+end
+step out/m2/f4.txt
+cmd grep("e")
+in src/m2/f4.txt 505d0076dcd1435d
+out out/m2/f4.txt 3715d54cf5e112cf
+end
+step out/m2/f5.txt
+cmd number()
+in src/m2/f5.txt e5fa101e2635b49f
+out out/m2/f5.txt 1c4f8b5b9102528a
+end
+step out/m2/f6.txt
+cmd wrap("[", "]\n")
+in src/m2/f6.txt cbf29ce484222325
+out out/m2/f6.txt dcd1cd1a2138b85d
+end
+step out/m2/f8.txt
+cmd grep("e")
+in src/m2/f8.txt cbf29ce484222325
+out out/m2/f8.txt cbf29ce484222325
+end
+step out/m2/f9.txt
+cmd number()
+in src/m2/f9.txt fbba26b7fb0481fe
+out out/m2/f9.txt 68a7c9d76a483d64
+end
+step out/m2/g11.txt
+cmd wrap("[", "]\n")
+in src/m2/sub/g11.txt fbd44e1fe375f072
+out out/m2/g11.txt 61441422ee782f7e
+end
+step out/m2/g3.txt
+cmd grep("e")
+in src/m2/sub/g3.txt 21dcc2d1a664a419
+out out/m2/g3.txt da1924ac6f4ec726
+end
+step out/m2/g7.txt
+cmd number()
+in src/m2/sub/g7.txt c3282c94f79d6f33
+out out/m2/g7.txt 5e52036ff19e30a3
+end
+step out/m2/wrapped.txt
+cmd wrap("<m2|", "|>\n")
+in out/m2/bundle.txt 22764542d3321982
+out out/m2/wrapped.txt 7ffc761b0cc0b09f
+end
+step out/m3/bundle.txt
+cmd hash()
+in out/m3/f0.txt ba0e835b919be038
+in out/m3/f1.txt 898d6a03545fc934
+in out/m3/f10.txt 98706baea7f86d1d
+in out/m3/f2.txt cbf29ce484222325
+in out/m3/f4.txt 9081d2c5a1c81c7f
+in out/m3/f5.txt f5cef58e3eb51e8c
+in out/m3/f6.txt 835e6bc341afa654
+in out/m3/f8.txt 175de5c52b3ed96f
+in out/m3/f9.txt dcd1cd1a2138b85d
+in out/m3/g11.txt 35b0619ee21c71ea
+in out/m3/g3.txt 361462dd2e6f57aa
+in out/m3/g7.txt 7a161349eb8fb64f
+out out/m3/bundle.txt 80565f724264bc10
+end
+step out/m3/f0.txt
+cmd number()
+in src/m3/f0.txt fcedd004a434236f
+out out/m3/f0.txt ba0e835b919be038
+end
+step out/m3/f1.txt
+cmd dedup()
+in src/m3/f1.txt 898d6a03545fc934
+out out/m3/f1.txt 898d6a03545fc934
+end
+step out/m3/f10.txt
+cmd wrap("[", "]\n")
+in src/m3/f10.txt 35bded5d5d6e4c5f
+out out/m3/f10.txt 98706baea7f86d1d
+end
+step out/m3/f2.txt
+cmd number()
+in src/m3/f2.txt cbf29ce484222325
+out out/m3/f2.txt cbf29ce484222325
+end
+step out/m3/f4.txt
+cmd dedup()
+in src/m3/f4.txt 9081d2c5a1c81c7f
+out out/m3/f4.txt 9081d2c5a1c81c7f
+end
+step out/m3/f5.txt
+cmd wrap("[", "]\n")
+in src/m3/f5.txt 45c1a0a4201e41c0
+out out/m3/f5.txt f5cef58e3eb51e8c
+end
+step out/m3/f6.txt
+cmd number()
+in src/m3/f6.txt d9c39a3a6d0a81f1
+out out/m3/f6.txt 835e6bc341afa654
+end
+step out/m3/f8.txt
+cmd dedup()
+in src/m3/f8.txt 013ed2b977aa47d7
+out out/m3/f8.txt 175de5c52b3ed96f
+end
+step out/m3/f9.txt
+cmd wrap("[", "]\n")
+in src/m3/f9.txt cbf29ce484222325
+out out/m3/f9.txt dcd1cd1a2138b85d
+end
+step out/m3/g11.txt
+cmd number()
+in src/m3/sub/g11.txt 4aa7a96c540d1091
+out out/m3/g11.txt 35b0619ee21c71ea
+end
+step out/m3/g3.txt
+cmd dedup()
+in src/m3/sub/g3.txt 361462dd2e6f57aa
+out out/m3/g3.txt 361462dd2e6f57aa
+end
+step out/m3/g7.txt
+cmd wrap("[", "]\n")
+in src/m3/sub/g7.txt bbd23ea491ed9813
+out out/m3/g7.txt 7a161349eb8fb64f
+end
+step out/m3/wrapped.txt
+cmd wrap("<m3|", "|>\n")
+in out/m3/bundle.txt 80565f724264bc10
+out out/m3/wrapped.txt 7560e3ea46335f24
+end
+step out/m4/bundle.txt
+cmd hash()
+in out/m4/f0.txt 518095b83defaf7f
+in out/m4/f1.txt 794af246134e840d
+in out/m4/f10.txt cbf29ce484222325
+in out/m4/f2.txt 6fc7ff7ba913b11b
+in out/m4/f4.txt b91c765694b94652
+in out/m4/f5.txt b21df27bc993f261
+in out/m4/f6.txt a084b73b4c688f7a
+in out/m4/f8.txt a26933fc931678f6
+in out/m4/f9.txt b67bedda9a40fa04
+in out/m4/g11.txt 36cabccd320435a3
+in out/m4/g3.txt bbd23ea491ed9813
+in out/m4/g7.txt a40567148044e2bf
+out out/m4/bundle.txt 76d04254570a6215
+end
+step out/m4/doc.txt
+cmd preprocess()
+in src/m4/doc.src 40c70ed6e6d529fb
+dep src/m4/f0.txt 14cf9e8238652ab3
+dep src/m4/f1.txt 4c458d2e48b5816b
+dep src/m4/f2.txt f202f91ed5279a2b
+out out/m4/doc.txt 7773faa528da7071
+out out/m4/doc.d 9f3ba99ec6145191
+end
+step out/m4/f0.txt
+cmd wrap("[", "]\n")
+in src/m4/f0.txt 14cf9e8238652ab3
+out out/m4/f0.txt 518095b83defaf7f
+end
+step out/m4/f1.txt
+cmd sort_lines()
+in src/m4/f1.txt 4c458d2e48b5816b
+out out/m4/f1.txt 794af246134e840d
+end
+step out/m4/f10.txt
+cmd number()
+in src/m4/f10.txt cbf29ce484222325
+out out/m4/f10.txt cbf29ce484222325
+end
+step out/m4/f2.txt
+cmd wrap("[", "]\n")
+in src/m4/f2.txt f202f91ed5279a2b
+out out/m4/f2.txt 6fc7ff7ba913b11b
+end
+step out/m4/f4.txt
+cmd sort_lines()
+in src/m4/f4.txt b91c765694b94652
+out out/m4/f4.txt b91c765694b94652
+end
+step out/m4/f5.txt
+cmd number()
+in src/m4/f5.txt 4ba414df999364b2
+out out/m4/f5.txt b21df27bc993f261
+end
+step out/m4/f6.txt
+cmd wrap("[", "]\n")
+in src/m4/f6.txt 104286a7c670d6a0
+out out/m4/f6.txt a084b73b4c688f7a
+end
+step out/m4/f8.txt
+cmd sort_lines()
+in src/m4/f8.txt e6cc618fd92329a8
+out out/m4/f8.txt a26933fc931678f6
+end
+step out/m4/f9.txt
+cmd number()
+in src/m4/f9.txt 04dfa50da290d5b6
+out out/m4/f9.txt b67bedda9a40fa04
+end
+step out/m4/g11.txt
+cmd wrap("[", "]\n")
+in src/m4/sub/g11.txt b3b9d21053d2945b
+out out/m4/g11.txt 36cabccd320435a3
+end
+step out/m4/g3.txt
+cmd sort_lines()
+in src/m4/sub/g3.txt bbd23ea491ed9813
+out out/m4/g3.txt bbd23ea491ed9813
+end
+step out/m4/g7.txt
+cmd number()
+in src/m4/sub/g7.txt 2ea8ed1e1e50635a
+out out/m4/g7.txt a40567148044e2bf
+end
+step out/m4/wrapped.txt
+cmd wrap("<m4|", "|>\n")
+in out/m4/bundle.txt 76d04254570a6215
+out out/m4/wrapped.txt b76e9669c88fa58a
+end
+step out/m5/bundle.txt
+cmd count_lines()
+in out/m5/f0.txt 7009cacf05ea0ec8
+in out/m5/f1.txt 548955ae68be7b70
+in out/m5/f10.txt c8bc8941f6a6151f
+in out/m5/f2.txt 75850b94dfc40bcb
+in out/m5/f4.txt 77b7563e88ac97e8
+in out/m5/f5.txt d9dded9a715e394a
+in out/m5/f6.txt 5a43361970e24243
+in out/m5/f8.txt ea7e05c0e1e6c6df
+in out/m5/f9.txt e19adce0dc37e661
+in out/m5/g11.txt 723d34b15a7a037c
+in out/m5/g3.txt 33c576f8384d17d4
+in out/m5/g7.txt 28676e2952b1656e
+out out/m5/bundle.txt b193714f036b7230
+end
+step out/m5/f0.txt
+cmd number()
+in src/m5/f0.txt e917ecac7c315507
+out out/m5/f0.txt 7009cacf05ea0ec8
+end
+step out/m5/f1.txt
+cmd upper()
+in src/m5/f1.txt fae3a5bd8696d0f0
+out out/m5/f1.txt 548955ae68be7b70
+end
+step out/m5/f10.txt
+cmd upper()
+in src/m5/f10.txt 0659ea4e9347f7ff
+out out/m5/f10.txt c8bc8941f6a6151f
+end
+step out/m5/f2.txt
+cmd number()
+in src/m5/f2.txt 005d6f0ccae5011c
+out out/m5/f2.txt 75850b94dfc40bcb
+end
+step out/m5/f4.txt
+cmd upper()
+in src/m5/f4.txt 5c78bdfd655a5868
+out out/m5/f4.txt 77b7563e88ac97e8
+end
+step out/m5/f5.txt
+cmd upper()
+in src/m5/f5.txt 7d59304d022c38ca
+out out/m5/f5.txt d9dded9a715e394a
+end
+step out/m5/f6.txt
+cmd number()
+in src/m5/f6.txt 9c5aee2b2b7b92b2
+out out/m5/f6.txt 5a43361970e24243
+end
+step out/m5/f8.txt
+cmd upper()
+in src/m5/f8.txt dd7c1f418b8f719f
+out out/m5/f8.txt ea7e05c0e1e6c6df
+end
+step out/m5/f9.txt
+cmd upper()
+in src/m5/f9.txt da7be22017913da1
+out out/m5/f9.txt e19adce0dc37e661
+end
+step out/m5/g11.txt
+cmd number()
+in src/m5/sub/g11.txt b37f15551a073de3
+out out/m5/g11.txt 723d34b15a7a037c
+end
+step out/m5/g3.txt
+cmd upper()
+in src/m5/sub/g3.txt 76ab62e2550f63b4
+out out/m5/g3.txt 33c576f8384d17d4
+end
+step out/m5/g7.txt
+cmd upper()
+in src/m5/sub/g7.txt 337c3781f26e754e
+out out/m5/g7.txt 28676e2952b1656e
+end
+step out/m5/wrapped.txt
+cmd wrap("<m5|", "|>\n")
+in out/m5/bundle.txt b193714f036b7230
+out out/m5/wrapped.txt 5b1268829d67a8ce
+end
+step out/m6/bundle.txt
+cmd count_lines()
+in out/m6/f0.txt dcd1cd1a2138b85d
+in out/m6/f1.txt e935110333f2a1fe
+in out/m6/f10.txt 9b35c8b1a721cd39
+in out/m6/f2.txt ce45c603c062f763
+in out/m6/f4.txt 8e40398b2320df14
+in out/m6/f5.txt cbf29ce484222325
+in out/m6/f6.txt a311d5d566950c5b
+in out/m6/f8.txt a0a03b880bde85cf
+in out/m6/f9.txt 3ff1fb1b4a92d995
+in out/m6/g11.txt dcd1cd1a2138b85d
+in out/m6/g3.txt 508ca120be3a3eed
+in out/m6/g7.txt 3d011c39ca189ef7
+out out/m6/bundle.txt 5f0d3ac8b411823f
+end
+step out/m6/f0.txt
+cmd wrap("[", "]\n")
+in src/m6/f0.txt cbf29ce484222325
+out out/m6/f0.txt dcd1cd1a2138b85d
+end
+step out/m6/f1.txt
+cmd replace("a", "A")
+in src/m6/f1.txt d75e5bc0d8cd6f3e
+out out/m6/f1.txt e935110333f2a1fe
+end
+step out/m6/f10.txt
+cmd grep("e")
+in src/m6/f10.txt 8d08b29231e3ace9
+out out/m6/f10.txt 9b35c8b1a721cd39
+end
+step out/m6/f2.txt
+cmd wrap("[", "]\n")
+in src/m6/f2.txt 1c9f824e18c7a4d5
+out out/m6/f2.txt ce45c603c062f763
+end
+step out/m6/f4.txt
+cmd replace("a", "A")
+in src/m6/f4.txt 8e40398b2320df14
+out out/m6/f4.txt 8e40398b2320df14
+end
+step out/m6/f5.txt
+cmd grep("e")
+in src/m6/f5.txt cbf29ce484222325
+out out/m6/f5.txt cbf29ce484222325
+end
+step out/m6/f6.txt
+cmd wrap("[", "]\n")
+in src/m6/f6.txt 12d4ea1e68df0f57
+out out/m6/f6.txt a311d5d566950c5b
+end
+step out/m6/f8.txt
+cmd replace("a", "A")
+in src/m6/f8.txt a10cfb880c3aeaef
+out out/m6/f8.txt a0a03b880bde85cf
+end
+step out/m6/f9.txt
+cmd grep("e")
+in src/m6/f9.txt a7350265e4176d7d
+out out/m6/f9.txt 3ff1fb1b4a92d995
+end
+step out/m6/g11.txt
+cmd wrap("[", "]\n")
+in src/m6/sub/g11.txt cbf29ce484222325
+out out/m6/g11.txt dcd1cd1a2138b85d
+end
+step out/m6/g3.txt
+cmd replace("a", "A")
+in src/m6/sub/g3.txt 7eb8305d0fb3f7cd
+out out/m6/g3.txt 508ca120be3a3eed
+end
+step out/m6/g7.txt
+cmd grep("e")
+in src/m6/sub/g7.txt 4fa5f921b786d018
+out out/m6/g7.txt 3d011c39ca189ef7
+end
+step out/m6/wrapped.txt
+cmd wrap("<m6|", "|>\n")
+in out/m6/bundle.txt 5f0d3ac8b411823f
+out out/m6/wrapped.txt 86968b1c3ec11ddc
+end
+step out/m7/bundle.txt
+cmd hash()
+in out/m7/f0.txt 7f5be031232e302f
+in out/m7/f1.txt 77af5219565fce28
+in out/m7/f10.txt ad2e4d2287455cf1
+in out/m7/f2.txt ad2e4d2287455cf1
+in out/m7/f4.txt 6d3d5d72ea20d252
+in out/m7/f5.txt 103c651e50831b91
+in out/m7/f6.txt cbf29ce484222325
+in out/m7/f8.txt 9b95370a549209f8
+in out/m7/f9.txt 333b98a2f22da13b
+in out/m7/g11.txt c5a9ff30fe59f4ef
+in out/m7/g3.txt 0f31bcc69404ddb0
+in out/m7/g7.txt f0882e0b1d91713a
+out out/m7/bundle.txt a2fc16ddc7cc4310
+end
+step out/m7/doc.txt
+cmd preprocess()
+in src/m7/doc.src 775f1272f863b011
+dep src/m7/f0.txt 19892ea83dc702de
+dep src/m7/f1.txt 77af5219565fce28
+dep src/m7/f2.txt ad2e4d2287455cf1
+out out/m7/doc.txt 7d21fe038d94fd32
+out out/m7/doc.d bac60e500147c89e
+end
+step out/m7/f0.txt
+cmd grep("e")
+in src/m7/f0.txt 19892ea83dc702de
+out out/m7/f0.txt 7f5be031232e302f
+end
+step out/m7/f1.txt
+cmd dedup()
+in src/m7/f1.txt 77af5219565fce28
+out out/m7/f1.txt 77af5219565fce28
+end
+step out/m7/f10.txt
+cmd lower()
+in src/m7/f10.txt ad2e4d2287455cf1
+out out/m7/f10.txt ad2e4d2287455cf1
+end
+step out/m7/f2.txt
+cmd grep("e")
+in src/m7/f2.txt ad2e4d2287455cf1
+out out/m7/f2.txt ad2e4d2287455cf1
+end
+step out/m7/f4.txt
+cmd dedup()
+in src/m7/f4.txt 6d3d5d72ea20d252
+out out/m7/f4.txt 6d3d5d72ea20d252
+end
+step out/m7/f5.txt
+cmd lower()
+in src/m7/f5.txt 103c651e50831b91
+out out/m7/f5.txt 103c651e50831b91
+end
+step out/m7/f6.txt
+cmd grep("e")
+in src/m7/f6.txt 81992f835ae71b1b
+out out/m7/f6.txt cbf29ce484222325
+end
+step out/m7/f8.txt
+cmd dedup()
+in src/m7/f8.txt 9b95370a549209f8
+out out/m7/f8.txt 9b95370a549209f8
+end
+step out/m7/f9.txt
+cmd lower()
+in src/m7/f9.txt 333b98a2f22da13b
+out out/m7/f9.txt 333b98a2f22da13b
+end
+step out/m7/g11.txt
+cmd grep("e")
+in src/m7/sub/g11.txt 66facfe552680233
+out out/m7/g11.txt c5a9ff30fe59f4ef
+end
+step out/m7/g3.txt
+cmd dedup()
+in src/m7/sub/g3.txt 0f31bcc69404ddb0
+out out/m7/g3.txt 0f31bcc69404ddb0
+end
+step out/m7/g7.txt
+cmd lower()
+in src/m7/sub/g7.txt f0882e0b1d91713a
+out out/m7/g7.txt f0882e0b1d91713a
+end
+step out/m7/wrapped.txt
+cmd wrap("<m7|", "|>\n")
+in out/m7/bundle.txt a2fc16ddc7cc4310
+out out/m7/wrapped.txt c7635ae245c191d8
+end
+step out/m8/bundle.txt
+cmd hash()
+in out/m8/f0.txt 87fffd2eb7c1b88c
+in out/m8/f1.txt cbf29ce484222325
+in out/m8/f10.txt 6aa4214409cfe4aa
+in out/m8/f2.txt 7b8d6d7119320462
+in out/m8/f4.txt 8428cb8134087b7d
+in out/m8/f5.txt 098ff3afcf1c0f1c
+in out/m8/f6.txt cbade8a4fd86bc2e
+in out/m8/f8.txt d2ccfd07849992c8
+in out/m8/f9.txt d290e276c4a8f145
+in out/m8/g11.txt 2b75bef95f8ca817
+in out/m8/g3.txt cbf29ce484222325
+in out/m8/g7.txt 1f23e676bb2d12f8
+out out/m8/bundle.txt 65de4e3d967ccb9f
+end
+step out/m8/f0.txt
+cmd grep("e")
+in src/m8/f0.txt 5ccbc58957f536a8
+out out/m8/f0.txt 87fffd2eb7c1b88c
+end
+step out/m8/f1.txt
+cmd lower()
+in src/m8/f1.txt cbf29ce484222325
+out out/m8/f1.txt cbf29ce484222325
+end
+step out/m8/f10.txt
+cmd replace("a", "A")
+in src/m8/f10.txt 2cbe805443a1756a
+out out/m8/f10.txt 6aa4214409cfe4aa
+end
+step out/m8/f2.txt
+cmd grep("e")
+in src/m8/f2.txt 3f4226b8b8d95f8b
+out out/m8/f2.txt 7b8d6d7119320462
+end
+step out/m8/f4.txt
+cmd lower()
+in src/m8/f4.txt 8428cb8134087b7d
+out out/m8/f4.txt 8428cb8134087b7d
+end
+step out/m8/f5.txt
+cmd replace("a", "A")
+in src/m8/f5.txt e547883453d12afc
+out out/m8/f5.txt 098ff3afcf1c0f1c
+end
+step out/m8/f6.txt
+cmd grep("e")
+in src/m8/f6.txt a9ad89db01ffb662
+out out/m8/f6.txt cbade8a4fd86bc2e
+end
+step out/m8/f8.txt
+cmd lower()
+in src/m8/f8.txt d2ccfd07849992c8
+out out/m8/f8.txt d2ccfd07849992c8
+end
+step out/m8/f9.txt
+cmd replace("a", "A")
+in src/m8/f9.txt 346d195049185cc5
+out out/m8/f9.txt d290e276c4a8f145
+end
+step out/m8/g11.txt
+cmd grep("e")
+in src/m8/sub/g11.txt c1ead5babea6864c
+out out/m8/g11.txt 2b75bef95f8ca817
+end
+step out/m8/g3.txt
+cmd lower()
+in src/m8/sub/g3.txt cbf29ce484222325
+out out/m8/g3.txt cbf29ce484222325
+end
+step out/m8/g7.txt
+cmd replace("a", "A")
+in src/m8/sub/g7.txt e8409185674fac98
+out out/m8/g7.txt 1f23e676bb2d12f8
+end
+step out/m8/wrapped.txt
+cmd wrap("<m8|", "|>\n")
+in out/m8/bundle.txt 65de4e3d967ccb9f
+out out/m8/wrapped.txt 2c8e015bbb80bdf8
+end
+step out/m9/bundle.txt
+cmd hash()
+in out/m9/f0.txt e7b40b3a18aada14
+in out/m9/f1.txt 7eef203122d1cb0f
+in out/m9/f10.txt cbf29ce484222325
+in out/m9/f2.txt aa779e78efdf30e4
+in out/m9/f4.txt e9204e39f4dc881c
+in out/m9/f5.txt c94f46a2a18aed21
+in out/m9/f6.txt 0cbd29c036d932f2
+in out/m9/f8.txt 19e291a9d4498564
+in out/m9/f9.txt bfbdfa197ff839a0
+in out/m9/g11.txt 23bcf9a0d49c6208
+in out/m9/g3.txt bb5338de39fd019e
+in out/m9/g7.txt cbf29ce484222325
+out out/m9/bundle.txt f6f5fc52a7a92863
+end
+step out/m9/f0.txt
+cmd lower()
+in src/m9/f0.txt e7b40b3a18aada14
+out out/m9/f0.txt e7b40b3a18aada14
+end
+step out/m9/f1.txt
+cmd replace("a", "A")
+in src/m9/f1.txt 7f5be031232e302f
+out out/m9/f1.txt 7eef203122d1cb0f
+end
+step out/m9/f10.txt
+cmd sort_lines()
+in src/m9/f10.txt cbf29ce484222325
+out out/m9/f10.txt cbf29ce484222325
+end
+step out/m9/f2.txt
+cmd lower()
+in src/m9/f2.txt aa779e78efdf30e4
+out out/m9/f2.txt aa779e78efdf30e4
+end
+step out/m9/f4.txt
+cmd replace("a", "A")
+in src/m9/f4.txt 6b5bcb4c447efd5c
+out out/m9/f4.txt e9204e39f4dc881c
+end
+step out/m9/f5.txt
+cmd sort_lines()
+in src/m9/f5.txt c94f46a2a18aed21
+out out/m9/f5.txt c94f46a2a18aed21
+end
+step out/m9/f6.txt
+cmd lower()
+in src/m9/f6.txt 0cbd29c036d932f2
+out out/m9/f6.txt 0cbd29c036d932f2
+end
+step out/m9/f8.txt
+cmd replace("a", "A")
+in src/m9/f8.txt 8f0ab9e0aa6aa0a4
+out out/m9/f8.txt 19e291a9d4498564
+end
+step out/m9/f9.txt
+cmd sort_lines()
+in src/m9/f9.txt bfbdfa197ff839a0
+out out/m9/f9.txt bfbdfa197ff839a0
+end
+step out/m9/g11.txt
+cmd lower()
+in src/m9/sub/g11.txt 23bcf9a0d49c6208
+out out/m9/g11.txt 23bcf9a0d49c6208
+end
+step out/m9/g3.txt
+cmd replace("a", "A")
+in src/m9/sub/g3.txt 7ffa17ee75f8f11e
+out out/m9/g3.txt bb5338de39fd019e
+end
+step out/m9/g7.txt
+cmd sort_lines()
+in src/m9/sub/g7.txt cbf29ce484222325
+out out/m9/g7.txt cbf29ce484222325
+end
+step out/m9/wrapped.txt
+cmd wrap("<m9|", "|>\n")
+in out/m9/bundle.txt f6f5fc52a7a92863
+out out/m9/wrapped.txt eb616e5d1d8186eb
+end

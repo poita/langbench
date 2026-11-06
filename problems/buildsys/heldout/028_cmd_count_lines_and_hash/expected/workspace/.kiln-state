@@ -1,0 +1,21 @@
+kiln-state 1
+step out/h.txt
+cmd hash()
+in src/a.txt 7a2385f1c75178ae
+in src/a.txt 7a2385f1c75178ae
+in src/e.txt cbf29ce484222325
+out out/h.txt 7cc3e89e10d3c67b
+end
+step out/n.txt
+cmd count_lines()
+in src/a.txt 7a2385f1c75178ae
+in src/e.txt cbf29ce484222325
+in src/a.txt 7a2385f1c75178ae
+in src/b.txt 072ddab46af04ab7
+out out/n.txt 48f68fea2ca3dbda
+end
+step out/n1.txt
+cmd count_lines()
+in src/e.txt cbf29ce484222325
+out out/n1.txt cb1cf793076a8833
+end

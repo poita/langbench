@@ -1,0 +1,123 @@
+[1] ok put created
+[2] ok put replaced
+[3] ok put replaced
+[4] ok put created
+[5] ok checkpoint pages 8
+[6] ok begin
+[7] ok find 0 plan scan
+[8] ok put replaced
+[9] ok delete removed
+[10] ok put replaced
+[11] ok put created
+[12] ok put created
+[13] error not-found
+[14] ok scan 0
+[15] ok indexes 0
+[16] ok put replaced
+[17] ok put replaced
+[18] ok find 1 plan scan
+  "k00000" = 439
+[19] ok create index nest.deep entries 4
+[20] error not-found
+[21] ok put replaced
+[22] ok unset updated
+[23] ok stat
+  pages 9
+  free 2
+  freehead 4
+  docs 24
+  root 7
+  height 2
+  commits 29
+  indexes 1
+  wal 32
+[24] error index-exists
+[25] ok delete removed
+[26] ok indexes 1
+  0 nest.deep root 3 entries 4
+[27] ok drop index nest.deep pages 1
+[28] ok put created
+[29] ok scan 0
+[30] error not-found
+[31] ok put created
+[32] ok delete removed
+[33] ok put created
+[34] ok delete removed
+[35] ok create index tag entries 3
+[36] ok commit 30 frames 7
+[37] ok put replaced
+[38] ok put replaced
+[39] ok put created
+[40] ok indexes 1
+  0 tag root 4 entries 3
+[41] ok update updated
+[42] ok put replaced
+[43] ok put created
+[44] error not-found
+[45] ok put created
+[46] ok update updated
+[47] ok put created
+[48] ok create index age entries 14
+[49] ok put replaced
+[50] error no-field
+[51] ok begin
+[52] ok put created
+[53] ok put created
+[54] ok put replaced
+[55] error not-found
+[56] ok put replaced
+[57] ok put created
+[58] ok get value
+  {"age":0,"name":"n09","nest":{"deep":2},"tag":false}
+[59] ok put replaced
+[60] ok delete removed
+[61] ok delete removed
+[62] ok put replaced
+[63] ok put replaced
+[64] ok commit 42 frames 13
+[65] ok find 1 plan index tag
+  "k00029" = {"age":3,"tag":null}
+[66] ok checkpoint pages 14
+[67] ok stat
+  pages 15
+  free 4
+  freehead 14
+  docs 29
+  root 7
+  height 2
+  commits 42
+  indexes 2
+  wal 32
+[68] ok scan 4
+  "k00003"
+  "k00002"
+  "k00001"
+  "k00000"
+[69] ok scan 0
+[70] ok begin
+[71] ok indexes 2
+  0 tag root 4 entries 6
+  1 age root 12 entries 16
+[72] ok find 0 plan scan
+[73] ok put replaced
+[74] ok delete removed
+[75] ok put replaced
+[76] ok stat
+  pages 15
+  free 4
+  freehead 14
+  docs 28
+  root 7
+  height 2
+  commits 42
+  indexes 2
+  wal 32
+[77] ok indexes 2
+  0 tag root 4 entries 6
+  1 age root 12 entries 16
+[78] ok scan 5
+  "k00000"
+  "k00001"
+  "k00003"
+  "k00004"
+  "k00005"

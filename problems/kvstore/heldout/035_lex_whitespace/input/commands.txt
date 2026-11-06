@@ -1,0 +1,9 @@
+  put   "a"    1  
+	get	"a"	
+put "b" [ 1 , 2 , { a : 1 } ]
+get "b"
+scan   keys   reverse  
+find  a  ==  1  limit  1 
+   
+		
+

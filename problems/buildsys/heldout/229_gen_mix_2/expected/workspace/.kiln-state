@@ -1,0 +1,166 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 15f503f26ae38c87
+in out/m1/bundle.txt 7ff68dd9d7c10ae3
+in out/m2/bundle.txt 14000ce96271fc07
+out out/all.txt b75d4d49f8846031
+end
+step out/m0/bundle.txt
+cmd concat()
+in out/m0/f0.txt cbf29ce484222325
+in out/m0/f1.txt 1b656c82756921ee
+in out/m0/f2.txt ad2e4d2287455cf1
+in out/m0/f4.txt efb808e7fb15cd16
+in out/m0/f5.txt 86754defa6002eb3
+in out/m0/f6.txt 695c86fad64136ea
+in out/m0/g3.txt 6de242a0558a9c74
+out out/m0/bundle.txt 15f503f26ae38c87
+end
+step out/m0/f0.txt
+cmd grep("e")
+in src/m0/f0.txt 73366b36cfdebfb5
+out out/m0/f0.txt cbf29ce484222325
+end
+step out/m0/f1.txt
+cmd sort_lines()
+in src/m0/f1.txt c229ffe44e55a996
+out out/m0/f1.txt 1b656c82756921ee
+end
+step out/m0/f2.txt
+cmd reverse_lines()
+in src/m0/f2.txt ad2e4d2287455cf1
+out out/m0/f2.txt ad2e4d2287455cf1
+end
+step out/m0/f4.txt
+cmd grep("e")
+in src/m0/f4.txt 4bc926079f590fb6
+out out/m0/f4.txt efb808e7fb15cd16
+end
+step out/m0/f5.txt
+cmd sort_lines()
+in src/m0/f5.txt d2d950f0222dfbf5
+out out/m0/f5.txt 86754defa6002eb3
+end
+step out/m0/f6.txt
+cmd reverse_lines()
+in src/m0/f6.txt 18315a62529f3b6e
+out out/m0/f6.txt 695c86fad64136ea
+end
+step out/m0/g3.txt
+cmd grep("e")
+in src/m0/sub/g3.txt d929a38a90062db6
+out out/m0/g3.txt 6de242a0558a9c74
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 15f503f26ae38c87
+out out/m0/wrapped.txt 6c8a464f06673bf8
+end
+step out/m1/bundle.txt
+cmd hash()
+in out/m1/f0.txt 44bc1df520c56793
+in out/m1/f1.txt f79cac06ef31edce
+in out/m1/f2.txt 0ac5e328075565de
+in out/m1/f4.txt a0ee9e7c9f115cbf
+in out/m1/f5.txt c3cee9a62f1c00a3
+in out/m1/f6.txt cbf29ce484222325
+out out/m1/bundle.txt 7ff68dd9d7c10ae3
+end
+step out/m1/f0.txt
+cmd indent(2)
+in src/m1/f0.txt 482c850b231190a3
+out out/m1/f0.txt 44bc1df520c56793
+end
+step out/m1/f1.txt
+cmd reverse_lines()
+in src/m1/f1.txt 01c904b70c134dd8
+out out/m1/f1.txt f79cac06ef31edce
+end
+step out/m1/f2.txt
+cmd upper()
+in src/m1/f2.txt d4b80b5bd5e0663e
+out out/m1/f2.txt 0ac5e328075565de
+end
+step out/m1/f4.txt
+cmd indent(2)
+in src/m1/f4.txt 07e6c719174ae367
+out out/m1/f4.txt a0ee9e7c9f115cbf
+end
+step out/m1/f5.txt
+cmd reverse_lines()
+in src/m1/f5.txt 39aa39f20d234175
+out out/m1/f5.txt c3cee9a62f1c00a3
+end
+step out/m1/f6.txt
+cmd upper()
+in src/m1/f6.txt cbf29ce484222325
+out out/m1/f6.txt cbf29ce484222325
+end
+step out/m1/g3.txt
+cmd indent(2)
+in src/m1/sub/g3.txt 7b8d6d7119320462
+out out/m1/g3.txt 513b53384b6526da
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt 7ff68dd9d7c10ae3
+out out/m1/wrapped.txt cc36b67f385be4d3
+end
+step out/m2/bundle.txt
+cmd count_lines()
+in out/m2/f0.txt ad2e4d2287455cf1
+in out/m2/f1.txt cbf29ce484222325
+in out/m2/f2.txt 5748e845607e26a0
+in out/m2/f4.txt 901a92844213c0ef
+in out/m2/f5.txt 2a1367a0dfb17c87
+in out/m2/f6.txt 48f75c7bb0185624
+in out/m2/new0.txt bb6d4b6ee7f0696a
+in out/m2/g3.txt a973eb48673df2ad
+out out/m2/bundle.txt 14000ce96271fc07
+end
+step out/m2/f0.txt
+cmd copy()
+in src/m2/f0.txt ad2e4d2287455cf1
+out out/m2/f0.txt ad2e4d2287455cf1
+end
+step out/m2/f1.txt
+cmd sort_lines()
+in src/m2/f1.txt cbf29ce484222325
+out out/m2/f1.txt cbf29ce484222325
+end
+step out/m2/f2.txt
+cmd lower()
+in src/m2/f2.txt 5748e845607e26a0
+out out/m2/f2.txt 5748e845607e26a0
+end
+step out/m2/f4.txt
+cmd copy()
+in src/m2/f4.txt 901a92844213c0ef
+out out/m2/f4.txt 901a92844213c0ef
+end
+step out/m2/f5.txt
+cmd sort_lines()
+in src/m2/f5.txt 1cf6260f2206bfd7
+out out/m2/f5.txt 2a1367a0dfb17c87
+end
+step out/m2/f6.txt
+cmd lower()
+in src/m2/f6.txt 48f75c7bb0185624
+out out/m2/f6.txt 48f75c7bb0185624
+end
+step out/m2/g3.txt
+cmd sort_lines()
+in src/m2/sub/g3.txt 33ee5a0bd46d2239
+out out/m2/g3.txt a973eb48673df2ad
+end
+step out/m2/new0.txt
+cmd copy()
+in src/m2/new0.txt bb6d4b6ee7f0696a
+out out/m2/new0.txt bb6d4b6ee7f0696a
+end
+step out/m2/wrapped.txt
+cmd wrap("<m2|", "|>\n")
+in out/m2/bundle.txt 14000ce96271fc07
+out out/m2/wrapped.txt 848849e3cd9b39e8
+end

@@ -1,0 +1,13 @@
+kiln-state 1
+step out/l0.txt
+cmd write("[x] [q]\n")
+out out/l0.txt 486279917d985bf8
+end
+step out/l1.txt
+cmd write("de|a|abc\n")
+out out/l1.txt aee79c2eca6ec079
+end
+step out/l2.txt
+cmd write("3,4|\n")
+out out/l2.txt 68a3d9b60fdb92c8
+end

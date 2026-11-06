@@ -1,0 +1,7 @@
+@module main
+fn t(s: Str) -> Bool { emit(s); true }
+fn f(s: Str) -> Bool { emit(s); false }
+fn main() {
+    print(showBool(f("1") && t("2")));
+    print(showBool(t("3") || t("4")));
+}

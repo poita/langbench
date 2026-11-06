@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 4 w0 out/sort_lines_0.txt sort_lines()
+  run 4 8 w0 out/sort_lines_1.txt sort_lines()
+  run 8 12 w0 out/sort_lines_2.txt sort_lines()
+  run 12 16 w0 out/sort_lines_3.txt sort_lines()
+  run 16 20 w0 out/sort_lines_4.txt sort_lines()
+  run 20 24 w0 out/sort_lines_5.txt sort_lines()
+  run 24 27 w0 out/sort_lines_pin.txt hash()
+  ok ran=7 hit=0 time=27
+step 2: build (default) -j 1
+  hit 0 out/sort_lines_0.txt
+  hit 0 out/sort_lines_1.txt
+  hit 0 out/sort_lines_2.txt
+  hit 0 out/sort_lines_3.txt
+  hit 0 out/sort_lines_4.txt
+  hit 0 out/sort_lines_5.txt
+  hit 0 out/sort_lines_pin.txt
+  ok ran=0 hit=7 time=0

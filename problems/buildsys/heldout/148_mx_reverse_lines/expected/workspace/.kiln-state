@@ -1,0 +1,41 @@
+kiln-state 1
+step out/reverse_lines_0.txt
+cmd reverse_lines()
+in src/e.txt cbf29ce484222325
+out out/reverse_lines_0.txt cbf29ce484222325
+end
+step out/reverse_lines_1.txt
+cmd reverse_lines()
+in src/n.txt dc3add5ecc4ba006
+out out/reverse_lines_1.txt dc3add5ecc4ba006
+end
+step out/reverse_lines_2.txt
+cmd reverse_lines()
+in src/x.txt 07c7d73947cbe1de
+out out/reverse_lines_2.txt 04748a54ff70bb3c
+end
+step out/reverse_lines_3.txt
+cmd reverse_lines()
+in src/c.txt 25fd018afddd7cc5
+out out/reverse_lines_3.txt a99e538f8ebf81d9
+end
+step out/reverse_lines_4.txt
+cmd reverse_lines()
+in src/u.txt 883ac19acb748cf1
+out out/reverse_lines_4.txt dd9505b022a99d41
+end
+step out/reverse_lines_5.txt
+cmd reverse_lines()
+in src/b.txt 1c2c1cfae3c07157
+out out/reverse_lines_5.txt 05b7c7718e5b9ac3
+end
+step out/reverse_lines_pin.txt
+cmd hash()
+in out/reverse_lines_0.txt cbf29ce484222325
+in out/reverse_lines_1.txt dc3add5ecc4ba006
+in out/reverse_lines_2.txt 04748a54ff70bb3c
+in out/reverse_lines_3.txt a99e538f8ebf81d9
+in out/reverse_lines_4.txt dd9505b022a99d41
+in out/reverse_lines_5.txt 05b7c7718e5b9ac3
+out out/reverse_lines_pin.txt 00493cc7c4d08070
+end

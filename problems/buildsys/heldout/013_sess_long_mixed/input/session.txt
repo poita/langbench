@@ -1,0 +1,26 @@
+build -j 2
+touch src/a.txt
+build
+edit src/b.txt
+B1
+B2
+---
+build -j 4
+create src/c.txt
+c1
+---
+build
+clean
+build -j 3
+delete src/c.txt
+build
+edit main.kiln
+let srcs = sort(glob("src/*.txt"))
+step {
+    out "out/all.txt"
+    in srcs
+    cmd concat()
+}
+default "out/all.txt"
+---
+build

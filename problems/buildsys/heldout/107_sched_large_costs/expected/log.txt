@@ -1,0 +1,4 @@
+step 1: build (default) -j 4
+  run 0 1000000 w0 out/big.txt write("big\n")
+  run 1000000 1999999 w0 out/small.txt copy()
+  ok ran=2 hit=0 time=1999999

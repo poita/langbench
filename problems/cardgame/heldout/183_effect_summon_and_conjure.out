@@ -1,0 +1,131 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-016
+9 PAY A ember 4
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 CREATE #48 TOK-001 field
+14 ARRIVE #48 TOK-001
+15 CREATE #49 TOK-001 field
+16 ARRIVE #49 TOK-001
+17 CREATE #50 TOK-001 field
+18 ARRIVE #50 TOK-001
+19 SPENT #21 CIN-016
+20 PLAY A ~2 #22 NEU-005
+21 PAY A ember 4
+22 PASS A
+23 PASS B
+24 RESOLVE ~2
+25 ARRIVE #22 NEU-005
+26 TRIGGER A ~3 #22 1
+27 PASS A
+28 PASS B
+29 RESOLVE ~3
+30 CREATE #51 TOK-001 field
+31 ARRIVE #51 TOK-001
+32 CREATE #52 TOK-001 field
+33 ARRIVE #52 TOK-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 43 cap 51 vault 20 hand 4 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #23 TID-017
+hand A 2 #24 NEU-001
+hand A 3 #25 NEU-017
+hand A 4 #26 DSK-034
+field A #48 TOK-001 1/1 w0 c0 ready settling kw -
+field A #49 TOK-001 1/1 w0 c0 ready settling kw -
+field A #50 TOK-001 1/1 w0 c0 ready settling kw -
+field A #22 NEU-005 3/3 w0 c0 ready settling kw -
+field A #51 TOK-001 1/1 w0 c0 ready settling kw -
+field A #52 TOK-001 1/1 w0 c0 ready settling kw -
+field B #47 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash A 1 #21 CIN-016
+STATE END
+34 PLAY A ~4 #23 TID-017
+35 PAY A ember 3
+36 PASS A
+37 PASS B
+38 RESOLVE ~4
+39 ARRIVE #23 TID-017
+40 TRIGGER A ~5 #23 1
+41 PASS A
+42 PASS B
+43 RESOLVE ~5
+44 CREATE #53 TOK-004 field
+45 ARRIVE #53 TOK-004
+46 PLAY A ~6 #24 NEU-001
+47 PAY A ember 2
+48 PASS A
+49 PASS B
+50 RESOLVE ~6
+51 ARRIVE #24 NEU-001
+52 TRIGGER A ~7 #24 1
+53 PASS A
+54 PASS B
+55 RESOLVE ~7
+56 CREATE #54 TOK-001 hand
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 38 cap 51 vault 20 hand 3 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #25 NEU-017
+hand A 2 #26 DSK-034
+hand A 3 #54 TOK-001
+field A #48 TOK-001 1/1 w0 c0 ready settling kw -
+field A #49 TOK-001 1/1 w0 c0 ready settling kw -
+field A #50 TOK-001 1/1 w0 c0 ready settling kw -
+field A #22 NEU-005 3/3 w0 c0 ready settling kw -
+field A #51 TOK-001 1/1 w0 c0 ready settling kw -
+field A #52 TOK-001 1/1 w0 c0 ready settling kw -
+field A #23 TID-017 2/2 w0 c0 ready settling kw -
+field A #53 TOK-004 1/1 w0 c0 ready settling kw vanguard
+field A #24 NEU-001 2/2 w0 c0 ready settling kw -
+field B #47 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash A 1 #21 CIN-016
+STATE END
+57 PLAY A ~8 #25 NEU-017
+58 PAY A ember 3
+59 PASS A
+60 PASS B
+61 RESOLVE ~8
+62 CREATE #55 TOK-003 hand
+63 CREATE #56 TOK-003 hand
+64 SPENT #25 NEU-017
+65 PLAY A ~9 #26 DSK-034 #47
+66 PAY A ember 3
+67 PASS A
+68 PASS B
+69 RESOLVE ~9
+70 DESTROY #47 TOK-003
+71 CREATE #57 TOK-008 hand
+72 SPENT #26 DSK-034
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 32 cap 51 vault 20 hand 4 ash 3 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+hand A 1 #54 TOK-001
+hand A 2 #55 TOK-003
+hand A 3 #56 TOK-003
+hand A 4 #57 TOK-008
+field A #48 TOK-001 1/1 w0 c0 ready settling kw -
+field A #49 TOK-001 1/1 w0 c0 ready settling kw -
+field A #50 TOK-001 1/1 w0 c0 ready settling kw -
+field A #22 NEU-005 3/3 w0 c0 ready settling kw -
+field A #51 TOK-001 1/1 w0 c0 ready settling kw -
+field A #52 TOK-001 1/1 w0 c0 ready settling kw -
+field A #23 TID-017 2/2 w0 c0 ready settling kw -
+field A #53 TOK-004 1/1 w0 c0 ready settling kw vanguard
+field A #24 NEU-001 2/2 w0 c0 ready settling kw -
+ash A 1 #21 CIN-016
+ash A 2 #25 NEU-017
+ash A 3 #26 DSK-034
+ash B 1 #47 TOK-003
+STATE END
+73 RESULT pending none

@@ -1,0 +1,36 @@
+step {
+    out "out/upper_0.txt"
+    in "src/e.txt"
+    cmd upper()
+}
+step {
+    out "out/upper_1.txt"
+    in "src/n.txt"
+    cmd upper()
+}
+step {
+    out "out/upper_2.txt"
+    in "src/x.txt"
+    cmd upper()
+}
+step {
+    out "out/upper_3.txt"
+    in "src/c.txt"
+    cmd upper()
+}
+step {
+    out "out/upper_4.txt"
+    in "src/u.txt"
+    cmd upper()
+}
+step {
+    out "out/upper_5.txt"
+    in "src/b.txt"
+    cmd upper()
+}
+step {
+    out "out/upper_pin.txt"
+    in ["out/upper_0.txt", "out/upper_1.txt", "out/upper_2.txt", "out/upper_3.txt", "out/upper_4.txt", "out/upper_5.txt"]
+    cmd hash()
+}
+default "out/upper_pin.txt"

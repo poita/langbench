@@ -1,0 +1,107 @@
+step 1: build (default) -j 2
+  run 0 3 w0 out/m0/f0.txt dedup()
+  run 0 3 w1 out/m0/f1.txt replace("a", "A")
+  run 3 4 w0 out/m0/f2.txt wrap("[", "]\n")
+  run 3 6 w1 out/m0/g3.txt dedup()
+  run 4 8 w0 out/m1/f0.txt sort_lines()
+  run 6 9 w1 out/m0/bundle.txt hash()
+  run 8 11 w0 out/m1/f1.txt replace("a", "A")
+  run 9 13 w1 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 11 14 w0 out/m1/f2.txt replace("a", "A")
+  run 13 17 w1 out/m1/g3.txt sort_lines()
+  run 14 16 w0 out/m2/f0.txt number()
+  run 16 19 w0 out/m2/f1.txt dedup()
+  run 17 19 w1 out/m1/bundle.txt count_lines()
+  run 19 21 w0 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 19 22 w1 out/m2/f2.txt dedup()
+  run 21 23 w0 out/m2/g3.txt number()
+  run 23 27 w0 out/m2/bundle.txt concat()
+  run 27 29 w0 out/m2/wrapped.txt wrap("<m2|", "|>\n")
+  run 29 32 w0 out/all.txt count_lines()
+  ok ran=19 hit=0 time=32
+step 2: touch main.kiln
+  ok
+step 3: build @m0 -j 1
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/g3.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  ok ran=0 hit=6 time=0
+step 4: edit src/m0/f1.txt
+  ok size=0
+step 5: build (default) -j 2
+  hit 0 out/m0/f0.txt
+  run 0 3 w0 out/m0/f1.txt replace("a", "A")
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/g3.txt
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/f1.txt
+  hit 0 out/m1/f2.txt
+  hit 0 out/m1/g3.txt
+  hit 0 out/m1/bundle.txt
+  hit 0 out/m1/wrapped.txt
+  hit 0 out/m2/f0.txt
+  hit 0 out/m2/f1.txt
+  hit 0 out/m2/f2.txt
+  hit 0 out/m2/g3.txt
+  hit 0 out/m2/bundle.txt
+  hit 0 out/m2/wrapped.txt
+  run 3 6 w0 out/m0/bundle.txt hash()
+  run 6 10 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 10 13 w0 out/all.txt count_lines()
+  ok ran=4 hit=15 time=13
+step 6: clean
+  remove .kiln-state
+  remove out/all.txt
+  remove out/m0/bundle.txt
+  remove out/m0/f0.txt
+  remove out/m0/f1.txt
+  remove out/m0/f2.txt
+  remove out/m0/g3.txt
+  remove out/m0/wrapped.txt
+  remove out/m1/bundle.txt
+  remove out/m1/f0.txt
+  remove out/m1/f1.txt
+  remove out/m1/f2.txt
+  remove out/m1/g3.txt
+  remove out/m1/wrapped.txt
+  remove out/m2/bundle.txt
+  remove out/m2/f0.txt
+  remove out/m2/f1.txt
+  remove out/m2/f2.txt
+  remove out/m2/g3.txt
+  remove out/m2/wrapped.txt
+  ok removed=20
+step 7: build @m2 -j 1
+  run 0 2 w0 out/m2/f0.txt number()
+  run 2 5 w0 out/m2/f1.txt dedup()
+  run 5 8 w0 out/m2/f2.txt dedup()
+  run 8 10 w0 out/m2/g3.txt number()
+  run 10 14 w0 out/m2/bundle.txt concat()
+  run 14 16 w0 out/m2/wrapped.txt wrap("<m2|", "|>\n")
+  ok ran=6 hit=0 time=16
+step 8: touch src/m2/f0.txt
+  ok
+step 9: build out/all.txt -j 1
+  run 0 3 w0 out/m0/f0.txt dedup()
+  hit 0 out/m2/f0.txt
+  hit 0 out/m2/f1.txt
+  hit 0 out/m2/f2.txt
+  hit 0 out/m2/g3.txt
+  hit 0 out/m2/bundle.txt
+  hit 0 out/m2/wrapped.txt
+  run 3 6 w0 out/m0/f1.txt replace("a", "A")
+  run 6 7 w0 out/m0/f2.txt wrap("[", "]\n")
+  run 7 10 w0 out/m0/g3.txt dedup()
+  run 10 13 w0 out/m0/bundle.txt hash()
+  run 13 17 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 17 21 w0 out/m1/f0.txt sort_lines()
+  run 21 24 w0 out/m1/f1.txt replace("a", "A")
+  run 24 27 w0 out/m1/f2.txt replace("a", "A")
+  run 27 31 w0 out/m1/g3.txt sort_lines()
+  run 31 33 w0 out/m1/bundle.txt count_lines()
+  run 33 35 w0 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 35 38 w0 out/all.txt count_lines()
+  ok ran=13 hit=6 time=38

@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(sf(sqrtF(2.0)) ++ " " ++ sf(sqrtF(0.0)) ++ " " ++ sf(sqrtF(-0.0)) ++ " " ++ sb(isNanF(sqrtF(-4.0))));
+    print(sf(absF(-2.5)) ++ " " ++ sf(absF(-0.0)) ++ " " ++ sb(isNanF(absF(nanF()))));
+    print(sf(floorF(2.5)) ++ " " ++ sf(floorF(-2.5)) ++ " " ++ sf(ceilF(2.5)) ++ " " ++ sf(ceilF(-2.5)));
+    print(sf(truncF(2.9)) ++ " " ++ sf(truncF(-2.9)) ++ " " ++ sf(roundF(2.5)) ++ " " ++ sf(roundF(-2.5)) ++ " " ++ sf(roundF(0.49)));
+    print(sf(minF(1.0, 2.0)) ++ " " ++ sf(maxF(1.0, 2.0)) ++ " " ++ sf(minF(-0.0, 0.0)) ++ " " ++ sf(minF(0.0, -0.0)));
+    print(sf(minF(nanF(), 1.0)) ++ " " ++ sb(isNanF(maxF(nanF(), 1.0))) ++ " " ++ sb(isNanF(minF(1.0, nanF()))));
+    print(sf(fmodF(5.5, 2.0)) ++ " " ++ sf(fmodF(-5.5, 2.0)) ++ " " ++ sf(fmodF(5.5, -2.0)) ++ " " ++ sb(isNanF(fmodF(1.0, 0.0))));
+}

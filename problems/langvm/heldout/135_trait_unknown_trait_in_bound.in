@@ -1,0 +1,6 @@
+@module main
+use util;
+fn show<T: util::Showable>(x: T) -> Str { "?" }
+fn main() { print(show(1)); }
+@module util
+pub trait Show { fn show(self) -> Str; }

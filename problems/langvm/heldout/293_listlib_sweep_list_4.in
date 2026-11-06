@@ -1,0 +1,18 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(sl(sortBy([5, 4, 3, 2, 1], |a, b| cmpI(b, a))) ++ " " ++ ss(sortBy(["b", "a", "c"], |a, b| strCmp(a, b))));
+    print(sl(sortBy([1, 2, 3, 4, 5, 6, 7], |a, b| cmpI(a % 2, b % 2))));
+    let h = [1, 2]; let i2 = h; push(i2, 3); print(sl(h) ++ " " ++ sb(h == i2));
+    print(sb([1, 2] == [1, 2]) ++ sb([1] == [1, 2]) ++ sb([[1]] == [[1]]) ++ sb(reverseList([1, 2]) == [2, 1]));
+}

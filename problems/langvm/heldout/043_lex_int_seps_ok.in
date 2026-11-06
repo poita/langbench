@@ -1,0 +1,2 @@
+@module main
+fn main() { print(showInt(1_000 + 0xff_ff + 0b1010_1010)); }

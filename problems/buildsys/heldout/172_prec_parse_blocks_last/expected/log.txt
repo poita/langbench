@@ -1,0 +1,30 @@
+step 1: build (default) -j 1
+  error E_PARSE main.kiln:2
+step 2: edit main.kiln
+  ok size=24
+step 3: build (default) -j 1
+  error E_PARSE main.kiln:2
+step 4: edit main.kiln
+  ok size=40
+step 5: build (default) -j 1
+  error E_PARSE main.kiln:3
+step 6: edit main.kiln
+  ok size=34
+step 7: build (default) -j 1
+  error E_PARSE main.kiln:3
+step 8: edit main.kiln
+  ok size=42
+step 9: build (default) -j 1
+  error E_PARSE main.kiln:3
+step 10: edit main.kiln
+  ok size=20
+step 11: build (default) -j 1
+  error E_PARSE main.kiln:2
+step 12: edit main.kiln
+  ok size=28
+step 13: build (default) -j 1
+  error E_PARSE main.kiln:2
+step 14: edit main.kiln
+  ok size=44
+step 15: build (default) -j 1
+  error E_PARSE main.kiln:4

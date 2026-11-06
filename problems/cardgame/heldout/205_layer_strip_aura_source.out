@@ -1,0 +1,36 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 1 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 DSK-031
+field A #22 TOK-001 1/1 w0 c0 ready - kw -
+field B #43 LOM-005 2/5 w0 c0 ready - kw -
+field B #44 TOK-003 0/4 w0 c0 ready - kw plating:1
+effect 1 ts3 B aura modify 0 1 on #43,#44
+STATE END
+8 PLAY A ~1 #21 DSK-031 #43
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 STRIP #43
+14 SPENT #21 DSK-031
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 10 vault 20 hand 0 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #22 TOK-001 1/1 w0 c0 ready - kw -
+field B #43 LOM-005 2/4 w0 c0 ready - kw -
+field B #44 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash A 1 #21 DSK-031
+effect 1 ts3 B aura modify 0 1 on -
+effect 2 ts5 A turn strip on #43
+STATE END
+15 RESULT pending none

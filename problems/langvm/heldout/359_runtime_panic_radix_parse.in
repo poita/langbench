@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(unwrapOr(parseIntRadix("5", 0), 0)));
+}

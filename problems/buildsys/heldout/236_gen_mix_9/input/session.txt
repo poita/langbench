@@ -1,0 +1,17 @@
+build -j 64
+touch src/m0/f0.txt
+build @m3 -j 16
+edit src/m8/sub/g7.txt
+fir
+birch
+nu
+nu
+---
+build @m2 -j 16
+edit src/m2/f1.txt
+the end
+mu
+---
+build @m2 -j 8
+touch main.kiln
+build @m2 -j 16

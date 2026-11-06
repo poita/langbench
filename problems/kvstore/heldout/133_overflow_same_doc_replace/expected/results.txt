@@ -1,0 +1,45 @@
+[1] ok put created
+[2] ok stat
+  pages 4
+  free 0
+  freehead 0
+  docs 1
+  root 4
+  height 1
+  commits 1
+  indexes 0
+  wal 4248
+[3] ok put replaced
+[4] ok stat
+  pages 4
+  free 0
+  freehead 0
+  docs 1
+  root 4
+  height 1
+  commits 2
+  indexes 0
+  wal 8464
+[5] ok put replaced
+[6] ok stat
+  pages 4
+  free 0
+  freehead 0
+  docs 1
+  root 4
+  height 1
+  commits 3
+  indexes 0
+  wal 12680
+[7] ok scan 1
+  "a"
+[8] ok stat
+  pages 4
+  free 0
+  freehead 0
+  docs 1
+  root 4
+  height 1
+  commits 3
+  indexes 0
+  wal 12680

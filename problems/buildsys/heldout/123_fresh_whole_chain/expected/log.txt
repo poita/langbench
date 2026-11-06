@@ -1,0 +1,28 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/one.txt wrap("[0", "]\n")
+  run 2 4 w0 out/two.txt wrap("[1", "]\n")
+  run 4 6 w0 out/three.txt wrap("[2", "]\n")
+  ok ran=3 hit=0 time=6
+step 2: build (default) -j 1
+  hit 0 out/one.txt
+  hit 0 out/two.txt
+  hit 0 out/three.txt
+  ok ran=0 hit=3 time=0
+step 3: edit src/a.txt
+  ok size=2
+step 4: build (default) -j 1
+  run 0 2 w0 out/one.txt wrap("[0", "]\n")
+  run 2 4 w0 out/two.txt wrap("[1", "]\n")
+  run 4 6 w0 out/three.txt wrap("[2", "]\n")
+  ok ran=3 hit=0 time=6
+step 5: clean
+  remove .kiln-state
+  remove out/one.txt
+  remove out/three.txt
+  remove out/two.txt
+  ok removed=4
+step 6: build (default) -j 2
+  run 0 2 w0 out/one.txt wrap("[0", "]\n")
+  run 2 4 w0 out/two.txt wrap("[1", "]\n")
+  run 4 6 w0 out/three.txt wrap("[2", "]\n")
+  ok ran=3 hit=0 time=6

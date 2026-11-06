@@ -1,0 +1,55 @@
+build -j 16
+edit src/m2/f2.txt
+---
+build out/all.txt -j 4
+touch main.kiln
+build @m2 -j 2
+edit src/m1/sub/g3.txt
+iota
+eta
+kappa
+---
+build @m3 -j 16
+delete src/m0/sub/g3.txt
+build @m2 -j 4
+create src/m2/new0.txt
+alpha
+---
+build -j 2
+touch src/m1/sub/g3.txt
+build -j 3
+touch src/m0/f1.txt
+build @m2 -j 2
+create src/m1/new1.txt
+beta
+epsilon
+ash
+---
+build -j 2
+edit src/m0/f1.txt
+elm
+elm
+---
+build @m1 -j 4
+touch main.kiln
+build @m2
+edit src/m0/f0.txt
+---
+build -j 16
+clean
+build -j 2
+touch src/m0/f2.txt
+build @m1
+edit src/m0/f2.txt
+hazel
+kappa
+delta
+---
+build @m0 -j 3
+edit src/m0/f1.txt
+kappa
+ilex
+cedar
+ilex
+---
+build @m2 -j 2

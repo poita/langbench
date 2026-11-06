@@ -1,0 +1,11 @@
+rule r(n) {
+    step {
+        out "out/r{n}.txt"
+        cmd write("{n}\n")
+    }
+    default "out/r{n}.txt"
+    when n > 1 {
+        use r(n - 1)
+    }
+}
+use r(64)

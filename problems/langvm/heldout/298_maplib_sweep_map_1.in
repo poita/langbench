@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    var m: #[Str: Int] = mapNew(); print(si(mapLen(m)) ++ " " ++ sb(mapHas(m, "a")));
+    var m = #["a": 1, "b": 2]; print(si(mapLen(m)) ++ " " ++ ss(keysOf(m)) ++ " " ++ sl(valuesOf(m)));
+    var m = #["a": 1]; m["b"] = 2; m["a"] = 3; print(ss(keysOf(m)) ++ " " ++ sl(valuesOf(m)));
+    var m = #["a": 1, "b": 2]; print(sb(mapDel(m, "a")) ++ sb(mapDel(m, "z")) ++ " " ++ ss(keysOf(m)));
+    var m = #["a": 1, "b": 2]; mapDel(m, "a"); m["a"] = 9; print(ss(keysOf(m)) ++ " " ++ sl(valuesOf(m)));
+    var m = #["a": 1]; print(so(mapGet(m, "a")) ++ " " ++ so(mapGet(m, "z")) ++ " " ++ si(mapGetOr(m, "a", -1)) ++ " " ++ si(mapGetOr(m, "z", -1)));
+    var m: #[Int: Str] = mapNew(); mapSet(m, 2, "two"); mapSet(m, 1, "one"); print(sp(listMap(pairsOf(m), |p| (snd(p), fst(p)))));
+}

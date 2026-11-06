@@ -1,0 +1,5 @@
+@module main
+fn main() {
+    let f = |x: Int| { emit("c"); x + 1 };
+    print(showInt(f(1)));
+}

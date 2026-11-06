@@ -1,0 +1,107 @@
+build
+edit .kiln-state
+kiln-state 1
+step out/z.txt
+cmd 
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step out/z.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+end 
+---
+build
+edit .kiln-state
+kiln-state 1
+steps out/z.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+stepout/z.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step  out/z.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step out/z.txt
+cmd copy()
+in src/a.txt
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step out/z.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b20
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step out/z.txt
+cmd copy()
+in src/a.txt zzzzzzzzzzzzzzzz
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step out/z.txt
+cmd copy()
+out out/z.txt 089bdc07b544e7b2
+dep src/a.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step ../x
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+end
+---
+build
+edit .kiln-state
+kiln-state 1
+step out/z.txt
+in src/a.txt 089bdc07b544e7b2
+out out/z.txt 089bdc07b544e7b2
+end
+---
+build
+edit .kiln-state
+---
+build

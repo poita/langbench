@@ -1,0 +1,28 @@
+1 GAME-START A
+2 DRAW A #1 CIN-001
+3 DRAW B #4 TID-001
+4 TURN 1 A
+5 PHASE dawn
+6 EMBER A 1 1
+7 EMBER B 0 0
+8 PHASE draw
+9 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 1 cap 1 vault 2 hand 1 ash 0 rift 0
+player B spire 25 ember 0 cap 0 vault 2 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #4 TID-001
+STATE END
+10 PASS A
+11 PASS B
+12 PHASE clash-attack
+ERR 17 bad-syntax
+STATE BEGIN
+turn 1 active A phase clash-attack decision A attackers
+player A spire 25 ember 1 cap 1 vault 2 hand 1 ash 0 rift 0
+player B spire 25 ember 0 cap 0 vault 2 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #4 TID-001
+STATE END
+13 RESULT pending none

@@ -7,7 +7,7 @@ TRANSCRIPTS is a run directory (manifest.jsonl and sessions/, as `impl_run.py` w
 transcript directory, or an archive of either (.tar.gz);
 IMPLS is the directory of <rep>/<lang>/<slug> implementations. Reported:
 
-- forbidden-path: a tool call that was not refused naming a forbidden path (the repository, the hidden tests, transcripts, the
+- forbidden-path: a tool call that was not refused naming a forbidden path (the repository, the held-out tests, transcripts, the
   sandbox outside the task's own workspace) or a reference implementation or test generator anywhere;
 - other-implementation: a tool call naming a file inside another agent's project;
 - blocked-attempt: a tool call naming forbidden paths, every one of which was refused (the sandbox's
@@ -65,7 +65,7 @@ PROBLEM_FACILITIES = {
 }
 SOURCE_EXT = {"python": (".py",), "go": (".go",), "d": (".d",), "cpp": (".cpp", ".cc", ".cxx", ".hpp", ".h", ".hh"),
               "rust": (".rs",)}
-ALWAYS_FORBIDDEN = re.compile(r"/reference/|/gen_tests\.py\b|/gen_bench\.py\b|/bench(-long)?/|langbench-hidden")
+ALWAYS_FORBIDDEN = re.compile(r"/reference/|/gen_tests\.py\b|/gen_bench\.py\b|/bench(-long)?/|/heldout\b")
 SCRATCH_FILE = re.compile(r"\b(scratch/(rep\d+-[a-z]+-[A-Za-z0-9_-]+)/[^\s\"'*;|&]*)")
 PROJECT_FILE = re.compile(r"\b(out/(rep\d+)/([a-z]+)/([A-Za-z0-9_-]+)/[^\s\"'*;|&]+)")
 

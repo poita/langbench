@@ -1,0 +1,9 @@
+step 1: build (default) -j 8
+  run 0 3 w0 out/d0.txt dedup()
+  run 0 3 w1 out/d1.txt dedup()
+  run 0 3 w2 out/d2.txt dedup()
+  run 0 3 w3 out/d3.txt dedup()
+  run 0 3 w4 out/d4.txt dedup()
+  run 0 2 w5 out/dn.txt count_lines()
+  run 3 6 w0 out/dh.txt hash()
+  ok ran=7 hit=0 time=6

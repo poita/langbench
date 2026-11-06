@@ -1,0 +1,15 @@
+@module main
+fn main() {
+    print(strJoin(strSplit("aaa", "aa"), "|"));
+    print(strJoin(strSplit("", ","), "|"));
+    print(showInt(strIndexOf("abc", "")) ++ " " ++ showInt(strLastIndexOf("abc", "")));
+    print(quoteStr("a\\b\"c\u{1}"));
+    print(quoteChar('\n') ++ quoteChar('\\') ++ quoteChar('"'));
+    print(padLeft("abc", 2, '0') ++ "|" ++ padRight("", 3, 'x'));
+    print(upper("aZ9é") ++ lower("AZ9É"));
+    print(showInt(strCmp("", "a")) ++ showInt(strCmp("a", "")));
+    print(strOfChars(chars("héllo")));
+    print(trim("\t x \n") ++ "|" ++ trimLeft(" x ") ++ "|" ++ trimRight(" x "));
+    print(strReplace("hello", "l", "L"));
+    print(showBool(strContains("abc", "bc")) ++ showBool(startsWith("abc", "ab")) ++ showBool(endsWith("abc", "bc")));
+}

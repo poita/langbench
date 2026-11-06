@@ -1,0 +1,28 @@
+[1] ok create index age entries 0
+[2] ok indexes 1
+  0 age root 0 entries 0
+[3] ok stat
+  pages 1
+  free 0
+  freehead 0
+  docs 0
+  root 0
+  height 0
+  commits 1
+  indexes 1
+  wal 1104
+[4] ok put created
+[5] ok indexes 1
+  0 age root 3 entries 1
+[6] ok drop index age pages 1
+[7] ok indexes 0
+[8] ok stat
+  pages 3
+  free 1
+  freehead 3
+  docs 1
+  root 2
+  height 1
+  commits 3
+  indexes 0
+  wal 6392

@@ -1,0 +1,20 @@
+phony empty = []
+phony gate = ["out/slow.txt"]
+step {
+    out "out/slow.txt"
+    in "src/a.txt"
+    cmd copy()
+    cost 5
+}
+step {
+    out "out/after_gate.txt"
+    in "@gate"
+    cmd write("g\n")
+}
+step {
+    out "out/after_empty.txt"
+    in "@empty"
+    cmd write("e\n")
+}
+phony all = ["out/after_gate.txt", "out/after_empty.txt"]
+default "@all"

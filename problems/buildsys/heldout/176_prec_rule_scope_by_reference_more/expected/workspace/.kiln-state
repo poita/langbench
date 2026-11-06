@@ -1,0 +1,13 @@
+kiln-state 1
+step out/a.txt
+cmd write("a=first\n")
+out out/a.txt 9c0693ede24e8187
+end
+step out/b.txt
+cmd write("b=second\n")
+out out/b.txt bd4540e4d855192a
+end
+step out/c.txt
+cmd write("c=branch\n")
+out out/c.txt ffdc884abe265015
+end

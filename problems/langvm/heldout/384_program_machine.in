@@ -1,0 +1,91 @@
+@module main
+enum Coin { Nickel, Dime, Quarter }
+enum Cmd { Insert(Coin), Select(Str), Refund, Restock(Str, Int) }
+enum State { Idle, Paying(Int) }
+struct Item { name: Str, price: Int }
+
+fn value(c: Coin) -> Int {
+    match c { Nickel -> 5, Dime -> 10, Quarter -> 25 }
+}
+
+fn change(amount: Int) -> [Coin] {
+    var left = amount;
+    var out: [Coin] = listNew();
+    for c in [Quarter, Dime, Nickel] {
+        while left >= value(c) { push(out, c); left = left - value(c); }
+    }
+    out
+}
+
+fn coinName(c: Coin) -> Str {
+    match c { Nickel -> "N", Dime -> "D", Quarter -> "Q" }
+}
+
+fn describeCoins(cs: [Coin]) -> Str {
+    match cs {
+        [] -> "nothing",
+        [c] -> "one " ++ coinName(c),
+        [a, b] -> "two: " ++ coinName(a) ++ coinName(b),
+        [a, ..rest] -> coinName(a) ++ " and " ++ showInt(listLen(rest)) ++ " more",
+    }
+}
+
+fn run(cmds: [Cmd], items: [Item], stock: #[Str: Int]) -> [Str] {
+    var log: [Str] = listNew();
+    var st = Idle;
+    for cmd in cmds {
+        let next = match (st, cmd) {
+            (Idle, Insert(c)) -> Paying(value(c)),
+            (Paying(n), Insert(c)) when n + value(c) > 100 -> {
+                push(log, "rejected " ++ coinName(c));
+                Paying(n)
+            }
+            (Paying(n), Insert(c)) -> Paying(n + value(c)),
+            (Paying(n), Refund) -> {
+                push(log, "refund " ++ describeCoins(change(n)));
+                Idle
+            }
+            (Idle, Refund) -> { push(log, "nothing to refund"); Idle }
+            (s, Restock(name, k)) -> {
+                stock[name] = mapGetOr(stock, name, 0) + k;
+                push(log, fmt("restocked {} to {}", [name, showInt(stock[name])]));
+                s
+            }
+            (Idle, Select(name)) -> { push(log, "insert coins first"); Idle }
+            (Paying(n), Select(name)) -> match listFind(items, |it| it.name == name) {
+                None -> { push(log, "unknown " ++ quoteStr(name)); Paying(n) }
+                Some(Item.{ price, .. }) when mapGetOr(stock, name, 0) == 0 -> {
+                    push(log, name ++ " sold out (" ++ showInt(price) ++ ")");
+                    Paying(n)
+                }
+                Some(it) when it.price > n -> {
+                    push(log, fmt("need {} more for {}", [showInt(it.price - n), name]));
+                    Paying(n)
+                }
+                Some(Item.{ name: nm, price: p }) -> {
+                    stock[nm] = stock[nm] - 1;
+                    push(log, fmt("vend {}, change {}", [nm, describeCoins(change(n - p))]));
+                    Idle
+                }
+            },
+        };
+        st = next;
+    }
+    push(log, match st { Idle -> "end idle", Paying(n) -> "end holding " ++ showInt(n) });
+    log
+}
+
+fn main() {
+    let items = [Item.{ name: "cola", price: 65 }, Item.{ name: "chips", price: 40 }, Item.{ price: 15, name: "gum" }];
+    var stock = #["cola": 1, "chips": 0, "gum": 5];
+    let cmds = [
+        Refund, Select("cola"), Insert(Quarter), Insert(Quarter), Select("cola"),
+        Insert(Dime), Insert(Nickel), Select("cola"), Insert(Quarter), Insert(Quarter),
+        Insert(Quarter), Select("cola"), Select("chips"), Restock("chips", 2), Select("chips"),
+        Insert(Quarter), Insert(Quarter), Insert(Quarter), Insert(Quarter), Insert(Quarter),
+        Select("tea"), Select("gum"), Insert(Dime), Refund, Insert(Nickel),
+    ];
+    for line in run(cmds, items, stock) { print(line); }
+    print(strJoin(listMap(pairsOf(stock), |p| fst(p) ++ ":" ++ showInt(snd(p))), " "));
+    print(describeCoins(change(95)) ++ " / " ++ describeCoins(change(35)) ++ " / " ++ describeCoins(change(0)) ++ " / " ++ describeCoins(change(10)));
+}

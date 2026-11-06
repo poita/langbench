@@ -1,0 +1,5 @@
+@module main
+trait Name { fn name(self) -> Str; }
+enum Two<A> { One(A), Zero }
+impl<A, B> Name for Two<A> { fn name(self) -> Str { "two" } }
+fn main() { let z: Two<Int> = Zero; print(z.name()); }

@@ -1,0 +1,403 @@
+begin
+get "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+delete "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00021xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:17,name:"n02",nest:{deep:1}}
+scan from "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys limit 0 to "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" reverse
+find age != 8 and tag > 33 limit 2
+update "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" tag {age:31,name:"n15",nest:{deep:2}}
+put "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:1,tag:{z:1}}
+update "k00019xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age {age:8,name:"n08",tag:[1,2]}
+unset "k00023xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age
+put "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 0
+delete "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00021xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00021xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+get "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:36,name:"n10",nest:{deep:7}}
+put "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:15,name:"n27",nest:{deep:9}}
+delete "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:28,name:"n02",nest:{deep:4}}
+put "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "ssssss"
+commit
+put "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:18,name:"n28"}
+put "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:27,name:"n18",tag:null}
+put "k00005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:11,name:"n22"}
+put "k00016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:37,name:"n19",nest:{deep:1}}
+delete "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+find age < [1,2] limit 1
+put "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" null
+put "k00023xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:25,name:"n27"}
+update "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" tag [1,2,3,4,5,6,7,8,9,10,11,12]
+delete "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+find exists tag or name > false limit 2
+put "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
+find tag <= 36 limit 1
+begin
+delete "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5]
+scan from "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" reverse to "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys limit 2
+put "k00022xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+put "k00023xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26]
+delete "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+unset "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" nest.deep
+delete "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+scan to "k00010xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys limit 1 from "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "sssss"
+put "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:13,name:"n27"}
+put "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+put "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+put "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:6,tag:7,nest:{deep:6}}
+put "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+scan to "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 0 keys
+put "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -10
+create index name
+put "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" true
+delete "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+unset "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" nest.deep
+put "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "ssssssssssss"
+indexes
+update "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name -675
+delete "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+update "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age false
+put "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:17,name:"n03",nest:{deep:8}}
+scan from "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" reverse limit 1
+put "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+scan keys limit 1 reverse
+delete "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+scan keys from "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 0
+put "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+put "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+put "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+delete "k00022xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+unset "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name
+put "k00031xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6]
+put "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:35,name:"n21",tag:[1,2]}
+get "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+delete "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:40,nest:{deep:5}}
+put "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+put "k00016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:18,name:"n27"}
+stat
+find not(tag > [1,2] and age > 11) limit 1
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:35,name:"n24",nest:{deep:4}}
+put "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+put "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:8,name:"n25"}
+delete "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+find name == null limit 0
+put "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+checkpoint
+put "k00005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 0
+put "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" ""
+unset "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age
+update "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" nest.deep [1,2,3,4,5,6,7,8]
+update "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]
+put "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:28}
+get "k00028xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00022xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+scan reverse to "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 2 from "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+checkpoint
+scan limit 0 keys to "k00002xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" from "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+drop index age
+checkpoint
+checkpoint
+put "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11]
+delete "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+find exists nest.deep or not(name < false and age > 2) limit 2
+update "k00023xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age {age:8,name:"n30"}
+delete "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:37,name:"n26"}
+stat
+delete "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+update "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+put "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+commit
+delete "k00031xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+put "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26]
+scan limit 4 reverse
+put "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -752
+begin
+delete "k00019xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+get "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9]
+delete "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10]
+scan keys limit 0
+stat
+delete "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+find exists nest.deep or name != 0 and age <= 27 limit 0
+put "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+find not(age != true) limit 2
+put "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13]
+unset "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age
+commit
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13]
+delete "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00019xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+checkpoint
+delete "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+scan keys limit 2 from "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" reverse
+put "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:30,name:"n21"}
+find name > {z:1} and name > 15 limit 2
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5]
+unset "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age
+indexes
+scan reverse keys to "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 1
+put "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:13,name:"n25"}
+scan limit 0 keys from "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00022xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:27,tag:[1,2],nest:{deep:0}}
+scan keys limit 1
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7]
+put "k00022xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {name:"n27",tag:[1,2]}
+put "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:33,nest:{deep:4}}
+update "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+unset "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age
+delete "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+checkpoint
+indexes
+scan keys from "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 3
+put "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:11,name:"n11"}
+delete "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+indexes
+delete "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00022xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+put "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+put "k00027xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {name:"n12"}
+update "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age [1,2,3,4,5,6,7,8,9]
+put "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13]
+put "k00028xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+drop index nest.deep
+create index name
+delete "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:33,name:"n01"}
+put "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:4,name:"n26"}
+delete "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00010xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+update "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name {age:9,name:"n25",tag:false}
+delete "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00010xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:26,name:"n28",tag:"t"}
+indexes
+put "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:34,name:"n20",nest:{deep:6}}
+put "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {name:"n25",tag:{z:1},nest:{deep:9}}
+put "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:39,name:"n16",tag:7,nest:{deep:5}}
+stat
+delete "k00021xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+begin
+delete "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:24,name:"n26",nest:{deep:0}}
+put "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10]
+create index age
+put "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12]
+update "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" tag 189
+create index nest.deep
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+scan limit 0 from "k00010xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys reverse
+put "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+put "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+put "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23]
+put "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:20,name:"n08"}
+put "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:21,name:"n01",tag:"t",nest:{deep:8}}
+update "k00010xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age false
+find tag < {z:1} and tag <= 22 limit 2
+update "k00005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+delete "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+indexes
+rollback
+put "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {tag:[1,2]}
+put "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+put "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+update "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name [1,2,3,4,5,6,7,8,9]
+put "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+update "k00024xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name [1,2,3,4,5,6,7]
+scan from "k00031xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys limit 4
+delete "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+begin
+update "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+put "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+delete "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+find name >= true limit 2
+commit
+put "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {name:"n15"}
+update "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" nest.deep "sss"
+unset "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age
+delete "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]
+unset "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name
+begin
+unset "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age
+indexes
+delete "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+indexes
+put "k00005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+delete "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+find nest.deep == {z:1} and tag == 0 limit 2
+unset "k00024xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" tag
+put "k00002xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "ss"
+get "k00021xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:1,name:"n19",tag:null}
+stat
+scan keys limit 4 to "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+get "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+put "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+delete "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+find nest.deep < true and nest.deep == 8 limit 1
+delete "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]
+get "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+stat
+put "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:15,name:"n17",tag:[1,2]}
+delete "k00005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+create index age
+delete "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" null
+update "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" nest.deep {age:9,name:"n16",tag:{z:1},nest:{deep:1}}
+indexes
+put "k00019xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10]
+put "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+delete "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+create index tag
+put "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 9223372036854775807
+put "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+scan to "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" from "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 0 reverse keys
+put "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:17,name:"n30",tag:true}
+drop index name
+put "k00016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12]
+delete "k00002xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+create index name
+put "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:4,name:"n30",tag:{z:1}}
+delete "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00034xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+get "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:13,name:"n30",tag:true}
+delete "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+scan to "k00010xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys limit 1
+update "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name {age:3}
+indexes
+put "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:36,name:"n14"}
+put "k00005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:32,name:"n15",tag:7}
+delete "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:6,name:"n24"}
+put "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24]
+delete "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+scan keys from "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 1 reverse
+put "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+checkpoint
+put "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+scan limit 0 keys
+delete "k00010xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+update "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" tag {age:13,name:"n11"}
+update "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30]
+put "k00028xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:37,name:"n23",tag:[1,2],nest:{deep:8}}
+put "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:7,name:"n06"}
+indexes
+put "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:35,name:"n19",tag:[1,2],nest:{deep:2}}
+get "k00002xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+checkpoint
+put "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]
+delete "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "sssssssssss"
+put "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:28}
+put "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 9223372036854775807
+put "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+get "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+scan keys limit 0 to "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:5,name:"n23"}
+scan limit 2 from "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys
+scan keys from "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" limit 2
+put "k00027xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+put "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:18,name:"n25"}
+find exists name or age > false limit 0
+put "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+drop index name
+update "k00019xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+delete "k00022xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+update "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" nest.deep {age:27,name:"n16"}
+stat
+put "k00021xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:25,name:"n25",tag:null}
+delete "k00026xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "sssssss"
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" false
+stat
+put "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:33,name:"n04",tag:[1,2]}
+indexes
+put "k00023xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:17,name:"n07"}
+update "k00016xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age false
+update "k00031xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" tag [1,2,3,4,5,6,7,8,9,10,11,12]
+put "k00027xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:36}
+put "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:40,name:"n15"}
+scan limit 1 reverse from "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" keys
+delete "k00027xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+find exists tag or nest.deep <= 19 and nest.deep <= 21 limit 0
+delete "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00028xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:26,tag:true,nest:{deep:3}}
+put "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:12,name:"n22",tag:"t",nest:{deep:1}}
+create index nest.deep
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" -9223372036854775808
+put "k00031xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" true
+put "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26]
+put "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "sssssssss"
+unset "k00029xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" nest.deep
+put "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11]
+put "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+find nest.deep == 6 limit 2
+update "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+update "k00002xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+update "k00018xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]
+indexes
+commit
+unset "k00031xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" name
+scan reverse limit 3 keys to "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+create index age
+update "k00019xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age {age:39,name:"n20",tag:"t",nest:{deep:0}}
+put "k00020xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9]
+create index tag
+put "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:38,name:"n01",nest:{deep:2}}
+delete "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+indexes
+delete "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+update "k00032xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" tag {name:"n29",tag:"t"}
+delete "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+delete "k00023xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+update "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" age {age:3,name:"n10",tag:"t",nest:{deep:4}}
+put "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:31,name:"n04",tag:null}
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:38,name:"n18"}
+put "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" 558
+put "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" {age:39,name:"n09"}
+delete "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+put "k00033xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" "sssssssss"
+put "k00021xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+begin
+get "k00012xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+checkpoint
+stat
+indexes
+scan keys limit 5

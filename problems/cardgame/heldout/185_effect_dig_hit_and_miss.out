@@ -1,0 +1,168 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #11 CIN-034
+9 PAY A ember 3
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 ARRIVE #11 CIN-034
+VAULT BEGIN
+vault A 1 #1 CIN-001
+vault A 2 #2 CIN-001
+vault A 3 #3 CIN-001
+vault A 4 #4 CIN-003
+vault A 5 #5 CIN-002
+vault A 6 #6 CIN-002
+vault A 7 #7 CIN-002
+vault A 8 #8 CIN-002
+vault A 9 #9 CIN-002
+vault A 10 #10 CIN-002
+vault B 1 #13 CIN-003
+vault B 2 #14 CIN-003
+vault B 3 #15 CIN-003
+vault B 4 #16 TID-007
+vault B 5 #17 TID-007
+vault B 6 #18 TID-007
+vault B 7 #19 TID-007
+vault B 8 #20 TID-007
+VAULT END
+14 PASS A
+15 PASS B
+16 PHASE clash-attack
+17 PHASE main2
+18 PASS A
+19 PASS B
+20 PHASE dusk-trigger
+21 TRIGGER A ~2 #12 1
+22 PASS A
+23 PASS B
+24 RESOLVE ~2
+25 DIG A #1 CIN-001
+26 BOTTOM A #2 CIN-001
+27 PASS A
+28 PASS B
+29 PHASE dusk-discard
+30 PHASE dusk-cleanup
+31 TURN 2 B
+32 PHASE dawn
+33 EMBER A 51 51
+34 EMBER B 51 51
+35 PHASE draw
+36 DRAW B #13 CIN-003
+37 PHASE main1
+VAULT BEGIN
+vault A 1 #3 CIN-001
+vault A 2 #4 CIN-003
+vault A 3 #5 CIN-002
+vault A 4 #6 CIN-002
+vault A 5 #7 CIN-002
+vault A 6 #8 CIN-002
+vault A 7 #9 CIN-002
+vault A 8 #10 CIN-002
+vault A 9 #2 CIN-001
+vault B 1 #14 CIN-003
+vault B 2 #15 CIN-003
+vault B 3 #16 TID-007
+vault B 4 #17 TID-007
+vault B 5 #18 TID-007
+vault B 6 #19 TID-007
+vault B 7 #20 TID-007
+VAULT END
+38 PLAY B ~3 #21 NEU-022
+39 PAY B ember 2
+40 PASS B
+41 PASS A
+42 RESOLVE ~3
+43 DIG-MISS B
+44 BOTTOM B #14 CIN-003
+45 BOTTOM B #15 CIN-003
+46 BOTTOM B #16 TID-007
+47 BOTTOM B #17 TID-007
+48 SPENT #21 NEU-022
+VAULT BEGIN
+vault A 1 #3 CIN-001
+vault A 2 #4 CIN-003
+vault A 3 #5 CIN-002
+vault A 4 #6 CIN-002
+vault A 5 #7 CIN-002
+vault A 6 #8 CIN-002
+vault A 7 #9 CIN-002
+vault A 8 #10 CIN-002
+vault A 9 #2 CIN-001
+vault B 1 #18 TID-007
+vault B 2 #19 TID-007
+vault B 3 #20 TID-007
+vault B 4 #14 CIN-003
+vault B 5 #15 CIN-003
+vault B 6 #16 TID-007
+vault B 7 #17 TID-007
+VAULT END
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 40 ember 51 cap 51 vault 9 hand 1 ash 0 rift 0
+player B spire 40 ember 49 cap 51 vault 7 hand 2 ash 1 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #22 NEU-022
+hand B 2 #13 CIN-003
+field A #12 TID-021 3/3 w0 c0 ready - kw -
+field A #11 CIN-034 2/3 w0 c0 ready - kw -
+ash B 1 #21 NEU-022
+STATE END
+49 PASS B
+50 PASS A
+51 PHASE clash-attack
+52 PHASE main2
+53 PASS B
+54 PASS A
+55 PHASE dusk-trigger
+56 PASS B
+57 PASS A
+58 PHASE dusk-discard
+59 PHASE dusk-cleanup
+60 TURN 3 A
+61 PHASE dawn
+62 EMBER A 52 52
+63 EMBER B 51 51
+64 TRIGGER A ~4 #11 1
+65 RESOLVE ~4
+66 DIG A #4 CIN-003
+67 BOTTOM A #3 CIN-001
+68 BOTTOM A #5 CIN-002
+69 PHASE draw
+70 DRAW A #6 CIN-002
+71 PHASE main1
+VAULT BEGIN
+vault A 1 #7 CIN-002
+vault A 2 #8 CIN-002
+vault A 3 #9 CIN-002
+vault A 4 #10 CIN-002
+vault A 5 #2 CIN-001
+vault A 6 #3 CIN-001
+vault A 7 #5 CIN-002
+vault B 1 #18 TID-007
+vault B 2 #19 TID-007
+vault B 3 #20 TID-007
+vault B 4 #14 CIN-003
+vault B 5 #15 CIN-003
+vault B 6 #16 TID-007
+vault B 7 #17 TID-007
+VAULT END
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 40 ember 52 cap 52 vault 7 hand 3 ash 0 rift 0
+player B spire 40 ember 51 cap 51 vault 7 hand 2 ash 1 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #4 CIN-003
+hand A 3 #6 CIN-002
+hand B 1 #22 NEU-022
+hand B 2 #13 CIN-003
+field A #12 TID-021 3/3 w0 c0 ready - kw -
+field A #11 CIN-034 2/3 w0 c0 ready - kw -
+ash B 1 #21 NEU-022
+STATE END
+72 RESULT pending none

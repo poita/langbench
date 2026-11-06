@@ -1,0 +1,66 @@
+step 1: build (default) -j 2
+  run 0 3 w0 out/m0/f0.txt replace("a", "A")
+  run 0 4 w1 out/m1/f0.txt sort_lines()
+  run 3 7 w0 out/m0/bundle.txt concat()
+  run 4 6 w1 out/m1/bundle.txt count_lines()
+  run 6 9 w1 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 7 8 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 8 11 w0 out/m1/doc.txt preprocess()
+  run 9 11 w1 out/m2/f0.txt reverse_lines()
+  run 11 15 w0 out/m2/bundle.txt concat()
+  run 15 17 w0 out/m2/wrapped.txt wrap("<m2|", "|>\n")
+  run 17 20 w0 out/all.txt count_lines()
+  ok ran=11 hit=0 time=20
+step 2: touch src/m1/f0.txt
+  ok
+step 3: build @m0 -j 1
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  ok ran=0 hit=3 time=0
+step 4: create src/m0/new0.txt
+  ok size=20
+step 5: build @m1 -j 8
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/bundle.txt
+  hit 0 out/m1/wrapped.txt
+  hit 0 out/m1/doc.txt
+  ok ran=0 hit=4 time=0
+step 6: edit src/m0/new0.txt
+  ok size=16
+step 7: build (default) -j 16
+  hit 0 out/m0/f0.txt
+  run 0 2 w0 out/m0/new0.txt upper()
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/bundle.txt
+  hit 0 out/m1/wrapped.txt
+  hit 0 out/m1/doc.txt
+  hit 0 out/m2/f0.txt
+  hit 0 out/m2/bundle.txt
+  hit 0 out/m2/wrapped.txt
+  run 2 6 w0 out/m0/bundle.txt concat()
+  run 6 7 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 7 10 w0 out/all.txt count_lines()
+  ok ran=4 hit=8 time=10
+step 8: clean
+  remove .kiln-state
+  remove out/all.txt
+  remove out/m0/bundle.txt
+  remove out/m0/f0.txt
+  remove out/m0/new0.txt
+  remove out/m0/wrapped.txt
+  remove out/m1/bundle.txt
+  remove out/m1/doc.d
+  remove out/m1/doc.txt
+  remove out/m1/f0.txt
+  remove out/m1/wrapped.txt
+  remove out/m2/bundle.txt
+  remove out/m2/f0.txt
+  remove out/m2/wrapped.txt
+  ok removed=14
+step 9: build @m0 -j 3
+  run 0 3 w0 out/m0/f0.txt replace("a", "A")
+  run 0 2 w1 out/m0/new0.txt upper()
+  run 3 7 w0 out/m0/bundle.txt concat()
+  run 7 8 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  ok ran=4 hit=0 time=8

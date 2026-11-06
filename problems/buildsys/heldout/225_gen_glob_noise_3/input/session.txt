@@ -1,0 +1,21 @@
+build
+edit src/m2/f2.txt
+a-b+c
+---
+build out/all.txt
+touch main.kiln
+build @m0 -j 4
+edit src/m0/sub/g3.txt
+delta
+cedar
+---
+build -j 8
+touch src/m0/f1.txt
+build @m0 -j 64
+edit src/m1/f1.txt
+the end
+Ünicode
+elm
+gamma
+---
+build @m1

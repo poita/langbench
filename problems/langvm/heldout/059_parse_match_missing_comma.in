@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    match 1 {
+        1 -> print("one")
+        _ -> print("other"),
+    }
+}

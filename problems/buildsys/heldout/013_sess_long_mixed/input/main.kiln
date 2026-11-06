@@ -1,0 +1,7 @@
+let srcs = sort(glob("src/*.txt"))
+step {
+    out "out/all.txt"
+    in srcs
+    cmd concat()
+}
+default "out/all.txt"

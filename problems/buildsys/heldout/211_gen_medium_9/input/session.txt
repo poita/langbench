@@ -1,0 +1,15 @@
+build
+edit src/m1/sub/g7.txt
+---
+build -j 3
+touch src/m9/f1.txt
+build @m6 -j 16
+touch src/m9/sub/g7.txt
+build -j 64
+edit src/m2/sub/g11.txt
+kappa
+beta
+Ünicode
+delta
+---
+build -j 16

@@ -1,0 +1,14 @@
+build -j 8
+edit src/m1/f0.txt
+ilex
+ilex
+---
+build -j 4
+edit src/m0/f0.txt
+birch
+---
+build -j 2
+create src/m0/new0.txt
+ilex
+---
+build out/all.txt -j 8

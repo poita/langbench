@@ -1,0 +1,141 @@
+[1] ok stat
+  pages 1
+  free 0
+  freehead 0
+  docs 0
+  root 0
+  height 0
+  commits 0
+  indexes 0
+  wal 32
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok stat
+  pages 5
+  free 0
+  freehead 0
+  docs 6
+  root 4
+  height 2
+  commits 6
+  indexes 0
+  wal 16944
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok stat
+  pages 8
+  free 0
+  freehead 0
+  docs 12
+  root 4
+  height 2
+  commits 12
+  indexes 0
+  wal 35952
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok put created
+[21] ok put created
+[22] ok stat
+  pages 13
+  free 0
+  freehead 0
+  docs 18
+  root 13
+  height 3
+  commits 18
+  indexes 0
+  wal 57056
+[23] ok put created
+[24] ok put created
+[25] ok put created
+[26] ok put created
+[27] ok put created
+[28] ok put created
+[29] ok stat
+  pages 16
+  free 0
+  freehead 0
+  docs 24
+  root 13
+  height 3
+  commits 24
+  indexes 0
+  wal 76064
+[30] ok put created
+[31] ok put created
+[32] ok put created
+[33] ok put created
+[34] ok put created
+[35] ok put created
+[36] ok stat
+  pages 20
+  free 0
+  freehead 0
+  docs 30
+  root 13
+  height 3
+  commits 30
+  indexes 0
+  wal 97168
+[37] ok put created
+[38] ok put created
+[39] ok put created
+[40] ok put created
+[41] ok put created
+[42] ok put created
+[43] ok stat
+  pages 24
+  free 0
+  freehead 0
+  docs 36
+  root 13
+  height 3
+  commits 36
+  indexes 0
+  wal 118272
+[44] ok put created
+[45] ok put created
+[46] ok put created
+[47] ok put created
+[48] ok put created
+[49] ok put created
+[50] ok stat
+  pages 28
+  free 0
+  freehead 0
+  docs 42
+  root 13
+  height 3
+  commits 42
+  indexes 0
+  wal 139376
+[51] ok put created
+[52] ok put created
+[53] ok put created
+[54] ok put created
+[55] ok put created
+[56] ok put created
+[57] ok stat
+  pages 31
+  free 0
+  freehead 0
+  docs 48
+  root 13
+  height 3
+  commits 48
+  indexes 0
+  wal 158384
+[58] ok scan 2
+  "k000000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k000001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

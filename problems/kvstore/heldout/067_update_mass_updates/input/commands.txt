@@ -1,0 +1,70 @@
+put "k00" {v:0}
+put "k01" {v:1}
+put "k02" {v:2}
+put "k03" {v:3}
+put "k04" {v:4}
+put "k05" {v:5}
+put "k06" {v:6}
+put "k07" {v:7}
+put "k08" {v:8}
+put "k09" {v:9}
+put "k10" {v:10}
+put "k11" {v:11}
+put "k12" {v:12}
+put "k13" {v:13}
+put "k14" {v:14}
+put "k15" {v:15}
+put "k16" {v:16}
+put "k17" {v:17}
+put "k18" {v:18}
+put "k19" {v:19}
+put "k20" {v:20}
+put "k21" {v:21}
+put "k22" {v:22}
+put "k23" {v:23}
+put "k24" {v:24}
+update "k00" v 0
+update "k01" v 100
+update "k02" v 200
+update "k03" v 300
+update "k04" v 400
+update "k05" v 500
+update "k06" v 600
+update "k07" v 700
+update "k08" v 800
+update "k09" v 900
+update "k10" v 1000
+update "k11" v 1100
+update "k12" v 1200
+update "k13" v 1300
+update "k14" v 1400
+update "k15" v 1500
+update "k16" v 1600
+update "k17" v 1700
+update "k18" v 1800
+update "k19" v 1900
+update "k20" v 2000
+update "k21" v 2100
+update "k22" v 2200
+update "k23" v 2300
+update "k24" v 2400
+update "k00" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k03" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k06" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k09" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k12" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k15" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k18" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k21" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+update "k24" extra [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]
+unset "k00" extra
+unset "k03" extra
+unset "k06" extra
+unset "k09" extra
+unset "k12" extra
+unset "k15" extra
+unset "k18" extra
+unset "k21" extra
+unset "k24" extra
+scan limit 4
+stat

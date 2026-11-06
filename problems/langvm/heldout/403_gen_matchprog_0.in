@@ -1,0 +1,129 @@
+@module main
+enum Color { Red, Green, Blue }
+enum Shape { Dot, Seg(Int), Box(Int, Int), Tagged(Color, Shape) }
+fn dc(c: Color) -> Str { match c { Red -> "R", Green -> "G", Blue -> "B" } }
+fn ds(s: Shape) -> Str {
+    match s {
+        Dot -> ".",
+        Seg(n) -> "S" ++ showInt(n),
+        Box(a, b) -> "B" ++ showInt(a) ++ "x" ++ showInt(b),
+        Tagged(c, t) -> dc(c) ++ "<" ++ ds(t) ++ ">",
+    }
+}
+fn dopt(o: Option<Shape>) -> Str { match o { Some(s) -> "?" ++ ds(s), None -> "-" } }
+fn dl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), " ") ++ "]" }
+fn g0(x0: Option<Shape>) -> Str {
+    match x0 {
+        None -> "0",
+        Some(Dot) -> "1",
+        Some(Box(p0, 0)) -> "2:" ++ showInt(p0),
+        _ -> "other",
+    }
+}
+fn g1(x0: [Int]) -> Str {
+    match x0 {
+        [..] -> "0",
+    }
+}
+fn g2(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([1, -1, ..rest0], false) -> "0:" ++ dl(rest0),
+        ([..], true) -> "1",
+        _ -> "other",
+    }
+}
+fn g3(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([2, ..], false) -> "0",
+        ([], true) -> "1",
+        ([_, 0, ..rest0], false) -> "2:" ++ dl(rest0),
+        (p0, true) -> "3:" ++ dl(p0),
+        _ -> "other",
+    }
+}
+fn g4(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        (_, true) -> "0",
+        ([..], _) -> "1",
+    }
+}
+fn g5(x0: [Int]) -> Str {
+    match x0 {
+        [0] -> "0",
+        [-2] -> "1",
+        _ -> "2",
+    }
+}
+fn g6(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([], p0) -> "0:" ++ showBool(p0),
+        (p0, false) -> "1:" ++ dl(p0),
+        _ -> "other",
+    }
+}
+fn g7(x0: Color, x1: Bool) -> Str {
+    match (x0, x1) {
+        (Blue, true) -> "0",
+        (Green, true) -> "1",
+        (Red, false) -> "2",
+        (_, _) -> "3",
+    }
+}
+fn main() {
+    emit(g0(Some(Dot)) ++ " ");
+    emit(g0(Some(Dot)) ++ " ");
+    emit(g0(None) ++ " ");
+    emit(g0(Some(Seg(-3))) ++ " ");
+    emit(g0(None) ++ " ");
+    emit(g0(Some(Tagged(Red, Box(-1, 0)))) ++ " ");
+    print("");
+    emit(g1([]) ++ " ");
+    emit(g1([-1, 3, 0, -1]) ++ " ");
+    emit(g1([]) ++ " ");
+    emit(g1([3, -3, 0]) ++ " ");
+    emit(g1([-3]) ++ " ");
+    emit(g1([1, 1, 2, 1]) ++ " ");
+    print("");
+    emit(g2([2], false) ++ " ");
+    emit(g2([2, -2, 0], true) ++ " ");
+    emit(g2([-3, 3], true) ++ " ");
+    emit(g2([-2, 1], true) ++ " ");
+    emit(g2([-3, -3, 1], true) ++ " ");
+    emit(g2([2, 0, -2, -1], true) ++ " ");
+    print("");
+    emit(g3([1, -1, 3, 1], false) ++ " ");
+    emit(g3([-2, -2, -2], true) ++ " ");
+    emit(g3([-1], true) ++ " ");
+    emit(g3([], true) ++ " ");
+    emit(g3([], true) ++ " ");
+    emit(g3([0, 3], false) ++ " ");
+    print("");
+    emit(g4([1, 0, 2], false) ++ " ");
+    emit(g4([], true) ++ " ");
+    emit(g4([-1, 1, -3, -1], false) ++ " ");
+    emit(g4([0, 1, 2], false) ++ " ");
+    emit(g4([1], true) ++ " ");
+    emit(g4([0], false) ++ " ");
+    print("");
+    emit(g5([-3, 1, 3]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([1]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([3]) ++ " ");
+    print("");
+    emit(g6([1, -2], true) ++ " ");
+    emit(g6([3], true) ++ " ");
+    emit(g6([-2, -1, -1, 3], false) ++ " ");
+    emit(g6([0, -3], false) ++ " ");
+    emit(g6([0, 2], false) ++ " ");
+    emit(g6([-1, -1], false) ++ " ");
+    print("");
+    emit(g7(Blue, true) ++ " ");
+    emit(g7(Blue, true) ++ " ");
+    emit(g7(Blue, false) ++ " ");
+    emit(g7(Blue, true) ++ " ");
+    emit(g7(Green, true) ++ " ");
+    emit(g7(Green, true) ++ " ");
+    print("");
+}

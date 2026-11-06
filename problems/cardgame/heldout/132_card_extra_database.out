@@ -1,0 +1,288 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN EXT-001
+name Chalk Figure
+type unit
+cost 0
+body 1/1
+tags ext,mote
+keywords -
+CARD END
+CARD BEGIN EXT-002
+name Relic Breaker
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve (targets (relic (enemy))) (destroy (t 1))
+CARD END
+CARD BEGIN EXT-003
+name Dust Wind
+type rite
+cost 1
+tags ext
+keywords swift
+ability 1 resolve - (damage 2 (relics all)) (damage 1 (units all))
+CARD END
+CARD BEGIN EXT-004
+name Reliquary Rite
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve - (each (relics yours) (counters 1 that)) (ward 2 (relics yours))
+CARD END
+CARD BEGIN EXT-005
+name Vault Purge
+type rite
+cost 3
+tags ext
+keywords -
+ability 1 resolve - (exile (cards vault yours (type unit)))
+CARD END
+CARD BEGIN EXT-006
+name Hand Count
+type rite
+cost 1
+tags ext
+keywords -
+ability 1 resolve - (damage (count (cards hand theirs)) foe)
+CARD END
+CARD BEGIN EXT-007
+name Rift Lens
+type relic
+cost 2
+tags ext
+keywords -
+ability 1 aura (modify (count (cards rift all)) 0 (units yours))
+CARD END
+CARD BEGIN EXT-008
+name Chronicle Keeper
+type unit
+cost 3
+body 2/3
+tags ext,cleric
+keywords -
+ability 1 on arrive - (draw 1 you)
+ability 2 act (cost (ember 1) (exhaust)) (targets (relic)) (counters 1 (t 1))
+ability 3 aura (grant vanguard (units yours (tag ext)))
+CARD END
+CARD BEGIN EXT-009
+name Grave Return
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve - (recall (cards ash theirs (type unit)))
+CARD END
+CARD BEGIN EXT-010
+name Twin Reliquaries
+type relic
+cost 3
+tags ext
+keywords -
+ability 1 aura (when (count (relics yours) ge 2) (modify 2 2 (units yours)))
+CARD END
+CARD BEGIN EXT-011
+name Counter Wright
+type unit
+cost 2
+body 1/4
+tags ext,construct
+keywords plating:1
+ability 1 on your-turn-start - (counters 2 self)
+ability 2 act (cost (counters 2)) (targets (relic)) (ward 3 (t 1))
+CARD END
+CARD BEGIN EXT-012
+name Relic Tide
+type rite
+cost 1
+tags ext
+keywords swift
+ability 1 resolve (targets (relic)) (bounce (t 1))
+CARD END
+CARD BEGIN EXT-013
+name Figure Caller
+type unit
+cost 3
+body 2/2
+tags ext,mage
+keywords -
+ability 1 on arrive - (summon EXT-001 2 both)
+CARD END
+CARD BEGIN EXT-014
+name Shared Spoils
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve - (conjure EXT-001 2 both)
+CARD END
+CARD BEGIN EXT-015
+name Ext Bazaar
+type relic
+cost 2
+tags ext
+keywords -
+ability 1 aura (cheaper 2 (tag ext) (cost ge 3))
+CARD END
+CARD BEGIN EXT-016
+name Shared Search
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve - (dig 2 ((tag ext)) both)
+CARD END
+CARD BEGIN EXT-017
+name Deep Ledger
+type rite
+cost 3
+tags ext
+keywords -
+ability 1 resolve - (mill 2 both) (spire (count (cards ash all)) you)
+CARD END
+CARD BEGIN EXT-018
+name Rift Warden
+type unit
+cost 4
+body 3/4
+tags ext,construct
+keywords provoke,tenacity
+ability 1 on dies - (exile (cards hand yours))
+ability 2 aura (when (count (cards rift yours) ge 2) (grant venom (units yours)))
+CARD END
+CARD BEGIN EXT-019
+name Lingering Ember
+type rite
+cost 1
+tags ext
+keywords swift
+ability 1 resolve (targets (unit)) (modify 2 0 (t 1)) (delay end-of-combat (damage 1 (t 1))) (delay your-next-turn-start (draw 1 you) (counters 1 (t 1)))
+CARD END
+CARD BEGIN EXT-020
+name Sorting Wind
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve - (destroy (units all (wounded))) (exhaust (units theirs (ready))) (ready (units yours (exhausted)))
+CARD END
+CARD BEGIN EXT-021
+name Combat Sense
+type rite
+cost 1
+tags ext
+keywords swift
+ability 1 resolve - (modify 1 0 (units all (attacking))) (modify 0 1 (units all (blocking))) (damage 1 (units all (settling)))
+CARD END
+CARD BEGIN EXT-022
+name Keyword Sieve
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve - (bounce (units all (kw vanguard))) (counters 1 (units all (no-kw vanguard) (not (kw plating)))) (exile (units all (kw plating) (not (mine))))
+CARD END
+CARD BEGIN EXT-023
+name Measured Strike
+type rite
+cost 2
+tags ext
+keywords -
+ability 1 resolve (targets (any (core le 3))) (damage (core (units yours)) (t 1)) (repeat (count (units yours (edge lt 2))) (draw 1 you))
+CARD END
+CARD BEGIN EXT-024
+name Balance Check
+type rite
+cost 1
+tags ext
+keywords swift
+ability 1 resolve - (if (or (ember you ge 3) (spire foe lt 10)) ((ember 1 you)) ((cap 2 both))) (if (and (vault both gt 5) (not (ash you eq 0))) ((mill 1 both)))
+CARD END
+CARD BEGIN EXT-025
+name Wound Reader
+type unit
+cost 2
+body 2/4
+tags ext,mage
+keywords -
+ability 1 on damaged - (if (count (units yours (wounded)) ge 2) ((ward (wounds self) self)))
+ability 2 on deals-damage - (counters 1 it)
+CARD END
+CARD BEGIN EXT-026
+name Distortion Idol
+type relic
+cost 3
+tags ext
+keywords -
+ability 1 aura (setbody 2 2 (units theirs (no-kw vanguard) (edge le 1)))
+ability 2 aura (swapstats (units yours (core gt 5)))
+CARD END
+CARD BEGIN EXT-027
+name Mirror Warden
+type unit
+cost 2
+body 1/1
+tags ext,construct
+keywords -
+ability 1 aura (modify 0 (core (units theirs)) self)
+ability 2 aura (when (count (units yours (core ge 3)) ge 2) (modify (edge (units theirs)) 0 self))
+CARD END
+CARD BEGIN EXT-028
+name Drain Rite
+type rite
+cost 1
+tags ext
+keywords -
+ability 1 resolve (targets (unit)) (counters -2 (t 1)) (spire (wounds (t 1)) both) (shield (vault foe) both)
+CARD END
+CARD BEGIN EXT-029
+name Blind Search
+type rite
+cost 1
+tags ext
+keywords -
+ability 1 resolve - (dig 0 ((type unit)) you) (dig 9 ((kw vanguard)) foe)
+CARD END
+CARD BEGIN EXT-030
+name Stray Spark
+type rite
+cost 1
+tags ext
+keywords swift
+ability 1 resolve - (damage 1 (random-unit all (no-kw plating))) (damage 1 (random-unit yours (kw tenacity)))
+CARD END
+CARD BEGIN EXT-031
+name Toll of Names
+type rite
+cost 1
+tags ext
+keywords -
+ability 1 resolve (targets (player)) (draw 1 (owner-of (t 1))) (discard 1 (t 1)) (spire -1 (owner-of (units all (kw provoke))))
+CARD END
+CARD BEGIN EXT-032
+name Quartermaster
+type unit
+cost 3
+body 2/3
+tags ext,soldier
+keywords vanguard
+ability 1 on your-turn-start - (counters 1 self)
+ability 2 act (cost (spire 1) (counters 1) (discard 1)) (targets (unit (other))) (counters 2 (t 1)) (ready self)
+CARD END
+CARD BEGIN EXT-033
+name Snare Hound
+type unit
+cost 2
+body 3/3
+tags ext,beast
+keywords -
+ability 1 on blocked - (damage 1 it)
+CARD END
+8 RESULT pending none

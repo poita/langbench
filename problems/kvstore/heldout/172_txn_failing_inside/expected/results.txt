@@ -1,0 +1,32 @@
+[1] ok begin
+[2] ok put created
+[3] error not-found
+[4] error bad-key
+[5] error unknown-command
+[6] error txn-active
+[7] error txn-active
+[8] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 0
+  indexes 0
+  wal 32
+[9] ok put created
+[10] ok commit 1 frames 2
+[11] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 1
+  indexes 0
+  wal 2152
+[12] ok scan 2
+  "a"
+  "b"

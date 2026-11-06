@@ -1,0 +1,27 @@
+put "u1" {name:"ada",age:36,ok:true}
+put "u2" {name:"bob",age:29,ok:false}
+put "u3" {name:"cy",age:36,ok:true}
+put "u4" {name:"dee",age:null}
+put "u5" {name:"eve",age:[1,2]}
+put "u6" {name:"fay",age:{x:1}}
+put "u7" {name:"gus"}
+put "u8" {name:"hal",age:-5}
+put "u9" {name:"ivy",age:"36"}
+create index age
+find age == 36
+find age != 36
+find age < 36
+find age <= 36
+find age > 36
+find age >= 36
+find age == null
+find age >= null
+find age < null
+find age == "36"
+find age < "36"
+find age > "36"
+find age == [1,2]
+find exists age
+find missing age
+indexes
+stat

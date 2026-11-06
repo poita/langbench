@@ -1,0 +1,132 @@
+step 1: build (default) -j 8
+  run 0 1 w0 out/r64.txt write("64\n")
+  run 0 1 w1 out/r63.txt write("63\n")
+  run 0 1 w2 out/r62.txt write("62\n")
+  run 0 1 w3 out/r61.txt write("61\n")
+  run 0 1 w4 out/r60.txt write("60\n")
+  run 0 1 w5 out/r59.txt write("59\n")
+  run 0 1 w6 out/r58.txt write("58\n")
+  run 0 1 w7 out/r57.txt write("57\n")
+  run 1 2 w0 out/r56.txt write("56\n")
+  run 1 2 w1 out/r55.txt write("55\n")
+  run 1 2 w2 out/r54.txt write("54\n")
+  run 1 2 w3 out/r53.txt write("53\n")
+  run 1 2 w4 out/r52.txt write("52\n")
+  run 1 2 w5 out/r51.txt write("51\n")
+  run 1 2 w6 out/r50.txt write("50\n")
+  run 1 2 w7 out/r49.txt write("49\n")
+  run 2 3 w0 out/r48.txt write("48\n")
+  run 2 3 w1 out/r47.txt write("47\n")
+  run 2 3 w2 out/r46.txt write("46\n")
+  run 2 3 w3 out/r45.txt write("45\n")
+  run 2 3 w4 out/r44.txt write("44\n")
+  run 2 3 w5 out/r43.txt write("43\n")
+  run 2 3 w6 out/r42.txt write("42\n")
+  run 2 3 w7 out/r41.txt write("41\n")
+  run 3 4 w0 out/r40.txt write("40\n")
+  run 3 4 w1 out/r39.txt write("39\n")
+  run 3 4 w2 out/r38.txt write("38\n")
+  run 3 4 w3 out/r37.txt write("37\n")
+  run 3 4 w4 out/r36.txt write("36\n")
+  run 3 4 w5 out/r35.txt write("35\n")
+  run 3 4 w6 out/r34.txt write("34\n")
+  run 3 4 w7 out/r33.txt write("33\n")
+  run 4 5 w0 out/r32.txt write("32\n")
+  run 4 5 w1 out/r31.txt write("31\n")
+  run 4 5 w2 out/r30.txt write("30\n")
+  run 4 5 w3 out/r29.txt write("29\n")
+  run 4 5 w4 out/r28.txt write("28\n")
+  run 4 5 w5 out/r27.txt write("27\n")
+  run 4 5 w6 out/r26.txt write("26\n")
+  run 4 5 w7 out/r25.txt write("25\n")
+  run 5 6 w0 out/r24.txt write("24\n")
+  run 5 6 w1 out/r23.txt write("23\n")
+  run 5 6 w2 out/r22.txt write("22\n")
+  run 5 6 w3 out/r21.txt write("21\n")
+  run 5 6 w4 out/r20.txt write("20\n")
+  run 5 6 w5 out/r19.txt write("19\n")
+  run 5 6 w6 out/r18.txt write("18\n")
+  run 5 6 w7 out/r17.txt write("17\n")
+  run 6 7 w0 out/r16.txt write("16\n")
+  run 6 7 w1 out/r15.txt write("15\n")
+  run 6 7 w2 out/r14.txt write("14\n")
+  run 6 7 w3 out/r13.txt write("13\n")
+  run 6 7 w4 out/r12.txt write("12\n")
+  run 6 7 w5 out/r11.txt write("11\n")
+  run 6 7 w6 out/r10.txt write("10\n")
+  run 6 7 w7 out/r9.txt write("9\n")
+  run 7 8 w0 out/r8.txt write("8\n")
+  run 7 8 w1 out/r7.txt write("7\n")
+  run 7 8 w2 out/r6.txt write("6\n")
+  run 7 8 w3 out/r5.txt write("5\n")
+  run 7 8 w4 out/r4.txt write("4\n")
+  run 7 8 w5 out/r3.txt write("3\n")
+  run 7 8 w6 out/r2.txt write("2\n")
+  run 7 8 w7 out/r1.txt write("1\n")
+  ok ran=64 hit=0 time=8
+step 2: build (default) -j 1
+  hit 0 out/r64.txt
+  hit 0 out/r63.txt
+  hit 0 out/r62.txt
+  hit 0 out/r61.txt
+  hit 0 out/r60.txt
+  hit 0 out/r59.txt
+  hit 0 out/r58.txt
+  hit 0 out/r57.txt
+  hit 0 out/r56.txt
+  hit 0 out/r55.txt
+  hit 0 out/r54.txt
+  hit 0 out/r53.txt
+  hit 0 out/r52.txt
+  hit 0 out/r51.txt
+  hit 0 out/r50.txt
+  hit 0 out/r49.txt
+  hit 0 out/r48.txt
+  hit 0 out/r47.txt
+  hit 0 out/r46.txt
+  hit 0 out/r45.txt
+  hit 0 out/r44.txt
+  hit 0 out/r43.txt
+  hit 0 out/r42.txt
+  hit 0 out/r41.txt
+  hit 0 out/r40.txt
+  hit 0 out/r39.txt
+  hit 0 out/r38.txt
+  hit 0 out/r37.txt
+  hit 0 out/r36.txt
+  hit 0 out/r35.txt
+  hit 0 out/r34.txt
+  hit 0 out/r33.txt
+  hit 0 out/r32.txt
+  hit 0 out/r31.txt
+  hit 0 out/r30.txt
+  hit 0 out/r29.txt
+  hit 0 out/r28.txt
+  hit 0 out/r27.txt
+  hit 0 out/r26.txt
+  hit 0 out/r25.txt
+  hit 0 out/r24.txt
+  hit 0 out/r23.txt
+  hit 0 out/r22.txt
+  hit 0 out/r21.txt
+  hit 0 out/r20.txt
+  hit 0 out/r19.txt
+  hit 0 out/r18.txt
+  hit 0 out/r17.txt
+  hit 0 out/r16.txt
+  hit 0 out/r15.txt
+  hit 0 out/r14.txt
+  hit 0 out/r13.txt
+  hit 0 out/r12.txt
+  hit 0 out/r11.txt
+  hit 0 out/r10.txt
+  hit 0 out/r9.txt
+  hit 0 out/r8.txt
+  hit 0 out/r7.txt
+  hit 0 out/r6.txt
+  hit 0 out/r5.txt
+  hit 0 out/r4.txt
+  hit 0 out/r3.txt
+  hit 0 out/r2.txt
+  hit 0 out/r1.txt
+  ok ran=0 hit=64 time=0

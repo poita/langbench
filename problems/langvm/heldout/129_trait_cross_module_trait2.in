@@ -1,0 +1,10 @@
+@module main
+use o;
+use o as q;
+fn main() { print(showInt(3.go())); print(showInt(o::call(4))); }
+@module o
+pub trait Go { fn go(self) -> Int; }
+pub fn call(x: Int) -> Int { x.go() }
+@module impls
+use o;
+impl o::Go for Int { fn go(self) -> Int { self * 10 } }

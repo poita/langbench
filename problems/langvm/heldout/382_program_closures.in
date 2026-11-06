@@ -1,0 +1,85 @@
+@module main
+fn compose<A, B, C>(f: fn(A) -> B, g: fn(B) -> C) -> fn(A) -> C {
+    |x: A| g(f(x))
+}
+
+fn curry(f: fn(Int, Int) -> Int) -> fn(Int) -> fn(Int) -> Int {
+    |a: Int| |b: Int| f(a, b)
+}
+
+fn memo(f: fn(fn(Int) -> Int, Int) -> Int) -> fn(Int) -> Int {
+    let cache: #[Int: Int] = mapNew();
+    let self_ref: [fn(Int) -> Int] = listNew();
+    let go = |n: Int| -> Int {
+        match mapGet(cache, n) {
+            Some(v) -> v,
+            None -> {
+                let r = f(self_ref[0], n);
+                cache[n] = r;
+                r
+            }
+        }
+    };
+    push(self_ref, go);
+    go
+}
+
+fn counterPair() -> (fn() -> Int, fn() -> Int) {
+    let cell = [0];
+    let inc = || { cell[0] = cell[0] + 1; cell[0] };
+    let get = || cell[0];
+    (inc, get)
+}
+
+fn applyN<T>(f: fn(T) -> T, n: Int, x: T) -> T {
+    var v = x;
+    for i in 0 .. n { v = f(v); }
+    v
+}
+
+fn main() {
+    let inc = |x: Int| x + 1;
+    let dbl = |x: Int| x * 2;
+    let both = compose(inc, dbl);
+    let str2 = compose(both, |x: Int| "<" ++ showInt(x) ++ ">");
+    print(str2(5) ++ " " ++ showInt(compose(dbl, inc)(5)));
+    let add = curry(|a, b| a * 10 + b);
+    let add3 = add(3);
+    print(showInt(add3(4)) ++ " " ++ showInt(add(7)(1)));
+    let calls = [0];
+    let fib = memo(|rec, n| {
+        calls[0] = calls[0] + 1;
+        if n < 2 { n } else { rec(n - 1) + rec(n - 2) }
+    });
+    print("fib(80) = " ++ showInt(fib(80)) ++ " calls=" ++ showInt(calls[0]));
+    print("fib(85) = " ++ showInt(fib(85)) ++ " calls=" ++ showInt(calls[0]));
+    let (tick, read) = counterPair();
+    tick(); tick();
+    let t3 = tick();
+    print(showInt(t3) ++ " " ++ showInt(read()));
+    let (tick2, read2) = counterPair();
+    tick2();
+    print(showInt(read()) ++ " " ++ showInt(read2()));
+    print(showInt(applyN(dbl, 10, 1)) ++ " " ++ applyN(|s: Str| s ++ "ab", 3, ">"));
+    var adders: [fn(Int) -> Int] = listNew();
+    var k = 0;
+    while k < 5 {
+        let kk = k;
+        push(adders, |x: Int| x + kk * kk);
+        k = k + 1;
+    }
+    print(strJoin(listMap(adders, |f| showInt(f(100))), ","));
+    let pipeline = listFold(adders, |x: Int| x, |acc, f| compose(acc, f));
+    print(showInt(pipeline(0)));
+    let snapshot = k;
+    let lateK = || snapshot + k;
+    k = 1000;
+    print(showInt(lateK()));
+    let sorted = sortBy(["delta", "Alpha", "charlie", "Bravo"], |a, b| strCmp(lower(a), lower(b)));
+    print(strJoin(sorted, " "));
+    let counts: #[Char: Int] = mapNew();
+    listMap(chars("mississippi"), |c| { counts[c] = mapGetOr(counts, c, 0) + 1; c });
+    print(strJoin(listMap(pairsOf(counts), |p| showChar(fst(p)) ++ showInt(snd(p))), " "));
+    let nested = |a: Int| |b: Int| |c: Int| a * 100 + b * 10 + c;
+    print(showInt(nested(1)(2)(3)));
+}

@@ -29,7 +29,7 @@ class Transcripts(unittest.TestCase):
     def scan(self, lines, label="rep1:go:chip8"):
         with tempfile.TemporaryDirectory() as d:
             agent(d, "a", label, lines)
-            return au.scan_transcripts(d, forbidden=["/repo", "/hidden"])
+            return au.scan_transcripts(d, forbidden=["/repo"])
 
     def test_clean_agent_has_no_findings(self):
         self.assertEqual(self.scan([tool_use("Read", {"file_path": "/sb/problems/chip8/SPEC.md"}),
@@ -51,6 +51,10 @@ class Transcripts(unittest.TestCase):
 
     def test_reference_and_generator_names_are_reported_anywhere(self):
         f = self.scan([tool_use("Read", {"file_path": "/sb/problems/chip8/gen_tests.py"})])
+        self.assertEqual([x["kind"] for x in f], ["forbidden-path"])
+
+    def test_held_out_tests_are_reported_anywhere(self):
+        f = self.scan([tool_use("Bash", {"command": "ls /elsewhere/problems/kvstore/heldout/"})])
         self.assertEqual([x["kind"] for x in f], ["forbidden-path"])
 
     def test_another_implementations_files_are_reported(self):

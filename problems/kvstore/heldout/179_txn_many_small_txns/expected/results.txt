@@ -1,0 +1,74 @@
+[1] ok begin
+[2] ok put created
+[3] ok commit 1 frames 2
+[4] ok begin
+[5] ok put created
+[6] ok commit 2 frames 2
+[7] ok begin
+[8] ok put created
+[9] ok commit 3 frames 2
+[10] ok begin
+[11] ok put created
+[12] ok commit 4 frames 2
+[13] ok begin
+[14] ok put created
+[15] ok commit 5 frames 2
+[16] ok begin
+[17] ok put created
+[18] ok commit 6 frames 2
+[19] ok begin
+[20] ok put created
+[21] ok commit 7 frames 2
+[22] ok begin
+[23] ok put created
+[24] ok commit 8 frames 2
+[25] ok begin
+[26] ok put created
+[27] ok commit 9 frames 2
+[28] ok begin
+[29] ok put created
+[30] ok commit 10 frames 2
+[31] ok begin
+[32] ok put created
+[33] ok commit 11 frames 2
+[34] ok begin
+[35] ok put created
+[36] ok commit 12 frames 2
+[37] ok begin
+[38] ok put created
+[39] ok commit 13 frames 2
+[40] ok begin
+[41] ok put created
+[42] ok commit 14 frames 2
+[43] ok begin
+[44] ok put created
+[45] ok commit 15 frames 2
+[46] ok begin
+[47] ok put created
+[48] ok commit 16 frames 2
+[49] ok begin
+[50] ok put created
+[51] ok commit 17 frames 2
+[52] ok begin
+[53] ok put created
+[54] ok commit 18 frames 2
+[55] ok begin
+[56] ok put created
+[57] ok commit 19 frames 2
+[58] ok begin
+[59] ok put created
+[60] ok commit 20 frames 2
+[61] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 20
+  root 2
+  height 1
+  commits 20
+  indexes 0
+  wal 42432
+[62] ok scan 3
+  "k00"
+  "k01"
+  "k02"

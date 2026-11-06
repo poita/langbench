@@ -1,0 +1,8 @@
+put "u1" {age:1}
+create index age
+stat
+checkpoint
+stat
+drop index age
+stat
+drop index age

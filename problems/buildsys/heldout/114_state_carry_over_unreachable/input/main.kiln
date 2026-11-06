@@ -1,0 +1,10 @@
+step {
+    out "out/a.txt"
+    in "src/a.txt"
+    cmd copy()
+}
+step {
+    out "out/idle.txt"
+    cmd write("idle\n")
+}
+default "out/a.txt"

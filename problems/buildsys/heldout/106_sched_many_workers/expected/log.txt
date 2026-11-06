@@ -1,0 +1,81 @@
+step 1: build (default) -j 8
+  run 0 1 w0 out/w0.txt write("0\n")
+  run 0 8 w1 out/w1.txt write("1\n")
+  run 0 4 w2 out/w2.txt write("2\n")
+  run 0 11 w3 out/w3.txt write("3\n")
+  run 0 7 w4 out/w4.txt write("4\n")
+  run 0 3 w5 out/w5.txt write("5\n")
+  run 0 10 w6 out/w6.txt write("6\n")
+  run 0 6 w7 out/w7.txt write("7\n")
+  run 1 3 w0 out/w8.txt write("8\n")
+  run 3 12 w0 out/w9.txt write("9\n")
+  run 3 8 w5 out/w10.txt write("10\n")
+  run 4 5 w2 out/w11.txt write("11\n")
+  run 5 13 w2 out/w12.txt write("12\n")
+  run 6 10 w7 out/w13.txt write("13\n")
+  run 7 18 w4 out/w14.txt write("14\n")
+  run 8 15 w1 out/w15.txt write("15\n")
+  run 8 11 w5 out/w16.txt write("16\n")
+  run 10 20 w6 out/w17.txt write("17\n")
+  run 10 16 w7 out/w18.txt write("18\n")
+  run 11 13 w3 out/w19.txt write("19\n")
+  run 11 20 w5 out/w20.txt write("20\n")
+  run 12 17 w0 out/w21.txt write("21\n")
+  run 13 14 w2 out/w22.txt write("22\n")
+  run 13 21 w3 out/w23.txt write("23\n")
+  run 21 24 w0 out/join.txt count_lines()
+  ok ran=25 hit=0 time=24
+step 2: build (default) -j 8
+  hit 0 out/w0.txt
+  hit 0 out/w1.txt
+  hit 0 out/w2.txt
+  hit 0 out/w3.txt
+  hit 0 out/w4.txt
+  hit 0 out/w5.txt
+  hit 0 out/w6.txt
+  hit 0 out/w7.txt
+  hit 0 out/w8.txt
+  hit 0 out/w9.txt
+  hit 0 out/w10.txt
+  hit 0 out/w11.txt
+  hit 0 out/w12.txt
+  hit 0 out/w13.txt
+  hit 0 out/w14.txt
+  hit 0 out/w15.txt
+  hit 0 out/w16.txt
+  hit 0 out/w17.txt
+  hit 0 out/w18.txt
+  hit 0 out/w19.txt
+  hit 0 out/w20.txt
+  hit 0 out/w21.txt
+  hit 0 out/w22.txt
+  hit 0 out/w23.txt
+  hit 0 out/join.txt
+  ok ran=0 hit=25 time=0
+step 3: build (default) -j 1
+  hit 0 out/w0.txt
+  hit 0 out/w1.txt
+  hit 0 out/w2.txt
+  hit 0 out/w3.txt
+  hit 0 out/w4.txt
+  hit 0 out/w5.txt
+  hit 0 out/w6.txt
+  hit 0 out/w7.txt
+  hit 0 out/w8.txt
+  hit 0 out/w9.txt
+  hit 0 out/w10.txt
+  hit 0 out/w11.txt
+  hit 0 out/w12.txt
+  hit 0 out/w13.txt
+  hit 0 out/w14.txt
+  hit 0 out/w15.txt
+  hit 0 out/w16.txt
+  hit 0 out/w17.txt
+  hit 0 out/w18.txt
+  hit 0 out/w19.txt
+  hit 0 out/w20.txt
+  hit 0 out/w21.txt
+  hit 0 out/w22.txt
+  hit 0 out/w23.txt
+  hit 0 out/join.txt
+  ok ran=0 hit=25 time=0

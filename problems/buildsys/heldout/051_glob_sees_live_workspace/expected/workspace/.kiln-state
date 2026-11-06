@@ -1,0 +1,5 @@
+kiln-state 1
+step out/g.txt
+cmd write("1:src/b.txt\n")
+out out/g.txt 78c69427a9517d83
+end

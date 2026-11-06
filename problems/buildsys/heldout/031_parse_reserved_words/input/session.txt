@@ -1,0 +1,39 @@
+build
+edit main.kiln
+each in in [1] {
+}
+---
+build
+edit main.kiln
+rule r(step) {
+}
+---
+build
+edit main.kiln
+phony when = []
+---
+build
+edit main.kiln
+let x = 1
+set out = 2
+---
+build
+edit main.kiln
+rule r(a) {
+}
+use r(when = 1)
+---
+build
+edit main.kiln
+let true = 1
+---
+build
+edit main.kiln
+let x = default
+---
+build
+edit main.kiln
+each i, elsewhen in [1] {
+}
+---
+build

@@ -1,0 +1,25 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok scan 5
+  "a"
+  "z"
+  "é"
+  "中"
+  "😀"
+[7] ok scan 5
+  "😀"
+  "中"
+  "é"
+  "z"
+  "a"
+[8] ok scan 3
+  "é"
+  "中"
+  "😀"
+[9] ok scan 3
+  "a"
+  "z"
+  "é"

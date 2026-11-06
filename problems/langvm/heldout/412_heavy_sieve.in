@@ -1,0 +1,22 @@
+@module main
+fn main() {
+    let n = 400000;
+    var comp = listRepeat(false, n + 1);
+    var primes: [Int] = listNew();
+    for i in 2 .. n + 1 {
+        if !comp[i] {
+            push(primes, i);
+            var j = i * i;
+            while j <= n {
+                comp[j] = true;
+                j = j + i;
+            }
+        }
+    }
+    print(showInt(listLen(primes)) ++ " primes, last " ++ showInt(listLast(primes)));
+    var twins = 0;
+    for k in 1 .. listLen(primes) {
+        if primes[k] - primes[k - 1] == 2 { twins = twins + 1; }
+    }
+    print(showInt(twins) ++ " twin pairs");
+}

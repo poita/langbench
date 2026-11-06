@@ -1,0 +1,13 @@
+@module main
+use ab;
+trait Shape { fn name(self) -> Str; }
+impl Shape for Bool { fn name(self) -> Str { "own" } }
+fn main() {
+    print(Shape::name(false));
+}
+@module za
+pub trait Shape { fn name(self) -> Str; }
+impl Shape for Int { fn name(self) -> Str { "za" } }
+@module ab
+pub trait Shape { fn name(self) -> Str; }
+impl Shape for Bool { fn name(self) -> Str { "ab" } }

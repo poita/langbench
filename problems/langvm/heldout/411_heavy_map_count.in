@@ -1,0 +1,26 @@
+@module main
+fn main() {
+    var counts: #[Int: Int] = mapNew();
+    var words: #[Str: Int] = mapNew();
+    var x = 7;
+    for i in 0 .. 120000 {
+        x = (x * 1103515245 + 12345) % 2147483648;
+        let k = x % 5000;
+        counts[k] = mapGetOr(counts, k, 0) + 1;
+        if i % 3 == 0 { mapDel(counts, (k * 7) % 5000); }
+        if i % 5 == 0 {
+            let w = "w" ++ showInt(k % 300);
+            words[w] = mapGetOr(words, w, 0) + k;
+        }
+    }
+    print(showInt(mapLen(counts)) ++ " " ++ showInt(mapLen(words)));
+    let ks = keysOf(counts);
+    print(strJoin(listMap(slice(ks, 0, 10), |k| showInt(k)), ","));
+    print(showInt(listFold(valuesOf(counts), 0, |a, v| a + v)));
+    var best = "";
+    var bestV = -1;
+    for (w, v) in pairsOf(words) {
+        if v > bestV { best = w; bestV = v; }
+    }
+    print(best ++ " " ++ showInt(bestV));
+}

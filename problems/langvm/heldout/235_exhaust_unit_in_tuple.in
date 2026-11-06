@@ -1,0 +1,5 @@
+@module main
+fn f(p: (Unit, Bool)) -> Int {
+    match p { (_, true) -> 1, (_, false) -> 0 }
+}
+fn main() { print("ok"); }

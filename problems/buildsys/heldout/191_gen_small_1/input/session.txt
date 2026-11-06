@@ -1,0 +1,11 @@
+build
+edit src/m0/f0.txt
+theta
+---
+build @m2 -j 3
+edit src/m0/f1.txt
+eta
+---
+build @m0 -j 8
+touch main.kiln
+build

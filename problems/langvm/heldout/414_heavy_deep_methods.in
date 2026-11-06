@@ -1,0 +1,22 @@
+@module main
+trait Walk {
+    fn walk(self, n: Int) -> Int;
+}
+
+struct Stepper { by: Int }
+
+impl Walk for Stepper {
+    fn walk(self, n: Int) -> Int {
+        if n == 0 { 0 } else { self.by + self.walk(n - 1) }
+    }
+}
+
+fn viaClosure(n: Int) -> Int {
+    let f = |k: Int| if k == 0 { 0 } else { viaClosure(k - 1) + 1 };
+    f(n)
+}
+
+fn main() {
+    print(showInt(Stepper.{ by: 3 }.walk(14000)));
+    print(showInt(viaClosure(7000)));
+}

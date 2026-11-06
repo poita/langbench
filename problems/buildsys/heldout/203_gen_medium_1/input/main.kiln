@@ -1,0 +1,24 @@
+rule wrapper(name, src, pre, post, w) {
+    step {
+        out "out/{name}.txt"
+        in src
+        cmd wrap(pre, post)
+        cost w
+    }
+}
+include "build/m0.kiln"
+include "build/m1.kiln"
+include "build/m2.kiln"
+include "build/m3.kiln"
+include "build/m4.kiln"
+include "build/m5.kiln"
+include "build/m6.kiln"
+step {
+    out "out/all.txt"
+    in ["out/m0/bundle.txt", "out/m1/bundle.txt", "out/m2/bundle.txt", "out/m3/bundle.txt", "out/m4/bundle.txt", "out/m5/bundle.txt", "out/m6/bundle.txt"]
+    after ["@m0", "@m1", "@m2", "@m3", "@m4", "@m5", "@m6"]
+    cmd count_lines()
+    cost 3
+}
+phony all = ["out/all.txt", "@m0", "@m1", "@m2", "@m3", "@m4", "@m5", "@m6"]
+default "@all"

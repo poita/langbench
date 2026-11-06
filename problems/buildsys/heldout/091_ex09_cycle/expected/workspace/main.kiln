@@ -1,0 +1,11 @@
+step {
+    out "out/x.txt"
+    in "out/y.txt"
+    cmd copy()
+}
+step {
+    out "out/y.txt"
+    in "out/x.txt"
+    cmd copy()
+}
+default "out/x.txt"

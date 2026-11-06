@@ -1,0 +1,14 @@
+create index v
+create index w
+put "a" {v:1}
+put "b" {w:2}
+put "c" {v:3,w:4}
+put "d" {}
+indexes
+put "a" 5
+indexes
+put "a" {v:1}
+indexes
+delete "c"
+indexes
+stat

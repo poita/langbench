@@ -1,0 +1,22 @@
+step 1: build (default) -j 64
+  run 0 5 w0 out/a.txt write("A\n")
+  run 0 5 w1 out/b.txt write("B\n")
+  ok ran=2 hit=0 time=5
+step 2: clean
+  remove .kiln-state
+  remove out/a.txt
+  remove out/b.txt
+  ok removed=3
+step 3: build (default) -j 2
+  run 0 5 w0 out/a.txt write("A\n")
+  run 0 5 w1 out/b.txt write("B\n")
+  ok ran=2 hit=0 time=5
+step 4: clean
+  remove .kiln-state
+  remove out/a.txt
+  remove out/b.txt
+  ok removed=3
+step 5: build (default) -j 1
+  run 0 5 w0 out/a.txt write("A\n")
+  run 5 10 w0 out/b.txt write("B\n")
+  ok ran=2 hit=0 time=10

@@ -1,0 +1,4 @@
+each n in ["a", "b", "c"] {
+    include "mod/one.kiln"
+}
+default map(["a", "b", "c"], "out/%.txt")

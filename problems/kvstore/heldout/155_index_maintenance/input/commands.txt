@@ -1,0 +1,38 @@
+put "k00" {v:0,w:"s00"}
+put "k01" {v:1,w:"s01"}
+put "k02" {v:2,w:"s02"}
+put "k03" {v:3,w:"s03"}
+put "k04" {v:4,w:"s04"}
+put "k05" {v:0,w:"s05"}
+put "k06" {v:1,w:"s06"}
+put "k07" {v:2,w:"s07"}
+put "k08" {v:3,w:"s08"}
+put "k09" {v:4,w:"s09"}
+put "k10" {v:0,w:"s10"}
+put "k11" {v:1,w:"s11"}
+put "k12" {v:2,w:"s12"}
+put "k13" {v:3,w:"s13"}
+put "k14" {v:4,w:"s14"}
+put "k15" {v:0,w:"s15"}
+put "k16" {v:1,w:"s16"}
+put "k17" {v:2,w:"s17"}
+put "k18" {v:3,w:"s18"}
+put "k19" {v:4,w:"s19"}
+create index v
+create index w
+indexes
+put "k00" {v:99}
+indexes
+update "k01" v 98
+indexes
+unset "k02" v
+indexes
+delete "k03"
+indexes
+update "k04" w "zz"
+indexes
+put "k05" {v:[1],w:{}}
+indexes
+put "k05" {v:1,w:"x"}
+indexes
+stat

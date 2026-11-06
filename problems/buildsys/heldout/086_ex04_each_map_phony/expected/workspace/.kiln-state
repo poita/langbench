@@ -1,0 +1,20 @@
+kiln-state 1
+step out/alpha.txt
+cmd write("0:alpha\n")
+out out/alpha.txt 2557277462ff8801
+end
+step out/beta.txt
+cmd write("1:beta\n")
+out out/beta.txt 40b9b215f69c8f7e
+end
+step out/gamma.txt
+cmd write("2:gamma\n")
+out out/gamma.txt e1410796681e9468
+end
+step out/index.txt
+cmd concat()
+in out/alpha.txt 2557277462ff8801
+in out/beta.txt 40b9b215f69c8f7e
+in out/gamma.txt e1410796681e9468
+out out/index.txt 80dd240e6f4ba737
+end

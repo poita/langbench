@@ -1,0 +1,8 @@
+@module main
+struct Pair<A, B> { l: A, r: B }
+trait Show { fn show(self) -> Str; }
+impl Show for Int { fn show(self) -> Str { showInt(self) } }
+impl<A: Show, B: Show> Show for Pair<A, B> {
+    fn show(self) -> Str { "(" ++ self.l.show() ++ "," ++ self.r.show() ++ ")" }
+}
+fn main() { print(Pair.{ l: 1, r: 1.5 }.show()); }

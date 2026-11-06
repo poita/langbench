@@ -1,0 +1,90 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 TRIGGER A ~1 #25 1
+7 RESOLVE ~1
+8 COUNTERS #25 +1 1
+9 PHASE draw
+10 PHASE main1
+11 PLAY A ~2 #21 LOM-003 #25
+12 PAY A ember 2
+13 PASS A
+14 PASS B
+15 RESOLVE ~2
+16 COUNTERS #25 +2 3
+17 SPENT #21 LOM-003
+18 PLAY A ~3 #22 LOM-017
+19 PAY A ember 4
+20 PASS A
+21 PASS B
+22 RESOLVE ~3
+23 ARRIVE #22 LOM-017
+24 TRIGGER A ~4 #22 1
+25 PASS A
+26 PASS B
+27 RESOLVE ~4
+28 COUNTERS #22 +3 3
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 45 cap 51 vault 20 hand 2 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #23 LOM-018
+hand A 2 #24 LOM-034
+field A #25 LOM-001 4/4 w0 c3 ready - kw -
+field A #26 TOK-006 0/2 w0 c0 ready - kw -
+field A #27 LOM-016 2/2 w0 c0 ready - kw -
+field A #22 LOM-017 6/7 w0 c3 ready settling kw -
+field B #48 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 LOM-003
+STATE END
+29 PLAY A ~5 #23 LOM-018
+30 PAY A ember 4
+31 PASS A
+32 PASS B
+33 RESOLVE ~5
+34 COUNTERS #25 +1 4
+35 COUNTERS #26 +1 1
+36 COUNTERS #27 +1 1
+37 COUNTERS #22 +1 4
+38 SPENT #23 LOM-018
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 41 cap 51 vault 20 hand 1 ash 2 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #24 LOM-034
+field A #25 LOM-001 5/5 w0 c4 ready - kw -
+field A #26 TOK-006 1/3 w0 c1 ready - kw -
+field A #27 LOM-016 3/3 w0 c1 ready - kw -
+field A #22 LOM-017 7/8 w0 c4 ready settling kw -
+field B #48 TOK-001 1/1 w0 c0 ready - kw -
+ash A 1 #21 LOM-003
+ash A 2 #23 LOM-018
+STATE END
+39 PLAY A ~6 #24 LOM-034
+40 PAY A ember 3
+41 PASS A
+42 PASS B
+43 RESOLVE ~6
+44 DAMAGE #24 #48 1
+45 COUNTERS #25 +1 5
+46 COUNTERS #26 +1 2
+47 COUNTERS #27 +1 2
+48 COUNTERS #22 +1 5
+49 SPENT #24 LOM-034
+50 DESTROY #48 TOK-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 38 cap 51 vault 20 hand 0 ash 3 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 1 rift 0
+field A #25 LOM-001 6/6 w0 c5 ready - kw -
+field A #26 TOK-006 2/4 w0 c2 ready - kw -
+field A #27 LOM-016 4/4 w0 c2 ready - kw -
+field A #22 LOM-017 8/9 w0 c5 ready settling kw -
+ash A 1 #21 LOM-003
+ash A 2 #23 LOM-018
+ash A 3 #24 LOM-034
+ash B 1 #48 TOK-001
+STATE END
+51 RESULT pending none

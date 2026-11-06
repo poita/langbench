@@ -1,0 +1,34 @@
+kiln-state 1
+step out/m3/bundle.txt
+cmd hash()
+in out/m3/f0.txt cbf29ce484222325
+in out/m3/f1.txt dcec2ee040d029dd
+in out/m3/f2.txt 8e42f01667fffa40
+in out/m3/g3.txt cbf29ce484222325
+out out/m3/bundle.txt 8e31445b97097944
+end
+step out/m3/f0.txt
+cmd replace("a", "A")
+in src/m3/f0.txt cbf29ce484222325
+out out/m3/f0.txt cbf29ce484222325
+end
+step out/m3/f1.txt
+cmd number()
+in src/m3/f1.txt 5d686e85a2b6fee9
+out out/m3/f1.txt dcec2ee040d029dd
+end
+step out/m3/f2.txt
+cmd upper()
+in src/m3/f2.txt 28d6235c63f0ce20
+out out/m3/f2.txt 8e42f01667fffa40
+end
+step out/m3/g3.txt
+cmd replace("a", "A")
+in src/m3/sub/g3.txt cbf29ce484222325
+out out/m3/g3.txt cbf29ce484222325
+end
+step out/m3/wrapped.txt
+cmd wrap("<m3|", "|>\n")
+in out/m3/bundle.txt 8e31445b97097944
+out out/m3/wrapped.txt f01188e15dedf200
+end

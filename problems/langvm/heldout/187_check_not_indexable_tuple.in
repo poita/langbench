@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    let t = (1, 2);
+    let xs = [t, t];
+    print(showInt(fst(xs[0])));
+    print(showInt(xs[1][0]));
+}

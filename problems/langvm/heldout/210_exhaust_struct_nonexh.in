@@ -1,0 +1,4 @@
+@module main
+struct Pair { a: Int, b: Int }
+fn f(p: Pair) -> Int { match p { Pair.{ a: 1, b: _ } -> 1 } }
+fn main() { print(showInt(f(Pair.{ a: 1, b: 2 }))); }

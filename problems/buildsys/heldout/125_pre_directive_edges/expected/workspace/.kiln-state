@@ -1,0 +1,15 @@
+kiln-state 1
+step out/doc.txt
+cmd preprocess()
+in src/root.txt a32e9194332b2eb5
+dep src/empty.txt cbf29ce484222325
+dep src/ok.txt 2fb61919bf35909f
+out out/doc.txt c45e013117d5a0d6
+out out/doc.d 9a2626c9c8164c86
+end
+step out/h.txt
+cmd hash()
+in out/doc.txt c45e013117d5a0d6
+in out/doc.d 9a2626c9c8164c86
+out out/h.txt d0065fe50fb0b20e
+end

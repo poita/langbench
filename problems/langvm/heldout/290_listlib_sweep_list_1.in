@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    let z: [Int] = listNew(); print(sl(z) ++ " " ++ si(listLen(z)));
+    var a = [1, 2, 3]; push(a, 4); print(sl(a) ++ " " ++ si(listLen(a)));
+    var b = [1, 2]; print(si(pop(b)) ++ " " ++ sl(b));
+    var c = [1, 2]; insert(c, 0, 0); insert(c, 3, 9); print(sl(c));
+    var d = [1, 2, 3]; print(si(removeAt(d, 1)) ++ " " ++ sl(d));
+    var e = [1, 2]; clear(e); print(sl(e) ++ " " ++ si(listLen(e)));
+    print(sl(listRepeat(7, 3)) ++ " " ++ sl(listRepeat(7, 0)));
+}

@@ -1,0 +1,59 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PLAY B ~1 #43 CIN-003 A
+10 PAY B ember 1
+11 TRIGGER A ~2 #21 1
+12 TRIGGER A ~3 #22 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 51 cap 51 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 49 cap 50 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-037 3/5 w0 c0 ready - kw -
+field A #22 NEU-014 2/4 w0 c0 ready - kw -
+chain 1 ~1 B rite #43 0 A
+chain 2 ~3 A trigger #22 1
+chain 3 ~2 A trigger #21 1
+STATE END
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+13 PASS A
+14 PASS B
+15 RESOLVE ~2
+16 DAMAGE #21 B 2
+17 SPIRE B -2 38
+18 TRIGGER A ~4 #22 2
+19 PASS A
+20 PASS B
+21 RESOLVE ~4
+22 SPIRE A +1 41
+23 PASS A
+24 PASS B
+25 RESOLVE ~3
+26 SPIRE B -1 37
+27 TRIGGER A ~5 #22 2
+28 PASS A
+29 PASS B
+30 RESOLVE ~5
+31 SPIRE A +1 42
+32 PASS A
+33 PASS B
+34 RESOLVE ~1
+35 DAMAGE #43 A 2
+36 SPIRE A -2 40
+37 SPENT #43 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 51 cap 51 vault 20 hand 0 ash 0 rift 0
+player B spire 37 ember 49 cap 50 vault 20 hand 0 ash 1 rift 0
+field A #21 CIN-037 3/5 w0 c0 ready - kw -
+field A #22 NEU-014 2/4 w0 c0 ready - kw -
+ash B 1 #43 CIN-003
+STATE END
+38 RESULT pending none

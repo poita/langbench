@@ -1,0 +1,28 @@
+@module main
+struct Rec { key: Int, id: Int }
+
+fn main() {
+    var seed = 12345;
+    var xs: [Rec] = listNew();
+    for i in 0 .. 60000 {
+        seed = (seed * 6364136223846793005 + 1442695040888963407) & intMax();
+        push(xs, Rec.{ key: seed % 1000, id: i });
+    }
+    let calls = [0];
+    let sorted = sortBy(xs, |a, b| { calls[0] = calls[0] + 1; cmpI(a.key, b.key) });
+    var check = 0;
+    var stable = true;
+    for i in 0 .. listLen(sorted) {
+        check = check * 31 + sorted[i].id;
+        if i > 0 && sorted[i - 1].key == sorted[i].key && sorted[i - 1].id > sorted[i].id {
+            stable = false;
+        }
+    }
+    print("calls " ++ showInt(calls[0]));
+    print("check " ++ showInt(check));
+    print("stable " ++ showBool(stable));
+    print("first " ++ showInt(sorted[0].id) ++ " last " ++ showInt(listLast(sorted).id));
+    let ints = listMap(xs, |r| r.id * 7919 % 100003);
+    let desc = sortBy(ints, |a, b| cmpI(b, a));
+    print(strJoin(listMap(slice(desc, 0, 8), |v| showInt(v)), " "));
+}

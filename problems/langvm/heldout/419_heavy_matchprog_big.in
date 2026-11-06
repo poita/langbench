@@ -1,0 +1,1981 @@
+@module main
+enum Color { Red, Green, Blue }
+enum Shape { Dot, Seg(Int), Box(Int, Int), Tagged(Color, Shape) }
+fn dc(c: Color) -> Str { match c { Red -> "R", Green -> "G", Blue -> "B" } }
+fn ds(s: Shape) -> Str {
+    match s {
+        Dot -> ".",
+        Seg(n) -> "S" ++ showInt(n),
+        Box(a, b) -> "B" ++ showInt(a) ++ "x" ++ showInt(b),
+        Tagged(c, t) -> dc(c) ++ "<" ++ ds(t) ++ ">",
+    }
+}
+fn dopt(o: Option<Shape>) -> Str { match o { Some(s) -> "?" ++ ds(s), None -> "-" } }
+fn dl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), " ") ++ "]" }
+fn g0(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        (p0, true) when showInt(0) != "" -> "0:" ++ dl(p0),
+        ([], false) -> "1",
+        ([0, -1, ..], false) -> "2",
+        (_, p0) when false -> "3:" ++ showBool(p0),
+        _ -> "other",
+    }
+}
+fn g1(x0: Shape) -> Str {
+    match x0 {
+        Tagged(Red, Tagged(Blue, Dot)) -> "0",
+        Seg(-2) -> "1",
+        Seg(_) -> "2",
+        _ -> "other",
+    }
+}
+fn g2(x0: Color, x1: Bool) -> Str {
+    match (x0, x1) {
+        (_, _) -> "0",
+    }
+}
+fn g3(x0: Shape, x1: Int) -> Str {
+    match (x0, x1) {
+        (Seg(_), 1) -> "0",
+        (Box(p0, -1), _) -> "1:" ++ showInt(p0),
+        (Tagged(Green, Dot), p0) when false -> "2:" ++ showInt(p0),
+        (Tagged(Red, p0), -2) -> "3:" ++ ds(p0),
+        (Seg(-1), -2) -> "4",
+        _ -> "other",
+    }
+}
+fn g4(x0: Option<Shape>) -> Str {
+    match x0 {
+        Some(Seg(2)) -> "0",
+        _ -> "1",
+    }
+}
+fn g5(x0: [Int]) -> Str {
+    match x0 {
+        [_, 1] -> "0",
+        p0 -> "1:" ++ dl(p0),
+    }
+}
+fn g6(x0: Option<Shape>, x1: Color) -> Str {
+    match (x0, x1) {
+        (None, Red) -> "0",
+        (Some(Seg(0)), Green) -> "1",
+        (None, Green) -> "2",
+        (_, Blue) -> "4",
+        (Some(_), Red) -> "5",
+        _ -> "other",
+    }
+}
+fn g7(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([1, -1], false) -> "0",
+        ([2], false) -> "1",
+        ([..], _) -> "2",
+    }
+}
+fn g8(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (true, false, Blue) -> "0",
+        (true, false, Green) -> "1",
+        _ -> "other",
+    }
+}
+fn g9(x0: [Int]) -> Str {
+    match x0 {
+        [-2] -> "0",
+        [0, 2, ..] -> "1",
+        [-2, -2] -> "2",
+        [1, -2, ..] -> "4",
+        [-2, -1, ..] -> "5",
+        _ -> "other",
+    }
+}
+fn g10(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (true, true, Red) -> "0",
+        (false, false, p0) -> "1:" ++ dc(p0),
+        (true, true, Green) -> "2",
+        (_, true, Green) -> "3",
+        _ -> "other",
+    }
+}
+fn g11(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([p0, -1], _) when false -> "0:" ++ showInt(p0),
+        ([1, -2], true) -> "1",
+        ([_], false) -> "2",
+        ([], p0) when showInt(3) != "" -> "3:" ++ showBool(p0),
+        ([0, 1, ..rest0], _) -> "4:" ++ dl(rest0),
+        _ -> "other",
+    }
+}
+fn g12(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([..], true) -> "0",
+        ([..], false) -> "1",
+    }
+}
+fn g13(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (false, false, Blue) -> "0",
+        (false, false, Green) -> "1",
+        (true, true, p0) -> "2:" ++ dc(p0),
+        _ -> "other",
+    }
+}
+fn g14(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (false, false, _) -> "0",
+        (true, false, Red) -> "1",
+        (_, p0, Blue) -> "2:" ++ showBool(p0),
+        (false, _, Green) -> "3",
+        (false, true, Red) -> "4",
+        (p0, _, Green) -> "6:" ++ showBool(p0),
+        _ -> "other",
+    }
+}
+fn g15(x0: Option<Shape>, x1: Color) -> Str {
+    match (x0, x1) {
+        (Some(Box(-1, -1)), Green) -> "0",
+        (Some(Seg(_)), Green) -> "1",
+        (Some(p0), Green) -> "2:" ++ ds(p0),
+        _ -> "other",
+    }
+}
+fn g16(x0: Option<Shape>) -> Str {
+    match x0 {
+        None -> "0",
+        Some(Box(2, -2)) -> "1",
+        Some(Tagged(Blue, Tagged(_, _))) -> "2",
+        Some(_) -> "3",
+    }
+}
+fn g17(x0: Shape, x1: Int) -> Str {
+    match (x0, x1) {
+        (p0, -2) when showInt(0) != "" -> "0:" ++ ds(p0),
+        (Seg(p0), 2) when false -> "1:" ++ showInt(p0),
+        (Seg(-1), 1) -> "2",
+        _ -> "other",
+    }
+}
+fn g18(x0: Color, x1: Bool) -> Str {
+    match (x0, x1) {
+        (Green, true) -> "0",
+        (Red, false) -> "1",
+        (Green, p0) when true -> "2:" ++ showBool(p0),
+        (Green, false) -> "3",
+        _ -> "other",
+    }
+}
+fn g19(x0: Shape, x1: Int) -> Str {
+    match (x0, x1) {
+        (Tagged(Blue, Box(2, 0)), 0) -> "0",
+        (Tagged(Blue, Seg(-2)), -2) -> "1",
+        (Seg(p0), -1) -> "2:" ++ showInt(p0),
+        (Box(-2, p0), p1) -> "3:" ++ showInt(p0) ++ "," ++ showInt(p1),
+        (_, -1) -> "4",
+        (Tagged(_, Seg(-1)), 1) -> "5",
+        (Tagged(_, Seg(-2)), 0) -> "6",
+        _ -> "other",
+    }
+}
+fn g20(x0: Option<Shape>, x1: Color) -> Str {
+    match (x0, x1) {
+        (None, Blue) -> "0",
+        (None, Green) -> "1",
+        _ -> "other",
+    }
+}
+fn g21(x0: Color, x1: Bool) -> Str {
+    match (x0, x1) {
+        (p0, true) -> "0:" ++ dc(p0),
+        (Green, false) -> "2",
+        (_, false) -> "3",
+    }
+}
+fn g22(x0: Color, x1: Bool) -> Str {
+    match (x0, x1) {
+        (Red, true) -> "0",
+        (Red, false) -> "1",
+        (Green, false) -> "3",
+        (_, false) -> "4",
+        _ -> "other",
+    }
+}
+fn g23(x0: Option<Shape>) -> Str {
+    match x0 {
+        _ -> "0",
+    }
+}
+fn g24(x0: Option<Shape>) -> Str {
+    match x0 {
+        Some(Dot) -> "0",
+        Some(_) -> "1",
+        _ -> "other",
+    }
+}
+fn g25(x0: Color, x1: Bool) -> Str {
+    match (x0, x1) {
+        (Blue, true) -> "0",
+        _ -> "other",
+    }
+}
+fn g26(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([-2, ..], true) -> "0",
+        ([-1, _], false) -> "1",
+        ([-1, p0, ..], true) -> "2:" ++ showInt(p0),
+        (_, p0) -> "3:" ++ showBool(p0),
+    }
+}
+fn g27(x0: [Int]) -> Str {
+    match x0 {
+        [-2] -> "0",
+        [2, ..] -> "1",
+        [-1, 2] -> "2",
+        [_, ..] -> "3",
+        _ -> "4",
+    }
+}
+fn g28(x0: Option<Shape>, x1: Color) -> Str {
+    match (x0, x1) {
+        (Some(Dot), _) -> "0",
+        (Some(Tagged(Green, Tagged(_, p0))), Red) when true -> "1:" ++ ds(p0),
+        (p0, p1) -> "2:" ++ dopt(p0) ++ "," ++ dc(p1),
+    }
+}
+fn g29(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (false, p0, Blue) -> "0:" ++ showBool(p0),
+        (false, false, Green) -> "1",
+        (true, _, Green) -> "2",
+        (false, true, Green) -> "3",
+        (_, false, Blue) -> "4",
+        _ -> "other",
+    }
+}
+fn g30(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        (_, false) -> "0",
+        ([p0, 2], true) -> "1:" ++ showInt(p0),
+        ([-2, ..], true) -> "3",
+        _ -> "other",
+    }
+}
+fn g31(x0: [Int]) -> Str {
+    match x0 {
+        [] -> "0",
+        [1, 2] -> "1",
+        [2, ..rest0] -> "2:" ++ dl(rest0),
+        [..] -> "3",
+    }
+}
+fn g32(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (false, true, Blue) -> "0",
+        (true, _, Blue) -> "1",
+        (true, false, p0) -> "2:" ++ dc(p0),
+        (true, true, Red) -> "3",
+        _ -> "other",
+    }
+}
+fn g33(x0: Shape, x1: Int) -> Str {
+    match (x0, x1) {
+        (Dot, 2) -> "0",
+        (p0, -2) -> "1:" ++ ds(p0),
+        (Box(2, p0), 1) -> "3:" ++ showInt(p0),
+        _ -> "other",
+    }
+}
+fn g34(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (_, true, Green) -> "0",
+        (false, false, p0) when showInt(1) != "" -> "1:" ++ dc(p0),
+        (false, false, Blue) -> "2",
+        (_, true, Blue) -> "3",
+        (false, p0, Green) -> "4:" ++ showBool(p0),
+        _ -> "other",
+    }
+}
+fn g35(x0: Shape) -> Str {
+    match x0 {
+        Tagged(_, Seg(2)) -> "0",
+        _ -> "1",
+    }
+}
+fn g36(x0: [Int], x1: Bool) -> Str {
+    match (x0, x1) {
+        ([-1, 2], true) -> "0",
+        ([-1], true) -> "1",
+        _ -> "other",
+    }
+}
+fn g37(x0: Option<Shape>) -> Str {
+    match x0 {
+        None -> "0",
+        Some(Seg(-2)) -> "1",
+        _ -> "other",
+    }
+}
+fn g38(x0: Bool, x1: Bool, x2: Color) -> Str {
+    match (x0, x1, x2) {
+        (true, false, p0) when showInt(0) != "" -> "0:" ++ dc(p0),
+        (true, _, Green) -> "1",
+        (p0, _, Green) when false -> "2:" ++ showBool(p0),
+        (false, true, _) -> "3",
+        _ -> "other",
+    }
+}
+fn g39(x0: [Int]) -> Str {
+    match x0 {
+        [1] -> "0",
+        [2, 1, ..rest0] when false -> "1:" ++ dl(rest0),
+        [-1, ..rest0] -> "2:" ++ dl(rest0),
+        [-2, 1] -> "3",
+        [2, -1] -> "4",
+        [_, 0, ..] -> "6",
+        _ -> "other",
+    }
+}
+fn main() {
+    emit(g0([2, 0, 0], false) ++ " ");
+    emit(g0([3], true) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([-2, 0, 2, 2], false) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([], true) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([3, -3], true) ++ " ");
+    emit(g0([-1, 3], false) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([1, -1, 1], false) ++ " ");
+    emit(g0([1, 0, -1, 3], false) ++ " ");
+    emit(g0([3], false) ++ " ");
+    emit(g0([3], true) ++ " ");
+    emit(g0([-1], false) ++ " ");
+    emit(g0([-3, -3], false) ++ " ");
+    emit(g0([-2], false) ++ " ");
+    emit(g0([-2], false) ++ " ");
+    emit(g0([], true) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([-2, -3, -2], true) ++ " ");
+    emit(g0([1, 3], true) ++ " ");
+    emit(g0([], true) ++ " ");
+    emit(g0([-1, 1, -3], true) ++ " ");
+    emit(g0([-2, 3, -1], false) ++ " ");
+    emit(g0([2, -3], true) ++ " ");
+    emit(g0([], true) ++ " ");
+    emit(g0([0, 3], false) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([3, -2, 2], true) ++ " ");
+    emit(g0([3], true) ++ " ");
+    emit(g0([3, 0], false) ++ " ");
+    emit(g0([-1, 0, 1], false) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([3, -2, 0, 2], false) ++ " ");
+    emit(g0([1, 0], false) ++ " ");
+    emit(g0([-3, -1], true) ++ " ");
+    emit(g0([-3, 0, -2, 2], false) ++ " ");
+    emit(g0([], false) ++ " ");
+    emit(g0([-3, 2, -1], true) ++ " ");
+    print("");
+    emit(g1(Box(1, 1)) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Tagged(Blue, Box(-3, 1))) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Seg(-2)) ++ " ");
+    emit(g1(Box(-1, 3)) ++ " ");
+    emit(g1(Seg(0)) ++ " ");
+    emit(g1(Tagged(Red, Dot)) ++ " ");
+    emit(g1(Box(-2, -1)) ++ " ");
+    emit(g1(Box(0, 1)) ++ " ");
+    emit(g1(Seg(-2)) ++ " ");
+    emit(g1(Box(-1, -3)) ++ " ");
+    emit(g1(Tagged(Green, Tagged(Green, Box(0, -2)))) ++ " ");
+    emit(g1(Seg(-3)) ++ " ");
+    emit(g1(Box(-3, 1)) ++ " ");
+    emit(g1(Tagged(Blue, Dot)) ++ " ");
+    emit(g1(Tagged(Blue, Dot)) ++ " ");
+    emit(g1(Seg(-2)) ++ " ");
+    emit(g1(Box(1, -1)) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Seg(-1)) ++ " ");
+    emit(g1(Seg(2)) ++ " ");
+    emit(g1(Tagged(Green, Tagged(Red, Dot))) ++ " ");
+    emit(g1(Seg(-2)) ++ " ");
+    emit(g1(Box(2, 1)) ++ " ");
+    emit(g1(Seg(3)) ++ " ");
+    emit(g1(Box(3, -2)) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Tagged(Green, Box(-1, 0))) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Seg(1)) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Tagged(Red, Seg(-3))) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Dot) ++ " ");
+    emit(g1(Tagged(Green, Tagged(Blue, Seg(-3)))) ++ " ");
+    emit(g1(Tagged(Blue, Box(-2, 0))) ++ " ");
+    print("");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Blue, false) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Green, false) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Red, false) ++ " ");
+    emit(g2(Red, false) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    emit(g2(Green, false) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Green, false) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    emit(g2(Red, false) ++ " ");
+    emit(g2(Blue, false) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    emit(g2(Red, false) ++ " ");
+    emit(g2(Red, false) ++ " ");
+    emit(g2(Blue, false) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Red, true) ++ " ");
+    emit(g2(Green, false) ++ " ");
+    emit(g2(Red, false) ++ " ");
+    emit(g2(Green, false) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    emit(g2(Blue, true) ++ " ");
+    emit(g2(Green, true) ++ " ");
+    print("");
+    emit(g3(Dot, 3) ++ " ");
+    emit(g3(Seg(3), 0) ++ " ");
+    emit(g3(Box(1, -2), -3) ++ " ");
+    emit(g3(Box(0, 3), -2) ++ " ");
+    emit(g3(Dot, 0) ++ " ");
+    emit(g3(Dot, 0) ++ " ");
+    emit(g3(Dot, 0) ++ " ");
+    emit(g3(Tagged(Red, Seg(1)), -3) ++ " ");
+    emit(g3(Seg(0), -1) ++ " ");
+    emit(g3(Tagged(Green, Box(3, 2)), 0) ++ " ");
+    emit(g3(Seg(3), -3) ++ " ");
+    emit(g3(Tagged(Red, Tagged(Blue, Seg(-1))), -1) ++ " ");
+    emit(g3(Box(-2, 2), 1) ++ " ");
+    emit(g3(Tagged(Blue, Seg(-1)), -2) ++ " ");
+    emit(g3(Box(-3, 0), 2) ++ " ");
+    emit(g3(Tagged(Green, Seg(-2)), -3) ++ " ");
+    emit(g3(Seg(-2), -1) ++ " ");
+    emit(g3(Tagged(Red, Seg(3)), -1) ++ " ");
+    emit(g3(Seg(3), -1) ++ " ");
+    emit(g3(Dot, -2) ++ " ");
+    emit(g3(Box(0, -3), 3) ++ " ");
+    emit(g3(Tagged(Blue, Seg(0)), 3) ++ " ");
+    emit(g3(Seg(1), -1) ++ " ");
+    emit(g3(Box(0, 1), -3) ++ " ");
+    emit(g3(Seg(2), 2) ++ " ");
+    emit(g3(Box(3, 2), 0) ++ " ");
+    emit(g3(Seg(3), 3) ++ " ");
+    emit(g3(Box(-3, 1), -1) ++ " ");
+    emit(g3(Tagged(Green, Dot), -1) ++ " ");
+    emit(g3(Dot, -2) ++ " ");
+    emit(g3(Box(-1, -1), 3) ++ " ");
+    emit(g3(Dot, -1) ++ " ");
+    emit(g3(Box(3, 1), 1) ++ " ");
+    emit(g3(Tagged(Green, Tagged(Blue, Tagged(Green, Dot))), -2) ++ " ");
+    emit(g3(Tagged(Red, Box(1, -3)), 2) ++ " ");
+    emit(g3(Box(-1, -1), -1) ++ " ");
+    emit(g3(Tagged(Blue, Dot), 0) ++ " ");
+    emit(g3(Seg(-3), 0) ++ " ");
+    emit(g3(Tagged(Blue, Seg(-2)), -1) ++ " ");
+    emit(g3(Dot, -3) ++ " ");
+    print("");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Dot)) ++ " ");
+    emit(g4(Some(Tagged(Blue, Box(-1, 0)))) ++ " ");
+    emit(g4(Some(Seg(-3))) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Seg(2))) ++ " ");
+    emit(g4(Some(Box(3, 3))) ++ " ");
+    emit(g4(Some(Box(3, -1))) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Dot)) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Dot)) ++ " ");
+    emit(g4(Some(Box(-1, -2))) ++ " ");
+    emit(g4(Some(Seg(1))) ++ " ");
+    emit(g4(Some(Dot)) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Tagged(Red, Box(1, 1)))) ++ " ");
+    emit(g4(Some(Tagged(Red, Seg(1)))) ++ " ");
+    emit(g4(Some(Seg(2))) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Seg(-2))) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Dot)) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Tagged(Red, Tagged(Red, Box(3, -2))))) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Seg(3))) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(None) ++ " ");
+    emit(g4(Some(Tagged(Red, Seg(-1)))) ++ " ");
+    emit(g4(Some(Dot)) ++ " ");
+    emit(g4(Some(Tagged(Green, Seg(3)))) ++ " ");
+    emit(g4(Some(Dot)) ++ " ");
+    emit(g4(Some(Seg(-3))) ++ " ");
+    print("");
+    emit(g5([-2, 1, 1]) ++ " ");
+    emit(g5([-3, -3]) ++ " ");
+    emit(g5([2, 1, 1]) ++ " ");
+    emit(g5([-3, -1]) ++ " ");
+    emit(g5([-1, 3]) ++ " ");
+    emit(g5([-3, -2]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([1]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([3, -3, -2]) ++ " ");
+    emit(g5([1, -3, -1, 1]) ++ " ");
+    emit(g5([-2]) ++ " ");
+    emit(g5([-2]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([-1, -3]) ++ " ");
+    emit(g5([-2]) ++ " ");
+    emit(g5([3, -3, 3, 3]) ++ " ");
+    emit(g5([0, 0, -1, 1]) ++ " ");
+    emit(g5([3, 0, -3, -3]) ++ " ");
+    emit(g5([1, -2, 0, 2]) ++ " ");
+    emit(g5([-3, 2, -1]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([0]) ++ " ");
+    emit(g5([3, 0, 2, 1]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([1]) ++ " ");
+    emit(g5([0]) ++ " ");
+    emit(g5([1, -2, 2, 1]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([-1]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([-2, 1, -2]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([2, 0, -3]) ++ " ");
+    emit(g5([2, 3, 2]) ++ " ");
+    emit(g5([-2, 0, -2]) ++ " ");
+    emit(g5([]) ++ " ");
+    emit(g5([-1]) ++ " ");
+    emit(g5([]) ++ " ");
+    print("");
+    emit(g6(None, Blue) ++ " ");
+    emit(g6(Some(Seg(2)), Green) ++ " ");
+    emit(g6(Some(Dot), Red) ++ " ");
+    emit(g6(Some(Seg(-1)), Green) ++ " ");
+    emit(g6(Some(Tagged(Red, Dot)), Blue) ++ " ");
+    emit(g6(Some(Tagged(Green, Dot)), Red) ++ " ");
+    emit(g6(Some(Tagged(Blue, Seg(0))), Green) ++ " ");
+    emit(g6(Some(Tagged(Blue, Seg(-1))), Green) ++ " ");
+    emit(g6(None, Green) ++ " ");
+    emit(g6(None, Green) ++ " ");
+    emit(g6(Some(Tagged(Green, Seg(-1))), Blue) ++ " ");
+    emit(g6(Some(Tagged(Green, Seg(2))), Blue) ++ " ");
+    emit(g6(None, Green) ++ " ");
+    emit(g6(Some(Tagged(Red, Dot)), Red) ++ " ");
+    emit(g6(Some(Tagged(Green, Dot)), Blue) ++ " ");
+    emit(g6(Some(Dot), Red) ++ " ");
+    emit(g6(Some(Seg(-2)), Green) ++ " ");
+    emit(g6(Some(Dot), Green) ++ " ");
+    emit(g6(Some(Dot), Green) ++ " ");
+    emit(g6(Some(Tagged(Blue, Tagged(Blue, Tagged(Blue, Dot)))), Blue) ++ " ");
+    emit(g6(Some(Box(3, 0)), Green) ++ " ");
+    emit(g6(Some(Box(1, 0)), Red) ++ " ");
+    emit(g6(None, Blue) ++ " ");
+    emit(g6(Some(Seg(3)), Red) ++ " ");
+    emit(g6(Some(Box(0, -1)), Green) ++ " ");
+    emit(g6(Some(Box(-3, 0)), Blue) ++ " ");
+    emit(g6(Some(Dot), Red) ++ " ");
+    emit(g6(None, Blue) ++ " ");
+    emit(g6(Some(Seg(2)), Blue) ++ " ");
+    emit(g6(Some(Dot), Green) ++ " ");
+    emit(g6(Some(Dot), Blue) ++ " ");
+    emit(g6(Some(Box(2, -1)), Red) ++ " ");
+    emit(g6(Some(Box(-3, 2)), Red) ++ " ");
+    emit(g6(Some(Seg(0)), Blue) ++ " ");
+    emit(g6(None, Green) ++ " ");
+    emit(g6(Some(Dot), Red) ++ " ");
+    emit(g6(Some(Tagged(Blue, Tagged(Green, Dot))), Green) ++ " ");
+    emit(g6(None, Green) ++ " ");
+    emit(g6(None, Green) ++ " ");
+    emit(g6(Some(Seg(3)), Red) ++ " ");
+    print("");
+    emit(g7([0, 2, -1], true) ++ " ");
+    emit(g7([-1, 1, 0], false) ++ " ");
+    emit(g7([-1], true) ++ " ");
+    emit(g7([3, 3], true) ++ " ");
+    emit(g7([-2], false) ++ " ");
+    emit(g7([-3, -1, 0], false) ++ " ");
+    emit(g7([-1, -2], true) ++ " ");
+    emit(g7([], false) ++ " ");
+    emit(g7([], true) ++ " ");
+    emit(g7([0, -2, -2], false) ++ " ");
+    emit(g7([], true) ++ " ");
+    emit(g7([3], true) ++ " ");
+    emit(g7([3], false) ++ " ");
+    emit(g7([1, 1, 0, -1], true) ++ " ");
+    emit(g7([2, 0], true) ++ " ");
+    emit(g7([1, 1, 2, 3], true) ++ " ");
+    emit(g7([-1, 1, 0], true) ++ " ");
+    emit(g7([2, -1], true) ++ " ");
+    emit(g7([0, 1], true) ++ " ");
+    emit(g7([3, -1, -2, 3], false) ++ " ");
+    emit(g7([0], false) ++ " ");
+    emit(g7([], true) ++ " ");
+    emit(g7([-2, 2], false) ++ " ");
+    emit(g7([], false) ++ " ");
+    emit(g7([], true) ++ " ");
+    emit(g7([1], false) ++ " ");
+    emit(g7([], false) ++ " ");
+    emit(g7([1, 3, -3, 2], true) ++ " ");
+    emit(g7([1, 1], true) ++ " ");
+    emit(g7([3, -2, 3, 2], false) ++ " ");
+    emit(g7([-3, 2], true) ++ " ");
+    emit(g7([-1, 3, 1], false) ++ " ");
+    emit(g7([2, -2, 0, 2], true) ++ " ");
+    emit(g7([], false) ++ " ");
+    emit(g7([3], false) ++ " ");
+    emit(g7([-2], true) ++ " ");
+    emit(g7([1, 2, 2, -3], true) ++ " ");
+    emit(g7([-3], false) ++ " ");
+    emit(g7([-3], false) ++ " ");
+    emit(g7([1, 3, -1, 0], false) ++ " ");
+    print("");
+    emit(g8(false, false, Green) ++ " ");
+    emit(g8(false, false, Blue) ++ " ");
+    emit(g8(false, true, Green) ++ " ");
+    emit(g8(false, false, Blue) ++ " ");
+    emit(g8(false, false, Red) ++ " ");
+    emit(g8(false, true, Blue) ++ " ");
+    emit(g8(true, false, Green) ++ " ");
+    emit(g8(true, false, Green) ++ " ");
+    emit(g8(false, false, Red) ++ " ");
+    emit(g8(false, false, Green) ++ " ");
+    emit(g8(false, true, Blue) ++ " ");
+    emit(g8(false, false, Blue) ++ " ");
+    emit(g8(false, false, Red) ++ " ");
+    emit(g8(true, false, Green) ++ " ");
+    emit(g8(true, true, Blue) ++ " ");
+    emit(g8(true, false, Blue) ++ " ");
+    emit(g8(true, true, Blue) ++ " ");
+    emit(g8(true, true, Green) ++ " ");
+    emit(g8(false, true, Green) ++ " ");
+    emit(g8(false, true, Red) ++ " ");
+    emit(g8(true, false, Red) ++ " ");
+    emit(g8(true, false, Green) ++ " ");
+    emit(g8(true, false, Red) ++ " ");
+    emit(g8(true, false, Red) ++ " ");
+    emit(g8(true, false, Red) ++ " ");
+    emit(g8(true, true, Red) ++ " ");
+    emit(g8(false, true, Blue) ++ " ");
+    emit(g8(false, true, Red) ++ " ");
+    emit(g8(false, true, Blue) ++ " ");
+    emit(g8(false, false, Blue) ++ " ");
+    emit(g8(true, false, Blue) ++ " ");
+    emit(g8(true, false, Red) ++ " ");
+    emit(g8(false, true, Green) ++ " ");
+    emit(g8(true, true, Blue) ++ " ");
+    emit(g8(false, true, Blue) ++ " ");
+    emit(g8(true, true, Red) ++ " ");
+    emit(g8(true, false, Red) ++ " ");
+    emit(g8(false, false, Blue) ++ " ");
+    emit(g8(false, true, Blue) ++ " ");
+    emit(g8(false, true, Blue) ++ " ");
+    print("");
+    emit(g9([2]) ++ " ");
+    emit(g9([-3]) ++ " ");
+    emit(g9([-2]) ++ " ");
+    emit(g9([0, -1, -1]) ++ " ");
+    emit(g9([-2, 1, 0]) ++ " ");
+    emit(g9([-3]) ++ " ");
+    emit(g9([1, 1, 2]) ++ " ");
+    emit(g9([-2]) ++ " ");
+    emit(g9([-3]) ++ " ");
+    emit(g9([0, 3]) ++ " ");
+    emit(g9([-2, -2, -1]) ++ " ");
+    emit(g9([3, -3, 2]) ++ " ");
+    emit(g9([]) ++ " ");
+    emit(g9([0]) ++ " ");
+    emit(g9([-3]) ++ " ");
+    emit(g9([0, -1]) ++ " ");
+    emit(g9([3, 0]) ++ " ");
+    emit(g9([-1, 2, 1, 1]) ++ " ");
+    emit(g9([-1, 0, -2, 3]) ++ " ");
+    emit(g9([0, 1]) ++ " ");
+    emit(g9([]) ++ " ");
+    emit(g9([0, -3, 3, 1]) ++ " ");
+    emit(g9([1]) ++ " ");
+    emit(g9([]) ++ " ");
+    emit(g9([1, -2, 1, 0]) ++ " ");
+    emit(g9([]) ++ " ");
+    emit(g9([3, 1, 3]) ++ " ");
+    emit(g9([3, 3]) ++ " ");
+    emit(g9([-1, 1, -3]) ++ " ");
+    emit(g9([-1, 3, -2]) ++ " ");
+    emit(g9([-2, 2, 3, -1]) ++ " ");
+    emit(g9([1]) ++ " ");
+    emit(g9([0, -3]) ++ " ");
+    emit(g9([-2, 1, 3]) ++ " ");
+    emit(g9([0, 0, 0, 0]) ++ " ");
+    emit(g9([1, -2, 0, -2]) ++ " ");
+    emit(g9([]) ++ " ");
+    emit(g9([2, 3, -1, -3]) ++ " ");
+    emit(g9([3]) ++ " ");
+    emit(g9([]) ++ " ");
+    print("");
+    emit(g10(false, false, Blue) ++ " ");
+    emit(g10(false, true, Blue) ++ " ");
+    emit(g10(true, true, Green) ++ " ");
+    emit(g10(false, false, Green) ++ " ");
+    emit(g10(true, true, Blue) ++ " ");
+    emit(g10(false, false, Red) ++ " ");
+    emit(g10(true, true, Red) ++ " ");
+    emit(g10(true, false, Blue) ++ " ");
+    emit(g10(false, false, Blue) ++ " ");
+    emit(g10(false, true, Blue) ++ " ");
+    emit(g10(false, false, Green) ++ " ");
+    emit(g10(false, true, Green) ++ " ");
+    emit(g10(true, true, Blue) ++ " ");
+    emit(g10(false, false, Green) ++ " ");
+    emit(g10(false, true, Red) ++ " ");
+    emit(g10(true, true, Red) ++ " ");
+    emit(g10(false, true, Green) ++ " ");
+    emit(g10(true, false, Red) ++ " ");
+    emit(g10(true, false, Blue) ++ " ");
+    emit(g10(true, false, Red) ++ " ");
+    emit(g10(false, true, Red) ++ " ");
+    emit(g10(false, true, Green) ++ " ");
+    emit(g10(false, false, Blue) ++ " ");
+    emit(g10(false, false, Blue) ++ " ");
+    emit(g10(true, false, Green) ++ " ");
+    emit(g10(false, false, Green) ++ " ");
+    emit(g10(true, false, Blue) ++ " ");
+    emit(g10(true, false, Green) ++ " ");
+    emit(g10(true, true, Red) ++ " ");
+    emit(g10(false, true, Green) ++ " ");
+    emit(g10(true, true, Red) ++ " ");
+    emit(g10(false, true, Green) ++ " ");
+    emit(g10(false, false, Red) ++ " ");
+    emit(g10(true, false, Green) ++ " ");
+    emit(g10(false, false, Blue) ++ " ");
+    emit(g10(false, true, Red) ++ " ");
+    emit(g10(false, true, Green) ++ " ");
+    emit(g10(false, true, Blue) ++ " ");
+    emit(g10(true, true, Red) ++ " ");
+    emit(g10(true, true, Red) ++ " ");
+    print("");
+    emit(g11([3], false) ++ " ");
+    emit(g11([1, 3, 0], false) ++ " ");
+    emit(g11([3, -2], false) ++ " ");
+    emit(g11([], true) ++ " ");
+    emit(g11([3, 0], true) ++ " ");
+    emit(g11([], false) ++ " ");
+    emit(g11([3], true) ++ " ");
+    emit(g11([], true) ++ " ");
+    emit(g11([0, -3], false) ++ " ");
+    emit(g11([3, 1], false) ++ " ");
+    emit(g11([], false) ++ " ");
+    emit(g11([0, -2], false) ++ " ");
+    emit(g11([], false) ++ " ");
+    emit(g11([-2, 1, -1, -3], true) ++ " ");
+    emit(g11([-2, -1], false) ++ " ");
+    emit(g11([3, -3, -3], false) ++ " ");
+    emit(g11([], false) ++ " ");
+    emit(g11([3, -3, -3, -1], true) ++ " ");
+    emit(g11([], false) ++ " ");
+    emit(g11([3, 3], true) ++ " ");
+    emit(g11([-2, -3, 0], true) ++ " ");
+    emit(g11([-1, -3], false) ++ " ");
+    emit(g11([2, 2, 0], false) ++ " ");
+    emit(g11([0], false) ++ " ");
+    emit(g11([-2, -1], true) ++ " ");
+    emit(g11([-1, 3, -3], false) ++ " ");
+    emit(g11([3, 2], false) ++ " ");
+    emit(g11([-2], false) ++ " ");
+    emit(g11([0], true) ++ " ");
+    emit(g11([2, -2], false) ++ " ");
+    emit(g11([-2, 2, -2], false) ++ " ");
+    emit(g11([-3, -1, 0, 1], false) ++ " ");
+    emit(g11([3, 0, 0, 1], false) ++ " ");
+    emit(g11([0], false) ++ " ");
+    emit(g11([3, 3, 2, 2], true) ++ " ");
+    emit(g11([3, 1, 0], false) ++ " ");
+    emit(g11([2], true) ++ " ");
+    emit(g11([], false) ++ " ");
+    emit(g11([], false) ++ " ");
+    emit(g11([-1, 1, 2], true) ++ " ");
+    print("");
+    emit(g12([2, -1], true) ++ " ");
+    emit(g12([-1, 3], true) ++ " ");
+    emit(g12([0, -2, 2, -2], true) ++ " ");
+    emit(g12([0], false) ++ " ");
+    emit(g12([-3, 0, -2], false) ++ " ");
+    emit(g12([-3, 3, 0], true) ++ " ");
+    emit(g12([3], false) ++ " ");
+    emit(g12([-2, 3, 2, 0], true) ++ " ");
+    emit(g12([0, 1, 1, 0], false) ++ " ");
+    emit(g12([0, -1, -3, 3], true) ++ " ");
+    emit(g12([-3, -1, 0], false) ++ " ");
+    emit(g12([-2], false) ++ " ");
+    emit(g12([1, 2], false) ++ " ");
+    emit(g12([0, -2, 3, -3], true) ++ " ");
+    emit(g12([2, 0], true) ++ " ");
+    emit(g12([], false) ++ " ");
+    emit(g12([-1, 3], true) ++ " ");
+    emit(g12([], true) ++ " ");
+    emit(g12([], false) ++ " ");
+    emit(g12([-2], true) ++ " ");
+    emit(g12([2, 3, 0], false) ++ " ");
+    emit(g12([1, 1], true) ++ " ");
+    emit(g12([3, -1, -1, 3], false) ++ " ");
+    emit(g12([3, 2, -2], false) ++ " ");
+    emit(g12([2, 2, 2], true) ++ " ");
+    emit(g12([2, 3], true) ++ " ");
+    emit(g12([-1, -1, 1], false) ++ " ");
+    emit(g12([3], true) ++ " ");
+    emit(g12([-2, 1, 1], true) ++ " ");
+    emit(g12([3, -3], true) ++ " ");
+    emit(g12([-1, 2, 1, -3], false) ++ " ");
+    emit(g12([], true) ++ " ");
+    emit(g12([-3, 3], false) ++ " ");
+    emit(g12([1, 2], false) ++ " ");
+    emit(g12([2], false) ++ " ");
+    emit(g12([], false) ++ " ");
+    emit(g12([-2, 0, 3], true) ++ " ");
+    emit(g12([], false) ++ " ");
+    emit(g12([-2], false) ++ " ");
+    emit(g12([1, -1, 1, -1], false) ++ " ");
+    print("");
+    emit(g13(false, false, Red) ++ " ");
+    emit(g13(true, false, Blue) ++ " ");
+    emit(g13(true, true, Green) ++ " ");
+    emit(g13(true, false, Red) ++ " ");
+    emit(g13(true, true, Blue) ++ " ");
+    emit(g13(true, false, Red) ++ " ");
+    emit(g13(false, true, Red) ++ " ");
+    emit(g13(false, false, Blue) ++ " ");
+    emit(g13(true, true, Green) ++ " ");
+    emit(g13(true, true, Red) ++ " ");
+    emit(g13(false, false, Green) ++ " ");
+    emit(g13(false, false, Green) ++ " ");
+    emit(g13(false, false, Blue) ++ " ");
+    emit(g13(false, true, Green) ++ " ");
+    emit(g13(true, true, Green) ++ " ");
+    emit(g13(true, true, Red) ++ " ");
+    emit(g13(false, false, Red) ++ " ");
+    emit(g13(true, false, Blue) ++ " ");
+    emit(g13(false, false, Blue) ++ " ");
+    emit(g13(true, false, Green) ++ " ");
+    emit(g13(false, true, Green) ++ " ");
+    emit(g13(false, false, Blue) ++ " ");
+    emit(g13(false, false, Blue) ++ " ");
+    emit(g13(true, false, Green) ++ " ");
+    emit(g13(true, false, Green) ++ " ");
+    emit(g13(true, true, Green) ++ " ");
+    emit(g13(true, true, Blue) ++ " ");
+    emit(g13(true, true, Red) ++ " ");
+    emit(g13(true, true, Blue) ++ " ");
+    emit(g13(false, false, Green) ++ " ");
+    emit(g13(true, false, Red) ++ " ");
+    emit(g13(true, true, Blue) ++ " ");
+    emit(g13(true, true, Green) ++ " ");
+    emit(g13(true, true, Blue) ++ " ");
+    emit(g13(true, false, Red) ++ " ");
+    emit(g13(false, false, Green) ++ " ");
+    emit(g13(false, true, Blue) ++ " ");
+    emit(g13(false, false, Green) ++ " ");
+    emit(g13(true, true, Blue) ++ " ");
+    emit(g13(true, true, Blue) ++ " ");
+    print("");
+    emit(g14(true, false, Green) ++ " ");
+    emit(g14(true, false, Green) ++ " ");
+    emit(g14(true, true, Green) ++ " ");
+    emit(g14(false, true, Green) ++ " ");
+    emit(g14(true, false, Blue) ++ " ");
+    emit(g14(true, true, Green) ++ " ");
+    emit(g14(true, false, Blue) ++ " ");
+    emit(g14(true, false, Red) ++ " ");
+    emit(g14(false, true, Blue) ++ " ");
+    emit(g14(true, false, Red) ++ " ");
+    emit(g14(false, true, Green) ++ " ");
+    emit(g14(false, true, Red) ++ " ");
+    emit(g14(false, true, Red) ++ " ");
+    emit(g14(false, true, Blue) ++ " ");
+    emit(g14(false, false, Red) ++ " ");
+    emit(g14(false, false, Blue) ++ " ");
+    emit(g14(false, false, Green) ++ " ");
+    emit(g14(true, true, Red) ++ " ");
+    emit(g14(true, false, Blue) ++ " ");
+    emit(g14(true, false, Green) ++ " ");
+    emit(g14(false, false, Green) ++ " ");
+    emit(g14(false, true, Green) ++ " ");
+    emit(g14(false, true, Red) ++ " ");
+    emit(g14(false, false, Red) ++ " ");
+    emit(g14(true, true, Red) ++ " ");
+    emit(g14(true, false, Blue) ++ " ");
+    emit(g14(false, true, Green) ++ " ");
+    emit(g14(false, false, Blue) ++ " ");
+    emit(g14(false, true, Red) ++ " ");
+    emit(g14(false, true, Green) ++ " ");
+    emit(g14(true, false, Green) ++ " ");
+    emit(g14(false, true, Red) ++ " ");
+    emit(g14(false, false, Blue) ++ " ");
+    emit(g14(true, true, Red) ++ " ");
+    emit(g14(true, true, Blue) ++ " ");
+    emit(g14(false, true, Blue) ++ " ");
+    emit(g14(false, false, Red) ++ " ");
+    emit(g14(false, false, Blue) ++ " ");
+    emit(g14(true, true, Red) ++ " ");
+    emit(g14(true, true, Green) ++ " ");
+    print("");
+    emit(g15(Some(Seg(3)), Blue) ++ " ");
+    emit(g15(Some(Box(1, 1)), Green) ++ " ");
+    emit(g15(Some(Seg(-1)), Red) ++ " ");
+    emit(g15(Some(Tagged(Red, Box(-2, 3))), Red) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(Some(Box(-1, -2)), Red) ++ " ");
+    emit(g15(Some(Tagged(Green, Seg(0))), Blue) ++ " ");
+    emit(g15(Some(Tagged(Blue, Box(1, -1))), Green) ++ " ");
+    emit(g15(Some(Seg(2)), Blue) ++ " ");
+    emit(g15(Some(Seg(0)), Blue) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(Some(Box(3, 0)), Red) ++ " ");
+    emit(g15(None, Red) ++ " ");
+    emit(g15(Some(Tagged(Green, Tagged(Blue, Tagged(Red, Seg(1))))), Green) ++ " ");
+    emit(g15(None, Blue) ++ " ");
+    emit(g15(Some(Tagged(Red, Seg(-1))), Blue) ++ " ");
+    emit(g15(Some(Dot), Green) ++ " ");
+    emit(g15(Some(Dot), Red) ++ " ");
+    emit(g15(None, Red) ++ " ");
+    emit(g15(Some(Dot), Blue) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(Some(Box(-1, -1)), Green) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(Some(Seg(-3)), Blue) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(None, Red) ++ " ");
+    emit(g15(Some(Dot), Green) ++ " ");
+    emit(g15(None, Green) ++ " ");
+    emit(g15(Some(Seg(0)), Red) ++ " ");
+    emit(g15(Some(Dot), Red) ++ " ");
+    emit(g15(Some(Box(3, -1)), Blue) ++ " ");
+    emit(g15(Some(Seg(-3)), Green) ++ " ");
+    emit(g15(Some(Tagged(Blue, Dot)), Blue) ++ " ");
+    emit(g15(Some(Seg(2)), Green) ++ " ");
+    emit(g15(Some(Tagged(Blue, Box(0, 3))), Red) ++ " ");
+    emit(g15(Some(Seg(2)), Blue) ++ " ");
+    emit(g15(Some(Dot), Green) ++ " ");
+    emit(g15(Some(Seg(2)), Red) ++ " ");
+    print("");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Seg(2))) ++ " ");
+    emit(g16(Some(Seg(-3))) ++ " ");
+    emit(g16(Some(Seg(0))) ++ " ");
+    emit(g16(Some(Seg(2))) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Box(0, 1))) ++ " ");
+    emit(g16(Some(Tagged(Red, Tagged(Red, Box(3, 0))))) ++ " ");
+    emit(g16(Some(Tagged(Green, Tagged(Blue, Box(-1, -1))))) ++ " ");
+    emit(g16(None) ++ " ");
+    emit(g16(None) ++ " ");
+    emit(g16(Some(Tagged(Blue, Tagged(Red, Dot)))) ++ " ");
+    emit(g16(Some(Seg(-3))) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Tagged(Green, Tagged(Green, Box(2, -3))))) ++ " ");
+    emit(g16(Some(Box(0, -2))) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Seg(-3))) ++ " ");
+    emit(g16(Some(Seg(-1))) ++ " ");
+    emit(g16(Some(Tagged(Red, Box(-2, -3)))) ++ " ");
+    emit(g16(None) ++ " ");
+    emit(g16(Some(Seg(-3))) ++ " ");
+    emit(g16(Some(Tagged(Red, Box(-1, -2)))) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Seg(-2))) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Dot)) ++ " ");
+    emit(g16(Some(Box(-3, -3))) ++ " ");
+    emit(g16(None) ++ " ");
+    emit(g16(Some(Seg(-1))) ++ " ");
+    emit(g16(Some(Seg(0))) ++ " ");
+    emit(g16(Some(Seg(-3))) ++ " ");
+    emit(g16(Some(Box(1, 0))) ++ " ");
+    emit(g16(None) ++ " ");
+    emit(g16(Some(Box(3, -3))) ++ " ");
+    emit(g16(Some(Box(3, -3))) ++ " ");
+    emit(g16(Some(Seg(-2))) ++ " ");
+    emit(g16(None) ++ " ");
+    print("");
+    emit(g17(Box(-2, 3), -3) ++ " ");
+    emit(g17(Tagged(Blue, Seg(-3)), -3) ++ " ");
+    emit(g17(Dot, 3) ++ " ");
+    emit(g17(Seg(-3), -1) ++ " ");
+    emit(g17(Seg(-3), 0) ++ " ");
+    emit(g17(Tagged(Green, Dot), 2) ++ " ");
+    emit(g17(Tagged(Red, Dot), 1) ++ " ");
+    emit(g17(Seg(-2), -2) ++ " ");
+    emit(g17(Seg(0), -1) ++ " ");
+    emit(g17(Seg(-2), -2) ++ " ");
+    emit(g17(Seg(2), 1) ++ " ");
+    emit(g17(Box(1, 1), -1) ++ " ");
+    emit(g17(Tagged(Green, Tagged(Green, Tagged(Blue, Dot))), 0) ++ " ");
+    emit(g17(Dot, -3) ++ " ");
+    emit(g17(Tagged(Green, Tagged(Red, Box(0, 2))), 3) ++ " ");
+    emit(g17(Box(2, -2), 0) ++ " ");
+    emit(g17(Box(-2, 0), -2) ++ " ");
+    emit(g17(Dot, 2) ++ " ");
+    emit(g17(Tagged(Blue, Tagged(Green, Box(-3, -3))), 0) ++ " ");
+    emit(g17(Dot, 2) ++ " ");
+    emit(g17(Box(-1, -3), 1) ++ " ");
+    emit(g17(Tagged(Green, Box(-3, 0)), 0) ++ " ");
+    emit(g17(Tagged(Red, Dot), 1) ++ " ");
+    emit(g17(Box(2, -1), -1) ++ " ");
+    emit(g17(Seg(3), -1) ++ " ");
+    emit(g17(Box(-1, 3), 2) ++ " ");
+    emit(g17(Box(-3, 2), 2) ++ " ");
+    emit(g17(Box(-2, 1), -2) ++ " ");
+    emit(g17(Dot, 3) ++ " ");
+    emit(g17(Dot, -2) ++ " ");
+    emit(g17(Tagged(Blue, Tagged(Red, Dot)), 2) ++ " ");
+    emit(g17(Dot, -1) ++ " ");
+    emit(g17(Tagged(Red, Dot), 2) ++ " ");
+    emit(g17(Box(2, 0), 1) ++ " ");
+    emit(g17(Seg(-3), -3) ++ " ");
+    emit(g17(Tagged(Red, Seg(-3)), 3) ++ " ");
+    emit(g17(Tagged(Blue, Tagged(Blue, Seg(-2))), -1) ++ " ");
+    emit(g17(Seg(3), -2) ++ " ");
+    emit(g17(Dot, -2) ++ " ");
+    emit(g17(Box(3, 1), 3) ++ " ");
+    print("");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Blue, true) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Green, false) ++ " ");
+    emit(g18(Blue, true) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Green, true) ++ " ");
+    emit(g18(Blue, false) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Blue, true) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Blue, false) ++ " ");
+    emit(g18(Green, false) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Green, true) ++ " ");
+    emit(g18(Blue, false) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Blue, true) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Red, true) ++ " ");
+    emit(g18(Green, true) ++ " ");
+    emit(g18(Green, false) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Blue, false) ++ " ");
+    emit(g18(Green, false) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Green, true) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Green, false) ++ " ");
+    emit(g18(Blue, true) ++ " ");
+    emit(g18(Blue, true) ++ " ");
+    emit(g18(Green, false) ++ " ");
+    emit(g18(Green, false) ++ " ");
+    emit(g18(Red, false) ++ " ");
+    emit(g18(Blue, false) ++ " ");
+    print("");
+    emit(g19(Seg(2), -1) ++ " ");
+    emit(g19(Box(2, 1), -1) ++ " ");
+    emit(g19(Dot, 1) ++ " ");
+    emit(g19(Seg(-1), -2) ++ " ");
+    emit(g19(Dot, 1) ++ " ");
+    emit(g19(Tagged(Blue, Box(0, 1)), -3) ++ " ");
+    emit(g19(Dot, 0) ++ " ");
+    emit(g19(Dot, 3) ++ " ");
+    emit(g19(Tagged(Red, Box(1, 1)), -2) ++ " ");
+    emit(g19(Box(2, 0), 0) ++ " ");
+    emit(g19(Tagged(Red, Dot), 3) ++ " ");
+    emit(g19(Seg(0), -3) ++ " ");
+    emit(g19(Seg(1), 0) ++ " ");
+    emit(g19(Dot, 2) ++ " ");
+    emit(g19(Tagged(Red, Dot), 1) ++ " ");
+    emit(g19(Dot, 0) ++ " ");
+    emit(g19(Box(3, -2), -3) ++ " ");
+    emit(g19(Dot, 3) ++ " ");
+    emit(g19(Seg(2), -3) ++ " ");
+    emit(g19(Seg(-2), 0) ++ " ");
+    emit(g19(Tagged(Green, Tagged(Blue, Tagged(Red, Box(-3, -1)))), 0) ++ " ");
+    emit(g19(Box(-2, 3), 2) ++ " ");
+    emit(g19(Box(2, -3), 0) ++ " ");
+    emit(g19(Tagged(Red, Seg(-3)), -3) ++ " ");
+    emit(g19(Tagged(Green, Tagged(Blue, Box(2, -3))), -3) ++ " ");
+    emit(g19(Seg(2), -3) ++ " ");
+    emit(g19(Box(2, -1), -1) ++ " ");
+    emit(g19(Seg(2), 3) ++ " ");
+    emit(g19(Dot, -1) ++ " ");
+    emit(g19(Box(2, -2), -3) ++ " ");
+    emit(g19(Seg(0), -1) ++ " ");
+    emit(g19(Dot, 3) ++ " ");
+    emit(g19(Box(0, -1), 3) ++ " ");
+    emit(g19(Box(3, -3), 2) ++ " ");
+    emit(g19(Box(2, 3), -3) ++ " ");
+    emit(g19(Dot, -1) ++ " ");
+    emit(g19(Box(2, -3), -3) ++ " ");
+    emit(g19(Dot, -1) ++ " ");
+    emit(g19(Dot, 1) ++ " ");
+    emit(g19(Seg(-1), -3) ++ " ");
+    print("");
+    emit(g20(Some(Box(-3, 0)), Red) ++ " ");
+    emit(g20(None, Blue) ++ " ");
+    emit(g20(Some(Tagged(Green, Tagged(Green, Tagged(Blue, Dot)))), Red) ++ " ");
+    emit(g20(None, Red) ++ " ");
+    emit(g20(None, Green) ++ " ");
+    emit(g20(Some(Tagged(Red, Dot)), Red) ++ " ");
+    emit(g20(Some(Seg(1)), Blue) ++ " ");
+    emit(g20(None, Green) ++ " ");
+    emit(g20(None, Red) ++ " ");
+    emit(g20(Some(Seg(2)), Green) ++ " ");
+    emit(g20(Some(Box(2, 2)), Green) ++ " ");
+    emit(g20(Some(Tagged(Blue, Dot)), Blue) ++ " ");
+    emit(g20(Some(Dot), Green) ++ " ");
+    emit(g20(None, Blue) ++ " ");
+    emit(g20(Some(Dot), Red) ++ " ");
+    emit(g20(None, Green) ++ " ");
+    emit(g20(Some(Seg(0)), Blue) ++ " ");
+    emit(g20(Some(Tagged(Blue, Box(2, -3))), Blue) ++ " ");
+    emit(g20(None, Red) ++ " ");
+    emit(g20(Some(Tagged(Red, Dot)), Blue) ++ " ");
+    emit(g20(None, Red) ++ " ");
+    emit(g20(None, Red) ++ " ");
+    emit(g20(None, Blue) ++ " ");
+    emit(g20(Some(Tagged(Green, Box(3, 3))), Red) ++ " ");
+    emit(g20(None, Blue) ++ " ");
+    emit(g20(Some(Dot), Blue) ++ " ");
+    emit(g20(Some(Dot), Blue) ++ " ");
+    emit(g20(Some(Dot), Green) ++ " ");
+    emit(g20(Some(Box(1, 2)), Green) ++ " ");
+    emit(g20(Some(Dot), Green) ++ " ");
+    emit(g20(Some(Dot), Green) ++ " ");
+    emit(g20(None, Green) ++ " ");
+    emit(g20(Some(Dot), Red) ++ " ");
+    emit(g20(None, Green) ++ " ");
+    emit(g20(None, Blue) ++ " ");
+    emit(g20(None, Red) ++ " ");
+    emit(g20(Some(Tagged(Green, Dot)), Red) ++ " ");
+    emit(g20(Some(Tagged(Red, Tagged(Green, Tagged(Red, Dot)))), Green) ++ " ");
+    emit(g20(None, Green) ++ " ");
+    emit(g20(None, Blue) ++ " ");
+    print("");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Red, false) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Blue, true) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Green, true) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Red, false) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Blue, true) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Red, true) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Red, false) ++ " ");
+    emit(g21(Blue, true) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Red, false) ++ " ");
+    emit(g21(Blue, true) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Red, false) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    emit(g21(Red, false) ++ " ");
+    emit(g21(Red, false) ++ " ");
+    emit(g21(Blue, false) ++ " ");
+    emit(g21(Green, false) ++ " ");
+    print("");
+    emit(g22(Blue, true) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Red, false) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Blue, false) ++ " ");
+    emit(g22(Blue, true) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Blue, false) ++ " ");
+    emit(g22(Blue, true) ++ " ");
+    emit(g22(Blue, false) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Blue, true) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Blue, false) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Blue, false) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    emit(g22(Blue, false) ++ " ");
+    emit(g22(Red, false) ++ " ");
+    emit(g22(Red, false) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    emit(g22(Green, false) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    emit(g22(Red, false) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    emit(g22(Blue, false) ++ " ");
+    emit(g22(Red, true) ++ " ");
+    emit(g22(Green, true) ++ " ");
+    print("");
+    emit(g23(Some(Dot)) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Seg(-2))) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Dot)) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Box(1, -3))) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Tagged(Green, Box(0, 2)))) ++ " ");
+    emit(g23(Some(Box(0, -1))) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Box(0, 0))) ++ " ");
+    emit(g23(Some(Seg(3))) ++ " ");
+    emit(g23(Some(Box(-1, -2))) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Seg(2))) ++ " ");
+    emit(g23(Some(Seg(-2))) ++ " ");
+    emit(g23(Some(Box(2, 2))) ++ " ");
+    emit(g23(Some(Dot)) ++ " ");
+    emit(g23(Some(Tagged(Green, Dot))) ++ " ");
+    emit(g23(Some(Tagged(Green, Box(1, -1)))) ++ " ");
+    emit(g23(Some(Tagged(Red, Seg(-2)))) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Seg(0))) ++ " ");
+    emit(g23(Some(Seg(2))) ++ " ");
+    emit(g23(Some(Dot)) ++ " ");
+    emit(g23(Some(Dot)) ++ " ");
+    emit(g23(Some(Box(0, -1))) ++ " ");
+    emit(g23(Some(Seg(-3))) ++ " ");
+    emit(g23(Some(Dot)) ++ " ");
+    emit(g23(Some(Box(-3, -1))) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(None) ++ " ");
+    emit(g23(Some(Box(3, 0))) ++ " ");
+    emit(g23(None) ++ " ");
+    print("");
+    emit(g24(Some(Seg(-1))) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Box(2, 1))) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Tagged(Blue, Tagged(Red, Dot)))) ++ " ");
+    emit(g24(Some(Box(-1, 1))) ++ " ");
+    emit(g24(Some(Dot)) ++ " ");
+    emit(g24(Some(Box(1, 2))) ++ " ");
+    emit(g24(Some(Tagged(Green, Box(1, 2)))) ++ " ");
+    emit(g24(Some(Tagged(Red, Seg(3)))) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Tagged(Blue, Tagged(Red, Tagged(Blue, Seg(-3)))))) ++ " ");
+    emit(g24(Some(Dot)) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Tagged(Red, Tagged(Green, Box(-1, 0))))) ++ " ");
+    emit(g24(Some(Tagged(Green, Seg(1)))) ++ " ");
+    emit(g24(Some(Tagged(Green, Tagged(Red, Dot)))) ++ " ");
+    emit(g24(Some(Tagged(Red, Box(-3, 3)))) ++ " ");
+    emit(g24(Some(Seg(-3))) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Tagged(Red, Box(2, 1)))) ++ " ");
+    emit(g24(Some(Tagged(Blue, Box(1, -3)))) ++ " ");
+    emit(g24(Some(Tagged(Green, Tagged(Blue, Seg(0))))) ++ " ");
+    emit(g24(Some(Tagged(Red, Box(3, 1)))) ++ " ");
+    emit(g24(Some(Tagged(Green, Box(-1, -2)))) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Box(1, 2))) ++ " ");
+    emit(g24(Some(Tagged(Blue, Box(3, -1)))) ++ " ");
+    emit(g24(Some(Box(3, 3))) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Seg(-2))) ++ " ");
+    emit(g24(Some(Tagged(Red, Dot))) ++ " ");
+    emit(g24(None) ++ " ");
+    emit(g24(Some(Box(-3, -2))) ++ " ");
+    emit(g24(Some(Dot)) ++ " ");
+    emit(g24(Some(Tagged(Red, Tagged(Green, Seg(0))))) ++ " ");
+    emit(g24(Some(Tagged(Blue, Tagged(Green, Tagged(Green, Box(-2, -2)))))) ++ " ");
+    emit(g24(Some(Dot)) ++ " ");
+    emit(g24(None) ++ " ");
+    print("");
+    emit(g25(Green, true) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Blue, false) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Blue, true) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Blue, true) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Green, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Green, true) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Green, false) ++ " ");
+    emit(g25(Blue, true) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Blue, true) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Blue, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Blue, false) ++ " ");
+    emit(g25(Blue, false) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Green, true) ++ " ");
+    emit(g25(Blue, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Green, true) ++ " ");
+    emit(g25(Green, false) ++ " ");
+    emit(g25(Red, true) ++ " ");
+    emit(g25(Green, false) ++ " ");
+    emit(g25(Blue, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    emit(g25(Red, false) ++ " ");
+    print("");
+    emit(g26([-2, 1, -1], true) ++ " ");
+    emit(g26([-1], false) ++ " ");
+    emit(g26([-2, 2, 2, 2], true) ++ " ");
+    emit(g26([1, -1], true) ++ " ");
+    emit(g26([-1, -1, -3, 0], true) ++ " ");
+    emit(g26([0, 0], true) ++ " ");
+    emit(g26([1, -2], false) ++ " ");
+    emit(g26([3, -1, 0, -3], true) ++ " ");
+    emit(g26([-3, 1], true) ++ " ");
+    emit(g26([3, -2, -1, 0], false) ++ " ");
+    emit(g26([], false) ++ " ");
+    emit(g26([], true) ++ " ");
+    emit(g26([-1, 0], false) ++ " ");
+    emit(g26([0, 1, 0, -1], true) ++ " ");
+    emit(g26([-1, 1, 0], false) ++ " ");
+    emit(g26([3, 2, 3, 2], true) ++ " ");
+    emit(g26([3, -2, 3], false) ++ " ");
+    emit(g26([-2, 0], true) ++ " ");
+    emit(g26([2], false) ++ " ");
+    emit(g26([2, -1, 1], false) ++ " ");
+    emit(g26([], true) ++ " ");
+    emit(g26([], true) ++ " ");
+    emit(g26([-3, -3, 0, -2], false) ++ " ");
+    emit(g26([-2], false) ++ " ");
+    emit(g26([0, 3, -3], true) ++ " ");
+    emit(g26([0, -1, 1], true) ++ " ");
+    emit(g26([2], true) ++ " ");
+    emit(g26([2, 3], false) ++ " ");
+    emit(g26([], true) ++ " ");
+    emit(g26([1], true) ++ " ");
+    emit(g26([2, 1, 0, -3], true) ++ " ");
+    emit(g26([2, -1], false) ++ " ");
+    emit(g26([2, -1, 3], false) ++ " ");
+    emit(g26([-2, -1, -2], true) ++ " ");
+    emit(g26([], false) ++ " ");
+    emit(g26([-1], false) ++ " ");
+    emit(g26([2, -1, -2, 1], false) ++ " ");
+    emit(g26([0, 0, -2], false) ++ " ");
+    emit(g26([2, -1, 0], true) ++ " ");
+    emit(g26([-1], true) ++ " ");
+    print("");
+    emit(g27([-3, 3, 0, -2]) ++ " ");
+    emit(g27([-1, -3, -3, 0]) ++ " ");
+    emit(g27([3]) ++ " ");
+    emit(g27([0, -1, -3]) ++ " ");
+    emit(g27([1, 3, 2]) ++ " ");
+    emit(g27([]) ++ " ");
+    emit(g27([-2, -3, -3]) ++ " ");
+    emit(g27([]) ++ " ");
+    emit(g27([3]) ++ " ");
+    emit(g27([0, 0, 2]) ++ " ");
+    emit(g27([2]) ++ " ");
+    emit(g27([1, 3, 3]) ++ " ");
+    emit(g27([-1, -1]) ++ " ");
+    emit(g27([2]) ++ " ");
+    emit(g27([0, 2]) ++ " ");
+    emit(g27([2, 0, 1]) ++ " ");
+    emit(g27([]) ++ " ");
+    emit(g27([-3, 3, -2, -3]) ++ " ");
+    emit(g27([2]) ++ " ");
+    emit(g27([]) ++ " ");
+    emit(g27([1, 3, -3, 3]) ++ " ");
+    emit(g27([-3, 0]) ++ " ");
+    emit(g27([3]) ++ " ");
+    emit(g27([0, -1]) ++ " ");
+    emit(g27([1, 1]) ++ " ");
+    emit(g27([3, -2, 2, -2]) ++ " ");
+    emit(g27([3]) ++ " ");
+    emit(g27([-3]) ++ " ");
+    emit(g27([]) ++ " ");
+    emit(g27([]) ++ " ");
+    emit(g27([-3, -1, 2, 3]) ++ " ");
+    emit(g27([2, -2, 3, 0]) ++ " ");
+    emit(g27([0, -3]) ++ " ");
+    emit(g27([0, -2, 0, -2]) ++ " ");
+    emit(g27([-2]) ++ " ");
+    emit(g27([-1, -2]) ++ " ");
+    emit(g27([-3, -3, 1, 1]) ++ " ");
+    emit(g27([0, 1]) ++ " ");
+    emit(g27([2, -1, 2, -1]) ++ " ");
+    emit(g27([]) ++ " ");
+    print("");
+    emit(g28(Some(Tagged(Green, Dot)), Red) ++ " ");
+    emit(g28(Some(Tagged(Red, Seg(-2))), Red) ++ " ");
+    emit(g28(None, Green) ++ " ");
+    emit(g28(None, Red) ++ " ");
+    emit(g28(Some(Seg(-2)), Green) ++ " ");
+    emit(g28(Some(Box(2, -1)), Green) ++ " ");
+    emit(g28(None, Green) ++ " ");
+    emit(g28(Some(Tagged(Blue, Dot)), Red) ++ " ");
+    emit(g28(Some(Box(-1, -2)), Blue) ++ " ");
+    emit(g28(Some(Dot), Red) ++ " ");
+    emit(g28(Some(Seg(-3)), Green) ++ " ");
+    emit(g28(None, Green) ++ " ");
+    emit(g28(None, Green) ++ " ");
+    emit(g28(Some(Tagged(Green, Box(2, 2))), Green) ++ " ");
+    emit(g28(Some(Tagged(Red, Dot)), Green) ++ " ");
+    emit(g28(None, Blue) ++ " ");
+    emit(g28(Some(Box(3, -2)), Red) ++ " ");
+    emit(g28(Some(Box(-1, -3)), Green) ++ " ");
+    emit(g28(Some(Box(2, 1)), Blue) ++ " ");
+    emit(g28(Some(Box(-3, -3)), Red) ++ " ");
+    emit(g28(Some(Dot), Blue) ++ " ");
+    emit(g28(None, Red) ++ " ");
+    emit(g28(None, Blue) ++ " ");
+    emit(g28(Some(Box(-3, -1)), Blue) ++ " ");
+    emit(g28(None, Blue) ++ " ");
+    emit(g28(Some(Box(-1, 2)), Blue) ++ " ");
+    emit(g28(None, Green) ++ " ");
+    emit(g28(Some(Box(3, 2)), Red) ++ " ");
+    emit(g28(None, Red) ++ " ");
+    emit(g28(Some(Tagged(Blue, Seg(2))), Red) ++ " ");
+    emit(g28(Some(Dot), Red) ++ " ");
+    emit(g28(Some(Tagged(Green, Box(-1, 2))), Red) ++ " ");
+    emit(g28(None, Green) ++ " ");
+    emit(g28(None, Green) ++ " ");
+    emit(g28(Some(Box(0, 3)), Red) ++ " ");
+    emit(g28(None, Blue) ++ " ");
+    emit(g28(Some(Dot), Blue) ++ " ");
+    emit(g28(Some(Tagged(Red, Dot)), Green) ++ " ");
+    emit(g28(Some(Seg(3)), Red) ++ " ");
+    emit(g28(Some(Seg(-2)), Red) ++ " ");
+    print("");
+    emit(g29(false, false, Red) ++ " ");
+    emit(g29(true, false, Green) ++ " ");
+    emit(g29(false, false, Green) ++ " ");
+    emit(g29(false, false, Blue) ++ " ");
+    emit(g29(false, false, Green) ++ " ");
+    emit(g29(false, true, Blue) ++ " ");
+    emit(g29(true, true, Blue) ++ " ");
+    emit(g29(false, false, Blue) ++ " ");
+    emit(g29(false, false, Red) ++ " ");
+    emit(g29(true, false, Red) ++ " ");
+    emit(g29(true, true, Red) ++ " ");
+    emit(g29(false, true, Red) ++ " ");
+    emit(g29(false, true, Blue) ++ " ");
+    emit(g29(false, true, Red) ++ " ");
+    emit(g29(true, false, Green) ++ " ");
+    emit(g29(false, true, Red) ++ " ");
+    emit(g29(true, false, Green) ++ " ");
+    emit(g29(false, false, Blue) ++ " ");
+    emit(g29(false, true, Red) ++ " ");
+    emit(g29(false, true, Red) ++ " ");
+    emit(g29(true, false, Green) ++ " ");
+    emit(g29(false, true, Green) ++ " ");
+    emit(g29(true, false, Red) ++ " ");
+    emit(g29(true, true, Red) ++ " ");
+    emit(g29(false, false, Green) ++ " ");
+    emit(g29(true, false, Red) ++ " ");
+    emit(g29(false, true, Red) ++ " ");
+    emit(g29(false, true, Blue) ++ " ");
+    emit(g29(true, false, Green) ++ " ");
+    emit(g29(true, true, Blue) ++ " ");
+    emit(g29(true, true, Red) ++ " ");
+    emit(g29(false, true, Blue) ++ " ");
+    emit(g29(true, false, Red) ++ " ");
+    emit(g29(false, false, Blue) ++ " ");
+    emit(g29(false, true, Blue) ++ " ");
+    emit(g29(false, false, Blue) ++ " ");
+    emit(g29(true, false, Red) ++ " ");
+    emit(g29(false, false, Green) ++ " ");
+    emit(g29(false, true, Blue) ++ " ");
+    emit(g29(true, false, Green) ++ " ");
+    print("");
+    emit(g30([-2, 0, -1], false) ++ " ");
+    emit(g30([3, 3, -2, -2], true) ++ " ");
+    emit(g30([], false) ++ " ");
+    emit(g30([0], true) ++ " ");
+    emit(g30([-3, -2], false) ++ " ");
+    emit(g30([], false) ++ " ");
+    emit(g30([], true) ++ " ");
+    emit(g30([-1, 3], false) ++ " ");
+    emit(g30([2], true) ++ " ");
+    emit(g30([], true) ++ " ");
+    emit(g30([3, 1, 2], true) ++ " ");
+    emit(g30([], true) ++ " ");
+    emit(g30([0], true) ++ " ");
+    emit(g30([-3, 0, 3], true) ++ " ");
+    emit(g30([-1, 0, -3, -3], true) ++ " ");
+    emit(g30([], true) ++ " ");
+    emit(g30([1, -3], true) ++ " ");
+    emit(g30([1, 2], false) ++ " ");
+    emit(g30([1], true) ++ " ");
+    emit(g30([-2, 0, 1, -2], true) ++ " ");
+    emit(g30([-2], false) ++ " ");
+    emit(g30([0, -2, 1, -1], false) ++ " ");
+    emit(g30([-3, 1, 1], false) ++ " ");
+    emit(g30([3, 1, -3, -1], true) ++ " ");
+    emit(g30([1], true) ++ " ");
+    emit(g30([3, 0], true) ++ " ");
+    emit(g30([3, -2], false) ++ " ");
+    emit(g30([2, 0, -2, -1], true) ++ " ");
+    emit(g30([-2, -2, -3], false) ++ " ");
+    emit(g30([3, 1], true) ++ " ");
+    emit(g30([1], true) ++ " ");
+    emit(g30([-3, -2, -3, 0], false) ++ " ");
+    emit(g30([-3, 0], false) ++ " ");
+    emit(g30([-1, 2, 1, 3], false) ++ " ");
+    emit(g30([-2, 2, -2, 0], false) ++ " ");
+    emit(g30([0, -1, 2, -2], true) ++ " ");
+    emit(g30([-1], true) ++ " ");
+    emit(g30([0, 2], false) ++ " ");
+    emit(g30([-2, -2], true) ++ " ");
+    emit(g30([3, 3], true) ++ " ");
+    print("");
+    emit(g31([]) ++ " ");
+    emit(g31([-1]) ++ " ");
+    emit(g31([-1]) ++ " ");
+    emit(g31([-1, -2, 1]) ++ " ");
+    emit(g31([-3]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([1, 0, 3, 3]) ++ " ");
+    emit(g31([0, 0, -1]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([-1, -2, 2, 2]) ++ " ");
+    emit(g31([-2]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([-1, 1]) ++ " ");
+    emit(g31([0, -1, 1, 1]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([1, -3]) ++ " ");
+    emit(g31([-3, 3, -1, 0]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([3]) ++ " ");
+    emit(g31([-3, 2]) ++ " ");
+    emit(g31([3]) ++ " ");
+    emit(g31([-2, 3, 2, -2]) ++ " ");
+    emit(g31([1, -2, 3]) ++ " ");
+    emit(g31([0]) ++ " ");
+    emit(g31([-3, -3]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([0, 3, -1, 2]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([0, -3, 3]) ++ " ");
+    emit(g31([-2, 0, -3]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([-3, -2]) ++ " ");
+    emit(g31([0]) ++ " ");
+    emit(g31([-3, 1, 3, -2]) ++ " ");
+    emit(g31([-2, 3, -3, -3]) ++ " ");
+    emit(g31([-1]) ++ " ");
+    emit(g31([0, -3, -2, -2]) ++ " ");
+    emit(g31([]) ++ " ");
+    emit(g31([1, 3, 1]) ++ " ");
+    print("");
+    emit(g32(true, true, Red) ++ " ");
+    emit(g32(false, false, Green) ++ " ");
+    emit(g32(false, true, Red) ++ " ");
+    emit(g32(true, false, Blue) ++ " ");
+    emit(g32(false, false, Green) ++ " ");
+    emit(g32(false, true, Blue) ++ " ");
+    emit(g32(false, true, Green) ++ " ");
+    emit(g32(true, true, Green) ++ " ");
+    emit(g32(false, false, Blue) ++ " ");
+    emit(g32(true, false, Blue) ++ " ");
+    emit(g32(true, false, Green) ++ " ");
+    emit(g32(false, true, Blue) ++ " ");
+    emit(g32(false, false, Blue) ++ " ");
+    emit(g32(false, false, Red) ++ " ");
+    emit(g32(false, false, Green) ++ " ");
+    emit(g32(false, false, Blue) ++ " ");
+    emit(g32(false, false, Blue) ++ " ");
+    emit(g32(false, false, Blue) ++ " ");
+    emit(g32(true, false, Red) ++ " ");
+    emit(g32(true, false, Blue) ++ " ");
+    emit(g32(true, false, Green) ++ " ");
+    emit(g32(false, true, Red) ++ " ");
+    emit(g32(false, true, Red) ++ " ");
+    emit(g32(true, true, Blue) ++ " ");
+    emit(g32(false, true, Blue) ++ " ");
+    emit(g32(false, true, Red) ++ " ");
+    emit(g32(true, true, Green) ++ " ");
+    emit(g32(false, true, Green) ++ " ");
+    emit(g32(true, true, Blue) ++ " ");
+    emit(g32(true, false, Green) ++ " ");
+    emit(g32(false, false, Green) ++ " ");
+    emit(g32(false, true, Red) ++ " ");
+    emit(g32(true, false, Red) ++ " ");
+    emit(g32(true, false, Blue) ++ " ");
+    emit(g32(true, false, Green) ++ " ");
+    emit(g32(false, false, Red) ++ " ");
+    emit(g32(false, true, Red) ++ " ");
+    emit(g32(false, false, Blue) ++ " ");
+    emit(g32(true, true, Blue) ++ " ");
+    emit(g32(false, true, Blue) ++ " ");
+    print("");
+    emit(g33(Seg(-2), 1) ++ " ");
+    emit(g33(Dot, -3) ++ " ");
+    emit(g33(Seg(1), -1) ++ " ");
+    emit(g33(Tagged(Blue, Dot), 3) ++ " ");
+    emit(g33(Dot, 2) ++ " ");
+    emit(g33(Dot, -3) ++ " ");
+    emit(g33(Tagged(Blue, Dot), -2) ++ " ");
+    emit(g33(Seg(2), 3) ++ " ");
+    emit(g33(Tagged(Red, Dot), -2) ++ " ");
+    emit(g33(Dot, 2) ++ " ");
+    emit(g33(Tagged(Green, Dot), 0) ++ " ");
+    emit(g33(Box(1, -1), -3) ++ " ");
+    emit(g33(Dot, -2) ++ " ");
+    emit(g33(Box(0, -2), 3) ++ " ");
+    emit(g33(Dot, 1) ++ " ");
+    emit(g33(Seg(-1), 2) ++ " ");
+    emit(g33(Dot, 0) ++ " ");
+    emit(g33(Box(1, -3), -2) ++ " ");
+    emit(g33(Tagged(Green, Dot), 3) ++ " ");
+    emit(g33(Seg(-2), 1) ++ " ");
+    emit(g33(Tagged(Red, Box(-1, 1)), -1) ++ " ");
+    emit(g33(Tagged(Red, Seg(-2)), -3) ++ " ");
+    emit(g33(Seg(-2), 2) ++ " ");
+    emit(g33(Tagged(Red, Dot), 2) ++ " ");
+    emit(g33(Seg(-3), 1) ++ " ");
+    emit(g33(Dot, -1) ++ " ");
+    emit(g33(Dot, 0) ++ " ");
+    emit(g33(Seg(2), -2) ++ " ");
+    emit(g33(Tagged(Red, Seg(-2)), 1) ++ " ");
+    emit(g33(Box(-3, 2), 1) ++ " ");
+    emit(g33(Tagged(Green, Tagged(Blue, Seg(-3))), -1) ++ " ");
+    emit(g33(Seg(-3), 2) ++ " ");
+    emit(g33(Dot, 1) ++ " ");
+    emit(g33(Box(-1, -2), 0) ++ " ");
+    emit(g33(Seg(0), -1) ++ " ");
+    emit(g33(Tagged(Blue, Box(3, -3)), 3) ++ " ");
+    emit(g33(Box(1, 1), -3) ++ " ");
+    emit(g33(Tagged(Red, Seg(0)), -2) ++ " ");
+    emit(g33(Dot, 2) ++ " ");
+    emit(g33(Tagged(Green, Box(0, 3)), -1) ++ " ");
+    print("");
+    emit(g34(true, false, Blue) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(true, false, Red) ++ " ");
+    emit(g34(false, false, Green) ++ " ");
+    emit(g34(false, true, Red) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(false, true, Green) ++ " ");
+    emit(g34(true, true, Blue) ++ " ");
+    emit(g34(true, true, Blue) ++ " ");
+    emit(g34(false, false, Red) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(true, true, Blue) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(true, true, Blue) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(true, false, Red) ++ " ");
+    emit(g34(false, true, Green) ++ " ");
+    emit(g34(true, true, Red) ++ " ");
+    emit(g34(true, true, Green) ++ " ");
+    emit(g34(true, false, Blue) ++ " ");
+    emit(g34(true, true, Green) ++ " ");
+    emit(g34(true, true, Red) ++ " ");
+    emit(g34(true, false, Blue) ++ " ");
+    emit(g34(true, false, Green) ++ " ");
+    emit(g34(true, true, Green) ++ " ");
+    emit(g34(true, true, Blue) ++ " ");
+    emit(g34(false, false, Red) ++ " ");
+    emit(g34(false, true, Green) ++ " ");
+    emit(g34(true, true, Green) ++ " ");
+    emit(g34(false, true, Red) ++ " ");
+    emit(g34(true, false, Blue) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(true, true, Blue) ++ " ");
+    emit(g34(false, true, Green) ++ " ");
+    emit(g34(false, true, Blue) ++ " ");
+    emit(g34(true, false, Blue) ++ " ");
+    emit(g34(true, true, Red) ++ " ");
+    emit(g34(false, false, Red) ++ " ");
+    emit(g34(true, true, Red) ++ " ");
+    print("");
+    emit(g35(Dot) ++ " ");
+    emit(g35(Seg(2)) ++ " ");
+    emit(g35(Seg(-3)) ++ " ");
+    emit(g35(Box(-1, 0)) ++ " ");
+    emit(g35(Box(0, -3)) ++ " ");
+    emit(g35(Dot) ++ " ");
+    emit(g35(Dot) ++ " ");
+    emit(g35(Seg(2)) ++ " ");
+    emit(g35(Box(-1, -1)) ++ " ");
+    emit(g35(Box(0, -1)) ++ " ");
+    emit(g35(Seg(0)) ++ " ");
+    emit(g35(Tagged(Red, Tagged(Red, Box(-2, 2)))) ++ " ");
+    emit(g35(Box(3, 2)) ++ " ");
+    emit(g35(Box(1, -1)) ++ " ");
+    emit(g35(Box(-1, -2)) ++ " ");
+    emit(g35(Box(2, 3)) ++ " ");
+    emit(g35(Tagged(Red, Tagged(Red, Tagged(Green, Dot)))) ++ " ");
+    emit(g35(Tagged(Red, Tagged(Red, Tagged(Red, Seg(0))))) ++ " ");
+    emit(g35(Box(3, -2)) ++ " ");
+    emit(g35(Box(0, -3)) ++ " ");
+    emit(g35(Tagged(Blue, Box(-3, 3))) ++ " ");
+    emit(g35(Tagged(Red, Dot)) ++ " ");
+    emit(g35(Dot) ++ " ");
+    emit(g35(Tagged(Green, Dot)) ++ " ");
+    emit(g35(Tagged(Red, Tagged(Blue, Box(0, 2)))) ++ " ");
+    emit(g35(Seg(-1)) ++ " ");
+    emit(g35(Box(-3, 2)) ++ " ");
+    emit(g35(Box(-3, -1)) ++ " ");
+    emit(g35(Dot) ++ " ");
+    emit(g35(Seg(3)) ++ " ");
+    emit(g35(Box(-2, 1)) ++ " ");
+    emit(g35(Box(3, -3)) ++ " ");
+    emit(g35(Tagged(Green, Box(1, -2))) ++ " ");
+    emit(g35(Box(2, 0)) ++ " ");
+    emit(g35(Tagged(Red, Dot)) ++ " ");
+    emit(g35(Seg(1)) ++ " ");
+    emit(g35(Dot) ++ " ");
+    emit(g35(Tagged(Blue, Box(1, 3))) ++ " ");
+    emit(g35(Dot) ++ " ");
+    emit(g35(Seg(-1)) ++ " ");
+    print("");
+    emit(g36([], true) ++ " ");
+    emit(g36([2, -3, -2], true) ++ " ");
+    emit(g36([-1, -3, -3], true) ++ " ");
+    emit(g36([3, 0, 0], true) ++ " ");
+    emit(g36([0, 1, 1], false) ++ " ");
+    emit(g36([1, 2, -3, 2], true) ++ " ");
+    emit(g36([-3, -1, 0, -2], true) ++ " ");
+    emit(g36([3], true) ++ " ");
+    emit(g36([-2, 1], true) ++ " ");
+    emit(g36([-2], false) ++ " ");
+    emit(g36([0], false) ++ " ");
+    emit(g36([-1, 3, 3], true) ++ " ");
+    emit(g36([-1, 3], true) ++ " ");
+    emit(g36([3, 2, 2, -3], true) ++ " ");
+    emit(g36([-3, 0, -2], true) ++ " ");
+    emit(g36([3, 3, 0], true) ++ " ");
+    emit(g36([1, 3, -1, 2], true) ++ " ");
+    emit(g36([-2, 1, -1], false) ++ " ");
+    emit(g36([-3, 0], false) ++ " ");
+    emit(g36([1, 2, -2, 3], false) ++ " ");
+    emit(g36([-2, 3, 1], true) ++ " ");
+    emit(g36([], false) ++ " ");
+    emit(g36([0, 3, 2, 1], true) ++ " ");
+    emit(g36([], true) ++ " ");
+    emit(g36([1, 3, 0], true) ++ " ");
+    emit(g36([], false) ++ " ");
+    emit(g36([3], false) ++ " ");
+    emit(g36([], true) ++ " ");
+    emit(g36([-3, 3], true) ++ " ");
+    emit(g36([1, -1], false) ++ " ");
+    emit(g36([3], true) ++ " ");
+    emit(g36([-3, 1, -1], false) ++ " ");
+    emit(g36([0, 3], true) ++ " ");
+    emit(g36([1, -2, -3, -3], true) ++ " ");
+    emit(g36([], true) ++ " ");
+    emit(g36([1], false) ++ " ");
+    emit(g36([3, 3, -1, -2], true) ++ " ");
+    emit(g36([3], false) ++ " ");
+    emit(g36([], true) ++ " ");
+    emit(g36([1], true) ++ " ");
+    print("");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Tagged(Red, Box(0, -1)))) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(Some(Tagged(Blue, Box(3, -2)))) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(Some(Tagged(Green, Seg(-3)))) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Seg(-1))) ++ " ");
+    emit(g37(Some(Box(-2, 2))) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Box(-3, -2))) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Seg(2))) ++ " ");
+    emit(g37(Some(Box(-1, -2))) ++ " ");
+    emit(g37(Some(Box(1, -1))) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Box(2, -1))) ++ " ");
+    emit(g37(Some(Seg(-1))) ++ " ");
+    emit(g37(Some(Box(3, 2))) ++ " ");
+    emit(g37(Some(Tagged(Blue, Dot))) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(Some(Box(-3, -1))) ++ " ");
+    emit(g37(Some(Seg(1))) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(Some(Tagged(Red, Tagged(Red, Dot)))) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(None) ++ " ");
+    emit(g37(Some(Seg(-3))) ++ " ");
+    emit(g37(Some(Dot)) ++ " ");
+    emit(g37(Some(Seg(1))) ++ " ");
+    emit(g37(Some(Tagged(Blue, Box(-1, -3)))) ++ " ");
+    emit(g37(Some(Box(0, 3))) ++ " ");
+    emit(g37(Some(Tagged(Green, Tagged(Green, Tagged(Blue, Box(1, -2)))))) ++ " ");
+    print("");
+    emit(g38(false, true, Green) ++ " ");
+    emit(g38(false, true, Green) ++ " ");
+    emit(g38(false, true, Blue) ++ " ");
+    emit(g38(false, true, Blue) ++ " ");
+    emit(g38(false, false, Blue) ++ " ");
+    emit(g38(false, true, Red) ++ " ");
+    emit(g38(false, true, Blue) ++ " ");
+    emit(g38(true, false, Blue) ++ " ");
+    emit(g38(true, true, Red) ++ " ");
+    emit(g38(false, false, Red) ++ " ");
+    emit(g38(true, false, Blue) ++ " ");
+    emit(g38(true, true, Green) ++ " ");
+    emit(g38(false, false, Blue) ++ " ");
+    emit(g38(false, false, Green) ++ " ");
+    emit(g38(true, false, Red) ++ " ");
+    emit(g38(false, false, Blue) ++ " ");
+    emit(g38(false, false, Green) ++ " ");
+    emit(g38(true, true, Green) ++ " ");
+    emit(g38(true, true, Green) ++ " ");
+    emit(g38(true, true, Green) ++ " ");
+    emit(g38(false, false, Blue) ++ " ");
+    emit(g38(true, true, Red) ++ " ");
+    emit(g38(false, false, Blue) ++ " ");
+    emit(g38(true, false, Blue) ++ " ");
+    emit(g38(true, false, Blue) ++ " ");
+    emit(g38(true, false, Red) ++ " ");
+    emit(g38(false, false, Blue) ++ " ");
+    emit(g38(true, true, Red) ++ " ");
+    emit(g38(true, false, Red) ++ " ");
+    emit(g38(true, true, Red) ++ " ");
+    emit(g38(true, true, Green) ++ " ");
+    emit(g38(true, true, Red) ++ " ");
+    emit(g38(true, false, Red) ++ " ");
+    emit(g38(true, true, Green) ++ " ");
+    emit(g38(false, false, Red) ++ " ");
+    emit(g38(true, true, Blue) ++ " ");
+    emit(g38(false, true, Red) ++ " ");
+    emit(g38(false, true, Blue) ++ " ");
+    emit(g38(true, true, Red) ++ " ");
+    emit(g38(true, true, Red) ++ " ");
+    print("");
+    emit(g39([2, -2]) ++ " ");
+    emit(g39([-1, -2, 1]) ++ " ");
+    emit(g39([-3]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([-2, 3]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([-2, 2, 1]) ++ " ");
+    emit(g39([-3]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([1]) ++ " ");
+    emit(g39([2, 3, 3, -2]) ++ " ");
+    emit(g39([2, 3, -1, -1]) ++ " ");
+    emit(g39([2, -3]) ++ " ");
+    emit(g39([2, -1, 2, -2]) ++ " ");
+    emit(g39([-2]) ++ " ");
+    emit(g39([0]) ++ " ");
+    emit(g39([3, 3]) ++ " ");
+    emit(g39([3, 3]) ++ " ");
+    emit(g39([-1, 3, -3, 1]) ++ " ");
+    emit(g39([-3, -3]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([1]) ++ " ");
+    emit(g39([-2]) ++ " ");
+    emit(g39([0, 1]) ++ " ");
+    emit(g39([3, 2, -2, -1]) ++ " ");
+    emit(g39([1, 3, -3, 0]) ++ " ");
+    emit(g39([0, 3]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([3]) ++ " ");
+    emit(g39([0, 2, 1]) ++ " ");
+    emit(g39([-1, 2, -3, 0]) ++ " ");
+    emit(g39([-1, 2]) ++ " ");
+    emit(g39([1, 2, -2]) ++ " ");
+    emit(g39([-2]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([3]) ++ " ");
+    emit(g39([-2, 0]) ++ " ");
+    emit(g39([]) ++ " ");
+    emit(g39([0, 2, -2, 0]) ++ " ");
+    print("");
+}

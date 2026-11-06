@@ -1,0 +1,9 @@
+kiln-state 1
+step out/s0.txt
+cmd write("0\n")
+out out/s0.txt 07fc1e07b4bd2c5f
+end
+step out/s1.txt
+cmd write("1\n")
+out out/s1.txt 07f8bc07b4ba5002
+end

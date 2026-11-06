@@ -1,0 +1,22 @@
+kiln-state 1
+step out/m0/bundle.txt
+cmd concat()
+in out/m0/f0.txt 206f4a05ba62d24c
+in out/m0/new0.txt b5d00a55f59d4d92
+out out/m0/bundle.txt 9bffdda3e674b3f3
+end
+step out/m0/f0.txt
+cmd replace("a", "A")
+in src/m0/f0.txt d733f7b99abe55ac
+out out/m0/f0.txt 206f4a05ba62d24c
+end
+step out/m0/new0.txt
+cmd upper()
+in src/m0/new0.txt ef0500916dccd952
+out out/m0/new0.txt b5d00a55f59d4d92
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 9bffdda3e674b3f3
+out out/m0/wrapped.txt 0ae06347ed91e778
+end

@@ -1,0 +1,68 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 6 6
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-006
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 ARRIVE #21 CIN-006
+14 PLAY A ~2 #22 CIN-001
+15 PAY A ember 1
+16 PASS A
+17 PASS B
+18 RESOLVE ~2
+19 ARRIVE #22 CIN-001
+20 PASS A
+21 PASS B
+22 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #22
+CANATTACK #23
+LEGAL END
+STATE BEGIN
+turn 1 active A phase clash-attack decision A attackers
+player A spire 30 ember 3 cap 6 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #23 TOK-001 1/1 w0 c0 ready - kw -
+field A #21 CIN-006 2/1 w0 c0 ready settling kw riposte
+field A #22 CIN-001 2/1 w0 c0 ready settling kw vanguard
+field B #44 TOK-003 0/3 w0 c0 ready - kw plating:1
+STATE END
+ERR 23 illegal-attacker
+23 EXHAUST #22
+24 ATTACK #22
+25 EXHAUST #23
+26 ATTACK #23
+27 PASS A
+28 PASS B
+29 PHASE clash-block
+30 UNBLOCKED #22
+31 UNBLOCKED #23
+32 PASS A
+33 PASS B
+34 PHASE clash-damage
+35 DAMAGE #23 B 1
+36 SPIRE B -1 29
+37 DAMAGE #22 B 2
+38 SPIRE B -2 27
+39 PASS A
+40 PASS B
+41 PHASE clash-end
+42 PASS A
+43 PASS B
+44 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 3 cap 6 vault 20 hand 0 ash 0 rift 0
+player B spire 27 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #23 TOK-001 1/1 w0 c0 exhausted - kw -
+field A #21 CIN-006 2/1 w0 c0 ready settling kw riposte
+field A #22 CIN-001 2/1 w0 c0 exhausted settling kw vanguard
+field B #44 TOK-003 0/3 w0 c0 ready - kw plating:1
+STATE END
+45 RESULT pending none

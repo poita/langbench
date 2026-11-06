@@ -1,0 +1,30 @@
+@module main
+struct Pair<A, B> { left: A, right: B }
+
+struct Point { x: Int, y: Int }
+
+fn swap<A, B>(p: Pair<A, B>) -> Pair<B, A> {
+    Pair.{ left: p.right, right: p.left }
+}
+
+fn lookup(xs: [Point], x: Int) -> Option<Point> {
+    for p in xs {
+        if p.x == x { return Some(p); }
+    }
+    None
+}
+
+fn main() {
+    let p = Pair.{ left: 7, right: "seven" };
+    let q = swap(p);
+    print(fmt("{} {}", [q.left, showInt(q.right)]));
+    let pts = [Point.{ x: 1, y: 10 }, Point.{ x: 2, y: 20 }];
+    match lookup(pts, 2) {
+        Some(pt) -> print(fmt("found y={}", [showInt(pt.y)])),
+        None -> print("none"),
+    }
+    let r: Option<Point> = lookup(pts, 5);
+    print(showBool(isNone(r)));
+    let Pair.{ left: l, right: rr } = p;
+    print(fmt("{}/{}", [showInt(l), rr]));
+}

@@ -1,0 +1,26 @@
+[1] ok put created
+[2] ok begin
+[3] ok update updated
+[4] ok get value
+  {"v":2}
+[5] ok unset updated
+[6] ok get value
+  {}
+[7] ok rollback
+[8] ok get value
+  {"v":1}
+[9] ok begin
+[10] ok update updated
+[11] ok commit 2 frames 2
+[12] ok get value
+  {"v":3}
+[13] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 4272

@@ -1,0 +1,62 @@
+begin
+put "k00" 0
+commit
+begin
+put "k01" 1
+commit
+begin
+put "k02" 2
+commit
+begin
+put "k03" 3
+commit
+begin
+put "k04" 4
+commit
+begin
+put "k05" 5
+commit
+begin
+put "k06" 6
+commit
+begin
+put "k07" 7
+commit
+begin
+put "k08" 8
+commit
+begin
+put "k09" 9
+commit
+begin
+put "k10" 10
+commit
+begin
+put "k11" 11
+commit
+begin
+put "k12" 12
+commit
+begin
+put "k13" 13
+commit
+begin
+put "k14" 14
+commit
+begin
+put "k15" 15
+commit
+begin
+put "k16" 16
+commit
+begin
+put "k17" 17
+commit
+begin
+put "k18" 18
+commit
+begin
+put "k19" 19
+commit
+stat
+scan keys limit 3

@@ -1,0 +1,6 @@
+let i = 0
+include "mod/s.kiln"
+set i = 1
+include "mod/s.kiln"
+phony all = ["out/s0.txt", "out/s1.txt"]
+default "@all"

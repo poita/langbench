@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(listLen(listRepeat(1, -2))));
+}

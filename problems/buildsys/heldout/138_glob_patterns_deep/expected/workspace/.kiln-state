@@ -1,0 +1,117 @@
+kiln-state 1
+step out/g0.txt
+cmd write("A/b/C.txt deep/1/2/3/4/5/6/7/8/9/bottom.dat deep/1/2/3/4/leaf.txt deep/1/2/x.txt deep/1/y.txt deep/z.txt main.kiln mix/.leading.txt mix/9.txt mix/UPPER.TXT mix/a+b.txt mix/a-b.txt mix/a.b.c.txt mix/a_b.txt p p.q q/r q/r.s/t.u\n")
+out out/g0.txt 9a93759c17f5ebdd
+end
+step out/g1.txt
+cmd write("A/b/C.txt deep/1/2/3/4/5/6/7/8/9/bottom.dat deep/1/2/3/4/leaf.txt deep/1/2/x.txt deep/1/y.txt deep/z.txt main.kiln mix/.leading.txt mix/9.txt mix/UPPER.TXT mix/a+b.txt mix/a-b.txt mix/a.b.c.txt mix/a_b.txt p p.q q/r q/r.s/t.u\n")
+out out/g1.txt 9a93759c17f5ebdd
+end
+step out/g10.txt
+cmd write("p.q\n")
+out out/g10.txt bc319e0ee4eb7184
+end
+step out/g11.txt
+cmd write("q/r q/r.s/t.u\n")
+out out/g11.txt 322096ea7c19e488
+end
+step out/g12.txt
+cmd write("q/r.s/t.u\n")
+out out/g12.txt f03b212d691a7726
+end
+step out/g13.txt
+cmd write("mix/.leading.txt mix/9.txt mix/UPPER.TXT mix/a+b.txt mix/a-b.txt mix/a.b.c.txt mix/a_b.txt\n")
+out out/g13.txt 96265c2c481b928f
+end
+step out/g14.txt
+cmd write("mix/a+b.txt mix/a-b.txt mix/a.b.c.txt mix/a_b.txt\n")
+out out/g14.txt 12128a5acee29683
+end
+step out/g15.txt
+cmd write("mix/UPPER.TXT\n")
+out out/g15.txt 12174f887444d03e
+end
+step out/g16.txt
+cmd write("mix/.leading.txt mix/9.txt mix/UPPER.TXT\n")
+out out/g16.txt dece96911a768473
+end
+step out/g17.txt
+cmd write("mix/a+b.txt mix/a-b.txt mix/a_b.txt\n")
+out out/g17.txt 693c027e4b16e842
+end
+step out/g18.txt
+cmd write("mix/.leading.txt mix/a.b.c.txt\n")
+out out/g18.txt 6eac9c8d224213c7
+end
+step out/g19.txt
+cmd write("A/b/C.txt\n")
+out out/g19.txt 5c3d7cea21978aa5
+end
+step out/g2.txt
+cmd write("A/b/C.txt deep/1/2/3/4/5/6/7/8/9/bottom.dat deep/1/2/3/4/leaf.txt deep/1/2/x.txt deep/1/y.txt deep/z.txt main.kiln mix/.leading.txt mix/9.txt mix/UPPER.TXT mix/a+b.txt mix/a-b.txt mix/a.b.c.txt mix/a_b.txt p p.q q/r q/r.s/t.u\n")
+out out/g2.txt 9a93759c17f5ebdd
+end
+step out/g20.txt
+cmd write("\n")
+out out/g20.txt af63c74c8601c8dd
+end
+step out/g21.txt
+cmd write("mix/9.txt\n")
+out out/g21.txt f0ce8ccde71222ff
+end
+step out/g22.txt
+cmd write("mix/.leading.txt\n")
+out out/g22.txt 7cc98acfe32733de
+end
+step out/g23.txt
+cmd write("deep/1/2/3/4/5/6/7/8/9/bottom.dat\n")
+out out/g23.txt 697eac4e423d9ad6
+end
+step out/g24.txt
+cmd write("deep/1/2/3/4/5/6/7/8/9/bottom.dat\n")
+out out/g24.txt 697eac4e423d9ad6
+end
+step out/g25.txt
+cmd write("deep/z.txt mix/.leading.txt mix/9.txt mix/UPPER.TXT mix/a+b.txt mix/a-b.txt mix/a.b.c.txt mix/a_b.txt q/r\n")
+out out/g25.txt 37de31c14d7d91da
+end
+step out/g26.txt
+cmd write("A/b/C.txt deep/1/y.txt q/r.s/t.u\n")
+out out/g26.txt 31f717bd2ae6f416
+end
+step out/g27.txt
+cmd write("A/b/C.txt deep/1/2/x.txt deep/1/y.txt deep/z.txt mix/9.txt\n")
+out out/g27.txt fa544b7e33d66dda
+end
+step out/g28.txt
+cmd write("mix/a+b.txt mix/a-b.txt mix/a_b.txt\n")
+out out/g28.txt 693c027e4b16e842
+end
+step out/g3.txt
+cmd write("deep/1/2/3/4/5/6/7/8/9/bottom.dat deep/1/2/3/4/leaf.txt deep/1/2/x.txt deep/1/y.txt deep/z.txt\n")
+out out/g3.txt 01d556576c7c24c6
+end
+step out/g4.txt
+cmd write("deep/1/2/3/4/leaf.txt deep/1/2/x.txt deep/1/y.txt deep/z.txt\n")
+out out/g4.txt 2fdd20fee359a015
+end
+step out/g5.txt
+cmd write("A/b/C.txt deep/1/2/3/4/leaf.txt deep/1/2/x.txt deep/1/y.txt deep/z.txt mix/.leading.txt mix/9.txt mix/a+b.txt mix/a-b.txt mix/a.b.c.txt mix/a_b.txt\n")
+out out/g5.txt 1c8ce14ec7ea743e
+end
+step out/g6.txt
+cmd write("deep/1/2/3/4/leaf.txt\n")
+out out/g6.txt 8ecb701169e02d7c
+end
+step out/g7.txt
+cmd write("deep/1/2/3/4/leaf.txt deep/1/2/x.txt\n")
+out out/g7.txt 8b93e4e1fc3cca7e
+end
+step out/g8.txt
+cmd write("deep/1/2/x.txt\n")
+out out/g8.txt 1eaff9443b533b83
+end
+step out/g9.txt
+cmd write("p\n")
+out out/g9.txt 08d59e07b575f69f
+end

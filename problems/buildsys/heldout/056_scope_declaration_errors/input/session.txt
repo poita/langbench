@@ -1,0 +1,55 @@
+build
+edit main.kiln
+include "nope.kiln"
+---
+build
+edit main.kiln
+include ""
+---
+build
+edit main.kiln
+default 1
+---
+build
+edit main.kiln
+default ["a", 1]
+---
+build
+edit main.kiln
+default []
+---
+build
+edit main.kiln
+phony p = 1
+---
+build
+edit main.kiln
+phony p = ["a", true]
+---
+build
+edit main.kiln
+phony p = []
+phony p = []
+---
+build
+edit main.kiln
+phony p = ["bad path!"]
+---
+build
+edit main.kiln
+phony p = ["@1bad"]
+---
+build
+edit main.kiln
+phony p = ["@ok"]
+---
+build
+edit main.kiln
+abort "msg {1 + 1}"
+---
+build
+edit main.kiln
+let m = "x"
+abort m ~ "!"
+---
+build

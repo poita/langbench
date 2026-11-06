@@ -1,0 +1,10 @@
+build -j 2
+build
+edit src/shared.txt
+S2
+---
+build -j 2
+edit src/extra.txt
+E2
+---
+build -j 2

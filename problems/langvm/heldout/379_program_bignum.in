@@ -1,0 +1,142 @@
+@module main
+use big;
+
+fn main() {
+    var f = big::fromInt(1);
+    for i in 1 .. 41 {
+        f = big::mulSmall(f, i);
+        if i % 10 == 0 { print(fmt("{}! = {}", [showInt(i), big::show(f)])); }
+    }
+    var a = big::fromInt(0);
+    var b = big::fromInt(1);
+    for i in 0 .. 150 {
+        let c = big::add(a, b);
+        a = b;
+        b = c;
+    }
+    print("fib(150) = " ++ big::show(a));
+    var p = big::fromInt(1);
+    for i in 0 .. 128 { p = big::add(p, p); }
+    print("2^128 = " ++ big::show(p));
+    print("2^128 digits = " ++ showInt(big::digitCount(p)));
+    let x = big::parse("123456789012345678901234567890");
+    let y = big::parse("987654321098765432109876543210");
+    print("x*y = " ++ big::show(big::mul(x, y)));
+    print("x+y = " ++ big::show(big::add(x, y)));
+    print("cmp = " ++ showInt(big::cmp(x, y)) ++ " " ++ showInt(big::cmp(y, x)) ++ " " ++ showInt(big::cmp(x, x)));
+    print("y-x = " ++ big::show(big::sub(y, x)));
+    print("zero = " ++ big::show(big::sub(x, x)));
+    print(showBool(big::parse("000123") == big::fromInt(123)));
+}
+@module big
+// Little-endian base-10000 limbs with no trailing zero limbs; zero is [].
+pub struct Big { limbs: [Int] }
+
+fn norm(xs: [Int]) -> Big {
+    while listLen(xs) > 0 && listLast(xs) == 0 { pop(xs); }
+    Big.{ limbs: xs }
+}
+
+pub fn fromInt(n: Int) -> Big {
+    var xs: [Int] = listNew();
+    var v = n;
+    while v > 0 { push(xs, v % 10000); v = v / 10000; }
+    norm(xs)
+}
+
+pub fn parse(s: Str) -> Big {
+    var xs: [Int] = listNew();
+    var end = strLen(s);
+    while end > 0 {
+        let start = maxI(0, end - 4);
+        push(xs, unwrap(parseInt(substr(s, start, end))));
+        end = start;
+    }
+    norm(xs)
+}
+
+pub fn show(b: Big) -> Str {
+    let n = listLen(b.limbs);
+    if n == 0 { return "0"; }
+    var out = showInt(b.limbs[n - 1]);
+    var i = n - 2;
+    while i >= 0 {
+        out = out ++ padLeft(showInt(b.limbs[i]), 4, '0');
+        i = i - 1;
+    }
+    out
+}
+
+pub fn digitCount(b: Big) -> Int { strLen(show(b)) }
+
+pub fn add(a: Big, b: Big) -> Big {
+    var xs: [Int] = listNew();
+    var carry = 0;
+    let n = maxI(listLen(a.limbs), listLen(b.limbs));
+    for i in 0 .. n {
+        let s = carry + (if i < listLen(a.limbs) { a.limbs[i] } else { 0 })
+                      + (if i < listLen(b.limbs) { b.limbs[i] } else { 0 });
+        push(xs, s % 10000);
+        carry = s / 10000;
+    }
+    if carry > 0 { push(xs, carry); }
+    norm(xs)
+}
+
+// Requires a >= b.
+pub fn sub(a: Big, b: Big) -> Big {
+    var xs: [Int] = listNew();
+    var borrow = 0;
+    for i in 0 .. listLen(a.limbs) {
+        var d = a.limbs[i] - borrow - (if i < listLen(b.limbs) { b.limbs[i] } else { 0 });
+        if d < 0 { d = d + 10000; borrow = 1; } else { borrow = 0; }
+        push(xs, d);
+    }
+    norm(xs)
+}
+
+pub fn mulSmall(a: Big, k: Int) -> Big {
+    var xs: [Int] = listNew();
+    var carry = 0;
+    for l in a.limbs {
+        let s = l * k + carry;
+        push(xs, s % 10000);
+        carry = s / 10000;
+    }
+    while carry > 0 { push(xs, carry % 10000); carry = carry / 10000; }
+    norm(xs)
+}
+
+pub fn mul(a: Big, b: Big) -> Big {
+    let n = listLen(a.limbs);
+    let m = listLen(b.limbs);
+    var xs = listRepeat(0, n + m + 1);
+    for i in 0 .. n {
+        var carry = 0;
+        for j in 0 .. m {
+            let s = xs[i + j] + a.limbs[i] * b.limbs[j] + carry;
+            xs[i + j] = s % 10000;
+            carry = s / 10000;
+        }
+        var k = i + m;
+        while carry > 0 {
+            let s = xs[k] + carry;
+            xs[k] = s % 10000;
+            carry = s / 10000;
+            k = k + 1;
+        }
+    }
+    norm(xs)
+}
+
+pub fn cmp(a: Big, b: Big) -> Int {
+    let n = listLen(a.limbs);
+    let m = listLen(b.limbs);
+    if n != m { return cmpI(n, m); }
+    var i = n - 1;
+    while i >= 0 {
+        if a.limbs[i] != b.limbs[i] { return cmpI(a.limbs[i], b.limbs[i]); }
+        i = i - 1;
+    }
+    0
+}

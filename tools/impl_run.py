@@ -4,20 +4,20 @@
     tools/impl_run.py sandbox DIR [--problems a,b] [--langs x,y] [--reps N] [--rep-problems a,b]
         Stage a sandbox at DIR (outside this checkout): the files agents may see (CONVENTIONS.md,
         run_tests.py, each problem's SPEC.md, APPROACH.md and visible tests, read-only), Claude Code settings
-        that keep agents out of this checkout, the hidden tests and transcripts, and DIR/args.json:
+        that keep agents out of this checkout and transcripts, and DIR/args.json:
         run-config.json, the overrides, the sandbox root and this machine's toolchains.
     tools/impl_run.py launch DIR [--auth env|subscription]
         Run every task as its own headless Claude Code session in DIR with a clean environment (no CLAUDE.md,
         memory, user settings, plugins or MCP servers), a few at a time (tools/runner.py). Takes hours for a
         full run; rerunning it resumes an interrupted run. Progress goes to DIR/launch.log.
     tools/impl_run.py finish DIR --dest DEST [--stage] [--force]
-        Audit the run, rerun every implementation's public tests (and hidden tests where they exist), copy
+        Audit the run, rerun every implementation's public tests (and held-out tests where they exist), copy
         the sources into DEST, archive the anonymised transcripts in DEST/transcripts/, and record provenance in
         DEST/run.json, DEST/prompts/, DEST/audit/ and DEST/results/. --stage git-adds DEST. A run whose audit
         has integrity findings is not recorded unless --force is given.
 
-The hidden tests live outside the repository, in $LANGBENCH_HIDDEN or, by default, in langbench-hidden next
-to the main checkout.
+The five large problems also have held-out tests, problems/<slug>/heldout/, which agents never see: finish
+scores them separately, recorded as `hidden` in the results.
 """
 import argparse
 import concurrent.futures
@@ -94,11 +94,6 @@ def main_checkout(root):
         return root
 
 
-def hidden_dir(root, main_checkout=None):
-    if os.environ.get("LANGBENCH_HIDDEN"):
-        return os.environ["LANGBENCH_HIDDEN"]
-    main = main_checkout or globals()["main_checkout"](root)
-    return os.path.join(os.path.dirname(main), os.path.basename(main) + "-hidden")
 
 
 def prompt_options(prompt):
@@ -172,12 +167,12 @@ def detect_toolchains(dc="ldc2"):
     return {lang: " and ".join(p for p in ps if p) for lang, ps in parts.items()}
 
 
-def read_denials(home, box, repo, hidden, main=None):
+def read_denials(home, box, repo, main=None):
     """The directories shell commands may not read: the home directory and anything else agents must not see
     that lies outside it, without listing paths already covered (agents see this list, so it names as little
     as possible)."""
     kept = []
-    for p in [home, box, main or repo, repo, hidden]:
+    for p in [home, box, main or repo, repo]:
         if p and not any(p == q or p.startswith(q.rstrip("/") + "/") for q in kept):
             kept.append(p)
     return kept
@@ -315,7 +310,7 @@ def build_workspace(box, ws, slug):
 META_FILES = ("args.json", "sandbox.json", "harness.json", "tasks.json", "launch.json", "launch.log")
 
 
-def stage_sandbox(repo, box, hidden, toolchains, overrides=None, allow_dirty=False, projects=None, home=None,
+def stage_sandbox(repo, box, toolchains, overrides=None, allow_dirty=False, projects=None, home=None,
                   toolchain_roots=None):
     repo, box = os.path.realpath(repo), os.path.realpath(box)
     if box == repo or box.startswith(repo + os.sep):
@@ -346,8 +341,7 @@ def stage_sandbox(repo, box, hidden, toolchains, overrides=None, allow_dirty=Fal
               for it in task_items}
     home = os.path.realpath(home or os.path.expanduser("~"))
     roots = toolchain_roots if toolchain_roots is not None else globals()["toolchain_roots"](home, args.get("dc", "ldc2"))
-    deny = read_denials(home, box, repo, os.path.realpath(hidden) if os.path.isabs(hidden) else hidden,
-                        main_checkout(repo))
+    deny = read_denials(home, box, repo, main_checkout(repo))
     for label, rel in tasks.items():
         ws = os.path.join(box, rel)
         own_transcripts = runner.transcript_dir(ws, projects)
@@ -364,7 +358,7 @@ def stage_sandbox(repo, box, hidden, toolchains, overrides=None, allow_dirty=Fal
     env = {"harness_commit": commit, "harness_dirty": dirty, "claude_code": run_text(["claude", "--version"]),
            "os": run_text(["uname", "-srm"]), "toolchains": toolchains,
            "staged": datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds"),
-           "repo": repo, "hidden": hidden, "read_denied": deny, "toolchain_roots": roots}
+           "repo": repo, "read_denied": deny, "toolchain_roots": roots}
     with open(os.path.join(box, "sandbox.json"), "w") as f:
         json.dump(env, f, indent=1)
     return args
@@ -510,9 +504,10 @@ def collect_sessions(box, rdir, projects=None):
 BUILD_TIMEOUT = 3600
 
 
-def verify_task(ws, slug, scratch, hidden, lang=None):
+def verify_task(ws, slug, scratch, problems, lang=None):
     """Build a clean copy of a task's project (its sources only, as `finish` publishes them) in scratch, then
-    run the public tests (and the hidden tests where the problem has them) on that build, from the task's
+    run the public tests (and the held-out tests in problems/<slug>/heldout, where the problem has them) on that
+    build, from the task's
     workspace. A project whose build.sh fails from clean fails, whatever the agent's own build did."""
     src, copy = os.path.join(ws, slug), os.path.join(scratch, slug)
     shutil.rmtree(copy, ignore_errors=True)
@@ -528,8 +523,9 @@ def verify_task(ws, slug, scratch, hidden, lang=None):
     except subprocess.TimeoutExpired:
         tail = ["build timed out"]
     runs = [("public", [])]
-    if os.path.isdir(os.path.join(hidden, slug, "tests")):
-        runs.append(("hidden", ["--tests-dir", os.path.join(hidden, slug, "tests")]))
+    heldout = os.path.join(problems, slug, "heldout")
+    if os.path.isdir(heldout):
+        runs.append(("hidden", ["--tests-dir", heldout]))
     for kind, extra in runs:
         if not res["clean_build"]:
             res[kind], res[kind + "_pass"] = "clean build failed: " + " | ".join(tail), False
@@ -541,14 +537,14 @@ def verify_task(ws, slug, scratch, hidden, lang=None):
     return res
 
 
-def verify(box, args, entries, hidden, workers=4):
+def verify(box, args, entries, problems, workers=4):
     """Verify every completed task from a clean build (verify_task), a few at a time.
     {label: {"clean_build": bool, "public": line, "public_pass": bool, ...}}."""
     ws = task_workspaces(box)
 
     def one(e):
         w = ws[e["label"]]
-        return e["label"], verify_task(w, e["slug"], os.path.join(box, "verify", os.path.basename(w)), hidden,
+        return e["label"], verify_task(w, e["slug"], os.path.join(box, "verify", os.path.basename(w)), problems,
                                        e["lang"])
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
@@ -616,7 +612,7 @@ def finish(a):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import audit
     projects = os.path.expanduser("~/.claude/projects")
-    findings = audit.scan_run(rdir, [env["repo"], env["hidden"], projects, box], workspaces=task_workspaces(box),
+    findings = audit.scan_run(rdir, [env["repo"], projects, box], workspaces=task_workspaces(box),
                               projects=projects)
     findings += [{"agent": "-", "kind": "harness-modified", "detail": rel} for rel in changed_harness_files(box)]
     for x in findings:
@@ -625,12 +621,12 @@ def finish(a):
     if any(x["kind"] in audit.INTEGRITY for x in findings) and not a.force:
         print("not recording a run with integrity findings; inspect them, then rerun with --force to record anyway")
         return 1
-    verified = verify(box, args, entries, env["hidden"])
+    verified = verify(box, args, entries, os.path.join(ROOT, "problems"))
     with open(os.path.join(rdir, "results.json"), "w") as f:
         json.dump(verified, f, indent=1)
     for label, v in sorted(verified.items()):
         if not v.get("public_pass") or v.get("hidden_pass") is False:
-            print(f"verify  {label}: {v.get('public')}" + (f"; hidden {v['hidden']}" if "hidden" in v else ""))
+            print(f"verify  {label}: {v.get('public')}" + (f"; held-out {v['hidden']}" if "hidden" in v else ""))
     ws = task_workspaces(box)
     n = sum(import_impls(os.path.join(ws[e["label"]], e["slug"]), os.path.join(dest, e["rep"], e["lang"], e["slug"]),
                          e["lang"])
@@ -678,7 +674,7 @@ def sandbox(a):
     split = lambda s: s.split(",") if s else None
     over = {"problems": split(a.problems), "langs": split(a.langs), "reps": a.reps, "repProblems": split(a.rep_problems)}
     config = json.load(open(os.path.join(ROOT, "run-config.json")))
-    args = stage_sandbox(ROOT, a.dir, hidden_dir(ROOT), detect_toolchains(config.get("dc", "ldc2")), over,
+    args = stage_sandbox(ROOT, a.dir, detect_toolchains(config.get("dc", "ldc2")), over,
                          allow_dirty=a.allow_dirty)
     print(json.dumps(args, indent=1))
     print(f"sandbox ready; run `tools/impl_run.py launch {a.dir}`")

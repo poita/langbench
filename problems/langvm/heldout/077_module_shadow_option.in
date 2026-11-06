@@ -1,0 +1,4 @@
+@module main
+enum Option { Nothing, Just(Int) }
+fn f(o: Option) -> Int { match o { Nothing -> 0, Just(n) -> n } }
+fn main() { print(showInt(f(Just(4)))); print(showInt(f(Nothing))); }

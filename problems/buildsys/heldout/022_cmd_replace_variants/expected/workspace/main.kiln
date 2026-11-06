@@ -1,0 +1,21 @@
+step {
+    out "out/r0.txt"
+    in "src/t.txt"
+    cmd replace("aa", "b")
+}
+step {
+    out "out/r1.txt"
+    in "src/t.txt"
+    cmd replace("a", "")
+}
+step {
+    out "out/r2.txt"
+    in "src/t.txt"
+    cmd replace("\n", "|")
+}
+step {
+    out "out/h.txt"
+    in ["out/r0.txt", "out/r1.txt", "out/r2.txt"]
+    cmd hash()
+}
+default "out/h.txt"

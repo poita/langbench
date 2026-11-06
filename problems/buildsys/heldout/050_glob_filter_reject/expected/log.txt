@@ -1,0 +1,12 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/f0.txt write("src/a.txt|src/.txt|src/t_1.txt|src/7.txt|src/a.txt/a.txt|src/sub/a.txt|src|srcx|ab|axyzb|a/b|A.TXT|src/a.text||out/x.txt|.kiln-state\n")
+  run 1 2 w0 out/f1.txt write("src/a.txt|src/sub/a.txt|src|src/.txt|src/a.text|src/t_1.txt|src/7.txt|src/a.txt/a.txt|srcx|ab|axyzb|a/b|A.TXT||out/x.txt|.kiln-state\n")
+  run 2 3 w0 out/f2.txt write("src/a.txt|a.txt|src/sub/a.txt|src/.txt|src/t_1.txt|src/7.txt|src/a.txt|out/x.txt/src|srcx|ab|axyzb|a/b|A.TXT|src/a.text||.kiln-state\n")
+  run 3 4 w0 out/f3.txt write("ab|axyzb/src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state\n")
+  run 4 5 w0 out/f4.txt write("a.txt|ab|axyzb|A.TXT|.kiln-state/src/a.txt|src/sub/a.txt|src|srcx|src/.txt|a/b|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt\n")
+  run 5 6 w0 out/f5.txt write("a.txt|src|srcx|ab|axyzb|A.TXT||.kiln-state/src/a.txt|src/sub/a.txt|src/.txt|a/b|src/a.text|src/t_1.txt|src/7.txt|src/a.txt|out/x.txt\n")
+  run 6 7 w0 out/f6.txt write("src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state/\n")
+  run 7 8 w0 out/f7.txt write("src/src/a.txt|a.txt|src/sub/a.txt|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state\n")
+  run 8 9 w0 out/f8.txt write("out/x.txt/src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|.kiln-state\n")
+  run 9 10 w0 out/f9.txt write("/src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state\n")
+  ok ran=10 hit=0 time=10

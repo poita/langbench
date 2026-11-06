@@ -1,0 +1,20 @@
+build -j 64
+delete src/m0/f4.txt
+build @m1
+edit src/m1/f4.txt
+Ünicode
+eta
+Ünicode
+---
+build out/all.txt
+edit src/m1/f1.txt
+zeta
+gamma
+zeta
+---
+build @m0
+clean
+build @m0 -j 8
+edit src/m0/f2.txt
+---
+build

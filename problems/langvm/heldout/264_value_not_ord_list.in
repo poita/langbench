@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    let a = [1, 2] < [1, 3];
+    print(showBool(a));
+    let m = #[1: 2];
+    print(showBool(m <= m));
+}

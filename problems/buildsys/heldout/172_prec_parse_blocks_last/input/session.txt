@@ -1,0 +1,42 @@
+build
+edit main.kiln
+when true {
+let x = = 1
+---
+build
+edit main.kiln
+rule r() {
+  each x in [1] {
+    step {
+---
+build
+edit main.kiln
+each x in [1] {
+}
+}
+let y = (1 2)
+---
+build
+edit main.kiln
+when true {
+} elsewhen true {
+let a = 1 2
+---
+build
+edit main.kiln
+step {
+    cost 1 2
+---
+build
+edit main.kiln
+let x = (1 2)
+let y = 1 & 2
+---
+build
+edit main.kiln
+when true {
+    let a = = 1
+}
+let b = 'open
+---
+build

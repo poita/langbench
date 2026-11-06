@@ -1,0 +1,99 @@
+step 1: build (default) -j 64
+  run 0 1 w0 out/m0/f0.txt copy()
+  run 0 4 w1 out/m0/f1.txt sort_lines()
+  run 0 1 w2 out/m0/f2.txt copy()
+  run 0 2 w3 out/m1/f0.txt indent(2)
+  run 0 2 w4 out/m1/f1.txt reverse_lines()
+  run 0 1 w5 out/m1/f2.txt copy()
+  run 0 7 w6 out/m1/doc.txt preprocess()
+  run 0 1 w7 out/m2/f0.txt copy()
+  run 0 3 w8 out/m2/f1.txt replace("a", "A")
+  run 0 4 w9 out/m2/f2.txt sort_lines()
+  run 0 2 w10 out/m3/f0.txt reverse_lines()
+  run 0 2 w11 out/m3/f1.txt lower()
+  run 0 1 w12 out/m3/f2.txt wrap("[", "]\n")
+  run 2 4 w0 out/m1/bundle.txt count_lines()
+  run 2 5 w2 out/m3/bundle.txt hash()
+  run 4 8 w0 out/m0/bundle.txt concat()
+  run 4 8 w1 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 4 7 w3 out/m2/bundle.txt hash()
+  run 5 8 w2 out/m3/wrapped.txt wrap("<m3|", "|>\n")
+  run 7 8 w3 out/m2/wrapped.txt wrap("<m2|", "|>\n")
+  run 8 8 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 8 11 w0 out/all.txt count_lines()
+  ok ran=22 hit=0 time=11
+step 2: build out/all.txt -j 1
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/f1.txt
+  hit 0 out/m1/f2.txt
+  hit 0 out/m1/bundle.txt
+  hit 0 out/m1/wrapped.txt
+  hit 0 out/m1/doc.txt
+  hit 0 out/m2/f0.txt
+  hit 0 out/m2/f1.txt
+  hit 0 out/m2/f2.txt
+  hit 0 out/m2/bundle.txt
+  hit 0 out/m2/wrapped.txt
+  hit 0 out/m3/f0.txt
+  hit 0 out/m3/f1.txt
+  hit 0 out/m3/f2.txt
+  hit 0 out/m3/bundle.txt
+  hit 0 out/m3/wrapped.txt
+  hit 0 out/all.txt
+  ok ran=0 hit=22 time=0
+step 3: build (default) -j 1
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/f1.txt
+  hit 0 out/m1/f2.txt
+  hit 0 out/m1/bundle.txt
+  hit 0 out/m1/wrapped.txt
+  hit 0 out/m1/doc.txt
+  hit 0 out/m2/f0.txt
+  hit 0 out/m2/f1.txt
+  hit 0 out/m2/f2.txt
+  hit 0 out/m2/bundle.txt
+  hit 0 out/m2/wrapped.txt
+  hit 0 out/m3/f0.txt
+  hit 0 out/m3/f1.txt
+  hit 0 out/m3/f2.txt
+  hit 0 out/m3/bundle.txt
+  hit 0 out/m3/wrapped.txt
+  hit 0 out/all.txt
+  ok ran=0 hit=22 time=0
+step 4: edit src/m2/f0.txt
+  ok size=14
+step 5: build @m3 -j 64
+  hit 0 out/m3/f0.txt
+  hit 0 out/m3/f1.txt
+  hit 0 out/m3/f2.txt
+  hit 0 out/m3/bundle.txt
+  hit 0 out/m3/wrapped.txt
+  ok ran=0 hit=5 time=0
+step 6: touch src/m3/f2.txt
+  ok
+step 7: build @m0 -j 16
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  ok ran=0 hit=5 time=0
+step 8: edit src/m2/f0.txt
+  ok size=18
+step 9: build @m0 -j 4
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  ok ran=0 hit=5 time=0

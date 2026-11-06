@@ -1,0 +1,14 @@
+@ul
+@li First item text
+continues here on a second source line.
+A paragraph inside the item? No, still continuation.
+
+A real paragraph inside the item.
+@pre
+code in item
+@end
+@q
+Quoted in item.
+@end
+@li Second.
+@end

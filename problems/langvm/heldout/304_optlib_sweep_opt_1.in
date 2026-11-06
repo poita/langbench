@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    let n: Option<Int> = None; print(sb(isSome(Some(1))) ++ sb(isSome(n)) ++ sb(isNone(Some(1))) ++ sb(isNone(n)));
+    let n: Option<Int> = None; print(si(unwrap(Some(5))) ++ " " ++ si(unwrapOr(Some(5), 0)) ++ " " ++ si(unwrapOr(n, -1)));
+    let a: Result<Int, Str> = Ok(1); let b: Result<Int, Str> = Err("e"); print(sb(isOk(a)) ++ sb(isOk(b)) ++ sb(isErr(a)) ++ sb(isErr(b)));
+    let r: Result<Int, Str> = Ok(3); print(si(unwrapOk(r)) ++ " " ++ sb(isErr(r)));
+    let r: Result<Int, Str> = Err("bad"); print(unwrapErr(r) ++ " " ++ sb(isOk(r)));
+    let t = (1, "a"); print(si(fst(t)) ++ snd(t));
+    let t = (Some(1), [2, 3]); print(so(fst(t)) ++ " " ++ sl(snd(t)));
+}

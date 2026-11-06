@@ -1,0 +1,20 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(fmt("{} + {} = {}", ["1", "2", "3"]));
+    print(fmt("{{{}}}", ["x"]) ++ " " ++ fmt("100%", []) ++ " " ++ fmt("{{}}", []) ++ " " ++ fmt("", []));
+    print(fmt("{}{}{}", ["a", "", "c"]) ++ " " ++ fmt("}}{{", []) ++ " " ++ fmt("a{}", ["b"]));
+    print(sb(Some(1) == Some(1)) ++ sb(Some(1) == None) ++ sb(isNone(mapGet(#[1: 2], 9))));
+    let inner: Option<Int> = None; let o = Some(inner); print(sb(isSome(o)) ++ sb(isNone(unwrap(o))));
+    let a: Result<Int, Str> = Ok(1); let b: Result<Int, Str> = Err("a"); print(sb(a == a) ++ sb(b == b) ++ sb(a == b));
+}

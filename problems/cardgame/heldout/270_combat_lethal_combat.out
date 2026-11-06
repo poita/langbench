@@ -1,0 +1,53 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+CANATTACK #22
+LEGAL END
+11 EXHAUST #21
+12 ATTACK #21
+13 EXHAUST #22
+14 ATTACK #22
+15 PASS A
+16 PASS B
+17 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #43 #21
+CANBLOCK #43 #22
+LEGAL END
+18 UNBLOCKED #21
+19 UNBLOCKED #22
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 3 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 3 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-001 2/1 w0 c0 exhausted attacking kw vanguard
+field A #22 CIN-001 2/1 w0 c0 exhausted attacking kw vanguard
+field B #43 TOK-001 1/1 w0 c0 ready - kw -
+STATE END
+20 PASS A
+21 PASS B
+22 PHASE clash-damage
+23 DAMAGE #21 B 2
+24 SPIRE B -2 1
+25 DAMAGE #22 B 2
+26 SPIRE B -2 -1
+27 LOSE B spire
+28 RESULT A spire
+STATE BEGIN
+turn 1 active A phase clash-damage decision - over
+result A spire
+player A spire 3 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire -1 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-001 2/1 w0 c0 exhausted attacking kw vanguard
+field A #22 CIN-001 2/1 w0 c0 exhausted attacking kw vanguard
+field B #43 TOK-001 1/1 w0 c0 ready - kw -
+STATE END

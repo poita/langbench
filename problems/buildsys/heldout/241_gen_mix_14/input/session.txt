@@ -1,0 +1,12 @@
+build -j 64
+edit src/m9/f6.txt
+gamma
+---
+build @m0 -j 3
+touch main.kiln
+build @m2
+edit src/m3/f2.txt
+ilex
+   spaced   
+---
+build @m0 -j 3

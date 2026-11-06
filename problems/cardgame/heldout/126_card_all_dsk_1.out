@@ -1,0 +1,178 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN DSK-001
+name Gravemark Acolyte
+type unit
+cost 1
+body 1/1
+tags dusk,undead
+keywords -
+ability 1 on dies - (spire -1 foe)
+CARD END
+CARD BEGIN DSK-002
+name Shadow Lance
+type rite
+cost 2
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (destroy (t 1))
+CARD END
+CARD BEGIN DSK-003
+name Crypt Hound
+type unit
+cost 2
+body 2/2
+tags dusk,undead
+keywords venom
+CARD END
+CARD BEGIN DSK-004
+name Soul Drain
+type rite
+cost 2
+tags dusk
+keywords -
+ability 1 resolve - (spire -2 foe) (spire 2 you)
+CARD END
+CARD BEGIN DSK-005
+name Nightreaper
+type unit
+cost 5
+body 4/3
+tags dusk,undead
+keywords -
+ability 1 on enemy-dies - (counters 1 self)
+CARD END
+CARD BEGIN DSK-006
+name Wither
+type rite
+cost 3
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (destroy (t 1)) (spire 2 you)
+CARD END
+CARD BEGIN DSK-007
+name Bone Collector
+type unit
+cost 3
+body 2/3
+tags dusk,undead
+keywords -
+ability 1 on ally-dies - (conjure TOK-008 1 you)
+CARD END
+CARD BEGIN DSK-008
+name Exhume
+type rite
+cost 3
+tags dusk
+keywords -
+ability 1 resolve (targets (ashcard (type unit) (mine))) (reanimate (t 1))
+CARD END
+CARD BEGIN DSK-009
+name Dusk Herald
+type unit
+cost 2
+body 1/3
+tags dusk,undead
+keywords -
+ability 1 on arrive - (discard 1 foe)
+CARD END
+CARD BEGIN DSK-010
+name Veil of Dusk
+type rite
+cost 1
+tags dusk
+keywords swift
+ability 1 resolve (targets (unit)) (grant spectral (t 1)) (grant ghostwalk (t 1))
+CARD END
+CARD BEGIN DSK-011
+name Plague Bearer
+type unit
+cost 4
+body 3/3
+tags dusk,undead
+keywords -
+ability 1 on arrive - (each (units theirs) (modify 0 -1 that))
+CARD END
+CARD BEGIN DSK-012
+name Gallows Relic
+type relic
+cost 3
+tags dusk
+keywords -
+ability 1 act (cost (ember 1) (sacself)) (targets (unit)) (destroy (t 1))
+CARD END
+CARD BEGIN DSK-013
+name Dread Captain
+type unit
+cost 4
+body 3/4
+tags dusk,undead
+keywords -
+ability 1 aura (grant venom (units yours (tag undead)))
+CARD END
+CARD BEGIN DSK-014
+name Mourning Call
+type rite
+cost 2
+tags dusk
+keywords -
+ability 1 resolve (targets (unit (mine))) (sacrifice (t 1)) (draw 2 you)
+CARD END
+CARD BEGIN DSK-015
+name Tomb Shade
+type unit
+cost 3
+body 3/1
+tags dusk,spirit
+keywords ghostwalk
+ability 1 on dies - (spire -2 foe)
+CARD END
+CARD BEGIN DSK-016
+name Final Rest
+type rite
+cost 2
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (exile (t 1))
+CARD END
+CARD BEGIN DSK-017
+name Carrion Swarm
+type rite
+cost 4
+tags dusk
+keywords -
+ability 1 resolve - (damage 2 (units theirs)) (spire (count (cards ash yours (type unit))) you)
+CARD END
+CARD BEGIN DSK-018
+name Soulbinder
+type unit
+cost 5
+body 4/4
+tags dusk,undead
+keywords -
+ability 1 on arrive (targets (ashcard (type unit) (enemy))) (reanimate (t 1))
+CARD END
+CARD BEGIN DSK-019
+name Blight Rite
+type rite
+cost 1
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (doom (t 1)) (spire -1 (owner-of (t 1)))
+CARD END
+CARD BEGIN DSK-020
+name Grim Harvester
+type unit
+cost 3
+body 2/2
+tags dusk,undead
+keywords -
+ability 1 on spire-loss - (counters 1 self)
+ability 2 act (cost (exhaust) (spire 2)) (targets (unit)) (damage 2 (t 1))
+CARD END
+8 RESULT pending none

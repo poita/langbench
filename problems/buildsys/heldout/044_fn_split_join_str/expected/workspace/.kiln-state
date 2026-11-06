@@ -1,0 +1,13 @@
+kiln-state 1
+step out/l0.txt
+cmd write("a||b||abc||1+a+-2|3|2\n")
+out out/l0.txt af737ff34ba726c4
+end
+step out/l1.txt
+cmd write("a/b /a/ x\n")
+out out/l1.txt c9a57fd9b2637a46
+end
+step out/l2.txt
+cmd write("42|-1|true|false|x|42|-7|-9|0|0\n")
+out out/l2.txt 19f3e8a6f19c09bc
+end

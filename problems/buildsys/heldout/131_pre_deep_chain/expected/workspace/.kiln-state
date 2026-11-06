@@ -1,0 +1,54 @@
+kiln-state 1
+step out/doc.txt
+cmd preprocess()
+in src/root.txt 1c7bfe7fb52f4134
+dep src/n0.txt 5e5e1c30666b7359
+dep src/n1.txt 85f8e839855e01c9
+dep src/n10.txt fb3fd47c4ceed99b
+dep src/n11.txt bab279a0c88d82ad
+dep src/n12.txt da80a04c342ebbdf
+dep src/n13.txt bef6a26eb07f612d
+dep src/n14.txt 7a6022ecfedccceb
+dep src/n15.txt 43746d0bafc07ad5
+dep src/n16.txt 673fbf9a0aa96db7
+dep src/n17.txt e8369e4e7af141c5
+dep src/n18.txt 15a805c01bbba3ab
+dep src/n19.txt 3f0f57786def2012
+dep src/n2.txt 47c49c1509c28645
+dep src/n20.txt ac33521aa29cf9ef
+dep src/n21.txt 60bddb3601e68d71
+dep src/n22.txt 62d0e2099436ba57
+dep src/n23.txt feb4808054fabaed
+dep src/n24.txt c3d628b7928d2d8f
+dep src/n25.txt d80a5312fc029319
+dep src/n26.txt e28b48401a7424d7
+dep src/n27.txt a231a34136b5abdd
+dep src/n28.txt 9c2f02e1f687b4bf
+dep src/n29.txt c599f51d098955f0
+dep src/n3.txt 7e0067140f8cb4ed
+dep src/n30.txt d30902bd73f5b42f
+dep src/n31.txt 39a91570570fd235
+dep src/n32.txt 14e5c0f4207b1ef3
+dep src/n33.txt 50469ed52e1ac30d
+dep src/n34.txt 99cf580233c28ddf
+dep src/n35.txt 6e5e78cb55354db5
+dep src/n36.txt 577ce5f283eabadb
+dep src/n37.txt e7810e3d56b630ad
+dep src/n38.txt 53899effe9c13d9f
+dep src/n39.txt 39cf3dd6029cdbae
+dep src/n4.txt 22a49cd57e006409
+dep src/n40.txt 333eeb3547411e80
+dep src/n5.txt 9c38be3f01409689
+dep src/n6.txt 91b08c96a7fa047d
+dep src/n7.txt f9dc686217388e85
+dep src/n8.txt 0bd4c5528ab7e659
+dep src/n9.txt 746a26aa66cfe846
+out out/doc.txt 8938ac2bb782ea08
+out out/doc.d 3e5cb5e6c5c7de7e
+end
+step out/h.txt
+cmd hash()
+in out/doc.txt 8938ac2bb782ea08
+in out/doc.d 3e5cb5e6c5c7de7e
+out out/h.txt a5ff37306fb8bc91
+end

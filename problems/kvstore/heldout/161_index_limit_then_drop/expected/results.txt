@@ -1,0 +1,83 @@
+[1] ok create index i00 entries 0
+[2] ok create index i01 entries 0
+[3] ok create index i02 entries 0
+[4] ok create index i03 entries 0
+[5] ok create index i04 entries 0
+[6] ok create index i05 entries 0
+[7] ok create index i06 entries 0
+[8] ok create index i07 entries 0
+[9] ok create index i08 entries 0
+[10] ok create index i09 entries 0
+[11] ok create index i10 entries 0
+[12] ok create index i11 entries 0
+[13] ok create index i12 entries 0
+[14] ok create index i13 entries 0
+[15] ok create index i14 entries 0
+[16] ok create index i15 entries 0
+[17] error index-limit
+[18] ok drop index i07 pages 0
+[19] ok create index extra entries 0
+[20] ok indexes 16
+  0 i00 root 0 entries 0
+  1 i01 root 0 entries 0
+  2 i02 root 0 entries 0
+  3 i03 root 0 entries 0
+  4 i04 root 0 entries 0
+  5 i05 root 0 entries 0
+  6 i06 root 0 entries 0
+  7 extra root 0 entries 0
+  8 i08 root 0 entries 0
+  9 i09 root 0 entries 0
+  10 i10 root 0 entries 0
+  11 i11 root 0 entries 0
+  12 i12 root 0 entries 0
+  13 i13 root 0 entries 0
+  14 i14 root 0 entries 0
+  15 i15 root 0 entries 0
+[21] ok drop index i00 pages 0
+[22] ok drop index i15 pages 0
+[23] ok indexes 14
+  1 i01 root 0 entries 0
+  2 i02 root 0 entries 0
+  3 i03 root 0 entries 0
+  4 i04 root 0 entries 0
+  5 i05 root 0 entries 0
+  6 i06 root 0 entries 0
+  7 extra root 0 entries 0
+  8 i08 root 0 entries 0
+  9 i09 root 0 entries 0
+  10 i10 root 0 entries 0
+  11 i11 root 0 entries 0
+  12 i12 root 0 entries 0
+  13 i13 root 0 entries 0
+  14 i14 root 0 entries 0
+[24] ok create index a entries 0
+[25] ok create index b entries 0
+[26] error index-limit
+[27] ok indexes 16
+  0 a root 0 entries 0
+  1 i01 root 0 entries 0
+  2 i02 root 0 entries 0
+  3 i03 root 0 entries 0
+  4 i04 root 0 entries 0
+  5 i05 root 0 entries 0
+  6 i06 root 0 entries 0
+  7 extra root 0 entries 0
+  8 i08 root 0 entries 0
+  9 i09 root 0 entries 0
+  10 i10 root 0 entries 0
+  11 i11 root 0 entries 0
+  12 i12 root 0 entries 0
+  13 i13 root 0 entries 0
+  14 i14 root 0 entries 0
+  15 b root 0 entries 0
+[28] ok stat
+  pages 1
+  free 0
+  freehead 0
+  docs 0
+  root 0
+  height 0
+  commits 22
+  indexes 16
+  wal 23616

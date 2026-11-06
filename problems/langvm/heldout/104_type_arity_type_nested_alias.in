@@ -1,0 +1,6 @@
+@module main
+use box as b;
+fn wrap(x: Int) -> [Option<b::Box<Int>>] { [None] }
+fn main() { print(showInt(listLen(wrap(1)))); }
+@module box
+pub struct Box<T, U> { a: T, b: U }

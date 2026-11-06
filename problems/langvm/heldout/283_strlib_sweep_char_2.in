@@ -1,0 +1,19 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(si(cmpC('a', 'b')) ++ si(cmpC('b', 'b')) ++ si(cmpC('c', 'b')));
+    print(showChar('x') ++ showChar('é') ++ showChar('\u{1f600}'));
+    print(quoteChar('a') ++ quoteChar('\n') ++ quoteChar('\t') ++ quoteChar('\r') ++ quoteChar('\\') ++ quoteChar('\'') ++ quoteChar('"'));
+    print(quoteChar('\u{0}') ++ quoteChar('\u{1}') ++ quoteChar('\u{7f}') ++ quoteChar('\u{1f}') ++ quoteChar('é'));
+    print(sb('a' < 'b') ++ sb('a' == 'a') ++ sb('b' >= 'c'));
+}

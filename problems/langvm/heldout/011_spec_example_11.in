@@ -1,0 +1,9 @@
+@module main
+fn get(xs: [Int], i: Int) -> Int { xs[i] }
+
+fn main() {
+    let xs = [10, 20, 30];
+    print(showInt(get(xs, 2)));
+    print(showInt(get(xs, 3)));
+    print("never reached");
+}

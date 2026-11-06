@@ -1,0 +1,8 @@
+step 1: build (default) -j 2
+  run 0 1 w0 out/c.bin copy()
+  run 0 3 w1 out/h.txt hash()
+  ok ran=2 hit=0 time=3
+step 2: build (default) -j 1
+  hit 0 out/c.bin
+  hit 0 out/h.txt
+  ok ran=0 hit=2 time=0

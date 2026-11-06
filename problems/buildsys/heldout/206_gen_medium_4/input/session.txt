@@ -1,0 +1,21 @@
+build -j 8
+touch src/m7/f2.txt
+build @m2
+clean
+build
+clean
+build
+edit src/m5/f5.txt
+lambda
+   spaced   
+theta
+eta
+---
+build -j 16
+edit src/m0/f2.txt
+---
+build @m0 -j 2
+edit src/m4/f2.txt
+lambda
+---
+build -j 8

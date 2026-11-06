@@ -1,0 +1,7 @@
+build -j 64
+delete src/m3/sub/g15.txt
+build @m6 -j 16
+clean
+build @m10 -j 8
+touch src/m3/f5.txt
+build @m6 -j 16

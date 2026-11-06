@@ -1,0 +1,12 @@
+build -j 2
+touch src/m1/sub/g3.txt
+build @m4 -j 3
+touch main.kiln
+build @m3
+edit src/m4/f1.txt
+gamma
+zeta
+kappa
+mu
+---
+build -j 3

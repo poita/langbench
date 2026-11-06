@@ -1,0 +1,15 @@
+put "a" 1
+get "a"
+put "a" "one"
+get "a"
+put "a" [1]
+get "a"
+put "a" {b:1}
+get "a"
+put "a" null
+get "a"
+put "a" true
+get "a"
+put "a" false
+get "a"
+stat

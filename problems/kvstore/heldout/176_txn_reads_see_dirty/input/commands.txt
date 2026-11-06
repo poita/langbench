@@ -1,0 +1,15 @@
+put "a" {v:1}
+create index v
+begin
+update "a" v 2
+get "a"
+find v == 2
+find v == 1
+indexes
+scan
+stat
+rollback
+get "a"
+find v == 1
+indexes
+stat

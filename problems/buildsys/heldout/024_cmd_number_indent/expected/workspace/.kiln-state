@@ -1,0 +1,23 @@
+kiln-state 1
+step out/h.txt
+cmd hash()
+in out/n.txt fa6a3baad56ea92b
+in out/i0.txt 44768f0ad2a3aee5
+in out/i3.txt b7962e1641bd9fdb
+out out/h.txt f384f8885f61b722
+end
+step out/i0.txt
+cmd indent(0)
+in src/t.txt 44768f0ad2a3aee5
+out out/i0.txt 44768f0ad2a3aee5
+end
+step out/i3.txt
+cmd indent(3)
+in src/t.txt 44768f0ad2a3aee5
+out out/i3.txt b7962e1641bd9fdb
+end
+step out/n.txt
+cmd number()
+in src/t.txt 44768f0ad2a3aee5
+out out/n.txt fa6a3baad56ea92b
+end

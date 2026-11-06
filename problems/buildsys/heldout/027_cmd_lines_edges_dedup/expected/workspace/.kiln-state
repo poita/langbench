@@ -1,0 +1,44 @@
+kiln-state 1
+step out/d0.txt
+cmd dedup()
+in src/blank.txt e2762dcc6a59725c
+out out/d0.txt e2762dcc6a59725c
+end
+step out/d1.txt
+cmd dedup()
+in src/cr.txt 9be41682f5df12f8
+out out/d1.txt 9be41682f5df12f8
+end
+step out/d2.txt
+cmd dedup()
+in src/empty.txt cbf29ce484222325
+out out/d2.txt cbf29ce484222325
+end
+step out/d3.txt
+cmd dedup()
+in src/nl.txt af63c74c8601c8dd
+out out/d3.txt af63c74c8601c8dd
+end
+step out/d4.txt
+cmd dedup()
+in src/nonl.txt e5beb1190415e670
+out out/d4.txt 78ed6781f136a14e
+end
+step out/dh.txt
+cmd hash()
+in out/d0.txt e2762dcc6a59725c
+in out/d1.txt 9be41682f5df12f8
+in out/d2.txt cbf29ce484222325
+in out/d3.txt af63c74c8601c8dd
+in out/d4.txt 78ed6781f136a14e
+out out/dh.txt 9a45b32d6c106bab
+end
+step out/dn.txt
+cmd count_lines()
+in src/blank.txt e2762dcc6a59725c
+in src/cr.txt 9be41682f5df12f8
+in src/empty.txt cbf29ce484222325
+in src/nl.txt af63c74c8601c8dd
+in src/nonl.txt e5beb1190415e670
+out out/dn.txt b2e51de6e30ab421
+end

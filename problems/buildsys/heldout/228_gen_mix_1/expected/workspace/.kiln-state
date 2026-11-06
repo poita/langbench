@@ -1,0 +1,88 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 279b13154dafc366
+in out/m1/bundle.txt e7987d666d3f980f
+out out/all.txt e551cb378fed8660
+end
+step out/m0/bundle.txt
+cmd concat()
+in out/m0/f0.txt 630cc63e40f7c3aa
+in out/m0/f1.txt 53ec2a02e5afa480
+in out/m0/f2.txt cbf29ce484222325
+in out/m0/g3.txt 81413cdedc05c1ae
+out out/m0/bundle.txt 279b13154dafc366
+end
+step out/m0/f0.txt
+cmd copy()
+in src/m0/f0.txt 630cc63e40f7c3aa
+out out/m0/f0.txt 630cc63e40f7c3aa
+end
+step out/m0/f1.txt
+cmd lower()
+in src/m0/f1.txt 53ec2a02e5afa480
+out out/m0/f1.txt 53ec2a02e5afa480
+end
+step out/m0/f2.txt
+cmd indent(2)
+in src/m0/f2.txt cbf29ce484222325
+out out/m0/f2.txt cbf29ce484222325
+end
+step out/m0/g3.txt
+cmd copy()
+in src/m0/sub/g3.txt 81413cdedc05c1ae
+out out/m0/g3.txt 81413cdedc05c1ae
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 279b13154dafc366
+out out/m0/wrapped.txt 769470bc4d84825d
+end
+step out/m1/bundle.txt
+cmd count_lines()
+in out/m1/f0.txt c22e468ff75bb56d
+in out/m1/f1.txt cd4142e7adce5e06
+in out/m1/f2.txt 72f621b1220be8a2
+in out/m1/f4.txt 011c0330dffaa895
+in out/m1/g3.txt 7dd1a5da3491b062
+out out/m1/bundle.txt e7987d666d3f980f
+end
+step out/m1/doc.txt
+cmd preprocess()
+in src/m1/doc.src 5cafc8decbb7d385
+dep src/m1/f0.txt c22e468ff75bb56d
+dep src/m1/f1.txt d463191820c9418e
+dep src/m1/f2.txt 3ded485d7d8e6fc2
+out out/m1/doc.txt 823f6764106a058e
+out out/m1/doc.d 4fe6ebd5f8376a24
+end
+step out/m1/f0.txt
+cmd copy()
+in src/m1/f0.txt c22e468ff75bb56d
+out out/m1/f0.txt c22e468ff75bb56d
+end
+step out/m1/f1.txt
+cmd number()
+in src/m1/f1.txt d463191820c9418e
+out out/m1/f1.txt cd4142e7adce5e06
+end
+step out/m1/f2.txt
+cmd upper()
+in src/m1/f2.txt 3ded485d7d8e6fc2
+out out/m1/f2.txt 72f621b1220be8a2
+end
+step out/m1/f4.txt
+cmd copy()
+in src/m1/f4.txt 011c0330dffaa895
+out out/m1/f4.txt 011c0330dffaa895
+end
+step out/m1/g3.txt
+cmd number()
+in src/m1/sub/g3.txt 634fbcf35a2e9e0e
+out out/m1/g3.txt 7dd1a5da3491b062
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt e7987d666d3f980f
+out out/m1/wrapped.txt 1b079b9bf005f59b
+end

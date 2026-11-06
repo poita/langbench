@@ -1,0 +1,58 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+CANATTACK #22
+LEGAL END
+11 EXHAUST #22
+12 ATTACK #22
+13 PASS A
+14 PASS B
+15 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #43 #22
+CANBLOCK #44 #22
+LEGAL END
+16 BLOCK #43 #22
+17 BLOCK #44 #22
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field A #22 CIN-023 5/5 w0 c0 exhausted attacking,blocked kw siegework
+field B #43 TOK-001 1/1 w0 c0 ready blocking kw -
+field B #44 TID-009 1/5 w0 c0 ready blocking kw skyhook
+STATE END
+18 PASS A
+19 PASS B
+20 PHASE clash-damage
+21 DAMAGE #22 #43 1
+22 DAMAGE #22 #44 4
+23 DAMAGE #43 #22 1
+24 DAMAGE #44 #22 1
+25 DESTROY #43 TOK-001
+26 PASS A
+27 PASS B
+28 PHASE clash-end
+29 PASS A
+30 PASS B
+31 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 1 rift 0
+field A #21 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field A #22 CIN-023 5/5 w2 c0 exhausted - kw siegework
+field B #44 TID-009 1/5 w4 c0 ready - kw skyhook
+ash B 1 #43 TOK-001
+STATE END
+32 RESULT pending none

@@ -1,0 +1,5 @@
+build -j 2
+touch main.kiln
+build @m8 -j 64
+clean
+build @m15 -j 64

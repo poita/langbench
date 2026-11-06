@@ -1,0 +1,30 @@
+let x = 560; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps; => 17
+let s = 0; let i = 1; while i <= 5 { s = s + i * i; i = i + 1; } print s; => 55
+let v = 6 * 3 - (6 + 3) / 3; print v; if v > 17 { print 1; } else { print 0; } => 15 0
+let c = 0; let i = 2; while i < 16 { let j = 2; let prime = 1; while j * j <= i { if i - i / j * j == 0 { prime = 0; } j = j + 1; } c = c + prime; i = i + 1; } print c; => 6
+let m = 247; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r; => 742
+let c = 0; let i = 2; while i < 19 { let j = 2; let prime = 1; while j * j <= i { if i - i / j * j == 0 { prime = 0; } j = j + 1; } c = c + prime; i = i + 1; } print c; => 7
+let m = 246; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r; => 642
+let x = 399; print x / (16 - 16);........................... => error: division by zero
+let y = (40 + 44; print y;.................................. => error: expected )
+let a = 374; let b = 33; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a; => 11
+let x = 500; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps; => 110
+let a = 256; let b = 7; while b != 0 { let t = b; b = a - a / b * b; a = t; } print a; => 1
+let p = 0; let q = 1; let k = 0; while k < 12 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q; => 144 233
+let y = (49 + 42; print y;.................................. => error: expected )
+let c = 0; let i = 2; while i < 9 { let j = 2; let prime = 1; while j * j <= i { if i - i / j * j == 0 { prime = 0; } j = j + 1; } c = c + prime; i = i + 1; } print c; => 4
+let w = 0; while 1 { w = w + 1; } print w;.................. => error: loop limit
+let s = 0; let i = 1; while i <= 12 { s = s + i * i; i = i + 1; } print s; => 650
+let w = 0; while 1 { w = w + 1; } print w;.................. => error: loop limit
+let c = 0; let i = 2; while i < 11 { let j = 2; let prime = 1; while j * j <= i { if i - i / j * j == 0 { prime = 0; } j = j + 1; } c = c + prime; i = i + 1; } print c; => 4
+let p = 0; let q = 1; let k = 0; while k < 13 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q; => 233 377
+let p = 0; let q = 1; let k = 0; while k < 12 { let t = p + q; p = q; q = t; k = k + 1; } print p; print q; => 144 233
+let m = 492; let r = 0; while m > 0 { r = r * 10 + (m - m / 10 * 10); m = m / 10; } print r; => 294
+let n = 20; let f = 1; while n > 1 { f = f * n; n = n - 1; } print f; => 2432902008176640000
+print zz8;.................................................. => error: unbound zz8
+let x = 39; print x / (38 - 38);............................ => error: division by zero
+let x = 198; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps; => 26
+let x = 382; let steps = 0; while x != 1 { if x - x / 2 * 2 == 0 { x = x / 2; } else { x = 3 * x + 1; } steps = steps + 1; } print steps; => 45
+print zz10;................................................. => error: unbound zz10
+let y = (543 + 16; print y;................................. => error: expected )
+let n = 3; let f = 1; while n > 1 { f = f * n; n = n - 1; } print f; => 6

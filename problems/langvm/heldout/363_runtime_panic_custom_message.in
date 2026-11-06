@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    emit("before:"); panic("it broke"); print("after");
+}

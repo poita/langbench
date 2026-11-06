@@ -1,0 +1,55 @@
+1 GAME-START A
+2 SHUFFLE A
+3 SHUFFLE B
+4 DRAW A #10 CIN-001
+5 DRAW A #1 CIN-001
+6 DRAW A #7 CIN-001
+7 DRAW A #5 CIN-001
+8 DRAW A #2 CIN-001
+9 DRAW B #18 TID-001
+10 DRAW B #19 TID-001
+11 DRAW B #13 TID-001
+12 DRAW B #12 TID-001
+13 DRAW B #14 TID-001
+14 TURN 1 A
+15 PHASE dawn
+16 EMBER A 1 1
+17 EMBER B 0 0
+18 PHASE draw
+19 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 1 cap 1 vault 5 hand 5 ash 0 rift 0
+player B spire 25 ember 0 cap 0 vault 5 hand 5 ash 0 rift 0
+hand A 1 #10 CIN-001
+hand A 2 #1 CIN-001
+hand A 3 #7 CIN-001
+hand A 4 #5 CIN-001
+hand A 5 #2 CIN-001
+hand B 1 #18 TID-001
+hand B 2 #19 TID-001
+hand B 3 #13 TID-001
+hand B 4 #12 TID-001
+hand B 5 #14 TID-001
+STATE END
+VAULT BEGIN
+vault A 1 #3 CIN-001
+vault A 2 #4 CIN-001
+vault A 3 #8 CIN-001
+vault A 4 #9 CIN-001
+vault A 5 #6 CIN-001
+vault B 1 #17 TID-001
+vault B 2 #20 TID-001
+vault B 3 #15 TID-001
+vault B 4 #11 TID-001
+vault B 5 #16 TID-001
+VAULT END
+LEGAL BEGIN A priority
+PASS
+PLAY 1 CIN-001
+PLAY 2 CIN-001
+PLAY 3 CIN-001
+PLAY 4 CIN-001
+PLAY 5 CIN-001
+LEGAL END
+20 RESULT pending none

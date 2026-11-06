@@ -1,0 +1,41 @@
+kiln-state 1
+step out/lower_0.txt
+cmd lower()
+in src/e.txt cbf29ce484222325
+out out/lower_0.txt cbf29ce484222325
+end
+step out/lower_1.txt
+cmd lower()
+in src/n.txt dc3add5ecc4ba006
+out out/lower_1.txt fa5e10898ec817e6
+end
+step out/lower_2.txt
+cmd lower()
+in src/x.txt 07c7d73947cbe1de
+out out/lower_2.txt 07c7d73947cbe1de
+end
+step out/lower_3.txt
+cmd lower()
+in src/c.txt 25fd018afddd7cc5
+out out/lower_3.txt 25fd018afddd7cc5
+end
+step out/lower_4.txt
+cmd lower()
+in src/u.txt 883ac19acb748cf1
+out out/lower_4.txt 883ac19acb748cf1
+end
+step out/lower_5.txt
+cmd lower()
+in src/b.txt 1c2c1cfae3c07157
+out out/lower_5.txt c94e229c10891ad7
+end
+step out/lower_pin.txt
+cmd hash()
+in out/lower_0.txt cbf29ce484222325
+in out/lower_1.txt fa5e10898ec817e6
+in out/lower_2.txt 07c7d73947cbe1de
+in out/lower_3.txt 25fd018afddd7cc5
+in out/lower_4.txt 883ac19acb748cf1
+in out/lower_5.txt c94e229c10891ad7
+out out/lower_pin.txt af40997b238e5b06
+end

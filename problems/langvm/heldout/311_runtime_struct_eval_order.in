@@ -1,0 +1,7 @@
+@module main
+struct S { a: Int, b: Int }
+fn p(s: Str, v: Int) -> Int { emit(s); v }
+fn main() {
+    let s = S.{ b: p("b", 1), a: p("a", 2) };
+    print(showInt(s.a) ++ showInt(s.b));
+}

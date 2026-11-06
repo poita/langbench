@@ -1,0 +1,12 @@
+step {
+    out "out/big.txt"
+    cmd write("big\n")
+    cost 1000000
+}
+step {
+    out "out/small.txt"
+    in "out/big.txt"
+    cmd copy()
+    cost 999999
+}
+default "out/small.txt"

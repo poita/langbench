@@ -1,0 +1,30 @@
+build
+edit main.kiln
+let a = [
+  1,
+  2,
+]
+let b = a[
+  0
+] [
+---
+build
+edit main.kiln
+# comment with a ( bracket
+let a = 1
+let b = )
+---
+build
+edit main.kiln
+let a = "# not a comment ("
+let b = )
+---
+build
+edit main.kiln
+let xs = [1,
+  2,
+  3]
+let y = 2
+let z = ]
+---
+build

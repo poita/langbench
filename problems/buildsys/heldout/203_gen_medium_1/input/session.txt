@@ -1,0 +1,19 @@
+build
+touch src/m6/sub/g7.txt
+build -j 4
+edit src/m4/f4.txt
+theta
+nu
+---
+build @m6 -j 16
+clean
+build out/all.txt
+edit src/m4/f6.txt
+xi
+the end
+alpha
+fir
+---
+build @m3 -j 16
+touch main.kiln
+build @m0

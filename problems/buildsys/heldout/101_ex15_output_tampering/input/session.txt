@@ -1,0 +1,7 @@
+build
+edit out/hello.txt
+tampered
+---
+build
+delete out/hello.txt
+build

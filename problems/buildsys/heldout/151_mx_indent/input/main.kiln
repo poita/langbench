@@ -1,0 +1,36 @@
+step {
+    out "out/indent_0.txt"
+    in "src/e.txt"
+    cmd indent(4)
+}
+step {
+    out "out/indent_1.txt"
+    in "src/n.txt"
+    cmd indent(4)
+}
+step {
+    out "out/indent_2.txt"
+    in "src/x.txt"
+    cmd indent(4)
+}
+step {
+    out "out/indent_3.txt"
+    in "src/c.txt"
+    cmd indent(4)
+}
+step {
+    out "out/indent_4.txt"
+    in "src/u.txt"
+    cmd indent(4)
+}
+step {
+    out "out/indent_5.txt"
+    in "src/b.txt"
+    cmd indent(4)
+}
+step {
+    out "out/indent_pin.txt"
+    in ["out/indent_0.txt", "out/indent_1.txt", "out/indent_2.txt", "out/indent_3.txt", "out/indent_4.txt", "out/indent_5.txt"]
+    cmd hash()
+}
+default "out/indent_pin.txt"

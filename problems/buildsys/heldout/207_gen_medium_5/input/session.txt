@@ -1,0 +1,14 @@
+build -j 16
+touch src/m3/sub/g7.txt
+build @m3
+touch src/m5/sub/g11.txt
+build @m6 -j 4
+edit src/m6/sub/g7.txt
+a-b+c
+mu
+eta
+---
+build @m8 -j 3
+edit src/m2/f8.txt
+---
+build @m2 -j 3

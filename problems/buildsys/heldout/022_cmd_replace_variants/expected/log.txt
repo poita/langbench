@@ -1,0 +1,6 @@
+step 1: build (default) -j 3
+  run 0 3 w0 out/r0.txt replace("aa", "b")
+  run 0 3 w1 out/r1.txt replace("a", "")
+  run 0 3 w2 out/r2.txt replace("\n", "|")
+  run 3 6 w0 out/h.txt hash()
+  ok ran=4 hit=0 time=6

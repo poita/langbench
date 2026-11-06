@@ -1,0 +1,23 @@
+kiln-state 1
+step out/d.txt
+cmd dedup()
+in src/t.txt 1a34b667114d4961
+out out/d.txt e1a04c3092fb1253
+end
+step out/h.txt
+cmd hash()
+in out/s.txt 409e3be13e9a6d8d
+in out/v.txt e9784cab6f2be677
+in out/d.txt e1a04c3092fb1253
+out out/h.txt b64132acdbb50323
+end
+step out/s.txt
+cmd sort_lines()
+in src/t.txt 1a34b667114d4961
+out out/s.txt 409e3be13e9a6d8d
+end
+step out/v.txt
+cmd reverse_lines()
+in src/t.txt 1a34b667114d4961
+out out/v.txt e9784cab6f2be677
+end

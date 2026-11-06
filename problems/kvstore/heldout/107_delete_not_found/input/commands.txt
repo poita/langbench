@@ -1,0 +1,6 @@
+put "a" 1
+delete "b"
+delete "a"
+delete "a"
+get "a"
+stat

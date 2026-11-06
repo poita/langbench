@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(listFold([], 0, |a: Int, x: Int| a)));
+}

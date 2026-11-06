@@ -1,0 +1,23 @@
+[1] ok put created
+[2] ok get value
+  "a\"b\\c/d\be\ff\ng\rh\ti"
+[3] ok put created
+[4] ok get value
+  "\u0000\u001f\u007fé￿"
+[5] ok put created
+[6] ok get value
+  "😀"
+[7] ok put created
+[8] ok get value
+  "😀"
+[9] error bad-utf8
+[10] error bad-utf8
+[11] error bad-utf8
+[12] error bad-utf8
+[13] error syntax
+[14] error syntax
+[15] ok scan 4
+  "esc"
+  "hi"
+  "sur"
+  "u"

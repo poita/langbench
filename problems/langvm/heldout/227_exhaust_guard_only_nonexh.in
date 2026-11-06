@@ -1,0 +1,8 @@
+@module main
+fn f(b: Bool) -> Int {
+    match b {
+        true -> 1,
+        false when b -> 2,
+    }
+}
+fn main() { print("ok"); }

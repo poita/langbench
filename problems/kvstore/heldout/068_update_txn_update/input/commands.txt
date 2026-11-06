@@ -1,0 +1,13 @@
+put "a" {v:1}
+begin
+update "a" v 2
+get "a"
+unset "a" v
+get "a"
+rollback
+get "a"
+begin
+update "a" v 3
+commit
+get "a"
+stat

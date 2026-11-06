@@ -1,0 +1,12 @@
+step {
+    out "out/gen.txt"
+    in "src/a.txt"
+    cmd upper()
+    cost 4
+}
+step {
+    out "out/use.txt"
+    in "out/gen.txt"
+    cmd copy()
+}
+default "out/use.txt"

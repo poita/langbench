@@ -1,0 +1,15 @@
+let base = "root"
+when true {
+    let base = "inner"
+    rule r(n, tag = base ~ "-" ~ n) {
+        step {
+            out "out/{n}.txt"
+            cmd write("{tag}|{base}\n")
+        }
+        default "out/{n}.txt"
+    }
+}
+let tag = "shadowed"
+use r("one")
+use r("two", tag = "given")
+use r(n = "three")

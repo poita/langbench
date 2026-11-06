@@ -1,0 +1,12 @@
+@module main
+trait Size { fn size(self) -> Int; }
+impl<K: Key, V> Size for #[K: V] { fn size(self) -> Int { mapLen(self) } }
+impl<T> Size for [T] { fn size(self) -> Int { listLen(self) } }
+impl Size for Unit { fn size(self) -> Int { 0 } }
+fn nothing() {}
+fn main() {
+    print(showInt(#[1: "a", 2: "b"].size()));
+    print(showInt([1, 2, 3].size()));
+    let u = nothing();
+    print(showInt(u.size()));
+}

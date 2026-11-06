@@ -1,0 +1,16 @@
+let mixed = [[1], "b", 3, true, "a", [0, 2], false, -1]
+step {
+    out "out/l0.txt"
+    cmd write("{indexof(sort(mixed), false)}|{indexof(sort(mixed), -1)}|{indexof(sort(mixed), "a")}|{indexof(sort(mixed), [0, 2])}|{count(sort(mixed))}\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{[1, 2] == [1, 2]} {[1, "2"] == [1, 2]} {1 == true} {0 == false} {[] == []} {[[1]] == [[1]]} {"a" != "a"}\n")
+}
+default "out/l1.txt"
+step {
+    out "out/l2.txt"
+    cmd write("{"a" < "ab"} {[1] < [1, 0]} {true < 1} {3 < "x"} {"z" < [0]} {false < true} {-2 <= -2} {3 >= 4} {[2] > [1, 9]}\n")
+}
+default "out/l2.txt"

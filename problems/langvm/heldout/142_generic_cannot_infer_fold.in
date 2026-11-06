@@ -1,0 +1,2 @@
+@module main
+fn main() { print(showInt(listLen(listFold([1], listNew(), |a: [Int], x: Int| a)))); }

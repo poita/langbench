@@ -1,0 +1,359 @@
+1 GAME-START B
+2 SHUFFLE A
+3 SHUFFLE B
+4 DRAW B #58 LOM-035
+5 DRAW B #66 TID-039
+6 DRAW B #62 NEU-031
+7 DRAW B #52 LOM-015
+8 DRAW B #39 CIN-016
+9 DRAW A #28 TID-001
+10 DRAW A #7 DSK-006
+11 DRAW A #30 TID-006
+12 DRAW A #23 NEU-013
+13 DRAW A #4 CIN-013
+14 TURN 1 B
+15 PHASE dawn
+16 EMBER A 0 0
+17 EMBER B 1 1
+18 PHASE draw
+19 PHASE main1
+20 PASS B
+21 PASS A
+22 PHASE clash-attack
+23 PHASE main2
+24 PASS B
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+25 PASS A
+26 PHASE dusk-trigger
+27 PASS B
+28 PASS A
+29 PHASE dusk-discard
+30 PHASE dusk-cleanup
+31 TURN 2 A
+32 PHASE dawn
+33 EMBER A 1 1
+34 EMBER B 1 1
+35 PHASE draw
+36 DRAW A #36 TID-038
+37 PHASE main1
+38 PASS A
+39 PASS B
+40 PHASE clash-attack
+41 PHASE main2
+42 PASS A
+43 PASS B
+44 PHASE dusk-trigger
+45 PASS A
+46 PASS B
+47 PHASE dusk-discard
+48 PHASE dusk-cleanup
+49 TURN 3 B
+50 PHASE dawn
+51 EMBER A 1 1
+52 EMBER B 2 2
+53 PHASE draw
+54 DRAW B #61 NEU-026
+55 PHASE main1
+56 PASS B
+57 PASS A
+58 PHASE clash-attack
+59 PHASE main2
+60 PASS B
+61 PASS A
+62 PHASE dusk-trigger
+63 PASS B
+64 PASS A
+65 PHASE dusk-discard
+66 PHASE dusk-cleanup
+67 TURN 4 A
+68 PHASE dawn
+69 EMBER A 2 2
+70 EMBER B 2 2
+71 PHASE draw
+72 DRAW A #21 NEU-011
+73 PHASE main1
+74 PLAY A ~1 #30 TID-006
+75 PAY A ember 2
+76 PASS A
+77 PASS B
+78 RESOLVE ~1
+79 ARRIVE #30 TID-006
+80 PASS A
+81 PASS B
+82 PHASE clash-attack
+83 PHASE main2
+84 PASS A
+85 PASS B
+86 PHASE dusk-trigger
+87 PASS A
+88 PASS B
+89 PHASE dusk-discard
+90 PHASE dusk-cleanup
+91 TURN 5 B
+92 PHASE dawn
+93 EMBER A 2 2
+94 EMBER B 3 3
+95 PHASE draw
+96 DRAW B #63 TID-007
+97 PHASE main1
+98 PASS B
+99 PASS A
+100 PHASE clash-attack
+101 PHASE main2
+102 PLAY B ~2 #66 TID-039
+103 PAY B ember 3
+104 PASS B
+105 PASS A
+106 RESOLVE ~2
+107 ARRIVE #66 TID-039
+108 PASS B
+109 PASS A
+110 PHASE dusk-trigger
+111 PASS B
+112 PASS A
+113 PHASE dusk-discard
+114 PHASE dusk-cleanup
+115 TURN 6 A
+116 PHASE dawn
+117 EMBER A 3 3
+118 EMBER B 3 3
+119 PHASE draw
+120 DRAW A #31 TID-019
+121 PHASE main1
+122 PLAY A ~3 #4 CIN-013
+123 PAY A ember 3
+124 PASS A
+125 PASS B
+126 RESOLVE ~3
+127 ARRIVE #4 CIN-013
+128 PASS A
+CARD BEGIN CIN-003
+name Searing Bolt
+type rite
+cost 1
+tags cinder
+keywords swift
+ability 1 resolve (targets (any)) (damage 2 (t 1))
+CARD END
+129 PASS B
+130 PHASE clash-attack
+131 EXHAUST #4
+132 ATTACK #4
+133 PASS A
+134 PASS B
+135 PHASE clash-block
+ERR 62 bad-syntax
+136 UNBLOCKED #4
+137 PASS A
+138 PASS B
+139 PHASE clash-damage
+140 DAMAGE #4 B 2
+141 SPIRE B -2 21
+142 PASS A
+143 PASS B
+144 PHASE clash-end
+STATE BEGIN
+turn 6 active A phase clash-end decision A priority
+player A spire 23 ember 0 cap 3 vault 28 hand 6 ash 0 rift 0
+player B spire 21 ember 3 cap 3 vault 24 hand 6 ash 0 rift 0
+hand A 1 #28 TID-001
+hand A 2 #7 DSK-006
+hand A 3 #23 NEU-013
+hand A 4 #36 TID-038
+hand A 5 #21 NEU-011
+hand A 6 #31 TID-019
+hand B 1 #58 LOM-035
+hand B 2 #62 NEU-031
+hand B 3 #52 LOM-015
+hand B 4 #39 CIN-016
+hand B 5 #61 NEU-026
+hand B 6 #63 TID-007
+field A #30 TID-006 2/2 w0 c0 ready - kw ghostwalk,vanguard
+field A #4 CIN-013 2/2 w0 c0 exhausted attacking,settling kw ghostwalk,vanguard
+field B #66 TID-039 3/2 w0 c0 ready - kw ghostwalk,vanguard
+STATE END
+145 PASS A
+146 PASS B
+147 PHASE main2
+148 PASS A
+149 PASS B
+150 PHASE dusk-trigger
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+151 PASS A
+152 PASS B
+153 PHASE dusk-discard
+154 PHASE dusk-cleanup
+155 TURN 7 B
+156 PHASE dawn
+157 EMBER A 3 3
+158 EMBER B 4 4
+159 PHASE draw
+160 DRAW B #67 TID-039
+161 PHASE main1
+ERR 76 bad-syntax
+162 PLAY B ~4 #61 NEU-026
+163 PAY B ember 3
+164 PASS B
+165 PASS A
+166 RESOLVE ~4
+167 ARRIVE #61 NEU-026
+168 PASS B
+169 PASS A
+170 PHASE clash-attack
+171 EXHAUST #66
+172 ATTACK #66
+173 PASS B
+CARD BEGIN ZZZ-001
+unknown
+CARD END
+174 PASS A
+175 PHASE clash-block
+176 BLOCK #30 #66
+177 PASS B
+178 PASS A
+179 PHASE clash-damage
+180 DAMAGE #30 #66 2
+181 DAMAGE #66 #30 4
+182 DESTROY #30 TID-006
+183 PASS B
+184 PASS A
+185 PHASE clash-end
+186 PASS B
+187 PASS A
+188 PHASE main2
+189 PASS B
+190 PASS A
+191 PHASE dusk-trigger
+192 PASS B
+193 PASS A
+194 PHASE dusk-discard
+195 PHASE dusk-cleanup
+196 TURN 8 A
+197 PHASE dawn
+198 EMBER A 4 4
+199 EMBER B 4 4
+200 READY #4
+201 PHASE draw
+202 DRAW A #27 NEU-027
+203 PHASE main1
+204 PLAY A ~5 #21 NEU-011
+205 PAY A ember 3
+206 PASS A
+207 PASS B
+208 RESOLVE ~5
+209 ARRIVE #21 NEU-011
+ERR 100 bad-syntax
+210 PASS A
+211 PASS B
+212 PHASE clash-attack
+213 EXHAUST #4
+214 ATTACK #4
+215 PASS A
+216 PASS B
+217 PHASE clash-block
+218 UNBLOCKED #4
+219 PASS A
+220 PASS B
+221 PHASE clash-damage
+222 DAMAGE #4 B 2
+223 SPIRE B -2 19
+224 PASS A
+225 PASS B
+226 PHASE clash-end
+227 PASS A
+228 PASS B
+229 PHASE main2
+230 PASS A
+231 PASS B
+232 PHASE dusk-trigger
+233 PASS A
+234 PASS B
+235 PHASE dusk-discard
+236 PHASE dusk-cleanup
+237 TURN 9 B
+238 PHASE dawn
+239 EMBER A 4 4
+240 EMBER B 5 5
+241 READY #66
+242 PHASE draw
+243 DRAW B #48 DSK-031
+244 PHASE main1
+245 PLAY B ~6 #48 DSK-031 #21
+246 PAY B ember 2
+247 PASS B
+248 PASS A
+249 RESOLVE ~6
+250 STRIP #21
+251 SPENT #48 DSK-031
+252 PLAY B ~7 #67 TID-039
+253 PAY B ember 3
+254 PASS B
+255 PASS A
+256 RESOLVE ~7
+257 ARRIVE #67 TID-039
+258 PASS B
+259 PASS A
+260 PHASE clash-attack
+ERR 125 bad-syntax
+261 EXHAUST #61
+262 ATTACK #61
+263 EXHAUST #66
+264 ATTACK #66
+265 PASS B
+266 PASS A
+267 PHASE clash-block
+268 BLOCK #21 #61
+269 UNBLOCKED #66
+270 PASS B
+271 PASS A
+272 PHASE clash-damage
+273 DAMAGE #66 A 4
+274 SPIRE A -4 19
+275 DAMAGE #61 #21 2
+276 DAMAGE #21 #61 3
+277 DESTROY #61 NEU-026
+278 DESTROY #21 NEU-011
+279 TRIGGER A ~8 #21 1
+280 PASS B
+STATE BEGIN
+turn 9 active B phase clash-damage decision A priority
+player A spire 19 ember 4 cap 4 vault 27 hand 6 ash 2 rift 0
+player B spire 19 ember 0 cap 5 vault 22 hand 5 ash 2 rift 0
+hand A 1 #28 TID-001
+hand A 2 #7 DSK-006
+hand A 3 #23 NEU-013
+hand A 4 #36 TID-038
+hand A 5 #31 TID-019
+hand A 6 #27 NEU-027
+hand B 1 #58 LOM-035
+hand B 2 #62 NEU-031
+hand B 3 #52 LOM-015
+hand B 4 #39 CIN-016
+hand B 5 #63 TID-007
+field A #4 CIN-013 2/2 w0 c0 exhausted - kw ghostwalk,vanguard
+field B #66 TID-039 3/2 w0 c0 exhausted attacking kw ghostwalk,vanguard
+field B #67 TID-039 3/2 w0 c0 ready settling kw ghostwalk,vanguard
+ash A 1 #30 TID-006
+ash A 2 #21 NEU-011
+ash B 1 #48 DSK-031
+ash B 2 #61 NEU-026
+chain 1 ~8 A trigger #21 1
+effect 2 ts7 B turn strip on -
+STATE END
+281 PASS A
+282 RESOLVE ~8
+283 DRAW A #17 LOM-028
+284 PASS B
+285 PASS A
+286 PHASE clash-end
+287 PASS B
+288 PASS A
+289 PHASE main2
+290 PASS B
+291 PASS A
+292 PHASE dusk-trigger
+293 RESULT pending none

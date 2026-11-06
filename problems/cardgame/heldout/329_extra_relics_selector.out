@@ -1,0 +1,71 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 2 ash 0 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+hand A 1 #11 EXT-003
+hand A 2 #12 EXT-004
+field A #13 EXT-007 -/- w0 c0 ready - kw -
+field A #14 EXT-010 -/- w0 c0 ready - kw -
+field A #15 EXT-001 3/3 w0 c0 ready - kw -
+field B #26 EXT-015 -/- w0 c0 ready - kw -
+field B #27 EXT-011 1/4 w0 c0 ready - kw plating:1
+effect 1 ts2 A aura modify 0 0 on #15
+effect 2 ts4 A aura modify 2 2 on #15
+effect 3 ts7 B aura cheaper 2 on -
+STATE END
+8 PLAY A ~1 #11 EXT-003
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DAMAGE #11 #15 1
+14 PREVENT #27 1
+15 SPENT #11 EXT-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 9 cap 10 vault 10 hand 1 ash 1 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+hand A 1 #12 EXT-004
+field A #13 EXT-007 -/- w0 c0 ready - kw -
+field A #14 EXT-010 -/- w0 c0 ready - kw -
+field A #15 EXT-001 3/3 w1 c0 ready - kw -
+field B #26 EXT-015 -/- w0 c0 ready - kw -
+field B #27 EXT-011 1/4 w0 c0 ready - kw plating:1
+ash A 1 #11 EXT-003
+effect 1 ts2 A aura modify 0 0 on #15
+effect 2 ts4 A aura modify 2 2 on #15
+effect 3 ts7 B aura cheaper 2 on -
+STATE END
+16 PLAY A ~2 #12 EXT-004
+17 PAY A ember 2
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 COUNTERS #13 +1 1
+22 COUNTERS #14 +1 1
+23 WARD #13 2 2
+24 WARD #14 2 2
+25 SPENT #12 EXT-004
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 7 cap 10 vault 10 hand 0 ash 2 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+field A #13 EXT-007 -/- w0 c1 ready ward2 kw -
+field A #14 EXT-010 -/- w0 c1 ready ward2 kw -
+field A #15 EXT-001 3/3 w1 c0 ready - kw -
+field B #26 EXT-015 -/- w0 c0 ready - kw -
+field B #27 EXT-011 1/4 w0 c0 ready - kw plating:1
+ash A 1 #11 EXT-003
+ash A 2 #12 EXT-004
+effect 1 ts2 A aura modify 0 0 on #15
+effect 2 ts4 A aura modify 2 2 on #15
+effect 3 ts7 B aura cheaper 2 on -
+STATE END
+26 RESULT pending none

@@ -1,0 +1,14 @@
+put "a" {u:{v:1},t:"x"}
+put "b" {u:{v:2},t:"y"}
+put "c" {u:3}
+put "d" {u:{w:1}}
+create index u.v
+find u.v == 1
+find u.v > 0
+find u.v == 3
+find exists u.v
+find missing u.v
+find u == 3
+find u.v.w == 1
+indexes
+stat

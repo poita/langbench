@@ -1,0 +1,19 @@
+put "u1" {name:"ada",age:36,ok:true}
+put "u2" {name:"bob",age:29,ok:false}
+put "u3" {name:"cy",age:36,ok:true}
+put "u4" {name:"dee",age:null}
+put "u5" {name:"eve",age:[1,2]}
+put "u6" {name:"fay",age:{x:1}}
+put "u7" {name:"gus"}
+put "u8" {name:"hal",age:-5}
+put "u9" {name:"ivy",age:"36"}
+find age == 36 and name == "cy"
+find age == 36 or age == 29
+find age == 36 or age == 29 and name == "bob"
+find (age == 36 or age == 29) and name == "bob"
+find not(age == 36) and exists age
+find not(exists age)
+find not(not(age == 36))
+find exists name and exists age and age > 0
+find age > 0 and age < 40 or name == "gus"
+find missing age or age == null

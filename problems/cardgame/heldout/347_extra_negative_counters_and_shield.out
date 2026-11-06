@@ -1,0 +1,76 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 TRIGGER A ~1 #15 1
+7 RESOLVE ~1
+8 COUNTERS #15 +2 2
+9 PHASE draw
+10 PHASE main1
+11 PLAY A ~2 #14 EXT-003
+12 PAY A ember 1
+13 PASS A
+14 PASS B
+15 RESOLVE ~2
+16 PREVENT #15 1
+17 DAMAGE #14 #16 1
+18 DAMAGE #14 #20 1
+19 SPENT #14 EXT-003
+20 DESTROY #16 EXT-001
+21 TRIGGER B ~3 #20 1
+22 PASS A
+23 PASS B
+24 RESOLVE ~3
+25 PLAY A ~4 #11 EXT-028 #15
+26 PAY A ember 1
+27 PASS A
+28 PASS B
+29 RESOLVE ~4
+30 COUNTERS #15 -2 0
+31 SHIELD A 3 3
+32 SHIELD B 3 3
+33 SPENT #11 EXT-028
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 8 cap 10 vault 10 hand 2 ash 3 rift 0
+player B spire 30 ember 10 cap 10 vault 3 hand 0 ash 0 rift 0
+hand A 1 #12 EXT-028
+hand A 2 #13 EXT-028
+field A #15 EXT-011 1/4 w0 c0 ready - kw plating:1
+field B #20 EXT-025 2/4 w1 c0 ready - kw -
+ash A 1 #14 EXT-003
+ash A 2 #16 EXT-001
+ash A 3 #11 EXT-028
+STATE END
+34 PLAY A ~5 #12 EXT-028 #15
+35 PAY A ember 1
+36 PASS A
+37 PASS B
+38 RESOLVE ~5
+39 SHIELD A 3 6
+40 SHIELD B 3 6
+41 SPENT #12 EXT-028
+42 PLAY A ~6 #13 EXT-028 #20
+43 PAY A ember 1
+44 PASS A
+45 PASS B
+46 RESOLVE ~6
+47 SPIRE A +1 31
+48 SPIRE B +1 31
+49 SHIELD A 3 9
+50 SHIELD B 3 9
+51 SPENT #13 EXT-028
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 31 ember 6 cap 10 vault 10 hand 0 ash 5 rift 0
+player B spire 31 ember 10 cap 10 vault 3 hand 0 ash 0 rift 0
+field A #15 EXT-011 1/4 w0 c0 ready - kw plating:1
+field B #20 EXT-025 2/4 w1 c0 ready - kw -
+ash A 1 #14 EXT-003
+ash A 2 #16 EXT-001
+ash A 3 #11 EXT-028
+ash A 4 #12 EXT-028
+ash A 5 #13 EXT-028
+STATE END
+52 RESULT pending none

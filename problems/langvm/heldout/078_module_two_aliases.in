@@ -1,0 +1,6 @@
+@module main
+use o;
+use o as p;
+fn main() { print(showInt(o::v() + p::v())); }
+@module o
+pub fn v() -> Int { 3 }

@@ -1,0 +1,36 @@
+let all_m9 = glob("src/m9/**/*.txt")
+let s_m9 = sort(reject(all_m9, "**/skip_*.txt"))
+let o_m9 = []
+each i, f in s_m9 {
+    when i % 3 == 0 {
+        step {
+            out "out/m9/{stem(f)}.txt"
+            in f
+            cmd grep("e")
+            cost 3
+        }
+    } elsewhen i % 3 == 1 {
+        step {
+            out "out/m9/{stem(f)}.txt"
+            in f
+            cmd reverse_lines()
+            cost 2
+        }
+    } otherwise {
+        step {
+            out "out/m9/{stem(f)}.txt"
+            in f
+            cmd wrap("[", "]\n")
+            cost 1
+        }
+    }
+    set o_m9 = o_m9 ++ ["out/m9/{stem(f)}.txt"]
+}
+step {
+    out "out/m9/bundle.txt"
+    in o_m9
+    cmd hash()
+    cost 3
+}
+use wrapper("m9/wrapped", "out/m9/bundle.txt", "<m9|", "|>\n", 3)
+phony m9 = ["out/m9/wrapped.txt"]

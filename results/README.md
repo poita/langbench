@@ -14,7 +14,7 @@ reports only what the runs measured. Every table can be regenerated with the com
   headless session per task in a private sandboxed workspace, from `tools/task_prompt.txt`
   ([how runs work](../docs/generating.md)).
 - **Verification:** each project rebuilt from a clean copy of its sources and run against the public tests and,
-  for the five large problems, the hidden tests.
+  for the five large problems, the held-out tests.
 - **Rerun:** rep1:d:fulltext, rep1:d:mime, rep1:d:svgraster, rep1:go:fulltext, rep1:go:mime, rep1:go:svgraster were rerun with the same prompt, model and sandbox (at a later harness commit) once
   those problems' test data were replaced (generated mailboxes, a public-domain book, CC0 icons); the rerun
   replaces the first run's attempts at those tasks.
@@ -66,9 +66,9 @@ Relative to Go (per agent):
 
 `implementations/results/<run>.json`, `implementations/audit/<run>.json`
 
-- D: 60 of 60 tasks pass every public and hidden test on a
+- D: 60 of 60 tasks pass every public and held-out test on a
   clean build; Go: 59 of 60.
-- Not passing: rep1:go:cardgame: cardgame: 117/117 passed; hidden cardgame: 291/292 passed.
+- Not passing: rep1:go:cardgame: cardgame: 117/117 passed; held-out cardgame: 291/292 passed.
 - Audit: no integrity findings. Blocked attempts (reads the sandbox refused): 1;
   non-default optimisation settings in build files: 1; uses of a standard-library
   facility the problem's spec rules out, all in unit tests: 8; third-party

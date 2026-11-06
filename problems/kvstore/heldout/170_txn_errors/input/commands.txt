@@ -1,0 +1,16 @@
+put "a" 1
+put "a" 2
+get "zz"
+delete "zz"
+frobnicate
+put "a"
+put "a" 007
+put "a" 9223372036854775808
+put "a" {x:1,x:2}
+put "\ud800" 1
+put "" 1
+commit
+rollback
+begin
+begin
+checkpoint

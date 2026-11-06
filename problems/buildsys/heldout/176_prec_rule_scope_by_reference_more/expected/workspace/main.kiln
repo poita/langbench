@@ -1,0 +1,21 @@
+rule r(n) {
+    step {
+        out "out/{n}.txt"
+        cmd write("{n}={late}\n")
+    }
+}
+let late = "first"
+use r("a")
+set late = "second"
+use r("b")
+when true {
+    rule inner(n) {
+        step {
+            out "out/{n}.txt"
+            cmd write("{n}={tag}\n")
+        }
+    }
+    let tag = "branch"
+}
+use inner("c")
+default ["out/a.txt", "out/b.txt", "out/c.txt"]

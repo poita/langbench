@@ -1,0 +1,29 @@
+[1] error bad-key
+[2] ok put created
+[3] error bad-key
+[4] error bad-key
+[5] error bad-key
+[6] error bad-key
+[7] error bad-key
+[8] error bad-key
+[9] ok put created
+[10] error bad-key
+[11] ok scan 2
+  "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk" = 1
+  "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé" = 1
+[12] ok scan 0
+[13] ok scan 1
+  "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé" = 1
+[14] ok scan 2
+  "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk"
+  "éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé"
+[15] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 4272

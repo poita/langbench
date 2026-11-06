@@ -1,0 +1,11 @@
+step {
+    out "out/c.bin"
+    in "src/raw.bin"
+    cmd copy()
+}
+step {
+    out "out/h.txt"
+    in ["src/raw.bin", "src/raw.bin"]
+    cmd hash()
+}
+default ["out/c.bin", "out/h.txt"]

@@ -1,0 +1,15 @@
+step {
+    out "out/l0.txt"
+    cmd write("[{trim("\r\r x\r")}] [{trim("\rq")}]\n")
+}
+default "out/l0.txt"
+step {
+    out "out/l1.txt"
+    cmd write("{substr("abcdef", -3, 2)}|{substr("abcdef", -6, 1)}|{substr("abcdef", -7, 3)}\n")
+}
+default "out/l1.txt"
+step {
+    out "out/l2.txt"
+    cmd write("{join(slice([1, 2, 3, 4], -2, 9), ",")}|{join(slice([1, 2, 3], -1, -1), ",")}\n")
+}
+default "out/l2.txt"

@@ -1,0 +1,19 @@
+kiln-state 1
+step out/doc.txt
+cmd preprocess()
+in src/m.txt b75b4eac08f858ee
+dep src/q.txt 093efc07b5cf7f62
+dep src/p.txt 09425e07b5d25bbf
+out out/doc.txt 2377e1f2e36829fe
+out out/doc.d b082b8fe282f65fc
+end
+step out/gone.txt
+cmd write("gone")
+out out/gone.txt 9ce8fb720ea0b8ce
+end
+step out/one.txt
+cmd concat()
+in src/a.txt 089bdc07b544e7b2
+in src/a.txt 089bdc07b544e7b2
+out out/one.txt 78f78981f13f2f99
+end

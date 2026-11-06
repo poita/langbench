@@ -1,0 +1,65 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #5 DSK-023
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 MILL A #1 CIN-001
+14 MILL A #2 CIN-001
+15 MILL A #3 CIN-001
+16 SPENT #5 DSK-023
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 50 cap 51 vault 1 hand 2 ash 4 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #6 DSK-023
+hand A 2 #7 DSK-023
+ash A 1 #1 CIN-001
+ash A 2 #2 CIN-001
+ash A 3 #3 CIN-001
+ash A 4 #5 DSK-023
+STATE END
+17 PLAY A ~2 #6 DSK-023
+18 PAY A ember 1
+19 PASS A
+20 PASS B
+21 RESOLVE ~2
+22 MILL A #4 CIN-001
+23 SPENT #6 DSK-023
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 49 cap 51 vault 0 hand 1 ash 6 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #7 DSK-023
+ash A 1 #1 CIN-001
+ash A 2 #2 CIN-001
+ash A 3 #3 CIN-001
+ash A 4 #5 DSK-023
+ash A 5 #4 CIN-001
+ash A 6 #6 DSK-023
+STATE END
+24 PLAY A ~3 #7 DSK-023
+25 PAY A ember 1
+26 PASS A
+27 PASS B
+28 RESOLVE ~3
+29 SPENT #7 DSK-023
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 48 cap 51 vault 0 hand 0 ash 7 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+ash A 1 #1 CIN-001
+ash A 2 #2 CIN-001
+ash A 3 #3 CIN-001
+ash A 4 #5 DSK-023
+ash A 5 #4 CIN-001
+ash A 6 #6 DSK-023
+ash A 7 #7 DSK-023
+STATE END
+30 RESULT pending none

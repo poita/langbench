@@ -1,0 +1,9 @@
+step {
+    out "out"
+    cmd write("root\n")
+}
+step {
+    out "out.txt.generated/x"
+    cmd write("nope\n")
+}
+default "out"

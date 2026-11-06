@@ -1,0 +1,29 @@
+layout 1
+pages 3
+page 1 i 200000 120000 20000 20000 160000 80000
+  text body sans-bold 20000 20000 35460 82500 "Contents"
+  text body serif 10000 20000 59630 4920 "1"
+  text body serif 10000 30920 59630 49280 "Introduction"
+  text body serif 10000 83530 59630 88550 "..................................."
+  text body serif 10000 175080 59630 4920 "1"
+  text body serif 10000 20000 73630 4990 "2"
+  text body serif 10000 30990 73630 29740 "Results"
+  text body serif 10000 65750 73630 106260 ".........................................."
+  text body serif 10000 175010 73630 4990 "2"
+  text footer sans 9000 98780 112000 2439 "i"
+page 2 1 200000 120000 20000 20000 160000 80000
+  text header sans 9000 127413 10000 4545 "1"
+  text header sans 9000 134487 10000 45513 "Introduction"
+  text body sans-bold 20000 20000 35460 11400 "1"
+  text body sans-bold 20000 37400 35460 114340 "Introduction"
+  text body serif 10000 38000 56630 24510 "Alpha"
+  text body serif 10000 65050 56630 16950 "one."
+  text footer sans 9000 97727 112000 4545 "1"
+page 3 2 200000 120000 20000 20000 160000 80000
+  text header sans 9000 145530 10000 4509 "2"
+  text header sans 9000 152568 10000 27432 "Results"
+  text body sans-bold 20000 20000 35460 11320 "2"
+  text body sans-bold 20000 37320 35460 68900 "Results"
+  text body serif 10000 38000 56630 18290 "Beta"
+  text body serif 10000 58830 56630 17420 "two."
+  text footer sans 9000 97745 112000 4509 "2"

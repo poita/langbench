@@ -1,0 +1,407 @@
+1 GAME-START A
+2 DRAW A #1 CIN-015
+3 DRAW A #2 CIN-016
+4 DRAW A #3 CIN-017
+5 DRAW A #4 CIN-019
+6 DRAW B #38 CIN-013
+7 DRAW B #39 CIN-021
+8 DRAW B #40 CIN-030
+9 DRAW B #41 CIN-031
+10 TURN 1 A
+11 PHASE dawn
+12 EMBER A 1 1
+13 EMBER B 0 0
+14 PHASE draw
+15 PHASE main1
+VAULT BEGIN
+vault A 1 #5 CIN-020
+vault A 2 #6 CIN-023
+vault A 3 #7 CIN-036
+vault A 4 #8 DSK-001
+vault A 5 #9 DSK-005
+vault A 6 #10 DSK-007
+vault A 7 #11 DSK-011
+vault A 8 #12 DSK-013
+vault A 9 #13 DSK-020
+vault A 10 #14 LOM-001
+vault A 11 #15 LOM-005
+vault A 12 #16 LOM-012
+vault A 13 #17 LOM-013
+vault A 14 #18 LOM-014
+vault A 15 #19 LOM-014
+vault A 16 #20 LOM-025
+vault A 17 #21 LOM-030
+vault A 18 #22 LOM-036
+vault A 19 #23 LOM-037
+vault A 20 #24 LOM-039
+vault A 21 #25 LOM-040
+vault A 22 #26 LOM-040
+vault A 23 #27 NEU-008
+vault A 24 #28 NEU-017
+vault A 25 #29 NEU-019
+vault A 26 #30 NEU-020
+vault A 27 #31 NEU-022
+vault A 28 #32 NEU-022
+vault A 29 #33 NEU-030
+vault A 30 #34 TID-013
+vault A 31 #35 TID-018
+vault A 32 #36 TID-026
+vault A 33 #37 TID-031
+vault B 1 #42 CIN-032
+vault B 2 #43 DSK-001
+vault B 3 #44 DSK-007
+vault B 4 #45 DSK-010
+vault B 5 #46 DSK-011
+vault B 6 #47 DSK-018
+vault B 7 #48 DSK-020
+vault B 8 #49 DSK-027
+vault B 9 #50 DSK-037
+vault B 10 #51 DSK-038
+vault B 11 #52 DSK-039
+vault B 12 #53 LOM-002
+vault B 13 #54 LOM-015
+vault B 14 #55 LOM-016
+vault B 15 #56 LOM-017
+vault B 16 #57 LOM-017
+vault B 17 #58 LOM-020
+vault B 18 #59 LOM-036
+vault B 19 #60 LOM-040
+vault B 20 #61 NEU-003
+vault B 21 #62 NEU-012
+vault B 22 #63 TID-004
+vault B 23 #64 TID-014
+vault B 24 #65 TID-015
+vault B 25 #66 TID-023
+vault B 26 #67 TID-025
+vault B 27 #68 TID-031
+vault B 28 #69 TID-037
+vault B 29 #70 TID-037
+vault B 30 #71 TID-039
+VAULT END
+16 PASS A
+17 PASS B
+18 PHASE clash-attack
+19 PHASE main2
+20 PASS A
+21 PASS B
+22 PHASE dusk-trigger
+23 PASS A
+24 PASS B
+25 PHASE dusk-discard
+26 PHASE dusk-cleanup
+27 TURN 2 B
+28 PHASE dawn
+29 EMBER A 1 1
+30 EMBER B 1 1
+31 PHASE draw
+32 DRAW B #42 CIN-032
+33 PHASE main1
+34 PASS B
+35 PASS A
+36 PHASE clash-attack
+37 PHASE main2
+38 PASS B
+39 PASS A
+40 PHASE dusk-trigger
+41 PASS B
+42 PASS A
+43 PHASE dusk-discard
+44 PHASE dusk-cleanup
+45 TURN 3 A
+46 PHASE dawn
+47 EMBER A 2 2
+48 EMBER B 1 1
+49 PHASE draw
+50 DRAW A #5 CIN-020
+51 PHASE main1
+52 PASS A
+53 PASS B
+54 PHASE clash-attack
+55 PHASE main2
+56 PASS A
+57 PASS B
+58 PHASE dusk-trigger
+59 PASS A
+60 PASS B
+61 PHASE dusk-discard
+62 PHASE dusk-cleanup
+63 TURN 4 B
+64 PHASE dawn
+65 EMBER A 2 2
+66 EMBER B 2 2
+67 PHASE draw
+68 DRAW B #43 DSK-001
+69 PHASE main1
+70 PLAY B ~1 #43 DSK-001
+71 PAY B ember 1
+72 PASS B
+ERR 34 bad-syntax
+73 PASS A
+74 RESOLVE ~1
+75 ARRIVE #43 DSK-001
+76 PLAY B ~2 #42 CIN-032 #43
+77 PAY B ember 1
+78 PASS B
+79 PASS A
+80 RESOLVE ~2
+81 GRANT #43 riposte
+82 BUFF #43 1 0
+83 SPENT #42 CIN-032
+84 PASS B
+CARD BEGIN LOM-039
+name Heartwood Shrine
+type relic
+cost 5
+tags loam
+keywords -
+ability 1 aura (modify 1 1 (units yours))
+ability 2 aura (grant (plating 1) (units yours))
+CARD END
+85 PASS A
+86 PHASE clash-attack
+87 PHASE main2
+88 PASS B
+89 PASS A
+90 PHASE dusk-trigger
+91 PASS B
+92 PASS A
+93 PHASE dusk-discard
+94 PHASE dusk-cleanup
+95 TURN 5 A
+96 PHASE dawn
+97 EMBER A 3 3
+98 EMBER B 2 2
+99 PHASE draw
+100 DRAW A #6 CIN-023
+101 PHASE main1
+102 PLAY A ~3 #4 CIN-019 #43
+103 PAY A ember 1
+104 PASS A
+105 PASS B
+106 RESOLVE ~3
+107 DOOM #43
+108 SPENT #4 CIN-019
+109 DESTROY #43 DSK-001
+110 TRIGGER B ~4 #43 1
+111 PASS A
+112 PASS B
+113 RESOLVE ~4
+114 SPIRE A -1 17
+115 PASS A
+116 PASS B
+117 PHASE clash-attack
+118 PHASE main2
+119 PASS A
+120 PASS B
+121 PHASE dusk-trigger
+122 PASS A
+123 PASS B
+124 PHASE dusk-discard
+125 PHASE dusk-cleanup
+126 TURN 6 B
+127 PHASE dawn
+128 EMBER A 3 3
+129 EMBER B 3 3
+130 PHASE draw
+131 DRAW B #44 DSK-007
+132 PHASE main1
+133 PLAY B ~5 #39 CIN-021
+134 PAY B ember 2
+135 PASS B
+136 PASS A
+137 RESOLVE ~5
+138 ARRIVE #39 CIN-021
+ERR 62 bad-syntax
+139 PASS B
+140 PASS A
+141 PHASE clash-attack
+142 EXHAUST #39
+143 ATTACK #39
+144 PASS B
+145 PASS A
+146 PHASE clash-block
+147 UNBLOCKED #39
+148 TRIGGER B ~6 #39 1
+149 PASS B
+150 PASS A
+151 RESOLVE ~6
+152 DISCARD A #1 CIN-015
+153 PASS B
+CARD BEGIN ZZZ-001
+unknown
+CARD END
+154 PASS A
+155 PHASE clash-damage
+156 DAMAGE #39 A 2
+157 SPIRE A -2 15
+158 PASS B
+159 PASS A
+160 PHASE clash-end
+161 PASS B
+162 PASS A
+163 PHASE main2
+164 PASS B
+165 PASS A
+166 PHASE dusk-trigger
+167 PASS B
+ERR 81 bad-syntax
+168 PASS A
+169 PHASE dusk-discard
+170 PHASE dusk-cleanup
+171 TURN 7 A
+172 PHASE dawn
+173 EMBER A 4 4
+174 EMBER B 3 3
+175 PHASE draw
+176 DRAW A #7 CIN-036
+177 PHASE main1
+178 PASS A
+179 PASS B
+180 PHASE clash-attack
+181 PHASE main2
+182 PLAY A ~7 #5 CIN-020
+183 PAY A ember 3
+184 PASS A
+185 PASS B
+186 RESOLVE ~7
+187 ARRIVE #5 CIN-020
+ERR 89 bad-syntax
+188 PASS A
+189 PASS B
+190 PHASE dusk-trigger
+191 PASS A
+192 PASS B
+193 PHASE dusk-discard
+194 PHASE dusk-cleanup
+195 TURN 8 B
+196 PHASE dawn
+197 EMBER A 4 4
+198 EMBER B 4 4
+199 READY #39
+200 PHASE draw
+201 DRAW B #45 DSK-010
+202 PHASE main1
+203 PLAY B ~8 #40 CIN-030
+204 PAY B ember 3
+205 PASS B
+206 PASS A
+207 RESOLVE ~8
+208 ARRIVE #40 CIN-030
+ERR 97 bad-syntax
+209 PASS B
+210 PASS A
+211 PHASE clash-attack
+212 PHASE main2
+213 PLAY B ~9 #45 DSK-010 #5
+214 PAY B ember 1
+215 PASS B
+216 PASS A
+217 RESOLVE ~9
+218 GRANT #5 spectral
+219 GRANT #5 ghostwalk
+220 SPENT #45 DSK-010
+221 PASS B
+222 PASS A
+223 PHASE dusk-trigger
+224 PASS B
+225 PASS A
+226 PHASE dusk-discard
+227 PHASE dusk-cleanup
+228 TURN 9 A
+229 PHASE dawn
+230 EMBER A 5 5
+231 EMBER B 4 4
+232 PHASE draw
+233 DRAW A #8 DSK-001
+234 PHASE main1
+235 PLAY A ~10 #6 CIN-023
+236 PAY A ember 5
+237 PASS A
+238 PASS B
+239 RESOLVE ~10
+240 ARRIVE #6 CIN-023
+241 PASS A
+242 PASS B
+243 PHASE clash-attack
+244 PHASE main2
+245 PASS A
+246 PASS B
+247 PHASE dusk-trigger
+248 PASS A
+249 PASS B
+250 PHASE dusk-discard
+251 PHASE dusk-cleanup
+252 TURN 10 B
+253 PHASE dawn
+254 EMBER A 5 5
+255 EMBER B 5 5
+256 PHASE draw
+257 DRAW B #46 DSK-011
+258 PHASE main1
+259 PASS B
+260 PASS A
+261 PHASE clash-attack
+262 PHASE main2
+263 PLAY B ~11 #44 DSK-007
+264 PAY B ember 3
+STATE BEGIN
+turn 10 active B phase main2 decision B priority
+player A spire 15 ember 5 cap 5 vault 29 hand 4 ash 2 rift 0
+player B spire 18 ember 2 cap 5 vault 25 hand 3 ash 3 rift 0
+hand A 1 #2 CIN-016
+hand A 2 #3 CIN-017
+hand A 3 #7 CIN-036
+hand A 4 #8 DSK-001
+hand B 1 #38 CIN-013
+hand B 2 #41 CIN-031
+hand B 3 #46 DSK-011
+field A #5 CIN-020 3/1 w0 c0 ready - kw -
+field A #6 CIN-023 5/5 w0 c0 ready - kw siegework
+field B #39 CIN-021 2/1 w0 c0 ready - kw plating:2,vanguard
+field B #40 CIN-030 -/- w0 c0 ready - kw -
+ash A 1 #4 CIN-019
+ash A 2 #1 CIN-015
+ash B 1 #42 CIN-032
+ash B 2 #43 DSK-001
+ash B 3 #45 DSK-010
+chain 1 ~11 B unit #44 0
+effect 3 ts7 B aura grant plating:2 on #39
+STATE END
+265 PASS B
+266 PASS A
+267 RESOLVE ~11
+268 ARRIVE #44 DSK-007
+269 PASS B
+ERR 126 bad-syntax
+270 PASS A
+271 PHASE dusk-trigger
+272 PASS B
+273 PASS A
+274 PHASE dusk-discard
+275 PHASE dusk-cleanup
+276 TURN 11 A
+277 PHASE dawn
+278 EMBER A 6 6
+279 EMBER B 5 5
+280 PHASE draw
+281 DRAW A #9 DSK-005
+282 PHASE main1
+283 PLAY A ~12 #7 CIN-036
+284 PAY A ember 4
+285 PASS A
+286 PASS B
+287 RESOLVE ~12
+288 ARRIVE #7 CIN-036
+289 PLAY A ~13 #8 DSK-001
+290 PAY A ember 1
+291 PASS A
+292 PASS B
+293 RESOLVE ~13
+294 ARRIVE #8 DSK-001
+295 PASS A
+296 PASS B
+297 PHASE clash-attack
+298 EXHAUST #6
+299 ATTACK #6
+300 PASS A
+301 RESULT pending none

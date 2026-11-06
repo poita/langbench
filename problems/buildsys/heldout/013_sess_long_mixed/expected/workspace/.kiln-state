@@ -1,0 +1,7 @@
+kiln-state 1
+step out/all.txt
+cmd concat()
+in src/a.txt e679831904b48b77
+in src/b.txt 63c2bab7ae4bf414
+out out/all.txt 69a941df407e11b2
+end

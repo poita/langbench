@@ -1,0 +1,37 @@
+[1] ok put created
+[2] ok get value
+  {"and":3,"exists":6,"limit":8,"missing":7,"not":5,"null":1,"or":4,"true":2}
+[3] ok update updated
+[4] ok update updated
+[5] ok get value
+  {"and":10,"exists":6,"limit":8,"missing":7,"not":5,"null":9,"or":4,"true":2}
+[6] ok put created
+[7] error syntax
+[8] error syntax
+[9] error syntax
+[10] ok find 1 plan scan
+  "a" = {"and":10,"exists":6,"limit":8,"missing":7,"not":5,"null":9,"or":4,"true":2}
+[11] ok find 1 plan scan
+  "a" = {"and":10,"exists":6,"limit":8,"missing":7,"not":5,"null":9,"or":4,"true":2}
+[12] ok find 1 plan scan
+  "a" = {"and":10,"exists":6,"limit":8,"missing":7,"not":5,"null":9,"or":4,"true":2}
+[13] ok find 1 plan scan
+  "a" = {"and":10,"exists":6,"limit":8,"missing":7,"not":5,"null":9,"or":4,"true":2}
+[14] ok find 1 plan scan
+  "a" = {"and":10,"exists":6,"limit":8,"missing":7,"not":5,"null":9,"or":4,"true":2}
+[15] ok find 1 plan scan
+  "a" = {"and":10,"exists":6,"limit":8,"missing":7,"not":5,"null":9,"or":4,"true":2}
+[16] ok find 1 plan scan
+  "b" = {"x":null}
+[17] ok find 1 plan scan
+  "b" = {"x":null}
+[18] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 4
+  indexes 0
+  wal 8512

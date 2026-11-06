@@ -1,0 +1,124 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-003 #45
+9 PAY A ember 1
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+ERR 18 not-your-turn
+10 PASS A
+LEGAL BEGIN B priority
+PASS
+PLAY 1 TID-003 #23
+PLAY 1 TID-003 #45
+LEGAL END
+11 PLAY B ~2 #44 TID-003 #45
+12 PAY B ember 1
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+13 PASS B
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+14 PASS A
+15 RESOLVE ~2
+16 BOUNCE #45 TOK-001
+17 SPENT #44 TID-003
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+18 PASS A
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+19 PASS B
+20 RESOLVE ~1
+21 FIZZLE ~1
+22 SPENT #21 CIN-003
+LEGAL BEGIN A priority
+PASS
+PLAY 1 CIN-001
+LEGAL END
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 50 cap 51 vault 20 hand 1 ash 1 rift 0
+player B spire 40 ember 49 cap 50 vault 20 hand 1 ash 1 rift 0
+hand A 1 #22 CIN-001
+hand B 1 #45 TOK-001
+field A #23 CIN-001 2/1 w0 c0 ready - kw vanguard
+ash A 1 #21 CIN-003
+ash B 1 #44 TID-003
+STATE END
+23 PASS A
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+24 PASS B
+25 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #23
+LEGAL END
+26 EXHAUST #23
+27 ATTACK #23
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+28 PASS A
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+29 PASS B
+30 PHASE clash-block
+LEGAL BEGIN B blockers
+LEGAL END
+31 UNBLOCKED #23
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+32 PASS A
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+33 PASS B
+34 PHASE clash-damage
+35 DAMAGE #23 B 2
+36 SPIRE B -2 38
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+37 PASS A
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+38 PASS B
+39 PHASE clash-end
+LEGAL BEGIN A priority
+PASS
+LEGAL END
+40 PASS A
+LEGAL BEGIN B priority
+PASS
+LEGAL END
+41 PASS B
+42 PHASE main2
+LEGAL BEGIN A priority
+PASS
+PLAY 1 CIN-001
+LEGAL END
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 40 ember 50 cap 51 vault 20 hand 1 ash 1 rift 0
+player B spire 38 ember 49 cap 50 vault 20 hand 1 ash 1 rift 0
+hand A 1 #22 CIN-001
+hand B 1 #45 TOK-001
+field A #23 CIN-001 2/1 w0 c0 exhausted - kw vanguard
+ash A 1 #21 CIN-003
+ash B 1 #44 TID-003
+STATE END
+43 RESULT pending none

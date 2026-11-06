@@ -1,0 +1,11 @@
+@module main
+struct Box<T> { val: T, tag: Str }
+fn say(s: Str) -> Str { print(s); s }
+fn main() {
+    let none: [Int] = listNew();
+    let zero = listLen(none);
+    let b: Box<Int> = Box.{ tag: say("tag first"), val: 7 };
+    print(showInt(b.val));
+    let c: Box<Int> = Box.{ tag: say("written first"), val: 1 / zero };
+    print(c.tag);
+}

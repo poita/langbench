@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    var xs = [1]; insert(xs, 2, 0);
+}

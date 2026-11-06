@@ -1,0 +1,83 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put created
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok put created
+[21] ok put created
+[22] ok put created
+[23] ok put created
+[24] ok put created
+[25] ok put created
+[26] ok update updated
+[27] ok update updated
+[28] ok update updated
+[29] ok update updated
+[30] ok update updated
+[31] ok update updated
+[32] ok update updated
+[33] ok update updated
+[34] ok update updated
+[35] ok update updated
+[36] ok update updated
+[37] ok update updated
+[38] ok update updated
+[39] ok update updated
+[40] ok update updated
+[41] ok update updated
+[42] ok update updated
+[43] ok update updated
+[44] ok update updated
+[45] ok update updated
+[46] ok update updated
+[47] ok update updated
+[48] ok update updated
+[49] ok update updated
+[50] ok update updated
+[51] ok update updated
+[52] ok update updated
+[53] ok update updated
+[54] ok update updated
+[55] ok update updated
+[56] ok update updated
+[57] ok update updated
+[58] ok update updated
+[59] ok update updated
+[60] ok unset updated
+[61] ok unset updated
+[62] ok unset updated
+[63] ok unset updated
+[64] ok unset updated
+[65] ok unset updated
+[66] ok unset updated
+[67] ok unset updated
+[68] ok unset updated
+[69] ok scan 4
+  "k00" = {"v":0}
+  "k01" = {"v":100}
+  "k02" = {"v":200}
+  "k03" = {"v":300}
+[70] ok stat
+  pages 15
+  free 9
+  freehead 15
+  docs 25
+  root 5
+  height 2
+  commits 68
+  indexes 0
+  wal 169344

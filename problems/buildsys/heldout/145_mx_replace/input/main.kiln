@@ -1,0 +1,36 @@
+step {
+    out "out/replace_0.txt"
+    in "src/e.txt"
+    cmd replace("i", "<I>")
+}
+step {
+    out "out/replace_1.txt"
+    in "src/n.txt"
+    cmd replace("i", "<I>")
+}
+step {
+    out "out/replace_2.txt"
+    in "src/x.txt"
+    cmd replace("i", "<I>")
+}
+step {
+    out "out/replace_3.txt"
+    in "src/c.txt"
+    cmd replace("i", "<I>")
+}
+step {
+    out "out/replace_4.txt"
+    in "src/u.txt"
+    cmd replace("i", "<I>")
+}
+step {
+    out "out/replace_5.txt"
+    in "src/b.txt"
+    cmd replace("i", "<I>")
+}
+step {
+    out "out/replace_pin.txt"
+    in ["out/replace_0.txt", "out/replace_1.txt", "out/replace_2.txt", "out/replace_3.txt", "out/replace_4.txt", "out/replace_5.txt"]
+    cmd hash()
+}
+default "out/replace_pin.txt"

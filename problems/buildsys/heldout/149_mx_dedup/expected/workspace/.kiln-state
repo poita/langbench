@@ -1,0 +1,41 @@
+kiln-state 1
+step out/dedup_0.txt
+cmd dedup()
+in src/e.txt cbf29ce484222325
+out out/dedup_0.txt cbf29ce484222325
+end
+step out/dedup_1.txt
+cmd dedup()
+in src/n.txt dc3add5ecc4ba006
+out out/dedup_1.txt ddb508744b86f235
+end
+step out/dedup_2.txt
+cmd dedup()
+in src/x.txt 07c7d73947cbe1de
+out out/dedup_2.txt 04748a54ff70bb3c
+end
+step out/dedup_3.txt
+cmd dedup()
+in src/c.txt 25fd018afddd7cc5
+out out/dedup_3.txt 25fd018afddd7cc5
+end
+step out/dedup_4.txt
+cmd dedup()
+in src/u.txt 883ac19acb748cf1
+out out/dedup_4.txt 883ac19acb748cf1
+end
+step out/dedup_5.txt
+cmd dedup()
+in src/b.txt 1c2c1cfae3c07157
+out out/dedup_5.txt 1c2c1cfae3c07157
+end
+step out/dedup_pin.txt
+cmd hash()
+in out/dedup_0.txt cbf29ce484222325
+in out/dedup_1.txt ddb508744b86f235
+in out/dedup_2.txt 04748a54ff70bb3c
+in out/dedup_3.txt 25fd018afddd7cc5
+in out/dedup_4.txt 883ac19acb748cf1
+in out/dedup_5.txt 1c2c1cfae3c07157
+out out/dedup_pin.txt 18a5002e05ffaa2e
+end

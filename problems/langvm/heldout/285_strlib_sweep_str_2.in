@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(sb(strContains("abc", "bc")) ++ sb(strContains("abc", "cb")) ++ sb(strContains("abc", "")));
+    print(sb(startsWith("abc", "ab")) ++ sb(startsWith("abc", "")) ++ sb(startsWith("a", "ab")) ++ sb(endsWith("abc", "bc")) ++ sb(endsWith("abc", "")) ++ sb(endsWith("a", "ab")));
+    print(ss(strSplit("a,b,c", ",")) ++ ss(strSplit("a,,b", ",")) ++ ss(strSplit("", ",")) ++ ss(strSplit(",a,", ",")));
+    print(ss(strSplit("aaa", "aa")) ++ ss(strSplit("abc", "abc")) ++ ss(strSplit("abc", "x")));
+    print(strJoin(["a", "b", "c"], "-") ++ "|" ++ strJoin([], "-") ++ "|" ++ strJoin(["x"], "-") ++ "|" ++ strJoin(["a", "b"], ""));
+    print(strReplace("hello", "l", "L") ++ " " ++ strReplace("aaa", "aa", "b") ++ " " ++ strReplace("abc", "z", "y") ++ " " ++ strReplace("aba", "a", ""));
+    print("[" ++ trim("  x  ") ++ "][" ++ trim("\t\n x \r\n") ++ "][" ++ trim("   ") ++ "][" ++ trim("x") ++ "]");
+}

@@ -1,0 +1,64 @@
+step 1: build (default) -j 16
+  run 0 2 w0 out/m0/f0.txt number()
+  run 0 1 w1 out/m0/f1.txt wrap("[", "]\n")
+  run 0 3 w2 out/m0/f2.txt grep("e")
+  run 0 1 w3 out/m1/f0.txt copy()
+  run 0 2 w4 out/m1/f1.txt lower()
+  run 0 2 w5 out/m1/f2.txt lower()
+  run 0 2 w6 out/m1/doc.txt preprocess()
+  run 0 1 w7 out/noise.txt write("600:111:614\n")
+  run 2 6 w0 out/m1/bundle.txt concat()
+  run 3 7 w1 out/m0/bundle.txt concat()
+  run 6 10 w0 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 7 11 w1 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 11 14 w0 out/all.txt count_lines()
+  ok ran=13 hit=0 time=14
+step 2: create src/m0/new0.txt
+  ok size=9
+step 3: build (default) -j 64
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  run 0 2 w0 out/m0/new0.txt number()
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/f1.txt
+  hit 0 out/m1/f2.txt
+  hit 0 out/m1/bundle.txt
+  hit 0 out/m1/wrapped.txt
+  hit 0 out/m1/doc.txt
+  run 0 1 w1 out/noise.txt write("600:111:615\n")
+  run 2 6 w0 out/m0/bundle.txt concat()
+  run 6 10 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 10 13 w0 out/all.txt count_lines()
+  ok ran=5 hit=9 time=13
+step 4: edit src/m1/f2.txt
+  ok size=8
+step 5: build @m0 -j 2
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/new0.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  ok ran=0 hit=6 time=0
+step 6: create src/m0/new1.txt
+  ok size=13
+step 7: build @m1 -j 16
+  hit 0 out/m1/f0.txt
+  hit 0 out/m1/f1.txt
+  run 0 2 w0 out/m1/f2.txt lower()
+  run 0 2 w1 out/m1/doc.txt preprocess()
+  run 2 6 w0 out/m1/bundle.txt concat()
+  run 6 10 w0 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  ok ran=4 hit=2 time=10
+step 8: touch src/m1/f1.txt
+  ok
+step 9: build @m0 -j 8
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/f1.txt
+  hit 0 out/m0/f2.txt
+  hit 0 out/m0/new0.txt
+  run 0 1 w0 out/m0/new1.txt wrap("[", "]\n")
+  run 1 5 w0 out/m0/bundle.txt concat()
+  run 5 9 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  ok ran=3 hit=4 time=9

@@ -1,0 +1,176 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN CIN-001
+name Ember Runner
+type unit
+cost 1
+body 2/1
+tags cinder,runner
+keywords vanguard
+CARD END
+CARD BEGIN CIN-002
+name Flarehand Adept
+type unit
+cost 2
+body 2/2
+tags cinder,mage
+keywords -
+ability 1 on you-play-rite - (modify 1 0 self)
+CARD END
+CARD BEGIN CIN-003
+name Searing Bolt
+type rite
+cost 1
+tags cinder
+keywords swift
+ability 1 resolve (targets (any)) (damage 2 (t 1))
+CARD END
+CARD BEGIN CIN-004
+name Kindlemaw
+type unit
+cost 3
+body 3/2
+tags cinder,beast
+keywords -
+ability 1 on arrive (targets (unit (enemy))) (damage 1 (t 1))
+CARD END
+CARD BEGIN CIN-005
+name Pyre Lance
+type rite
+cost 2
+tags cinder
+keywords -
+ability 1 resolve (targets (unit)) (damage 3 (t 1))
+CARD END
+CARD BEGIN CIN-006
+name Ashblade Duelist
+type unit
+cost 2
+body 2/1
+tags cinder,soldier
+keywords riposte
+CARD END
+CARD BEGIN CIN-007
+name Cinderplate Brute
+type unit
+cost 4
+body 4/3
+tags cinder,soldier
+keywords pierce
+ability 1 on blocked - (modify 1 0 self)
+CARD END
+CARD BEGIN CIN-008
+name Furnace Rite
+type rite
+cost 3
+tags cinder
+keywords -
+ability 1 resolve - (damage 2 (units theirs))
+CARD END
+CARD BEGIN CIN-009
+name Spark Herald
+type unit
+cost 1
+body 1/1
+tags cinder,spirit
+keywords -
+ability 1 on arrive - (ember 1 you)
+CARD END
+CARD BEGIN CIN-010
+name Molten Gauntlet
+type relic
+cost 2
+tags cinder
+keywords -
+ability 1 aura (modify 1 0 (units yours))
+CARD END
+CARD BEGIN CIN-011
+name Blazing Charge
+type rite
+cost 1
+tags cinder
+keywords swift
+ability 1 resolve (targets (unit)) (modify 2 0 (t 1)) (grant pierce (t 1))
+CARD END
+CARD BEGIN CIN-012
+name Hearth Warden
+type unit
+cost 3
+body 2/4
+tags cinder,soldier
+keywords plating:1
+CARD END
+CARD BEGIN CIN-013
+name Emberwing Harrier
+type unit
+cost 3
+body 2/2
+tags cinder,beast
+keywords ghostwalk,vanguard
+CARD END
+CARD BEGIN CIN-014
+name Flame Caller
+type unit
+cost 4
+body 3/3
+tags cinder,mage
+keywords -
+ability 1 act (cost (ember 2)) (targets (unit)) (damage 2 (t 1))
+CARD END
+CARD BEGIN CIN-015
+name Scorch Trail
+type rite
+cost 2
+tags cinder
+keywords -
+ability 1 resolve (targets (unit) (unit)) (damage 1 (t 1)) (damage 1 (t 2))
+CARD END
+CARD BEGIN CIN-016
+name Cinder Chorus
+type rite
+cost 4
+tags cinder
+keywords -
+ability 1 resolve - (summon TOK-001 3 you)
+CARD END
+CARD BEGIN CIN-017
+name Rekindled Champion
+type unit
+cost 5
+body 4/4
+tags cinder,soldier
+keywords -
+ability 1 on arrive (targets (ashcard (tag cinder) (mine))) (recall (t 1))
+CARD END
+CARD BEGIN CIN-018
+name Ashfall Sentinel
+type unit
+cost 4
+body 3/4
+tags cinder,construct
+keywords -
+ability 1 on ally-dies - (damage 1 foe)
+CARD END
+CARD BEGIN CIN-019
+name Smolder
+type rite
+cost 1
+tags cinder
+keywords -
+ability 1 resolve (targets (unit)) (doom (t 1))
+CARD END
+CARD BEGIN CIN-020
+name Burnline Tactician
+type unit
+cost 3
+body 3/1
+tags cinder,soldier
+keywords -
+ability 1 on attacks - (modify 1 0 self)
+CARD END
+8 RESULT pending none

@@ -1,0 +1,5 @@
+@module main
+fn f(xs: [Int]) -> Int {
+    match xs { [] -> 0, [a] -> a, [a, b, ..] -> a + b }
+}
+fn main() { print(showInt(f([1, 2, 3]))); }

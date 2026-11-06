@@ -1,0 +1,13 @@
+step {
+    out "out/reach.txt"
+    cmd write("r\n")
+}
+step {
+    out "out/dup.txt"
+    cmd write("1\n")
+}
+step {
+    out "out/dup.txt"
+    cmd write("2\n")
+}
+default "out/reach.txt"

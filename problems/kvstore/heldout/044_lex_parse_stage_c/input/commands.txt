@@ -1,0 +1,10 @@
+put "k" {b:1}
+update "k" b [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[-
+update "k" b {x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:{x:1,x:2}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}}
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1,2,]
+find aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa .b == 1
+drop index aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa .
+update "k" aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa {
+stat "\udc00"
+scan keys "\ud800"
+stat

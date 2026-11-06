@@ -1,0 +1,7 @@
+build -j 16
+edit src/m4/sub/g11.txt
+epsilon
+---
+build @m9 -j 2
+touch src/m8/sub/g19.txt
+build @m10 -j 8

@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/indent_zero_0.txt indent(0)
+  run 2 4 w0 out/indent_zero_1.txt indent(0)
+  run 4 6 w0 out/indent_zero_2.txt indent(0)
+  run 6 8 w0 out/indent_zero_3.txt indent(0)
+  run 8 10 w0 out/indent_zero_4.txt indent(0)
+  run 10 12 w0 out/indent_zero_5.txt indent(0)
+  run 12 15 w0 out/indent_zero_pin.txt hash()
+  ok ran=7 hit=0 time=15
+step 2: build (default) -j 1
+  hit 0 out/indent_zero_0.txt
+  hit 0 out/indent_zero_1.txt
+  hit 0 out/indent_zero_2.txt
+  hit 0 out/indent_zero_3.txt
+  hit 0 out/indent_zero_4.txt
+  hit 0 out/indent_zero_5.txt
+  hit 0 out/indent_zero_pin.txt
+  ok ran=0 hit=7 time=0

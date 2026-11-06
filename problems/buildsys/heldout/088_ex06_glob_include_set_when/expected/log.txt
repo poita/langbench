@@ -1,0 +1,4 @@
+step 1: build (default) -j 2
+  run 0 2 w0 out/list.txt count_lines()
+  run 0 1 w1 out/flags.txt write("S\n")
+  ok ran=2 hit=0 time=2

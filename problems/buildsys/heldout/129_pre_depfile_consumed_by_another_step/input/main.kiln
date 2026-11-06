@@ -1,0 +1,17 @@
+step {
+    out "out/doc.txt"
+    depfile "out/doc.d"
+    in "src/root.txt"
+    cmd preprocess()
+}
+step {
+    out "out/deps.txt"
+    in "out/doc.d"
+    cmd number()
+}
+step {
+    out "out/both.txt"
+    in ["out/doc.txt", "out/deps.txt"]
+    cmd concat()
+}
+default "out/both.txt"

@@ -1,0 +1,10 @@
+@module main
+fn rec(n: Int) -> Int {
+    let g = |k: Int| rec(k);
+    if n == 0 { 0 } else { g(n - 1) + 1 }
+}
+fn wrap(n: Int) -> Int { rec(n) }
+fn main() {
+    print(showInt(rec(9999)));
+    print(showInt(wrap(9999)));
+}

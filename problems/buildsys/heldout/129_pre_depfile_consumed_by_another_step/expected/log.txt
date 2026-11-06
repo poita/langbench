@@ -1,0 +1,17 @@
+step 1: build (default) -j 2
+  run 0 6 w0 out/doc.txt preprocess()
+  run 6 8 w0 out/deps.txt number()
+  run 8 10 w0 out/both.txt concat()
+  ok ran=3 hit=0 time=10
+step 2: build (default) -j 1
+  hit 0 out/doc.txt
+  hit 0 out/deps.txt
+  hit 0 out/both.txt
+  ok ran=0 hit=3 time=0
+step 3: edit src/q.txt
+  ok size=3
+step 4: build (default) -j 1
+  run 0 6 w0 out/doc.txt preprocess()
+  hit 6 out/deps.txt
+  run 6 8 w0 out/both.txt concat()
+  ok ran=2 hit=1 time=8

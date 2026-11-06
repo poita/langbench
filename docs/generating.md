@@ -36,8 +36,6 @@ projects changed as well, but not what agents were asked or shown.
   and written into the prompt and the run record.
 - macOS or Linux, for Claude Code's sandbox (Seatbelt on macOS; bubblewrap on
   Linux).
-- The hidden tests cloned next to this checkout as `langbench-hidden/`, or
-  `LANGBENCH_HIDDEN` set to their path. Only the five large problems have them.
 
 ## A run, end to end
 
@@ -57,7 +55,7 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
    the specs its problem refers to; the agent builds its project in
    `<workspace>/<slug>/` and keeps scratch files in `<workspace>/scratch/`.
    Reference implementations, test generators, benchmark inputs, other tasks
-   and the hidden tests are out of reach. Hashes of every harness file, in the
+   and the held-out tests are out of reach. Hashes of every harness file, in the
    master copy and each workspace, are in `DIR/harness.json`; `DIR/tasks.json`
    maps tasks to workspaces; `DIR/args.json` holds the run's arguments
    (`run-config.json`, any overrides (`--problems`, `--langs`, `--reps`,
@@ -72,7 +70,7 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
      other file access needs a permission a headless session cannot grant;
    - shell commands run in Claude Code's OS sandbox, which fails closed and has
      no unsandboxed escape; they may read nothing under the home directory (or
-     the sandbox, this checkout and the hidden tests, if those lie elsewhere)
+     the sandbox and this checkout, if those lie elsewhere)
      except the workspace, that transcript directory and toolchains installed
      there; they may write only in the workspace and `/tmp`, and have no
      network;
@@ -98,7 +96,7 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
      forbidden standard-library facilities.
 
    It then verifies every implementation itself: it builds a clean copy of
-   the sources with `build.sh` and runs the public tests (and the hidden tests
+   the sources with `build.sh` and runs the public tests (and the held-out tests
    of the large problems) on that build, so a project counts as finished only
    if it builds as published. It copies the sources (without build outputs) to
    `DEST/<rep>/<lang>/<slug>/`, and writes `DEST/audit/<run>.json`,

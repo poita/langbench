@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(listLen(sortBy([], |a: Int, b: Int| 0))));
+}

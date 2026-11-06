@@ -1,0 +1,17 @@
+build -j 16
+touch src/m1/sub/g3.txt
+build @m1 -j 16
+create src/m3/new0.txt
+lambda
+kappa
+---
+build -j 8
+touch src/m3/f1.txt
+build @m4 -j 64
+touch src/m4/f2.txt
+build @m1 -j 4
+edit src/m0/f4.txt
+juniper
+xi
+---
+build @m3 -j 64

@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(padLeft("a", -1, 'x'));
+}

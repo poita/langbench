@@ -1,0 +1,9 @@
+create src/x.txt
+
+# not a comment in a content block
+  indented line
+----
+--
+
+---
+build

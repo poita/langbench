@@ -1,0 +1,21 @@
+kiln-state 1
+step out/l0.txt
+cmd write("src||a/b|\n")
+out out/l0.txt 81b5e4fdb54a39d3
+end
+step out/l1.txt
+cmd write("a.txt|a.txt|\n")
+out out/l1.txt 5f8058f41c5e85d9
+end
+step out/l2.txt
+cmd write("a|a.b|a|.hidden|a|x\n")
+out out/l2.txt 47ff3b53eff4fc39
+end
+step out/l3.txt
+cmd write(".txt|.txt|||.txt|.\n")
+out out/l3.txt bfbf4aa7ab2593b9
+end
+step out/l4.txt
+cmd write("out/a.txt|out/||a/b/c/d/e/f/g/h\n")
+out out/l4.txt d047c04015572dfd
+end

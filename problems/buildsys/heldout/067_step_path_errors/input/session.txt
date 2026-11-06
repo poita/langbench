@@ -1,0 +1,152 @@
+build
+edit main.kiln
+step {
+    out "outx/z.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "../out/z.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "/out/z.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out//z.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt/"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z z.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/*.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out ""
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/./z.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn.txt"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd/dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out ["out/z.txt", "bad.txt"]
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    depfile "z.d"
+    in "src/a.txt"
+    cmd preprocess()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    depfile "out/d d"
+    in "src/a.txt"
+    cmd preprocess()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "bad path"
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "@1x"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    after "@"
+    cmd write("x")
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in ".."
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "bad.txt"
+    in "also bad"
+    cmd copy()
+}
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    after "bad after"
+    cmd copy()
+}
+---
+build

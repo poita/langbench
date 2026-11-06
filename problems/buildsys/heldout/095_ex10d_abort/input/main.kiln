@@ -1,0 +1,4 @@
+let n = 3
+when n > 2 {
+    abort "n too large: {n}"
+}

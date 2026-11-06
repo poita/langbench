@@ -1,0 +1,66 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok create index age entries 6
+[11] ok find 2 plan index age
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u3" = {"age":36,"name":"cy","ok":true}
+[12] ok find 6 plan scan
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u4" = {"age":null,"name":"dee"}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u6" = {"age":{"x":1},"name":"fay"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}
+[13] ok find 2 plan index age
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u8" = {"age":-5,"name":"hal"}
+[14] ok find 4 plan index age
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u8" = {"age":-5,"name":"hal"}
+[15] ok find 0 plan index age
+[16] ok find 2 plan index age
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u3" = {"age":36,"name":"cy","ok":true}
+[17] ok find 1 plan index age
+  "u4" = {"age":null,"name":"dee"}
+[18] ok find 1 plan index age
+  "u4" = {"age":null,"name":"dee"}
+[19] ok find 0 plan index age
+[20] ok find 1 plan index age
+  "u9" = {"age":"36","name":"ivy"}
+[21] ok find 0 plan index age
+[22] ok find 0 plan index age
+[23] ok find 1 plan scan
+  "u5" = {"age":[1,2],"name":"eve"}
+[24] ok find 8 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u4" = {"age":null,"name":"dee"}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u6" = {"age":{"x":1},"name":"fay"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}
+[25] ok find 1 plan scan
+  "u7" = {"name":"gus"}
+[26] ok indexes 1
+  0 age root 3 entries 6
+[27] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 9
+  root 2
+  height 1
+  commits 10
+  indexes 1
+  wal 21232

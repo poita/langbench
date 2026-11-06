@@ -1,0 +1,132 @@
+1 GAME-START A
+2 DESTROY #12 LEX-001
+3 TURN 1 A
+4 PHASE dawn
+5 EMBER A 8 8
+6 EMBER B 7 7
+7 PHASE draw
+8 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 8 cap 8 vault 4 hand 2 ash 0 rift 0
+player B spire 25 ember 7 cap 7 vault 4 hand 1 ash 1 rift 0
+hand A 1 #5 LEX-001
+hand A 2 #6 LEX-002
+hand B 1 #11 LEX-002
+field B #13 LEX-002 -/- w0 c0 ready - kw -
+ash B 1 #12 LEX-001
+effect 1 ts3 B aura grant plating:3 on -
+STATE END
+LEGAL BEGIN A priority
+PASS
+PLAY 1 LEX-001
+PLAY 2 LEX-002
+LEGAL END
+9 PLAY A ~1 #5 LEX-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 8 cap 8 vault 4 hand 1 ash 0 rift 0
+player B spire 25 ember 7 cap 7 vault 4 hand 1 ash 1 rift 0
+hand A 1 #6 LEX-002
+hand B 1 #11 LEX-002
+field B #13 LEX-002 -/- w0 c0 ready - kw -
+ash B 1 #12 LEX-001
+chain 1 ~1 A unit #5 0
+effect 1 ts3 B aura grant plating:3 on -
+STATE END
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 ARRIVE #5 LEX-001
+14 DESTROY #5 LEX-001
+15 TRIGGER A ~2 #5 1
+16 PASS A
+17 PASS B
+18 RESOLVE ~2
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 8 cap 8 vault 4 hand 1 ash 1 rift 0
+player B spire 25 ember 7 cap 7 vault 4 hand 1 ash 1 rift 0
+hand A 1 #6 LEX-002
+hand B 1 #11 LEX-002
+field B #13 LEX-002 -/- w0 c0 ready - kw -
+ash A 1 #5 LEX-001
+ash B 1 #12 LEX-001
+effect 1 ts3 B aura grant plating:3 on -
+effect 2 ts5 A turn modify -2 -3 on -
+STATE END
+19 PLAY A ~3 #6 LEX-002
+20 PAY A ember 7
+21 PASS A
+22 PASS B
+23 RESOLVE ~3
+24 ARRIVE #6 LEX-002
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 1 cap 8 vault 4 hand 0 ash 1 rift 0
+player B spire 25 ember 7 cap 7 vault 4 hand 1 ash 1 rift 0
+hand B 1 #11 LEX-002
+field A #6 LEX-002 -/- w0 c0 ready settling kw -
+field B #13 LEX-002 -/- w0 c0 ready - kw -
+ash A 1 #5 LEX-001
+ash B 1 #12 LEX-001
+effect 1 ts3 B aura grant plating:3 on -
+effect 2 ts5 A turn modify -2 -3 on -
+effect 3 ts7 A aura grant plating:3 on -
+STATE END
+25 PASS A
+26 PASS B
+27 PHASE clash-attack
+28 PHASE main2
+29 PASS A
+30 PASS B
+31 PHASE dusk-trigger
+32 PASS A
+33 PASS B
+34 PHASE dusk-discard
+35 PHASE dusk-cleanup
+36 TURN 2 B
+37 PHASE dawn
+38 EMBER A 8 8
+39 EMBER B 8 8
+40 PHASE draw
+41 DRAW B #7 LEX-001
+42 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 25 ember 8 cap 8 vault 4 hand 0 ash 1 rift 0
+player B spire 25 ember 8 cap 8 vault 3 hand 2 ash 1 rift 0
+hand B 1 #11 LEX-002
+hand B 2 #7 LEX-001
+field A #6 LEX-002 -/- w0 c0 ready - kw -
+field B #13 LEX-002 -/- w0 c0 ready - kw -
+ash A 1 #5 LEX-001
+ash B 1 #12 LEX-001
+effect 1 ts3 B aura grant plating:3 on -
+effect 3 ts7 A aura grant plating:3 on -
+STATE END
+43 PLAY B ~4 #11 LEX-002
+44 PAY B ember 7
+45 PASS B
+46 PASS A
+47 RESOLVE ~4
+48 ARRIVE #11 LEX-002
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 25 ember 8 cap 8 vault 4 hand 0 ash 1 rift 0
+player B spire 25 ember 1 cap 8 vault 3 hand 1 ash 1 rift 0
+hand B 1 #7 LEX-001
+field A #6 LEX-002 -/- w0 c0 ready - kw -
+field B #13 LEX-002 -/- w0 c0 ready - kw -
+field B #11 LEX-002 -/- w0 c0 ready settling kw -
+ash A 1 #5 LEX-001
+ash B 1 #12 LEX-001
+effect 1 ts3 B aura grant plating:3 on -
+effect 3 ts7 A aura grant plating:3 on -
+effect 4 ts9 B aura grant plating:3 on -
+STATE END
+LEGAL BEGIN B priority
+PASS
+PLAY 1 LEX-001
+LEGAL END
+49 RESULT pending none

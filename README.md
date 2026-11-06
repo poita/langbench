@@ -17,7 +17,7 @@ allows two measurements without author bias:
   memory on heavy, realistic inputs. Each problem's `APPROACH.md` fixes the
   algorithms and data representations, so differences come from the language,
   its compiler and its runtime rather than from design choices.
-- **Agent effectiveness**: correctness on public and hidden tests, and the tool
+- **Agent effectiveness**: correctness on public and held-out tests, and the tool
   calls, tokens and time an agent needs to get there.
 
 Implementations are only ever written by agents, through `tools/impl_run.py`; a
@@ -36,7 +36,7 @@ hand-written one would bring back the author bias.
 
 The problems are fifteen ~1,000-line algorithmic tasks, ten text and semantics
 tasks, ten multi-thousand-line real-world libraries on real data, and five
-large invented-spec systems with hidden tests.
+large invented-spec systems with held-out tests.
 
 ## Quick start
 
@@ -81,17 +81,18 @@ will follow.
 | Turns | 1.38× | 1.26–1.52 |
 | Cost | 1.19× | 1.13–1.25 |
 
-On a clean rebuild, D passes every public and hidden test in 60 of 60 tasks
+On a clean rebuild, D passes every public and held-out test in 60 of 60 tasks
 and Go in 59 of 60. Tables, per-problem numbers and the commands that produce
 them: [results/](results/README.md).
 
-## Hidden tests
+## Held-out tests
 
-The five large problems keep most of their tests in a separate repository,
-[langbench-hidden](https://github.com/Poita/langbench-hidden), so agents can't
-fit their code to them. Clone it next to
-this checkout or set `LANGBENCH_HIDDEN`; `tools/impl_run.py finish` scores
-implementations on it.
+The five large problems keep most of their tests in `problems/<slug>/heldout/`.
+Agents never see them: the sandbox gives each agent only its problem's visible
+tests, so the held-out tests check whether an implementation follows the spec
+rather than just the tests it saw. `tools/impl_run.py finish` scores
+implementations on both. The held-out tests are public; a test leaking into a
+model's training data would help every language alike.
 
 ## Development
 

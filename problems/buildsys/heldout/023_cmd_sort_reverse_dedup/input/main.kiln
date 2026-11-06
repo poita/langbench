@@ -1,0 +1,28 @@
+each i, c in ["sort", "rev", "dd"] {
+    step {
+        out "out/{c}.txt"
+        in "src/t.txt"
+        cmd copy()
+    }
+}
+step {
+    out "out/s.txt"
+    in "src/t.txt"
+    cmd sort_lines()
+}
+step {
+    out "out/v.txt"
+    in "src/t.txt"
+    cmd reverse_lines()
+}
+step {
+    out "out/d.txt"
+    in "src/t.txt"
+    cmd dedup()
+}
+step {
+    out "out/h.txt"
+    in ["out/s.txt", "out/v.txt", "out/d.txt"]
+    cmd hash()
+}
+default "out/h.txt"

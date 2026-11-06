@@ -1,0 +1,92 @@
+[1] error not-found
+[2] ok put created
+[3] ok put created
+[4] ok checkpoint pages 5
+[5] ok scan 0
+[6] ok put replaced
+[7] ok put created
+[8] ok put replaced
+[9] ok put replaced
+[10] error no-field
+[11] ok put replaced
+[12] error not-found
+[13] ok delete removed
+[14] ok indexes 0
+[15] ok scan 0
+[16] ok put replaced
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok delete removed
+[21] ok put replaced
+[22] ok put replaced
+[23] ok put replaced
+[24] ok put replaced
+[25] ok put replaced
+[26] ok put replaced
+[27] ok checkpoint pages 6
+[28] ok put created
+[29] error not-found
+[30] ok put created
+[31] ok put replaced
+[32] ok put replaced
+[33] ok scan 4
+  "k00000"
+  "k00001"
+  "k00002"
+  "k00003"
+[34] ok put replaced
+[35] ok checkpoint pages 5
+[36] ok put replaced
+[37] error no-field
+[38] ok find 0 plan scan
+[39] ok begin
+[40] error not-object
+[41] ok put replaced
+[42] ok delete removed
+[43] ok put created
+[44] error not-object
+[45] ok put replaced
+[46] ok put replaced
+[47] ok put replaced
+[48] ok scan 2
+  "k00003"
+  "k00004"
+[49] ok put replaced
+[50] error not-object
+[51] ok indexes 0
+[52] ok update updated
+[53] ok stat
+  pages 7
+  free 3
+  freehead 6
+  docs 6
+  root 2
+  height 1
+  commits 25
+  indexes 0
+  wal 3200
+[54] ok find 0 plan scan
+[55] ok commit 26 frames 6
+[56] ok put replaced
+[57] ok checkpoint pages 6
+[58] ok update updated
+[59] ok indexes 0
+[60] ok begin
+[61] ok stat
+  pages 7
+  free 0
+  freehead 0
+  docs 6
+  root 2
+  height 1
+  commits 28
+  indexes 0
+  wal 5296
+[62] ok indexes 0
+[63] ok scan 5
+  "k00000"
+  "k00001"
+  "k00002"
+  "k00003"
+  "k00004"

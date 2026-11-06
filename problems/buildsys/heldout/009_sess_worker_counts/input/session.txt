@@ -1,0 +1,5 @@
+build -j 64
+clean
+build -j 2
+clean
+build

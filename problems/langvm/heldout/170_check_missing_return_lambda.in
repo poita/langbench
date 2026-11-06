@@ -1,0 +1,2 @@
+@module main
+fn main() { let f = |x: Int| -> Int { let y = x; }; print(showInt(f(1))); }

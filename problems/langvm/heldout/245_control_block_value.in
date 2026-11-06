@@ -1,0 +1,5 @@
+@module main
+fn main() {
+    let x = if true { let y = 2; y * 3 } else { 0 };
+    print(showInt(x));
+}

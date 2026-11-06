@@ -1,0 +1,5 @@
+@module main
+fn main() {
+    let n: Int = 1;
+    print(n + "x");
+}

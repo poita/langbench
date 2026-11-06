@@ -1,0 +1,14 @@
+kiln-state 1
+step out/after_empty.txt
+cmd write("e\n")
+out out/after_empty.txt 088e5407b539763e
+end
+step out/after_gate.txt
+cmd write("g\n")
+out out/after_gate.txt 08951c07b53f35c4
+end
+step out/slow.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/slow.txt 089bdc07b544e7b2
+end

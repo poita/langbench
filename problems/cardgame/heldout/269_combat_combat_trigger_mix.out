@@ -1,0 +1,166 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 6 6
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-028 #24
+9 PAY A ember 3
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 BUFF #24 3 0
+14 GRANT #24 riposte
+15 DELAY A turn-end
+16 SPENT #21 CIN-028
+17 PASS A
+18 PASS B
+19 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #22
+CANATTACK #23
+CANATTACK #24
+CANATTACK #25
+LEGAL END
+20 EXHAUST #22
+21 ATTACK #22
+22 ATTACK #23
+23 EXHAUST #24
+24 ATTACK #24
+25 EXHAUST #25
+26 ATTACK #25
+27 TRIGGER A ~2 #22 1
+28 PASS A
+29 PASS B
+30 RESOLVE ~2
+31 BUFF #22 1 0
+32 PASS A
+33 PASS B
+34 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #46 #22
+CANBLOCK #46 #23
+CANBLOCK #46 #24
+CANBLOCK #46 #25
+CANBLOCK #47 #22
+CANBLOCK #47 #23
+CANBLOCK #47 #24
+CANBLOCK #47 #25
+LEGAL END
+35 BLOCK #46 #25
+36 BLOCK #47 #24
+37 UNBLOCKED #22
+38 UNBLOCKED #23
+39 TRIGGER A ~3 #25 1
+40 TRIGGER B ~4 #46 1
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 3 cap 6 vault 20 hand 0 ash 1 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #22 CIN-020 4/1 w0 c0 exhausted attacking kw -
+field A #23 NEU-021 2/3 w0 c0 ready attacking kw plating:1,vigil
+field A #24 DSK-036 5/4 w0 c0 exhausted attacking,blocked kw riposte
+field A #25 CIN-007 4/3 w0 c0 exhausted attacking,blocked kw pierce
+field B #46 TID-029 2/3 w0 c0 ready blocking kw -
+field B #47 TOK-003 0/3 w0 c0 ready blocking kw plating:1
+ash A 1 #21 CIN-028
+chain 1 ~4 B trigger #46 1
+chain 2 ~3 A trigger #25 1
+effect 1 ts7 A turn modify 3 0 on #24
+effect 2 ts8 A turn grant riposte on #24
+effect 3 ts10 A turn modify 1 0 on #22
+delayed 9 A turn-end #24
+STATE END
+41 PASS A
+42 PASS B
+43 RESOLVE ~3
+44 BUFF #25 1 0
+45 PASS A
+46 PASS B
+47 RESOLVE ~4
+48 BUFF #25 -1 0
+49 PASS A
+50 PASS B
+51 PHASE clash-riposte
+52 PREVENT #47 1
+53 DAMAGE #24 #47 4
+54 DESTROY #47 TOK-003
+55 TRIGGER A ~5 #24 2
+56 PASS A
+57 PASS B
+58 RESOLVE ~5
+59 SPIRE A +1 31
+60 PASS A
+61 PASS B
+62 PHASE clash-damage
+63 DAMAGE #22 B 4
+64 SPIRE B -4 26
+65 DAMAGE #23 B 2
+66 SPIRE B -2 24
+67 DAMAGE #25 B 1
+68 SPIRE B -1 23
+69 DAMAGE #25 #46 3
+70 DAMAGE #46 #25 2
+71 DESTROY #46 TID-029
+72 PASS A
+73 PASS B
+74 PHASE clash-end
+75 TRIGGER A ~6 #23 1
+76 PASS A
+77 PASS B
+78 RESOLVE ~6
+79 PASS A
+80 PASS B
+81 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 31 ember 3 cap 6 vault 20 hand 0 ash 1 rift 0
+player B spire 23 ember 0 cap 0 vault 20 hand 0 ash 2 rift 0
+field A #22 CIN-020 4/1 w0 c0 exhausted - kw -
+field A #23 NEU-021 2/3 w0 c0 ready - kw plating:1,vigil
+field A #24 DSK-036 5/4 w0 c0 exhausted - kw riposte
+field A #25 CIN-007 4/3 w2 c0 exhausted - kw pierce
+ash A 1 #21 CIN-028
+ash B 1 #47 TOK-003
+ash B 2 #46 TID-029
+effect 1 ts7 A turn modify 3 0 on #24
+effect 2 ts8 A turn grant riposte on #24
+effect 3 ts10 A turn modify 1 0 on #22
+effect 4 ts11 A turn modify 1 0 on #25
+effect 5 ts12 B turn modify -1 0 on #25
+delayed 9 A turn-end #24
+STATE END
+82 PASS A
+83 PASS B
+84 PHASE dusk-trigger
+85 TRIGGER A ~7 #21 0 #24
+86 PASS A
+87 PASS B
+88 RESOLVE ~7
+89 DESTROY #24 DSK-036
+90 PASS A
+91 PASS B
+92 PHASE dusk-discard
+93 PHASE dusk-cleanup
+94 TURN 2 B
+95 PHASE dawn
+96 EMBER A 6 6
+97 EMBER B 1 1
+98 PHASE draw
+99 DRAW B #26 TID-001
+100 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 31 ember 6 cap 6 vault 20 hand 0 ash 2 rift 0
+player B spire 23 ember 1 cap 1 vault 19 hand 1 ash 2 rift 0
+hand B 1 #26 TID-001
+field A #22 CIN-020 3/1 w0 c0 exhausted - kw -
+field A #23 NEU-021 2/3 w0 c0 ready - kw plating:1,vigil
+field A #25 CIN-007 4/3 w0 c0 exhausted - kw pierce
+ash A 1 #21 CIN-028
+ash A 2 #24 DSK-036
+ash B 1 #47 TOK-003
+ash B 2 #46 TID-029
+STATE END
+101 RESULT pending none

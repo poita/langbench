@@ -1,0 +1,86 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 2
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+field A #11 EXT-018 3/4 w0 c0 ready - kw provoke,tenacity,venom
+field A #12 EXT-001 1/1 w0 c0 ready - kw venom
+field B #25 EXT-001 1/1 w0 c0 ready - kw -
+field B #26 EXT-011 1/4 w0 c0 ready - kw plating:1
+rift A 1 #13 EXT-001
+rift A 2 #14 EXT-001
+effect 1 ts2 A aura grant venom on #11,#12
+STATE END
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #11
+CANATTACK #12
+LEGAL END
+11 EXHAUST #11
+12 ATTACK #11
+13 EXHAUST #12
+14 ATTACK #12
+15 PASS A
+16 PASS B
+17 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #25 #11
+CANBLOCK #25 #12
+CANBLOCK #26 #11
+CANBLOCK #26 #12
+MUSTBLOCK #11
+LEGAL END
+18 BLOCK #25 #12
+19 BLOCK #26 #11
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 2
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+field A #11 EXT-018 3/4 w0 c0 exhausted attacking,blocked kw provoke,tenacity,venom
+field A #12 EXT-001 1/1 w0 c0 exhausted attacking,blocked kw venom
+field B #25 EXT-001 1/1 w0 c0 ready blocking kw -
+field B #26 EXT-011 1/4 w0 c0 ready blocking kw plating:1
+rift A 1 #13 EXT-001
+rift A 2 #14 EXT-001
+effect 1 ts2 A aura grant venom on #11,#12
+STATE END
+20 PASS A
+21 PASS B
+22 PHASE clash-damage
+23 PREVENT #26 1
+24 DAMAGE #11 #26 2
+25 DOOM #26
+26 DAMAGE #12 #25 1
+27 DOOM #25
+28 DAMAGE #25 #12 1
+29 DAMAGE #26 #11 1
+30 DESTROY #12 EXT-001
+31 DESTROY #25 EXT-001
+32 DESTROY #26 EXT-011
+33 PASS A
+34 PASS B
+35 PHASE clash-end
+36 PASS A
+37 PASS B
+38 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 1 rift 2
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 2 rift 0
+field A #11 EXT-018 3/4 w1 c0 exhausted - kw provoke,tenacity,venom
+ash A 1 #12 EXT-001
+ash B 1 #25 EXT-001
+ash B 2 #26 EXT-011
+rift A 1 #13 EXT-001
+rift A 2 #14 EXT-001
+effect 1 ts2 A aura grant venom on #11
+STATE END
+39 RESULT pending none

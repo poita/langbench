@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/copy_0.txt copy()
+  run 1 2 w0 out/copy_1.txt copy()
+  run 2 3 w0 out/copy_2.txt copy()
+  run 3 4 w0 out/copy_3.txt copy()
+  run 4 5 w0 out/copy_4.txt copy()
+  run 5 6 w0 out/copy_5.txt copy()
+  run 6 9 w0 out/copy_pin.txt hash()
+  ok ran=7 hit=0 time=9
+step 2: build (default) -j 1
+  hit 0 out/copy_0.txt
+  hit 0 out/copy_1.txt
+  hit 0 out/copy_2.txt
+  hit 0 out/copy_3.txt
+  hit 0 out/copy_4.txt
+  hit 0 out/copy_5.txt
+  hit 0 out/copy_pin.txt
+  ok ran=0 hit=7 time=0

@@ -1,0 +1,22 @@
+build -j 3
+edit src/m0/f0.txt
+cedar
+cedar
+iota
+---
+build @m0 -j 4
+edit src/m1/f1.txt
+a-b+c
+ash
+kappa
+lambda
+---
+build @m0 -j 16
+edit src/m0/f0.txt
+ash
+---
+build @m0 -j 16
+create src/m2/new0.txt
+eta
+---
+build @m2 -j 16

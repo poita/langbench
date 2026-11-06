@@ -1,0 +1,27 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+LEGAL BEGIN A priority
+PASS
+ACT #21 2 #21
+ACT #21 2 #42
+LEGAL END
+8 ACTIVATE A ~1 #21 2 #42
+9 EXHAUST #21
+10 PAY A spire 2
+11 SPIRE A -2 0
+12 LOSE A spire
+13 RESULT B spire
+STATE BEGIN
+turn 1 active A phase main1 decision - over
+result B spire
+player A spire 0 ember 51 cap 51 vault 20 hand 0 ash 0 rift 0
+player B spire 2 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+field A #21 DSK-020 2/2 w0 c0 exhausted - kw -
+field B #42 TOK-001 1/1 w0 c0 ready - kw -
+chain 1 ~1 A ability #21 2 #42
+STATE END

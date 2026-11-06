@@ -1,0 +1,16 @@
+kiln-state 1
+step out/one.txt
+cmd wrap("[0", "]\n")
+in src/a.txt 08a61e07b54dac5d
+out out/one.txt 6b08f23b7610e7dd
+end
+step out/three.txt
+cmd wrap("[2", "]\n")
+in out/two.txt 8a516a473eeb25da
+out out/three.txt c93c597d23bb96fc
+end
+step out/two.txt
+cmd wrap("[1", "]\n")
+in out/one.txt 6b08f23b7610e7dd
+out out/two.txt 8a516a473eeb25da
+end

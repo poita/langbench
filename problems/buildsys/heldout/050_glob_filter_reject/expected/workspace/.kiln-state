@@ -1,0 +1,41 @@
+kiln-state 1
+step out/f0.txt
+cmd write("src/a.txt|src/.txt|src/t_1.txt|src/7.txt|src/a.txt/a.txt|src/sub/a.txt|src|srcx|ab|axyzb|a/b|A.TXT|src/a.text||out/x.txt|.kiln-state\n")
+out out/f0.txt 98c43506924328a4
+end
+step out/f1.txt
+cmd write("src/a.txt|src/sub/a.txt|src|src/.txt|src/a.text|src/t_1.txt|src/7.txt|src/a.txt/a.txt|srcx|ab|axyzb|a/b|A.TXT||out/x.txt|.kiln-state\n")
+out out/f1.txt b89c6c6736e3a2f4
+end
+step out/f2.txt
+cmd write("src/a.txt|a.txt|src/sub/a.txt|src/.txt|src/t_1.txt|src/7.txt|src/a.txt|out/x.txt/src|srcx|ab|axyzb|a/b|A.TXT|src/a.text||.kiln-state\n")
+out out/f2.txt 69ade3f554652d6c
+end
+step out/f3.txt
+cmd write("ab|axyzb/src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state\n")
+out out/f3.txt bfe9276d2eb497da
+end
+step out/f4.txt
+cmd write("a.txt|ab|axyzb|A.TXT|.kiln-state/src/a.txt|src/sub/a.txt|src|srcx|src/.txt|a/b|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt\n")
+out out/f4.txt cc8e98694dfd5734
+end
+step out/f5.txt
+cmd write("a.txt|src|srcx|ab|axyzb|A.TXT||.kiln-state/src/a.txt|src/sub/a.txt|src/.txt|a/b|src/a.text|src/t_1.txt|src/7.txt|src/a.txt|out/x.txt\n")
+out out/f5.txt 9461b2935c6d1a86
+end
+step out/f6.txt
+cmd write("src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state/\n")
+out out/f6.txt bee847fcd98712fc
+end
+step out/f7.txt
+cmd write("src/src/a.txt|a.txt|src/sub/a.txt|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state\n")
+out out/f7.txt a6de5f2feaa271f6
+end
+step out/f8.txt
+cmd write("out/x.txt/src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|.kiln-state\n")
+out out/f8.txt f9a0897ab90e86a8
+end
+step out/f9.txt
+cmd write("/src/a.txt|a.txt|src/sub/a.txt|src|srcx|src/.txt|ab|axyzb|a/b|A.TXT|src/a.text|src/t_1.txt||src/7.txt|src/a.txt|out/x.txt|.kiln-state\n")
+out out/f9.txt 35664e20b0f3b740
+end

@@ -1,0 +1,6 @@
+@module main
+struct P { a: Int, b: Str }
+fn f(p: P) -> Int {
+    match p { P.{ a, .. } -> a }
+}
+fn main() { print("ok"); }

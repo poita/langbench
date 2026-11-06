@@ -1,0 +1,27 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt 4622cefbe6272284
+out out/all.txt b0a270bbabef6b5a
+end
+step out/m0/bundle.txt
+cmd count_lines()
+in out/m0/f0.txt f47a09e8ffc25195
+in out/m0/f1.txt cbf29ce484222325
+out out/m0/bundle.txt 5a35aa8256571d14
+end
+step out/m0/f0.txt
+cmd wrap("[", "]\n")
+in src/m0/f0.txt ad2e4d2287455cf1
+out out/m0/f0.txt f47a09e8ffc25195
+end
+step out/m0/f1.txt
+cmd copy()
+in src/m0/f1.txt cbf29ce484222325
+out out/m0/f1.txt cbf29ce484222325
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 5a35aa8256571d14
+out out/m0/wrapped.txt 87ff3518c86c1505
+end

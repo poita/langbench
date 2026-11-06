@@ -1,0 +1,12 @@
+step {
+    out "out/a.txt"
+    in "src/s.txt"
+    cmd copy()
+}
+step {
+    out "out/b.txt"
+    in "out/a.txt"
+    cmd upper()
+}
+phony both = ["out/a.txt", "out/b.txt"]
+default "out/b.txt"

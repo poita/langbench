@@ -1,0 +1,3 @@
+step 1: build (default) -j 1
+  run 0 1 w0 out/f.txt write("slow:2:E\n")
+  ok ran=1 hit=0 time=1

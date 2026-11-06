@@ -1,0 +1,6 @@
+scan
+scan keys
+scan reverse
+scan limit 5
+scan from "a" to "z"
+stat

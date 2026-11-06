@@ -1,0 +1,216 @@
+@module main
+use doc;
+
+fn main() {
+    let inputs = [
+        "{\"name\": \"vellum\", \"tags\": [\"vm\", \"lang\"], \"size\": 42}",
+        "[1, -2, [3, [4, []]], {}, true, false, null]",
+        "{\"a\": {\"b\": {\"c\": [\"deep\\n\\\"q\\\"\"]}}}",
+        "  [  ]  ",
+        "{\"k\": }",
+        "[1, 2,]",
+        "\"unterminated",
+        "{\"x\": 1} trailing",
+        "[007, -0]",
+        "{\"dup\": 1, \"dup\": 2}",
+    ];
+    for src in inputs {
+        print("> " ++ src);
+        match doc::parse(src) {
+            Ok(v) -> {
+                print(doc::pretty(v, 0));
+                print("compact: " ++ doc::compact(v) ++ " nodes=" ++ showInt(doc::count(v)));
+            },
+            Err((pos, msg)) -> print(fmt("error at {}: {}", [showInt(pos), msg])),
+        }
+    }
+}
+@module doc
+pub enum Val {
+    VNull,
+    VBool(Bool),
+    VNum(Int),
+    VStr(Str),
+    VArr([Val]),
+    VObj([(Str, Val)]),
+}
+
+struct P { src: [Char], pos: [Int] }
+
+fn peek(p: P) -> Option<Char> {
+    let i = p.pos[0];
+    if i < listLen(p.src) { Some(p.src[i]) } else { None }
+}
+
+fn bump(p: P) { p.pos[0] = p.pos[0] + 1; }
+
+fn skipWs(p: P) {
+    while true {
+        match peek(p) {
+            Some(c) when isSpace(c) -> bump(p),
+            _ -> { break; }
+        }
+    }
+}
+
+fn fail<T>(p: P, msg: Str) -> Result<T, (Int, Str)> { Err((p.pos[0], msg)) }
+
+fn expectWord(p: P, w: Str, v: Val) -> Result<Val, (Int, Str)> {
+    for c in w {
+        if peek(p) != Some(c) { return fail(p, "bad literal"); }
+        bump(p);
+    }
+    Ok(v)
+}
+
+fn parseStr(p: P) -> Result<Str, (Int, Str)> {
+    bump(p);
+    var out: [Char] = listNew();
+    while true {
+        match peek(p) {
+            None -> { return fail(p, "unterminated string"); }
+            Some('"') -> { bump(p); return Ok(strOfChars(out)); }
+            Some('\\') -> {
+                bump(p);
+                match peek(p) {
+                    Some('n') -> push(out, '\n'),
+                    Some('"') -> push(out, '"'),
+                    Some('\\') -> push(out, '\\'),
+                    _ -> { return fail(p, "bad escape"); }
+                }
+                bump(p);
+            }
+            Some(c) -> { push(out, c); bump(p); }
+        }
+    }
+    fail(p, "unreachable")
+}
+
+fn parseNum(p: P) -> Result<Val, (Int, Str)> {
+    let start = p.pos[0];
+    var neg = false;
+    if peek(p) == Some('-') { neg = true; bump(p); }
+    var v = 0;
+    var digits = 0;
+    while true {
+        match peek(p) {
+            Some(c) when isDigit(c) -> {
+                if digits == 1 && v == 0 { return Err((start, "leading zero")); }
+                v = v * 10 + ord(c) - 48;
+                digits = digits + 1;
+                bump(p);
+            }
+            _ -> { break; }
+        }
+    }
+    if digits == 0 { return fail(p, "expected digit"); }
+    Ok(VNum(if neg { -v } else { v }))
+}
+
+fn parseVal(p: P) -> Result<Val, (Int, Str)> {
+    skipWs(p);
+    match peek(p) {
+        None -> fail(p, "unexpected end"),
+        Some('n') -> expectWord(p, "null", VNull),
+        Some('t') -> expectWord(p, "true", VBool(true)),
+        Some('f') -> expectWord(p, "false", VBool(false)),
+        Some('"') -> match parseStr(p) {
+            Ok(s) -> Ok(VStr(s)),
+            Err(e) -> Err(e),
+        },
+        Some('[') -> {
+            bump(p);
+            var items: [Val] = listNew();
+            skipWs(p);
+            if peek(p) == Some(']') { bump(p); return Ok(VArr(items)); }
+            while true {
+                match parseVal(p) {
+                    Ok(v) -> push(items, v),
+                    Err(e) -> { return Err(e); }
+                }
+                skipWs(p);
+                match peek(p) {
+                    Some(',') -> bump(p),
+                    Some(']') -> { bump(p); return Ok(VArr(items)); }
+                    _ -> { return fail(p, "expected , or ]"); }
+                }
+            }
+            fail(p, "unreachable")
+        }
+        Some('{') -> {
+            bump(p);
+            var fields: [(Str, Val)] = listNew();
+            var seen: #[Str: Bool] = mapNew();
+            skipWs(p);
+            if peek(p) == Some('}') { bump(p); return Ok(VObj(fields)); }
+            while true {
+                skipWs(p);
+                if peek(p) != Some('"') { return fail(p, "expected key"); }
+                let at = p.pos[0];
+                let key = match parseStr(p) { Ok(s) -> s, Err(e) -> { return Err(e); } };
+                if mapHas(seen, key) { return Err((at, "duplicate key " ++ quoteStr(key))); }
+                seen[key] = true;
+                skipWs(p);
+                if peek(p) != Some(':') { return fail(p, "expected :"); }
+                bump(p);
+                let v = match parseVal(p) { Ok(v) -> v, Err(e) -> { return Err(e); } };
+                push(fields, (key, v));
+                skipWs(p);
+                match peek(p) {
+                    Some(',') -> bump(p),
+                    Some('}') -> { bump(p); return Ok(VObj(fields)); }
+                    _ -> { return fail(p, "expected , or }"); }
+                }
+            }
+            fail(p, "unreachable")
+        }
+        Some(c) when c == '-' || isDigit(c) -> parseNum(p),
+        Some(c) -> fail(p, "unexpected " ++ quoteChar(c)),
+    }
+}
+
+pub fn parse(src: Str) -> Result<Val, (Int, Str)> {
+    let p = P.{ src: chars(src), pos: [0] };
+    let r = parseVal(p);
+    match r {
+        Ok(v) -> {
+            skipWs(p);
+            if isSome(peek(p)) { fail(p, "trailing input") } else { Ok(v) }
+        },
+        Err(e) -> Err(e),
+    }
+}
+
+pub fn compact(v: Val) -> Str {
+    match v {
+        VNull -> "null",
+        VBool(b) -> showBool(b),
+        VNum(n) -> showInt(n),
+        VStr(s) -> quoteStr(s),
+        VArr(xs) -> "[" ++ strJoin(listMap(xs, |x| compact(x)), ",") ++ "]",
+        VObj(fs) -> "{" ++ strJoin(listMap(fs, |f| quoteStr(fst(f)) ++ ":" ++ compact(snd(f))), ",") ++ "}",
+    }
+}
+
+pub fn pretty(v: Val, ind: Int) -> Str {
+    let pad = strRepeat("  ", ind + 1);
+    let close = strRepeat("  ", ind);
+    match v {
+        VArr([]) -> "[]",
+        VObj([]) -> "{}",
+        VArr(xs) -> "[\n" ++ strJoin(listMap(xs, |x| pad ++ pretty(x, ind + 1)), ",\n") ++ "\n" ++ close ++ "]",
+        VObj(fs) -> {
+            let parts = listMap(fs, |f| { let (k, x) = f; pad ++ quoteStr(k) ++ ": " ++ pretty(x, ind + 1) });
+            "{\n" ++ strJoin(parts, ",\n") ++ "\n" ++ close ++ "}"
+        }
+        other -> compact(other),
+    }
+}
+
+pub fn count(v: Val) -> Int {
+    match v {
+        VArr(xs) -> listFold(xs, 1, |a, x| a + count(x)),
+        VObj(fs) -> listFold(fs, 1, |a, f| a + count(snd(f))),
+        _ -> 1,
+    }
+}

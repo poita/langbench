@@ -1,0 +1,94 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put created
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok stat
+  pages 44
+  free 0
+  freehead 0
+  docs 18
+  root 16
+  height 2
+  commits 18
+  indexes 0
+  wal 86400
+[20] ok scan 18
+  "k00"
+  "k01"
+  "k02"
+  "k03"
+  "k04"
+  "k05"
+  "k06"
+  "k07"
+  "k08"
+  "k09"
+  "k10"
+  "k11"
+  "k12"
+  "k13"
+  "k14"
+  "k15"
+  "k16"
+  "k17"
+[21] ok put replaced
+[22] ok put replaced
+[23] ok put replaced
+[24] ok put replaced
+[25] ok put replaced
+[26] ok put replaced
+[27] ok put replaced
+[28] ok put replaced
+[29] ok put replaced
+[30] ok put replaced
+[31] ok put replaced
+[32] ok put replaced
+[33] ok put replaced
+[34] ok put replaced
+[35] ok put replaced
+[36] ok put replaced
+[37] ok put replaced
+[38] ok put replaced
+[39] ok stat
+  pages 47
+  free 21
+  freehead 43
+  docs 18
+  root 16
+  height 2
+  commits 36
+  indexes 0
+  wal 181152
+[40] ok scan 18
+  "k00"
+  "k01"
+  "k02"
+  "k03"
+  "k04"
+  "k05"
+  "k06"
+  "k07"
+  "k08"
+  "k09"
+  "k10"
+  "k11"
+  "k12"
+  "k13"
+  "k14"
+  "k15"
+  "k16"
+  "k17"

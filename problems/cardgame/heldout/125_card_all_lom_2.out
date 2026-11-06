@@ -1,0 +1,174 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN LOM-021
+name Fertile Crescent
+type relic
+cost 3
+tags loam
+keywords -
+ability 1 aura (cheaper 1 (type unit))
+CARD END
+CARD BEGIN LOM-022
+name Thicket Ward
+type relic
+cost 2
+tags loam
+keywords -
+ability 1 aura (grant (plating 1) (units yours (tag plant)))
+CARD END
+CARD BEGIN LOM-023
+name Primal Swell
+type rite
+cost 5
+tags loam
+keywords -
+ability 1 resolve - (each (units yours) (modify 2 2 that))
+CARD END
+CARD BEGIN LOM-024
+name Hollow Stump
+type unit
+cost 2
+body 0/5
+tags loam,plant
+keywords plating:2
+ability 1 on damaged - (counters 1 self)
+CARD END
+CARD BEGIN LOM-025
+name Vinecoil Hunter
+type unit
+cost 4
+body 3/3
+tags loam,beast
+keywords provoke
+CARD END
+CARD BEGIN LOM-026
+name Earthen Rite
+type rite
+cost 2
+tags loam
+keywords -
+ability 1 resolve (targets (unit)) (setbody 4 4 (t 1))
+CARD END
+CARD BEGIN LOM-027
+name Grovekeeper's Gift
+type rite
+cost 2
+tags loam
+keywords -
+ability 1 resolve (targets (unit)) (counters 1 (t 1)) (draw 1 you)
+CARD END
+CARD BEGIN LOM-028
+name Sunward Colossus
+type unit
+cost 8
+body 8/8
+tags loam,giant
+keywords pierce,vigil
+CARD END
+CARD BEGIN LOM-029
+name Loam Oracle
+type unit
+cost 3
+body 1/4
+tags loam,mage
+keywords -
+ability 1 on turn-start - (ember 1 you)
+CARD END
+CARD BEGIN LOM-030
+name Bristlefang
+type unit
+cost 4
+body 4/2
+tags loam,beast
+keywords riposte,venom
+CARD END
+CARD BEGIN LOM-031
+name Root Network
+type relic
+cost 4
+tags loam
+keywords -
+ability 1 aura (when (count (units yours (tag plant)) ge 2) (grant vigil (units yours)))
+CARD END
+CARD BEGIN LOM-032
+name Stonewake Titan
+type unit
+cost 6
+body 5/7
+tags loam,giant
+keywords -
+ability 1 on arrive - (counters 1 (units yours))
+CARD END
+CARD BEGIN LOM-033
+name Windrow Dancer
+type unit
+cost 2
+body 1/2
+tags loam,spirit
+keywords skyhook
+CARD END
+CARD BEGIN LOM-034
+name Petalstorm
+type rite
+cost 3
+tags loam
+keywords -
+ability 1 resolve - (damage 1 (units theirs)) (counters 1 (units yours))
+CARD END
+CARD BEGIN LOM-035
+name Overgrowth
+type rite
+cost 4
+tags loam
+keywords -
+ability 1 resolve - (modify 3 3 (units yours))
+CARD END
+CARD BEGIN LOM-036
+name Grafted Horror
+type unit
+cost 5
+body 4/4
+tags loam,beast
+keywords -
+ability 1 on arrive (targets (unit (mine) (other))) (sacrifice (t 1)) (counters 3 self)
+CARD END
+CARD BEGIN LOM-037
+name Bedrock Warden
+type unit
+cost 4
+body 2/6
+tags loam,construct
+keywords plating:1,provoke
+CARD END
+CARD BEGIN LOM-038
+name Spore Cloud
+type rite
+cost 2
+tags loam
+keywords swift
+ability 1 resolve - (each (units theirs) (modify 0 -1 that))
+CARD END
+CARD BEGIN LOM-039
+name Heartwood Shrine
+type relic
+cost 5
+tags loam
+keywords -
+ability 1 aura (modify 1 1 (units yours))
+ability 2 aura (grant (plating 1) (units yours))
+CARD END
+CARD BEGIN LOM-040
+name Loamstride Herald
+type unit
+cost 3
+body 3/3
+tags loam,scout
+keywords vanguard
+ability 1 on arrive - (ember 1 you)
+CARD END
+8 RESULT pending none

@@ -1,0 +1,225 @@
+[1] ok scan 0
+[2] ok put created
+[3] ok put created
+[4] ok put replaced
+[5] ok put created
+[6] ok put replaced
+[7] ok delete removed
+[8] error not-found
+[9] ok indexes 0
+[10] ok stat
+  pages 3
+  free 1
+  freehead 2
+  docs 2
+  root 3
+  height 1
+  commits 6
+  indexes 0
+  wal 15896
+[11] error not-found
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put replaced
+[16] ok create index name entries 0
+[17] ok put created
+[18] ok put created
+[19] ok delete removed
+[20] ok get value
+  {"age":17,"name":"n10","nest":{"deep":4},"tag":"t"}
+[21] error not-found
+[22] error not-found
+[23] ok put replaced
+[24] ok find 2 plan scan
+  "k00006" = {"age":27,"name":"n21","tag":"t"}
+  "k00011" = {"age":17,"name":"n10","nest":{"deep":4},"tag":"t"}
+[25] error not-found
+[26] ok put replaced
+[27] error not-found
+[28] ok delete removed
+[29] ok put replaced
+[30] ok stat
+  pages 21
+  free 0
+  freehead 0
+  docs 5
+  root 3
+  height 1
+  commits 18
+  indexes 1
+  wal 67536
+[31] ok update updated
+[32] ok put created
+[33] ok put replaced
+[34] ok find 0 plan scan
+[35] error not-object
+[36] ok put created
+[37] ok put replaced
+[38] ok put created
+[39] ok put replaced
+[40] ok put created
+[41] ok put replaced
+[42] ok get value
+  -313
+[43] ok drop index name pages 1
+[44] ok begin
+[45] ok stat
+  pages 29
+  free 3
+  freehead 6
+  docs 9
+  root 26
+  height 2
+  commits 28
+  indexes 0
+  wal 103408
+[46] error not-found
+[47] ok indexes 0
+[48] ok put replaced
+[49] ok put created
+[50] ok put replaced
+[51] ok commit 29 frames 18
+[52] error not-found
+[53] ok indexes 0
+[54] ok put replaced
+[55] ok put created
+[56] ok put replaced
+[57] ok stat
+  pages 29
+  free 17
+  freehead 6
+  docs 11
+  root 26
+  height 2
+  commits 32
+  indexes 0
+  wal 144376
+[58] ok begin
+[59] ok indexes 0
+[60] ok delete removed
+[61] ok put replaced
+[62] error not-object
+[63] error not-found
+[64] error not-object
+[65] ok stat
+  pages 29
+  free 18
+  freehead 2
+  docs 10
+  root 26
+  height 2
+  commits 32
+  indexes 0
+  wal 144376
+[66] ok find 0 plan scan
+[67] ok put replaced
+[68] ok delete removed
+[69] ok put created
+[70] ok put replaced
+[71] ok put replaced
+[72] ok indexes 0
+[73] error index-missing
+[74] ok put replaced
+[75] ok stat
+  pages 29
+  free 3
+  freehead 20
+  docs 10
+  root 26
+  height 2
+  commits 32
+  indexes 0
+  wal 144376
+[76] ok delete removed
+[77] error not-object
+[78] ok put created
+[79] error not-found
+[80] ok commit 33 frames 31
+[81] ok put replaced
+[82] ok put replaced
+[83] ok create index name entries 0
+[84] ok stat
+  pages 33
+  free 7
+  freehead 33
+  docs 10
+  root 26
+  height 2
+  commits 36
+  indexes 1
+  wal 189536
+[85] ok put replaced
+[86] error not-object
+[87] error not-object
+[88] ok scan 0
+[89] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+[90] ok put replaced
+[91] ok put replaced
+[92] ok put created
+[93] ok update updated
+[94] ok delete removed
+[95] ok put replaced
+[96] ok put replaced
+[97] error not-object
+[98] error not-object
+[99] ok scan 0
+[100] ok put created
+[101] ok put replaced
+[102] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+[103] ok delete removed
+[104] ok put created
+[105] ok put replaced
+[106] error not-object
+[107] ok find 0 plan scan
+[108] ok put replaced
+[109] error not-object
+[110] ok begin
+[111] ok rollback
+[112] ok stat
+  pages 33
+  free 7
+  freehead 32
+  docs 11
+  root 26
+  height 2
+  commits 50
+  indexes 1
+  wal 255896
+[113] ok put replaced
+[114] error index-missing
+[115] ok update updated
+[116] ok scan 0
+[117] ok put replaced
+[118] error not-found
+[119] error not-object
+[120] ok stat
+  pages 33
+  free 5
+  freehead 31
+  docs 11
+  root 26
+  height 2
+  commits 53
+  indexes 1
+  wal 3200
+[121] ok stat
+  pages 33
+  free 5
+  freehead 31
+  docs 11
+  root 26
+  height 2
+  commits 53
+  indexes 1
+  wal 3200
+[122] ok indexes 1
+  0 name root 24 entries 2
+[123] ok scan 5
+  "k00000"
+  "k00001"
+  "k00002"
+  "k00003"
+  "k00005"

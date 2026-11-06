@@ -1,0 +1,24 @@
+rule wrapper(name, src, pre, post, w) {
+    step {
+        out "out/{name}.txt"
+        in src
+        cmd wrap(pre, post)
+        cost w
+    }
+}
+include "build/m0.kiln"
+include "build/m1.kiln"
+step {
+    out "out/all.txt"
+    in ["out/m0/bundle.txt", "out/m1/bundle.txt"]
+    after ["@m0", "@m1"]
+    cmd count_lines()
+    cost 3
+}
+phony all = ["out/all.txt", "@m0", "@m1"]
+default "@all"
+step {
+    out "out/noise.txt"
+    cmd write("{count(glob("noise/**"))}:{count(glob("noise/**/n1*.dat"))}:{count(glob("**"))}\n")
+}
+default "out/noise.txt"

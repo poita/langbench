@@ -1,0 +1,9 @@
+@module main
+fn f(p: (Bool, Bool)) -> Int {
+    match p {
+        (true, true) -> 3,
+        (true, false) -> 2,
+        (false, b) -> if b { 1 } else { 0 },
+    }
+}
+fn main() { print(showInt(f((false, true)))); }

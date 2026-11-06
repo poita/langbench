@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 3 w0 out/replace_nl_0.txt replace("\n", ";")
+  run 3 6 w0 out/replace_nl_1.txt replace("\n", ";")
+  run 6 9 w0 out/replace_nl_2.txt replace("\n", ";")
+  run 9 12 w0 out/replace_nl_3.txt replace("\n", ";")
+  run 12 15 w0 out/replace_nl_4.txt replace("\n", ";")
+  run 15 18 w0 out/replace_nl_5.txt replace("\n", ";")
+  run 18 21 w0 out/replace_nl_pin.txt hash()
+  ok ran=7 hit=0 time=21
+step 2: build (default) -j 1
+  hit 0 out/replace_nl_0.txt
+  hit 0 out/replace_nl_1.txt
+  hit 0 out/replace_nl_2.txt
+  hit 0 out/replace_nl_3.txt
+  hit 0 out/replace_nl_4.txt
+  hit 0 out/replace_nl_5.txt
+  hit 0 out/replace_nl_pin.txt
+  ok ran=0 hit=7 time=0

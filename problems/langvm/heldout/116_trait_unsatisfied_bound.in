@@ -1,0 +1,4 @@
+@module main
+trait T { fn m(self) -> Int; }
+fn f<X: T>(x: X) -> Int { x.m() }
+fn main() { print(showInt(f(1))); }

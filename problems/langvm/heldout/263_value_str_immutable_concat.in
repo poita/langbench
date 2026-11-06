@@ -1,0 +1,9 @@
+@module main
+fn main() {
+    let a = "x";
+    let b = a ++ "y";
+    print(a ++ "|" ++ b);
+    let xs = [1];
+    let ys = xs ++ [2];
+    print(showInt(listLen(xs)) ++ showInt(listLen(ys)));
+}

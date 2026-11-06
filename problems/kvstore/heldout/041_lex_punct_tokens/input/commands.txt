@@ -1,0 +1,18 @@
+put "a" (1)
+put "a" [1):
+put "a" {a:1]
+put "a" ]
+put "a" }
+put "a" )
+put "a" ,
+put "a" :
+put "a" .
+put "a" [,]
+find (a == 1)
+find ((a == 1))
+find (a == 1
+find a == 1)
+find not a == 1
+find not(a == 1)
+find not (a == 1)
+stat

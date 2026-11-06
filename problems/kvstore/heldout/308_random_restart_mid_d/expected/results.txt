@@ -1,0 +1,565 @@
+[1] ok begin
+[2] error not-found
+[3] ok delete removed
+[4] ok put replaced
+[5] ok delete removed
+[6] ok put replaced
+[7] ok scan 0
+[8] ok find 0 plan scan
+[9] error not-object
+[10] ok put replaced
+[11] error not-object
+[12] error not-object
+[13] ok put replaced
+[14] error not-found
+[15] error not-found
+[16] ok delete removed
+[17] ok put created
+[18] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27]
+[19] ok put created
+[20] ok put replaced
+[21] ok delete removed
+[22] ok put created
+[23] ok put replaced
+[24] ok commit 92 frames 20
+[25] ok put replaced
+[26] ok put created
+[27] ok put replaced
+[28] ok put replaced
+[29] error not-found
+[30] error not-found
+[31] ok put created
+[32] ok find 0 plan scan
+[33] ok put replaced
+[34] ok put replaced
+[35] error not-object
+[36] error not-found
+[37] ok put replaced
+[38] ok find 2 plan scan
+  "k00017xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = {"age":27,"name":"n18","tag":null}
+  "k00027xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = {"age":36,"nest":{"deep":0},"tag":"t"}
+[39] ok put replaced
+[40] ok find 0 plan scan
+[41] ok begin
+[42] error not-found
+[43] ok put replaced
+[44] ok scan 2
+  "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[45] ok put replaced
+[46] ok put replaced
+[47] ok delete removed
+[48] ok unset updated
+[49] ok delete removed
+[50] ok scan 0
+[51] ok delete removed
+[52] ok put replaced
+[53] ok put created
+[54] ok put replaced
+[55] ok put created
+[56] ok put replaced
+[57] ok put replaced
+[58] ok scan 0
+[59] ok put replaced
+[60] ok create index name entries 7
+[61] ok put created
+[62] error not-found
+[63] error not-object
+[64] ok put replaced
+[65] ok indexes 3
+  0 age root 8 entries 9
+  1 nest.deep root 19 entries 4
+  2 name root 13 entries 7
+[66] error not-object
+[67] ok delete removed
+[68] error not-found
+[69] ok put replaced
+[70] error not-found
+[71] ok put created
+[72] ok scan 1
+  "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = false
+[73] ok put replaced
+[74] ok scan 1
+  "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[75] error not-found
+[76] ok scan 0
+[77] ok put replaced
+[78] ok put replaced
+[79] ok put replaced
+[80] ok delete removed
+[81] error not-found
+[82] ok delete removed
+[83] ok unset updated
+[84] ok put replaced
+[85] ok put replaced
+[86] error not-found
+[87] ok put replaced
+[88] ok delete removed
+[89] ok put replaced
+[90] ok put created
+[91] ok put replaced
+[92] ok stat
+  pages 30
+  free 4
+  freehead 14
+  docs 28
+  root 7
+  height 2
+  commits 101
+  indexes 3
+  wal 147568
+[93] ok find 1 plan scan
+  "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+[94] ok put created
+[95] ok put replaced
+[96] ok put replaced
+[97] error not-found
+[98] ok find 0 plan index name
+[99] ok put created
+[100] error txn-active
+[101] ok put replaced
+[102] ok put replaced
+[103] ok unset updated
+[104] error not-found
+[105] ok update updated
+[106] ok put replaced
+[107] ok get value
+  "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+[108] error not-found
+[109] ok scan 2
+  "k00031xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = [1,2,3,4,5,6]
+  "k00030xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+[110] ok put replaced
+[111] error txn-active
+[112] ok scan 0
+[113] ok drop index age pages 1
+[114] error txn-active
+[115] error txn-active
+[116] ok put replaced
+[117] ok delete removed
+[118] ok find 2 plan scan
+  "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+  "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = {"age":35,"name":"n24","nest":{"deep":4}}
+[119] error not-object
+[120] ok delete removed
+[121] ok put replaced
+[122] ok stat
+  pages 30
+  free 2
+  freehead 15
+  docs 28
+  root 7
+  height 2
+  commits 101
+  indexes 2
+  wal 147568
+[123] error not-found
+[124] ok update updated
+[125] ok put replaced
+[126] ok commit 102 frames 22
+[127] ok delete removed
+[128] ok put replaced
+[129] ok put replaced
+[130] ok scan 4
+  "k00039xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17]
+  "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = {"age":40,"nest":{"deep":5}}
+  "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = {"age":37,"name":"n26"}
+  "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = {"nest":{}}
+[131] ok put replaced
+[132] ok begin
+[133] ok delete removed
+[134] ok get value
+  {"age":40,"nest":{"deep":5}}
+[135] ok put replaced
+[136] ok delete removed
+[137] ok put replaced
+[138] ok scan 0
+[139] ok stat
+  pages 31
+  free 6
+  freehead 12
+  docs 25
+  root 7
+  height 2
+  commits 106
+  indexes 2
+  wal 181224
+[140] ok delete removed
+[141] ok find 0 plan scan
+[142] ok put replaced
+[143] ok find 2 plan scan
+  "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+  "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = [1,2,3,4,5,6,7,8,9]
+[144] ok put replaced
+[145] error not-object
+[146] ok commit 107 frames 16
+[147] ok put replaced
+[148] error not-found
+[149] error not-found
+[150] error not-found
+[151] ok checkpoint pages 29
+[152] ok delete removed
+[153] ok scan 2
+  "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00037xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[154] ok put replaced
+[155] ok find 0 plan index name
+[156] ok put replaced
+[157] ok unset updated
+[158] ok indexes 2
+  1 nest.deep root 19 entries 2
+  2 name root 13 entries 5
+[159] ok scan 1
+  "k00023xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[160] ok put created
+[161] ok scan 0
+[162] ok put created
+[163] ok scan 1
+  "k00000xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[164] ok put replaced
+[165] ok put replaced
+[166] ok put replaced
+[167] error index-key-too-long
+[168] error not-found
+[169] ok delete removed
+[170] ok checkpoint pages 7
+[171] ok indexes 2
+  1 nest.deep root 19 entries 3
+  2 name root 13 entries 5
+[172] ok scan 3
+  "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00011xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00013xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[173] ok put created
+[174] ok delete removed
+[175] error not-found
+[176] ok indexes 2
+  1 nest.deep root 19 entries 3
+  2 name root 13 entries 6
+[177] error not-found
+[178] ok delete removed
+[179] ok put created
+[180] ok put replaced
+[181] ok put replaced
+[182] ok update updated
+[183] ok put created
+[184] ok put replaced
+[185] ok drop index nest.deep pages 1
+[186] error index-exists
+[187] ok delete removed
+[188] ok delete removed
+[189] ok put created
+[190] ok put created
+[191] ok delete removed
+[192] error not-found
+[193] error not-found
+[194] ok delete removed
+[195] ok put created
+[196] ok indexes 1
+  2 name root 13 entries 8
+[197] ok put replaced
+[198] ok put replaced
+[199] ok put replaced
+[200] ok stat
+  pages 31
+  free 15
+  freehead 8
+  docs 24
+  root 7
+  height 2
+  commits 138
+  indexes 1
+  wal 69680
+[201] ok delete removed
+[202] error not-found
+[203] ok put replaced
+[204] ok begin
+[205] ok delete removed
+[206] ok put replaced
+[207] ok put replaced
+[208] error index-key-too-long
+[209] ok put created
+[210] ok update updated
+[211] ok create index nest.deep entries 3
+[212] ok put replaced
+[213] ok scan 0
+[214] ok put replaced
+[215] ok put replaced
+[216] ok put replaced
+[217] ok put replaced
+[218] ok put replaced
+[219] ok update updated
+[220] ok find 0 plan scan
+[221] error not-object
+[222] ok delete removed
+[223] ok indexes 2
+  0 nest.deep root 8 entries 3
+  2 name root 13 entries 10
+[224] ok rollback
+[225] ok put replaced
+[226] ok put created
+[227] ok put replaced
+[228] ok update updated
+[229] ok put replaced
+[230] error not-found
+[231] ok scan 3
+  "k00035xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00036xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[232] error not-found
+[233] ok begin
+[234] error not-object
+[235] ok put created
+[236] error not-found
+[237] ok find 0 plan index name
+[238] ok commit 146 frames 3
+[239] ok put replaced
+[240] error not-object
+[241] error not-object
+[242] error not-found
+[243] ok put replaced
+[244] error not-object
+[245] ok begin
+[246] error no-field
+[247] ok indexes 1
+  2 name root 13 entries 9
+[248] ok delete removed
+[249] ok delete removed
+[250] ok indexes 1
+  2 name root 13 entries 9
+[251] ok put replaced
+[252] ok delete removed
+[253] ok delete removed
+[254] ok find 0 plan scan
+[255] error not-found
+[256] ok put created
+[257] error not-found
+[258] ok put replaced
+[259] ok stat
+  pages 31
+  free 14
+  freehead 8
+  docs 22
+  root 7
+  height 2
+  commits 148
+  indexes 1
+  wal 99264
+[260] ok scan 2
+  "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00002xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[261] error not-found
+[262] ok put created
+[263] ok put replaced
+[264] error not-found
+[265] ok find 0 plan scan
+[266] ok delete removed
+[267] ok put created
+[268] error not-found
+[269] ok stat
+  pages 31
+  free 13
+  freehead 19
+  docs 23
+  root 7
+  height 2
+  commits 148
+  indexes 1
+  wal 99264
+[270] ok put created
+[271] ok delete removed
+[272] ok create index age entries 8
+[273] ok delete removed
+[274] ok put created
+[275] ok update updated
+[276] ok indexes 2
+  0 age root 26 entries 8
+  2 name root 13 entries 10
+[277] ok put created
+[278] ok put created
+[279] ok delete removed
+[280] error not-found
+[281] ok delete removed
+[282] ok create index tag entries 3
+[283] ok put replaced
+[284] ok put replaced
+[285] ok scan 0
+[286] ok put replaced
+[287] ok drop index name pages 1
+[288] ok put replaced
+[289] ok delete removed
+[290] ok create index name entries 8
+[291] ok put replaced
+[292] ok delete removed
+[293] ok put created
+[294] ok get value
+  {"name":"n25","nest":{"deep":9},"tag":{"z":1}}
+[295] ok put replaced
+[296] ok delete removed
+[297] ok delete removed
+[298] ok scan 1
+  "k00004xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[299] ok update updated
+[300] ok indexes 3
+  0 age root 26 entries 7
+  1 tag root 10 entries 3
+  2 name root 13 entries 8
+[301] ok put created
+[302] ok put created
+[303] error not-found
+[304] ok put created
+[305] ok put created
+[306] ok delete removed
+[307] ok scan 1
+  "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[308] ok put created
+[309] error txn-active
+[310] ok put created
+[311] ok scan 0
+[312] ok delete removed
+[313] error not-object
+[314] error not-found
+[315] ok put replaced
+[316] ok put created
+[317] ok indexes 3
+  0 age root 26 entries 10
+  1 tag root 10 entries 2
+  2 name root 13 entries 11
+[318] ok put replaced
+[319] error not-found
+[320] error not-found
+[321] error txn-active
+[322] ok put replaced
+[323] error not-found
+[324] ok put replaced
+[325] ok put replaced
+[326] ok put replaced
+[327] ok put replaced
+[328] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22]
+[329] ok scan 0
+[330] ok put replaced
+[331] ok scan 2
+  "k00014xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00015xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[332] ok scan 0
+[333] ok put replaced
+[334] ok put replaced
+[335] ok find 0 plan scan
+[336] ok put created
+[337] ok drop index name pages 1
+[338] error not-object
+[339] error not-found
+[340] ok update updated
+[341] ok stat
+  pages 31
+  free 13
+  freehead 13
+  docs 26
+  root 7
+  height 2
+  commits 148
+  indexes 2
+  wal 99264
+[342] ok put created
+[343] error not-found
+[344] ok put created
+[345] ok put replaced
+[346] ok stat
+  pages 31
+  free 13
+  freehead 13
+  docs 28
+  root 7
+  height 2
+  commits 148
+  indexes 2
+  wal 99264
+[347] ok put replaced
+[348] ok indexes 2
+  0 age root 26 entries 13
+  1 tag root 10 entries 3
+[349] ok put replaced
+[350] error not-object
+[351] error not-found
+[352] ok put replaced
+[353] ok put replaced
+[354] ok scan 1
+  "k00038xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[355] ok delete removed
+[356] ok find 0 plan scan
+[357] ok delete removed
+[358] ok put replaced
+[359] ok put replaced
+[360] ok create index nest.deep entries 4
+[361] ok put replaced
+[362] ok put replaced
+[363] ok put created
+[364] ok put replaced
+[365] ok put replaced
+[366] error no-field
+[367] ok put replaced
+[368] ok put created
+[369] ok find 1 plan index nest.deep
+  "k00025xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" = {"age":34,"name":"n20","nest":{"deep":6}}
+[370] ok update updated
+[371] error not-found
+[372] error not-object
+[373] ok indexes 3
+  0 age root 26 entries 14
+  1 tag root 10 entries 4
+  2 nest.deep root 25 entries 3
+[374] ok commit 149 frames 21
+[375] error not-object
+[376] ok scan 3
+  "k00009xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00008xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+[377] ok put replaced
+[378] error index-exists
+[379] error not-object
+[380] ok put created
+[381] error index-exists
+[382] ok put replaced
+[383] ok delete removed
+[384] ok put replaced
+[385] ok indexes 3
+  0 age root 26 entries 14
+  1 tag root 10 entries 4
+  2 nest.deep root 25 entries 4
+[386] ok delete removed
+[387] error not-object
+[388] ok delete removed
+[389] ok delete removed
+[390] ok update updated
+[391] ok put replaced
+[392] ok put replaced
+[393] ok put replaced
+[394] ok put replaced
+[395] error not-found
+[396] ok put replaced
+[397] ok put replaced
+[398] ok begin
+[399] error not-found
+[400] error txn-active
+[401] ok stat
+  pages 31
+  free 16
+  freehead 19
+  docs 25
+  root 7
+  height 2
+  commits 164
+  indexes 3
+  wal 177200
+[402] ok indexes 3
+  0 age root 26 entries 10
+  1 tag root 10 entries 4
+  2 nest.deep root 25 entries 4
+[403] ok scan 5
+  "k00001xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00003xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00005xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00006xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  "k00007xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

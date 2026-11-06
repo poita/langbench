@@ -1,0 +1,21 @@
+step {
+    out "out/w0.txt"
+    in "src/t.txt"
+    cmd wrap("<<", ">>")
+}
+step {
+    out "out/w1.txt"
+    in "src/t.txt"
+    cmd wrap("", "")
+}
+step {
+    out "out/w2.txt"
+    in "src/e.txt"
+    cmd wrap("P", "S")
+}
+step {
+    out "out/h.txt"
+    in ["out/w0.txt", "out/w1.txt", "out/w2.txt"]
+    cmd hash()
+}
+default "out/h.txt"

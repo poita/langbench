@@ -1,0 +1,3 @@
+@module main
+fn f(m: #[Str: [Option<Int>]]) -> Int { mapLen(m) }
+fn main() { print(showInt(f(#["a": [Some(1), None]]))); }

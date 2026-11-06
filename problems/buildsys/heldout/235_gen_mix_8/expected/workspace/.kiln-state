@@ -1,0 +1,52 @@
+kiln-state 1
+step out/m0/bundle.txt
+cmd count_lines()
+in out/m0/f0.txt a809dc5cd0e0daac
+in out/m0/f1.txt cbf29ce484222325
+in out/m0/f2.txt cbf29ce484222325
+in out/m0/f4.txt 2ff7919c3322f7b4
+in out/m0/f5.txt 301395baee76fa53
+in out/m0/f6.txt cbf29ce484222325
+in out/m0/g3.txt 6a2b4cbc96a7f800
+out out/m0/bundle.txt 06239820acc65bc3
+end
+step out/m0/f0.txt
+cmd number()
+in src/m0/f0.txt eef4667ce6e5e28f
+out out/m0/f0.txt a809dc5cd0e0daac
+end
+step out/m0/f1.txt
+cmd grep("e")
+in src/m0/f1.txt cbf29ce484222325
+out out/m0/f1.txt cbf29ce484222325
+end
+step out/m0/f2.txt
+cmd grep("e")
+in src/m0/f2.txt 064b5b713f8bbd78
+out out/m0/f2.txt cbf29ce484222325
+end
+step out/m0/f4.txt
+cmd number()
+in src/m0/f4.txt fd832909af67ded0
+out out/m0/f4.txt 2ff7919c3322f7b4
+end
+step out/m0/f5.txt
+cmd grep("e")
+in src/m0/f5.txt 83800327ae918520
+out out/m0/f5.txt 301395baee76fa53
+end
+step out/m0/f6.txt
+cmd grep("e")
+in src/m0/f6.txt c94f46a2a18aed21
+out out/m0/f6.txt cbf29ce484222325
+end
+step out/m0/g3.txt
+cmd number()
+in src/m0/sub/g3.txt 97306b9f4b72ec91
+out out/m0/g3.txt 6a2b4cbc96a7f800
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt 06239820acc65bc3
+out out/m0/wrapped.txt 708507f7ddf6c102
+end

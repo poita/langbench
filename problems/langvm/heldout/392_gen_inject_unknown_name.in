@@ -1,0 +1,410 @@
+@module main
+use m1 as qm1;
+use m2;
+fn nz(x: Int) -> Int { if x == 0 { 1 } else { x } }
+pub fn f3(a: Int, b: Int, c: Int) -> Int {
+    var acc = ((52 - intMin()) >> ((a * c) & 63));
+    if ((match 27 { v10 -> intMax() }) & 1 == 0) { return [(a ^ a), (c + a)][(match a { v11 -> 78 }) & 1]; }
+    for v12 in 0 .. 7 { acc = acc + unwrapOr(parseInt(showInt((b | 76))), 0); }
+    acc ^ qm1::f1((c % nz(acc)), (if (a != 0xdead_beef) { acc } else { c }), (acc | a), m2::f0(a, acc))
+}
+pub fn f4(a: Int) -> Int {
+    var acc = (match a & 3 { 0 -> a, 1 -> a, v13 -> 1 });
+    for v14 in 0 .. 5 { acc = acc + (51 & 87); }
+    var v15 = 0;
+    while v15 < 3 {
+        if ((a > v15) || (a > 69)) { acc = acc + v15; } else { acc = acc - fst((a, v15)); }
+        v15 = v15 + 1;
+    }
+    let v16 = (match 75 { v17 -> v17 });
+    match acc & 3 {
+        0 -> { acc = acc + (acc - 9); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc ^ (v16 - v16)
+}
+pub fn f9(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = (match (if (a > 98) { c } else { a }) & 3 { 0 -> (c - c), 1 -> m2::f7(b, b, b, c), v39 -> (a << (v39 & 63)) });
+    var v40 = 0;
+    while v40 < 6 {
+        if (!(78 <= 2)) { acc = acc + v40; } else { acc = acc - [qm1::f2(), (66 >> (98 & 63))][(v40 - 33) & 1]; }
+        v40 = v40 + 1;
+    }
+    match acc & 3 {
+        0 -> { acc = acc + ((b ^ acc) * clz(a)); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    match acc & 3 {
+        0 -> { acc = acc + (match [c, a][acc & 1] & 3 { 0 -> snd((b, d)), 1 -> minI(b, 123456789), v41 -> (match a & 3 { 0 -> acc, 1 -> 97, v42 -> 72 }) }); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    let v43 = (qm1::f1(c, 66, c, a) ^ (30 & 0xdead_beef));
+    acc ^ (listFold([50, acc, a], c, |acc, x| acc ^ x) >> ((match c { v44 -> intMin() }) & 63))
+}
+pub fn f10(a: Int) -> Int {
+    var acc = (match unwrapOr(parseInt(showInt(clz(a))), 0) & 3 { 0 -> listFold([listFold([a, a, a], a, |acc, x| acc ^ x), [a, a][a & 1], unwrapOr(parseInt(showInt(a)), 0)], (a & a), |acc, x| acc + x), 1 -> qm1::f1((match |y: Int| y * 3 + a { v45 -> v45(a) }), (match |y: Int| y * 3 + a { v46 -> v46(a) }), (96 & 96), (43 << (35 & 63))), v47 -> listFold([(a - a), m2::f0(v47, 9), listFold([a, 1, 99], v47, |acc, x| acc - x)], [a, 10][intMax() & 1], |acc, x| acc | x) });
+    for v48 in listMap([6, 5, -1, -7], |t| t * 2) {
+        if v48 > 0 { continue; }
+        acc = acc ^ (qm1::f2() - snd((listFold([v48, 52, acc], 34, |acc, x| acc | x), (a >> (a & 63)))));
+        if acc < 0 { break; }
+    }
+    let v49 = ((match |y: Int| y * 3 + (if (9 >= acc) { a } else { acc }) { v50 -> v50((a << (a & 63))) }) - ([123456789, acc][a & 1] * minI(42, acc)));
+    acc + (snd(((a % nz(a)), snd((54, acc)))) + ((match |y: Int| y * 3 + 47 { v51 -> v51(25) }) / nz((85 >> (acc & 63)))))
+}
+pub fn f11(a: Int) -> Int {
+    var acc = unwrapOr(parseInt(showInt(a)), 0);
+    match acc & 3 {
+        0 -> { acc = acc + (acc | a); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    match acc & 3 {
+        0 -> { acc = acc + f4(51); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc + (acc * 32)
+}
+pub fn f12(a: Int, b: Int) -> Int {
+    var acc = [[b, 9][b & 1], (if (67 != a) { a } else { b })][(a % nz(b)) & 1];
+    match acc & 3 {
+        0 -> { acc = acc + qm1::f1(maxI(acc, a), [acc, b][b & 1], f4(b), (match |y: Int| y * 3 + 51 { v52 -> v52(61) })); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    for v53 in listMap([-6, 7, -7], |t| t * 2) {
+        if v53 > 0 { continue; }
+        acc = acc ^ f4(f11(a));
+        if acc < 0 { break; }
+    }
+    for v54 in listMap([0, 9], |t| t * 2) {
+        if v54 > 0 { continue; }
+        acc = acc ^ listFold([(v54 >> (v54 & 63)), modFloor(b, nz(v54)), strLen(showInt(a))], listFold([80, 10, 7], b, |acc, x| acc | x), |acc, x| acc ^ x);
+        if acc < 0 { break; }
+    }
+    match acc & 3 {
+        0 -> { acc = acc + (divFloor(acc, nz(84)) >> ((match intMax() & 3 { 0 -> 41, 1 -> a, v55 -> a }) & 63)); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc ^ gcdI((b & acc), (match |y: Int| y * 3 + acc { v56 -> v56(1_000_003) }))
+}
+pub fn f15(a: Int) -> Int {
+    var acc = (unwrapOr(parseInt(showInt(a)), 0) >> (unwrapOr(parseInt(showInt(a)), 0) & 63));
+    for v62 in listMap([-8, -1, -2, 0, 5], |t| t * 2) {
+        if v62 > 0 { continue; }
+        acc = acc ^ ((v62 >> (acc & 63)) & (if (a > acc) { 60 } else { acc }));
+        if acc < 0 { break; }
+    }
+    acc - (if ((a >= a) && (acc == 15)) { listFold([58, 10, 97], acc, |acc, x| acc | x) } else { m2::f7(a, a, 63, acc) })
+}
+pub fn f16(a: Int, b: Int, c: Int) -> Int {
+    var acc = listFold([(c + c), (-45), (b - 9223372036854775807)], (match a & 3 { 0 -> b, 1 -> 75, v63 -> c }), |acc, x| acc ^ x);
+    for v64 in 0 .. 8 { acc = acc + (minI(v64, v64) / nz(popCount(c))); }
+    if (a == b) { return (divFloor(acc, nz(c)) & (66 / nz(a))); }
+    let v65 = [qm1::f2(), popCount(c)][(b % nz(a)) & 1];
+    acc + ((if (intMin() < v65) { v65 } else { b }) * [b, 14][94 & 1])
+}
+pub fn f18() -> Int {
+    var acc = (match |y: Int| y * 3 + ((52 >> (32 & 63)) & listFold([90, 23, 56], 90, |acc, x| acc | x)) { v86 -> v86(fst((fst((intMin(), intMin())), (79 | 17)))) });
+    for v87 in listMap([-1, 4, 3], |t| t * 2) {
+        if v87 > 0 { continue; }
+        acc = acc ^ (fst(((9223372036854775807 * 17), listFold([acc, acc, acc], v87, |acc, x| acc | x))) + gcdI(fst((v87, acc)), fst((acc, 15))));
+        if acc < 0 { break; }
+    }
+    let v88 = (match ((if (23 <= acc) { acc } else { acc }) + (acc & 74)) { v89 -> (match minI(v89, acc) { v90 -> (v90 ^ 5) }) });
+    if (29 == 67) { return listFold([(f16(acc, acc, v88) ^ (if (acc >= v88) { 79 } else { acc })), ((v88 + acc) >> ((match acc & 3 { 0 -> v88, 1 -> acc, v91 -> v88 }) & 63)), ((v88 & acc) | (match v88 & 3 { 0 -> v88, 1 -> v88, v92 -> acc }))], ((match 73 & 3 { 0 -> 73, 1 -> acc, v93 -> v93 }) + fst((4, acc))), |acc, x| acc + x); }
+    for v94 in 0 .. 2 { acc = acc - ((match [v88, acc][v88 & 1] { v95 -> (match v88 & 3 { 0 -> v88, 1 -> v95, v96 -> 87 }) }) << ((match (55 & v88) { v97 -> unwrapOr(parseInt(showInt(1_000_003)), 0) }) & 63)); }
+    acc ^ ((match (v88 * acc) & 3 { 0 -> qm1::f1(acc, v88, acc, acc), 1 -> (match |y: Int| y * 3 + acc { v98 -> v98(v88) }), v99 -> (v99 + acc) }) + modFloor((v88 & v88), nz(listFold([v88, 69, 28], v88, |acc, x| acc | x))))
+}
+pub fn f20(a: Int, b: Int, c: Int) -> Int {
+    var acc = qm1::f2();
+    for v103 in listMap([2, -5], |t| t * 2) {
+        if v103 > 0 { continue; }
+        acc = acc ^ (a << (v103 & 63));
+        if acc < 0 { break; }
+    }
+    if (c <= acc) { return (if (acc > 89) { acc } else { 86 }); }
+    let v104 = (-c);
+    for v105 in listMap([-9, 1, -5], |t| t * 2) {
+        if v105 > 0 { continue; }
+        acc = acc ^ (match c { v106 -> 25 });
+        if acc < 0 { break; }
+    }
+    acc + (b ^ a)
+}
+pub fn f21() -> Int {
+    var acc = ((if ((21 != 11) || (99 == 34)) { divFloor(16, nz(33)) } else { unwrapOr(parseInt(showInt(56)), 0) }) / nz(divFloor((40 >> (50 & 63)), nz((match |y: Int| y * 3 + 123456789 { v107 -> v107(36) })))));
+    for v108 in listMap([3, -5, -1, -2], |t| t * 2) {
+        if v108 > 0 { continue; }
+        acc = acc ^ ((match |y: Int| y * 3 + f4(40) { v109 -> v109(snd((32, acc))) }) ^ divFloor((acc << (v108 & 63)), nz((if (99 > 49) { acc } else { acc }))));
+        if acc < 0 { break; }
+    }
+    let v110 = ((gcdI(acc, acc) >> ((match acc & 3 { 0 -> acc, 1 -> acc, v111 -> 1_000_003 }) & 63)) * unwrapOr(parseInt(showInt([84, 31][0x7fff_ffff & 1])), 0));
+    acc + unwrapOr(parseInt(showInt((listFold([acc, 17, acc], v110, |acc, x| acc ^ x) | f11(acc)))), 0)
+}
+pub fn f23() -> Int {
+    var acc = (maxI((68 ^ 88), (match 9223372036854775807 { v116 -> intMin() })) & ((75 - 96) / nz((123456789 * intMin()))));
+    let v117 = listFold([modFloor(qm1::f2(), nz((match |y: Int| y * 3 + acc { v118 -> v118(19) }))), divFloor([acc, acc][2 & 1], nz(gcdI(acc, acc))), [(82 >> (acc & 63)), (match intMax() & 3 { 0 -> acc, 1 -> acc, v119 -> acc })][(0 << (acc & 63)) & 1]], ((92 << (acc & 63)) * modFloor(acc, nz(acc))), |acc, x| acc + x);
+    acc - f20([[v117, 99][acc & 1], minI(v117, 89)][(if (acc <= 85) { acc } else { acc }) & 1], (listFold([v117, 63, v117], acc, |acc, x| acc - x) + [59, v117][acc & 1]), (fst((intMin(), v117)) % nz(m2::f7(acc, v117, acc, 0xdead_beef))))
+}
+pub fn f25(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = (match |y: Int| y * 3 + d { v123 -> v123(70) });
+    match acc & 3 {
+        0 -> { acc = acc + (acc << (d & 63)); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    let v124 = unwrapOr(parseInt(showInt(a)), 0);
+    match acc & 3 {
+        0 -> { acc = acc + m2::f19(v124, b); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    for v125 in listMap([-7, 5, -2, -8], |t| t * 2) {
+        if v125 > 0 { continue; }
+        acc = acc ^ divFloor(v125, nz(c));
+        if acc < 0 { break; }
+    }
+    acc - [57, a][49 & 1]
+}
+pub fn f27() -> Int {
+    var acc = minI(83, 2);
+    match acc & 3 {
+        0 -> { acc = acc + (acc * acc); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    for v134 in 0 .. 6 { acc = acc + (match v134 { v135 -> acc }); }
+    for v136 in listMap([-1, 1, 0], |t| t * 2) {
+        if v136 > 0 { continue; }
+        acc = acc ^ modFloor(acc, nz(v136));
+        if acc < 0 { break; }
+    }
+    var v137 = 0;
+    while v137 < 2 {
+        if (acc > 59) { acc = acc + v137; } else { acc = acc - (acc - v137); }
+        v137 = v137 + 1;
+    }
+    acc - (acc << (acc & 63))
+}
+fn f28(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = maxI((match 11 & 3 { 0 -> 90, 1 -> d, v138 -> c }), (b >> (d & 63)));
+    if (snd((a, 78)) <= (match |y: Int| y * 3 + a { v139 -> v139(20) })) { return (match (c / nz(33)) { v140 -> (acc + acc) }); }
+    match acc & 3 {
+        0 -> { acc = acc + ([59, acc][d & 1] ^ absI(d)); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc - (unwrapOr(parseInt(showInt(b)), 0) << ((21 * acc) & 63))
+}
+pub fn f29(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = f28((b & b), (b & 74), snd((73, c)), gcdI(c, c));
+    var v141 = 0;
+    while v141 < 1 {
+        if ((29 == 40) || (c <= acc)) { acc = acc + v141; } else { acc = acc - fst((f20(b, a, 84), listFold([b, a, 49], acc, |acc, x| acc | x))); }
+        v141 = v141 + 1;
+    }
+    for v142 in listMap([-6, -9, 3], |t| t * 2) {
+        if v142 > 0 { continue; }
+        acc = acc ^ listFold([(b * a), (if (v142 <= 3) { 91 } else { 50 }), (b | c)], unwrapOr(parseInt(showInt(d)), 0), |acc, x| acc | x);
+        if acc < 0 { break; }
+    }
+    acc + listFold([(match |y: Int| y * 3 + b { v143 -> v143(b) }), f28(38, a, acc, acc), (match a & 3 { 0 -> 0x7fff_ffff, 1 -> acc, v144 -> a })], (43 * acc), |acc, x| acc - x)
+}
+fn main() {
+    print("f0 = " ++ showInt(m2::f0(-24, 39)));
+    print("f1 = " ++ showInt(qm1::f1(-18, -3, 20, 38)));
+    print("f2 = " ++ showInt(qm1::f2()));
+    print("f3 = " ++ showInt(f3(7, -39, -34)));
+    print("f4 = " ++ showInt(f4(35)));
+    print("f6 = " ++ showInt(qm1::f6()));
+    print("f7 = " ++ showInt(m2::f7(-48, 2, 16, 25)));
+    print("f8 = " ++ showInt(qm1::f8(28, -49)));
+    print("f9 = " ++ showInt(f9(-17, -6, -8, -28)));
+    print("f10 = " ++ showInt(f10(-8)));
+    print("f11 = " ++ showInt(f11(29)));
+    print("f12 = " ++ showInt(f12(2, -48)));
+    print("f13 = " ++ showInt(m2::f13(38, -22, -2, 12)));
+    print("f15 = " ++ showInt(f15(-36)));
+    print("f16 = " ++ showInt(f16(-48, 35, 49)));
+    print("f17 = " ++ showInt(m2::f17(-35, -19, 35)));
+    print("f18 = " ++ showInt(f18()));
+    print("f19 = " ++ showInt(m2::f19(29, -19)));
+    print("f20 = " ++ showInt(f20(42, -29, -46)));
+    print("f21 = " ++ showInt(f21()));
+    print("f22 = " ++ showInt(m2::f22(-2, -47)));
+    print("f23 = " ++ showInt(f23()));
+    print("f24 = " ++ showInt(qm1::f24(20)));
+    print("f25 = " ++ showInt(f25(4, -35, 20, 15)));
+    print("f27 = " ++ showInt(f27()));
+    print("f28 = " ++ showInt(f28(-25, 48, -6, -44)));
+    print("f29 = " ++ showInt(f29(9, 16, -37, -11)));
+    var check = 0;
+    for k in 0 .. 20 { check = check * 31 + f27(); }
+    print("check " ++ showInt(check));
+}
+@module m1
+use m2;
+use main as qmain;
+fn nz(x: Int) -> Int { if x == 0 { 1 } else { x } }
+pub fn f1(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = ((match intMin() & 3 { 0 -> b, 1 -> a, v5 -> d }) * (match 57 & 3 { 0 -> d, 1 -> b, v6 -> 43 }));
+    match acc & 3 {
+        0 -> { acc = acc + popCount((match a & 3 { 0 -> b, 1 -> 44, v7 -> intMax() })); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    match acc & 3 {
+        0 -> { acc = acc + m2::f0(signI(acc), m2::f0(acc, 38)); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc + (~(-a))
+}
+pub fn f2() -> Int {
+    var acc = (35 & 39);
+    var v8 = 0;
+    while v8 < 1 {
+        if (v8 != acc) { acc = acc + v8; } else { acc = acc - (match v8 { v9 -> acc }); }
+        v8 = v8 + 1;
+    }
+    acc ^ (-acc)
+}
+fn f5(a: Int, b: Int) -> Int {
+    var acc = gcdI(4611686018427387904, a);
+    if (!(80 > b)) { return (93 * 41); }
+    for v18 in listMap([-6, -5, -9, 8, -1], |t| t * 2) {
+        if v18 > 0 { continue; }
+        acc = acc ^ (~b);
+        if acc < 0 { break; }
+    }
+    acc ^ (acc % nz(0xdead_beef))
+}
+pub fn f6() -> Int {
+    var acc = (match f2() { v19 -> listFold([(match 98 & 3 { 0 -> v19, 1 -> v19, v20 -> 86 }), [v19, v19][v19 & 1], [v19, v19][63 & 1]], minI(v19, v19), |acc, x| acc + x) });
+    if (acc == 98) { return ((if (!(acc >= acc)) { strLen(showInt(acc)) } else { (1_000_003 >> (intMax() & 63)) }) ^ clz(snd((7, acc)))); }
+    if (((if (acc > acc) { acc } else { acc }) <= (acc - acc)) || (acc == 87)) { return snd(((if ((acc <= acc) || (acc == acc)) { m2::f0(acc, acc) } else { qmain::f4(79) }), f1((match acc & 3 { 0 -> acc, 1 -> 6, v21 -> acc }), (acc - acc), (match 81 { v22 -> v22 }), (match 1_000_003 & 3 { 0 -> acc, 1 -> 25, v23 -> 79 })))); }
+    acc ^ (match |y: Int| y * 3 + (match |y: Int| y * 3 + (acc / nz(acc)) { v24 -> v24(strLen(showInt(acc))) }) { v26 -> v26((match (if (59 < 68) { acc } else { acc }) { v25 -> modFloor(99, nz(acc)) })) })
+}
+pub fn f8(a: Int, b: Int) -> Int {
+    var acc = (((98 | 38) % nz(snd((a, a)))) + f2());
+    let v34 = (match listFold([f5(b, a), (b + a), [14, a][22 & 1]], (b * 72), |acc, x| acc ^ x) { v35 -> fst(((acc | v35), maxI(a, a))) });
+    var v36 = 0;
+    while v36 < 1 {
+        if (v36 & 1 == 0) { acc = acc + v36; } else { acc = acc - f2(); }
+        v36 = v36 + 1;
+    }
+    for v37 in 0 .. 7 { acc = acc - qmain::f4((f2() >> ((46 & a) & 63))); }
+    match acc & 3 {
+        0 -> { acc = acc + qmain::f4((unwrapOr(parseInt(showInt(86)), 0) | (a | acc))); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc - ((~unwrapOr(parseInt(showInt(b)), 0)) | maxI((0x7fff_ffff & b), (match v34 & 3 { 0 -> acc, 1 -> acc, v38 -> 7 })))
+}
+pub fn f24(a: Int) -> Int {
+    var acc = (match |y: Int| y * 3 + a { v120 -> v120(intMax()) });
+    for v121 in listMap([8, -1], |t| t * 2) {
+        if v121 > 0 { continue; }
+        acc = acc ^ snd((a, a));
+        if acc < 0 { break; }
+    }
+    let v122 = (a | acc);
+    acc ^ unwrapOr(parseInt(showInt(10)), 0)
+}
+@module m2
+use m1;
+use main;
+fn nz(x: Int) -> Int { if x == 0 { 1 } else { x } }
+pub fn f0(a: Int, b: Int) -> Int {
+    var acc = ([b, a][b & 1] ^ a);
+    let v1 = (match |y: Int| y * 3 + (match |y: Int| y * 3 + 9223372036854775807 { v2 -> v2(acc) }) { v3 -> v3(unwrapOr(parseInt(showInt(acc)), 0)) });
+    var v4 = 0;
+    while v4 < 5 {
+        if (a > v1) { acc = acc + v4; } else { acc = acc - ((56 << (acc & 63)) * listFold([v1, acc, v4], v1, |acc, x| acc ^ x)); }
+        v4 = v4 + 1;
+    }
+    acc - listFold([modFloor(11, nz(0xdead_beef)), clz(acc), (a - 22)], acc, |acc, x| acc | x)
+}
+pub fn f7(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = m1::f2();
+    if (fst(((acc % nz(d)), (match |y: Int| y * 3 + 89 { v27 -> v27(88) }))) <= [maxI(a, 95), main::f4(56)][signI(5) & 1]) { return listFold([(match unwrapOr(parseInt(showInt(c)), 0) & 3 { 0 -> listFold([c, 33, 62], 97, |acc, x| acc | x), 1 -> listFold([99, acc, a], b, |acc, x| acc ^ x), v28 -> (b + a) }), ((acc ^ acc) - (intMin() / nz(27))), modFloor((d / nz(c)), nz((match |y: Int| y * 3 + d { v29 -> v29(b) })))], [(match |y: Int| y * 3 + a { v30 -> v30(acc) }), (c * a)][unwrapOr(parseInt(showInt(a)), 0) & 1], |acc, x| acc + x); }
+    var v31 = 0;
+    while v31 < 4 {
+        if (24 & 1 == 0) { acc = acc + v31; } else { acc = acc - unwrapOr(parseInt(showInt(((40 ^ b) << (minI(b, v31) & 63)))), 0); }
+        v31 = v31 + 1;
+    }
+    acc ^ (listFold([(-80), unwrapOr(parseInt(showInt(intMax())), 0), (match |y: Int| y * 3 + d { v32 -> v32(42) })], (25 >> (b & 63)), |acc, x| acc ^ x) ^ (if (acc != acc) { main::f4(42) } else { (match 3 { v33 -> acc }) }))
+}
+pub fn f13(a: Int, b: Int, c: Int, d: Int) -> Int {
+    var acc = listFold([m1::f1(gcdI(d, b), (~c), (match c { v57 -> 2 }), listFold([50, d, b], a, |acc, x| acc ^ x)), snd((main::f4(b), (b | d))), (main::f11(66) | (match 56 & 3 { 0 -> a, 1 -> 71, v58 -> 0xdead_beef }))], main::f11((match b & 3 { 0 -> b, 1 -> b, v59 -> d })), |acc, x| acc ^ x);
+    match acc & 3 {
+        0 -> { acc = acc + m1::f1([(9223372036854775807 ^ d), main::f11(d)][(a * 75) & 1], (listFold([c, d, c], b, |acc, x| acc ^ x) * (c % nz(b))), (fst((11, a)) ^ gcdI(71, 8)), maxI(minI(a, acc), (a & c))); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc + main::f4(((81 * d) + unwrapOr(parseInt(showInt(28)), 0)))
+}
+fn f14(a: Int, b: Int, c: Int) -> Int {
+    var acc = ([intMin(), 11][a & 1] << ((87 ^ a) & 63));
+    match acc & 3 {
+        0 -> { acc = acc + fst(((b << (b & 63)), (123456789 / nz(0)))); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc ^ (match (c & b) & 3 { 0 -> unwrapOr(parseInt(showInt(47)), 0), 1 -> (97 >> (a & 63)), v60 -> (match |y: Int| y * 3 + a { v61 -> v61(v60) }) })
+}
+pub fn f17(a: Int, b: Int, c: Int) -> Int {
+    var acc = listFold([listFold([main::f11(62), divFloor(c, nz(0b1011_0110)), fst((b, 90))], listFold([36, 28, 0xdead_beef], b, |acc, x| acc ^ x), |acc, x| acc + x), popCount(unwrapOr(parseInt(showInt(a)), 0)), f7((match c & 3 { 0 -> b, 1 -> 88, v66 -> c }), (a + b), (match c & 3 { 0 -> a, 1 -> a, v67 -> c }), (match |y: Int| y * 3 + c { v68 -> v68(1) }))], ((match c & 3 { 0 -> 12, 1 -> 12, v69 -> 14 }) & (if (c != 28) { b } else { a })), |acc, x| acc - x);
+    var v70 = 0;
+    while v70 < 6 {
+        if ((acc >= a) || (c <= c)) { acc = acc + v70; } else { acc = acc - (modFloor((v70 & a), nz(main::f4(v70))) | ((-acc) >> ((if (c < b) { acc } else { b }) & 63))); }
+        v70 = v70 + 1;
+    }
+    for v71 in listMap([5, -7, 0, 7], |t| t * 2) {
+        if v71 > 0 { continue; }
+        acc = acc ^ (match (match (48 << (v71 & 63)) { v72 -> (v72 << (acc & 63)) }) & 3 { 0 -> (match |y: Int| y * 3 + unwrapOr(parseInt(showInt(c)), 0) { v74 -> v74((match v71 { v73 -> 34 })) }), 1 -> (match minI(intMin(), v71) { v75 -> (match |y: Int| y * 3 + v75 { v76 -> v76(a) }) }), v77 -> ((93 / nz(c)) & (match v71 & 3 { 0 -> acc, 1 -> v77, v78 -> acc })) });
+        if acc < 0 { break; }
+    }
+    for v79 in 0 .. 6 { acc = acc + (main::f11(minI(acc, acc)) >> (listFold([listFold([c, acc, 123456789], acc, |acc, x| acc | x), maxI(60, acc), (c | c)], (match |y: Int| y * 3 + v79 { v80 -> v80(b) }), |acc, x| acc + x) & 63)); }
+    var v81 = 0;
+    while v81 < 2 {
+        if (!(acc != c)) { acc = acc + v81; } else { acc = acc - fst((ctz((if (acc >= 66) { 72 } else { 28 })), (match snd((38, a)) { v82 -> signI(b) }))); }
+        v81 = v81 + 1;
+    }
+    acc + fst(((match (match a & 3 { 0 -> 42, 1 -> a, v83 -> v83 }) & 3 { 0 -> (match b { v84 -> b }), 1 -> (42 + c), v85 -> (88 ^ a) }), unwrapOr(parseInt(showInt((c ^ a))), 0)))
+}
+pub fn f19(a: Int, b: Int) -> Int {
+    var acc = (match |y: Int| y * 3 + 24 { v100 -> v100(b) });
+    for v101 in listMap([-2, 8, 3, -3], |t| t * 2) {
+        if v101 > 0 { continue; }
+        acc = acc ^ (intMin() ^ 18);
+        if acc < 0 { break; }
+    }
+    for v102 in 0 .. 7 { acc = acc + (intMin() << (v102 & 63)); }
+    acc - unwrapOr(parseInt(showInt(22)), 0)
+}
+pub fn f22(a: Int, b: Int) -> Int {
+    var acc = (match b & 3 { 0 -> 0xdead_beef, 1 -> 83, v112 -> 18 });
+    for v113 in 0 .. 4 { acx = acc + (v113 & a); }
+    for v114 in listMap([-3, -9, -2, 3], |t| t * 2) {
+        if v114 > 0 { continue; }
+        acc = acc ^ (v114 << (3 & 63));
+        if acc < 0 { break; }
+    }
+    match acc & 3 {
+        0 -> { acc = acc + (match acc & 3 { 0 -> 21, 1 -> a, v115 -> b }); }
+        2 -> { acc = acc * 3; }
+        _ -> {}
+    }
+    acc - snd((5, 96))
+}
+fn f26(a: Int, b: Int) -> Int {
+    var acc = (match |y: Int| y * 3 + (match |y: Int| y * 3 + (if (a == b) { 85 } else { a }) { v126 -> v126(unwrapOr(parseInt(showInt(67)), 0)) }) { v128 -> v128(f7((~b), minI(a, a), (b << (b & 63)), (match |y: Int| y * 3 + a { v127 -> v127(b) }))) });
+    for v129 in 0 .. 5 { acc = acc ^ (match |y: Int| y * 3 + (fst((a, acc)) & (47 & acc)) { v130 -> v130(divFloor(fst((v129, a)), nz((acc * 37)))) }); }
+    acc ^ listFold([(match |y: Int| y * 3 + (match |y: Int| y * 3 + a { v131 -> v131(a) }) { v132 -> v132(maxI(b, a)) }), main::f25(listFold([a, acc, a], b, |acc, x| acc + x), ctz(49), gcdI(a, a), listFold([a, b, 14], acc, |acc, x| acc + x)), [main::f25(16, acc, 14, b), (match b { v133 -> acc })][(94 - 87) & 1]], [(if (b == acc) { a } else { acc }), main::f4(76)][m1::f2() & 1], |acc, x| acc - x)
+}

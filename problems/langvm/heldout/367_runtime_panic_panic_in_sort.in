@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(listLen(sortBy([1, 2, 3], |a, b| a / (b - b)))));
+}

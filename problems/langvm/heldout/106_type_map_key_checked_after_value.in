@@ -1,0 +1,3 @@
+@module main
+fn f(m: #[Float: Nope]) -> Int { 0 }
+fn main() {}

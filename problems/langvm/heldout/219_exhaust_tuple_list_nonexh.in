@@ -1,0 +1,8 @@
+@module main
+fn f(xs: [Int], b: Bool) -> Int {
+    match (xs, b) {
+        ([], true) -> 1,
+        ([_, ..], _) -> 3,
+    }
+}
+fn main() { print("ok"); }

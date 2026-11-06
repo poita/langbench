@@ -1,0 +1,59 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+ERR 13 bad-syntax
+ERR 14 bad-syntax
+ERR 15 bad-syntax
+ERR 16 bad-syntax
+ERR 17 bad-syntax
+ERR 18 bad-syntax
+ERR 19 bad-syntax
+ERR 20 bad-syntax
+ERR 21 bad-syntax
+ERR 22 bad-syntax
+ERR 23 bad-syntax
+ERR 24 bad-syntax
+ERR 25 bad-syntax
+ERR 26 bad-syntax
+ERR 27 bad-syntax
+ERR 28 bad-syntax
+ERR 29 bad-syntax
+ERR 30 bad-syntax
+ERR 31 bad-syntax
+ERR 32 bad-syntax
+ERR 33 bad-syntax
+ERR 34 bad-syntax
+ERR 35 bad-syntax
+ERR 36 bad-syntax
+ERR 37 bad-syntax
+ERR 38 bad-syntax
+ERR 39 bad-syntax
+ERR 40 bad-syntax
+ERR 41 bad-syntax
+ERR 42 bad-syntax
+ERR 43 bad-syntax
+ERR 44 bad-syntax
+ERR 45 bad-syntax
+ERR 46 bad-syntax
+ERR 47 bad-syntax
+ERR 48 bad-syntax
+ERR 49 bad-syntax
+ERR 50 bad-syntax
+ERR 55 no-such-card
+ERR 56 no-such-card
+ERR 57 no-such-card
+8 PLAY A ~1 #21 CIN-003 A
+9 PAY A ember 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 50 cap 51 vault 20 hand 2 ash 0 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-016
+hand A 2 #23 CIN-001
+chain 1 ~1 A rite #21 0 A
+STATE END
+10 RESULT pending none

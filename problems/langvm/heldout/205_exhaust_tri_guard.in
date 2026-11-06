@@ -1,0 +1,6 @@
+@module main
+enum Tri { A, B, C(Int) }
+fn f(t: Tri) -> Int {
+    match t { A when f(B) == 2 -> 1, A -> 2, B -> 3, C(_) -> 4 }
+}
+fn main() { print(showInt(f(A))); }

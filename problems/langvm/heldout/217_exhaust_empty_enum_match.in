@@ -1,0 +1,4 @@
+@module main
+enum Void {}
+fn f(v: Void) -> Int { match v { _ -> 0 } }
+fn main() { print("ok"); }

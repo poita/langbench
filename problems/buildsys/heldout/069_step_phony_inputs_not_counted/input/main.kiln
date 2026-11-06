@@ -1,0 +1,19 @@
+phony gate = []
+step {
+    out "out/w.txt"
+    in "@gate"
+    cmd write("w\n")
+}
+step {
+    out "out/c.txt"
+    in ["@gate", "src/a.txt"]
+    cmd copy()
+}
+step {
+    out "out/m.txt"
+    out "out/m.txt"
+    in ["src/a.txt", "@gate", "src/b.txt"]
+    cmd concat()
+}
+phony all = ["out/w.txt", "out/c.txt"]
+default "@all"

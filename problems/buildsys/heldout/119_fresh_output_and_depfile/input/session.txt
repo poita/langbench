@@ -1,0 +1,14 @@
+build
+build
+delete out/doc.d
+build
+edit out/doc.d
+kiln-deps 1
+---
+build
+delete out/doc.txt
+build
+edit out/doc.txt
+x
+---
+build

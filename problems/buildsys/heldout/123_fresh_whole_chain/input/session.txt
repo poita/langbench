@@ -1,0 +1,8 @@
+build
+build
+edit src/a.txt
+b
+---
+build
+clean
+build -j 2

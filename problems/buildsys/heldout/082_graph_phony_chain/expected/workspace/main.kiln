@@ -1,0 +1,14 @@
+phony a = ["@b", "@c"]
+phony b = ["out/b.txt"]
+phony c = ["@b", "out/c.txt"]
+step {
+    out "out/b.txt"
+    cmd write("b\n")
+    cost 2
+}
+step {
+    out "out/c.txt"
+    in "@b"
+    cmd write("c\n")
+}
+default "@a"

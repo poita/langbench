@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    print(showInt(intMax() * 2));
+    print(showInt(intMin() * -1));
+    print(showInt(absI(intMin())));
+    print(showInt(-intMin()));
+}

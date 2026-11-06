@@ -1,0 +1,68 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put created
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok put created
+[21] ok put replaced
+[22] ok put replaced
+[23] ok put replaced
+[24] ok put replaced
+[25] ok put replaced
+[26] ok put replaced
+[27] ok put replaced
+[28] ok stat
+  pages 9
+  free 0
+  freehead 0
+  docs 20
+  root 4
+  height 2
+  commits 27
+  indexes 0
+  wal 69848
+[29] ok delete removed
+[30] ok delete removed
+[31] ok delete removed
+[32] ok delete removed
+[33] ok delete removed
+[34] ok delete removed
+[35] ok delete removed
+[36] ok delete removed
+[37] ok delete removed
+[38] ok delete removed
+[39] ok stat
+  pages 9
+  free 4
+  freehead 9
+  docs 10
+  root 4
+  height 2
+  commits 37
+  indexes 0
+  wal 109912
+[40] ok scan 10
+  "k00"
+  "k02"
+  "k04"
+  "k06"
+  "k08"
+  "k10"
+  "k12"
+  "k14"
+  "k16"
+  "k18"

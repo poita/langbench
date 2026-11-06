@@ -1,0 +1,53 @@
+> {"name": "vellum", "tags": ["vm", "lang"], "size": 42}
+{
+  "name": "vellum",
+  "tags": [
+    "vm",
+    "lang"
+  ],
+  "size": 42
+}
+compact: {"name":"vellum","tags":["vm","lang"],"size":42} nodes=6
+> [1, -2, [3, [4, []]], {}, true, false, null]
+[
+  1,
+  -2,
+  [
+    3,
+    [
+      4,
+      []
+    ]
+  ],
+  {},
+  true,
+  false,
+  null
+]
+compact: [1,-2,[3,[4,[]]],{},true,false,null] nodes=12
+> {"a": {"b": {"c": ["deep\n\"q\""]}}}
+{
+  "a": {
+    "b": {
+      "c": [
+        "deep\n\"q\""
+      ]
+    }
+  }
+}
+compact: {"a":{"b":{"c":["deep\n\"q\""]}}} nodes=5
+>   [  ]  
+[]
+compact: [] nodes=1
+> {"k": }
+error at 6: unexpected '}'
+> [1, 2,]
+error at 6: unexpected ']'
+> "unterminated
+error at 13: unterminated string
+> {"x": 1} trailing
+error at 9: trailing input
+> [007, -0]
+error at 1: leading zero
+> {"dup": 1, "dup": 2}
+error at 11: duplicate key "dup"

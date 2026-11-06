@@ -1,0 +1,149 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+CANATTACK #22
+LEGAL END
+11 ATTACK #21
+12 ATTACK #22
+13 PASS A
+14 PASS B
+15 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #43 #21
+CANBLOCK #43 #22
+LEGAL END
+16 UNBLOCKED #21
+17 UNBLOCKED #22
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-036 4/2 w0 c0 ready attacking kw riposte,vigil
+field A #22 LOM-028 8/8 w0 c0 ready attacking kw pierce,vigil
+field B #43 TOK-001 1/1 w0 c0 ready - kw -
+STATE END
+18 PASS A
+19 PASS B
+20 PHASE clash-riposte
+21 DAMAGE #21 B 4
+22 SPIRE B -4 26
+23 PASS A
+24 PASS B
+25 PHASE clash-damage
+26 DAMAGE #22 B 8
+27 SPIRE B -8 18
+28 PASS A
+29 PASS B
+30 PHASE clash-end
+31 PASS A
+32 PASS B
+33 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 18 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-036 4/2 w0 c0 ready - kw riposte,vigil
+field A #22 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #43 TOK-001 1/1 w0 c0 ready - kw -
+STATE END
+34 PASS A
+35 PASS B
+36 PHASE dusk-trigger
+37 PASS A
+38 PASS B
+39 PHASE dusk-discard
+40 PHASE dusk-cleanup
+41 TURN 2 B
+42 PHASE dawn
+43 EMBER A 1 1
+44 EMBER B 1 1
+45 PHASE draw
+46 DRAW B #23 TID-001
+47 PHASE main1
+48 PASS B
+49 PASS A
+50 PHASE clash-attack
+51 PHASE main2
+52 PASS B
+53 PASS A
+54 PHASE dusk-trigger
+55 PASS B
+56 PASS A
+57 PHASE dusk-discard
+58 PHASE dusk-cleanup
+59 TURN 3 A
+60 PHASE dawn
+61 EMBER A 2 2
+62 EMBER B 1 1
+63 PHASE draw
+64 DRAW A #1 CIN-001
+65 PHASE main1
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 30 ember 2 cap 2 vault 19 hand 1 ash 0 rift 0
+player B spire 18 ember 1 cap 1 vault 19 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #23 TID-001
+field A #21 CIN-036 4/2 w0 c0 ready - kw riposte,vigil
+field A #22 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #43 TOK-001 1/1 w0 c0 ready - kw -
+STATE END
+66 PASS A
+67 PASS B
+68 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+CANATTACK #22
+LEGAL END
+69 ATTACK #21
+70 PASS A
+71 PASS B
+72 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #43 #21
+LEGAL END
+73 UNBLOCKED #21
+STATE BEGIN
+turn 3 active A phase clash-block decision A priority
+player A spire 30 ember 2 cap 2 vault 19 hand 1 ash 0 rift 0
+player B spire 18 ember 1 cap 1 vault 19 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #23 TID-001
+field A #21 CIN-036 4/2 w0 c0 ready attacking kw riposte,vigil
+field A #22 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #43 TOK-001 1/1 w0 c0 ready - kw -
+STATE END
+74 PASS A
+75 PASS B
+76 PHASE clash-riposte
+77 DAMAGE #21 B 4
+78 SPIRE B -4 14
+79 PASS A
+80 PASS B
+81 PHASE clash-damage
+82 PASS A
+83 PASS B
+84 PHASE clash-end
+85 PASS A
+86 PASS B
+87 PHASE main2
+STATE BEGIN
+turn 3 active A phase main2 decision A priority
+player A spire 30 ember 2 cap 2 vault 19 hand 1 ash 0 rift 0
+player B spire 14 ember 1 cap 1 vault 19 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #23 TID-001
+field A #21 CIN-036 4/2 w0 c0 ready - kw riposte,vigil
+field A #22 LOM-028 8/8 w0 c0 ready - kw pierce,vigil
+field B #43 TOK-001 1/1 w0 c0 ready - kw -
+STATE END
+88 RESULT pending none

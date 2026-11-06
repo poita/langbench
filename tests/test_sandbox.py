@@ -21,7 +21,7 @@ def fake_repo(root):
     for slug in ("chip8", "gitrepo", "inflate"):
         p = os.path.join(root, "problems", slug)
         for rel in ["SPEC.md", "APPROACH.md", "verify.py", "tests/001/input", "tests/001/expected", "corpus/c.txt",
-                    "reference/main.py", "gen_tests.py", "bench/gen_bench.py", "oracle.py"]:
+                    "reference/main.py", "gen_tests.py", "bench/gen_bench.py", "oracle.py", "heldout/001/input"]:
             touch(os.path.join(p, rel))
     touch(os.path.join(root, "problems", "gitrepo", "SPEC.md"), "Inflate as in ../inflate/SPEC.md.")
     touch(os.path.join(root, "CONVENTIONS.md"))
@@ -43,8 +43,7 @@ class StageSandbox(unittest.TestCase):
         self.tmp.cleanup()
 
     def stage(self, **over):
-        return ir.stage_sandbox(self.repo, self.box, hidden=os.path.join(self.tmp.name, "langbench-hidden"),
-                                toolchains={"go": "go 1.27"}, overrides=over, projects=self.projects,
+        return ir.stage_sandbox(self.repo, self.box, toolchains={"go": "go 1.27"}, overrides=over, projects=self.projects,
                                 home=self.tmp.name, toolchain_roots=["/opt/ldc"])
 
     def ws(self, label):
@@ -58,6 +57,7 @@ class StageSandbox(unittest.TestCase):
         p = os.path.join(self.box, "problems", "chip8")
         for rel in ["SPEC.md", "APPROACH.md", "verify.py", "tests/001/input", "tests/001/expected", "corpus/c.txt"]:
             self.assertTrue(os.path.isfile(os.path.join(p, rel)), rel)
+        self.assertFalse(os.path.exists(os.path.join(p, "heldout")))
         for rel in ["reference", "gen_tests.py", "bench", "oracle.py"]:
             self.assertFalse(os.path.exists(os.path.join(p, rel)), rel)
 
@@ -95,7 +95,7 @@ class StageSandbox(unittest.TestCase):
         self.assertNotIn("permissions", s)
         sb = s["sandbox"]
         fs = sb["filesystem"]
-        self.assertEqual(fs["denyRead"], [home])  # box, repo and hidden tests are all under this home
+        self.assertEqual(fs["denyRead"], [home])  # box and repo are both under this home
         own_project = os.path.join(self.projects, ir.project_slug(ws))
         self.assertEqual(fs["allowRead"], [ws, own_project, "/opt/ldc"])
         text = json.dumps(s)
@@ -110,8 +110,8 @@ class StageSandbox(unittest.TestCase):
         self.assertTrue(os.path.isdir(own_project))
 
     def test_paths_outside_home_are_denied_too(self):
-        dirs = ir.read_denials(home="/home/u", box="/srv/box", repo="/home/u/lb", hidden="/data/lb-hidden")
-        self.assertEqual(dirs, ["/home/u", "/srv/box", "/data/lb-hidden"])
+        dirs = ir.read_denials(home="/home/u", box="/srv/box", repo="/data/lb")
+        self.assertEqual(dirs, ["/home/u", "/srv/box", "/data/lb"])
 
     def test_harness_files_are_read_only_and_changes_are_detected(self):
         self.stage()
@@ -128,14 +128,14 @@ class StageSandbox(unittest.TestCase):
 
     def test_refuses_a_sandbox_inside_the_repo(self):
         with self.assertRaises(SystemExit):
-            ir.stage_sandbox(self.repo, os.path.join(self.repo, "box"), hidden="/h", toolchains={})
+            ir.stage_sandbox(self.repo, os.path.join(self.repo, "box"), toolchains={})
 
     def test_refuses_a_checkout_with_uncommitted_changes(self):
         import subprocess
         subprocess.run(["git", "init", "-q", self.repo], check=True)
         with self.assertRaises(SystemExit):
             self.stage()
-        ir.stage_sandbox(self.repo, self.box, hidden="/h", toolchains={}, allow_dirty=True, projects=self.projects,
+        ir.stage_sandbox(self.repo, self.box, toolchains={}, allow_dirty=True, projects=self.projects,
                          home=self.tmp.name, toolchain_roots=[])
 
     def test_refuses_a_non_empty_destination(self):
@@ -169,16 +169,32 @@ class CleanVerify(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             ws = self.project(d, '#!/bin/sh\ncd "$(dirname "$0")" && mkdir -p build && '
                                  'printf "#!/bin/sh\\nexit 0\\n" > build/prog && chmod +x build/prog\n')
-            res = ir.verify_task(ws, "x", os.path.join(d, "scratch"), hidden="/none")
+            res = ir.verify_task(ws, "x", os.path.join(d, "scratch"), problems="/none")
             self.assertTrue(res["public_pass"], res)
             self.assertTrue(res["clean_build"])
 
     def test_a_stale_binary_does_not_pass_when_build_sh_fails(self):
         with tempfile.TemporaryDirectory() as d:
             ws = self.project(d, "#!/bin/sh\nexit 1\n")
-            res = ir.verify_task(ws, "x", os.path.join(d, "scratch"), hidden="/none")
+            res = ir.verify_task(ws, "x", os.path.join(d, "scratch"), problems="/none")
             self.assertFalse(res["clean_build"])
             self.assertFalse(res["public_pass"])
+
+
+class HeldOutVerify(unittest.TestCase):
+    RUNNER = CleanVerify.RUNNER
+    project = CleanVerify.project
+
+    def test_held_out_tests_run_from_the_problem_directory(self):
+        with tempfile.TemporaryDirectory() as d:
+            ws = self.project(d, '#!/bin/sh\ncd "$(dirname "$0")" && mkdir -p build && '
+                                 'printf "#!/bin/sh\\nexit 0\\n" > build/prog && chmod +x build/prog\n')
+            problems = os.path.join(d, "problems")
+            os.makedirs(os.path.join(problems, "x", "heldout"))
+            res = ir.verify_task(ws, "x", os.path.join(d, "scratch"), problems=problems)
+            self.assertTrue(res["hidden_pass"], res)
+            res = ir.verify_task(ws, "x", os.path.join(d, "scratch2"), problems=os.path.join(d, "none"))
+            self.assertNotIn("hidden_pass", res)
 
 
 class ImportKeepsSourcePackagesNamedBuild(unittest.TestCase):

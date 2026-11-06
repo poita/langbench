@@ -1,0 +1,19 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(so(parseInt("9223372036854775807")) ++ " " ++ so(parseInt("9223372036854775808")) ++ " " ++ so(parseInt("-9223372036854775808")));
+    print(so(parseIntRadix("ff", 16)) ++ " " ++ so(parseIntRadix("FF", 16)) ++ " " ++ so(parseIntRadix("102", 2)) ++ " " ++ so(parseIntRadix("-7f", 16)));
+    print(si(1 << 0) ++ " " ++ si(1 << 62) ++ " " ++ si(-1 >> 1) ++ " " ++ si(intMin() >> 63) ++ " " ++ si(255 >> 4));
+    print(si(12 & 10) ++ " " ++ si(12 | 10) ++ " " ++ si(12 ^ 10) ++ " " ++ si(~12));
+    print(si(intMax() + 1) ++ " " ++ si(intMin() - 1) ++ " " ++ si(intMax() * 3));
+}

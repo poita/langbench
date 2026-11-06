@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showFloat(powF(2.0, intMin())));
+}

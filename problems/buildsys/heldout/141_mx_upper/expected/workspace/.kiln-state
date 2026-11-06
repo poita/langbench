@@ -1,0 +1,41 @@
+kiln-state 1
+step out/upper_0.txt
+cmd upper()
+in src/e.txt cbf29ce484222325
+out out/upper_0.txt cbf29ce484222325
+end
+step out/upper_1.txt
+cmd upper()
+in src/n.txt dc3add5ecc4ba006
+out out/upper_1.txt bd013ea3f4dc2d06
+end
+step out/upper_2.txt
+cmd upper()
+in src/x.txt 07c7d73947cbe1de
+out out/upper_2.txt c7a020f11734473e
+end
+step out/upper_3.txt
+cmd upper()
+in src/c.txt 25fd018afddd7cc5
+out out/upper_3.txt 94b3efb1681bede5
+end
+step out/upper_4.txt
+cmd upper()
+in src/u.txt 883ac19acb748cf1
+out out/upper_4.txt a25e150f5b5ce491
+end
+step out/upper_5.txt
+cmd upper()
+in src/b.txt 1c2c1cfae3c07157
+out out/upper_5.txt 421cca66bdbf7cd7
+end
+step out/upper_pin.txt
+cmd hash()
+in out/upper_0.txt cbf29ce484222325
+in out/upper_1.txt bd013ea3f4dc2d06
+in out/upper_2.txt c7a020f11734473e
+in out/upper_3.txt 94b3efb1681bede5
+in out/upper_4.txt a25e150f5b5ce491
+in out/upper_5.txt 421cca66bdbf7cd7
+out out/upper_pin.txt fc7faba38a041c28
+end

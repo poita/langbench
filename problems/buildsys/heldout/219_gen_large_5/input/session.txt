@@ -1,0 +1,8 @@
+build
+edit src/m3/f22.txt
+hazel
+cedar
+---
+build @m16 -j 4
+touch src/m9/f20.txt
+build @m14 -j 4

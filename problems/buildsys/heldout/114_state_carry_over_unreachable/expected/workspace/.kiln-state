@@ -1,0 +1,14 @@
+kiln-state 1
+step out/a.txt
+cmd copy()
+in src/a.txt 089bdc07b544e7b2
+out out/a.txt 089bdc07b544e7b2
+end
+step out/ancient.txt
+cmd write("old")
+out out/ancient.txt 1a0fad1921d08076
+end
+step out/idle.txt
+cmd write("idle\n")
+out out/idle.txt a517343b47a0d47b
+end

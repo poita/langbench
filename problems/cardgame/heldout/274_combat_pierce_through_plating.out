@@ -1,0 +1,56 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #21
+LEGAL END
+11 EXHAUST #21
+12 ATTACK #21
+13 PASS A
+14 PASS B
+15 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #42 #21
+LEGAL END
+16 BLOCK #42 #21
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field A #21 CIN-039 4/1 w0 c0 exhausted attacking,blocked kw pierce,vanguard
+field B #42 TOK-003 1/4 w0 c0 ready blocking kw plating:2
+field B #43 LOM-039 -/- w0 c0 ready - kw -
+effect 1 ts4 B aura modify 1 1 on #42
+effect 2 ts5 B aura grant plating:1 on #42
+STATE END
+17 PASS A
+18 PASS B
+19 PHASE clash-damage
+20 PREVENT #42 2
+21 DAMAGE #21 #42 2
+22 DAMAGE #42 #21 1
+23 DESTROY #21 CIN-039
+24 PASS A
+25 PASS B
+26 PHASE clash-end
+27 PASS A
+28 PASS B
+29 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 1 rift 0
+player B spire 30 ember 0 cap 0 vault 20 hand 0 ash 0 rift 0
+field B #42 TOK-003 1/4 w2 c0 ready - kw plating:2
+field B #43 LOM-039 -/- w0 c0 ready - kw -
+ash A 1 #21 CIN-039
+effect 1 ts4 B aura modify 1 1 on #42
+effect 2 ts5 B aura grant plating:1 on #42
+STATE END
+30 RESULT pending none

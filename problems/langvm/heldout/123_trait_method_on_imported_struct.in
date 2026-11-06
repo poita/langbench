@@ -1,0 +1,8 @@
+@module main
+use o;
+trait Area { fn area(self) -> Int; }
+impl Area for o::Box { fn area(self) -> Int { self.w * self.h } }
+fn main() { print(showInt(o::mk(3, 4).area())); }
+@module o
+pub struct Box { w: Int, h: Int }
+pub fn mk(w: Int, h: Int) -> Box { Box.{ w: w, h: h } }

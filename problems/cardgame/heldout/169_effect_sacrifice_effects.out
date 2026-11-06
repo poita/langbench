@@ -1,0 +1,98 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 DSK-014 #25
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 SACRIFICE #25 TID-012
+14 DRAW A #1 CIN-001
+15 DRAW A #2 CIN-001
+16 SPENT #21 DSK-014
+17 TRIGGER A ~2 #25 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 DRAW A #3 CIN-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 49 cap 51 vault 17 hand 5 ash 2 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 LOM-036
+hand A 2 #23 DSK-032
+hand A 3 #1 CIN-001
+hand A 4 #2 CIN-001
+hand A 5 #3 CIN-001
+field A #24 TOK-001 1/1 w0 c0 ready - kw -
+field A #26 LOM-016 2/2 w0 c0 ready - kw -
+field A #27 TOK-003 0/3 w0 c0 ready - kw plating:1
+ash A 1 #25 TID-012
+ash A 2 #21 DSK-014
+STATE END
+22 PLAY A ~3 #22 LOM-036
+23 PAY A ember 5
+24 PASS A
+25 PASS B
+26 RESOLVE ~3
+27 ARRIVE #22 LOM-036
+28 TRIGGER A ~4 #22 1 #24
+29 PASS A
+30 PASS B
+31 RESOLVE ~4
+32 SACRIFICE #24 TOK-001
+33 COUNTERS #22 +3 3
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 44 cap 51 vault 17 hand 4 ash 3 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #23 DSK-032
+hand A 2 #1 CIN-001
+hand A 3 #2 CIN-001
+hand A 4 #3 CIN-001
+field A #26 LOM-016 2/2 w0 c0 ready - kw -
+field A #27 TOK-003 0/3 w0 c0 ready - kw plating:1
+field A #22 LOM-036 7/7 w0 c3 ready settling kw -
+ash A 1 #25 TID-012
+ash A 2 #21 DSK-014
+ash A 3 #24 TOK-001
+STATE END
+34 PLAY A ~5 #23 DSK-032
+35 PAY A ember 6
+36 PASS A
+37 PASS B
+38 RESOLVE ~5
+39 ARRIVE #23 DSK-032
+40 TRIGGER A ~6 #23 1 #26
+41 PASS A
+42 PASS B
+43 RESOLVE ~6
+44 SACRIFICE #26 LOM-016
+45 COUNTERS #23 +2 2
+46 TRIGGER A ~7 #26 1
+47 PASS A
+48 PASS B
+49 RESOLVE ~7
+50 CREATE #48 TOK-006 field
+51 ARRIVE #48 TOK-006
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 38 cap 51 vault 17 hand 3 ash 4 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand A 3 #3 CIN-001
+field A #27 TOK-003 0/3 w0 c0 ready - kw plating:1
+field A #22 LOM-036 7/7 w0 c3 ready settling kw -
+field A #23 DSK-032 8/7 w0 c2 ready settling kw -
+field A #48 TOK-006 0/2 w0 c0 ready settling kw -
+ash A 1 #25 TID-012
+ash A 2 #21 DSK-014
+ash A 3 #24 TOK-001
+ash A 4 #26 LOM-016
+STATE END
+52 RESULT pending none

@@ -1,0 +1,3 @@
+@module main
+fn f() -> Str { "s" }
+fn main() { let x: Int = f(); }

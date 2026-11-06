@@ -1,0 +1,10 @@
+@module main
+fn main() {
+    let t = (1, "a");
+    print(showInt(fst(t)) ++ snd(t));
+    let (a, b) = t;
+    print(showInt(a) ++ b);
+    let big = (1, 2, 3);
+    let (x, y, z) = big;
+    print(showInt(x + y + z));
+}

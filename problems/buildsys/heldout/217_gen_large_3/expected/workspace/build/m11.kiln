@@ -1,0 +1,36 @@
+let all_m11 = glob("src/m11/**/*.txt")
+let s_m11 = sort(reject(all_m11, "**/skip_*.txt"))
+let o_m11 = []
+each i, f in s_m11 {
+    when i % 3 == 0 {
+        step {
+            out "out/m11/{stem(f)}.txt"
+            in f
+            cmd copy()
+            cost 1
+        }
+    } elsewhen i % 3 == 1 {
+        step {
+            out "out/m11/{stem(f)}.txt"
+            in f
+            cmd wrap("[", "]\n")
+            cost 1
+        }
+    } otherwise {
+        step {
+            out "out/m11/{stem(f)}.txt"
+            in f
+            cmd upper()
+            cost 2
+        }
+    }
+    set o_m11 = o_m11 ++ ["out/m11/{stem(f)}.txt"]
+}
+step {
+    out "out/m11/bundle.txt"
+    in o_m11
+    cmd concat()
+    cost 4
+}
+use wrapper("m11/wrapped", "out/m11/bundle.txt", "<m11|", "|>\n", 2)
+phony m11 = ["out/m11/wrapped.txt"]

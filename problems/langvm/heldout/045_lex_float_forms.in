@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    print(showFloat(1e3));
+    print(showFloat(1.5E-2));
+    print(showFloat(1_0.2_5));
+    print(showFloatAt(0.0, 0));
+}

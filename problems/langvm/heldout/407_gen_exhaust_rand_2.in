@@ -1,0 +1,28 @@
+@module main
+enum Color { Red, Green, Blue }
+enum Shape { Dot, Seg(Int), Box(Int, Int), Tagged(Color, Shape) }
+fn dc(c: Color) -> Str { match c { Red -> "R", Green -> "G", Blue -> "B" } }
+fn ds(s: Shape) -> Str {
+    match s {
+        Dot -> ".",
+        Seg(n) -> "S" ++ showInt(n),
+        Box(a, b) -> "B" ++ showInt(a) ++ "x" ++ showInt(b),
+        Tagged(c, t) -> dc(c) ++ "<" ++ ds(t) ++ ">",
+    }
+}
+fn dopt(o: Option<Shape>) -> Str { match o { Some(s) -> "?" ++ ds(s), None -> "-" } }
+fn dl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), " ") ++ "]" }
+fn g(x0: Option<Shape>) -> Str {
+    match x0 {
+        Some(Box(1, -2)) -> "0",
+        Some(Tagged(Red, Dot)) -> "1",
+        Some(Dot) -> "2",
+        Some(_) -> "3",
+        _ -> "4",
+        Some(Dot) -> "5",
+        Some(_) -> "6",
+    }
+}
+fn main() {
+    print(g(Some(Dot)));
+}

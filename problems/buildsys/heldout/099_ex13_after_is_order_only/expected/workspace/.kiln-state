@@ -1,0 +1,10 @@
+kiln-state 1
+step out/gen.txt
+cmd copy()
+in src/a.txt 08a61e07b54dac5d
+out out/gen.txt 08a61e07b54dac5d
+end
+step out/rep.txt
+cmd write("report\n")
+out out/rep.txt 11aab68ba3164db3
+end

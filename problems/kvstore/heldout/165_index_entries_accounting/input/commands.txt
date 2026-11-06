@@ -1,0 +1,66 @@
+put "k00" {w:0}
+put "k01" {v:1}
+put "k02" {v:2}
+put "k03" {w:3}
+put "k04" {v:4}
+put "k05" {v:5}
+put "k06" {w:6}
+put "k07" {v:7}
+put "k08" {v:8}
+put "k09" {w:9}
+put "k10" {v:10}
+put "k11" {v:11}
+put "k12" {w:12}
+put "k13" {v:13}
+put "k14" {v:14}
+put "k15" {w:15}
+put "k16" {v:16}
+put "k17" {v:17}
+put "k18" {w:18}
+put "k19" {v:19}
+put "k20" {v:20}
+put "k21" {w:21}
+put "k22" {v:22}
+put "k23" {v:23}
+put "k24" {w:24}
+put "k25" {v:25}
+put "k26" {v:26}
+put "k27" {w:27}
+put "k28" {v:28}
+put "k29" {v:29}
+create index v
+indexes
+update "k00" v 0
+update "k03" v 3
+update "k06" v 6
+update "k09" v 9
+update "k12" v 12
+update "k15" v 15
+update "k18" v 18
+update "k21" v 21
+update "k24" v 24
+update "k27" v 27
+indexes
+unset "k01" v
+unset "k04" v
+unset "k07" v
+unset "k10" v
+unset "k13" v
+unset "k16" v
+unset "k19" v
+unset "k22" v
+unset "k25" v
+unset "k28" v
+indexes
+delete "k02"
+delete "k05"
+delete "k08"
+delete "k11"
+delete "k14"
+delete "k17"
+delete "k20"
+delete "k23"
+delete "k26"
+delete "k29"
+indexes
+stat

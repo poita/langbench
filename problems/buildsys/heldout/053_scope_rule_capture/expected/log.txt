@@ -1,0 +1,5 @@
+step 1: build (default) -j 3
+  run 0 1 w0 out/one.txt write("inner-one|inner\n")
+  run 0 1 w1 out/two.txt write("given|inner\n")
+  run 0 1 w2 out/three.txt write("inner-three|inner\n")
+  ok ran=3 hit=0 time=1

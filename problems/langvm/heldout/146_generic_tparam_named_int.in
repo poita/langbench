@@ -1,0 +1,8 @@
+@module main
+struct S<Int> { a: Int }
+fn id<Int>(x: Int) -> Int { x }
+fn main() {
+    print(id("text"));
+    let s = S.{ a: true };
+    print(showBool(s.a));
+}

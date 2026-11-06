@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    for d in [17, 5, -1] { print(showFloatAt(0.125, d)); }
+}

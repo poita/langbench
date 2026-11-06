@@ -1,0 +1,17 @@
+put "a" 0
+get "a"
+put "a" 00
+put "a" 007
+put "a" -0
+put "a" -007
+put "a" 10000000000000000000
+put "a" -10000000000000000000
+put "a" 0123456789
+scan limit 0
+scan limit -1
+scan limit 1
+scan limit 2147483647
+scan limit 2147483648
+scan limit 9223372036854775807
+scan limit 9223372036854775808
+scan limit -9223372036854775809

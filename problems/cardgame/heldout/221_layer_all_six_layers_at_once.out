@@ -1,0 +1,109 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 LOM-003 #26
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 COUNTERS #26 +2 2
+14 SPENT #21 LOM-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 8 cap 10 vault 20 hand 4 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 LOM-003
+hand A 2 #23 TID-022
+hand A 3 #24 CIN-011
+hand A 4 #25 DSK-039
+field A #26 TOK-003 2/5 w0 c2 ready - kw plating:1
+ash A 1 #21 LOM-003
+STATE END
+15 PLAY A ~2 #22 LOM-003 #26
+16 PAY A ember 2
+17 PASS A
+18 PASS B
+19 RESOLVE ~2
+20 COUNTERS #26 +2 4
+21 SPENT #22 LOM-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 6 cap 10 vault 20 hand 3 ash 2 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #23 TID-022
+hand A 2 #24 CIN-011
+hand A 3 #25 DSK-039
+field A #26 TOK-003 4/7 w0 c4 ready - kw plating:1
+ash A 1 #21 LOM-003
+ash A 2 #22 LOM-003
+STATE END
+22 PLAY A ~3 #23 TID-022 #26
+23 PAY A ember 2
+24 PASS A
+25 PASS B
+26 RESOLVE ~3
+27 SETBODY #26 0 1
+28 SPENT #23 TID-022
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 4 cap 10 vault 20 hand 2 ash 3 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #24 CIN-011
+hand A 2 #25 DSK-039
+field A #26 TOK-003 4/5 w0 c4 ready - kw plating:1
+ash A 1 #21 LOM-003
+ash A 2 #22 LOM-003
+ash A 3 #23 TID-022
+effect 1 ts2 A turn setbody 0 1 on #26
+STATE END
+29 PLAY A ~4 #24 CIN-011 #26
+30 PAY A ember 1
+31 PASS A
+32 PASS B
+33 RESOLVE ~4
+34 BUFF #26 2 0
+35 GRANT #26 pierce
+36 SPENT #24 CIN-011
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 3 cap 10 vault 20 hand 1 ash 4 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #25 DSK-039
+field A #26 TOK-003 6/5 w0 c4 ready - kw pierce,plating:1
+ash A 1 #21 LOM-003
+ash A 2 #22 LOM-003
+ash A 3 #23 TID-022
+ash A 4 #24 CIN-011
+effect 1 ts2 A turn setbody 0 1 on #26
+effect 2 ts3 A turn modify 2 0 on #26
+effect 3 ts4 A turn grant pierce on #26
+STATE END
+37 PLAY A ~5 #25 DSK-039 #26
+38 PAY A ember 3
+39 PASS A
+40 PASS B
+41 RESOLVE ~5
+42 SWAP #26
+43 PREVENT #26 1
+44 DAMAGE #25 #26 1
+45 SPENT #25 DSK-039
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 0 cap 10 vault 20 hand 0 ash 5 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #26 TOK-003 5/6 w1 c4 ready - kw pierce,plating:1
+ash A 1 #21 LOM-003
+ash A 2 #22 LOM-003
+ash A 3 #23 TID-022
+ash A 4 #24 CIN-011
+ash A 5 #25 DSK-039
+effect 1 ts2 A turn setbody 0 1 on #26
+effect 2 ts3 A turn modify 2 0 on #26
+effect 3 ts4 A turn grant pierce on #26
+effect 4 ts5 A turn swapstats on #26
+STATE END
+46 RESULT pending none

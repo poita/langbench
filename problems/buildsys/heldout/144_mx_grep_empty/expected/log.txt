@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 3 w0 out/grep_empty_0.txt grep("")
+  run 3 6 w0 out/grep_empty_1.txt grep("")
+  run 6 9 w0 out/grep_empty_2.txt grep("")
+  run 9 12 w0 out/grep_empty_3.txt grep("")
+  run 12 15 w0 out/grep_empty_4.txt grep("")
+  run 15 18 w0 out/grep_empty_5.txt grep("")
+  run 18 21 w0 out/grep_empty_pin.txt hash()
+  ok ran=7 hit=0 time=21
+step 2: build (default) -j 1
+  hit 0 out/grep_empty_0.txt
+  hit 0 out/grep_empty_1.txt
+  hit 0 out/grep_empty_2.txt
+  hit 0 out/grep_empty_3.txt
+  hit 0 out/grep_empty_4.txt
+  hit 0 out/grep_empty_5.txt
+  hit 0 out/grep_empty_pin.txt
+  ok ran=0 hit=7 time=0

@@ -1,0 +1,11 @@
+@module main
+enum Tri { A, B, C(Int) }
+fn f(t: Tri) -> Int {
+    match t {
+        C(0) -> 0,
+        A -> 1,
+        B -> 2,
+        A -> 3,
+    }
+}
+fn main() { print(showInt(f(A))); }

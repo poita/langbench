@@ -1,0 +1,5 @@
+@module main
+trait Pretty { fn pretty(self) -> Str; }
+impl Pretty for Int { fn pretty(self) -> Str { showInt(self) } }
+impl<A, B> Pretty for (A, B) { fn pretty(self) -> Str { "pair" } }
+fn main() { print(1.pretty()); }

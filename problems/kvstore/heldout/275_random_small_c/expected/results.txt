@@ -1,0 +1,212 @@
+[1] error not-found
+[2] error not-found
+[3] error not-found
+[4] ok find 0 plan scan
+[5] ok scan 0
+[6] error not-found
+[7] error not-found
+[8] error not-found
+[9] ok put created
+[10] error not-found
+[11] ok put created
+[12] ok put created
+[13] ok find 1 plan scan
+  "k00018" = {"age":18,"name":"n15"}
+[14] error not-found
+[15] ok checkpoint pages 2
+[16] ok put created
+[17] error not-found
+[18] ok scan 4
+  "k00035" = {"age":11,"name":"n06"}
+  "k00023" = {"age":12,"nest":{"deep":1},"tag":[1,2]}
+  "k00018" = {"age":18,"name":"n15"}
+  "k00015" = -457
+[19] ok begin
+[20] ok put created
+[21] error not-found
+[22] ok rollback
+[23] ok update updated
+[24] ok find 0 plan scan
+[25] ok put created
+[26] ok put created
+[27] ok scan 3
+  "k00015"
+  "k00017"
+  "k00018"
+[28] ok checkpoint pages 2
+[29] ok begin
+[30] error index-missing
+[31] ok put created
+[32] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 7
+  root 2
+  height 1
+  commits 7
+  indexes 0
+  wal 32
+[33] ok put created
+[34] ok indexes 0
+[35] ok find 0 plan scan
+[36] error not-found
+[37] ok get value
+  {"age":11,"name":"n06"}
+[38] ok put replaced
+[39] error txn-active
+[40] ok put created
+[41] ok commit 8 frames 2
+[42] error not-found
+[43] ok find 0 plan scan
+[44] ok put created
+[45] ok put created
+[46] ok scan 0
+[47] error not-found
+[48] ok put created
+[49] ok put created
+[50] ok create index age entries 6
+[51] ok put replaced
+[52] error not-found
+[53] ok scan 0
+[54] error not-found
+[55] ok find 0 plan scan
+[56] error not-found
+[57] ok find 0 plan scan
+[58] ok put created
+[59] ok delete removed
+[60] error not-found
+[61] error not-found
+[62] ok delete removed
+[63] ok put created
+[64] ok put replaced
+[65] error no-field
+[66] ok put replaced
+[67] ok put replaced
+[68] ok put created
+[69] ok checkpoint pages 7
+[70] ok put replaced
+[71] ok put created
+[72] ok delete removed
+[73] error not-found
+[74] ok put created
+[75] ok put created
+[76] ok stat
+  pages 8
+  free 1
+  freehead 3
+  docs 16
+  root 7
+  height 2
+  commits 27
+  indexes 1
+  wal 19016
+[77] ok put replaced
+[78] ok begin
+[79] ok put replaced
+[80] ok put replaced
+[81] ok scan 3
+  "k00035" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+  "k00030" = {"age":23,"name":"n19","nest":{"deep":9}}
+  "k00028" = {"name":"n24","tag":null}
+[82] ok put created
+[83] ok put replaced
+[84] ok put created
+[85] ok find 0 plan scan
+[86] ok put replaced
+[87] ok put created
+[88] ok put created
+[89] ok update updated
+[90] error not-found
+[91] ok put created
+[92] ok put replaced
+[93] ok put replaced
+[94] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21]
+[95] ok delete removed
+[96] ok put replaced
+[97] ok delete removed
+[98] ok update updated
+[99] ok put created
+[100] ok put created
+[101] ok find 0 plan scan
+[102] error no-field
+[103] ok scan 4
+  "k00011" = {"age":36,"name":"n02"}
+  "k00012" = [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+  "k00013" = -168
+  "k00014" = "sssssss"
+[104] ok update updated
+[105] ok find 0 plan scan
+[106] ok put created
+[107] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14]
+[108] ok find 1 plan scan
+  "k00002" = {"age":22,"nest":{"deep":1},"tag":[1,2]}
+[109] ok put replaced
+[110] error txn-active
+[111] error not-found
+[112] ok rollback
+[113] ok put created
+[114] ok put replaced
+[115] ok put created
+[116] ok put created
+[117] ok put created
+[118] ok put replaced
+[119] ok indexes 1
+  0 age root 4 entries 10
+[120] ok put replaced
+[121] ok scan 2
+  "k00008"
+  "k00007"
+[122] ok checkpoint pages 11
+[123] error not-found
+[124] ok put created
+[125] ok scan 2
+  "k00001"
+  "k00002"
+[126] ok put replaced
+[127] ok begin
+[128] ok put replaced
+[129] ok indexes 1
+  0 age root 4 entries 10
+[130] ok delete removed
+[131] ok put replaced
+[132] error not-found
+[133] ok put created
+[134] ok find 0 plan scan
+[135] ok scan 0
+[136] ok create index nest.deep entries 6
+[137] error not-found
+[138] ok put created
+[139] ok put replaced
+[140] ok delete removed
+[141] ok put replaced
+[142] ok put replaced
+[143] error not-found
+[144] ok commit 38 frames 8
+[145] error not-found
+[146] error not-found
+[147] ok put replaced
+[148] error not-found
+[149] error not-found
+[150] ok put replaced
+[151] ok stat
+  pages 12
+  free 3
+  freehead 3
+  docs 21
+  root 7
+  height 2
+  commits 40
+  indexes 2
+  wal 21112
+[152] ok indexes 2
+  0 age root 4 entries 10
+  1 nest.deep root 12 entries 5
+[153] ok scan 5
+  "k00002"
+  "k00003"
+  "k00007"
+  "k00008"
+  "k00011"

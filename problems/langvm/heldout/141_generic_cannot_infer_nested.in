@@ -1,0 +1,2 @@
+@module main
+fn main() { let xs: [Int] = []; push(xs, listNew()); }

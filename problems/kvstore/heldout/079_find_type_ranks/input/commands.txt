@@ -1,0 +1,27 @@
+put "a" {v:null}
+put "b" {v:false}
+put "c" {v:true}
+put "d" {v:-1}
+put "e" {v:0}
+put "f" {v:1}
+put "g" {v:""}
+put "h" {v:"z"}
+put "i" {v:[]}
+put "j" {v:{}}
+find v >= null
+find v <= null
+find v > false
+find v < true
+find v >= -1
+find v <= 1
+find v >= ""
+find v < "z"
+create index v
+find v >= null
+find v > false
+find v >= -1
+find v >= ""
+find v < "z"
+find v == null
+indexes
+stat

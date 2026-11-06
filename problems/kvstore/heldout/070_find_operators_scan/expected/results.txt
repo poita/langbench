@@ -1,0 +1,82 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok find 2 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u3" = {"age":36,"name":"cy","ok":true}
+[11] ok find 6 plan scan
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u4" = {"age":null,"name":"dee"}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u6" = {"age":{"x":1},"name":"fay"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}
+[12] ok find 2 plan scan
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u8" = {"age":-5,"name":"hal"}
+[13] ok find 4 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u8" = {"age":-5,"name":"hal"}
+[14] ok find 0 plan scan
+[15] ok find 2 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u3" = {"age":36,"name":"cy","ok":true}
+[16] ok find 1 plan scan
+  "u4" = {"age":null,"name":"dee"}
+[17] ok find 7 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u6" = {"age":{"x":1},"name":"fay"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}
+[18] ok find 0 plan scan
+[19] ok find 1 plan scan
+  "u4" = {"age":null,"name":"dee"}
+[20] ok find 1 plan scan
+  "u5" = {"age":[1,2],"name":"eve"}
+[21] ok find 1 plan scan
+  "u6" = {"age":{"x":1},"name":"fay"}
+[22] ok find 0 plan scan
+[23] ok find 1 plan scan
+  "u9" = {"age":"36","name":"ivy"}
+[24] ok find 2 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u3" = {"age":36,"name":"cy","ok":true}
+[25] ok find 1 plan scan
+  "u2" = {"age":29,"name":"bob","ok":false}
+[26] ok find 3 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+[27] ok find 8 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u4" = {"age":null,"name":"dee"}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u6" = {"age":{"x":1},"name":"fay"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}
+[28] ok find 1 plan scan
+  "u7" = {"name":"gus"}
+[29] ok find 1 plan scan
+  "u6" = {"age":{"x":1},"name":"fay"}
+[30] ok find 8 plan scan
+  "u1" = {"age":36,"name":"ada","ok":true}
+  "u2" = {"age":29,"name":"bob","ok":false}
+  "u3" = {"age":36,"name":"cy","ok":true}
+  "u4" = {"age":null,"name":"dee"}
+  "u5" = {"age":[1,2],"name":"eve"}
+  "u7" = {"name":"gus"}
+  "u8" = {"age":-5,"name":"hal"}
+  "u9" = {"age":"36","name":"ivy"}

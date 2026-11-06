@@ -1,0 +1,8 @@
+step 1: build (default) -j 2
+  hit 0 out/one.txt
+  hit 0 out/doc.txt
+  ok ran=0 hit=2 time=0
+step 2: build (default) -j 1
+  hit 0 out/one.txt
+  hit 0 out/doc.txt
+  ok ran=0 hit=2 time=0

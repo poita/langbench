@@ -1,0 +1,17 @@
+[1] ok put created
+[2] ok begin
+[3] error txn-active
+[4] ok put created
+[5] error txn-active
+[6] ok commit 2 frames 2
+[7] ok checkpoint pages 2
+[8] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 2
+  root 2
+  height 1
+  commits 2
+  indexes 0
+  wal 32

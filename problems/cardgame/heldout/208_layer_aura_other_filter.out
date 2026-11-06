@@ -1,0 +1,20 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #21 NEU-026 3/3 w0 c0 ready - kw -
+field A #22 NEU-026 3/3 w0 c0 ready - kw -
+field A #23 TOK-001 3/3 w0 c0 ready - kw -
+field B #44 NEU-026 2/2 w0 c0 ready - kw -
+effect 1 ts2 A aura modify 1 1 on #22,#23
+effect 2 ts4 A aura modify 1 1 on #21,#23
+effect 3 ts7 B aura modify 1 1 on -
+STATE END
+8 RESULT pending none

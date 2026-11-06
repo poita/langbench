@@ -1,0 +1,6 @@
+@module main
+fn main() {
+    var a = 1;
+    let f = || { let g = || { a = 2; }; g() };
+    f();
+}

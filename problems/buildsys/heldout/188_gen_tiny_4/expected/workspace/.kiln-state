@@ -1,0 +1,55 @@
+kiln-state 1
+step out/all.txt
+cmd count_lines()
+in out/m0/bundle.txt dd89cd5b62ccac34
+in out/m1/bundle.txt 25138fa64fdd6034
+out out/all.txt 47004d32b1cf9c93
+end
+step out/m0/bundle.txt
+cmd concat()
+in out/m0/f0.txt 9a6dec9114a57ff1
+in out/m0/f1.txt a045d4198a019ab2
+in out/m0/new0.txt e83bb3d7aa8d4745
+out out/m0/bundle.txt dd89cd5b62ccac34
+end
+step out/m0/f0.txt
+cmd upper()
+in src/m0/f0.txt 5cd35fd8486b9fd1
+out out/m0/f0.txt 9a6dec9114a57ff1
+end
+step out/m0/f1.txt
+cmd number()
+in src/m0/f1.txt 1c8f7e8d56f7cad1
+out out/m0/f1.txt a045d4198a019ab2
+end
+step out/m0/new0.txt
+cmd upper()
+in src/m0/new0.txt 697f6d7dd7fd6d85
+out out/m0/new0.txt e83bb3d7aa8d4745
+end
+step out/m0/wrapped.txt
+cmd wrap("<m0|", "|>\n")
+in out/m0/bundle.txt dd89cd5b62ccac34
+out out/m0/wrapped.txt 08077e8b8cb9c52d
+end
+step out/m1/bundle.txt
+cmd hash()
+in out/m1/f0.txt 5e65f480e9208e39
+in out/m1/f1.txt cbf29ce484222325
+out out/m1/bundle.txt 25138fa64fdd6034
+end
+step out/m1/f0.txt
+cmd wrap("[", "]\n")
+in src/m1/f0.txt 7a5fe9f5023922a5
+out out/m1/f0.txt 5e65f480e9208e39
+end
+step out/m1/f1.txt
+cmd reverse_lines()
+in src/m1/f1.txt cbf29ce484222325
+out out/m1/f1.txt cbf29ce484222325
+end
+step out/m1/wrapped.txt
+cmd wrap("<m1|", "|>\n")
+in out/m1/bundle.txt 25138fa64fdd6034
+out out/m1/wrapped.txt 1396e67a99233a6e
+end

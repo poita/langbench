@@ -1,0 +1,12 @@
+build
+touch src/m1/f6.txt
+build @m5 -j 8
+touch src/m11/f0.txt
+build @m2
+edit src/m0/sub/g3.txt
+zeta
+theta
+---
+build @m0
+delete src/m11/sub/g3.txt
+build @m6 -j 3

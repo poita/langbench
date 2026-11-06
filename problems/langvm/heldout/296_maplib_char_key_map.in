@@ -1,0 +1,8 @@
+@module main
+fn main() {
+    var m = #['a': 1];
+    m['b'] = 2;
+    for k in keysOf(m) { emit(showChar(k)); }
+    print("");
+    print(showBool(mapHas(m, 'a')));
+}

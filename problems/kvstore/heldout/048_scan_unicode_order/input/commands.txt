@@ -1,0 +1,9 @@
+put "z" 1
+put "é" 2
+put "中" 3
+put "😀" 4
+put "a" 5
+scan keys
+scan reverse keys
+scan from "é" keys
+scan to "中" keys

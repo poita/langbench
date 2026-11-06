@@ -1,0 +1,9 @@
+rule ping(n) {
+    use pong(n + 1)
+}
+rule pong(n) {
+    when n < 1000 {
+        use ping(n + 1)
+    }
+}
+use ping(1)

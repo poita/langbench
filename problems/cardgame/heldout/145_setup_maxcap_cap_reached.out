@@ -1,0 +1,138 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+11 PHASE main2
+12 PASS A
+13 PASS B
+14 PHASE dusk-trigger
+15 PASS A
+16 PASS B
+17 PHASE dusk-discard
+18 PHASE dusk-cleanup
+19 TURN 2 B
+20 PHASE dawn
+21 EMBER A 1 1
+22 EMBER B 1 1
+23 PHASE draw
+24 DRAW B #11 CIN-001
+25 PHASE main1
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 25 ember 1 cap 1 vault 10 hand 0 ash 0 rift 0
+player B spire 25 ember 1 cap 1 vault 9 hand 1 ash 0 rift 0
+hand B 1 #11 CIN-001
+STATE END
+26 PASS B
+27 PASS A
+28 PHASE clash-attack
+29 PHASE main2
+30 PASS B
+31 PASS A
+32 PHASE dusk-trigger
+33 PASS B
+34 PASS A
+35 PHASE dusk-discard
+36 PHASE dusk-cleanup
+37 TURN 3 A
+38 PHASE dawn
+39 EMBER A 2 2
+40 EMBER B 1 1
+41 PHASE draw
+42 DRAW A #1 CIN-001
+43 PHASE main1
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 25 ember 2 cap 2 vault 9 hand 1 ash 0 rift 0
+player B spire 25 ember 1 cap 1 vault 9 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #11 CIN-001
+STATE END
+44 PASS A
+45 PASS B
+46 PHASE clash-attack
+47 PHASE main2
+48 PASS A
+49 PASS B
+50 PHASE dusk-trigger
+51 PASS A
+52 PASS B
+53 PHASE dusk-discard
+54 PHASE dusk-cleanup
+55 TURN 4 B
+56 PHASE dawn
+57 EMBER A 2 2
+58 EMBER B 2 2
+59 PHASE draw
+60 DRAW B #12 CIN-001
+61 PHASE main1
+STATE BEGIN
+turn 4 active B phase main1 decision B priority
+player A spire 25 ember 2 cap 2 vault 9 hand 1 ash 0 rift 0
+player B spire 25 ember 2 cap 2 vault 8 hand 2 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #11 CIN-001
+hand B 2 #12 CIN-001
+STATE END
+62 PASS B
+63 PASS A
+64 PHASE clash-attack
+65 PHASE main2
+66 PASS B
+67 PASS A
+68 PHASE dusk-trigger
+69 PASS B
+70 PASS A
+71 PHASE dusk-discard
+72 PHASE dusk-cleanup
+73 TURN 5 A
+74 PHASE dawn
+75 EMBER A 2 2
+76 EMBER B 2 2
+77 PHASE draw
+78 DRAW A #2 CIN-001
+79 PHASE main1
+STATE BEGIN
+turn 5 active A phase main1 decision A priority
+player A spire 25 ember 2 cap 2 vault 8 hand 2 ash 0 rift 0
+player B spire 25 ember 2 cap 2 vault 8 hand 2 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand B 1 #11 CIN-001
+hand B 2 #12 CIN-001
+STATE END
+80 PASS A
+81 PASS B
+82 PHASE clash-attack
+83 PHASE main2
+84 PASS A
+85 PASS B
+86 PHASE dusk-trigger
+87 PASS A
+88 PASS B
+89 PHASE dusk-discard
+90 PHASE dusk-cleanup
+91 TURN 6 B
+92 PHASE dawn
+93 EMBER A 2 2
+94 EMBER B 2 2
+95 PHASE draw
+96 DRAW B #13 CIN-001
+97 PHASE main1
+STATE BEGIN
+turn 6 active B phase main1 decision B priority
+player A spire 25 ember 2 cap 2 vault 8 hand 2 ash 0 rift 0
+player B spire 25 ember 2 cap 2 vault 7 hand 3 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+hand B 1 #11 CIN-001
+hand B 2 #12 CIN-001
+hand B 3 #13 CIN-001
+STATE END
+98 RESULT pending none

@@ -1,0 +1,361 @@
+@module main
+use lex;
+use ast;
+use eval;
+
+fn main() {
+    let progs = [
+        "let x = 3; let y = x * (2 + 4); print y;",
+        "let a = 10; while a > 0 { a = a - 3; } print a;",
+        "let s = 0; let i = 1; while i <= 10 { s = s + i; i = i + 1; } print s;",
+        "print 1 + 2 * 3 - 4 / 2;",
+        "let b = 1; if b { print 42; } else { print 0; }",
+        "print undefinedVar;",
+        "print 1 / 0;",
+        "let q = ;",
+    ];
+    for p in progs {
+        emit(padRight(p, 46, '.'));
+        emit(" => ");
+        match eval::runProgram(p) {
+            Ok(out) -> print(out),
+            Err(e) -> print("error: " ++ e),
+        }
+    }
+}
+@module lex
+pub enum Tok {
+    Num(Int),
+    Name(Str),
+    Sym(Str),
+    Kw(Str),
+}
+
+pub fn isKeyword(s: Str) -> Bool {
+    listContains(["let", "print", "while", "if", "else"], s)
+}
+
+pub fn tokenize(src: Str) -> Result<[Tok], Str> {
+    var out: [Tok] = listNew();
+    var i = 0;
+    let n = strLen(src);
+    while i < n {
+        let c = charAt(src, i);
+        if isSpace(c) {
+            i = i + 1;
+        } else if isDigit(c) {
+            var v = 0;
+            while i < n && isDigit(charAt(src, i)) {
+                v = v * 10 + (ord(charAt(src, i)) - 48);
+                i = i + 1;
+            }
+            push(out, Num(v));
+        } else if isAlpha(c) || c == '_' {
+            var j = i;
+            while j < n && (isAlnum(charAt(src, j)) || charAt(src, j) == '_') {
+                j = j + 1;
+            }
+            let word = substr(src, i, j);
+            if isKeyword(word) { push(out, Kw(word)); } else { push(out, Name(word)); }
+            i = j;
+        } else {
+            let two = if i + 1 < n { substr(src, i, i + 2) } else { "" };
+            if listContains(["<=", ">=", "==", "!="], two) {
+                push(out, Sym(two));
+                i = i + 2;
+            } else if listContains(["+", "-", "*", "/", "(", ")", "{", "}", ";", "=", "<", ">"], showChar(c)) {
+                push(out, Sym(showChar(c)));
+                i = i + 1;
+            } else {
+                return Err("bad character " ++ quoteChar(c));
+            }
+        }
+    }
+    Ok(out)
+}
+@module ast
+pub enum Expr {
+    Lit(Int),
+    Var(Str),
+    Bin(Str, Expr, Expr),
+}
+
+pub enum Stmt {
+    Let(Str, Expr),
+    Assign(Str, Expr),
+    Print(Expr),
+    While(Expr, [Stmt]),
+    If(Expr, [Stmt], [Stmt]),
+}
+@module eval
+use lex;
+use ast;
+
+struct Parser { toks: [lex::Tok], pos: [Int] }
+
+fn peek(p: Parser) -> Option<lex::Tok> {
+    let i = p.pos[0];
+    if i < listLen(p.toks) { Some(p.toks[i]) } else { None }
+}
+
+fn bump(p: Parser) { p.pos[0] = p.pos[0] + 1; }
+
+fn eatSym(p: Parser, s: Str) -> Bool {
+    match peek(p) {
+        Some(lex::Sym(t)) -> if t == s { bump(p); true } else { false },
+        _ -> false,
+    }
+}
+
+fn parseStmts(p: Parser, stop: Bool) -> Result<[ast::Stmt], Str> {
+    var out: [ast::Stmt] = listNew();
+    while true {
+        match peek(p) {
+            None -> { return Ok(out); },
+            Some(lex::Sym("}")) -> { if stop { return Ok(out); } },
+            _ -> {},
+        }
+        match parseStmt(p) {
+            Ok(s) -> push(out, s),
+            Err(e) -> { return Err(e); },
+        }
+    }
+    Ok(out)
+}
+
+fn parseBlock(p: Parser) -> Result<[ast::Stmt], Str> {
+    if !eatSym(p, "{") { return Err("expected {"); }
+    let body = parseStmts(p, true);
+    match body {
+        Err(e) -> { return Err(e); },
+        Ok(_) -> {},
+    }
+    if !eatSym(p, "}") { return Err("expected }"); }
+    body
+}
+
+fn parseStmt(p: Parser) -> Result<ast::Stmt, Str> {
+    match peek(p) {
+        Some(lex::Kw("let")) -> {
+            bump(p);
+            match peek(p) {
+                Some(lex::Name(n)) -> {
+                    bump(p);
+                    if !eatSym(p, "=") { return Err("expected ="); }
+                    match parseExpr(p, 0) {
+                        Ok(e) -> {
+                            if !eatSym(p, ";") { return Err("expected ;"); }
+                            Ok(ast::Let(n, e))
+                        },
+                        Err(e) -> Err(e),
+                    }
+                },
+                _ -> Err("expected a name after let"),
+            }
+        },
+        Some(lex::Kw("print")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(e) -> {
+                    if !eatSym(p, ";") { return Err("expected ;"); }
+                    Ok(ast::Print(e))
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        Some(lex::Kw("while")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(cond) -> match parseBlock(p) {
+                    Ok(body) -> Ok(ast::While(cond, body)),
+                    Err(e) -> Err(e),
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        Some(lex::Kw("if")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(cond) -> match parseBlock(p) {
+                    Ok(then) -> {
+                        var els: [ast::Stmt] = listNew();
+                        match peek(p) {
+                            Some(lex::Kw("else")) -> {
+                                bump(p);
+                                match parseBlock(p) {
+                                    Ok(b) -> { els = b; },
+                                    Err(e) -> { return Err(e); },
+                                }
+                            },
+                            _ -> {},
+                        }
+                        Ok(ast::If(cond, then, els))
+                    },
+                    Err(e) -> Err(e),
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        Some(lex::Name(n)) -> {
+            bump(p);
+            if !eatSym(p, "=") { return Err("expected = after " ++ n); }
+            match parseExpr(p, 0) {
+                Ok(e) -> {
+                    if !eatSym(p, ";") { return Err("expected ;"); }
+                    Ok(ast::Assign(n, e))
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        _ -> Err("expected a statement"),
+    }
+}
+
+fn prec(s: Str) -> Int {
+    if s == "<" || s == ">" || s == "<=" || s == ">=" || s == "==" || s == "!=" { 1 }
+    else if s == "+" || s == "-" { 2 }
+    else if s == "*" || s == "/" { 3 }
+    else { -1 }
+}
+
+fn parseExpr(p: Parser, minPrec: Int) -> Result<ast::Expr, Str> {
+    var left = match parsePrimary(p) {
+        Ok(e) -> e,
+        Err(e) -> { return Err(e); },
+    };
+    while true {
+        let op = match peek(p) {
+            Some(lex::Sym(s)) -> s,
+            _ -> "",
+        };
+        let pr = prec(op);
+        if pr < 0 || pr < minPrec { return Ok(left); }
+        bump(p);
+        match parseExpr(p, pr + 1) {
+            Ok(right) -> { left = ast::Bin(op, left, right); },
+            Err(e) -> { return Err(e); },
+        }
+    }
+    Ok(left)
+}
+
+fn parsePrimary(p: Parser) -> Result<ast::Expr, Str> {
+    match peek(p) {
+        Some(lex::Num(v)) -> { bump(p); Ok(ast::Lit(v)) },
+        Some(lex::Name(n)) -> { bump(p); Ok(ast::Var(n)) },
+        Some(lex::Sym("(")) -> {
+            bump(p);
+            match parseExpr(p, 0) {
+                Ok(e) -> {
+                    if !eatSym(p, ")") { return Err("expected )"); }
+                    Ok(e)
+                },
+                Err(e) -> Err(e),
+            }
+        },
+        _ -> Err("expected an expression"),
+    }
+}
+
+struct Env { vars: #[Str: Int], out: [Str] }
+
+fn evalExpr(e: ast::Expr, env: Env) -> Result<Int, Str> {
+    match e {
+        ast::Lit(v) -> Ok(v),
+        ast::Var(n) -> match mapGet(env.vars, n) {
+            Some(v) -> Ok(v),
+            None -> Err("unbound " ++ n),
+        },
+        ast::Bin(op, l, r) -> match evalExpr(l, env) {
+            Err(m) -> Err(m),
+            Ok(a) -> match evalExpr(r, env) {
+                Err(m) -> Err(m),
+                Ok(b) -> applyOp(op, a, b),
+            },
+        },
+    }
+}
+
+fn applyOp(op: Str, a: Int, b: Int) -> Result<Int, Str> {
+    if op == "+" { Ok(a + b) }
+    else if op == "-" { Ok(a - b) }
+    else if op == "*" { Ok(a * b) }
+    else if op == "/" { if b == 0 { Err("division by zero") } else { Ok(a / b) } }
+    else if op == "<" { Ok(boolToInt(a < b)) }
+    else if op == ">" { Ok(boolToInt(a > b)) }
+    else if op == "<=" { Ok(boolToInt(a <= b)) }
+    else if op == ">=" { Ok(boolToInt(a >= b)) }
+    else if op == "==" { Ok(boolToInt(a == b)) }
+    else if op == "!=" { Ok(boolToInt(a != b)) }
+    else { Err("bad operator " ++ op) }
+}
+
+fn boolToInt(b: Bool) -> Int { if b { 1 } else { 0 } }
+
+fn execAll(stmts: [ast::Stmt], env: Env) -> Option<Str> {
+    for s in stmts {
+        match exec(s, env) {
+            Some(e) -> { return Some(e); },
+            None -> {},
+        }
+    }
+    None
+}
+
+fn exec(s: ast::Stmt, env: Env) -> Option<Str> {
+    match s {
+        ast::Let(n, e) -> match evalExpr(e, env) {
+            Ok(v) -> { env.vars[n] = v; None },
+            Err(m) -> Some(m),
+        },
+        ast::Assign(n, e) -> if !mapHas(env.vars, n) { Some("unbound " ++ n) } else {
+            match evalExpr(e, env) {
+                Ok(v) -> { env.vars[n] = v; None },
+                Err(m) -> Some(m),
+            }
+        },
+        ast::Print(e) -> match evalExpr(e, env) {
+            Ok(v) -> { push(env.out, showInt(v)); None },
+            Err(m) -> Some(m),
+        },
+        ast::While(cond, body) -> {
+            var guard = 0;
+            while true {
+                match evalExpr(cond, env) {
+                    Err(m) -> { return Some(m); },
+                    Ok(v) -> if v == 0 { return None; },
+                }
+                guard = guard + 1;
+                if guard > 1000 { return Some("loop limit"); }
+                match execAll(body, env) {
+                    Some(m) -> { return Some(m); },
+                    None -> {},
+                }
+            }
+            None
+        },
+        ast::If(cond, then, els) -> match evalExpr(cond, env) {
+            Err(m) -> Some(m),
+            Ok(v) -> if v != 0 { execAll(then, env) } else { execAll(els, env) },
+        },
+    }
+}
+
+pub fn runProgram(src: Str) -> Result<Str, Str> {
+    match lex::tokenize(src) {
+        Err(e) -> Err(e),
+        Ok(toks) -> {
+            let p = Parser.{ toks: toks, pos: [0] };
+            match parseStmts(p, false) {
+                Err(e) -> Err(e),
+                Ok(stmts) -> {
+                    let env = Env.{ vars: mapNew(), out: listNew() };
+                    match execAll(stmts, env) {
+                        Some(e) -> Err(e),
+                        None -> Ok(strJoin(env.out, " ")),
+                    }
+                },
+            }
+        },
+    }
+}

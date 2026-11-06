@@ -1,0 +1,41 @@
+kiln-state 1
+step out/indent_zero_0.txt
+cmd indent(0)
+in src/e.txt cbf29ce484222325
+out out/indent_zero_0.txt cbf29ce484222325
+end
+step out/indent_zero_1.txt
+cmd indent(0)
+in src/n.txt dc3add5ecc4ba006
+out out/indent_zero_1.txt dc3add5ecc4ba006
+end
+step out/indent_zero_2.txt
+cmd indent(0)
+in src/x.txt 07c7d73947cbe1de
+out out/indent_zero_2.txt 04748a54ff70bb3c
+end
+step out/indent_zero_3.txt
+cmd indent(0)
+in src/c.txt 25fd018afddd7cc5
+out out/indent_zero_3.txt 25fd018afddd7cc5
+end
+step out/indent_zero_4.txt
+cmd indent(0)
+in src/u.txt 883ac19acb748cf1
+out out/indent_zero_4.txt 883ac19acb748cf1
+end
+step out/indent_zero_5.txt
+cmd indent(0)
+in src/b.txt 1c2c1cfae3c07157
+out out/indent_zero_5.txt 1c2c1cfae3c07157
+end
+step out/indent_zero_pin.txt
+cmd hash()
+in out/indent_zero_0.txt cbf29ce484222325
+in out/indent_zero_1.txt dc3add5ecc4ba006
+in out/indent_zero_2.txt 04748a54ff70bb3c
+in out/indent_zero_3.txt 25fd018afddd7cc5
+in out/indent_zero_4.txt 883ac19acb748cf1
+in out/indent_zero_5.txt 1c2c1cfae3c07157
+out out/indent_zero_pin.txt 5c42861cb86bbf4e
+end

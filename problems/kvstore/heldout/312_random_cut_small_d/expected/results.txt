@@ -1,0 +1,168 @@
+[1] ok stat
+  pages 15
+  free 3
+  freehead 12
+  docs 13
+  root 9
+  height 2
+  commits 34
+  indexes 0
+  wal 4248
+[2] ok stat
+  pages 15
+  free 3
+  freehead 12
+  docs 13
+  root 9
+  height 2
+  commits 34
+  indexes 0
+  wal 4248
+[3] ok delete removed
+[4] ok put replaced
+[5] ok put created
+[6] ok put replaced
+[7] ok put replaced
+[8] ok put replaced
+[9] ok put created
+[10] ok put replaced
+[11] ok put replaced
+[12] ok stat
+  pages 15
+  free 4
+  freehead 14
+  docs 14
+  root 9
+  height 2
+  commits 43
+  indexes 0
+  wal 33808
+[13] ok put replaced
+[14] ok scan 3
+  "k00012"
+  "k00011"
+  "k00010"
+[15] ok stat
+  pages 15
+  free 3
+  freehead 6
+  docs 14
+  root 9
+  height 2
+  commits 44
+  indexes 0
+  wal 36976
+[16] ok put replaced
+[17] ok begin
+[18] ok commit 46 frames 1
+[19] ok begin
+[20] ok put replaced
+[21] ok delete removed
+[22] ok put replaced
+[23] ok update updated
+[24] ok delete removed
+[25] ok put created
+[26] ok put replaced
+[27] ok stat
+  pages 15
+  free 3
+  freehead 14
+  docs 13
+  root 9
+  height 2
+  commits 46
+  indexes 0
+  wal 42264
+[28] ok find 0 plan scan
+[29] ok get value
+  [1,2,3,4,5,6,7,8,9,10]
+[30] ok put replaced
+[31] ok put replaced
+[32] ok commit 47 frames 8
+[33] error not-found
+[34] ok checkpoint pages 10
+[35] error not-found
+[36] ok put replaced
+[37] ok put replaced
+[38] ok delete removed
+[39] ok put created
+[40] ok put replaced
+[41] ok checkpoint pages 6
+[42] error not-object
+[43] ok put replaced
+[44] ok put replaced
+[45] ok begin
+[46] ok put created
+[47] ok commit 55 frames 2
+[48] ok put replaced
+[49] ok delete removed
+[50] ok delete removed
+[51] error not-found
+[52] error not-object
+[53] ok indexes 0
+[54] ok put replaced
+[55] ok put replaced
+[56] ok begin
+[57] error not-found
+[58] ok stat
+  pages 15
+  free 4
+  freehead 5
+  docs 12
+  root 9
+  height 2
+  commits 60
+  indexes 0
+  wal 22232
+[59] error txn-active
+[60] ok rollback
+[61] ok find 0 plan scan
+[62] ok delete removed
+[63] ok put replaced
+[64] ok delete removed
+[65] ok stat
+  pages 15
+  free 4
+  freehead 12
+  docs 10
+  root 9
+  height 2
+  commits 63
+  indexes 0
+  wal 32784
+[66] ok put replaced
+[67] error not-object
+[68] ok indexes 0
+[69] ok put created
+[70] error not-found
+[71] ok find 0 plan scan
+[72] error not-found
+[73] ok stat
+  pages 15
+  free 3
+  freehead 6
+  docs 11
+  root 9
+  height 2
+  commits 65
+  indexes 0
+  wal 39120
+[74] ok delete removed
+[75] error not-found
+[76] ok stat
+  pages 15
+  free 4
+  freehead 8
+  docs 10
+  root 9
+  height 2
+  commits 66
+  indexes 0
+  wal 42288
+[77] ok indexes 0
+[78] ok scan 5
+  "k00000"
+  "k00001"
+  "k00002"
+  "k00004"
+  "k00007"

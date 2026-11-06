@@ -1,0 +1,67 @@
+build
+edit main.kiln
+let x = 1 % 0
+---
+build
+edit main.kiln
+let x = -1 / (2 - 2)
+---
+build
+edit main.kiln
+let x = [1, 2][5]
+---
+build
+edit main.kiln
+let x = [1, 2][-3]
+---
+build
+edit main.kiln
+let x = "ab"[2]
+---
+build
+edit main.kiln
+let x = "ab"[-3]
+---
+build
+edit main.kiln
+let x = [][0]
+---
+build
+edit main.kiln
+let xs = [1]
+step {
+    out "out/z.txt"
+    cmd write("{xs}")
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+let xs = [1]
+step {
+    out "out/z.txt"
+    cmd write("{xs[0]} ok")
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+step {
+    out "out/z.txt"
+    cmd write(missing_var)
+}
+default "out/z.txt"
+---
+build
+edit main.kiln
+let x = nope(1)
+---
+build
+edit main.kiln
+let x = nope(undefined_name)
+---
+build
+edit main.kiln
+let x = upper(undefined_name, 2)
+---
+build

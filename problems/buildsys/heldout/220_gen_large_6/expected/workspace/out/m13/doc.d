@@ -1,0 +1,4 @@
+kiln-deps 1
+need src/m13/f0.txt
+need src/m13/f1.txt
+need src/m13/f2.txt

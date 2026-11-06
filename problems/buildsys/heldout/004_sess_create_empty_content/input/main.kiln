@@ -1,0 +1,6 @@
+step {
+    out "out/n.txt"
+    in "src/e.txt"
+    cmd count_lines()
+}
+default "out/n.txt"

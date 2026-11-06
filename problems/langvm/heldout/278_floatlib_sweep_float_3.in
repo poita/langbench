@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(showFloatAt(1.0 / 3.0, 10) ++ " " ++ showFloatAt(0.1 + 0.2, 17));
+    print(showFloatAt(2.675, 2) ++ " " ++ showFloatAt(1e21, 2) ++ " " ++ showFloatAt(nanF(), 3) ++ " " ++ showFloatAt(-1.0 / 0.0, 3));
+    print(showFloatAt(1.5, 1) ++ " " ++ showFloatAt(0.0, 17) ++ " " ++ showFloatAt(1234.5678, 3));
+    print(si(floatBits(1.0)) ++ " " ++ si(floatBits(-0.0)) ++ " " ++ si(floatBits(nanF())));
+    print(sf(floatFromBits(0)) ++ " " ++ sf(floatFromBits(4607182418800017408)) ++ " " ++ sb(isNanF(floatFromBits(-1))));
+    print(sof(parseFloat("1.5")) ++ " " ++ sof(parseFloat("-2")) ++ " " ++ sof(parseFloat(".5")) ++ " " ++ sof(parseFloat("12.")));
+    print(sof(parseFloat("1e3")) ++ " " ++ sof(parseFloat("1E-2")) ++ " " ++ sof(parseFloat("+0.0")));
+}

@@ -1,0 +1,8 @@
+@module main
+fn main() {
+    var n = 0;
+    for ch in "héllo" { if isAlpha(ch) { n = n + 1; } }
+    print(showInt(n));
+    for ch in "ab" { emit(showChar(ch)); }
+    print("");
+}

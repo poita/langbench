@@ -1,0 +1,12 @@
+step {
+    out "out/a.txt"
+    cmd write("A\n")
+    cost 5
+}
+step {
+    out "out/b.txt"
+    cmd write("B\n")
+    cost 5
+}
+phony all = ["out/a.txt", "out/b.txt"]
+default "@all"

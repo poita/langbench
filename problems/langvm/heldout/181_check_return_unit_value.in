@@ -1,0 +1,4 @@
+@module main
+fn g() { emit("g"); }
+fn f() { return g(); }
+fn main() { f(); print(" done"); }

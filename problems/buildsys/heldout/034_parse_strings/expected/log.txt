@@ -1,0 +1,42 @@
+step 1: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 2: edit main.kiln
+  ok size=14
+step 3: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 4: edit main.kiln
+  ok size=13
+step 5: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 6: edit main.kiln
+  ok size=16
+step 7: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 8: edit main.kiln
+  ok size=13
+step 9: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 10: edit main.kiln
+  ok size=14
+step 11: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 12: edit main.kiln
+  ok size=32
+step 13: build (default) -j 1
+  error E_PARSE main.kiln:2
+step 14: edit main.kiln
+  ok size=29
+step 15: build (default) -j 1
+  error E_PARSE main.kiln:2
+step 16: edit main.kiln
+  ok size=17
+step 17: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 18: edit main.kiln
+  ok size=14
+step 19: build (default) -j 1
+  error E_PARSE main.kiln:1
+step 20: edit main.kiln
+  ok size=21
+step 21: build (default) -j 1
+  error E_TYPE operator ++: expected list, got str

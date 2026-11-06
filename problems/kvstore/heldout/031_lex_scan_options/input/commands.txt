@@ -1,0 +1,18 @@
+put "a" 1
+put "b" 2
+put "c" 3
+scan from "a" from "b"
+scan to "a" to "b"
+scan limit 1 limit 2
+scan reverse reverse
+scan keys keys
+scan keys reverse limit 2 from "a" to "c"
+scan to "c" from "a" limit 2 reverse keys
+scan from
+scan to
+scan limit
+scan reverse keys
+scan from 1
+scan limit "x"
+scan reverse 1
+scan keys extra

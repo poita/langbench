@@ -1,0 +1,8 @@
+@module main
+fn f(xs: [[Int]]) -> Int {
+    match xs {
+        [[_, ..r], ..] -> listLen(r),
+        _ -> 0,
+    }
+}
+fn main() { print("ok"); }

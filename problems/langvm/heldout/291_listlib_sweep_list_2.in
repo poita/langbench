@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(sl(listConcat([1], [2, 3])) ++ " " ++ sl(listConcat([], [])) ++ " " ++ sl([1] ++ [2]));
+    print(sl(slice([1, 2, 3, 4], 1, 3)) ++ " " ++ sl(slice([1], 0, 0)) ++ " " ++ sl(slice([1, 2], 0, 2)));
+    let f = [1, 2]; let g = listCopy(f); push(g, 3); print(sl(f) ++ " " ++ sl(g));
+    print(sl(reverseList([1, 2, 3])) ++ " " ++ sl(reverseList([])) ++ " " ++ sl(reverseList([1])));
+    print(si(listFirst([9, 8])) ++ " " ++ si(listLast([9, 8])) ++ " " ++ si(listFirst([5])));
+    print(sl(listMap([1, 2, 3], |v| v * v)) ++ " " ++ ss(listMap([1, 2], |v| showInt(v))));
+    print(sl(listFilter([1, 2, 3, 4], |v| v % 2 == 0)) ++ " " ++ sl(listFilter([1], |v| false)));
+}

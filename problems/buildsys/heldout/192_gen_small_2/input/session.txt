@@ -1,0 +1,10 @@
+build -j 2
+touch main.kiln
+build @m0
+edit src/m0/f1.txt
+---
+build -j 2
+clean
+build @m2
+touch src/m2/f0.txt
+build out/all.txt

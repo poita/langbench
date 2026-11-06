@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(si(intMin()) ++ " " ++ si(intMax()));
+    print(si(absI(-5)) ++ " " ++ si(absI(0)) ++ " " ++ si(absI(intMin())));
+    print(si(minI(3, -3)) ++ " " ++ si(maxI(3, -3)) ++ " " ++ si(minI(intMin(), intMax())));
+    print(si(signI(-9)) ++ si(signI(0)) ++ si(signI(9)));
+    print(si(cmpI(1, 2)) ++ si(cmpI(2, 2)) ++ si(cmpI(3, 2)));
+    print(si(7 / 2) ++ " " ++ si(-7 / 2) ++ " " ++ si(7 / -2) ++ " " ++ si(-7 / -2));
+    print(si(7 % 2) ++ " " ++ si(-7 % 2) ++ " " ++ si(7 % -2) ++ " " ++ si(-7 % -2));
+}

@@ -1,0 +1,13 @@
+put "a 1
+put "a\" 1
+put "a" "b
+put "a" "b\q"
+put "a" "b\u12"
+put "a" "b\u12g4"
+put "a" "b\u 123"
+put "a" "b	c"
+put "a" "bc"
+put "a" "b\\"
+get "a"
+put "b" "\u0041\u0042"
+get "b"

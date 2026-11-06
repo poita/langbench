@@ -1,0 +1,49 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PLAY B ~1 #45 CIN-003 #24
+10 PAY B ember 1
+ERR 18 not-your-turn
+11 PASS B
+12 ACTIVATE A ~2 #24 1
+13 PAY A ember 1
+14 EXHAUST #24
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 50 cap 51 vault 20 hand 3 ash 0 rift 0
+player B spire 40 ember 49 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #21 CIN-001
+hand A 2 #22 CIN-001
+hand A 3 #23 CIN-001
+field A #24 TID-018 2/3 w0 c0 exhausted once1 kw -
+field B #46 TOK-001 1/1 w0 c0 ready - kw -
+chain 1 ~1 B rite #45 0 #24
+chain 2 ~2 A ability #24 1
+STATE END
+15 PASS A
+16 PASS B
+17 RESOLVE ~2
+18 DRAW A #1 CIN-001
+19 PASS A
+20 PASS B
+21 RESOLVE ~1
+22 DAMAGE #45 #24 2
+23 SPENT #45 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 50 cap 51 vault 19 hand 4 ash 0 rift 0
+player B spire 40 ember 49 cap 50 vault 20 hand 0 ash 1 rift 0
+hand A 1 #21 CIN-001
+hand A 2 #22 CIN-001
+hand A 3 #23 CIN-001
+hand A 4 #1 CIN-001
+field A #24 TID-018 2/3 w2 c0 exhausted once1 kw -
+field B #46 TOK-001 1/1 w0 c0 ready - kw -
+ash B 1 #45 CIN-003
+STATE END
+24 RESULT pending none

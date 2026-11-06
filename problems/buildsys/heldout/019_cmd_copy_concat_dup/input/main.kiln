@@ -1,0 +1,16 @@
+step {
+    out "out/c.txt"
+    in "src/a.txt"
+    cmd copy()
+}
+step {
+    out "out/cat.txt"
+    in ["src/a.txt", "src/b.txt", "src/a.txt"]
+    cmd concat()
+}
+step {
+    out "out/one.txt"
+    in "src/b.txt"
+    cmd concat()
+}
+default ["out/c.txt", "out/cat.txt", "out/one.txt"]

@@ -1,0 +1,5 @@
+@module main
+fn f(ch: Char) -> Int {
+    match ch { 'a' -> 1, 'b' -> 2 }
+}
+fn main() { print("ok"); }

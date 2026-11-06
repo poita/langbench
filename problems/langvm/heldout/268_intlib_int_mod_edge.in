@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    print(showInt(intMin() % -1));
+    print(showInt(intMin() / 1));
+    print(showInt(0 / 5) ++ " " ++ showInt(0 % 5));
+    print(showInt(5 / 0));
+}

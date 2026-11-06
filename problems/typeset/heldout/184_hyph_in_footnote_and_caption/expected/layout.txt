@@ -1,0 +1,23 @@
+layout 1
+pages 2
+page 1 1 200000 240000 20000 20000 160000 200000
+  text body serif 7000 55700 25117 3444 "1"
+  text body serif 10000 38000 28117 17700 "Text"
+  rule footnote 20000 198968 120000 400
+  text footnote serif 6000 25048 206216 2952 "1"
+  text footnote serif 8000 30000 208216 35168 "typesetting"
+  text footnote serif 8000 68493 208216 25656 "national"
+  text footnote serif 8000 97474 208216 38904 "introduction"
+  text footnote serif 8000 139704 208216 40296 "international"
+  text footnote serif 8000 30000 218216 39568 "hyphenation"
+  text footnote serif 8000 71600 218216 33856 "interesting"
+  text footnote serif 8000 107488 218216 40616 "conversation"
+page 2 2 200000 240000 20000 20000 160000 200000
+  box float 40000 20000 120000 5000
+  text float serif 9000 40260 35579 23571 "Figure"
+  text float serif 9000 66117 35579 6705 "1."
+  text float serif 9000 76822 35579 39564 "typesetting"
+  text float serif 9000 118672 35579 28863 "national"
+  text float serif 9000 149821 35579 9918 "in-"
+  text float serif 9000 57803 46579 36774 "troduction"
+  text float serif 9000 96863 46579 45333 "international"

@@ -1,0 +1,23 @@
+put "u1" {name:"ada",age:36,ok:true}
+put "u2" {name:"bob",age:29,ok:false}
+put "u3" {name:"cy",age:36,ok:true}
+put "u4" {name:"dee",age:null}
+put "u5" {name:"eve",age:[1,2]}
+put "u6" {name:"fay",age:{x:1}}
+put "u7" {name:"gus"}
+put "u8" {name:"hal",age:-5}
+put "u9" {name:"ivy",age:"36"}
+create index age
+create index name
+find age == 36 and name == "cy"
+find name == "cy" and age == 36
+find age > 30 and name == "cy"
+find age == 36 and name > "a"
+find age > 30 and name > "a"
+find name > "a" and age > 30
+find age != 36 and name != "cy"
+find age == [1,2] and name == "cy"
+find age == 36 or name == "cy"
+find not(age == 36) and name == "cy"
+find exists age and name == "cy"
+indexes

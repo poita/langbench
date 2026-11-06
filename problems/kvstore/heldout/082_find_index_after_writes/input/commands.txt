@@ -1,0 +1,25 @@
+put "k00" {v:0}
+put "k01" {v:1}
+put "k02" {v:2}
+put "k03" {v:3}
+put "k04" {v:4}
+put "k05" {v:5}
+put "k06" {v:6}
+put "k07" {v:7}
+put "k08" {v:8}
+put "k09" {v:9}
+create index v
+put "k03" {v:100}
+find v == 100
+find v == 3
+update "k04" v 101
+find v == 101
+unset "k05" v
+find exists v
+find v >= 0
+delete "k06"
+find v >= 0
+put "k20" {v:5}
+find v == 5
+indexes
+stat

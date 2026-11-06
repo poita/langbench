@@ -1,0 +1,175 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN TID-001
+name Tidecaller Novice
+type unit
+cost 2
+body 1/2
+tags tide,mage
+keywords -
+ability 1 on arrive - (draw 1 you)
+CARD END
+CARD BEGIN TID-002
+name Reef Glider
+type unit
+cost 2
+body 1/3
+tags tide,beast
+keywords ghostwalk
+CARD END
+CARD BEGIN TID-003
+name Undertow
+type rite
+cost 1
+tags tide
+keywords swift
+ability 1 resolve (targets (unit)) (bounce (t 1))
+CARD END
+CARD BEGIN TID-004
+name Dispersal
+type rite
+cost 2
+tags tide
+keywords swift
+ability 1 resolve (targets (chained)) (negate (t 1))
+CARD END
+CARD BEGIN TID-005
+name Tidal Archivist
+type unit
+cost 3
+body 2/3
+tags tide,mage
+keywords -
+ability 1 on you-draw - (modify 1 0 self)
+CARD END
+CARD BEGIN TID-006
+name Mistveil Scout
+type unit
+cost 2
+body 2/2
+tags tide,scout
+keywords ghostwalk,vanguard
+CARD END
+CARD BEGIN TID-007
+name Deep Survey
+type rite
+cost 2
+tags tide
+keywords -
+ability 1 resolve - (draw 2 you)
+CARD END
+CARD BEGIN TID-008
+name Current Shift
+type rite
+cost 1
+tags tide
+keywords swift
+ability 1 resolve (targets (unit)) (exhaust (t 1))
+CARD END
+CARD BEGIN TID-009
+name Harbor Sentinel
+type unit
+cost 3
+body 1/5
+tags tide,construct
+keywords skyhook
+CARD END
+CARD BEGIN TID-010
+name Siren of the Shoals
+type unit
+cost 4
+body 3/3
+tags tide,spirit
+keywords -
+ability 1 on arrive (targets (unit (enemy))) (control (t 1))
+CARD END
+CARD BEGIN TID-011
+name Flood Tide
+type rite
+cost 5
+tags tide
+keywords -
+ability 1 resolve - (bounce (units all))
+CARD END
+CARD BEGIN TID-012
+name Pearl Diver
+type unit
+cost 2
+body 2/1
+tags tide,scout
+keywords -
+ability 1 on dies - (draw 1 you)
+CARD END
+CARD BEGIN TID-013
+name Coral Lens
+type relic
+cost 2
+tags tide
+keywords -
+ability 1 aura (cheaper 1 (type rite))
+CARD END
+CARD BEGIN TID-014
+name Abyssal Watcher
+type unit
+cost 5
+body 4/4
+tags tide,beast
+keywords ghostwalk
+ability 1 on arrive - (draw 1 you)
+CARD END
+CARD BEGIN TID-015
+name Ripple Strike
+type rite
+cost 2
+tags tide
+keywords swift
+ability 1 resolve (targets (unit)) (damage 1 (t 1)) (bounce (t 1))
+CARD END
+CARD BEGIN TID-016
+name Memory Swell
+type rite
+cost 3
+tags tide
+keywords -
+ability 1 resolve - (draw (count (units yours)) you)
+CARD END
+CARD BEGIN TID-017
+name Tideborn Twins
+type unit
+cost 3
+body 2/2
+tags tide,spirit
+keywords -
+ability 1 on arrive - (summon TOK-004 1 you)
+CARD END
+CARD BEGIN TID-018
+name Lagoon Mystic
+type unit
+cost 3
+body 2/3
+tags tide,mage
+keywords -
+ability 1 act (cost (ember 1) (exhaust) (once)) - (draw 1 you)
+CARD END
+CARD BEGIN TID-019
+name Wavebreak Colossus
+type unit
+cost 7
+body 6/6
+tags tide,giant
+keywords plating:2
+CARD END
+CARD BEGIN TID-020
+name Salt Spray
+type rite
+cost 1
+tags tide
+keywords -
+ability 1 resolve - (damage 2 (random-unit theirs))
+CARD END
+8 RESULT pending none

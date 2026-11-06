@@ -1,0 +1,17 @@
+let outs = []
+each i in range(6) {
+    step {
+        out "out/m{i}.txt"
+        in "src/s{i}.txt"
+        cmd copy()
+        cost 2
+    }
+    set outs = outs ++ ["out/m{i}.txt"]
+}
+step {
+    out "out/all.txt"
+    in outs
+    cmd concat()
+    cost 1
+}
+default "out/all.txt"

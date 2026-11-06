@@ -1,0 +1,207 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] error not-found
+[6] ok put created
+[7] ok put created
+[8] ok delete removed
+[9] ok put created
+[10] ok find 0 plan scan
+[11] ok put replaced
+[12] ok put replaced
+[13] ok put created
+[14] ok delete removed
+[15] ok delete removed
+[16] ok put replaced
+[17] ok find 0 plan scan
+[18] ok find 0 plan scan
+[19] ok begin
+[20] ok commit 15 frames 1
+[21] error not-found
+[22] ok put created
+[23] ok put replaced
+[24] ok stat
+  pages 7
+  free 1
+  freehead 6
+  docs 6
+  root 2
+  height 1
+  commits 17
+  indexes 0
+  wal 44456
+[25] ok put created
+[26] ok find 0 plan scan
+[27] error not-found
+[28] ok begin
+[29] ok put replaced
+[30] ok scan 1
+  "k00006"
+[31] ok put created
+[32] error not-found
+[33] ok find 0 plan scan
+[34] ok put replaced
+[35] ok put replaced
+[36] ok commit 19 frames 6
+[37] ok put created
+[38] ok put replaced
+[39] ok indexes 0
+[40] ok delete removed
+[41] ok put replaced
+[42] ok put replaced
+[43] ok stat
+  pages 13
+  free 2
+  freehead 11
+  docs 8
+  root 10
+  height 2
+  commits 24
+  indexes 0
+  wal 70824
+[44] error not-found
+[45] error not-found
+[46] ok put replaced
+[47] ok begin
+[48] error not-found
+[49] ok delete removed
+[50] ok put created
+[51] error txn-active
+[52] error not-found
+[53] error not-found
+[54] ok scan 4
+  "k00012"
+  "k00011"
+  "k00010"
+  "k00009"
+[55] ok put created
+[56] ok put replaced
+[57] ok put replaced
+[58] ok put replaced
+[59] ok rollback
+[60] error not-found
+[61] ok begin
+[62] ok indexes 0
+[63] ok delete removed
+[64] ok commit 26 frames 2
+[65] error not-found
+[66] ok put replaced
+[67] ok put created
+[68] error not-found
+[69] ok put created
+[70] ok put replaced
+[71] ok put created
+[72] ok put created
+[73] ok put replaced
+[74] ok put replaced
+[75] ok find 2 plan scan
+  "k00000" = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+  "k00003" = "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+[76] ok begin
+[77] ok put created
+[78] ok put created
+[79] error not-object
+[80] ok delete removed
+[81] ok scan 4
+  "k00010"
+  "k00009"
+  "k00008"
+  "k00007"
+[82] ok find 0 plan scan
+[83] ok put created
+[84] ok put replaced
+[85] ok put created
+[86] ok put replaced
+[87] ok commit 35 frames 10
+[88] ok put replaced
+[89] ok put replaced
+[90] ok delete removed
+[91] ok scan 2
+  "k00002"
+  "k00003"
+[92] error not-object
+[93] ok put replaced
+[94] ok delete removed
+[95] ok delete removed
+[96] ok delete removed
+[97] ok begin
+[98] ok put replaced
+[99] ok put replaced
+[100] ok commit 43 frames 5
+[101] error not-object
+[102] error not-found
+[103] error not-object
+[104] ok delete removed
+[105] ok put created
+[106] ok put replaced
+[107] ok begin
+[108] ok rollback
+[109] ok find 2 plan scan
+  "k00001" = {"age":11,"name":"n26","nest":{"deep":6}}
+  "k00002" = [1,2,3,4,5,6,7,8,9]
+[110] ok put replaced
+[111] ok update updated
+[112] error not-found
+[113] ok scan 1
+  "k00013"
+[114] ok begin
+[115] ok put replaced
+[116] ok put created
+[117] error not-object
+[118] ok put replaced
+[119] ok put replaced
+[120] ok put replaced
+[121] ok put created
+[122] ok put replaced
+[123] ok put created
+[124] ok rollback
+[125] error not-object
+[126] error not-found
+[127] error not-found
+[128] ok find 1 plan scan
+  "k00001" = {"age":11,"name":"n26","nest":{"deep":6},"tag":{"age":27,"name":"n16"}}
+[129] ok delete removed
+[130] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29]
+[131] ok checkpoint pages 22
+[132] ok scan 0
+[133] ok put replaced
+[134] ok put replaced
+[135] ok put replaced
+[136] ok begin
+[137] ok commit 53 frames 1
+[138] ok scan 1
+  "k00001"
+[139] ok put replaced
+[140] error not-object
+[141] ok put created
+[142] ok begin
+[143] ok get value
+  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+[144] ok put replaced
+[145] ok delete removed
+[146] error not-found
+[147] error not-found
+[148] error txn-active
+[149] ok get value
+  null
+[150] error not-object
+[151] ok commit 56 frames 6
+[152] ok stat
+  pages 22
+  free 12
+  freehead 19
+  docs 9
+  root 10
+  height 2
+  commits 56
+  indexes 0
+  wal 26400
+[153] ok indexes 0
+[154] ok scan 5
+  "k00001"
+  "k00002"
+  "k00003"
+  "k00005"
+  "k00006"

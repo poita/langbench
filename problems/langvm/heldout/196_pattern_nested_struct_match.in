@@ -1,0 +1,15 @@
+@module main
+struct P { x: Int, y: Int }
+enum Shape { Dot(P), Line(P, P) }
+fn f(s: Shape) -> Int {
+    match s {
+        Dot(P.{ x: 0, y: y }) -> y,
+        Dot(P.{ x: x, .. }) -> x,
+        Line(P.{ x: a, y: _ }, P.{ x: b, y: _ }) -> a + b,
+    }
+}
+fn main() {
+    print(showInt(f(Dot(P.{ x: 0, y: 5 }))));
+    print(showInt(f(Dot(P.{ x: 3, y: 5 }))));
+    print(showInt(f(Line(P.{ x: 1, y: 0 }, P.{ x: 2, y: 0 }))));
+}

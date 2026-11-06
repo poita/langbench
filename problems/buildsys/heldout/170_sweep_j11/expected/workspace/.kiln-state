@@ -1,0 +1,65 @@
+kiln-state 1
+step out/join.txt
+cmd count_lines()
+in out/s0.txt 07fc1e07b4bd2c5f
+in out/s1.txt 07f8bc07b4ba5002
+in out/s2.txt 0802fe07b4c314ad
+in out/s3.txt 07ff9407b4c02ab8
+in out/s4.txt 07ee9607b4b1baeb
+in out/s5.txt 07eb3407b4aede8e
+in out/s6.txt 07f55607b4b76cd9
+in out/s7.txt 07f1fc07b4b49e14
+in out/s8.txt 08175e07b4d460d7
+in out/s9.txt 0813fc07b4d1847a
+in out/s10.txt 4568d118181cbfaa
+in out/s11.txt 456c3318181f9c07
+out out/join.txt 880cdd8126c72e48
+end
+step out/s0.txt
+cmd write("0\n")
+out out/s0.txt 07fc1e07b4bd2c5f
+end
+step out/s1.txt
+cmd write("1\n")
+out out/s1.txt 07f8bc07b4ba5002
+end
+step out/s10.txt
+cmd write("10\n")
+out out/s10.txt 4568d118181cbfaa
+end
+step out/s11.txt
+cmd write("11\n")
+out out/s11.txt 456c3318181f9c07
+end
+step out/s2.txt
+cmd write("2\n")
+out out/s2.txt 0802fe07b4c314ad
+end
+step out/s3.txt
+cmd write("3\n")
+out out/s3.txt 07ff9407b4c02ab8
+end
+step out/s4.txt
+cmd write("4\n")
+out out/s4.txt 07ee9607b4b1baeb
+end
+step out/s5.txt
+cmd write("5\n")
+out out/s5.txt 07eb3407b4aede8e
+end
+step out/s6.txt
+cmd write("6\n")
+out out/s6.txt 07f55607b4b76cd9
+end
+step out/s7.txt
+cmd write("7\n")
+out out/s7.txt 07f1fc07b4b49e14
+end
+step out/s8.txt
+cmd write("8\n")
+out out/s8.txt 08175e07b4d460d7
+end
+step out/s9.txt
+cmd write("9\n")
+out out/s9.txt 0813fc07b4d1847a
+end

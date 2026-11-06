@@ -1,0 +1,35 @@
+build
+edit main.kiln
+phony a = []
+phony a = ["@bad-name"]
+---
+build
+edit main.kiln
+let x = "abc"[undefined]
+---
+build
+edit main.kiln
+let x = undefined[1 / 0]
+---
+build
+edit main.kiln
+let x = true < 1 / 0
+---
+build
+edit main.kiln
+let x = [1] ++ 2 + "b"
+---
+build
+edit main.kiln
+default ["out/a.txt", 2, true]
+---
+build
+edit main.kiln
+let xs = [1]
+let y = xs["0"] + xs[5]
+---
+build
+edit main.kiln
+let x = true["x"]
+---
+build

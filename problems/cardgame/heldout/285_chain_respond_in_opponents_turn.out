@@ -1,0 +1,60 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+11 PHASE main2
+12 PASS A
+13 PASS B
+14 PHASE dusk-trigger
+15 PASS A
+16 PASS B
+17 PHASE dusk-discard
+18 PHASE dusk-cleanup
+19 TURN 2 B
+20 PHASE dawn
+21 EMBER A 51 51
+22 EMBER B 51 51
+23 PHASE draw
+24 DRAW B #22 TID-001
+25 PHASE main1
+26 ACTIVATE B ~1 #43 1 #42
+27 PAY B ember 2
+28 PASS B
+29 PLAY A ~2 #21 CIN-003 #43
+30 PAY A ember 1
+STATE BEGIN
+turn 2 active B phase main1 decision A priority
+player A spire 40 ember 50 cap 51 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 49 cap 51 vault 19 hand 1 ash 0 rift 0
+hand B 1 #22 TID-001
+field B #42 TOK-001 1/1 w0 c0 ready - kw -
+field B #43 CIN-014 3/3 w0 c0 ready - kw -
+chain 1 ~1 B ability #43 1 #42
+chain 2 ~2 A rite #21 0 #43
+STATE END
+31 PASS A
+32 PASS B
+33 RESOLVE ~2
+34 DAMAGE #21 #43 2
+35 SPENT #21 CIN-003
+36 PASS B
+37 PASS A
+38 RESOLVE ~1
+39 DAMAGE #43 #42 2
+40 DESTROY #42 TOK-001
+STATE BEGIN
+turn 2 active B phase main1 decision B priority
+player A spire 40 ember 50 cap 51 vault 20 hand 0 ash 1 rift 0
+player B spire 40 ember 49 cap 51 vault 19 hand 1 ash 1 rift 0
+hand B 1 #22 TID-001
+field B #43 CIN-014 3/3 w2 c0 ready - kw -
+ash A 1 #21 CIN-003
+ash B 1 #42 TOK-001
+STATE END
+41 RESULT pending none

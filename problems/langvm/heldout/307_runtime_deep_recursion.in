@@ -1,0 +1,3 @@
+@module main
+fn down(n: Int) -> Int { if n == 0 { return 0; } down(n - 1) + 1 }
+fn main() { print(showInt(down(15000))); }

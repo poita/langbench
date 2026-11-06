@@ -1,0 +1,8 @@
+let xs = ["src/a.txt", "a.txt", "src/sub/a.txt", "src", "srcx", "src/.txt", "ab", "axyzb", "a/b", "A.TXT", "src/a.text", "src/t_1.txt", "", "src/7.txt", "src/a.txt", "out/x.txt", ".kiln-state"]
+each i, p in ["src/*.txt", "src/**", "**/*.txt", "a**b", "[!s]*", "*", "**", "src", "out/**", "?"] {
+    step {
+        out "out/f{i}.txt"
+        cmd write("{join(filter(xs, p), "|")}/{join(reject(xs, p), "|")}\n")
+    }
+    default "out/f{i}.txt"
+}

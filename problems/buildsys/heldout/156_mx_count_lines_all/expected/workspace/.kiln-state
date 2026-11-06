@@ -1,0 +1,16 @@
+kiln-state 1
+step out/count_lines_all.txt
+cmd count_lines()
+in src/e.txt cbf29ce484222325
+in src/n.txt dc3add5ecc4ba006
+in src/x.txt 07c7d73947cbe1de
+in src/c.txt 25fd018afddd7cc5
+in src/u.txt 883ac19acb748cf1
+in src/b.txt 1c2c1cfae3c07157
+out out/count_lines_all.txt 3e15927688be0021
+end
+step out/count_lines_all_pin.txt
+cmd hash()
+in out/count_lines_all.txt 3e15927688be0021
+out out/count_lines_all_pin.txt a9a817f4c8d054bf
+end

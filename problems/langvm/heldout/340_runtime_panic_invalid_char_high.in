@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showChar(chr(1114112)));
+}

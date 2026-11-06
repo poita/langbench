@@ -1,0 +1,12 @@
+put "a" []
+put "b" {}
+put "c" ""
+put "d" [[],{},""]
+put "e" {x:[],y:{},z:""}
+get "a"
+get "b"
+get "c"
+get "d"
+get "e"
+scan
+stat

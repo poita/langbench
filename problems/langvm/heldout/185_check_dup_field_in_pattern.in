@@ -1,0 +1,7 @@
+@module main
+struct P { x: Int, y: Int }
+fn main() {
+    let p = P.{ x: 1, y: 2 };
+    let P.{ x: a, y: b, x: c } = p;
+    print(showInt(a + b + c));
+}

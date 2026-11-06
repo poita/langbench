@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    var xs = [1]; print(showInt(removeAt(xs, 1)));
+}

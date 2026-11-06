@@ -1,0 +1,20 @@
+kiln-state 1
+step out/both.txt
+cmd concat()
+in out/doc.txt ad66e3b86a72e334
+in out/deps.txt f40720538917c1bc
+out out/both.txt 7e22bae434770077
+end
+step out/deps.txt
+cmd number()
+in out/doc.d b082b8fe282f65fc
+out out/deps.txt f40720538917c1bc
+end
+step out/doc.txt
+cmd preprocess()
+in src/root.txt b75b4eac08f858ee
+dep src/p.txt 09425e07b5d25bbf
+dep src/q.txt 85d72919efdaae60
+out out/doc.txt ad66e3b86a72e334
+out out/doc.d b082b8fe282f65fc
+end

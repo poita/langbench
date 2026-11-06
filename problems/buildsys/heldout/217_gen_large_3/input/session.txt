@@ -1,0 +1,11 @@
+build -j 64
+touch main.kiln
+build @m13
+edit src/m13/f2.txt
+   spaced   
+---
+build @m10
+edit src/m7/f5.txt
+juniper
+---
+build @m11 -j 8

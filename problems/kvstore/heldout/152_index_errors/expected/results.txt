@@ -1,0 +1,24 @@
+[1] ok create index a entries 0
+[2] error index-exists
+[3] error index-missing
+[4] ok create index a.b entries 0
+[5] error index-exists
+[6] ok indexes 2
+  0 a root 0 entries 0
+  1 a.b root 0 entries 0
+[7] ok drop index a pages 0
+[8] error index-missing
+[9] ok indexes 1
+  1 a.b root 0 entries 0
+[10] ok drop index a.b pages 0
+[11] ok indexes 0
+[12] ok stat
+  pages 1
+  free 0
+  freehead 0
+  docs 0
+  root 0
+  height 0
+  commits 4
+  indexes 0
+  wal 4320

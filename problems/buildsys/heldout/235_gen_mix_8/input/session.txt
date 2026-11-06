@@ -1,0 +1,22 @@
+build -j 64
+edit src/m5/f6.txt
+the end
+alpha
+hazel
+---
+build @m7 -j 3
+touch src/m1/sub/g3.txt
+build @m7 -j 2
+edit src/m8/f1.txt
+kappa
+theta
+fir
+0123
+---
+build @m2 -j 16
+edit src/m6/f6.txt
+zeta
+---
+build @m2 -j 64
+clean
+build @m0 -j 64

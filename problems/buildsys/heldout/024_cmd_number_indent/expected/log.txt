@@ -1,0 +1,6 @@
+step 1: build (default) -j 3
+  run 0 2 w0 out/n.txt number()
+  run 0 2 w1 out/i0.txt indent(0)
+  run 0 2 w2 out/i3.txt indent(3)
+  run 2 5 w0 out/h.txt hash()
+  ok ran=4 hit=0 time=5

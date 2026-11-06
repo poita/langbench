@@ -1,0 +1,3 @@
+@module main
+fn print(x: Int) -> Int { x }
+fn main() { let y = print(3); emit("v"); }

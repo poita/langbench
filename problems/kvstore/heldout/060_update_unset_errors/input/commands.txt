@@ -1,0 +1,15 @@
+put "a" {x:{y:1},z:2}
+unset "a" q
+unset "a" x.q
+unset "a" z.q
+unset "a" x.y.q
+unset "a" x.y
+get "a"
+unset "a" x
+get "a"
+unset "a" z
+get "a"
+unset "b" x
+put "c" 1
+unset "c" x
+stat

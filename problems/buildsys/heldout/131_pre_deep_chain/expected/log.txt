@@ -1,0 +1,14 @@
+step 1: build (default) -j 1
+  run 0 6 w0 out/doc.txt preprocess()
+  run 6 9 w0 out/h.txt hash()
+  ok ran=2 hit=0 time=9
+step 2: build (default) -j 1
+  hit 0 out/doc.txt
+  hit 0 out/h.txt
+  ok ran=0 hit=2 time=0
+step 3: edit src/n40.txt
+  ok size=7
+step 4: build (default) -j 1
+  run 0 6 w0 out/doc.txt preprocess()
+  run 6 9 w0 out/h.txt hash()
+  ok ran=2 hit=0 time=9

@@ -1,0 +1,19 @@
+let mode = "fast"
+let flags = []
+include "tune.kiln"
+when mode == "fast" {
+    set flags = flags ++ ["F"]
+} otherwise {
+    set flags = flags ++ ["S"]
+}
+let srcs = glob("src/**/*.txt")
+step {
+    out "out/list.txt"
+    in srcs
+    cmd count_lines()
+}
+step {
+    out "out/flags.txt"
+    cmd write("{join(flags, ",")}\n")
+}
+default ["out/list.txt", "out/flags.txt"]

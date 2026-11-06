@@ -1,0 +1,58 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-028 #22
+9 PAY A ember 3
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 BUFF #22 3 0
+14 GRANT #22 riposte
+15 DELAY A turn-end
+16 SPENT #21 CIN-028
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 7 cap 10 vault 20 hand 0 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #22 CIN-006 5/1 w0 c0 ready - kw riposte
+ash A 1 #21 CIN-028
+effect 1 ts2 A turn modify 3 0 on #22
+effect 2 ts3 A turn grant riposte on #22
+delayed 4 A turn-end #22
+STATE END
+17 PASS A
+18 PASS B
+19 PHASE clash-attack
+20 PHASE main2
+21 PASS A
+22 PASS B
+23 PHASE dusk-trigger
+24 TRIGGER A ~2 #21 0 #22
+STATE BEGIN
+turn 1 active A phase dusk-trigger decision A priority
+player A spire 40 ember 7 cap 10 vault 20 hand 0 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #22 CIN-006 5/1 w0 c0 ready - kw riposte
+ash A 1 #21 CIN-028
+chain 1 ~2 A trigger #21 0 #22
+effect 1 ts2 A turn modify 3 0 on #22
+effect 2 ts3 A turn grant riposte on #22
+STATE END
+25 PASS A
+26 PASS B
+27 RESOLVE ~2
+28 DESTROY #22 CIN-006
+STATE BEGIN
+turn 1 active A phase dusk-trigger decision A priority
+player A spire 40 ember 7 cap 10 vault 20 hand 0 ash 2 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+ash A 1 #21 CIN-028
+ash A 2 #22 CIN-006
+effect 1 ts2 A turn modify 3 0 on -
+effect 2 ts3 A turn grant riposte on -
+STATE END
+29 RESULT pending none

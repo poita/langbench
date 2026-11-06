@@ -1,0 +1,36 @@
+step {
+    out "out/lower_0.txt"
+    in "src/e.txt"
+    cmd lower()
+}
+step {
+    out "out/lower_1.txt"
+    in "src/n.txt"
+    cmd lower()
+}
+step {
+    out "out/lower_2.txt"
+    in "src/x.txt"
+    cmd lower()
+}
+step {
+    out "out/lower_3.txt"
+    in "src/c.txt"
+    cmd lower()
+}
+step {
+    out "out/lower_4.txt"
+    in "src/u.txt"
+    cmd lower()
+}
+step {
+    out "out/lower_5.txt"
+    in "src/b.txt"
+    cmd lower()
+}
+step {
+    out "out/lower_pin.txt"
+    in ["out/lower_0.txt", "out/lower_1.txt", "out/lower_2.txt", "out/lower_3.txt", "out/lower_4.txt", "out/lower_5.txt"]
+    cmd hash()
+}
+default "out/lower_pin.txt"

@@ -1,0 +1,33 @@
+build
+create src/m4/new0.txt
+0123
+omicron
+---
+build @m3 -j 64
+edit src/m3/f2.txt
+beta
+fir
+eta
+hazel
+---
+build @m6 -j 64
+edit src/m1/f2.txt
+a-b+c
+lambda
+kappa
+beta
+---
+build out/all.txt -j 4
+edit src/m6/f1.txt
+---
+build @m5 -j 16
+touch src/m0/f1.txt
+build -j 4
+clean
+build @m4 -j 2
+touch main.kiln
+build @m0 -j 3
+edit src/m0/f2.txt
+elm
+---
+build @m3 -j 4

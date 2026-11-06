@@ -1,0 +1,42 @@
+step {
+    out "out/w0.txt"
+    cmd write("")
+}
+step {
+    out "out/w1.txt"
+    cmd write("\n")
+}
+step {
+    out "out/w2.txt"
+    cmd write("\0\0")
+}
+step {
+    out "out/w3.txt"
+    cmd write("no newline")
+}
+step {
+    out "out/w4.txt"
+    cmd write("tab\there")
+}
+step {
+    out "out/w5.txt"
+    cmd write("cr\rhere")
+}
+step {
+    out "out/w6.txt"
+    cmd write("quote\" and backslash\\")
+}
+step {
+    out "out/w7.txt"
+    cmd write("Ünïcödé")
+}
+step {
+    out "out/w8.txt"
+    cmd write("{1 + 1}x{{brace}}")
+}
+step {
+    out "out/w_pin.txt"
+    in ["out/w0.txt", "out/w1.txt", "out/w2.txt", "out/w3.txt", "out/w4.txt", "out/w5.txt", "out/w6.txt", "out/w7.txt", "out/w8.txt"]
+    cmd hash()
+}
+default "out/w_pin.txt"

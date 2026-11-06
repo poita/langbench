@@ -1,0 +1,14 @@
+phony stage1 = ["out/a.txt"]
+step {
+    out "out/a.txt"
+    cmd write("a\n")
+    cost 4
+}
+step {
+    out "out/b.txt"
+    after "@stage1"
+    cmd write("b\n")
+}
+default "out/a.txt"
+default ["out/b.txt", "out/a.txt"]
+default "@stage1"

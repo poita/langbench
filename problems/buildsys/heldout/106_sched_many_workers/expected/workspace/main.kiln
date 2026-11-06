@@ -1,0 +1,17 @@
+let outs = []
+each i in range(24) {
+    step {
+        out "out/w{i}.txt"
+        cmd write("{i}\n")
+        cost 1 + (i * 7) % 11
+    }
+    default "out/w{i}.txt"
+    set outs = outs ++ ["out/w{i}.txt"]
+}
+step {
+    out "out/join.txt"
+    in outs
+    cmd count_lines()
+    cost 3
+}
+default "out/join.txt"

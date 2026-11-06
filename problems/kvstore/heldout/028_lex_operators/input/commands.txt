@@ -1,0 +1,18 @@
+put "a" {v:1}
+find v = 1
+find v ! = 1
+find v == 1
+find v != 1
+find v <= 1
+find v < = 1
+find v >= 1
+find v > = 1
+find v < 1
+find v > 1
+find v <> 1
+find v =< 1
+put "a" +1
+put "a" -
+put "a" - 1
+put "a" 1-
+stat

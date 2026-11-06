@@ -1,0 +1,11 @@
+build
+create src/b.txt
+b
+---
+build
+delete src/a.txt
+build
+create out/later.txt
+x
+---
+build

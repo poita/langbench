@@ -1,0 +1,63 @@
+[1] ok put created
+[2] ok put created
+[3] ok put created
+[4] ok put created
+[5] ok put created
+[6] ok put created
+[7] ok put created
+[8] ok put created
+[9] ok put created
+[10] ok put created
+[11] ok put created
+[12] ok put created
+[13] ok put created
+[14] ok put created
+[15] ok put created
+[16] ok put created
+[17] ok put created
+[18] ok put created
+[19] ok put created
+[20] ok put created
+[21] ok create index v entries 20
+[22] ok create index w entries 20
+[23] ok indexes 2
+  0 v root 3 entries 20
+  1 w root 4 entries 20
+[24] ok put replaced
+[25] ok indexes 2
+  0 v root 3 entries 20
+  1 w root 4 entries 19
+[26] ok update updated
+[27] ok indexes 2
+  0 v root 3 entries 20
+  1 w root 4 entries 19
+[28] ok unset updated
+[29] ok indexes 2
+  0 v root 3 entries 19
+  1 w root 4 entries 19
+[30] ok delete removed
+[31] ok indexes 2
+  0 v root 3 entries 18
+  1 w root 4 entries 18
+[32] ok update updated
+[33] ok indexes 2
+  0 v root 3 entries 18
+  1 w root 4 entries 18
+[34] ok put replaced
+[35] ok indexes 2
+  0 v root 3 entries 17
+  1 w root 4 entries 17
+[36] ok put replaced
+[37] ok indexes 2
+  0 v root 3 entries 18
+  1 w root 4 entries 18
+[38] ok stat
+  pages 4
+  free 0
+  freehead 0
+  docs 19
+  root 2
+  height 1
+  commits 29
+  indexes 2
+  wal 73040

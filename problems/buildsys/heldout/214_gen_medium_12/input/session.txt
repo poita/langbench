@@ -1,0 +1,15 @@
+build -j 2
+touch src/m11/f0.txt
+build @m4
+touch src/m6/sub/g15.txt
+build @m6 -j 4
+touch src/m9/f5.txt
+build -j 4
+delete src/m4/sub/g7.txt
+build @m5 -j 8
+delete src/m4/sub/g11.txt
+build @m7 -j 64
+edit src/m11/f4.txt
+mu
+---
+build @m1 -j 16

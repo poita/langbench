@@ -1,0 +1,2 @@
+build out/a.txt out/a.txt @all -j 3
+build @all out/b.txt -j 1

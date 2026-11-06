@@ -1,0 +1,54 @@
+step 1: build (default) -j 1
+  error E_BAD_PATH ../x
+step 2: edit main.kiln
+  ok size=20
+step 3: build (default) -j 1
+  error E_INCLUDE_MISSING nope.kiln
+step 4: edit main.kiln
+  ok size=11
+step 5: build (default) -j 1
+  error E_BAD_PATH 
+step 6: edit main.kiln
+  ok size=10
+step 7: build (default) -j 1
+  error E_TYPE default: expected strlist, got int
+step 8: edit main.kiln
+  ok size=17
+step 9: build (default) -j 1
+  error E_TYPE default: expected strlist, got int
+step 10: edit main.kiln
+  ok size=11
+step 11: build (default) -j 1
+  error E_NO_DEFAULT
+step 12: edit main.kiln
+  ok size=12
+step 13: build (default) -j 1
+  error E_TYPE phony p: expected strlist, got int
+step 14: edit main.kiln
+  ok size=22
+step 15: build (default) -j 1
+  error E_TYPE phony p: expected strlist, got bool
+step 16: edit main.kiln
+  ok size=26
+step 17: build (default) -j 1
+  error E_DUP_PHONY p
+step 18: edit main.kiln
+  ok size=24
+step 19: build (default) -j 1
+  error E_BAD_PATH bad path!
+step 20: edit main.kiln
+  ok size=20
+step 21: build (default) -j 1
+  error E_BAD_PATH @1bad
+step 22: edit main.kiln
+  ok size=18
+step 23: build (default) -j 1
+  error E_MISSING_INPUT @ok required by @p
+step 24: edit main.kiln
+  ok size=20
+step 25: build (default) -j 1
+  error E_ABORT msg 2
+step 26: edit main.kiln
+  ok size=26
+step 27: build (default) -j 1
+  error E_ABORT x!

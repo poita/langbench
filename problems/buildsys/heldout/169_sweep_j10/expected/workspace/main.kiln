@@ -1,0 +1,67 @@
+step {
+    out "out/s0.txt"
+    cmd write("0\n")
+    cost 3
+}
+step {
+    out "out/s1.txt"
+    cmd write("1\n")
+    cost 1
+}
+step {
+    out "out/s2.txt"
+    cmd write("2\n")
+    cost 4
+}
+step {
+    out "out/s3.txt"
+    cmd write("3\n")
+    cost 1
+}
+step {
+    out "out/s4.txt"
+    cmd write("4\n")
+    cost 5
+}
+step {
+    out "out/s5.txt"
+    cmd write("5\n")
+    cost 9
+}
+step {
+    out "out/s6.txt"
+    cmd write("6\n")
+    cost 2
+}
+step {
+    out "out/s7.txt"
+    cmd write("7\n")
+    cost 6
+}
+step {
+    out "out/s8.txt"
+    cmd write("8\n")
+    cost 5
+}
+step {
+    out "out/s9.txt"
+    cmd write("9\n")
+    cost 3
+}
+step {
+    out "out/s10.txt"
+    cmd write("10\n")
+    cost 5
+}
+step {
+    out "out/s11.txt"
+    cmd write("11\n")
+    cost 8
+}
+step {
+    out "out/join.txt"
+    in ["out/s0.txt", "out/s1.txt", "out/s2.txt", "out/s3.txt", "out/s4.txt", "out/s5.txt", "out/s6.txt", "out/s7.txt", "out/s8.txt", "out/s9.txt", "out/s10.txt", "out/s11.txt"]
+    cmd count_lines()
+    cost 2
+}
+default "out/join.txt"

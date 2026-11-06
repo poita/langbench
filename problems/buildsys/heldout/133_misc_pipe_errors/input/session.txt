@@ -1,0 +1,13 @@
+build
+edit main.kiln
+let x = 1 |> cost
+---
+build
+edit main.kiln
+let x = "a" |> upper(1)
+---
+build
+edit main.kiln
+let x = [1] |> first |> upper
+---
+build

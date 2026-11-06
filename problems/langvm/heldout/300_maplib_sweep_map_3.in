@@ -1,0 +1,17 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    var m: #[Str: [Int]] = mapNew(); m["a"] = [1]; push(m["a"], 2); print(sl(m["a"]) ++ " " ++ si(listLen(mapGetOr(m, "b", []))));
+    var m: #[Int: Int] = mapNew(); for i in 0 .. 5 { m[i * 2] = i; } print(sl(keysOf(m)) ++ " " ++ sl(valuesOf(m)));
+    var m: #[Str: Int] = mapNew(); for w in strSplit("b a b c a b", " ") { m[w] = mapGetOr(m, w, 0) + 1; } print(ss(keysOf(m)) ++ " " ++ sl(valuesOf(m)));
+}

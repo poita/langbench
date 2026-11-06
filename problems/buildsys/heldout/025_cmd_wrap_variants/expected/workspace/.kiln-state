@@ -1,0 +1,23 @@
+kiln-state 1
+step out/h.txt
+cmd hash()
+in out/w0.txt 23fff98ccff6f5b5
+in out/w1.txt a4932cb2c7e1042d
+in out/w2.txt 09423507b5d21614
+out out/h.txt 08b635df3a3b4f47
+end
+step out/w0.txt
+cmd wrap("<<", ">>")
+in src/t.txt a4932cb2c7e1042d
+out out/w0.txt 23fff98ccff6f5b5
+end
+step out/w1.txt
+cmd wrap("", "")
+in src/t.txt a4932cb2c7e1042d
+out out/w1.txt a4932cb2c7e1042d
+end
+step out/w2.txt
+cmd wrap("P", "S")
+in src/e.txt cbf29ce484222325
+out out/w2.txt 09423507b5d21614
+end

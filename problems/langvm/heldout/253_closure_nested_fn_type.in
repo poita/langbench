@@ -1,0 +1,4 @@
+@module main
+fn apply(f: fn(Int) -> fn(Int) -> Int, x: Int) -> Int { (f(x))(2) }
+fn mk(a: Int) -> fn(Int) -> Int { |b: Int| a * b }
+fn main() { print(showInt(apply(|a: Int| mk(a), 21))); }

@@ -1,0 +1,18 @@
+step 1: build (default) -j 1
+  run 0 2 w0 out/lower_0.txt lower()
+  run 2 4 w0 out/lower_1.txt lower()
+  run 4 6 w0 out/lower_2.txt lower()
+  run 6 8 w0 out/lower_3.txt lower()
+  run 8 10 w0 out/lower_4.txt lower()
+  run 10 12 w0 out/lower_5.txt lower()
+  run 12 15 w0 out/lower_pin.txt hash()
+  ok ran=7 hit=0 time=15
+step 2: build (default) -j 1
+  hit 0 out/lower_0.txt
+  hit 0 out/lower_1.txt
+  hit 0 out/lower_2.txt
+  hit 0 out/lower_3.txt
+  hit 0 out/lower_4.txt
+  hit 0 out/lower_5.txt
+  hit 0 out/lower_pin.txt
+  ok ran=0 hit=7 time=0

@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showInt(listLen(slice([1, 2], 0, 3))));
+}

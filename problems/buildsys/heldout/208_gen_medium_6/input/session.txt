@@ -1,0 +1,29 @@
+build -j 16
+create src/m0/new0.txt
+theta
+---
+build @m1 -j 16
+edit src/m9/f6.txt
+---
+build @m5 -j 2
+touch src/m5/f0.txt
+build @m1 -j 2
+create src/m7/new1.txt
+birch
+---
+build @m8 -j 64
+edit src/m0/sub/g3.txt
+gamma
+
+ilex
+---
+build @m8
+create src/m3/new2.txt
+beta
+a-b+c
+---
+build @m0 -j 4
+edit src/m7/f0.txt
+omicron
+---
+build @m4 -j 4

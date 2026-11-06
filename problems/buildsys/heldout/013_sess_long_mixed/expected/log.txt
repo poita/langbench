@@ -1,0 +1,35 @@
+step 1: build (default) -j 2
+  run 0 2 w0 out/all.txt concat()
+  ok ran=1 hit=0 time=2
+step 2: touch src/a.txt
+  ok
+step 3: build (default) -j 1
+  hit 0 out/all.txt
+  ok ran=0 hit=1 time=0
+step 4: edit src/b.txt
+  ok size=6
+step 5: build (default) -j 4
+  run 0 2 w0 out/all.txt concat()
+  ok ran=1 hit=0 time=2
+step 6: create src/c.txt
+  ok size=3
+step 7: build (default) -j 1
+  run 0 2 w0 out/all.txt concat()
+  ok ran=1 hit=0 time=2
+step 8: clean
+  remove .kiln-state
+  remove out/all.txt
+  ok removed=2
+step 9: build (default) -j 3
+  run 0 2 w0 out/all.txt concat()
+  ok ran=1 hit=0 time=2
+step 10: delete src/c.txt
+  ok
+step 11: build (default) -j 1
+  run 0 2 w0 out/all.txt concat()
+  ok ran=1 hit=0 time=2
+step 12: edit main.kiln
+  ok size=117
+step 13: build (default) -j 1
+  hit 0 out/all.txt
+  ok ran=0 hit=1 time=0

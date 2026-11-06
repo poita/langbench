@@ -1,0 +1,6 @@
+build
+clean
+build @m10 -j 16
+edit src/m3/f4.txt
+---
+build @m9 -j 3

@@ -1,0 +1,15 @@
+build -j 2
+delete src/m3/f5.txt
+build @m2 -j 16
+touch src/m1/sub/g3.txt
+build @m3 -j 4
+touch src/m4/f6.txt
+build @m4
+edit src/m2/f5.txt
+lambda
+Ünicode
+theta
+---
+build
+touch main.kiln
+build @m3 -j 2

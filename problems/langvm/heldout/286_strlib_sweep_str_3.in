@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print("[" ++ trimLeft("  x  ") ++ "][" ++ trimRight("  x  ") ++ "][" ++ trimLeft("") ++ "]");
+    print(upper("aZ9é") ++ " " ++ lower("AZ9É") ++ " " ++ upper("") ++ " " ++ lower("héllo"));
+    print(si(strCmp("a", "b")) ++ si(strCmp("a", "a")) ++ si(strCmp("b", "a")) ++ si(strCmp("", "a")) ++ si(strCmp("ab", "a")) ++ si(strCmp("Z", "a")));
+    print(si(listLen(chars("héllo"))) ++ " " ++ strOfChars(chars("héllo")) ++ " " ++ strOfChars([]) ++ " " ++ strOfChars(['a', 'b']));
+    print(strReverse("abc") ++ " " ++ strReverse("") ++ " " ++ strReverse("héllo"));
+    print(quoteStr("") ++ " " ++ quoteStr("abc") ++ " " ++ quoteStr("a\"b") ++ " " ++ quoteStr("a\\b"));
+    print(quoteStr("a\nb\tc\rd") ++ " " ++ quoteStr("\u{0}\u{1f}\u{7f}") ++ " " ++ quoteStr("é'"));
+}

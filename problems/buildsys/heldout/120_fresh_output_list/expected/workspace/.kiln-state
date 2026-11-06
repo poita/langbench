@@ -1,0 +1,8 @@
+kiln-state 1
+step out/doc.txt
+cmd preprocess()
+in src/m.txt e68aabead73e9b4c
+dep src/p.txt 09425e07b5d25bbf
+out out/doc.txt 67373e8fb36b7151
+out out/d2.d 3d9abbbb420d8842
+end

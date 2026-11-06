@@ -1,0 +1,36 @@
+step {
+    out "out/replace_nl_0.txt"
+    in "src/e.txt"
+    cmd replace("\n", ";")
+}
+step {
+    out "out/replace_nl_1.txt"
+    in "src/n.txt"
+    cmd replace("\n", ";")
+}
+step {
+    out "out/replace_nl_2.txt"
+    in "src/x.txt"
+    cmd replace("\n", ";")
+}
+step {
+    out "out/replace_nl_3.txt"
+    in "src/c.txt"
+    cmd replace("\n", ";")
+}
+step {
+    out "out/replace_nl_4.txt"
+    in "src/u.txt"
+    cmd replace("\n", ";")
+}
+step {
+    out "out/replace_nl_5.txt"
+    in "src/b.txt"
+    cmd replace("\n", ";")
+}
+step {
+    out "out/replace_nl_pin.txt"
+    in ["out/replace_nl_0.txt", "out/replace_nl_1.txt", "out/replace_nl_2.txt", "out/replace_nl_3.txt", "out/replace_nl_4.txt", "out/replace_nl_5.txt"]
+    cmd hash()
+}
+default "out/replace_nl_pin.txt"

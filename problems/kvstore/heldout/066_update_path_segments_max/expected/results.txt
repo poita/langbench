@@ -1,0 +1,20 @@
+[1] ok put created
+[2] ok update updated
+[3] ok get value
+  {"b":{"c":{"d":{"e":{"f":{"g":{"h":1}}}}}}}
+[4] ok unset updated
+[5] ok get value
+  {"b":{"c":{"d":{"e":{"f":{"g":{}}}}}}}
+[6] ok update updated
+[7] ok update updated
+[8] error bad-path
+[9] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 1
+  root 2
+  height 1
+  commits 5
+  indexes 0
+  wal 11680

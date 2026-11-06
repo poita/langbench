@@ -1,0 +1,8 @@
+put "a" 1
+begin
+checkpoint
+put "b" 2
+checkpoint
+commit
+checkpoint
+stat

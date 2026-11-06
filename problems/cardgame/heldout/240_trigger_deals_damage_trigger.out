@@ -1,0 +1,49 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+11 EXHAUST #21
+12 ATTACK #21
+13 PASS A
+14 PASS B
+15 PHASE clash-block
+16 UNBLOCKED #21
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #21 DSK-036 2/4 w0 c0 exhausted attacking kw -
+field B #42 TOK-003 0/3 w0 c0 ready - kw plating:1
+STATE END
+17 PASS A
+18 PASS B
+19 PHASE clash-damage
+20 DAMAGE #21 B 2
+21 SPIRE B -2 38
+22 TRIGGER A ~1 #21 2
+STATE BEGIN
+turn 1 active A phase clash-damage decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 38 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #21 DSK-036 2/4 w0 c0 exhausted attacking kw -
+field B #42 TOK-003 0/3 w0 c0 ready - kw plating:1
+chain 1 ~1 A trigger #21 2
+STATE END
+23 PASS A
+24 PASS B
+25 RESOLVE ~1
+26 SPIRE A +1 41
+STATE BEGIN
+turn 1 active A phase clash-damage decision A priority
+player A spire 41 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+player B spire 38 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+field A #21 DSK-036 2/4 w0 c0 exhausted attacking kw -
+field B #42 TOK-003 0/3 w0 c0 ready - kw plating:1
+STATE END
+27 RESULT pending none

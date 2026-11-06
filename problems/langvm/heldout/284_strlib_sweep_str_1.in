@@ -1,0 +1,21 @@
+@module main
+fn si(x: Int) -> Str { showInt(x) }
+fn sf(x: Float) -> Str { showFloat(x) }
+fn sb(b: Bool) -> Str { showBool(b) }
+fn sc(c: Char) -> Str { showChar(c) }
+fn so(o: Option<Int>) -> Str { if isNone(o) { "none" } else { showInt(unwrap(o)) } }
+fn sof(o: Option<Float>) -> Str { if isNone(o) { "none" } else { showFloat(unwrap(o)) } }
+fn sl(xs: [Int]) -> Str { "[" ++ strJoin(listMap(xs, |v| showInt(v)), ",") ++ "]" }
+fn ss(xs: [Str]) -> Str { "[" ++ strJoin(xs, "|") ++ "]" }
+fn sp(ps: [(Str, Int)]) -> Str {
+    strJoin(listMap(ps, |p| fst(p) ++ "=" ++ showInt(snd(p))), ",")
+}
+fn main() {
+    print(si(strLen("")) ++ " " ++ si(strLen("abc")) ++ " " ++ si(strLen("héllo")) ++ " " ++ si(strLen("\u{1f600}")));
+    print(sc(charAt("héllo", 1)) ++ sc(charAt("héllo", 4)) ++ sc(charAt("a", 0)));
+    print(substr("hello", 0, 5) ++ "|" ++ substr("hello", 1, 3) ++ "|" ++ substr("hello", 2, 2) ++ "|" ++ substr("", 0, 0));
+    print(strCat("ab", "cd") ++ " " ++ strCat("", "x") ++ " " ++ ("a" ++ "b" ++ "c"));
+    print(strRepeat("ab", 3) ++ "|" ++ strRepeat("ab", 0) ++ "|" ++ strRepeat("", 5));
+    print(si(strIndexOf("abcabc", "bc")) ++ " " ++ si(strIndexOf("abc", "z")) ++ " " ++ si(strIndexOf("abc", "")) ++ " " ++ si(strIndexOf("", "a")));
+    print(si(strLastIndexOf("abcabc", "bc")) ++ " " ++ si(strLastIndexOf("abc", "z")) ++ " " ++ si(strLastIndexOf("abc", "")));
+}

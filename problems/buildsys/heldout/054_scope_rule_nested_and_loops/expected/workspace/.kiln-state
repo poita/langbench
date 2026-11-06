@@ -1,0 +1,21 @@
+kiln-state 1
+step out/a_0.txt
+cmd write("a_0:1\n")
+out out/a_0.txt 45c8437e0299a064
+end
+step out/a_1.txt
+cmd write("a_1:2\n")
+out out/a_1.txt b340b17523011192
+end
+step out/a_2.txt
+cmd write("a_2:3\n")
+out out/a_2.txt 489e238fae86ffb4
+end
+step out/b_0.txt
+cmd write("b_0:1\n")
+out out/b_0.txt 8cb5e869a67025ab
+end
+step out/b_1.txt
+cmd write("b_1:2\n")
+out out/b_1.txt 641c8a72acec371d
+end

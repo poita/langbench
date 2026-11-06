@@ -1,0 +1,66 @@
+build
+edit main.kiln
+step {
+    let x = 1
+    cmd write("x")
+    out "out/z.txt"
+}
+---
+build
+edit main.kiln
+let x = 1 2
+---
+build
+edit main.kiln
+rule r(a, b) {
+}
+use r(a = 1, 2)
+---
+build
+edit main.kiln
+rule r(a, a) {
+}
+---
+build
+edit main.kiln
+rule r(a = 1, b) {
+}
+---
+build
+edit main.kiln
+let x = (1)(2)
+---
+build
+edit main.kiln
+let x = 1 |> 2
+---
+build
+edit main.kiln
+include
+---
+build
+edit main.kiln
+let = 1
+---
+build
+edit main.kiln
+rule r() {
+}
+use r
+---
+build
+edit main.kiln
+step {
+    cmd write("x")
+    out
+}
+---
+build
+edit main.kiln
+let x = [1, 2
+---
+build
+edit main.kiln
+depfile "out/a.d"
+---
+build

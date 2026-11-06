@@ -1,0 +1,6 @@
+step {
+    out "out/z.txt"
+    in "src/a.txt"
+    cmd copy()
+}
+default "out/z.txt"

@@ -1,0 +1,11 @@
+step {
+    out "out/hash_all.txt"
+    in ["src/e.txt", "src/n.txt", "src/x.txt", "src/c.txt", "src/u.txt", "src/b.txt"]
+    cmd hash()
+}
+step {
+    out "out/hash_all_pin.txt"
+    in ["out/hash_all.txt"]
+    cmd hash()
+}
+default "out/hash_all_pin.txt"

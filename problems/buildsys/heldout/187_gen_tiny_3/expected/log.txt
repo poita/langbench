@@ -1,0 +1,44 @@
+step 1: build (default) -j 4
+  run 0 3 w0 out/m0/f0.txt dedup()
+  run 0 1 w1 out/m1/f0.txt wrap("[", "]\n")
+  run 0 4 w2 out/m1/doc.txt preprocess()
+  run 1 5 w1 out/m1/bundle.txt concat()
+  run 3 6 w0 out/m0/bundle.txt hash()
+  run 5 6 w1 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 6 6 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 6 9 w0 out/all.txt count_lines()
+  ok ran=8 hit=0 time=9
+step 2: edit src/m1/f0.txt
+  ok size=27
+step 3: build (default) -j 64
+  hit 0 out/m0/f0.txt
+  hit 0 out/m0/bundle.txt
+  hit 0 out/m0/wrapped.txt
+  run 0 1 w0 out/m1/f0.txt wrap("[", "]\n")
+  run 0 4 w1 out/m1/doc.txt preprocess()
+  run 1 5 w0 out/m1/bundle.txt concat()
+  run 5 6 w0 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 6 9 w0 out/all.txt count_lines()
+  ok ran=5 hit=3 time=9
+step 4: clean
+  remove .kiln-state
+  remove out/all.txt
+  remove out/m0/bundle.txt
+  remove out/m0/f0.txt
+  remove out/m0/wrapped.txt
+  remove out/m1/bundle.txt
+  remove out/m1/doc.d
+  remove out/m1/doc.txt
+  remove out/m1/f0.txt
+  remove out/m1/wrapped.txt
+  ok removed=10
+step 5: build (default) -j 3
+  run 0 3 w0 out/m0/f0.txt dedup()
+  run 0 1 w1 out/m1/f0.txt wrap("[", "]\n")
+  run 0 4 w2 out/m1/doc.txt preprocess()
+  run 1 5 w1 out/m1/bundle.txt concat()
+  run 3 6 w0 out/m0/bundle.txt hash()
+  run 5 6 w1 out/m1/wrapped.txt wrap("<m1|", "|>\n")
+  run 6 6 w0 out/m0/wrapped.txt wrap("<m0|", "|>\n")
+  run 6 9 w0 out/all.txt count_lines()
+  ok ran=8 hit=0 time=9

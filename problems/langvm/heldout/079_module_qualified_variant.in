@@ -1,0 +1,8 @@
+@module main
+use o;
+fn main() {
+    match o::mk() { o::Red -> print("red"), o::Blue -> print("blue") }
+}
+@module o
+pub enum Colour { Red, Blue }
+pub fn mk() -> Colour { Blue }

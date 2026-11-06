@@ -1,0 +1,26 @@
+[1] ok put created
+[2] ok begin
+[3] ok put created
+[4] ok commit 2 frames 2
+[5] ok put created
+[6] ok begin
+[7] ok put created
+[8] ok rollback
+[9] ok put created
+[10] ok begin
+[11] ok delete removed
+[12] ok commit 5 frames 2
+[13] ok scan 3
+  "b"
+  "c"
+  "e"
+[14] ok stat
+  pages 2
+  free 0
+  freehead 0
+  docs 3
+  root 2
+  height 1
+  commits 5
+  indexes 0
+  wal 10632

@@ -1,0 +1,9 @@
+@module main
+fn f(p: (Int, Option<Float>)) -> Int {
+    match p {
+        (0, None) -> 0,
+        (_, Some(-2.5)) -> 1,
+        _ -> 2,
+    }
+}
+fn main() { print(showInt(f((1, Some(2.5))))); }

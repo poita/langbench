@@ -1,0 +1,84 @@
+[1] error not-found
+[2] error not-found
+[3] ok put created
+[4] ok stat
+  pages 3
+  free 0
+  freehead 0
+  docs 1
+  root 3
+  height 1
+  commits 1
+  indexes 0
+  wal 3200
+[5] ok put created
+[6] error not-found
+[7] ok put created
+[8] ok indexes 0
+[9] error not-found
+[10] ok find 0 plan scan
+[11] ok create index age entries 0
+[12] ok put created
+[13] error not-found
+[14] error not-object
+[15] ok put replaced
+[16] ok delete removed
+[17] ok put replaced
+[18] ok put created
+[19] error not-found
+[20] error not-found
+[21] ok put replaced
+[22] ok scan 1
+  "k00007"
+[23] error not-found
+[24] ok scan 2
+  "k00007"
+  "k00003"
+[25] ok create index name entries 0
+[26] ok put replaced
+[27] ok indexes 2
+  0 age root 0 entries 0
+  1 name root 0 entries 0
+[28] error not-found
+[29] ok put created
+[30] ok indexes 2
+  0 age root 4 entries 1
+  1 name root 0 entries 0
+[31] ok put created
+[32] error index-missing
+[33] ok stat
+  pages 5
+  free 0
+  freehead 0
+  docs 6
+  root 3
+  height 1
+  commits 14
+  indexes 2
+  wal 34952
+[34] error not-found
+[35] ok delete removed
+[36] ok scan 0
+[37] error not-object
+[38] error not-found
+[39] ok find 0 plan scan
+[40] ok put created
+[41] ok stat
+  pages 5
+  free 1
+  freehead 2
+  docs 6
+  root 3
+  height 1
+  commits 16
+  indexes 2
+  wal 40240
+[42] ok indexes 2
+  0 age root 4 entries 1
+  1 name root 0 entries 0
+[43] ok scan 5
+  "k00000"
+  "k00002"
+  "k00003"
+  "k00004"
+  "k00008"

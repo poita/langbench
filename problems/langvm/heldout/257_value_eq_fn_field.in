@@ -1,0 +1,6 @@
+@module main
+struct Bad { f: fn(Int) -> Int }
+fn main() {
+    let a = Bad.{ f: |x: Int| x };
+    print(showBool(a == a));
+}

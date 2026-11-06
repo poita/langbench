@@ -1,0 +1,83 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 TID-003 #24
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 BOUNCE #24 NEU-011
+14 SPENT #21 TID-003
+15 TRIGGER A ~2 #24 1
+16 PASS A
+17 PASS B
+18 RESOLVE ~2
+19 DRAW A #1 CIN-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 9 cap 10 vault 19 hand 4 ash 1 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 DSK-016
+hand A 2 #23 DSK-002
+hand A 3 #24 NEU-011
+hand A 4 #1 CIN-001
+field A #25 NEU-011 3/2 w0 c0 ready - kw -
+field A #26 NEU-011 3/2 w0 c0 ready - kw -
+ash A 1 #21 TID-003
+STATE END
+20 PLAY A ~3 #22 DSK-016 #25
+21 PAY A ember 2
+22 PASS A
+23 PASS B
+24 RESOLVE ~3
+25 EXILE #25 NEU-011 field
+26 SPENT #22 DSK-016
+27 TRIGGER A ~4 #25 1
+28 PASS A
+29 PASS B
+30 RESOLVE ~4
+31 DRAW A #2 CIN-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 7 cap 10 vault 18 hand 4 ash 2 rift 1
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #23 DSK-002
+hand A 2 #24 NEU-011
+hand A 3 #1 CIN-001
+hand A 4 #2 CIN-001
+field A #26 NEU-011 3/2 w0 c0 ready - kw -
+ash A 1 #21 TID-003
+ash A 2 #22 DSK-016
+rift A 1 #25 NEU-011
+STATE END
+32 PLAY A ~5 #23 DSK-002 #26
+33 PAY A ember 2
+34 PASS A
+35 PASS B
+36 RESOLVE ~5
+37 DESTROY #26 NEU-011
+38 SPENT #23 DSK-002
+39 TRIGGER A ~6 #26 1
+40 PASS A
+41 PASS B
+42 RESOLVE ~6
+43 DRAW A #3 CIN-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 5 cap 10 vault 17 hand 4 ash 4 rift 1
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #24 NEU-011
+hand A 2 #1 CIN-001
+hand A 3 #2 CIN-001
+hand A 4 #3 CIN-001
+ash A 1 #21 TID-003
+ash A 2 #22 DSK-016
+ash A 3 #26 NEU-011
+ash A 4 #23 DSK-002
+rift A 1 #25 NEU-011
+STATE END
+44 RESULT pending none

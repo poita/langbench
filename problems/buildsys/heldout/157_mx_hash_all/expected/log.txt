@@ -1,0 +1,8 @@
+step 1: build (default) -j 1
+  run 0 3 w0 out/hash_all.txt hash()
+  run 3 6 w0 out/hash_all_pin.txt hash()
+  ok ran=2 hit=0 time=6
+step 2: build (default) -j 1
+  hit 0 out/hash_all.txt
+  hit 0 out/hash_all_pin.txt
+  ok ran=0 hit=2 time=0

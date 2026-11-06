@@ -1,0 +1,10 @@
+kiln-state 1
+step out/big.txt
+cmd write("big\n")
+out out/big.txt deab609bd0a26309
+end
+step out/small.txt
+cmd copy()
+in out/big.txt deab609bd0a26309
+out out/small.txt deab609bd0a26309
+end

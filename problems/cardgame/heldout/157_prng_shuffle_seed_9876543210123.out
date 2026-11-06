@@ -1,0 +1,32 @@
+1 GAME-START A
+2 SHUFFLE A
+3 SHUFFLE B
+4 TURN 1 A
+5 PHASE dawn
+6 EMBER A 1 1
+7 EMBER B 0 0
+8 PHASE draw
+9 PHASE main1
+VAULT BEGIN
+vault A 1 #3 CIN-003
+vault A 2 #10 CIN-010
+vault A 3 #1 CIN-001
+vault A 4 #12 CIN-012
+vault A 5 #7 CIN-007
+vault A 6 #11 CIN-011
+vault A 7 #2 CIN-002
+vault A 8 #6 CIN-006
+vault A 9 #9 CIN-009
+vault A 10 #4 CIN-004
+vault A 11 #5 CIN-005
+vault A 12 #8 CIN-008
+vault B 1 #17 TID-005
+vault B 2 #13 TID-001
+vault B 3 #20 TID-008
+vault B 4 #14 TID-002
+vault B 5 #16 TID-004
+vault B 6 #15 TID-003
+vault B 7 #19 TID-007
+vault B 8 #18 TID-006
+VAULT END
+10 RESULT pending none

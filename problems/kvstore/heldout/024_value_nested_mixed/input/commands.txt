@@ -1,0 +1,8 @@
+put "a" {users:[{name:"ada",tags:["x","y"]},{name:"bob",tags:[]}],n:2}
+get "a"
+put "b" [[1,2],[3,[4,[5,[6]]]],{}]
+get "b"
+put "c" {"":{"":{"":null}}}
+get "c"
+scan
+stat

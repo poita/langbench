@@ -1,0 +1,11 @@
+@module main
+fn add(xs: [Int]) { push(xs, 1); }
+fn main() {
+    let a = [0];
+    let b = a;
+    add(a);
+    print(showInt(listLen(b)));
+    let c = listCopy(a);
+    add(a);
+    print(showInt(listLen(c)) ++ showInt(listLen(a)));
+}

@@ -1,0 +1,6 @@
+step 1: build @all -j 3
+  run 0 1 w0 out/alpha.txt write("0:alpha\n")
+  run 0 1 w1 out/beta.txt write("1:beta\n")
+  run 0 1 w2 out/gamma.txt write("2:gamma\n")
+  run 1 3 w0 out/index.txt concat()
+  ok ran=4 hit=0 time=3

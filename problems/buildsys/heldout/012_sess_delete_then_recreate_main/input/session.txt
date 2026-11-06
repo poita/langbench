@@ -1,0 +1,11 @@
+build
+delete main.kiln
+build
+create main.kiln
+step {
+    out "out/hello.txt"
+    cmd write("hello\n")
+}
+default "out/hello.txt"
+---
+build

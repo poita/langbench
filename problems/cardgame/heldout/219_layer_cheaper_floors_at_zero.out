@@ -1,0 +1,37 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+LEGAL BEGIN A priority
+PASS
+PLAY 1 CIN-003 A
+PLAY 1 CIN-003 B
+PLAY 1 CIN-003 #24
+PLAY 2 CIN-011 #24
+PLAY 3 TID-003 #24
+LEGAL END
+8 PLAY A ~1 #21 CIN-003 B
+9 PASS A
+10 PASS B
+11 RESOLVE ~1
+12 DAMAGE #21 B 2
+13 SPIRE B -2 38
+14 SPENT #21 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 10 cap 10 vault 20 hand 2 ash 1 rift 0
+player B spire 38 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-011
+hand A 2 #23 TID-003
+field A #24 CIN-031 3/3 w0 c0 ready - kw -
+field A #25 TID-013 -/- w0 c0 ready - kw -
+field A #26 NEU-013 -/- w0 c0 ready - kw -
+ash A 1 #21 CIN-003
+effect 1 ts2 A aura cheaper 1 on -
+effect 2 ts4 A aura cheaper 1 on -
+effect 3 ts6 A aura cheaper 1 on -
+STATE END
+15 RESULT pending none

@@ -1,0 +1,23 @@
+layout 1
+pages 2
+page 1 i 200000 120000 20000 20000 160000 80000
+  text body sans-bold 20000 20000 35460 82500 "Contents"
+  text body serif 10000 20000 59630 4920 "1"
+  text body serif 10000 30920 59630 16690 "One"
+  text body serif 10000 50640 59630 121440 "................................................"
+  text body serif 10000 175080 59630 4920 "1"
+  text body serif 10000 20000 74170 4990 "2"
+  text body serif 10000 30990 74170 17550 "Two"
+  text body serif 10000 53170 74170 118910 "..............................................."
+  text body serif 10000 175080 74170 4920 "1"
+  text body serif 10000 20000 88710 5060 "3"
+  text body serif 10000 31060 88710 23360 "Three"
+  text body serif 10000 58230 88710 113850 "............................................."
+  text body serif 10000 175080 88710 4920 "1"
+page 2 1 200000 120000 20000 20000 160000 80000
+  text body sans-bold 20000 20000 35460 11400 "1"
+  text body sans-bold 20000 37400 35460 38560 "One"
+  text body sans-bold 20000 20000 73780 11320 "2"
+  text body sans-bold 20000 37320 73780 41680 "Two"
+  text body sans-bold 20000 20000 112100 11900 "3"
+  text body sans-bold 20000 37900 112100 54160 "Three"

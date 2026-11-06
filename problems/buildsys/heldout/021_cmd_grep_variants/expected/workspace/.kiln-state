@@ -1,0 +1,29 @@
+kiln-state 1
+step out/g0.txt
+cmd grep("a")
+in src/t.txt 055bd2f28d86b411
+out out/g0.txt 2ff93509c9350154
+end
+step out/g1.txt
+cmd grep("zz")
+in src/t.txt 055bd2f28d86b411
+out out/g1.txt cbf29ce484222325
+end
+step out/g2.txt
+cmd grep("")
+in src/t.txt 055bd2f28d86b411
+out out/g2.txt a1bb8d267be409e1
+end
+step out/g3.txt
+cmd grep("b")
+in src/t.txt 055bd2f28d86b411
+out out/g3.txt 50778f15df69a42b
+end
+step out/h.txt
+cmd hash()
+in out/g0.txt 2ff93509c9350154
+in out/g1.txt cbf29ce484222325
+in out/g2.txt a1bb8d267be409e1
+in out/g3.txt 50778f15df69a42b
+out out/h.txt 2304c2388973df81
+end

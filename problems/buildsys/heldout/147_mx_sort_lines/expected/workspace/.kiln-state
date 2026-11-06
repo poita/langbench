@@ -1,0 +1,41 @@
+kiln-state 1
+step out/sort_lines_0.txt
+cmd sort_lines()
+in src/e.txt cbf29ce484222325
+out out/sort_lines_0.txt cbf29ce484222325
+end
+step out/sort_lines_1.txt
+cmd sort_lines()
+in src/n.txt dc3add5ecc4ba006
+out out/sort_lines_1.txt 3f79ced3c7477266
+end
+step out/sort_lines_2.txt
+cmd sort_lines()
+in src/x.txt 07c7d73947cbe1de
+out out/sort_lines_2.txt 04748a54ff70bb3c
+end
+step out/sort_lines_3.txt
+cmd sort_lines()
+in src/c.txt 25fd018afddd7cc5
+out out/sort_lines_3.txt 25fd018afddd7cc5
+end
+step out/sort_lines_4.txt
+cmd sort_lines()
+in src/u.txt 883ac19acb748cf1
+out out/sort_lines_4.txt 883ac19acb748cf1
+end
+step out/sort_lines_5.txt
+cmd sort_lines()
+in src/b.txt 1c2c1cfae3c07157
+out out/sort_lines_5.txt 1c2c1cfae3c07157
+end
+step out/sort_lines_pin.txt
+cmd hash()
+in out/sort_lines_0.txt cbf29ce484222325
+in out/sort_lines_1.txt 3f79ced3c7477266
+in out/sort_lines_2.txt 04748a54ff70bb3c
+in out/sort_lines_3.txt 25fd018afddd7cc5
+in out/sort_lines_4.txt 883ac19acb748cf1
+in out/sort_lines_5.txt 1c2c1cfae3c07157
+out out/sort_lines_pin.txt 9b6e726452700fee
+end

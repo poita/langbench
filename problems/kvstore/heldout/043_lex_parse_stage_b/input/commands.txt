@@ -1,0 +1,14 @@
+put "k" {b:1}
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[["\ud800"]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[{}]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+get "a"
+put "a" [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[{x:)
+find a == [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[)
+find a == [[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]
+unset "k" aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa..
+find exists aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.
+create index aaaaaaaaaaaaaaaaaaaaaaaaaaaaa.b
+create index aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+put "a" 1 99999999999999999999
+stat

@@ -1,0 +1,4 @@
+step 1: build (default) -j 4
+  run 0 4 w0 out/gen.txt upper()
+  run 4 5 w0 out/use.txt copy()
+  ok ran=2 hit=0 time=5
