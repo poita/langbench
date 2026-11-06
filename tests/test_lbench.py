@@ -119,6 +119,25 @@ class TimeLog(unittest.TestCase):
         self.assertEqual(lb.parse_time_log(""), {"invocations": 0, "instr": 0, "cycles": 0, "cpu": 0.0})
 
 
+class Counters(unittest.TestCase):
+    def test_a_perf_that_cannot_run_is_not_used(self):
+        """Ubuntu's linux-tools wrapper puts a `perf` on PATH that exits 1 when no perf matches the kernel."""
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            fake = os.path.join(d, "perf")
+            with open(fake, "w") as f:
+                f.write("#!/bin/sh\necho 'WARNING: perf not found for kernel' >&2\nexit 1\n")
+            os.chmod(fake, 0o755)
+            saved = (lb.sys.platform, os.environ["PATH"])
+            lb.sys.platform, os.environ["PATH"] = "linux", d + os.pathsep + os.environ["PATH"]
+            lb.perf_usable.cache_clear()
+            try:
+                self.assertEqual(lb.counter_prefix("log"), [])
+            finally:
+                lb.sys.platform, os.environ["PATH"] = saved
+                lb.perf_usable.cache_clear()
+
+
 class Timing(unittest.TestCase):
     def test_wall_time_does_not_come_from_polling_wait(self):
         # lbench run always passes a timeout, and Popen.wait(timeout) polls with back-off up to 50 ms,

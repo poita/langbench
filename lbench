@@ -270,12 +270,25 @@ def retarget_d(build_sh, dc_path, kind):
 
 # ---------------------------------------------------------------- measuring
 
+@functools.lru_cache(maxsize=None)
+def perf_usable():
+    """Whether `perf stat` runs here. Ubuntu's linux-tools wrapper is on PATH even when no perf matches the
+    running kernel, and then fails every command it wraps."""
+    if not shutil.which("perf"):
+        return False
+    try:
+        return subprocess.run(["perf", "stat", "-x", ",", "-e", "task-clock", "-o", os.devnull, "--", "true"],
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=30).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+
+
 def counter_prefix(log, append=False):
     """Command prefix that records the process's own instructions retired and cycles into `log`:
     BSD /usr/bin/time -l on macOS, `perf stat` on Linux; empty when neither is available."""
     if sys.platform == "darwin":
         return ["/usr/bin/time", "-l"] + (["-a"] if append else []) + ["-o", log]
-    if shutil.which("perf"):
+    if perf_usable():
         return (["perf", "stat", "-x", ",", "-e", "task-clock,instructions,cycles"]
                 + (["--append"] if append else []) + ["-o", log, "--"])
     return []
