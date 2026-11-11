@@ -375,15 +375,14 @@ BUILD_FILES = ("CMakeLists.txt", "*.cmake", "Cargo.toml", ".cargo/config.toml", 
 OPT_FLAGS = re.compile(r"-march=\S+|-mcpu=\S+|-mtune=\S+|-flto\S*|-fprofile-\S+|-ffast-math|-Ofast|"
                        r"target-cpu=\S+|\blto\s*=\s*\S+|codegen-units\s*=\s*\d+|-gcflags\S*|-pgo=\S+|"
                        r"--enable-cross-module-inlining|-fsave-optimization-record|"
-                       r"-fllvm|\boptimization:\s*2|direct-linking=true")
-# GHC's -O2 is beyond cabal's default (-O1), but -O2 in a C or D compiler line is not.
-HASKELL_OPT = re.compile(r"(?<![\w-])-O2\b")
+                       r"-fllvm|direct-linking=true")
 
 
 def scan_build_flags(project, lang):
     """Non-default optimisation settings in an implementation's build files: target-specific code generation,
     link-time or profile-guided optimisation, fast-math, or compiler flags beyond the build tool's release
-    defaults."""
+    defaults. GHC's -O2 (or cabal's optimization: 2) counts as Haskell's usual optimised build, as -O3 does
+    for a CMake Release build, so it is not reported."""
     found = []
     for pattern in BUILD_FILES:
         for path in sorted(glob.glob(os.path.join(project, "**", pattern), recursive=True)):
@@ -393,9 +392,6 @@ def scan_build_flags(project, lang):
             text = open(path, errors="replace").read()
             for m in OPT_FLAGS.finditer(text):
                 found.append({"kind": "build-flags", "detail": f"{m.group(0)} ({rel})"})
-            if lang == "haskell" and (rel.endswith(".cabal") or os.path.basename(rel) == "cabal.project"):
-                for m in HASKELL_OPT.finditer(text):
-                    found.append({"kind": "build-flags", "detail": f"{m.group(0)} ({rel})"})
     if lang == "go" and glob.glob(os.path.join(project, "**", "default.pgo"), recursive=True):
         found.append({"kind": "build-flags", "detail": "default.pgo (profile-guided optimisation)"})
     return found

@@ -227,7 +227,10 @@ class Dependencies(unittest.TestCase):
         self.assertEqual(len(self.flags("go", {"build.sh": "go build -gcflags=-B ./cmd/x\n"})), 1)
         self.assertEqual(self.flags("python", {"build.sh": "true\n"}), [])
         self.assertEqual(self.flags("haskell", {"x.cabal": "library\n  ghc-options: -Wall\n"}), [])
-        self.assertEqual(len(self.flags("haskell", {"x.cabal": "library\n  ghc-options: -Wall -O2 -fllvm\n"})), 2)
+        # -O2 is Haskell's usual optimised build, as -O3 is CMake Release's; only flags beyond it count.
+        self.assertEqual(self.flags("haskell", {"x.cabal": "library\n  ghc-options: -Wall -O2\n"}), [])
+        self.assertEqual(self.flags("haskell", {"cabal.project": "packages: .\noptimization: 2\n"}), [])
+        self.assertEqual(len(self.flags("haskell", {"x.cabal": "library\n  ghc-options: -Wall -O2 -fllvm\n"})), 1)
 
     def flags(self, lang, files):
         with tempfile.TemporaryDirectory() as d:
