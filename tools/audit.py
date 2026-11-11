@@ -190,16 +190,17 @@ def session_transcripts(rdir, sid):
     return ([main] if os.path.isfile(main) else []) + subs
 
 
-def scan_run(rdir, forbidden, own_project=None, workspaces=None, projects=None):
+def scan_run(rdir, forbidden, own_project=None, workspaces=None, projects=None, shared=()):
     """Findings for every attempt of a run made by impl_run.py launch (manifest.jsonl plus sessions/).
 
     With workspaces ({label: workspace path}) and projects (Claude Code's transcript root), a session may name
     its own workspace and its own spilled tool outputs (<projects>/<workspace>/<session>/tool-results/);
-    otherwise own_project gives the transcript directory whose tool-results it may name."""
+    otherwise own_project gives the transcript directory whose tool-results it may name. Every session may name
+    the shared paths (read-only toolchain material inside the sandbox, such as the Haskell package store)."""
     findings = []
     for e in (json.loads(line) for line in open(os.path.join(rdir, "manifest.jsonl"))):
         sid = e["session_id"]
-        allowed, own_slug = [], None
+        allowed, own_slug = [re.escape(p) + r"(?![\w.-])" for p in shared], None
         if workspaces:
             ws = workspaces[e["label"]]
             own_slug = re.sub(r"[^A-Za-z0-9]", "-", ws)

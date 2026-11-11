@@ -119,6 +119,18 @@ def tool_call(tid, name, inp, result):
                 {"type": "tool_result", "tool_use_id": tid, "content": result}]}})]
 
 
+class SharedReads(unittest.TestCase):
+    def test_paths_every_session_may_read_are_not_findings(self):
+        with tempfile.TemporaryDirectory() as d:
+            write(os.path.join(d, "manifest.jsonl"), json.dumps({"label": "rep1:haskell:x", "session_id": "s1"}) + "\n")
+            write(os.path.join(d, "sessions", "s1.jsonl"),
+                  tool_use("Bash", {"command": "ls /sb/tools/haskell/store/ghc-9.14.1; ls /sb/tools/clojure"}) + "\n")
+            f = au.scan_run(d, forbidden=["/sb"], workspaces={"rep1:haskell:x": "/sb/w/aa"}, projects="/p",
+                            shared=["/sb/tools/haskell/store"])
+            self.assertEqual([x["kind"] for x in f], ["forbidden-path"])
+            self.assertIn("/sb/tools/clojure", f[0]["detail"])
+
+
 class BlockedAttempts(unittest.TestCase):
     def scan(self, lines):
         with tempfile.TemporaryDirectory() as d:

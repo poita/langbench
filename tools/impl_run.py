@@ -842,8 +842,9 @@ def finish(a):
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
     import audit
     projects = os.path.expanduser("~/.claude/projects")
+    shared = [p for p in [os.path.join(box, "tools", "haskell", "store")] if os.path.isdir(p)]
     findings = audit.scan_run(rdir, [env["repo"], projects, box], workspaces=task_workspaces(box),
-                              projects=projects)
+                              projects=projects, shared=shared)
     findings += [{"agent": "-", "kind": "harness-modified", "detail": rel} for rel in changed_harness_files(box)]
     for x in findings:
         print(f"audit   {x['kind']:20s} {x['agent']:28s} {x['detail'][:120]}")
