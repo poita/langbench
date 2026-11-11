@@ -44,6 +44,12 @@ class Render(unittest.TestCase):
         self.assertIn("Reading the spec.", md)
         self.assertNotIn("secret plan", md)
 
+    def test_request_records_repeating_a_call_are_not_rendered(self):
+        blob = json.dumps({"type": "api-request-blob", "message": json.loads(SESSION[2])["message"]})
+        md = rt.render_session("rep1:go:x", [SESSION[:3] + [blob] + SESSION[3:]], {})
+        self.assertIn('<a id="call-2"></a>', md)
+        self.assertNotIn('<a id="call-3"></a>', md)
+
     def test_archive_renders_one_file_per_task_and_an_index(self):
         with tempfile.TemporaryDirectory() as d:
             run = os.path.join(d, "run-x")

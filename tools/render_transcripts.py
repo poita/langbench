@@ -78,6 +78,9 @@ def render_session(label, transcripts, result, verified=None, counterparts=()):
                 e = json.loads(raw)
             except ValueError:
                 continue
+            # Other entries, such as api-request-blob records of a request, repeat earlier messages.
+            if e.get("type") not in ("user", "assistant"):
+                continue
             m = e.get("message") or {}
             content = m.get("content")
             if e.get("type") == "user" and isinstance(content, str) and n == 0 and i == 0:
