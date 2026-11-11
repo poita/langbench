@@ -144,6 +144,11 @@ class BlockedAttempts(unittest.TestCase):
         self.assertEqual([x["kind"] for x in f], ["blocked-attempt"])
         self.assertNotIn("blocked-attempt", au.INTEGRITY)
 
+    def test_a_refused_directory_named_with_a_trailing_slash_is_a_blocked_attempt(self):
+        f = self.scan(tool_call("t1", "Bash", {"command": "ls /sb/w/aa/x; ls /sb/tools/"},
+                                "x\nls: /sb/tools/: Operation not permitted"))
+        self.assertEqual([x["kind"] for x in f], ["blocked-attempt"])
+
     def test_a_refused_read_tool_call_is_a_blocked_attempt(self):
         f = self.scan(tool_call("t1", "Read", {"file_path": "/sb/w/bb/x/main.go"},
                                 "Claude requested permissions to read from /sb/w/bb/x/main.go, but you haven't granted it yet."))

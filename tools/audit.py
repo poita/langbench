@@ -125,7 +125,9 @@ def refused(name, text, result, forbidden):
     if name != "Bash":
         return bool(REFUSED.search(result))
     tokens = {t.rstrip("/\\") for t in PATH_TOKEN.findall(text) if any(t.startswith(p) for p in forbidden)}
-    return bool(tokens) and all(f"{t}: Operation not permitted" in result for t in tokens)
+    # A shell echoes the path as it was typed, with or without a trailing slash.
+    return bool(tokens) and all(f"{t}: Operation not permitted" in result or f"{t}/: Operation not permitted" in result
+                                for t in tokens)
 
 
 def injected_files(path):
