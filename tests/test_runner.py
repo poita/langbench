@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import os
+import time
 import tempfile
 import unittest
 
@@ -43,6 +44,44 @@ class Items(unittest.TestCase):
         self.assertEqual(a, rn.session_id("run-1", "rep1:go:sat", 1))
         self.assertNotEqual(a, rn.session_id("run-1", "rep1:go:sat", 2))
         self.assertEqual(len(a), 36)
+
+
+class LeftoverProcesses(unittest.TestCase):
+    def transcript(self, d, lines, age):
+        import json as j
+        path = os.path.join(d, "s.jsonl")
+        with open(path, "w") as f:
+            f.write("\n".join(j.dumps(x) for x in lines) + "\n")
+        os.utime(path, (time.time() - age, time.time() - age))
+        return path
+
+    def test_a_finished_idle_session_is_recognised(self):
+        import tempfile
+        final = {"type": "assistant", "message": {"stop_reason": "end_turn", "content": [{"type": "text", "text": "Done."}]}}
+        calling = {"type": "assistant", "message": {"stop_reason": "tool_use",
+                                                   "content": [{"type": "tool_use", "name": "Bash", "input": {}}]}}
+        with tempfile.TemporaryDirectory() as d:
+            self.assertTrue(rn.finished_and_idle(self.transcript(d, [calling, final], 600), idle=300))
+            self.assertFalse(rn.finished_and_idle(self.transcript(d, [calling, final], 60), idle=300))
+            self.assertFalse(rn.finished_and_idle(self.transcript(d, [final, calling], 600), idle=300))
+            self.assertFalse(rn.finished_and_idle(os.path.join(d, "missing.jsonl"), idle=300))
+
+    def test_leftover_processes_are_stopped_so_the_session_exits(self):
+        import subprocess
+        import tempfile
+        final = {"type": "assistant", "message": {"content": [{"type": "text", "text": "Done."}]}}
+        with tempfile.TemporaryDirectory() as d:
+            path = self.transcript(d, [final], 0)
+            proc = subprocess.Popen(["sh", "-c", "sleep 600 & wait; echo exited"], stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, text=True)
+            started = time.time()
+            code, out, _ = rn.wait_for_session(proc, path, log=lambda *_: None, poll=0.2, idle=0)
+            self.assertLess(time.time() - started, 30)
+            self.assertEqual((code, out.strip()), (0, "exited"))
+
+    def test_descendants_of_a_process(self):
+        ps = "  1     0\n 10     1\n 11    10\n 12    11\n 13    10\n 20     1\n"
+        self.assertEqual(sorted(rn.descendants(10, ps)), [11, 12, 13])
 
 
 class Prompt(unittest.TestCase):

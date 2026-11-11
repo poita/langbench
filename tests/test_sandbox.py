@@ -217,6 +217,16 @@ class VerifyUsesTheWorkspaceToolConfig(unittest.TestCase):
     RUNNER = CleanVerify.RUNNER
     project = CleanVerify.project
 
+    def test_java_is_the_jdk_the_clojure_cli_uses_everywhere(self):
+        saved = ir.java_home
+        ir.java_home = lambda: "/opt/jdk"
+        try:
+            self.assertEqual(ir.tool_env("/w")["JAVA_HOME"], "/opt/jdk")
+            ir.java_home = lambda: None
+            self.assertNotIn("JAVA_HOME", ir.tool_env("/w"))
+        finally:
+            ir.java_home = saved
+
     def test_clean_builds_use_the_offline_cabal_and_clojure_config(self):
         with tempfile.TemporaryDirectory() as d:
             ws = self.project(d, '#!/bin/sh\ncd "$(dirname "$0")" && echo "$CABAL_DIR $CLJ_CONFIG" > env.txt && '

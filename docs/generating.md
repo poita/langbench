@@ -82,7 +82,8 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
      don't cost agents extra turns. cabal has no package repository, so a
      Haskell project can use only the packages that ship with GHC; the
      clojure CLI has a Maven repository with only Clojure in it. The clean
-     rebuilds in `finish` use the same configuration.
+     rebuilds in `finish` use the same configuration, and `JAVA_HOME` is the
+     JDK the clojure CLI runs on in both.
 2. **`launch DIR`** runs every task as its own `claude -p` session in its
    workspace, six at a time, with a clean environment: no CLAUDE.md files or
    memory, no user settings, plugins or MCP servers, no web tools, no
@@ -91,8 +92,11 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
    result (turns, token usage, cost and its final message); the prompts are in
    `DIR/runs/<run>/prompts/`. An attempt that ends in an infrastructure error
    (an API or usage-limit error, a crash) is retried from an empty project
-   after a pause; a task that completes is never rerun. Rerunning `launch`
-   resumes an interrupted run. Progress goes to `DIR/launch.log`.
+   after a pause; a task that completes is never rerun. A process an agent
+   leaves running (a command that outlived its time limit, say) would keep its
+   session from exiting, so once the agent has given its final answer and the
+   session has been quiet for five minutes, `launch` stops such processes.
+   Rerunning `launch` resumes an interrupted run. Progress goes to `DIR/launch.log`.
 3. **`finish DIR --dest DEST`** collects the session transcripts and audits
    the run (`tools/audit.py`):
    - integrity findings, which stop the run from being recorded unless given

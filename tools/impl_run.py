@@ -22,6 +22,7 @@ scores them separately, recorded as `hidden` in the results.
 import argparse
 import concurrent.futures
 import datetime
+import functools
 import hashlib
 import io
 import json
@@ -185,11 +186,31 @@ def seed_clojure_repo(dest):
     return dest
 
 
+@functools.lru_cache(maxsize=None)
+def java_home():
+    """The JDK the clojure CLI runs on, or None without the CLI. Agents' sessions and the clean rebuilds both
+    get it as JAVA_HOME, so a project that calls java itself gets the same JDK in both (on macOS /usr/bin/java
+    would otherwise pick its own default, which may be another version, or unreadable inside the sandbox)."""
+    if not shutil.which("clojure"):
+        return None
+    with tempfile.TemporaryDirectory() as d:
+        try:
+            p = subprocess.run(["clojure", "-M", "-e", '(print (System/getProperty "java.home"))'], cwd=d,
+                               capture_output=True, text=True, timeout=300)
+        except (OSError, subprocess.SubprocessError):
+            return None
+    return p.stdout.strip() if p.returncode == 0 and p.stdout.strip() else None
+
+
 def tool_env(ws):
-    """Where cabal and the clojure CLI keep their configuration and caches for a workspace's builds."""
+    """Where cabal and the clojure CLI keep their configuration and caches for a workspace's builds, and the
+    JDK that java means."""
     cache = os.path.join(ws, ".cache")
-    return {"CABAL_DIR": os.path.join(cache, "cabal"), "CLJ_CONFIG": os.path.join(cache, "clj-config"),
-            "CLJ_CACHE": os.path.join(cache, "clj")}
+    env = {"CABAL_DIR": os.path.join(cache, "cabal"), "CLJ_CONFIG": os.path.join(cache, "clj-config"),
+           "CLJ_CACHE": os.path.join(cache, "clj")}
+    if java_home():
+        env["JAVA_HOME"] = java_home()
+    return env
 
 
 def offline_tool_config(ws, clojure_seed=None):

@@ -36,6 +36,9 @@ CLEAN_ENV = {
 ALLOWED_TOOLS = ["Bash", "Agent", "TodoWrite"]
 DISALLOWED_TOOLS = ["WebFetch", "WebSearch"]
 SESSION_TIMEOUT = 4 * 3600
+# A session whose agent has given its final answer but whose process has not exited for this long is held open
+# by a process the agent left running (a command that outlived its timeout, say); those processes are stopped.
+LEFTOVER_IDLE = 300
 NAMESPACE = uuid.UUID("6f1c2b9e-3d4a-4e8b-9f0a-1c2d3e4f5a6b")
 
 
@@ -93,6 +96,72 @@ def render_prompt(args, item, template=None):
 def project_slug(path):
     """The directory name Claude Code keeps a working directory's transcripts under."""
     return re.sub(r"[^A-Za-z0-9]", "-", path)
+
+
+def finished_and_idle(transcript, idle=LEFTOVER_IDLE, now=None):
+    """Whether a session transcript ends with the agent's final answer (an assistant message calling no tool)
+    and has not changed for idle seconds."""
+    try:
+        age = (now or time.time()) - os.path.getmtime(transcript)
+        with open(transcript, "rb") as f:
+            f.seek(max(0, os.path.getsize(transcript) - 65536))
+            lines = f.read().decode(errors="replace").splitlines()
+    except OSError:
+        return False
+    for line in reversed(lines):
+        try:
+            e = json.loads(line)
+        except ValueError:
+            continue
+        if e.get("type") not in ("assistant", "user"):
+            continue
+        content = (e.get("message") or {}).get("content")
+        calls = [c for c in content if c.get("type") == "tool_use"] if isinstance(content, list) else []
+        return e["type"] == "assistant" and not calls and age >= idle
+    return False
+
+
+def descendants(pid, ps_output=None):
+    """Process ids below pid, from `ps -A -o pid=,ppid=` output."""
+    if ps_output is None:
+        ps_output = subprocess.run(["ps", "-A", "-o", "pid=,ppid="], capture_output=True, text=True).stdout
+    children = {}
+    for line in ps_output.splitlines():
+        parts = line.split()
+        if len(parts) == 2 and parts[0].isdigit() and parts[1].isdigit():
+            children.setdefault(int(parts[1]), []).append(int(parts[0]))
+    out, todo = [], [pid]
+    while todo:
+        for child in children.get(todo.pop(), []):
+            out.append(child)
+            todo.append(child)
+    return out
+
+
+def wait_for_session(proc, transcript, log=print, label="", poll=30, idle=None):
+    """Wait for a claude -p session, at most SESSION_TIMEOUT. Once the agent has finished and gone quiet, stop
+    any processes it left running so the session can exit and report its result. Returns (code, stdout,
+    stderr)."""
+    deadline = time.time() + SESSION_TIMEOUT
+    while True:
+        try:
+            out, err = proc.communicate(timeout=poll)
+            return proc.returncode, out, err
+        except subprocess.TimeoutExpired:
+            pass
+        if time.time() > deadline:
+            proc.kill()
+            out, _ = proc.communicate()
+            return -1, out or "", "timeout"
+        if finished_and_idle(transcript, LEFTOVER_IDLE if idle is None else idle):
+            leftovers = descendants(proc.pid)
+            if leftovers:
+                log(f"{label}: agent finished; stopping {len(leftovers)} process(es) it left running")
+                for pid in leftovers:
+                    try:
+                        os.kill(pid, 15)
+                    except OSError:
+                        pass
 
 
 def transcript_dir(ws, projects=None):
@@ -195,13 +264,10 @@ def run(box, args, run_id, all_problems, auth="env", max_attempts=3, log=print):
             # not read outside working directories, can read the large outputs Claude Code saves there.
             env, argv = session_command(args, prompt, sid, auth=auth, extra_dirs=[transcript_dir(ws)])
             started = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds")
-            try:
-                p = subprocess.run(argv, cwd=ws, env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True,
-                                   timeout=SESSION_TIMEOUT)
-                code, stdout, stderr = p.returncode, p.stdout, p.stderr
-            except subprocess.TimeoutExpired as e:
-                code, stdout, stderr = -1, e.stdout or "", "timeout"
-                stdout = stdout.decode() if isinstance(stdout, bytes) else stdout
+            proc = subprocess.Popen(argv, cwd=ws, env=env, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                    stderr=subprocess.PIPE, text=True)
+            code, stdout, stderr = wait_for_session(proc, os.path.join(transcript_dir(ws), sid + ".jsonl"),
+                                                    log, label)
             infra = is_infra_error(code, stdout)
             entry = {"label": label, **{k: it[k] for k in ("rep", "lang", "slug")}, "attempt": attempt,
                      "session_id": sid, "started": started,
