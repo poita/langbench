@@ -11,15 +11,19 @@ of keys in one table.
 **Decode** parses the document in a single pass by recursive descent, building a
 tree of tables, arrays and scalars, then writes the tree as key-sorted tagged
 JSON. **Encode** reads the tagged JSON into a tree of the same shape and writes
-canonical TOML from it.
+canonical TOML from it. A table maps keys to children and carries the definition
+state that SPEC.md §1.3 needs (defined explicitly, implicitly, by a dotted key,
+inline, sealed); header and key paths resolve against these tables as they are
+read.
 
-- A **table** maps keys to children and carries the definition state that
-  SPEC.md §1.3 needs (defined explicitly, implicitly, by a dotted key, inline,
-  sealed); header and key paths resolve against these tables as they are read.
-- Scalars keep their canonical text. In encode mode the `value` texts are
-  written out unchanged, never converted to numbers or dates and back.
-- Floats are converted with correct rounding. Dates and times are validated and
-  canonicalised as text, without a date library.
+## Required rules
+
+1. **Scalars are kept as text.** A scalar holds its canonical text. In encode
+   mode the `value` texts of integers, floats, booleans and dates are written out
+   exactly as given: never converted to numbers or dates and back.
+2. **Floats are converted with correct rounding** when decoding.
+3. **Dates and times are validated and canonicalised as text**, without a date
+   library.
 
 ## Complexity
 

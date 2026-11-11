@@ -44,16 +44,18 @@ NAMESPACE = uuid.UUID("6f1c2b9e-3d4a-4e8b-9f0a-1c2d3e4f5a6b")
 
 def build_line(lang, dc):
     return {
-        "cpp": "build it with CMake as a Release build; GoogleTest is installed for tests.",
+        "cpp": "build it with CMake as a Release build; GoogleTest is installed for tests (find_package(GTest) "
+               "finds it).",
         "rust": "build it with cargo build --release.",
         "go": "build it with go build.",
         "d": f"build it with dub build -b release --compiler={dc}, and pass the same --compiler to dub test.",
         "python": "use a pyproject.toml layout; there's no install step, so run.sh runs the package with python3 "
                   "(with PYTHONPATH pointing at the source); pytest is installed for tests.",
-        "haskell": "build it with cabal build; GHC's bundled packages are installed, and hspec, tasty and QuickCheck "
-                   "for tests.",
-        "clojure": "use a deps.edn project run with the clojure CLI; for tests, the Cognitect test-runner is available "
-                   "as io.github.cognitect-labs/test-runner {:git/tag \"v0.5.1\" :git/sha \"dfb30dd\"}.",
+        "haskell": "build it with cabal build; GHC's bundled packages are installed, and for tests hspec, tasty and "
+                   "QuickCheck, which cabal finds offline once they are in build-depends.",
+        "clojure": "use a deps.edn project run with the clojure CLI; for tests, the Cognitect test-runner "
+                   "(io.github.cognitect-labs/test-runner {:git/sha \"dfb30dd6605cb6c0efc275e1df1736f6e90d4d73\"}) and "
+                   "org.clojure/test.check {:mvn/version \"1.1.1\"} are available offline.",
     }[lang]
 
 

@@ -134,11 +134,24 @@ class StageSandbox(unittest.TestCase):
         self.assertTrue(repo.startswith(clj))
         self.assertTrue(os.path.isfile(os.path.join(repo, "org", "clojure", "clojure", "1.12.6", "clojure-1.12.6.jar")))
 
+    def test_gnu_sed_comes_first_and_the_deployment_target_is_set(self):
+        saved = (ir.gnu_tools_dir, ir.macos_version)
+        ir.gnu_tools_dir, ir.macos_version = (lambda: "/opt/gnu/bin"), (lambda: "26")
+        try:
+            env = ir.tool_env("/w")
+            self.assertTrue(env["PATH"].startswith("/opt/gnu/bin" + os.pathsep))
+            self.assertEqual(env["MACOSX_DEPLOYMENT_TARGET"], "26.0")
+        finally:
+            ir.gnu_tools_dir, ir.macos_version = saved
+
     def test_a_workspace_with_a_python_environment_runs_its_python_first(self):
         with tempfile.TemporaryDirectory() as ws:
             os.makedirs(os.path.join(ws, ".cache", "venv", "bin"))
-            self.assertTrue(ir.tool_env(ws)["PATH"].startswith(os.path.join(ws, ".cache", "venv", "bin") + os.pathsep))
-            self.assertNotIn("PATH", ir.tool_env(os.path.join(ws, "other")))
+            path = ir.tool_env(ws)["PATH"].split(os.pathsep)
+            venv = os.path.join(ws, ".cache", "venv", "bin")
+            self.assertIn(venv, path)
+            self.assertLess(path.index(venv), path.index(os.environ["PATH"].split(os.pathsep)[0]))
+            self.assertNotIn(venv, ir.tool_env(os.path.join(ws, "other")).get("PATH", ""))
 
     def test_paths_outside_home_are_denied_too(self):
         dirs = ir.read_denials(home="/home/u", box="/srv/box", repo="/data/lb")

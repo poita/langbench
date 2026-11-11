@@ -75,7 +75,7 @@ Relative to Go (per agent):
 | Language | Projects | Code lines (median) | Test lines (median) | Test share (median) |
 |---|---:|---:|---:|---:|
 | Go | 60 | 1380 | 526 | 28% |
-| D | 60 | 1526 | 382 | 21% |
+| D | 60 | 1526 | 387 | 21% |
 
 ## By problem
 

@@ -170,7 +170,9 @@ def clojure_version():
 
 
 # The test frameworks provided offline, and what each is for (named in the prompt by runner.build_line).
-CLOJURE_TEST_RUNNER = '{io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}'
+# By full commit, so tools.deps checks its local copy instead of fetching tags from GitHub.
+CLOJURE_TEST_DEPS = ('{io.github.cognitect-labs/test-runner {:git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"} '
+                     'org.clojure/test.check {:mvn/version "1.1.1"}}')
 HASKELL_TEST_DEPS = ["hspec", "tasty", "tasty-hunit", "tasty-quickcheck", "QuickCheck"]
 PYTHON_TEST_PACKAGES = ["pytest"]
 
@@ -183,7 +185,7 @@ def run_checked(argv, what, **kw):
 
 
 def seed_clojure(dest):
-    """Download what the clojure CLI and the Cognitect test-runner need into a fresh Maven repository and gitlibs
+    """Download what the clojure CLI, the Cognitect test-runner and test.check need into a fresh Maven repository and gitlibs
     directory under dest. Agents have no network, so each Clojure workspace gets a copy; fresh directories rather
     than ~/.m2 keep any other cached library out of reach."""
     m2, gitlibs = os.path.join(dest, "m2"), os.path.join(dest, "gitlibs")
@@ -193,7 +195,7 @@ def seed_clojure(dest):
             f.write("{:mvn/local-repo %s}\n" % json.dumps(m2))
         os.makedirs(os.path.join(d, "project"))
         with open(os.path.join(d, "project", "deps.edn"), "w") as f:
-            f.write("{:aliases {:test {:extra-deps %s}}}\n" % CLOJURE_TEST_RUNNER)
+            f.write("{:aliases {:test {:extra-deps %s}}}\n" % CLOJURE_TEST_DEPS)
         env = dict(os.environ, CLJ_CONFIG=os.path.join(d, "config"), CLJ_CACHE=os.path.join(d, "cache"),
                    GITLIBS=gitlibs, GIT_CONFIG_GLOBAL=os.devnull)
         run_checked(["clojure", "-P", "-A:test"], "the Clojure libraries", cwd=os.path.join(d, "project"), env=env)
@@ -284,6 +286,21 @@ def write_cabal_config(cabal_dir, repo=None, store=None):
 
 
 @functools.lru_cache(maxsize=None)
+def gnu_tools_dir():
+    """Homebrew's GNU sed under its plain name, or None. Agents write GNU sed commands (sed -i without a
+    suffix); macOS's BSD sed rejects them, which costs a failed call each time, in every language."""
+    path = "/opt/homebrew/opt/gnu-sed/libexec/gnubin"
+    return path if os.path.isfile(os.path.join(path, "sed")) else None
+
+
+@functools.lru_cache(maxsize=None)
+def macos_version():
+    """The macOS major version, or None elsewhere."""
+    v = run_text(["sw_vers", "-productVersion"]) if sys.platform == "darwin" else None
+    return v.split(".")[0] if v else None
+
+
+@functools.lru_cache(maxsize=None)
 def ffi_include():
     """The directory holding ffi.h on macOS, which GHC's runtime headers include but Homebrew's GHC doesn't add
     to the C compiler's search path; None elsewhere."""
@@ -321,9 +338,13 @@ def tool_env(ws):
         env["JAVA_HOME"] = java_home()
     if ffi_include():
         env["C_INCLUDE_PATH"] = ffi_include()
+    if macos_version():
+        # Linkers otherwise warn on every build that objects target a different macOS version (LDC's default).
+        env["MACOSX_DEPLOYMENT_TARGET"] = macos_version() + ".0"
     venv = os.path.join(cache, "venv", "bin")
-    if os.path.isdir(venv):
-        env["PATH"] = venv + os.pathsep + os.environ.get("PATH", "")
+    first = [d for d in (gnu_tools_dir(), venv if os.path.isdir(venv) else None) if d]
+    if first:
+        env["PATH"] = os.pathsep.join(first + [os.environ.get("PATH", "")])
     return env
 
 

@@ -218,6 +218,8 @@ class Dependencies(unittest.TestCase):
         self.assertEqual([x["detail"] for x in self.deps("haskell", {"x.cabal": lib})], ["cabal: hspec"])
         runner = '{:aliases {:test {:extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}}}}'
         self.assertEqual(self.deps("clojure", {"deps.edn": runner}), [])
+        check = '{:aliases {:test {:extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}}}}}'
+        self.assertEqual(self.deps("clojure", {"deps.edn": check}), [])
         self.assertEqual(self.deps("python", {"src/p/__init__.py": "", "tests/test_a.py": "import pytest\n"}), [])
         self.assertEqual([x["detail"] for x in self.deps("python", {"src/p/__init__.py": "import pytest\n"})],
                          ["pytest (src/p/__init__.py)"])

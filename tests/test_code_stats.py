@@ -52,6 +52,13 @@ class Counts(unittest.TestCase):
             write(d, "README.md", ["# x"] * 10)
             self.assertEqual(cs.project_lines(d, "rust"), {"code": 2, "test": 2})
 
+    def test_d_unittest_blocks_count_as_tests(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            write(d, "source/m.d", ["module m;", "int f() { return 1; }", "unittest", "{", "    assert(f() == 1);",
+                                    "}", "@safe unittest { assert(true); }", "int g() { return 2; }"])
+            self.assertEqual(cs.project_lines(d, "d"), {"code": 3, "test": 5})
+
     def test_rust_inline_test_modules_count_as_tests(self):
         with tempfile.TemporaryDirectory() as d:
             write(d, "src/lib.rs", ["fn a() {}", "#[cfg(test)]", "mod tests {", "    #[test]", "    fn t() {}", "}"])

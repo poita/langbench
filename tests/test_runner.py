@@ -109,6 +109,16 @@ class Prompt(unittest.TestCase):
         self.assertNotIn("unit tests", p)
         self.assertIn("a test framework", p)
 
+    def test_asks_for_the_standard_release_settings(self):
+        self.assertIn("standard optimisation settings", self.render())
+
+    def test_build_lines_say_how_to_reach_the_test_frameworks(self):
+        lines = {lang: rn.build_line(lang, "ldc2") for lang in rn.LANG_NAMES}
+        self.assertIn("find_package(GTest)", lines["cpp"])
+        self.assertIn("build-depends", lines["haskell"])
+        self.assertIn("org.clojure/test.check", lines["clojure"])
+        self.assertIn('{:git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}', lines["clojure"])
+
     def test_build_lines_name_the_installed_test_frameworks(self):
         lines = {lang: rn.build_line(lang, "ldc2") for lang in rn.LANG_NAMES}
         self.assertIn("GoogleTest", lines["cpp"])

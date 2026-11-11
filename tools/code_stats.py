@@ -44,6 +44,23 @@ def project_lines(project, lang):
         if is_test(lang, rel):
             counts["test"] += len(lines)
             continue
+        if lang == "d":
+            # In-module unittest blocks, from the keyword to the brace that closes the block, are test code.
+            kept, i = [], 0
+            while i < len(lines):
+                if re.match(r"\s*(?:@?\w+\s+)*unittest\b", lines[i]):
+                    depth, opened = 0, False
+                    while i < len(lines):
+                        depth += lines[i].count("{") - lines[i].count("}")
+                        opened = opened or "{" in lines[i]
+                        counts["test"] += 1
+                        i += 1
+                        if opened and depth <= 0:
+                            break
+                    continue
+                kept.append(lines[i])
+                i += 1
+            lines = kept
         if lang == "rust":
             # An inline #[cfg(test)] module, from the attribute to the end of the file, is test code.
             for i, l in enumerate(lines):

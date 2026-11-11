@@ -233,7 +233,7 @@ GHC_PACKAGES = {
 # The test frameworks the sandbox provides, which tests (and only tests) may use.
 HASKELL_TEST_PACKAGES = {"hspec", "hspec-core", "hspec-discover", "hspec-expectations", "tasty", "tasty-hunit",
                          "tasty-quickcheck", "QuickCheck", "HUnit"}
-CLOJURE_TEST_LIBS = {"io.github.cognitect-labs/test-runner", "com.cognitect/test-runner"}
+CLOJURE_TEST_LIBS = {"io.github.cognitect-labs/test-runner", "com.cognitect/test-runner", "org.clojure/test.check"}
 PYTHON_TEST_MODULES = {"pytest", "_pytest"}
 
 
