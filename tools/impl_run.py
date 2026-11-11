@@ -31,6 +31,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import runner  # noqa: E402
@@ -47,9 +48,11 @@ BUILD_DIRS = {
     "go": r"",
     "d": r"\.dub",
     "python": r"__pycache__|[^/]*\.egg-info|build|dist",
+    "haskell": r"dist-newstyle|\.stack-work",
+    "clojure": r"\.cpcache|target|classes",
 }
-ANY_BUILD_DIR = r"\.dub|target|build|obj|\.build|__pycache__|[^/]*\.egg-info"
-LANG_IN_PATH = re.compile(r"(?:^|/)rep\d+/(cpp|rust|go|d|python)/")
+ANY_BUILD_DIR = r"\.dub|target|build|obj|\.build|__pycache__|[^/]*\.egg-info|dist-newstyle|\.stack-work|\.cpcache"
+LANG_IN_PATH = re.compile(r"(?:^|/)rep\d+/(cpp|rust|go|d|python|haskell|clojure)/")
 # What agents may see: top-level files, and per problem these files and directories.
 SANDBOX_TOP = ("CONVENTIONS.md", "run_tests.py")
 SANDBOX_FILES = ("SPEC.md", "APPROACH.md", "verify.py", "spec_examples.json")
@@ -149,6 +152,61 @@ def version(argv, pattern):
     return m.group(1) if m else None
 
 
+def clojure_version():
+    """"Clojure X on Java Y" for the clojure CLI on PATH, from a throwaway directory so no .cpcache is left
+    behind; None without the CLI."""
+    if not shutil.which("clojure"):
+        return None
+    with tempfile.TemporaryDirectory() as d:
+        try:
+            p = subprocess.run(["clojure", "-M", "-e", '(print (clojure-version) (System/getProperty "java.version"))'],
+                               cwd=d, capture_output=True, text=True, timeout=300)
+        except (OSError, subprocess.SubprocessError):
+            return None
+    parts = p.stdout.split()
+    return f"Clojure {parts[0]} on Java {parts[1]}" if p.returncode == 0 and len(parts) == 2 else None
+
+
+def seed_clojure_repo(dest):
+    """Download what the clojure CLI needs (Clojure and its two spec libraries) into a fresh Maven repository at
+    dest. Agents have no network, so each Clojure workspace gets a copy; using a fresh repository rather than
+    ~/.m2 keeps any other cached library out of reach."""
+    with tempfile.TemporaryDirectory() as d:
+        os.makedirs(os.path.join(d, "config"))
+        with open(os.path.join(d, "config", "deps.edn"), "w") as f:
+            f.write("{:mvn/local-repo %s}\n" % json.dumps(dest))
+        os.makedirs(os.path.join(d, "project"))
+        with open(os.path.join(d, "project", "deps.edn"), "w") as f:
+            f.write("{}\n")
+        env = dict(os.environ, CLJ_CONFIG=os.path.join(d, "config"), CLJ_CACHE=os.path.join(d, "cache"))
+        p = subprocess.run(["clojure", "-P"], cwd=os.path.join(d, "project"), env=env, capture_output=True, text=True)
+        if p.returncode != 0:
+            sys.exit(f"could not prepare the Clojure libraries (clojure -P):\n{p.stderr}")
+    return dest
+
+
+def tool_env(ws):
+    """Where cabal and the clojure CLI keep their configuration and caches for a workspace's builds."""
+    cache = os.path.join(ws, ".cache")
+    return {"CABAL_DIR": os.path.join(cache, "cabal"), "CLJ_CONFIG": os.path.join(cache, "clj-config"),
+            "CLJ_CACHE": os.path.join(cache, "clj")}
+
+
+def offline_tool_config(ws, clojure_seed=None):
+    """Toolchain configuration inside a workspace for a session without network: cabal with no package
+    repositories (GHC's own packages are all a project can use), and the clojure CLI with a Maven repository
+    of its own, copied from clojure_seed."""
+    cache = os.path.join(ws, ".cache")
+    os.makedirs(os.path.join(cache, "cabal"), exist_ok=True)
+    with open(os.path.join(cache, "cabal", "config"), "w") as f:
+        f.write("active-repositories: :none\n")
+    os.makedirs(os.path.join(cache, "clj-config"), exist_ok=True)
+    with open(os.path.join(cache, "clj-config", "deps.edn"), "w") as f:
+        f.write("{:mvn/local-repo %s}\n" % json.dumps(os.path.join(cache, "m2")))
+    if clojure_seed:
+        shutil.copytree(clojure_seed, os.path.join(cache, "m2"), dirs_exist_ok=True)
+
+
 def detect_toolchains(dc="ldc2"):
     """{lang: description} of the installed toolchains, for the prompt and the run record."""
     cxx = run_text(["c++", "--version"]) or ""
@@ -163,6 +221,9 @@ def detect_toolchains(dc="ldc2"):
               if dc.endswith("ldc2") else (lambda v: f"DMD {v}" if v else None)(version([dc, "--version"], r"v(\d[\d.]*)")),
               (lambda v: f"dub {v}" if v else None)(version(["dub", "--version"], r"version (\d[\d.]*)"))],
         "python": [(lambda v: f"Python {v}" if v else None)(version(["python3", "--version"], r"Python (\S+)"))],
+        "haskell": [(lambda v: f"GHC {v}" if v else None)(version(["ghc", "--numeric-version"], r"(\d[\d.]*)")),
+                    (lambda v: f"cabal {v}" if v else None)(version(["cabal", "--numeric-version"], r"(\d[\d.]*)"))],
+        "clojure": [clojure_version()],
     }
     return {lang: " and ".join(p for p in ps if p) for lang, ps in parts.items()}
 
@@ -182,14 +243,14 @@ def toolchain_roots(home, dc="ldc2"):
     """Installation directories of the toolchains that live under the home directory, which shell commands
     must still be able to read."""
     roots = set()
-    for tool in ("c++", "cmake", "rustc", "cargo", "go", dc, "dub", "python3"):
+    for tool in ("c++", "cmake", "rustc", "cargo", "go", dc, "dub", "python3", "ghc", "cabal", "clojure", "java"):
         path = shutil.which(tool)
         if path:
             real = os.path.realpath(path)
             if real.startswith(home + "/"):
                 roots.add(os.path.dirname(os.path.dirname(real)))
     for argv in (["go", "env", "GOROOT"], ["python3", "-c", "import sys; print(sys.base_prefix)"],
-                 ["rustc", "--print", "sysroot"]):
+                 ["rustc", "--print", "sysroot"], ["ghc", "--print-libdir"]):
         out = run_text(argv)
         if out and os.path.realpath(out).startswith(home + "/"):
             roots.add(os.path.realpath(out))
@@ -217,6 +278,7 @@ def sandbox_settings(ws, deny_dirs, allow_dirs):
                 "GOCACHE": os.path.join(cache, "go-build"), "GOMODCACHE": os.path.join(cache, "go-mod"),
                 "GOPATH": os.path.join(cache, "gopath"), "GOTOOLCHAIN": "local", "GOTELEMETRY": "off",
                 "CARGO_HOME": os.path.join(cache, "cargo"), "DUB_HOME": os.path.join(cache, "dub"),
+                **tool_env(ws),
                 "XDG_CACHE_HOME": cache, **runner.CLEAN_ENV},
     }
 
@@ -311,7 +373,7 @@ META_FILES = ("args.json", "sandbox.json", "harness.json", "tasks.json", "launch
 
 
 def stage_sandbox(repo, box, toolchains, overrides=None, allow_dirty=False, projects=None, home=None,
-                  toolchain_roots=None):
+                  toolchain_roots=None, clojure_seed=None):
     repo, box = os.path.realpath(repo), os.path.realpath(box)
     if box == repo or box.startswith(repo + os.sep):
         sys.exit(f"the sandbox must be outside the checkout ({repo})")
@@ -342,8 +404,11 @@ def stage_sandbox(repo, box, toolchains, overrides=None, allow_dirty=False, proj
     home = os.path.realpath(home or os.path.expanduser("~"))
     roots = toolchain_roots if toolchain_roots is not None else globals()["toolchain_roots"](home, args.get("dc", "ldc2"))
     deny = read_denials(home, box, repo, main_checkout(repo))
+    if "clojure" in args["langs"] and clojure_seed is None:
+        clojure_seed = seed_clojure_repo(os.path.join(box, "clojure-m2"))
     for label, rel in tasks.items():
         ws = os.path.join(box, rel)
+        offline_tool_config(ws, clojure_seed if label.split(":")[1] == "clojure" else None)
         own_transcripts = runner.transcript_dir(ws, projects)
         os.makedirs(own_transcripts, exist_ok=True)
         os.makedirs(os.path.join(ws, ".claude"), exist_ok=True)
@@ -517,7 +582,7 @@ def verify_task(ws, slug, scratch, problems, lang=None):
     import_impls(src, copy, lang)
     try:
         b = subprocess.run(["bash", os.path.join(copy, "build.sh")], cwd=copy, capture_output=True, text=True,
-                           timeout=BUILD_TIMEOUT)
+                           timeout=BUILD_TIMEOUT, env={**os.environ, **tool_env(ws)})
         res["clean_build"] = b.returncode == 0
         tail = (b.stdout + b.stderr).strip().splitlines()[-3:]
     except subprocess.TimeoutExpired:
@@ -531,7 +596,7 @@ def verify_task(ws, slug, scratch, problems, lang=None):
             res[kind], res[kind + "_pass"] = "clean build failed: " + " | ".join(tail), False
             continue
         p = subprocess.run([sys.executable, "run_tests.py", slug, *extra, "--", os.path.join(copy, "run.sh")],
-                           cwd=ws, capture_output=True, text=True)
+                           cwd=ws, capture_output=True, text=True, env={**os.environ, **tool_env(ws)})
         res[kind] = (p.stdout.strip().splitlines() or ["no output"])[-1]
         res[kind + "_pass"] = p.returncode == 0
     return res

@@ -41,7 +41,7 @@ sys.path.insert(0, ROOT)
 import run_tests  # noqa: E402
 
 STATE = os.environ.get("LBENCH_DIR", os.path.join(ROOT, ".lbench"))
-LANGS = ["cpp", "rust", "go", "d", "python"]
+LANGS = ["cpp", "rust", "go", "d", "python", "haskell", "clojure"]
 # Every repetition of the canonical implementations (implementations/rep1, rep2, ...).
 ROOTS = sorted(os.path.relpath(d, ROOT) for d in glob.glob(os.path.join(ROOT, "implementations", "rep*"))
                if os.path.isdir(d))
@@ -95,8 +95,10 @@ def select(suite, problems=None, langs=None, roots=None):
 
 # ---------------------------------------------------------------- compilers
 
-VERSION_ARGS = {"d": ["--version"], "cpp": ["--version"], "rust": ["-V"], "go": ["version"], "python": ["--version"]}
-DEFAULT_TOOLS = {"cpp": "c++", "rust": "rustc", "go": "go", "python": "python3"}
+VERSION_ARGS = {"d": ["--version"], "cpp": ["--version"], "rust": ["-V"], "go": ["version"], "python": ["--version"],
+                "haskell": ["--version"], "clojure": ["--version"]}
+DEFAULT_TOOLS = {"cpp": "c++", "rust": "rustc", "go": "go", "python": "python3", "haskell": "ghc",
+                 "clojure": "clojure"}
 
 
 def parse_toolchains(specs):
@@ -225,6 +227,30 @@ def build_env(lang, tc, wrapdir, log, dst):
                                 "exec \"$@\"\n")
         env["GOFLAGS"] = " ".join(x for x in (env.get("GOFLAGS", ""), f"-toolexec={toolexec}", flags) if x)
         env["GOCACHE"] = os.path.join(wrapdir, "go", "cache")
+    elif lang == "haskell":
+        # cabal runs the ghc on PATH and expects ghc-pkg and the other tools beside it, so the wrapper directory
+        # mirrors the real one with only ghc itself routed through a counting wrapper.
+        real = os.path.realpath(shutil.which(path or "ghc") or path or "ghc")
+        bindir = os.path.join(wrapdir, "haskell", "bin")
+        os.makedirs(bindir, exist_ok=True)
+        for name in os.listdir(os.path.dirname(real)):
+            link = os.path.join(bindir, name)
+            if os.path.lexists(link):
+                os.unlink(link)
+            os.symlink(os.path.join(os.path.dirname(real), name), link)
+        for name in ("ghc", os.path.basename(real)):
+            link = os.path.join(bindir, name)
+            if os.path.lexists(link):
+                os.unlink(link)
+            counting_wrapper(real, link, tuple((tc or {}).get("flags", [])))
+        env["PATH"] = bindir + os.pathsep + env.get("PATH", "")
+        # Builds use GHC's own packages only, so cabal needs no package index (and must not download one).
+        env["CABAL_DIR"] = os.path.join(wrapdir, "haskell", "cabal")
+        os.makedirs(env["CABAL_DIR"], exist_ok=True)
+        with open(os.path.join(env["CABAL_DIR"], "config"), "w") as f:
+            f.write("active-repositories: :none\n")
+    elif lang == "clojure" and path:
+        env["PATH"] = os.path.dirname(os.path.abspath(shutil.which(path) or path)) + os.pathsep + env.get("PATH", "")
     elif lang == "python" and path:
         bindir = os.path.join(wrapdir, "python", "bin")
         os.makedirs(bindir, exist_ok=True)
@@ -241,6 +267,9 @@ def run_env(toolchains, wrapdir):
     env = dict(os.environ)
     if "python" in toolchains:
         env["PATH"] = os.path.join(wrapdir, "python", "bin") + os.pathsep + env.get("PATH", "")
+    if (toolchains.get("clojure") or {}).get("path"):
+        tool = toolchains["clojure"]["path"]
+        env["PATH"] = os.path.dirname(os.path.abspath(shutil.which(tool) or tool)) + os.pathsep + env.get("PATH", "")
     return env
 
 

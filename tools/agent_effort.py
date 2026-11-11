@@ -27,7 +27,8 @@ import tarfile
 import tempfile
 
 CATEGORIES = ["inference", "build", "unit tests", "harness tests", "other shell", "files"]
-NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python"}
+NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python", "haskell": "Haskell",
+         "clojure": "Clojure"}
 
 
 def run_dir(run):

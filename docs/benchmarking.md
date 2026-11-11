@@ -35,9 +35,10 @@ python3 tools/compare.py langs --baseline go        # cycles; --metric instr|wal
 
 `--toolchain LANG=PATH` builds one language with another toolchain: a C++
 compiler (through `CXX`), `rustc` (`RUSTC`), a `go` binary, a Python
-interpreter (also used at run time), or a D compiler. `--flags LANG=FLAGS`
-adds compiler flags (`CXXFLAGS`, `RUSTFLAGS`, `GOFLAGS`, or appended to D
-compiler invocations). Compare a change against a baseline:
+interpreter (also used at run time), a D compiler, a `ghc` (cabal finds it and
+the tools beside it on `PATH`), or a `clojure` CLI (also used at run time).
+`--flags LANG=FLAGS` adds compiler flags (`CXXFLAGS`, `RUSTFLAGS`, `GOFLAGS`,
+or appended to D compiler and `ghc` invocations). Compare a change against a baseline:
 
 ```
 ./lbench build --tag base --langs rust && ./lbench run --tag base

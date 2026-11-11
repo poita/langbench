@@ -20,7 +20,8 @@ import time
 import uuid
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-LANG_NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python"}
+LANG_NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python", "haskell": "Haskell",
+              "clojure": "Clojure"}
 LARGE = ["langvm", "kvstore", "cardgame", "typeset", "buildsys"]
 CLEAN_ENV = {
     "CLAUDE_CODE_DISABLE_CLAUDE_MDS": "1",  # no CLAUDE.md files or memory in the session's context
@@ -46,6 +47,8 @@ def build_line(lang, dc):
         "d": f"build it with dub build -b release --compiler={dc}, and pass the same --compiler to dub test.",
         "python": "use a pyproject.toml layout; there's no install step, so run.sh runs the package with python3 "
                   "(with PYTHONPATH pointing at the source), and the tests use unittest.",
+        "haskell": "build it with cabal build, and run the unit tests with cabal test.",
+        "clojure": "use a deps.edn project run with the clojure CLI, and the unit tests use clojure.test.",
     }[lang]
 
 

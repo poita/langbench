@@ -332,6 +332,28 @@ class Toolchains(unittest.TestCase):
         self.addCleanup(shutil.rmtree, d, True)
         return d, lb.build_env(lang, tc, os.path.join(d, "wrap"), os.path.join(d, "log"), os.path.join(d, "dst"))
 
+    def test_haskell_builds_with_a_counting_ghc_beside_the_real_tools(self):
+        import tempfile
+        real = tempfile.mkdtemp()
+        self.addCleanup(__import__("shutil").rmtree, real, True)
+        for tool in ("ghc", "ghc-pkg", "runghc"):
+            with open(os.path.join(real, tool), "w") as f:
+                f.write("#!/bin/sh\n")
+        d, env = self._env("haskell", {"path": os.path.join(real, "ghc"), "flags": []})
+        bindir = env["PATH"].split(os.pathsep)[0]
+        self.assertTrue(bindir.startswith(os.path.join(d, "wrap")))
+        self.assertIn(os.path.join(real, "ghc"), open(os.path.join(bindir, "ghc")).read())
+        self.assertEqual(os.path.realpath(os.path.join(bindir, "ghc-pkg")), os.path.realpath(os.path.join(real, "ghc-pkg")))
+
+    def test_haskell_builds_offline(self):
+        d, env = self._env("haskell")
+        self.assertTrue(env["CABAL_DIR"].startswith(os.path.join(d, "wrap")))
+        self.assertIn("active-repositories: :none", open(os.path.join(env["CABAL_DIR"], "config")).read())
+
+    def test_new_languages_are_known(self):
+        self.assertIn("haskell", lb.LANGS)
+        self.assertIn("clojure", lb.LANGS)
+
     def test_cpp_compiles_through_a_counting_wrapper(self):
         d, env = self._env("cpp", {"path": "/usr/bin/clang++", "flags": ["-O3"]})
         self.assertTrue(env["CXX"].startswith(os.path.join(d, "wrap")))

@@ -45,6 +45,9 @@ class Excluded(unittest.TestCase):
         self.assertFalse(ir.is_build_output("/build/graph.go", "go"))
         self.assertTrue(ir.is_build_output("/build/CMakeCache.txt", "cpp"))
         self.assertTrue(ir.is_build_output("/target/release/x", "rust"))
+        self.assertTrue(ir.is_build_output("r/rep1/haskell/x/dist-newstyle/cache/plan.json"))
+        self.assertTrue(ir.is_build_output("r/rep1/clojure/x/.cpcache/1.cp"))
+        self.assertFalse(ir.is_build_output("r/rep1/clojure/x/src/x/core.clj"))
 
     def test_sources_are_kept(self):
         for p in ["r/rep1/d/x/source/app.d", "r/rep1/d/x/dub.json", "r/rep1/go/x/build.sh", "r/rep1/d/x/tests/build_test.d"]:

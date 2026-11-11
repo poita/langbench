@@ -63,6 +63,18 @@ class Prompt(unittest.TestCase):
         for other in ("rustc", "cargo", "CMake", "go build", "python3 -m"):
             self.assertNotIn(other, p)
 
+    def test_haskell_and_clojure_prompts_name_their_build_tools(self):
+        args = {**ARGS, "langs": ["haskell", "clojure"],
+                "toolchains": {"haskell": "GHC 9.14.1 and cabal 3.18.2.0", "clojure": "Clojure 1.12.6 on OpenJDK 27.0.1"}}
+        hs = rn.render_prompt(args, {"rep": "rep1", "lang": "haskell", "slug": "chip8", "label": "x", "root": "/sb"})
+        clj = rn.render_prompt(args, {"rep": "rep1", "lang": "clojure", "slug": "chip8", "label": "x", "root": "/sb"})
+        self.assertIn("standalone Haskell project", hs)
+        self.assertIn("GHC 9.14.1 and cabal 3.18.2.0", hs)
+        self.assertIn("cabal build", hs)
+        self.assertIn("standalone Clojure project", clj)
+        self.assertIn("deps.edn", clj)
+        self.assertIn("clojure.test", clj)
+
     def test_paths_and_validation_command(self):
         p = self.render()
         self.assertIn("/sb/w/1a2b3c4d/problems/chip8/SPEC.md", p)

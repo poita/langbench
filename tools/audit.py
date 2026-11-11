@@ -39,22 +39,33 @@ IMPORTS = {
     "d": re.compile(r"^\s*(?:public\s+|static\s+)*import\s+([\w.]+)", re.M),
     "cpp": re.compile(r"^\s*#\s*include\s*(<\w+>)", re.M),
     "rust": re.compile(r"\b(BTreeMap|BTreeSet)\b"),
+    "haskell": re.compile(r"^\s*import\s+(?:safe\s+)?(?:qualified\s+)?([\w.]+)", re.M),
+    # Clojure reaches the JDK through :import forms and fully qualified names alike, so any mention counts.
+    "clojure": re.compile(r"\b((?:java|javax|clojure)\.[\w.\-]*\w)"),
 }
 # Standard-library facilities by category, as each language names the module, package or header.
 FACILITIES = {
-    "regex": {"python": r"re", "go": r"regexp(/syntax)?", "d": r"std\.regex(\.\w+)*", "cpp": r"<regex>"},
-    "json": {"python": r"json", "go": r"encoding/json", "d": r"std\.json"},
-    "zlib": {"python": r"zlib|gzip", "go": r"compress/\w+", "d": r"std\.zlib"},
-    "hash": {"python": r"hashlib|hmac", "go": r"crypto/\w+", "d": r"std\.digest(\.\w+)*"},
-    "base64": {"python": r"base64|binascii", "go": r"encoding/base64", "d": r"std\.base64"},
-    "bigint": {"python": r"decimal|fractions", "go": r"math/big", "d": r"std\.bigint"},
-    "sql": {"python": r"sqlite3", "go": r"database/sql"},
-    "email": {"python": r"email(\.\w+)*|quopri", "go": r"net/mail|mime(/\w+)?"},
+    "regex": {"python": r"re", "go": r"regexp(/syntax)?", "d": r"std\.regex(\.\w+)*", "cpp": r"<regex>",
+              "haskell": r"Text\.Regex(\.\w+)*", "clojure": r"java\.util\.regex(\.\w+)*"},
+    "json": {"python": r"json", "go": r"encoding/json", "d": r"std\.json", "clojure": r"clojure\.data\.json"},
+    "zlib": {"python": r"zlib|gzip", "go": r"compress/\w+", "d": r"std\.zlib", "clojure": r"java\.util\.zip(\.\w+)*"},
+    "hash": {"python": r"hashlib|hmac", "go": r"crypto/\w+", "d": r"std\.digest(\.\w+)*",
+             "clojure": r"java\.security(\.\w+)*|javax\.crypto(\.\w+)*"},
+    "base64": {"python": r"base64|binascii", "go": r"encoding/base64", "d": r"std\.base64",
+               "clojure": r"java\.util\.Base64"},
+    "bigint": {"python": r"decimal|fractions", "go": r"math/big", "d": r"std\.bigint", "clojure": r"java\.math(\.\w+)*"},
+    "sql": {"python": r"sqlite3", "go": r"database/sql", "clojure": r"java\.sql(\.\w+)*"},
+    "email": {"python": r"email(\.\w+)*|quopri", "go": r"net/mail|mime(/\w+)?",
+              "clojure": r"javax\.mail(\.\w+)*|jakarta\.mail(\.\w+)*"},
     "toml": {"python": r"tomllib"},
     "diff": {"python": r"difflib"},
-    "date": {"python": r"datetime|calendar|zoneinfo", "go": r"time", "d": r"std\.datetime(\.\w+)*"},
-    "xml": {"python": r"xml(\.\w+)*", "go": r"encoding/xml", "d": r"std\.xml"},
-    "ordered": {"cpp": r"<map>|<set>", "rust": r"BTreeMap|BTreeSet", "d": r"std\.container\.rbtree"},
+    "date": {"python": r"datetime|calendar|zoneinfo", "go": r"time", "d": r"std\.datetime(\.\w+)*",
+             "haskell": r"Data\.Time(\.\w+)*", "clojure": r"java\.time(\.\w+)*|java\.util\.(Date|Calendar)"},
+    "xml": {"python": r"xml(\.\w+)*", "go": r"encoding/xml", "d": r"std\.xml", "haskell": r"Text\.XML(\.\w+)*",
+            "clojure": r"javax\.xml(\.\w+)*|clojure\.(data\.)?xml|org\.w3c\.dom(\.\w+)*"},
+    "ordered": {"cpp": r"<map>|<set>", "rust": r"BTreeMap|BTreeSet", "d": r"std\.container\.rbtree",
+                "haskell": r"Data\.(Map|Set|IntMap|IntSet)(\.\w+)*",
+                "clojure": r"java\.util\.(TreeMap|TreeSet|concurrent\.ConcurrentSkipList\w+)"},
 }
 # The facilities each problem's SPEC.md rules out.
 PROBLEM_FACILITIES = {
@@ -64,7 +75,7 @@ PROBLEM_FACILITIES = {
     "diff": ["diff"], "rrule": ["date"], "svgraster": ["xml"], "ordered-map": ["ordered"],
 }
 SOURCE_EXT = {"python": (".py",), "go": (".go",), "d": (".d",), "cpp": (".cpp", ".cc", ".cxx", ".hpp", ".h", ".hh"),
-              "rust": (".rs",)}
+              "rust": (".rs",), "haskell": (".hs",), "clojure": (".clj", ".cljc")}
 ALWAYS_FORBIDDEN = re.compile(r"/reference/|/gen_tests\.py\b|/gen_bench\.py\b|/bench(-long)?/|/heldout\b")
 SCRATCH_FILE = re.compile(r"\b(scratch/(rep\d+-[a-z]+-[A-Za-z0-9_-]+)/[^\s\"'*;|&]*)")
 PROJECT_FILE = re.compile(r"\b(out/(rep\d+)/([a-z]+)/([A-Za-z0-9_-]+)/[^\s\"'*;|&]+)")
@@ -206,6 +217,50 @@ def scan_any(path, forbidden, allowed=(), own_project=None):
     return scan_transcripts(path, forbidden, allowed)
 
 
+# The packages that ship with GHC: a cabal project can depend on these without any download.
+GHC_PACKAGES = {
+    "Cabal", "Cabal-syntax", "array", "base", "binary", "bytestring", "containers", "deepseq", "directory",
+    "exceptions", "file-io", "filepath", "ghc", "ghc-bignum", "ghc-boot", "ghc-boot-th", "ghc-compact",
+    "ghc-experimental", "ghc-heap", "ghc-internal", "ghc-platform", "ghc-prim", "ghc-toolchain", "ghci",
+    "haddock-api", "haddock-library", "haskeline", "hpc", "integer-gmp", "mtl", "os-string", "parsec", "pretty",
+    "process", "rts", "semaphore-compat", "stm", "system-cxx-std-lib", "template-haskell", "template-haskell-lift",
+    "template-haskell-quasiquoter", "terminfo", "text", "time", "transformers", "unix", "xhtml"}
+
+
+def cabal_deps(text):
+    """Packages named in a .cabal file's build-depends fields, other than GHC's own and the package's own
+    libraries."""
+    own = set(re.findall(r"^name\s*:\s*([\w-]+)", text, re.M | re.I))
+    own |= set(re.findall(r"^\s*library\s+([\w-]+)", text, re.M | re.I))
+    out = []
+    for field in re.finditer(r"build-depends\s*:((?:[^\n]*)(?:\n[ \t]+(?![\w-]+\s*:)[^\n]*)*)", text, re.I):
+        for item in field.group(1).split(","):
+            name = re.match(r"\s*([A-Za-z][\w-]*)", item)
+            if name:
+                pkg = name.group(1).split(":")[0]
+                if pkg not in GHC_PACKAGES and pkg not in own and pkg not in out:
+                    out.append(pkg)
+    return out
+
+
+def deps_edn_deps(text):
+    """Libraries a deps.edn names under :deps or an alias's :extra-deps, other than Clojure itself."""
+    out = []
+    for block in re.finditer(r":(?:extra-)?deps\s*\{", text):
+        depth, i = 1, block.end()
+        while i < len(text) and depth:
+            depth += {"{": 1, "}": -1}.get(text[i], 0)
+            i += 1
+        body = text[block.end():i - 1]
+        level = 0
+        for m in re.finditer(r"[{}]|([\w.\-]+/[\w.\-]+)", body):
+            if m.group(0) in "{}":
+                level += 1 if m.group(0) == "{" else -1
+            elif level == 0 and m.group(1) != "org.clojure/clojure" and m.group(1) not in out:
+                out.append(m.group(1))
+    return out
+
+
 def cargo_deps(text):
     out, section = [], None
     for line in text.splitlines():
@@ -276,6 +331,12 @@ def scan_dependencies(project, lang):
                          for p in glob.glob(os.path.join(project, "**", "CMakeLists.txt"), recursive=True))
         deps = [f"cmake: {m}" for m in sorted(set(re.findall(r"\b(FetchContent_Declare|ExternalProject_Add)\b", text)))]
         deps += [f"cmake: find_package({m})" for m in re.findall(r"find_package\(\s*(\w+)", text) if m != "Threads"]
+    elif lang == "haskell":
+        for path in sorted(glob.glob(os.path.join(project, "**", "*.cabal"), recursive=True)):
+            if "/dist-newstyle/" not in path:
+                deps += [f"cabal: {d}" for d in cabal_deps(open(path, errors="replace").read()) if f"cabal: {d}" not in deps]
+    elif lang == "clojure":
+        deps = [f"deps.edn: {d}" for d in deps_edn_deps(read("deps.edn"))]
     elif lang == "python":
         local = local_python_modules(project)
         deps = [f"{m} ({f})" for m, f in python_imports(project).items()
@@ -309,10 +370,14 @@ def scan_banned_facilities(project, lang, slug):
 
 
 BUILD_FILES = ("CMakeLists.txt", "*.cmake", "Cargo.toml", ".cargo/config.toml", ".cargo/config", "dub.json",
-               "dub.sdl", "build.sh", "run.sh", "go.mod", "Makefile", "pyproject.toml")
+               "dub.sdl", "build.sh", "run.sh", "go.mod", "Makefile", "pyproject.toml", "*.cabal", "cabal.project",
+               "deps.edn")
 OPT_FLAGS = re.compile(r"-march=\S+|-mcpu=\S+|-mtune=\S+|-flto\S*|-fprofile-\S+|-ffast-math|-Ofast|"
                        r"target-cpu=\S+|\blto\s*=\s*\S+|codegen-units\s*=\s*\d+|-gcflags\S*|-pgo=\S+|"
-                       r"--enable-cross-module-inlining|-fsave-optimization-record")
+                       r"--enable-cross-module-inlining|-fsave-optimization-record|"
+                       r"-fllvm|\boptimization:\s*2|direct-linking=true")
+# GHC's -O2 is beyond cabal's default (-O1), but -O2 in a C or D compiler line is not.
+HASKELL_OPT = re.compile(r"(?<![\w-])-O2\b")
 
 
 def scan_build_flags(project, lang):
@@ -323,10 +388,14 @@ def scan_build_flags(project, lang):
     for pattern in BUILD_FILES:
         for path in sorted(glob.glob(os.path.join(project, "**", pattern), recursive=True)):
             rel = os.path.relpath(path, project)
-            if "/target/" in f"/{rel}" or "/build/" in f"/{rel}":
+            if any(f"/{d}/" in f"/{rel}" for d in ("target", "build", "dist-newstyle", ".cpcache")):
                 continue
-            for m in OPT_FLAGS.finditer(open(path, errors="replace").read()):
+            text = open(path, errors="replace").read()
+            for m in OPT_FLAGS.finditer(text):
                 found.append({"kind": "build-flags", "detail": f"{m.group(0)} ({rel})"})
+            if lang == "haskell" and (rel.endswith(".cabal") or os.path.basename(rel) == "cabal.project"):
+                for m in HASKELL_OPT.finditer(text):
+                    found.append({"kind": "build-flags", "detail": f"{m.group(0)} ({rel})"})
     if lang == "go" and glob.glob(os.path.join(project, "**", "default.pgo"), recursive=True):
         found.append({"kind": "build-flags", "detail": "default.pgo (profile-guided optimisation)"})
     return found

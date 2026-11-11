@@ -32,8 +32,11 @@ projects changed as well, but not what agents were asked or shown.
   connectors included). A full run is a lot of usage for a plan; tasks that hit
   a usage limit are retried after a pause.
 - The toolchains of the languages you generate: a C++ compiler and CMake,
-  Rust (cargo), Go, D (LDC and dub) and Python 3. Their versions are detected
-  and written into the prompt and the run record.
+  Rust (cargo), Go, D (LDC and dub), Python 3, Haskell (GHC and cabal) and
+  Clojure (the clojure CLI and a JDK). Their versions are detected and written
+  into the prompt and the run record. Staging a Clojure run downloads Clojure's
+  own jars once (`clojure -P`) into a Maven repository inside the sandbox; each
+  Clojure workspace gets a copy, since agents have no network.
 - macOS or Linux, for Claude Code's sandbox (Seatbelt on macOS; bubblewrap on
   Linux).
 
@@ -74,8 +77,12 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
      except the workspace, that transcript directory and toolchains installed
      there; they may write only in the workspace and `/tmp`, and have no
      network;
-   - Go, Cargo and dub caches live inside the workspace, and shell commands
-     may run for 10 minutes, so slow builds don't cost agents extra turns.
+   - Go, Cargo, dub, cabal and Clojure caches and configuration live inside
+     the workspace, and shell commands may run for 10 minutes, so slow builds
+     don't cost agents extra turns. cabal has no package repository, so a
+     Haskell project can use only the packages that ship with GHC; the
+     clojure CLI has a Maven repository with only Clojure in it. The clean
+     rebuilds in `finish` use the same configuration.
 2. **`launch DIR`** runs every task as its own `claude -p` session in its
    workspace, six at a time, with a clean environment: no CLAUDE.md files or
    memory, no user settings, plugins or MCP servers, no web tools, no
@@ -183,10 +190,15 @@ concurrency of 6.
   be newer than the model's training data; how much that costs differs by
   language. It is recorded, not corrected for.
 - **Language selection.** The first runs compare D with four widely used
-  languages (C++, Rust, Go, Python), because the first report is about D. Any
-  language with a standard-library-only toolchain can be added with a build
-  line in `tools/runner.py` and a run of that language alone.
+  languages (C++, Rust, Go, Python), because the first report is about D.
+  Haskell and Clojure are supported as well, but not in `run-config.json`'s
+  default set; run them with `--langs haskell,clojure`. A language with a
+  standard-library-only toolchain needs a build line in `tools/runner.py`,
+  its toolchain in `detect_toolchains`, and its build directories, source
+  files and imports in `tools/impl_run.py`, `tools/code_stats.py` and
+  `tools/audit.py`.
 - **Environment hints.** Each language's prompt names its toolchain and build
-  command; D's names the compiler for `dub test`, and Python's says how
-  `run.sh` runs without an install step. These work around the environment
+  command; D's names the compiler for `dub test`, Python's says how `run.sh`
+  runs without an install step, and Clojure's that the project is a
+  `deps.edn` one run by the clojure CLI. These work around the environment
   rather than help with the language.

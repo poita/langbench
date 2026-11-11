@@ -16,9 +16,11 @@ import re
 import sys
 
 EXT = {"cpp": (".cpp", ".cc", ".cxx", ".hpp", ".h", ".hh"), "rust": (".rs",), "go": (".go",), "d": (".d",),
-       "python": (".py",)}
-NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python"}
-BUILD = re.compile(r"(^|/)(target|build|\.dub|bin|obj|\.cache|__pycache__|cmake-build[^/]*|CMakeFiles)/")
+       "python": (".py",), "haskell": (".hs",), "clojure": (".clj", ".cljc")}
+NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python", "haskell": "Haskell",
+         "clojure": "Clojure"}
+BUILD = re.compile(r"(^|/)(target|build|\.dub|bin|obj|\.cache|__pycache__|cmake-build[^/]*|CMakeFiles|dist-newstyle|\.stack-work|"
+                   r"\.cpcache)/")
 
 
 def is_test(lang, rel):

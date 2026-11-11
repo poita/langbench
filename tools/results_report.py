@@ -21,7 +21,8 @@ sys.path.insert(0, TOOLS)
 import agent_effort  # noqa: E402
 from audit import INTEGRITY  # noqa: E402
 
-NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python"}
+NAMES = {"cpp": "C++", "rust": "Rust", "go": "Go", "d": "D", "python": "Python", "haskell": "Haskell",
+         "clojure": "Clojure"}
 MODELS = {"claude-sonnet-5-5": "Claude Sonnet 5.5"}
 
 

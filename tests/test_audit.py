@@ -182,6 +182,18 @@ class Dependencies(unittest.TestCase):
         self.assertEqual(self.deps("cpp", {"CMakeLists.txt": "find_package(Threads)\nadd_executable(x a.cpp)\n"}), [])
         self.assertEqual(len(self.deps("cpp", {"CMakeLists.txt": "include(FetchContent)\nFetchContent_Declare(gtest)\n"})), 1)
 
+    def test_cabal_dependencies_outside_ghcs_own_packages(self):
+        cabal = ("cabal-version: 3.0\nname: chip8\nlibrary\n  build-depends: base >=4 && <5, containers,\n"
+                 "    bytestring\nexecutable chip8\n  build-depends: base, chip8\n")
+        self.assertEqual(self.deps("haskell", {"chip8.cabal": cabal}), [])
+        found = self.deps("haskell", {"chip8.cabal": cabal + "test-suite t\n  build-depends: base, hspec, chip8\n"})
+        self.assertEqual([x["detail"] for x in found], ["cabal: hspec"])
+
+    def test_deps_edn_dependencies_beyond_clojure(self):
+        self.assertEqual(self.deps("clojure", {"deps.edn": '{:paths ["src"] :deps {org.clojure/clojure {:mvn/version "1.12.6"}}}'}), [])
+        found = self.deps("clojure", {"deps.edn": '{:deps {} :aliases {:test {:extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"}}}}}'})
+        self.assertEqual([x["detail"] for x in found], ["deps.edn: io.github.cognitect-labs/test-runner"])
+
     def test_banned_facilities_depend_on_the_problem(self):
         t = au.scan_banned_facilities_text
         self.assertEqual(t("python", "import os, sys\nimport struct\n", "jsonschema"), [])
@@ -197,6 +209,12 @@ class Dependencies(unittest.TestCase):
         self.assertEqual(t("rust", "use std::collections::BTreeMap;\n", "ordered-map"), ["BTreeMap"])
         self.assertEqual(t("cpp", "#include <map>\nstd::map<int,int> m;\n", "ordered-map"), ["<map>"])
         self.assertEqual(t("rust", "use std::collections::BTreeMap;\n", "datalog"), [])
+        self.assertEqual(t("haskell", "import qualified Data.Map.Strict as M\nimport Data.List\n", "ordered-map"),
+                         ["Data.Map.Strict"])
+        self.assertEqual(t("haskell", "import qualified Data.Map.Strict as M\n", "datalog"), [])
+        self.assertEqual(t("clojure", "(ns x (:import (java.util.regex Pattern)))\n", "regex"), ["java.util.regex"])
+        self.assertEqual(t("clojure", "(ns x (:import [java.security MessageDigest]))\n", "webhooks"),
+                         ["java.security"])
 
     def test_non_default_optimisation_settings(self):
         self.assertEqual(self.flags("cpp", {"CMakeLists.txt": "set(CMAKE_CXX_STANDARD 20)\n"}), [])
@@ -208,6 +226,8 @@ class Dependencies(unittest.TestCase):
         self.assertEqual(len(self.flags("go", {"default.pgo": "x"})), 1)
         self.assertEqual(len(self.flags("go", {"build.sh": "go build -gcflags=-B ./cmd/x\n"})), 1)
         self.assertEqual(self.flags("python", {"build.sh": "true\n"}), [])
+        self.assertEqual(self.flags("haskell", {"x.cabal": "library\n  ghc-options: -Wall\n"}), [])
+        self.assertEqual(len(self.flags("haskell", {"x.cabal": "library\n  ghc-options: -Wall -O2 -fllvm\n"})), 2)
 
     def flags(self, lang, files):
         with tempfile.TemporaryDirectory() as d:

@@ -25,6 +25,22 @@ class Classify(unittest.TestCase):
         self.assertTrue(cs.is_test("d", "tests/machine_test.d"))
         self.assertTrue(cs.is_test("cpp", "tests/test_main.cpp"))
         self.assertFalse(cs.is_test("cpp", "src/main.cpp"))
+        self.assertTrue(cs.is_test("haskell", "test/Spec.hs"))
+        self.assertFalse(cs.is_test("haskell", "src/Chip8/Cpu.hs"))
+        self.assertTrue(cs.is_test("clojure", "test/chip8/cpu_test.clj"))
+        self.assertFalse(cs.is_test("clojure", "src/chip8/cpu.clj"))
+
+    def test_haskell_and_clojure_sources_outside_build_outputs(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            write(d, "src/A.hs", ["a", "b"])
+            write(d, "dist-newstyle/build/X.hs", ["x"])
+            self.assertEqual(cs.project_lines(d, "haskell"), {"code": 2, "test": 0})
+        with tempfile.TemporaryDirectory() as d:
+            write(d, "src/a.clj", ["a"])
+            write(d, "test/a_test.clj", ["t", "u"])
+            write(d, ".cpcache/x.clj", ["x"])
+            self.assertEqual(cs.project_lines(d, "clojure"), {"code": 1, "test": 2})
 
 
 class Counts(unittest.TestCase):

@@ -109,6 +109,22 @@ class StageSandbox(unittest.TestCase):
         self.assertEqual(s["env"]["GOTELEMETRY"], "off")
         self.assertTrue(os.path.isdir(own_project))
 
+    def test_haskell_and_clojure_workspaces_get_offline_caches(self):
+        seed = os.path.join(self.tmp.name, "seed")
+        touch(os.path.join(seed, "org", "clojure", "clojure", "1.12.6", "clojure-1.12.6.jar"))
+        ir.stage_sandbox(self.repo, self.box, toolchains={}, overrides={"langs": ["haskell", "clojure"]},
+                         projects=self.projects, home=self.tmp.name, toolchain_roots=[], clojure_seed=seed)
+        hs, clj = self.ws("rep1:haskell:chip8"), self.ws("rep1:clojure:chip8")
+        env = self.settings("rep1:haskell:chip8")["env"]
+        self.assertTrue(env["CABAL_DIR"].startswith(hs))
+        self.assertIn("active-repositories: :none", open(os.path.join(env["CABAL_DIR"], "config")).read())
+        env = self.settings("rep1:clojure:chip8")["env"]
+        self.assertTrue(env["CLJ_CONFIG"].startswith(clj) and env["CLJ_CACHE"].startswith(clj))
+        user_deps = open(os.path.join(env["CLJ_CONFIG"], "deps.edn")).read()
+        repo = user_deps.split('"')[1]
+        self.assertTrue(repo.startswith(clj))
+        self.assertTrue(os.path.isfile(os.path.join(repo, "org", "clojure", "clojure", "1.12.6", "clojure-1.12.6.jar")))
+
     def test_paths_outside_home_are_denied_too(self):
         dirs = ir.read_denials(home="/home/u", box="/srv/box", repo="/data/lb")
         self.assertEqual(dirs, ["/home/u", "/srv/box", "/data/lb"])
@@ -195,6 +211,21 @@ class HeldOutVerify(unittest.TestCase):
             self.assertTrue(res["hidden_pass"], res)
             res = ir.verify_task(ws, "x", os.path.join(d, "scratch2"), problems=os.path.join(d, "none"))
             self.assertNotIn("hidden_pass", res)
+
+
+class VerifyUsesTheWorkspaceToolConfig(unittest.TestCase):
+    RUNNER = CleanVerify.RUNNER
+    project = CleanVerify.project
+
+    def test_clean_builds_use_the_offline_cabal_and_clojure_config(self):
+        with tempfile.TemporaryDirectory() as d:
+            ws = self.project(d, '#!/bin/sh\ncd "$(dirname "$0")" && echo "$CABAL_DIR $CLJ_CONFIG" > env.txt && '
+                                 'mkdir -p build && printf "#!/bin/sh\\nexit 0\\n" > build/prog && chmod +x build/prog\n')
+            ir.offline_tool_config(ws)
+            ir.verify_task(ws, "x", os.path.join(d, "scratch"), problems="/none")
+            cabal, clj = open(os.path.join(d, "scratch", "x", "env.txt")).read().split()
+            self.assertEqual(cabal, os.path.join(ws, ".cache", "cabal"))
+            self.assertEqual(clj, os.path.join(ws, ".cache", "clj-config"))
 
 
 class ImportKeepsSourcePackagesNamedBuild(unittest.TestCase):
