@@ -45,6 +45,17 @@ TRANSCRIPT = [
 ]
 
 
+class Classify(unittest.TestCase):
+    def test_haskell_and_clojure_commands(self):
+        c = lambda cmd: ae.classify("Bash", {"command": cmd})
+        self.assertEqual(c("cd x && cabal test 2>&1 | tail"), "unit tests")
+        self.assertEqual(c("clojure -M:test 2>&1 | tail -5"), "unit tests")
+        self.assertEqual(c("clj -X:test"), "unit tests")
+        self.assertEqual(c("cabal build -v0"), "build")
+        self.assertEqual(c("clojure -M -e \"(compile 'toml.cli)\""), "build")
+        self.assertEqual(c("cat > src/a.clj <<'EOF'\n(ns a)\nEOF"), "other shell")
+
+
 class AgentStats(unittest.TestCase):
     def test_counts_tool_calls_and_deduplicates_usage_by_message(self):
         with tempfile.TemporaryDirectory() as d:

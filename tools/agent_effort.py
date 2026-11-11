@@ -57,10 +57,11 @@ def classify(name, inp):
     c = inp.get("command", "")
     if "run_tests.py" in c:
         return "harness tests"
-    if re.search(r"\b(dub|go|cargo)\s+test\b|\bctest\b|python3? -m unittest|unittest", c):
+    if re.search(r"\b(dub|go|cargo|cabal)\s+test\b|\bctest\b|python3? -m unittest|unittest|"
+                 r"\b(clojure|clj)\s+-[MXA]:test\b", c):
         return "unit tests"
     if re.search(r"build\.sh|\bdub (build|run)|\bgo (build|vet)|cargo build|\bcmake\b|\bmake\b|ldc2|\bdmd\b|"
-                 r"clang\+\+|g\+\+", c):
+                 r"clang\+\+|g\+\+|\bcabal (build|configure)\b|\(compile '", c):
         return "build"
     return "other shell"
 
