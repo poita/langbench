@@ -45,4 +45,5 @@ python3 run_tests.py <slug> -- <path to run.sh>
 ```
 
 `-v` prints each test's result and `--filter TEXT` runs only the tests whose
-names contain TEXT.
+names contain TEXT. Each test may take up to 120 seconds; one that runs longer
+fails.

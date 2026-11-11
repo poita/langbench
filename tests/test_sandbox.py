@@ -109,21 +109,36 @@ class StageSandbox(unittest.TestCase):
         self.assertEqual(s["env"]["GOTELEMETRY"], "off")
         self.assertTrue(os.path.isdir(own_project))
 
-    def test_haskell_and_clojure_workspaces_get_offline_caches(self):
+    def test_workspaces_get_offline_toolchains_and_test_frameworks(self):
         seed = os.path.join(self.tmp.name, "seed")
-        touch(os.path.join(seed, "org", "clojure", "clojure", "1.12.6", "clojure-1.12.6.jar"))
+        touch(os.path.join(seed, "m2", "org", "clojure", "clojure", "1.12.6", "clojure-1.12.6.jar"))
+        touch(os.path.join(seed, "gitlibs", "libs", "io.github.cognitect-labs", "test-runner", "x", "deps.edn"))
+        touch(os.path.join(seed, "hackage", "hspec-2.11.18.tar.gz"))
+        touch(os.path.join(seed, "store", "ghc-9.14.1", "package.db", "x.conf"))
+        seeds = {"clojure": {"m2": os.path.join(seed, "m2"), "gitlibs": os.path.join(seed, "gitlibs")},
+                 "haskell": {"repo": os.path.join(seed, "hackage"), "store": os.path.join(seed, "store")}}
         ir.stage_sandbox(self.repo, self.box, toolchains={}, overrides={"langs": ["haskell", "clojure"]},
-                         projects=self.projects, home=self.tmp.name, toolchain_roots=[], clojure_seed=seed)
+                         projects=self.projects, home=self.tmp.name, toolchain_roots=[], seeds=seeds)
         hs, clj = self.ws("rep1:haskell:chip8"), self.ws("rep1:clojure:chip8")
-        env = self.settings("rep1:haskell:chip8")["env"]
-        self.assertTrue(env["CABAL_DIR"].startswith(hs))
-        self.assertIn("active-repositories: :none", open(os.path.join(env["CABAL_DIR"], "config")).read())
+        s = self.settings("rep1:haskell:chip8")
+        config = open(os.path.join(s["env"]["CABAL_DIR"], "config")).read()
+        self.assertIn("url: file+noindex://" + os.path.join(hs, ".cache", "hackage"), config)
+        self.assertIn("store-dir: " + os.path.join(seed, "store"), config)
+        self.assertTrue(os.path.isfile(os.path.join(hs, ".cache", "hackage", "hspec-2.11.18.tar.gz")))
+        self.assertIn(os.path.join(seed, "store"), s["sandbox"]["filesystem"]["allowRead"])
         env = self.settings("rep1:clojure:chip8")["env"]
-        self.assertTrue(env["CLJ_CONFIG"].startswith(clj) and env["CLJ_CACHE"].startswith(clj))
-        user_deps = open(os.path.join(env["CLJ_CONFIG"], "deps.edn")).read()
-        repo = user_deps.split('"')[1]
+        self.assertEqual(env["GIT_CONFIG_GLOBAL"], "/dev/null")
+        self.assertTrue(os.path.isfile(os.path.join(env["GITLIBS"], "libs", "io.github.cognitect-labs", "test-runner",
+                                                    "x", "deps.edn")))
+        repo = open(os.path.join(env["CLJ_CONFIG"], "deps.edn")).read().split('"')[1]
         self.assertTrue(repo.startswith(clj))
         self.assertTrue(os.path.isfile(os.path.join(repo, "org", "clojure", "clojure", "1.12.6", "clojure-1.12.6.jar")))
+
+    def test_a_workspace_with_a_python_environment_runs_its_python_first(self):
+        with tempfile.TemporaryDirectory() as ws:
+            os.makedirs(os.path.join(ws, ".cache", "venv", "bin"))
+            self.assertTrue(ir.tool_env(ws)["PATH"].startswith(os.path.join(ws, ".cache", "venv", "bin") + os.pathsep))
+            self.assertNotIn("PATH", ir.tool_env(os.path.join(ws, "other")))
 
     def test_paths_outside_home_are_denied_too(self):
         dirs = ir.read_denials(home="/home/u", box="/srv/box", repo="/data/lb")

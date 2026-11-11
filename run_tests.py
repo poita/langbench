@@ -96,7 +96,7 @@ def run_dir_case(cmd, pdir, tdir, name, verifier, timeout, verbose):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("problem")
-    ap.add_argument("--timeout", type=float, default=None, help="per-test limit in seconds (default: none)")
+    ap.add_argument("--timeout", type=float, default=120, help="per-test limit in seconds (default: 120)")
     ap.add_argument("--verbose", "-v", action="store_true")
     ap.add_argument("--filter", default="", help="only run tests whose name contains this")
     ap.add_argument("--tests-dir", default=None, help="run the tests in this directory instead of problems/<problem>/tests")

@@ -273,7 +273,7 @@ at position 2 and ends the loop, so g1 = 2,2. `x$|^(y)?z` on `xz`: at start 0
 fails, so `no`. `(a){0}b` never runs group 1, so it stays unset; on `xb`
 the first alternative matches `b` at 1..2 and groups 2 and 3 are unset.
 
-## 6. Performance expectations
+## 6. Input sizes
 
 - Largest tests: about 2.8 MB of input in one file, subjects up to 10000
   characters, up to 90000 subjects in one file, patterns up to 250
@@ -283,11 +283,8 @@ the first alternative matches `b` at 1..2 and groups 2 and 3 are unset.
   subjects, and quadratic scans such as `a*b` on about a thousand `a`s).
   They are bounded: no single test file requires more than about 8 million
   backtracking steps in total for a straightforward implementation of
-  section 3, and the reference Python implementation finishes every test
-  in under 15 s (the whole suite in about 35 s). A compiled implementation
-  should finish every test in well under a second or two.
+  section 3.
 - A recursive implementation of section 3 can need recursion depth on the
   order of a few frames per subject character (e.g. `.*` over a 10000
   character subject); make sure the stack allows that, or use an explicit
   backtracking stack.
-- Suggested timeout: 30 s per test for compiled languages.

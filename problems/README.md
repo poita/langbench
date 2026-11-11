@@ -82,10 +82,13 @@ see (the sandbox leaves them out):
   `tests/THIRD_PARTY.md` (which tests use what, under which licence) and
   the licence texts it names into `tests/`.
 
-`APPROACH.md` fixes the algorithms and data representations so that
-implementations in different languages do the same work and performance
-comparisons measure the language rather than each implementer's design. Agents
-see it as an ordinary design document.
+`APPROACH.md` fixes the algorithms, abstract data structures and Big-O
+complexity, so that implementations in different languages do the same
+algorithmic work. It stays at that level, in words that suit any language: no
+memory or allocation rules, code shape, micro-optimisations or timing targets,
+which would favour imperative languages and tell agents how to write the code
+being measured. SPEC.md gives input sizes but no timing targets. Agents see
+APPROACH.md as an ordinary design document.
 
 ## Held-out tests
 

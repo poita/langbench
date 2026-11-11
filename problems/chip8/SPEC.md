@@ -281,13 +281,10 @@ PC=021e I=0000 SP=0 DT=07 ST=00
 V=08 47 0d 00 08 00 00 00 00 00 00 00 00 00 00 00
 ```
 
-## Performance
+## Input sizes
 
 ROMs are at most 3584 bytes. The largest tests execute 5,000,000 cycles,
-one of them drawing a 5-row sprite every 9 cycles. The reference Python
-implementation runs each of the largest tests in about 3-4 s; a compiled
-implementation should take well under a second. Suggested timeout: 30 s (the
-runner's default).
+one of them drawing a 5-row sprite every 9 cycles.
 
 Input parsing is not part of the challenge: the input is always well-formed as
 described above.

@@ -94,7 +94,7 @@ odd exponent gives a negative result, even exponent gives a positive result
 
 ## Limits
 
-- At most 10,000 queries per input; total input size at most 8 MB (at most 40 MB in the long benchmark tier, `bench-long/`).
+- At most 10,000 queries per input; total input size at most 8 MB.
 - Operands have at most 50,000 digits excluding sign and leading zeros, and
   fewer than 100 leading zeros, so no operand token is longer than 50,101
   characters.
@@ -106,12 +106,7 @@ Largest tests: a handful of products of two 50,000-digit numbers, a handful of
 divisions of a 50,000-digit number by a 25,000-digit one, ~70 additions /
 subtractions of 30,000- to 50,000-digit numbers, powers with results up to
 100,000 digits, and one test of 10,000 small queries. Schoolbook O(n²)
-multiplication and long division are sufficient if implemented with a large
-limb base (e.g. base 10⁹ in 32-bit limbs or base 10¹⁸/2⁶⁴ in 64-bit limbs);
-pure base-10 digit-at-a-time schoolbook multiplication is feasible but slow on
-the largest test. Suggested timeout: 30 s per test (60 s for a naive implementation).
-Output in one buffered write; converting a 100,000-digit result to decimal
-must not be quadratic in a way that dominates (it is fine with base-10ⁿ limbs).
+multiplication and long division are sufficient.
 
 ## Worked examples
 

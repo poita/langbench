@@ -3,9 +3,13 @@
 Implementations are written only by coding agents: one headless Claude Code
 session per (language, problem, repetition), started exactly as a person would
 start Claude Code with a task. Each session gets the prompt in
-`tools/task_prompt.txt`: build a standalone project (library, CLI, README, unit
-tests, `build.sh`, `run.sh`) from the problem's `SPEC.md`, using the design in
-its `APPROACH.md`, done when the visible tests and its unit tests pass. The
+`tools/task_prompt.txt`: build a standalone project (library, CLI, README,
+automated tests, `build.sh`, `run.sh`) from the problem's `SPEC.md`, using the
+design in its `APPROACH.md`, done when the visible tests and its own tests pass.
+Only the standard library may be used, apart from a test framework for the
+tests: each language's usual one is installed (GoogleTest for C++, pytest for
+Python, hspec, tasty and QuickCheck for Haskell, the Cognitect test-runner for
+Clojure; the others have one built in), and the prompt names it. The
 prompt reads like an ordinary task; every language gets the same text apart from
 its name and toolchain.
 
@@ -34,9 +38,14 @@ projects changed as well, but not what agents were asked or shown.
 - The toolchains of the languages you generate: a C++ compiler and CMake,
   Rust (cargo), Go, D (LDC and dub), Python 3, Haskell (GHC and cabal) and
   Clojure (the clojure CLI and a JDK). Their versions are detected and written
-  into the prompt and the run record. Staging a Clojure run downloads Clojure's
-  own jars once (`clojure -P`) into a Maven repository inside the sandbox; each
-  Clojure workspace gets a copy, since agents have no network.
+  into the prompt and the run record. GoogleTest must be installed for C++.
+  Agents have no network, so staging a run downloads, once, what the other
+  languages' test frameworks need into the sandbox's `tools/`: pytest's wheels
+  (each Python workspace gets its own virtual environment with pytest), Clojure
+  and the Cognitect test-runner (each Clojure workspace gets a copy), and the
+  Haskell test frameworks as a local package repository plus a cabal store
+  built from it (Haskell workspaces read the store; it is the only thing from
+  outside the workspace they read).
 - macOS or Linux, for Claude Code's sandbox (Seatbelt on macOS; bubblewrap on
   Linux).
 
@@ -79,9 +88,12 @@ python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
      network;
    - Go, Cargo, dub, cabal and Clojure caches and configuration live inside
      the workspace, and shell commands may run for 10 minutes, so slow builds
-     don't cost agents extra turns. cabal has no package repository, so a
-     Haskell project can use only the packages that ship with GHC; the
-     clojure CLI has a Maven repository with only Clojure in it. The clean
+     don't cost agents extra turns. cabal's only package repository is the
+     local one with the test frameworks, so a Haskell project can use the
+     packages that ship with GHC and, for tests, those frameworks; the
+     clojure CLI has a Maven repository with only Clojure and the
+     test-runner in it. git reads no configuration from the home directory,
+     which the sandbox hides. The clean
      rebuilds in `finish` use the same configuration, and `JAVA_HOME` is the
      JDK the clojure CLI runs on in both.
 2. **`launch DIR`** runs every task as its own `claude -p` session in its

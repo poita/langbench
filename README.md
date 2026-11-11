@@ -15,8 +15,9 @@ allows two measurements without author bias:
 
 - **Performance of agent-written code**: cycles, instructions, wall time and
   memory on heavy, realistic inputs. Each problem's `APPROACH.md` fixes the
-  algorithms and data representations, so differences come from the language,
-  its compiler and its runtime rather than from design choices.
+  algorithms and their complexity, but not how the code is written, so
+  differences come from the language, its compiler and its runtime, and from
+  how agents naturally write it, rather than from different algorithms.
 - **Agent effectiveness**: correctness on public and held-out tests, and the tool
   calls, tokens and time an agent needs to get there.
 

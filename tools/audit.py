@@ -227,18 +227,35 @@ GHC_PACKAGES = {
     "template-haskell-quasiquoter", "terminfo", "text", "time", "transformers", "unix", "xhtml"}
 
 
+# The test frameworks the sandbox provides, which tests (and only tests) may use.
+HASKELL_TEST_PACKAGES = {"hspec", "hspec-core", "hspec-discover", "hspec-expectations", "tasty", "tasty-hunit",
+                         "tasty-quickcheck", "QuickCheck", "HUnit"}
+CLOJURE_TEST_LIBS = {"io.github.cognitect-labs/test-runner", "com.cognitect/test-runner"}
+PYTHON_TEST_MODULES = {"pytest", "_pytest"}
+
+
+def is_python_test_file(rel):
+    parts = rel.split(os.sep)
+    name = parts[-1]
+    return (any(p in ("test", "tests") for p in parts[:-1]) or name.startswith("test_") or name.endswith("_test.py")
+            or name == "conftest.py")
+
+
 def cabal_deps(text):
-    """Packages named in a .cabal file's build-depends fields, other than GHC's own and the package's own
-    libraries."""
+    """Packages named in a .cabal file's build-depends fields, other than GHC's own, the package's own libraries
+    and (in test-suite and benchmark stanzas) the test frameworks the sandbox provides."""
     own = set(re.findall(r"^name\s*:\s*([\w-]+)", text, re.M | re.I))
     own |= set(re.findall(r"^\s*library\s+([\w-]+)", text, re.M | re.I))
+    stanzas = [(m.start(), m.group(1).lower()) for m in re.finditer(r"^([A-Za-z][\w-]*)\b", text, re.M)]
     out = []
     for field in re.finditer(r"build-depends\s*:((?:[^\n]*)(?:\n[ \t]+(?![\w-]+\s*:)[^\n]*)*)", text, re.I):
+        stanza = max((s for s in stanzas if s[0] < field.start()), default=(0, ""))[1]
+        allowed = HASKELL_TEST_PACKAGES if stanza in ("test-suite", "benchmark") else set()
         for item in field.group(1).split(","):
             name = re.match(r"\s*([A-Za-z][\w-]*)", item)
             if name:
                 pkg = name.group(1).split(":")[0]
-                if pkg not in GHC_PACKAGES and pkg not in own and pkg not in out:
+                if pkg not in GHC_PACKAGES and pkg not in own and pkg not in allowed and pkg not in out:
                     out.append(pkg)
     return out
 
@@ -256,7 +273,8 @@ def deps_edn_deps(text):
         for m in re.finditer(r"[{}]|([\w.\-]+/[\w.\-]+)", body):
             if m.group(0) in "{}":
                 level += 1 if m.group(0) == "{" else -1
-            elif level == 0 and m.group(1) != "org.clojure/clojure" and m.group(1) not in out:
+            elif level == 0 and m.group(1) != "org.clojure/clojure" and m.group(1) not in CLOJURE_TEST_LIBS \
+                    and m.group(1) not in out:
                 out.append(m.group(1))
     return out
 
@@ -330,7 +348,8 @@ def scan_dependencies(project, lang):
         text = "\n".join(open(p, errors="replace").read()
                          for p in glob.glob(os.path.join(project, "**", "CMakeLists.txt"), recursive=True))
         deps = [f"cmake: {m}" for m in sorted(set(re.findall(r"\b(FetchContent_Declare|ExternalProject_Add)\b", text)))]
-        deps += [f"cmake: find_package({m})" for m in re.findall(r"find_package\(\s*(\w+)", text) if m != "Threads"]
+        deps += [f"cmake: find_package({m})" for m in re.findall(r"find_package\(\s*(\w+)", text)
+                 if m not in ("Threads", "GTest")]
     elif lang == "haskell":
         for path in sorted(glob.glob(os.path.join(project, "**", "*.cabal"), recursive=True)):
             if "/dist-newstyle/" not in path:
@@ -340,7 +359,8 @@ def scan_dependencies(project, lang):
     elif lang == "python":
         local = local_python_modules(project)
         deps = [f"{m} ({f})" for m, f in python_imports(project).items()
-                if m not in sys.stdlib_module_names and m not in local and m != "__future__"]
+                if m not in sys.stdlib_module_names and m not in local and m != "__future__"
+                and not (m in PYTHON_TEST_MODULES and is_python_test_file(f))]
     return [{"kind": "dependency", "detail": d} for d in deps]
 
 

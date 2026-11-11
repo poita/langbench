@@ -102,6 +102,21 @@ class Prompt(unittest.TestCase):
         for other in ("rustc", "cargo", "CMake", "go build", "python3 -m"):
             self.assertNotIn(other, p)
 
+    def test_asks_every_language_for_automated_tests_the_same_way(self):
+        p = self.render()
+        self.assertIn("automated tests", p)
+        self.assertNotIn("separate from the library source", p)
+        self.assertNotIn("unit tests", p)
+        self.assertIn("a test framework", p)
+
+    def test_build_lines_name_the_installed_test_frameworks(self):
+        lines = {lang: rn.build_line(lang, "ldc2") for lang in rn.LANG_NAMES}
+        self.assertIn("GoogleTest", lines["cpp"])
+        self.assertIn("pytest", lines["python"])
+        self.assertIn("hspec", lines["haskell"])
+        self.assertIn("QuickCheck", lines["haskell"])
+        self.assertIn("io.github.cognitect-labs/test-runner", lines["clojure"])
+
     def test_haskell_and_clojure_prompts_name_their_build_tools(self):
         args = {**ARGS, "langs": ["haskell", "clojure"],
                 "toolchains": {"haskell": "GHC 9.14.1 and cabal 3.18.2.0", "clojure": "Clojure 1.12.6 on OpenJDK 27.0.1"}}
@@ -112,7 +127,7 @@ class Prompt(unittest.TestCase):
         self.assertIn("cabal build", hs)
         self.assertIn("standalone Clojure project", clj)
         self.assertIn("deps.edn", clj)
-        self.assertIn("clojure.test", clj)
+        self.assertIn("test-runner", clj)
 
     def test_paths_and_validation_command(self):
         p = self.render()

@@ -168,22 +168,127 @@ def clojure_version():
     return f"Clojure {parts[0]} on Java {parts[1]}" if p.returncode == 0 and len(parts) == 2 else None
 
 
-def seed_clojure_repo(dest):
-    """Download what the clojure CLI needs (Clojure and its two spec libraries) into a fresh Maven repository at
-    dest. Agents have no network, so each Clojure workspace gets a copy; using a fresh repository rather than
-    ~/.m2 keeps any other cached library out of reach."""
+# The test frameworks provided offline, and what each is for (named in the prompt by runner.build_line).
+CLOJURE_TEST_RUNNER = '{io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}'
+HASKELL_TEST_DEPS = ["hspec", "tasty", "tasty-hunit", "tasty-quickcheck", "QuickCheck"]
+PYTHON_TEST_PACKAGES = ["pytest"]
+
+
+def run_checked(argv, what, **kw):
+    p = subprocess.run(argv, capture_output=True, text=True, **kw)
+    if p.returncode != 0:
+        sys.exit(f"could not prepare {what} ({' '.join(argv)}):\n{p.stdout[-2000:]}{p.stderr[-2000:]}")
+    return p
+
+
+def seed_clojure(dest):
+    """Download what the clojure CLI and the Cognitect test-runner need into a fresh Maven repository and gitlibs
+    directory under dest. Agents have no network, so each Clojure workspace gets a copy; fresh directories rather
+    than ~/.m2 keep any other cached library out of reach."""
+    m2, gitlibs = os.path.join(dest, "m2"), os.path.join(dest, "gitlibs")
     with tempfile.TemporaryDirectory() as d:
         os.makedirs(os.path.join(d, "config"))
         with open(os.path.join(d, "config", "deps.edn"), "w") as f:
-            f.write("{:mvn/local-repo %s}\n" % json.dumps(dest))
+            f.write("{:mvn/local-repo %s}\n" % json.dumps(m2))
         os.makedirs(os.path.join(d, "project"))
         with open(os.path.join(d, "project", "deps.edn"), "w") as f:
-            f.write("{}\n")
-        env = dict(os.environ, CLJ_CONFIG=os.path.join(d, "config"), CLJ_CACHE=os.path.join(d, "cache"))
-        p = subprocess.run(["clojure", "-P"], cwd=os.path.join(d, "project"), env=env, capture_output=True, text=True)
-        if p.returncode != 0:
-            sys.exit(f"could not prepare the Clojure libraries (clojure -P):\n{p.stderr}")
-    return dest
+            f.write("{:aliases {:test {:extra-deps %s}}}\n" % CLOJURE_TEST_RUNNER)
+        env = dict(os.environ, CLJ_CONFIG=os.path.join(d, "config"), CLJ_CACHE=os.path.join(d, "cache"),
+                   GITLIBS=gitlibs, GIT_CONFIG_GLOBAL=os.devnull)
+        run_checked(["clojure", "-P", "-A:test"], "the Clojure libraries", cwd=os.path.join(d, "project"), env=env)
+    return {"m2": m2, "gitlibs": gitlibs}
+
+
+def apply_hackage_revisions(repo, index_tar):
+    """Give each package tarball in repo its latest Hackage revision of the .cabal file, as cabal sees it when
+    resolving against Hackage; original bounds are often too tight for the installed GHC."""
+    want = {}
+    for f in glob.glob(os.path.join(repo, "*.tar.gz")):
+        m = re.match(r"(.+)-([\d.]+)\.tar\.gz$", os.path.basename(f))
+        want[(m.group(1), m.group(2))] = f
+    latest = {}
+    with tarfile.open(index_tar) as t:
+        for ti in t:
+            parts = ti.name.split("/")
+            if len(parts) == 3 and parts[2].endswith(".cabal") and (parts[0], parts[1]) in want:
+                latest[(parts[0], parts[1])] = t.extractfile(ti).read()
+    for (pkg, ver), f in want.items():
+        rev = latest.get((pkg, ver))
+        if rev is None:
+            continue
+        out = io.BytesIO()
+        with tarfile.open(f) as src, tarfile.open(fileobj=out, mode="w:gz") as dst:
+            for ti in src:
+                data = src.extractfile(ti).read() if ti.isfile() else None
+                if ti.name == f"{pkg}-{ver}/{pkg}.cabal":
+                    data, ti.size = rev, len(rev)
+                dst.addfile(ti, io.BytesIO(data) if data is not None else None)
+        with open(f, "wb") as fh:
+            fh.write(out.getvalue())
+
+
+def seed_haskell(dest):
+    """Download the Haskell test frameworks and their dependencies into a local package repository under dest
+    and build them into a cabal store there, which Haskell workspaces read but never write. Building from the
+    local repository itself keeps the store's package hashes identical to what agents' projects resolve."""
+    repo, store = os.path.join(dest, "hackage"), os.path.join(dest, "store")
+    os.makedirs(repo, exist_ok=True)
+    env = dict(os.environ, **({"C_INCLUDE_PATH": ffi_include()} if ffi_include() else {}))
+    with tempfile.TemporaryDirectory() as d:
+        project = os.path.join(d, "project")
+        os.makedirs(project)
+        with open(os.path.join(project, "seed.cabal"), "w") as f:
+            f.write("cabal-version: 3.0\nname: seed\nversion: 0\nlibrary\n  build-depends: base, "
+                    + ", ".join(HASKELL_TEST_DEPS) + "\n  default-language: GHC2021\n")
+        online = dict(env, CABAL_DIR=os.path.join(d, "online"))
+        run_checked(["cabal", "update"], "the Hackage index", env=online)
+        run_checked(["cabal", "build", "--dependencies-only", "--only-download"], "the Haskell test frameworks",
+                    cwd=project, env=online)
+        for f in glob.glob(os.path.join(d, "online", "packages", "hackage.haskell.org", "*", "*", "*.tar.gz")):
+            shutil.copy(f, repo)
+        apply_hackage_revisions(repo, os.path.join(d, "online", "packages", "hackage.haskell.org", "01-index.tar"))
+        local = os.path.join(d, "local")
+        write_cabal_config(local, repo, store)
+        shutil.rmtree(os.path.join(project, "dist-newstyle"), ignore_errors=True)
+        run_checked(["cabal", "build", "--dependencies-only"], "the Haskell test frameworks", cwd=project,
+                    env=dict(env, CABAL_DIR=local))
+    for cache in glob.glob(os.path.join(repo, "*.cache")):
+        os.remove(cache)
+    return {"repo": repo, "store": store}
+
+
+def seed_python(dest):
+    """Download pytest and its dependencies as wheels, for each Python workspace's own environment."""
+    wheels = os.path.join(dest, "wheels")
+    run_checked([sys.executable, "-m", "pip", "download", "-q", "-d", wheels, *PYTHON_TEST_PACKAGES], "pytest")
+    return {"wheels": wheels}
+
+
+def seed_test_tools(box, langs):
+    """Everything the languages in langs need offline, prepared once per sandbox in box/tools/."""
+    seeders = {"clojure": seed_clojure, "haskell": seed_haskell, "python": seed_python}
+    return {lang: seeders[lang](os.path.join(box, "tools", lang)) for lang in langs if lang in seeders}
+
+
+def write_cabal_config(cabal_dir, repo=None, store=None):
+    """A cabal configuration without network: only the local repository (or none) and, if given, a store."""
+    os.makedirs(cabal_dir, exist_ok=True)
+    with open(os.path.join(cabal_dir, "config"), "w") as f:
+        if repo:
+            f.write(f"repository local\n  url: file+noindex://{repo}\nactive-repositories: local\n")
+        else:
+            f.write("active-repositories: :none\n")
+        if store:
+            f.write(f"store-dir: {store}\n")
+
+
+@functools.lru_cache(maxsize=None)
+def ffi_include():
+    """The directory holding ffi.h on macOS, which GHC's runtime headers include but Homebrew's GHC doesn't add
+    to the C compiler's search path; None elsewhere."""
+    sdk = run_text(["xcrun", "--show-sdk-path"]) if sys.platform == "darwin" else None
+    path = os.path.join(sdk, "usr", "include", "ffi") if sdk else None
+    return path if path and os.path.isfile(os.path.join(path, "ffi.h")) else None
 
 
 @functools.lru_cache(maxsize=None)
@@ -203,29 +308,60 @@ def java_home():
 
 
 def tool_env(ws):
-    """Where cabal and the clojure CLI keep their configuration and caches for a workspace's builds, and the
-    JDK that java means."""
+    """The environment a workspace's builds and tests run with, in its session and in finish's clean rebuild:
+    where cabal and the clojure CLI keep their configuration and caches, the JDK that java means, no git
+    configuration from the home directory (the sandbox hides it, and git would fail), the headers GHC needs,
+    and the workspace's own Python environment, if it has one."""
     cache = os.path.join(ws, ".cache")
     env = {"CABAL_DIR": os.path.join(cache, "cabal"), "CLJ_CONFIG": os.path.join(cache, "clj-config"),
-           "CLJ_CACHE": os.path.join(cache, "clj")}
+           "CLJ_CACHE": os.path.join(cache, "clj"), "GITLIBS": os.path.join(cache, "gitlibs"),
+           "GIT_CONFIG_GLOBAL": os.devnull}
     if java_home():
         env["JAVA_HOME"] = java_home()
+    if ffi_include():
+        env["C_INCLUDE_PATH"] = ffi_include()
+    venv = os.path.join(cache, "venv", "bin")
+    if os.path.isdir(venv):
+        env["PATH"] = venv + os.pathsep + os.environ.get("PATH", "")
     return env
 
 
-def offline_tool_config(ws, clojure_seed=None):
-    """Toolchain configuration inside a workspace for a session without network: cabal with no package
-    repositories (GHC's own packages are all a project can use), and the clojure CLI with a Maven repository
-    of its own, copied from clojure_seed."""
-    cache = os.path.join(ws, ".cache")
-    os.makedirs(os.path.join(cache, "cabal"), exist_ok=True)
-    with open(os.path.join(cache, "cabal", "config"), "w") as f:
-        f.write("active-repositories: :none\n")
+def offline_tool_config(ws, lang=None, seeds=None):
+    """Toolchain configuration inside a workspace for a session without network. cabal sees only the local
+    package repository of Haskell test frameworks (and their prebuilt store) besides GHC's own packages; the
+    clojure CLI gets its own Maven repository and gitlibs; Python gets its own environment with pytest."""
+    cache, seeds = os.path.join(ws, ".cache"), seeds or {}
+    hs = seeds.get("haskell") if lang == "haskell" else None
+    if hs:
+        shutil.copytree(hs["repo"], os.path.join(cache, "hackage"), dirs_exist_ok=True)
+        write_cabal_config(os.path.join(cache, "cabal"), os.path.join(cache, "hackage"), hs["store"])
+    else:
+        write_cabal_config(os.path.join(cache, "cabal"))
     os.makedirs(os.path.join(cache, "clj-config"), exist_ok=True)
     with open(os.path.join(cache, "clj-config", "deps.edn"), "w") as f:
         f.write("{:mvn/local-repo %s}\n" % json.dumps(os.path.join(cache, "m2")))
-    if clojure_seed:
-        shutil.copytree(clojure_seed, os.path.join(cache, "m2"), dirs_exist_ok=True)
+    clj = seeds.get("clojure") if lang == "clojure" else None
+    if clj:
+        shutil.copytree(clj["m2"], os.path.join(cache, "m2"), dirs_exist_ok=True)
+        shutil.copytree(clj["gitlibs"], os.path.join(cache, "gitlibs"), dirs_exist_ok=True,
+                        ignore=lambda d, names: [n for n in names if n.endswith(".ipc")])
+    py = seeds.get("python") if lang == "python" else None
+    if py:
+        venv = os.path.join(cache, "venv")
+        run_checked([sys.executable, "-m", "venv", venv], "a Python environment")
+        run_checked([os.path.join(venv, "bin", "python"), "-m", "pip", "install", "-q", "--no-index", "--find-links",
+                     py["wheels"], *PYTHON_TEST_PACKAGES], "pytest")
+
+
+def gtest_version(prefixes=("/opt/homebrew", "/usr/local", "/usr")):
+    """The version of the first GoogleTest CMake package found under prefixes, or None."""
+    for prefix in prefixes:
+        path = os.path.join(prefix, "lib", "cmake", "GTest", "GTestConfigVersion.cmake")
+        if os.path.isfile(path):
+            m = re.search(r'set\(PACKAGE_VERSION "([^"]+)"\)', open(path).read())
+            if m:
+                return m.group(1)
+    return None
 
 
 def detect_toolchains(dc="ldc2"):
@@ -235,7 +371,8 @@ def detect_toolchains(dc="ldc2"):
     cxx_ver = (re.search(r"version (\d+[\d.]*)", cxx) or re.search(r"(\d+\.\d+[\d.]*)", cxx) or [None, None])[1]
     parts = {
         "cpp": [f"{cxx_name} {cxx_ver}" if cxx_ver else None,
-                (lambda v: f"CMake {v}" if v else None)(version(["cmake", "--version"], r"version (\S+)"))],
+                (lambda v: f"CMake {v}" if v else None)(version(["cmake", "--version"], r"version (\S+)")),
+                (lambda v: f"GoogleTest {v}" if v else None)(gtest_version())],
         "rust": [(lambda v: f"Rust {v} (rustc and cargo)" if v else None)(version(["rustc", "--version"], r"rustc (\S+)"))],
         "go": [(lambda v: f"Go {v}" if v else None)(version(["go", "version"], r"go(\d[\d.]*)"))],
         "d": [(lambda v: f"LDC {v}" if v else None)(version([dc, "--version"], r"\((\d[\d.]*)\)"))
@@ -246,7 +383,10 @@ def detect_toolchains(dc="ldc2"):
                     (lambda v: f"cabal {v}" if v else None)(version(["cabal", "--numeric-version"], r"(\d[\d.]*)"))],
         "clojure": [clojure_version()],
     }
-    return {lang: " and ".join(p for p in ps if p) for lang, ps in parts.items()}
+    def listed(ps):
+        ps = [p for p in ps if p]
+        return ", ".join(ps[:-1]) + " and " + ps[-1] if len(ps) > 1 else "".join(ps)
+    return {lang: listed(ps) for lang, ps in parts.items()}
 
 
 def read_denials(home, box, repo, main=None):
@@ -394,7 +534,7 @@ META_FILES = ("args.json", "sandbox.json", "harness.json", "tasks.json", "launch
 
 
 def stage_sandbox(repo, box, toolchains, overrides=None, allow_dirty=False, projects=None, home=None,
-                  toolchain_roots=None, clojure_seed=None):
+                  toolchain_roots=None, seeds=None):
     repo, box = os.path.realpath(repo), os.path.realpath(box)
     if box == repo or box.startswith(repo + os.sep):
         sys.exit(f"the sandbox must be outside the checkout ({repo})")
@@ -425,16 +565,19 @@ def stage_sandbox(repo, box, toolchains, overrides=None, allow_dirty=False, proj
     home = os.path.realpath(home or os.path.expanduser("~"))
     roots = toolchain_roots if toolchain_roots is not None else globals()["toolchain_roots"](home, args.get("dc", "ldc2"))
     deny = read_denials(home, box, repo, main_checkout(repo))
-    if "clojure" in args["langs"] and clojure_seed is None:
-        clojure_seed = seed_clojure_repo(os.path.join(box, "clojure-m2"))
+    if seeds is None:
+        seeds = seed_test_tools(box, args["langs"])
     for label, rel in tasks.items():
         ws = os.path.join(box, rel)
-        offline_tool_config(ws, clojure_seed if label.split(":")[1] == "clojure" else None)
+        lang = label.split(":")[1]
+        offline_tool_config(ws, lang, seeds)
         own_transcripts = runner.transcript_dir(ws, projects)
         os.makedirs(own_transcripts, exist_ok=True)
         os.makedirs(os.path.join(ws, ".claude"), exist_ok=True)
         with open(os.path.join(ws, ".claude", "settings.json"), "w") as f:
-            json.dump(sandbox_settings(ws, deny, [ws, own_transcripts, *roots]), f, indent=1)
+            # A Haskell workspace reads the prebuilt store of test frameworks, which lives in the sandbox.
+            shared = [seeds["haskell"]["store"]] if lang == "haskell" and "haskell" in seeds else []
+            json.dump(sandbox_settings(ws, deny, [ws, own_transcripts, *roots, *shared]), f, indent=1)
     with open(os.path.join(box, "harness.json"), "w") as f:
         json.dump({"master": master, "workspaces": placed}, f, indent=0)
     with open(os.path.join(box, "tasks.json"), "w") as f:

@@ -24,8 +24,7 @@ invalid document is as important as parsing every valid one.
 - Everything after that first `\n` byte is the **document**, verbatim, byte
   for byte. It may contain any bytes at all, including CR, NUL and invalid
   UTF-8 (in decode mode those are among the things you must reject). The
-  document may or may not end with a newline. Documents are at most 8 MB (at
-  most 20 MB in the long benchmark tier, `bench-long/`).
+  document may or may not end with a newline. Documents are at most 8 MB.
 - In encode mode the document is UTF-8 tagged JSON, always well formed and
   always produced by a successful decode (see *Encode input* below), so no
   error handling is needed there.
@@ -591,8 +590,5 @@ Expect roughly 900–1400 lines in a systems language. A workable shape is:
   (objects, arrays, strings with their escapes, and whitespace).
 - an **encoder**: the classification and rendering of §2.2, about 100 lines.
 
-Performance is not the point, but the suite does include a 2.2 MB generated
-document and a 190 KB `Cargo.lock`; a straightforward single-pass parser
-handles both in well under a second, while anything quadratic in the document
-length (repeated string concatenation, re-scanning from the start of the
-buffer) will not.
+Input sizes: the suite includes a 2.2 MB generated document and a 190 KB
+`Cargo.lock`, so decode and encode need to be linear in the document length.

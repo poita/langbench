@@ -186,13 +186,25 @@ class Dependencies(unittest.TestCase):
         cabal = ("cabal-version: 3.0\nname: chip8\nlibrary\n  build-depends: base >=4 && <5, containers,\n"
                  "    bytestring\nexecutable chip8\n  build-depends: base, chip8\n")
         self.assertEqual(self.deps("haskell", {"chip8.cabal": cabal}), [])
-        found = self.deps("haskell", {"chip8.cabal": cabal + "test-suite t\n  build-depends: base, hspec, chip8\n"})
-        self.assertEqual([x["detail"] for x in found], ["cabal: hspec"])
+        found = self.deps("haskell", {"chip8.cabal": cabal + "test-suite t\n  build-depends: base, hspec, aeson, chip8\n"})
+        self.assertEqual([x["detail"] for x in found], ["cabal: aeson"])
 
     def test_deps_edn_dependencies_beyond_clojure(self):
         self.assertEqual(self.deps("clojure", {"deps.edn": '{:paths ["src"] :deps {org.clojure/clojure {:mvn/version "1.12.6"}}}'}), [])
-        found = self.deps("clojure", {"deps.edn": '{:deps {} :aliases {:test {:extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1"}}}}}'})
-        self.assertEqual([x["detail"] for x in found], ["deps.edn: io.github.cognitect-labs/test-runner"])
+        found = self.deps("clojure", {"deps.edn": '{:deps {} :aliases {:test {:extra-deps {lambdaisland/kaocha {:mvn/version "1.91"}}}}}'})
+        self.assertEqual([x["detail"] for x in found], ["deps.edn: lambdaisland/kaocha"])
+
+    def test_test_frameworks_are_allowed_in_tests_only(self):
+        lib = "library\n  build-depends: base, hspec\n"
+        suite = "library\n  build-depends: base\ntest-suite t\n  build-depends: base, hspec, tasty, tasty-hunit, QuickCheck\n"
+        self.assertEqual(self.deps("haskell", {"x.cabal": suite}), [])
+        self.assertEqual([x["detail"] for x in self.deps("haskell", {"x.cabal": lib})], ["cabal: hspec"])
+        runner = '{:aliases {:test {:extra-deps {io.github.cognitect-labs/test-runner {:git/tag "v0.5.1" :git/sha "dfb30dd"}}}}}'
+        self.assertEqual(self.deps("clojure", {"deps.edn": runner}), [])
+        self.assertEqual(self.deps("python", {"src/p/__init__.py": "", "tests/test_a.py": "import pytest\n"}), [])
+        self.assertEqual([x["detail"] for x in self.deps("python", {"src/p/__init__.py": "import pytest\n"})],
+                         ["pytest (src/p/__init__.py)"])
+        self.assertEqual(self.deps("cpp", {"CMakeLists.txt": "find_package(GTest REQUIRED)\n"}), [])
 
     def test_banned_facilities_depend_on_the_problem(self):
         t = au.scan_banned_facilities_text

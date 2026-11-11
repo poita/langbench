@@ -38,6 +38,16 @@ class Excluded(unittest.TestCase):
                   "r/rep1/python/x/src/__pycache__/m.pyc", "r/rep1/d/x/src/a.o"]:
             self.assertTrue(ir.is_build_output(p), p)
 
+    def test_googletest_version_comes_from_its_cmake_package(self):
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, "lib", "cmake", "GTest")
+            os.makedirs(path)
+            with open(os.path.join(path, "GTestConfigVersion.cmake"), "w") as f:
+                f.write('set(PACKAGE_VERSION "1.15.2")\n')
+            self.assertEqual(ir.gtest_version([os.path.join(d, "none"), d]), "1.15.2")
+            self.assertIsNone(ir.gtest_version([os.path.join(d, "none")]))
+
     def test_build_directories_depend_on_the_language(self):
         self.assertFalse(ir.is_build_output("r/rep1/go/buildsys/build/graph.go"))
         self.assertFalse(ir.is_build_output("r/rep1/rust/x/src/build/mod.rs"))
