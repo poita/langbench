@@ -57,6 +57,11 @@ class Transcripts(unittest.TestCase):
         f = self.scan([tool_use("Bash", {"command": "ls /elsewhere/problems/kvstore/heldout/"})])
         self.assertEqual([x["kind"] for x in f], ["forbidden-path"])
 
+    def test_an_agents_own_bench_or_reference_directory_is_not_forbidden(self):
+        self.assertEqual(self.scan([tool_use("Bash", {"command": "mkdir -p scratch/bench; ghc x/reference/A.hs"})]), [])
+        f = self.scan([tool_use("Bash", {"command": "ls /elsewhere/problems/sat/bench/"})])
+        self.assertEqual([x["kind"] for x in f], ["forbidden-path"])
+
     def test_another_implementations_files_are_reported(self):
         f = self.scan([tool_use("Read", {"file_path": "/sb/out/rep1/rust/chip8/src/main.rs"}),
                        tool_use("Read", {"file_path": "/sb/out/rep1/go/json/main.go"}),
@@ -148,6 +153,27 @@ class BlockedAttempts(unittest.TestCase):
         f = self.scan(tool_call("t1", "Bash", {"command": "ls /sb/w/aa/x; ls /sb/tools/"},
                                 "x\nls: /sb/tools/: Operation not permitted"))
         self.assertEqual([x["kind"] for x in f], ["blocked-attempt"])
+
+    def test_a_refusal_after_cd_into_a_forbidden_directory_is_a_blocked_attempt(self):
+        f = self.scan(tool_call("t1", "Bash", {"command": "cd /sb/problems/x && cat tests/001.in"},
+                                "(eval):1: operation not permitted: tests/001.in"))
+        self.assertEqual([x["kind"] for x in f], ["blocked-attempt"])
+
+    def test_naming_a_path_that_does_not_exist_is_a_blocked_attempt(self):
+        with tempfile.TemporaryDirectory() as d:
+            sb = os.path.join(d, "sb")
+            os.makedirs(os.path.join(sb, "w", "aa"))
+            cmd = f"cd {sb}/x 2>/dev/null || cd {sb}/w/aa/x; ls"
+            write(os.path.join(d, "run", "manifest.jsonl"), json.dumps({"label": "rep1:d:x", "session_id": "s1"}) + "\n")
+            write(os.path.join(d, "run", "sessions", "s1.jsonl"),
+                  "\n".join(tool_call("t1", "Bash", {"command": cmd}, "main.d")) + "\n")
+            f = au.scan_run(os.path.join(d, "run"), forbidden=[sb], workspaces={"rep1:d:x": os.path.join(sb, "w", "aa")},
+                            projects="/p")
+            self.assertEqual([x["kind"] for x in f], ["blocked-attempt"])
+
+    def test_a_read_that_succeeded_is_still_a_forbidden_path(self):
+        f = self.scan(tool_call("t1", "Bash", {"command": "cat /sb/problems/x/SPEC.md"}, "# Spec"))
+        self.assertEqual([x["kind"] for x in f], ["forbidden-path"])
 
     def test_a_refused_read_tool_call_is_a_blocked_attempt(self):
         f = self.scan(tool_call("t1", "Read", {"file_path": "/sb/w/bb/x/main.go"},
@@ -246,6 +272,17 @@ class Dependencies(unittest.TestCase):
         self.assertEqual(t("clojure", "(ns x (:import (java.util.regex Pattern)))\n", "regex"), ["java.util.regex"])
         self.assertEqual(t("clojure", "(ns x (:import [java.security MessageDigest]))\n", "webhooks"),
                          ["java.security"])
+
+    def test_facility_mentions_that_are_not_uses_are_ignored(self):
+        t = au.scan_banned_facilities_text
+        self.assertEqual(t("clojure", '(ns regex.core\n  "A matcher that does not use java.util.regex.")\n; java.util.regex is slower\n', "regex"), [])
+        self.assertEqual(t("rust", "pub struct Map;\n#[cfg(test)]\nmod tests { use std::collections::BTreeMap; }\n", "ordered-map"), [])
+        self.assertEqual(t("rust", "use std::collections::BTreeMap;\n#[cfg(test)]\nmod tests {}\n", "ordered-map"), ["BTreeMap"])
+        with tempfile.TemporaryDirectory() as d:
+            write(os.path.join(d, "src", "Text", "Regex", "Backtrack.hs"), "module Text.Regex.Backtrack (match) where\n")
+            write(os.path.join(d, "app", "Main.hs"), "import Text.Regex.Backtrack\nimport Text.Regex.TDFA\n")
+            self.assertEqual([x["detail"] for x in au.scan_banned_facilities(d, "haskell", "regex")],
+                             ["Text.Regex.TDFA (app/Main.hs)"])
 
     def test_non_default_optimisation_settings(self):
         self.assertEqual(self.flags("cpp", {"CMakeLists.txt": "set(CMAKE_CXX_STANDARD 20)\n"}), [])

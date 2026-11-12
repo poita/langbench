@@ -59,7 +59,9 @@ def check_provenance():
 
 def canonical_errors(d):
     """Runs recorded in d/run.json that are not canonical: language tips, machine notes or the efficiency note in
-    the prompt, no APPROACH.md, or (for sandboxed runs) an audit with integrity findings or no audit at all.
+    the prompt, no APPROACH.md, or (for sandboxed runs) no audit, or an audit with integrity findings that are not
+    listed, each with a reason, in audit/<run>.reviewed.json (findings a person has inspected and found harmless,
+    such as a read the sandbox refused whose error message the command discarded).
     Rule violations by individual agents (dependencies, banned facilities) are results, not errors."""
     path = os.path.join(d, "run.json")
     errors = []
@@ -71,8 +73,15 @@ def canonical_errors(d):
             audit = os.path.join(d, run.get("audit") or f"audit/{name}.json")
             if not os.path.isfile(audit):
                 errors.append(f"{name}: no audit ({os.path.relpath(audit, d)})")
-            elif any(f.get("kind") in INTEGRITY for f in json.load(open(audit))):
-                errors.append(f"{name}: audit has integrity findings ({os.path.relpath(audit, d)})")
+            else:
+                reviewed_path = audit[:-len(".json")] + ".reviewed.json"
+                reviewed = json.load(open(reviewed_path)) if os.path.isfile(reviewed_path) else []
+                accepted = {(r.get("agent"), r.get("kind"), r.get("detail")) for r in reviewed if r.get("reason")}
+                open_findings = [f for f in json.load(open(audit)) if f.get("kind") in INTEGRITY
+                                 and (f.get("agent"), f.get("kind"), f.get("detail")) not in accepted]
+                if open_findings:
+                    errors.append(f"{name}: audit has {len(open_findings)} unreviewed integrity finding(s) "
+                                  f"({os.path.relpath(audit, d)})")
     return errors
 
 

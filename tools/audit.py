@@ -76,7 +76,9 @@ PROBLEM_FACILITIES = {
 }
 SOURCE_EXT = {"python": (".py",), "go": (".go",), "d": (".d",), "cpp": (".cpp", ".cc", ".cxx", ".hpp", ".h", ".hh"),
               "rust": (".rs",), "haskell": (".hs",), "clojure": (".clj", ".cljc")}
-ALWAYS_FORBIDDEN = re.compile(r"/reference/|/gen_tests\.py\b|/gen_bench\.py\b|/bench(-long)?/|/heldout\b")
+# A problem's reference implementation, generators, benchmark inputs and held-out tests, wherever the problems
+# directory is; an agent's own directories with the same names (scratch/bench, say) are not these.
+ALWAYS_FORBIDDEN = re.compile(r"/gen_tests\.py\b|/gen_bench\.py\b|problems/[\w.-]+/(reference/|bench(-long)?/|heldout\b)")
 SCRATCH_FILE = re.compile(r"\b(scratch/(rep\d+-[a-z]+-[A-Za-z0-9_-]+)/[^\s\"'*;|&]*)")
 PROJECT_FILE = re.compile(r"\b(out/(rep\d+)/([a-z]+)/([A-Za-z0-9_-]+)/[^\s\"'*;|&]+)")
 
@@ -120,15 +122,23 @@ REFUSED = re.compile(r"haven't granted it|denied by your permission|Permission t
 
 
 def refused(name, text, result, forbidden):
-    """Whether every forbidden path a tool call names was refused: the file tools' permission denial, or
-    the OS sandbox's "Operation not permitted" for each such path in a shell command."""
+    """Whether no forbidden path a tool call names was actually read: the file tools' permission denial; or, for
+    each such path in a shell command, the OS sandbox's "Operation not permitted" naming it, a `cd` into it whose
+    output shows a refusal (later messages then name paths relative to it), or a path that does not exist (a
+    mistyped workspace path) while the forbidden directory it lies in does."""
     if name != "Bash":
         return bool(REFUSED.search(result))
     tokens = {t.rstrip("/\\") for t in PATH_TOKEN.findall(text) if any(t.startswith(p) for p in forbidden)}
-    # A shell echoes the path as it was typed, with or without a trailing slash.
-    return bool(tokens) and all(f"{t}: Operation not permitted" in result or f"{t}/: Operation not permitted" in result
-                                for t in tokens)
+    denied = "operation not permitted" in result.lower()
 
+    def harmless(t):
+        if f"{t}: Operation not permitted" in result or f"{t}/: Operation not permitted" in result:
+            return True
+        if denied and re.search(r"\bcd\s+['\"]?" + re.escape(t) + r"['\"]?/?(\s|&|;|\||$)", text):
+            return True
+        roots = [p for p in forbidden if t.startswith(p)]
+        return not os.path.exists(t) and any(os.path.isdir(p) for p in roots)
+    return bool(tokens) and all(harmless(t) for t in tokens)
 
 def injected_files(path):
     for line in open(path):
@@ -367,9 +377,21 @@ def scan_dependencies(project, lang):
     return [{"kind": "dependency", "detail": d} for d in deps]
 
 
-def scan_banned_facilities_text(lang, text, slug):
+def code_only(lang, text):
+    """The text a facility scan looks at: for Clojure, without comments and string literals (docstrings mention
+    libraries they don't use); for Rust, without an in-file #[cfg(test)] module, which is test code."""
+    if lang == "clojure":
+        text = re.sub(r'"(?:\\.|[^"\\])*"', '""', text)
+        text = re.sub(r";[^\n]*", "", text)
+    elif lang == "rust" and "#[cfg(test)]" in text:
+        text = text[:text.index("#[cfg(test)]")]
+    return text
+
+
+def scan_banned_facilities_text(lang, text, slug, own=()):
     """Names of the standard-library facilities a source file imports that this problem's SPEC.md rules out,
-    in order."""
+    in order, other than the project's own modules (own)."""
+    text = code_only(lang, text)
     pattern = "|".join(FACILITIES[c][lang] for c in PROBLEM_FACILITIES.get(slug, []) if lang in FACILITIES[c])
     if not pattern or lang not in IMPORTS:
         return []
@@ -378,16 +400,19 @@ def scan_banned_facilities_text(lang, text, slug):
     for m in IMPORTS[lang].finditer(text):
         groups = [g for g in m.groups() if g]
         for n in (x.strip().split(" ")[0] for g in groups for x in g.split(",")):
-            if n and banned.match(n) and n not in names:
+            if n and banned.match(n) and n not in names and n not in own:
                 names.append(n)
     return names
 
 
 def scan_banned_facilities(project, lang, slug):
-    found = []
+    found, own = [], set()
+    if lang == "haskell":
+        for path in glob.glob(os.path.join(project, "**", "*.hs"), recursive=True):
+            own.update(re.findall(r"^module\s+([\w.]+)", open(path, errors="replace").read(), re.M))
     for path in sorted(glob.glob(os.path.join(project, "**", "*"), recursive=True)):
         if os.path.isfile(path) and path.endswith(SOURCE_EXT.get(lang, ())):
-            for n in scan_banned_facilities_text(lang, open(path, errors="replace").read(), slug):
+            for n in scan_banned_facilities_text(lang, open(path, errors="replace").read(), slug, own):
                 found.append({"kind": "banned-facility", "detail": f"{n} ({os.path.relpath(path, project)})"})
     return found
 

@@ -49,5 +49,16 @@ class Canonical(unittest.TestCase):
             self.assertEqual(len(ck.canonical_errors(d)), 1)
 
 
+    def test_integrity_findings_a_person_reviewed_with_a_reason_are_accepted(self):
+        run = {"workflow_run": "wf_a", "sandbox": True, "audit": "audit/wf_a.json", "options": {"approach": True}}
+        finding = {"agent": "rep1:go:x", "kind": "forbidden-path", "detail": "Bash: ls /sb/tools"}
+        for reviewed, errors in (([{**finding, "reason": "refused by the sandbox; stderr discarded"}], 0),
+                                 ([{**finding, "reason": ""}], 1),
+                                 ([{**finding, "detail": "other", "reason": "x"}], 1)):
+            with tempfile.TemporaryDirectory() as d:
+                write_record(d, [run], {"wf_a.json": [finding], "wf_a.reviewed.json": reviewed})
+                self.assertEqual(len(ck.canonical_errors(d)), errors, reviewed)
+
+
 if __name__ == "__main__":
     unittest.main()
