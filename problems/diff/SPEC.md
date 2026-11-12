@@ -10,8 +10,7 @@ line:
   `N + M - 2 * LCS(A, B)`, so this is the longest-common-subsequence problem
   on lines. The intended solution is Myers' O((N+M)·D) greedy algorithm
   (E. Myers, "An O(ND) Difference Algorithm and Its Variations", 1986),
-  optionally with common-prefix/suffix trimming and line interning; a plain
-  O(N·M) LCS table also fits the limits with care.
+  optionally with common-prefix/suffix trimming and line interning.
 - **`patch`**: given file A and an edit script in the same format, print the
   resulting file B.
 
@@ -285,12 +284,10 @@ A verifier (not exact matching) checks the output:
 - `patch`: the output equals the count line plus the result of applying the
   script to A, compared exactly.
 
-## Performance expectations
+## Input sizes
 
 The largest tests are: two 5000-line files differing in a few dozen lines
 (D ≈ 72); two 2000-line files with heavy random edits (D ≈ 2300); two
 completely disjoint 1500-line files (D = 3000, the worst case for Myers'
 algorithm); a 4000-line pair with D ≈ 1200; and a 5000-line patch. Input
-files are under 200 KB. The Python reference finishes every test in under
-1.5 s; a compiled implementation of Myers' algorithm should take well under
-100 ms per test. Suggested timeout: 10 s per test.
+files are under 200 KB.

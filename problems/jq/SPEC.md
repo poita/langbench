@@ -330,9 +330,6 @@ Unknown builtins do not occur in tests.
 - Filter ≤ 2000 bytes; document ≤ 6 MB (the largest tests are ~5 MB with
   ~25,000 records); nesting depth ≤ 64.
 - Up to ~25,000 output lines in one test.
-- No single test needs more than a few seconds in the reference
-  implementation (written in Python)
-  (the long benchmark tier needs up to about 15 minutes per input).
 
 ## Examples
 

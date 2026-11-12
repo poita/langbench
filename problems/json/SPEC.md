@@ -19,8 +19,7 @@ serializer from a library, the standard library or the language.
   document `invalid`.
 - A leading byte-order mark (EF BB BF) is **not** allowed: it is `invalid`.
 - Empty input, or input containing only whitespace, is `invalid`.
-- Input size is at most 2,000,000 bytes (at most 24,000,000 bytes in the
-  long benchmark tier, `bench-long/`).
+- Input size is at most 2,000,000 bytes.
 - Validity is a property of the **whole** document. Every byte is checked,
   including values that are later discarded because a duplicate key
   overrides them: `{"a":"\uD800","a":1}`, `{"a":[1,],"a":1}` and an
@@ -208,11 +207,8 @@ U+FFFF; the last two keys are emitted raw, so the output is shown as hex):
 7b 22 5a 22 3a 34 2c 22 f0 9f 98 80 22 3a 32 2c 22 ee 80 80 22 3a 31 2c 22 ef bf bf 22 3a 33 7d 0a
 ```
 
-## Performance
+## Input sizes
 
 The largest tests are documents of roughly 1–1.1 MB (deeply nested pretty
 printed structures, long strings full of escapes, ~100k numbers, objects
-with tens of thousands of keys to sort and deduplicate). A reasonable
-implementation in a compiled language should finish every test well under a
-second; suggested per-test timeout is 10 seconds. Memory use should stay
-under a few hundred MB.
+with tens of thousands of keys to sort and deduplicate).

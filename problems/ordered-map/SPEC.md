@@ -11,7 +11,7 @@ The workloads include 200 000-command sequences with adversarial patterns
 mixes). A structure whose per-operation cost is O(log n) — a balanced BST
 (AVL, red-black, treap, ...) or a skip list, augmented with subtree sizes for
 rank/select — is expected. A plain unbalanced BST degenerates to O(n) per
-operation on the sorted-insertion tests and will time out.
+operation on the sorted-insertion tests.
 
 Write the balanced tree yourself: don't use an ordered map, sorted set or
 balanced tree from a library, the standard library or the language.
@@ -178,7 +178,7 @@ Output:
     -9223372036854775808 0 9223372036854775807
     ok
 
-## Performance expectations
+## Input sizes
 
 - Up to Q = 200 000 commands per test; the map holds up to 200 000 keys at
   once.
@@ -187,7 +187,4 @@ Output:
   total number of keys printed by all `range` commands in one test is at most
   2 000 000, so an O(log n + output) range walk is sufficient.
 - Largest input files are about 5 MB and the largest expected outputs about
-  4 MB. Read stdin in bulk (or with buffered reads) and buffer stdout;
-  per-line unbuffered I/O is likely to dominate the run time.
-- A correct O(log n) implementation in a compiled language finishes every test
-  in well under 1 second. Suggested timeout: 10 seconds per test.
+  4 MB.

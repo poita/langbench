@@ -1,6 +1,7 @@
 import glob
 import json
 import os
+import re
 import unittest
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -120,6 +121,34 @@ class ThirdPartyLicences(unittest.TestCase):
         for problem in self.PROBLEMS:
             self.assertIn("problems/%s/" % problem, text)
 
+
+class LanguageNeutralApproaches(unittest.TestCase):
+    """APPROACH.md fixes algorithms and complexity in terms that suit any language; SPEC.md gives sizes, not
+    timing. Words about speed, memory or code shape would favour imperative languages and steer the code being
+    measured."""
+    APPROACH = re.compile(r"\b(allocat\w*|hot loop|micro-optimi\w*|fast(er|est)?|slow(er|ly)?|timeouts?|"
+                          r"benchmark\w*|compiled language|garbage.collect\w*|GC settings)\b|"
+                          r"\b\d+(\.\d+)?\s*(ms|s|seconds?|minutes?)\b", re.I)
+    SPEC = re.compile(r"bench-long|benchmark tier|suggested (per-test )?timeout|compiled implementation|"
+                      r"reference (python )?implementation (runs|takes|finishes)", re.I)
+
+    def test_approach_files_stay_language_neutral(self):
+        found = {}
+        for path in sorted(glob.glob(os.path.join(ROOT, "problems", "*", "APPROACH.md"))):
+            with open(path) as f:
+                hits = sorted({m.group(0).lower() for m in self.APPROACH.finditer(f.read())})
+            if hits:
+                found[os.path.basename(os.path.dirname(path))] = hits
+        self.assertEqual(found, {})
+
+    def test_specs_have_no_timing_targets_or_benchmark_tiers(self):
+        found = {}
+        for path in sorted(glob.glob(os.path.join(ROOT, "problems", "*", "SPEC.md"))):
+            with open(path) as f:
+                hits = sorted({m.group(0).lower() for m in self.SPEC.finditer(f.read())})
+            if hits:
+                found[os.path.basename(os.path.dirname(path))] = hits
+        self.assertEqual(found, {})
 
 if __name__ == "__main__":
     unittest.main()

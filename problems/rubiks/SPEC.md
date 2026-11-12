@@ -171,14 +171,10 @@ One valid output (28 moves, produced by a Thistlethwaite solver):
 F U D B R' L' F' L' R' D2 R' D' U' L' D' B2 F2 U F2 U R2 F2 U2 L2 U2 R2 B2 U2
 ```
 
-## Performance
+## Input sizes
 
 The largest test contains 25 scrambles of 25 random moves each; one test
 has a single scramble of 1000 moves. Scrambled states are uniformly hard
 (a random 25-move scramble is effectively a random cube state), so an
 implementation needs pruning tables or an equivalent search strategy in
-each phase, not naive search. The reference Python implementation
-(Thistlethwaite, bidirectional BFS per phase with the solved-side search
-cached across scrambles) solves a random state in about 0.1-0.9 s, so a
-compiled implementation should finish every test in well under a second.
-Suggested timeout: 30 s per test.
+each phase, not naive search.

@@ -529,23 +529,14 @@ NULL	20
 (`ORDER BY k` is stable: the two `k = 1` rows keep table order. The
 average of 10, 30, 40 is 26.666..., printed as `26.67`.)
 
-## Performance
+## Input sizes
 
 The largest tests create a 2 000-row table and a 20 000-row table
 (inserted with `INSERT ... VALUES` statements of 500 rows each, about
 650 KB of input), then run filters, `ORDER BY` over all 20 000 rows,
 `GROUP BY` with up to 2 000 groups, `UPDATE`/`DELETE` over the big table,
 and joins between the two tables (and self joins of each) on equality
-conditions. A plain nested-loop join evaluates up to 4×10^8 row pairs in
-the worst self-join here, which is too slow; joins whose ON/WHERE contains
-an equality between a column of each table should use a hash (or sort)
-join on that equality, after which every test runs in well under a second
-in a compiled language. Such a join must still emit the surviving pairs in
-nested-loop order (outer table order, then inner table order within each
-outer row), because that order is observable whenever no ORDER BY decides
-otherwise; a hash table whose buckets keep insertion order gives this for
-free. The Python reference completes each test in under
-4 seconds. (The long benchmark tier runs thousands more statements over
-the same tables, so its mixed session grows the orders table to about
-27 000 rows and the reference needs up to about 20 minutes per input.) Suggested timeout: 30 seconds per test (the runner's default).
+conditions. A join must emit the surviving pairs in nested-loop order
+(outer table order, then inner table order within each outer row),
+because that order is observable whenever no ORDER BY decides otherwise.
 Expected outputs are exact; the largest output is about 20 000 lines.

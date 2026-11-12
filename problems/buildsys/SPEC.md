@@ -46,7 +46,7 @@ inputs this document fully determines.
 23. [Worked examples](#worked-examples)
 24. [Guarantees](#guarantees)
 25. [Architecture and size](#architecture-and-size)
-26. [Limits and performance](#limits-and-performance)
+26. [Limits](#limits)
 
 ---
 
@@ -3378,10 +3378,9 @@ incremental machinery.
 
 ---
 
-## Limits and performance
+## Limits
 
-- The largest session has 400 steps; the median has 6. (Sessions in the long
-  benchmark tier, `bench-long/`, have up to 5,000 steps.)
+- The largest session has 400 steps; the median has 6.
 - The largest build file set evaluates to 2,400 steps, 120 phony targets and
   11,000 declared inputs, spread over 24 `include`d files. The largest single
   build file is 180 KB.
@@ -3391,10 +3390,3 @@ incremental machinery.
 - Worker counts range from 1 to 64; simulated completion times stay well below
   2^31.
 - The largest output tree has about 3,600 files.
-
-A straightforward implementation — re-evaluating the build files for every
-`build` step, hashing every file it needs when it needs it, and simulating the
-scheduler event by event — is fast enough. A 60-second per-test limit is ample
-for a compiled implementation. The one thing worth care is not rehashing the
-same file content repeatedly within a single build: cache hashes by path and
-invalidate on write.

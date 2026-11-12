@@ -644,5 +644,4 @@ visibly different colour. §8.4 must be implemented with an offscreen canvas.
 * **main** — `render.txt` parsing and file I/O.
 
 The reference implementation in `reference/main.py` is about 1270 lines of
-Python and renders a 256x256 icon in well under a second; it is a useful model
-for the structure, not for the performance.
+Python; it is a useful model for the structure.

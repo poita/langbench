@@ -14,7 +14,7 @@ calendar routine from a library, the standard library or the language.
 
 - UTF-8 (in fact pure ASCII) text on stdin, one rule per line, LF line
   endings (no CR; a final LF may be missing; blank lines do not occur). Up to
-  5000 lines (up to 100000 in the long benchmark tier, `bench-long/`).
+  5000 lines.
 - Each line is `<DTSTART> <RRULE> <N>` separated by single spaces, with no
   leading or trailing whitespace. Integers are decimal without leading zeros;
   negative values carry a `-` sign and positive values never carry a `+`.
@@ -285,13 +285,11 @@ match; 1 January 2012 (a Sunday) gets `P = 52` because `(366 − 1) mod 7 = 1`
 and does not match; the next matches are the days of week 53 of 2015,
 starting Monday 28 December 2015.
 
-## Performance
+## Input sizes
 
 The largest tests contain up to 5000 rules per file with small `N`, and
 single rules with `N` up to 100000 (e.g. a `DAILY` rule spanning about 270
-years). Total output per test is under 5 MB (under 100 MB in `bench-long/`). A straightforward
-implementation in a compiled language should complete every test in well
-under a second; a suggested per-test timeout is 10 seconds. Rules whose
+years). Total output per test is under 5 MB. Rules whose
 expansion visits every year up to 9999 before finding nothing (or fewer than
 `N` occurrences) occur only with `FREQ=YEARLY`, `FREQ=MONTHLY` and
 `FREQ=DAILY`, so at most about 3.3 million candidate days need to be examined

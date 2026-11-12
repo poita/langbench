@@ -171,17 +171,13 @@ Example 3 (rounding at the edges)
   `1+2^-22`. `1 + 2^-25` is below the midpoint and simply rounds to 1.
 - `2^-149 * 0.5` is again half the smallest denormal and rounds to `+0`.
 
-## Performance
+## Input sizes
 
 The largest test has 100,000 lines (about 2 MB of input); the suite totals
-about 350,000 operations. A straightforward implementation using 64-bit
-integer arithmetic (a 48-bit product for mul, a shifted long division or
-restoring division for div/sqrt, and a sticky bit for rounding) handles the
-largest test in well under a second in a compiled language. The suggested
-per-test timeout is 10 seconds; the runner's default of 30 seconds is
-generous. Avoid reading input character-by-character with unbuffered I/O.
+about 350,000 operations.
 
-Notes for implementers
+## Notes for implementers
+
 - The exact sum of two binary32 values can need up to 277 bits, but a 3-bit
   guard/round/sticky scheme after aligning to about 27 bits gives exactly the
   same rounded result.

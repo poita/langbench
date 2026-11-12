@@ -69,8 +69,7 @@ they are now need just the one run.
 ### Every language
 
 Leave out `--langs` to run every language in `run-config.json` (C++, Rust, Go,
-D and Python): 300 sessions, 6–8 hours and about 45M tokens. Haskell and
-Clojure are supported too; add them with `--langs`, e.g. `--langs haskell,clojure`.
+D, Python, Haskell and Clojure): 420 sessions and roughly 12 hours.
 
 ### Measure
 

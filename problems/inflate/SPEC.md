@@ -269,7 +269,7 @@ wherever they occur, even after megabytes of otherwise valid output.
 A stream that is valid produces the same output regardless of how a decoder
 buffers input, so there is exactly one correct answer for every input.
 
-## Performance expectations
+## Input sizes
 
 - Decompressed output is at most 16 MiB (32 MiB of hex output); the input
   line is at most about 34 MiB of hex (a stored-block stream is slightly larger
@@ -277,10 +277,6 @@ buffers input, so there is exactly one correct answer for every input.
 - Streams may contain thousands of blocks (one test has ~1700 dynamic
   blocks), a million literals in a row, or a single dynamic block covering
   1 MiB of output.
-- A straightforward table-driven decoder in a compiled language finishes
-  every test in well under a second. The Python reference takes under 0.3 s
-  per test. Suggested timeout: 10 s per test (the runner default of 30 s is
-  generous).
 - Read all of stdin before decoding; do not assume the hex line is short.
 
 ## Test suite overview

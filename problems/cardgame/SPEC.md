@@ -76,10 +76,8 @@ times that for the same work. The dominating costs are the effect
 interpreter, the layer engine and the derived-characteristic plumbing: there
 are no shortcuts that collapse those, because the card pool is data, not code.
 
-Performance target: the largest tests run matches of a few hundred turns with
-scripts of up to ~60,000 commands. A straightforward implementation that
-recomputes derived characteristics on demand is fast enough; recomputing them
-inside an inner loop over all objects for every single predicate is not.
+Input sizes: the largest tests run matches of a few hundred turns with
+scripts of up to ~60,000 commands.
 
 ---
 

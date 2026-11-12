@@ -39,7 +39,7 @@ The first six fields are a standard FEN record:
 
 `<depth>` is a decimal integer. For a perft query `0 <= depth <= 7`; for a
 divide query `1 <= depth <= 7`. (Test data never exceeds the sizes given under
-Performance.)
+Input sizes.)
 
 Every position is a legal chess position: exactly one king per side, no pawns on
 rank 1 or 8, the side *not* to move is not in check. Castling rights are only
@@ -198,18 +198,13 @@ Well-known perft numbers (all included in the tests):
 
 The third position at depth 6 is 11030083 (also in the tests).
 
-## Performance
+## Input sizes
 
 Test files contain between 1 and 160 queries. The largest single query
 has roughly 16 million leaf nodes (`perft` 5 of the fourth position above; the
 third position at depth 6 has about 11 million), and no test file exceeds
 about 20 million leaf nodes in total. Depths go up to 7 in the tests (depth
-7 only on a position with three pieces). The long benchmark tier (`bench-long/`) goes
-further: up to 1000 queries per file, single queries of up to about 200 million
-leaves, about 2 billion leaves per file, and depth 7 on positions with up to
-eight pieces.
+7 only on a position with three pieces).
 
 Counting leaves by generating (not playing) the moves at depth 1 is permitted
-and expected. A compiled implementation with such "bulk counting" should
-finish every test in well under one second; the suggested timeout is 30
-seconds per test (the Python reference needs about 15 s on the slowest test).
+and expected.

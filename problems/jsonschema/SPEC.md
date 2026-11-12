@@ -43,7 +43,7 @@ Guarantees about the input:
   from the network.
 - Every `pattern` and every `patternProperties` key is a regular expression
   inside the subset of section 8.
-- Input size is at most 32 MB (2 MB except in the long benchmark tier). Numbers have at most 400 significant digits and
+- Input size is at most 2 MB. Numbers have at most 400 significant digits and
   decimal exponents within ±400.
 
 Example input:

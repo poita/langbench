@@ -9,8 +9,7 @@ Read an initial document and a sequence of commands from stdin; for every
 The largest workloads are 100 000 commands on a 10 000-line document, and
 20 000 edits inside lines of 200 000 characters. A straightforward array of
 line strings with O(line length) edits and O(number of lines) line
-insertions is fast enough in a compiled language; ropes or piece tables are
-faster but not required.
+insertions is sufficient; ropes or piece tables are not required.
 
 ## Document and positions
 
@@ -395,7 +394,7 @@ The second `delete` joins the lines; the first `undo` reverts only that join
 and puts the cursor back at `(1, 0)`. `insert Z` clears the redo stack, so
 the final `redo` does nothing.
 
-## Limits and performance
+## Input sizes
 
 - `N ≤ 10 000` initial lines; at most 1 000 000 commands per test.
 - Initial lines are at most 3 000 000 characters long; the document text never
@@ -405,7 +404,4 @@ the final `redo` does nothing.
   applied at that count (a multi-cursor edit is O(cursors) replacements).
 - The undo stack can hold up to 1 000 000 entries.
 - Total `print` output per test is at most about 30 MB; the largest input
-  files are under 30 MB. Read stdin in bulk and buffer stdout.
-- A correct implementation in a compiled language finishes every test in
-  well under a second; the Python reference takes about three seconds on the
-  largest. Suggested timeout: 30 seconds per test.
+  files are under 30 MB.

@@ -33,8 +33,7 @@ Every other line is a command, split into tokens on runs of spaces and tabs.
 
 Commands are numbered from 1 in the order they appear, counting only command
 lines. The number is what names the result files, so ignored lines must not
-advance the counter. A script holds at most 200 commands (at most 1000 in the
-long benchmark tier, `bench-long/`).
+advance the counter. A script holds at most 200 commands.
 
 The first token is the operation, spelled in lower case and matched exactly
 as written below. The tokens after it are the matrix arguments, one file name
@@ -625,8 +624,7 @@ A complete implementation is roughly 900 to 1500 lines in a systems language:
   lines).
 
 The largest test matrix is 494x494 and the largest test script has 25
-commands. A straightforward `O(n³)` implementation with no blocking is fast
-enough: the Python reference runs the whole suite in under twenty seconds.
+commands.
 `tests/001_add_transpose` through `tests/022_near_singular` are small enough
 to debug by hand; the later cases use matrices from the SuiteSparse Matrix
 Collection, whose provenance is recorded in `corpus/LICENSE`.

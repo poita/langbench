@@ -173,7 +173,7 @@ to test, so this is a result, not something the prompt controls.
 
 | Key | Value | Meaning |
 |---|---|---|
-| `langs` | `cpp`, `rust`, `go`, `d`, `python` | Languages |
+| `langs` | `cpp`, `rust`, `go`, `d`, `python`, `haskell`, `clojure` | Languages |
 | `reps`, `repProblems` | 3 on ten problems | Repetitions, on a subset spread across the problem categories, to measure run-to-run noise; every other problem gets one |
 | `model` | `claude-sonnet-5-5` | Agent model |
 | `effort` | `high` | Agent reasoning effort |
@@ -188,9 +188,10 @@ to test, so this is a result, not something the prompt controls.
 non-canonical. Use them for experiments, and keep the results out of
 `implementations/`.
 
-A full run is 300 tasks (40 problems in five languages, plus two extra
-repetitions of ten problems): about 45M tokens and 6–8 hours at a
-concurrency of 6.
+A full run is 420 tasks (40 problems in seven languages, plus two extra
+repetitions of ten problems): roughly 12 hours at a concurrency of 6. On a
+Claude plan it may hit usage limits; tasks that do are retried after a pause,
+and rerunning `launch` resumes the rest.
 
 ## Design choices and limitations
 
@@ -205,10 +206,10 @@ concurrency of 6.
 - **Toolchain versions.** The toolchains are recent (see `run.json`) and may
   be newer than the model's training data; how much that costs differs by
   language. It is recorded, not corrected for.
-- **Language selection.** The first runs compare D with four widely used
-  languages (C++, Rust, Go, Python), because the first report is about D.
-  Haskell and Clojure are supported as well, but not in `run-config.json`'s
-  default set; run them with `--langs haskell,clojure`. A language with a
+- **Language selection.** Seven languages: four widely used compiled or
+  scripting languages (C++, Rust, Go, Python), D, and two functional ones
+  (Haskell, Clojure), so that the comparison is not only between imperative
+  languages. A language with a
   standard-library-only toolchain needs a build line in `tools/runner.py`,
   its toolchain in `detect_toolchains`, and its build directories, source
   files and imports in `tools/impl_run.py`, `tools/code_stats.py` and

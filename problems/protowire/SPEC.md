@@ -286,10 +286,8 @@ the closing `}`.
 - The largest tests contain single payloads of about 0.6 MB (1.2 MB of
   hex), messages with 100,000 repeated elements (packed and unpacked, and
   as a 2 MB encode text), a 10,000-element repeated message field, and a
-  file with 20,000 small requests. Total input per test is under 6 MB (50 MB in the long benchmark tier) and
-  the expected output is of similar size. A compiled implementation should
-  finish every test in well under a second; a suggested per-test timeout is
-  10 seconds.
+  file with 20,000 small requests. Total input per test is under 6 MB and
+  the expected output is of similar size.
 
 ## Worked examples
 

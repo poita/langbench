@@ -43,7 +43,7 @@ library are fine.
 12. [Output](#output)
 13. [Worked example](#worked-example)
 14. [Guarantees](#guarantees)
-15. [Limits and performance](#limits-and-performance)
+15. [Input sizes](#input-sizes)
 
 ## Architecture and size
 
@@ -776,7 +776,7 @@ The suite is checked with `verify.py`, which requires the ranking, the
 document ids, the hit counts and the snippets to match exactly, and the
 scores and `avgdl` to be within 1e-3 of the expected values.
 
-## Limits and performance
+## Input sizes
 
 The largest test has 2944 documents built from fourteen novels: 10 006 287
 bytes of text, 1 813 933 tokens, 20 308 distinct terms and 11 queries. The
@@ -785,8 +785,5 @@ has ten whole books as ten documents, the largest single document being
 637 838 bytes and 117 077 tokens. Everything else is tiny. No test has more than 20 000
 queries, and `k` never exceeds 25 in a test with a real corpus.
 
-The Python reference implementation indexes the largest corpus and answers
-all its queries in under two seconds; a compiled implementation should be
-far quicker. A per-test limit of 120 seconds is ample. Snippets only ever
-need to be produced for the documents that are actually emitted, which is at
-most `k` per query.
+Snippets only ever need to be produced for the documents that are actually
+emitted, which is at most `k` per query.

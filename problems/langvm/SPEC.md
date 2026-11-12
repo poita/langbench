@@ -38,7 +38,7 @@ passed. The problem needs no data files.
 15. [Standard library](#15-standard-library)
 16. [Bytecode and the virtual machine](#16-bytecode-and-the-virtual-machine)
 17. [Worked examples](#17-worked-examples)
-18. [Limits, guarantees and performance](#18-limits-guarantees-and-performance)
+18. [Limits and guarantees](#18-limits-and-guarantees)
 19. [Architecture and size](#19-architecture-and-size)
 
 ## 1. I/O contract
@@ -2387,10 +2387,10 @@ will fail a test that uses it:
 
 An implementation **must** be structured as a compiler to bytecode plus a
 stack machine: source text → tokens → AST → items and name resolution → type
-checking → bytecode → execution. It must not interpret the AST directly. Two
-observable things depend on this: the 20000-frame limit of section 14.5 (which
+checking → bytecode → execution. It must not interpret the AST directly. One
+observable thing depends on this: the 20000-frame limit of section 14.5 (which
 counts VM frames, not host-language recursion, so deep Vellum recursion must
-work in a flat loop), and the performance expectations of section 18.
+work in a flat loop).
 
 Nothing in this section is directly observable — there is no bytecode dump
 mode — but the instruction set below is the one the problem is specified
@@ -2483,9 +2483,7 @@ compiles to an index local, `SEQ_LEN`, `LT`, `SEQ_GET` and jumps; a range
 ### 16.3 Determinism
 
 The VM is fully deterministic. There is no address-dependent behaviour, no
-hashing order (map order is insertion order, which a compiled implementation
-should get from an index vector plus a hash table, or from a simple
-association structure), no uninitialised memory and no reliance on host
+hashing order (map order is insertion order), no uninitialised memory and no reliance on host
 integer width beyond 64 bits. The same program always produces the same
 output.
 
@@ -3310,7 +3308,7 @@ fn main() {
 ```
 → `error: bad-key-type at 2:15`
 
-## 18. Limits, guarantees and performance
+## 18. Limits and guarantees
 
 ### 18.1 Input limits
 
@@ -3353,7 +3351,7 @@ generated tests reach a few thousand lines spread over several modules.
 - Tests that panic do so at a single, well-defined point; nothing in the
   language is order-dependent in an unspecified way.
 
-### 18.3 Performance
+### 18.3 Workload sizes
 
 - The heaviest tests execute on the order of 3 × 10^7 VM instructions
   (recursive workloads such as naive Fibonacci, sorting a few hundred
@@ -3363,9 +3361,6 @@ generated tests reach a few thousand lines spread over several modules.
   one test deliberately exceeds the limit to check the
   `call stack overflow` panic. Host-language recursion must therefore not be
   used for Vellum calls.
-- A compiled implementation should finish every test in well under a second;
-  the Python reference takes a few seconds on the heaviest ones. A per-test
-  limit of 120 seconds is ample.
 - `charAt` and `strLen` should be O(1), which means storing strings as arrays
   of scalar values (or as UTF-8 plus an index) rather than scanning: several
   tests index strings inside loops.

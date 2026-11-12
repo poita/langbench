@@ -133,8 +133,8 @@ Consequences worth noting:
   "maximal" one: in the second example below, `a 1.0.0` + `b 2.0.0` would
   also be a valid set, but the search returns `a 2.0.0` + `b 1.0.5`.
 - The search can take exponential time on adversarial inputs; the test
-  suite is constructed so that this exact search finishes quickly (at most a
-  few million steps, see Performance). Smarter search strategies are only
+  suite is constructed so that this exact search takes at most a few
+  million steps (see Input sizes). Smarter search strategies are only
   acceptable if they provably return the same first solution.
 - The recursion depth of the formulation above equals the number of
   requirements processed along the current path (satisfied re-checks of an
@@ -267,7 +267,7 @@ resolution to be exactly the one the specified search produces
 (`unsatisfiable` is accepted only when the search really fails). Trailing
 whitespace on a line and trailing blank lines are tolerated.
 
-## Limits and performance
+## Input sizes
 
 Across the test suite: at most 3000 distinct packages, at most 12,001 input
 lines, at most 1600 versions of one package, at most 40 requirements on one
@@ -283,9 +283,4 @@ enumerating tens of thousands of combinations before the first solution,
 unwinding a fully built 500-package lockfile-style tree whose last root
 requirement conflicts, and exhaustive failure on unsatisfiable random
 registries. The heaviest test opens about 2.6 million choice points (about
-four million search steps); the Python reference resolves it in about 4.5
-seconds and every other test in under 2 seconds (the large registries are
-parse-dominated, well under 1 second). A compiled
-implementation that follows the algorithm with an explicit stack and an undo
-trail, without copying the chosen map at every step, should finish every
-test in a fraction of a second. A suggested timeout is 30 seconds per test.
+four million search steps).

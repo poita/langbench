@@ -997,10 +997,6 @@ A complete implementation has these parts:
 Total: roughly two to three thousand lines in a typical systems language.
 The Python reference is about 1250 lines.
 
-Performance is not a concern: the largest test is a 3.5 MB mbox of 257
-messages, which the Python reference processes in about a second. A per-test
-limit of 120 seconds is ample.
-
 The test suite has 36 cases. The first 27 are hand-written and go from a
 one-message mailbox through each feature in turn; the last 9 are larger —
 Apache James mime4j and Ruby `mail` test messages, and three generated

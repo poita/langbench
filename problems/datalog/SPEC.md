@@ -256,7 +256,7 @@ error
 (`X` in the head of the second rule does not occur in a positive body atom,
 so the rule is unsafe; the earlier query produces no output.)
 
-## Sizes and performance
+## Input sizes
 
 - At most 50,000 clauses; predicates have at most 6 arguments; at most 60
   distinct predicates; a rule body has at most 8 literals.
@@ -268,8 +268,3 @@ so the rule is unsafe; the earlier query produces no output.)
   a 500-person all-pairs comparison join (~125,000 tuples).
 - No single query prints more than 5,000 lines and the total output of a
   test is under 200 KB.
-- A semi-naive evaluation with hash-indexed relations completes every test
-  in a few seconds at most in a compiled language (about 10 s for the chain
-  test in the Python reference); a naive fixpoint that re-derives everything
-  each round is far too slow for the chain test. Suggested per-test timeout:
-  30 seconds.

@@ -342,8 +342,7 @@ error: unify
 
 ## Limits
 
-- Input is at most 1.2 MB and contains at most 6000 declarations (at most
-  12 MB and 60,000 declarations in the long benchmark tier, `bench-long/`).
+- Input is at most 1.2 MB and contains at most 6000 declarations.
 - Expressions nest at most 5000 deep (this includes an application with
   5000 arguments, which is a chain of 5000 nested application nodes, and
   chains of 3000 parentheses, 2000 nested tuples, lists, `fun`s or `if`s,
@@ -352,8 +351,6 @@ error: unify
 - A `fun` may have 1000 parameters; a type may mention more than 8000
   distinct type variables (so names like `'c315` occur).
 - Inferred types can be large: nested 3000 deep, or with 2^12 leaves. The
-  largest expected output is about 600 KB (about 2.4 MB in the long tier).
+  largest expected output is about 600 KB.
 - Generalisation must not be quadratic in the size of the environment: one
-  test has 5000+ top-level bindings and another 3000 nested `let`s. A
-  straightforward union-find unifier with level-based (or free-variable
-  based, per binding) generalisation is fast enough.
+  test has 5000+ top-level bindings and another 3000 nested `let`s.

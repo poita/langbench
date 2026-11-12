@@ -372,10 +372,7 @@ Input:
     #######...#.#.#.#..#.
     
 
-## Performance
+## Input sizes
 
 The largest tests contain up to 100 queries, many at version 40 (177x177
 modules) with `auto` masking, i.e. eight full penalty evaluations per query.
-The reference Python implementation handles the largest test in well under
-30 seconds; compiled implementations should finish each test in under a
-second. Suggested timeout: 30 s.

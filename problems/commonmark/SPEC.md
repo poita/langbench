@@ -664,9 +664,9 @@ thematic break, not an item; `Foo` + `---` is a setext heading; the
 <p><a href="">j</a> <a href="/x" title="">k</a> <a href=""></a></p>
 ```
 
-## Limits and performance
+## Limits
 
-- Inputs are at most 16 MB (1 MB except in the long benchmark tier). The largest tests are a 770 KB fenced code
+- Inputs are at most 1 MB. The largest tests are a 770 KB fenced code
   block, a 750 KB ordered list of 12,000 items with inline links and code
   spans, a 360 KB single paragraph, 200 KB random documents mixing every
   construct, block quotes and lists nested 300 deep, a line with 5,000
@@ -675,8 +675,5 @@ thematic break, not an item; `Foo` + `---` is a setext heading; the
 - Nesting depth of blocks never exceeds 300; recursion of that depth is
   fine. Inline nesting (brackets, emphasis) can be several thousand deep
   in the delimiter/bracket stacks but the algorithms above are iterative.
-- An implementation in a compiled language should run every test in well
-  under a second; a Python implementation of the described algorithms
-  runs the whole suite in a few seconds. Avoid quadratic behaviour in
-  the code-span search, the bracket handling and process-emphasis (the
-  `openers_bottom` bounds make it linear).
+- Avoid quadratic behaviour in the code-span search, the bracket handling
+  and process-emphasis (the `openers_bottom` bounds make it linear).

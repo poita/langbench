@@ -701,5 +701,4 @@ implementation and cross-checked query by query against the `sqlite3`
 command-line shell.
 
 The reference implementation reads the whole file into memory. The largest
-test database is 16 MB and the slowest case takes about five seconds in
-Python; a compiled implementation should be far quicker.
+test database is 16 MB.

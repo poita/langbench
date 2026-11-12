@@ -323,12 +323,10 @@ a(1 b c)
 error: division-by-zero
 ```
 
-## Performance
+## Input sizes
 
 Largest tests: tail loops of 3,000,000 iterations, three 1,000,000-iteration
 loops through `apply`/`or`/`cond`, naive `fib 27` (~830,000 calls), eight
 queens, a list-based sieve to 10,000, non-tail recursion 10,000 deep, and
 factorials/powers with several hundred digits (`fact 2000` has 5,736
-digits). The Python reference takes under 15 s on every test (most under
-2 s); a compiled implementation should take well under 1 s on each.
-Suggested timeout: 10 s per test.
+digits).

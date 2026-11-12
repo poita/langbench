@@ -53,7 +53,7 @@ byte-identical output.
 21. [Worked examples](#worked-examples)
 22. [Guarantees](#guarantees)
 23. [Architecture and size](#architecture-and-size)
-24. [Limits and performance](#limits-and-performance)
+24. [Limits](#limits)
 
 ## Units and arithmetic
 
@@ -3194,7 +3194,7 @@ single-`scale` rule for box widths (see
 line-breaking node table (see [The algorithm](#the-algorithm)). Getting
 `total-demerits` to agree is a good sign that all three are right.
 
-## Limits and performance
+## Limits
 
 The test suite ranges from one-line documents to a 38-page book with headings
 at all four levels, nested lists, eight tables, nine figures, forty-one
@@ -3209,6 +3209,4 @@ The line-breaking algorithm as specified is quadratic in the number of
 breakpoints of a paragraph, which is fine at these sizes (the worst paragraph
 has a few thousand breakpoints, so at most about 16 million candidate lines,
 each a handful of integer operations). The page scan is quadratic in
-the number of vertical items per page in the worst case. A straightforward
-implementation of exactly what is written here runs every test in a fraction
-of a second in a compiled language; a per-test limit of 120 seconds is ample.
+the number of vertical items per page in the worst case.

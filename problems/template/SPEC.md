@@ -665,15 +665,9 @@ Implementations may rely on all of the following.
     to lists, and no filter is applied to a value kind for which the table
     above does not define a result.
 
-## Sizes and performance
+## Sizes
 
 The largest tests: a context of about 1 MB, a loop over 20 000 items
 printing several filtered values per item (output ~1 MB), nested loops
 with ~50 000 iterations in total, a 1 MB template body with ~50 000 tags,
 and macro-based recursive rendering of a tree with a few thousand nodes.
-(The long benchmark tier goes further: contexts of up to 28 MB, about
-17,000 products with 5,000 featured lookups, 10,000 x 24 sales series,
-and 190 trees.)
-A straightforward tree-walking interpreter in a compiled language finishes
-every test in well under a second; the reference implementation (in
-Python) takes under a second on each. Suggested per-test timeout: 30 seconds.

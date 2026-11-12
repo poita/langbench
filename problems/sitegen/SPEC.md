@@ -891,14 +891,10 @@ Total: roughly three to five thousand lines in a typical systems language.
 The two sub-languages are specified in their own documents and are worth
 implementing (and testing) first.
 
-## Limits and performance
+## Limits
 
 The site with the most posts has 313 of them, 35 tags, 2 pages and 225 KB of
 Markdown, and produces 387 output files and about 1 MB of HTML. The site with
 the most text has 85 posts and 1.1 MB of Markdown, the largest single body
 being 34 KB. Every other site is much smaller. Templates are at most a few
 kilobytes each, and no site has more than nine of them.
-
-The Python reference implementation processes every site in well under a
-second; a compiled implementation should be faster still. A per-test limit of
-120 seconds is ample.

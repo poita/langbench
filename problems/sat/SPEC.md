@@ -3,10 +3,9 @@
 Decide whether a propositional formula in conjunctive normal form is
 satisfiable, and if it is, print a satisfying assignment. The test suite
 contains instances (random 3-SAT at the phase transition with up to 200
-variables, pigeonhole formulas up to PHP(8)) that a naive backtracking search
-will not finish in time; a conflict-driven clause-learning solver (two watched
-literals, first-UIP clause learning, VSIDS-style branching, restarts) is the
-intended solution.
+variables, pigeonhole formulas up to PHP(8)) that need a conflict-driven
+clause-learning solver (two watched literals, first-UIP clause learning,
+VSIDS-style branching, restarts), the intended solution.
 
 ## Input
 
@@ -48,8 +47,7 @@ test exercises malformed input.
 
 Limits across the test suite: `V <= 2000`, `C <= 6000`, at most 1000
 literals in one clause, at most 18000 literal occurrences in total, and every
-input is under 128 KB. The long benchmark tier (`bench-long/`) goes up to
-`V <= 25000`, `C <= 100000`, 250000 literal occurrences and 2 MB.
+input is under 128 KB.
 
 ## Output
 
@@ -140,16 +138,10 @@ some clause; and any `UNSAT` answer on an instance the reference solver (and
 an independent solver) proved satisfiable. Trailing whitespace on a line and
 trailing blank lines are tolerated; any other extra line is rejected.
 
-## Performance
+## Input sizes
 
 Largest tests: random 3-SAT with 200 variables and 852 clauses (both SAT and
 UNSAT instances, at clause/variable ratio 4.26), PHP(8) pigeonhole (72
 variables, 297 clauses, UNSAT), a 2000-variable / 6000-clause easy random
 instance, graph-colouring encodings with up to 320 variables, and a single
 1000-literal clause.
-
-The Python reference CDCL solver finishes every test in under 7 seconds, most
-in well under a second. A suggested timeout is 30 seconds per test; a compiled
-CDCL implementation should take well under one second on every test. Plain
-DPLL without clause learning will time out on the pigeonhole and 200-variable
-random instances.

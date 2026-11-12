@@ -347,19 +347,14 @@ A8 1e-05
 A10 2
 ```
 
-## Performance
+## Input sizes
 
-Inputs have up to about 1,000,000 commands (about 20 MB of input). The
-largest tests have up to about 70,000 commands (about 1.3 MB of input):
+The largest tests have up to about 70,000 commands (about 1.3 MB of input):
 dependency chains of 10,000 cells re-evaluated after each of 100 edits at
 the head, aggregate ranges of 9,999 cells re-summed after each of 100 edits,
 a sheet of 50,000 cells followed by 5,000 point edits each followed by
 `get`, and a random workbook of 8,000 commands over 360 heavily
-interconnected cells. The suggested time limit is 10 seconds per test for a
-compiled implementation (the Python reference needs at most about 3 seconds
-per test). Recalculating the whole sheet after every command is far slower
-than necessary; recalculating only the cells that transitively depend on the
-edited cell is the intended approach. Formulas are at most a few thousand
+interconnected cells. Formulas are at most a few thousand
 characters long, nest at most about 100 levels deep, and no range spans more
 than 10,000 cells. Dependency chains are up to 10,000 cells deep, so an
 evaluator that recurses from cell to cell needs a correspondingly deep call

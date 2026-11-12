@@ -1,5 +1,5 @@
 {
- "langs": ["cpp", "rust", "go", "d", "python"],
+ "langs": ["cpp", "rust", "go", "d", "python", "haskell", "clojure"],
  "reps": 3,
  "repProblems": ["chip8", "bigint", "regex", "sat", "depresolve", "datalog", "jq", "webhooks", "toml", "buildsys"],
  "model": "claude-sonnet-5-5",
