@@ -1,6 +1,5 @@
 #!/bin/sh
-# Builds the typeset command-line tool into bin/typeset.
+# Build the typeset command-line tool (works from any directory).
 set -e
-DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$DIR"
-dub build -b release --compiler=ldc2 :cli
+cd "$(dirname "$0")"
+exec dub build -b release --compiler=ldc2 -q

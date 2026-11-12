@@ -1,0 +1,17 @@
+[package]
+name = "json-canon"
+version = "0.1.0"
+edition = "2021"
+description = "Strict RFC 8259 JSON parser and canonical serializer (sorted keys, normalized numbers)"
+license = "MIT"
+readme = "README.md"
+keywords = ["json", "canonical", "parser"]
+categories = ["parser-implementations"]
+
+[lib]
+name = "json_canon"
+path = "src/lib.rs"
+
+[[bin]]
+name = "json-canon"
+path = "src/main.rs"

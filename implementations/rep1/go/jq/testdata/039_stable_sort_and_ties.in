@@ -1,0 +1,2 @@
+sort_by(.x), (sort_by(.x) | reverse), sort, unique, min, max, (map(.x) | unique), group_by(.x)
+[{"x":1,"y":"a"},{"x":0},{"x":1,"y":"b"},{"y":"c"},{"x":0},{"x":1,"y":"a"}]

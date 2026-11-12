@@ -1,47 +1,46 @@
-/// A CommonMark-subset Markdown to HTML converter.
-///
-/// The converter reproduces what `cmark` 0.31.2 produces for headings,
-/// paragraphs, lists, block quotes, code blocks, thematic breaks, emphasis,
-/// code spans, links, images, autolinks, escapes and line breaks. Raw HTML,
-/// link reference definitions and extensions are not supported.
-///
-/// ---
-/// import sitegen.markdown;
-/// assert(markdownToHtml("*hi*") == "<p><em>hi</em></p>\n");
-/// ---
+/**
+ * A CommonMark-subset to HTML converter.
+ *
+ * The converter implements the subset of CommonMark 0.31.2 that static site
+ * content needs: thematic breaks, ATX and setext headings, indented and
+ * fenced code blocks, paragraphs, block quotes, lists, backslash escapes,
+ * entity references, code spans, emphasis, inline links and images,
+ * autolinks and line breaks.  Raw HTML, link reference definitions and
+ * extensions are not supported.  The output is the same as that of `cmark`
+ * with default options.
+ *
+ * Example:
+ * ---
+ * import sitegen.markdown;
+ * assert(markdownToHtml("Hello *world*") == "<p>Hello <em>world</em></p>\n");
+ * ---
+ */
 module sitegen.markdown;
 
-public import sitegen.markdown.node : Node, NodeKind;
-import sitegen.markdown.blocks : BlockParser;
-import sitegen.markdown.html : renderHtml;
-import sitegen.markdown.inlines : InlineParser;
-import std.exception : assumeUnique;
+public import sitegen.markdown.ast : Block, BlockKind, Inline, InlineKind;
+public import sitegen.markdown.blocks : parseBlocks;
+public import sitegen.markdown.inlines : parseInlines;
+public import sitegen.markdown.html : renderHtml;
 
-/// Parse `source` into a document tree with inline nodes filled in.
-Node parseMarkdown(string source)
+/**
+ * Converts a Markdown document to HTML.
+ *
+ * Params:
+ *   markdown = the document: UTF-8 text with LF line endings
+ * Returns: the HTML, which ends with a newline unless the document is empty.
+ */
+string markdownToHtml(string markdown)
 {
-    auto document = new BlockParser().parse(source);
-    auto inlines = new InlineParser();
-    parseInlinesIn(document, inlines);
-    return document;
+    return renderHtml(parseBlocks(markdown));
 }
 
-private void parseInlinesIn(Node n, InlineParser inlines)
+unittest
 {
-    if (n.kind == NodeKind.paragraph || n.kind == NodeKind.heading)
-    {
-        string content = assumeUnique(n.content);
-        n.content = null;
-        inlines.parse(n, content);
-        return;
-    }
-    for (Node c = n.firstChild; c !is null; c = c.next)
-        parseInlinesIn(c, inlines);
-}
-
-/// Convert Markdown text to HTML. A non-empty document yields output that
-/// ends with a newline; an empty document yields the empty string.
-string markdownToHtml(string source)
-{
-    return renderHtml(parseMarkdown(source));
+    assert(markdownToHtml("") == "");
+    assert(markdownToHtml("Hello *world*") == "<p>Hello <em>world</em></p>\n");
+    assert(markdownToHtml("# T #\n\ntext") == "<h1>T</h1>\n<p>text</p>\n");
+    assert(markdownToHtml("- a\n- b\n") == "<ul>\n<li>a</li>\n<li>b</li>\n</ul>\n");
+    assert(markdownToHtml("    code <b>\n") == "<pre><code>code &lt;b&gt;\n</code></pre>\n");
+    assert(markdownToHtml("> q\n") == "<blockquote>\n<p>q</p>\n</blockquote>\n");
+    assert(markdownToHtml("***\n") == "<hr />\n");
 }

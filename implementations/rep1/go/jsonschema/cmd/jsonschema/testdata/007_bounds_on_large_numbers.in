@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "type": "number",
+    "minimum": -1e+308,
+    "exclusiveMaximum": 1e+308
+  },
+  "tests": [
+    {
+      "description": "at the inclusive lower bound",
+      "data": -1e+308
+    },
+    {
+      "description": "just inside the upper bound",
+      "data": 9.99e+307
+    },
+    {
+      "description": "at the exclusive upper bound",
+      "data": 1e+308
+    },
+    {
+      "description": "beyond the exclusive upper bound",
+      "data": 1.5e+308
+    }
+  ]
+}

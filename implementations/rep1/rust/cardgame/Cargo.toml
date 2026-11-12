@@ -1,0 +1,20 @@
+[package]
+name = "cardgame"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "A deterministic rules engine for Spiremark, a two-player duelling-card game"
+license = "MIT"
+readme = "README.md"
+keywords = ["card-game", "rules-engine", "simulation"]
+categories = ["games", "simulation"]
+
+[lib]
+name = "cardgame"
+path = "src/lib.rs"
+
+[[bin]]
+name = "cardgame"
+path = "src/main.rs"
+
+[dependencies]

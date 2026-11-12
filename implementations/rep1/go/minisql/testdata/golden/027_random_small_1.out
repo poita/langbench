@@ -1,0 +1,115 @@
+3940	4377.78
+-- 1 rows
+6	oscar	legal	7300	52
+8	victor	eng	8800	49
+9	erin	ops	8000	28
+-- 3 rows
+-- 0 rows
+2
+7
+6
+8
+3
+4
+10
+1
+11
+5
+9
+12
+-- 12 rows
+1	NULL	26.00	Al	Al
+-- 1 rows
+ops	1	8000.00
+-- 1 rows
+Al	NULL
+peggy	eng
+victor	eng
+x	eng
+frank	eng
+victor	eng
+grace	hr
+ivan	hr
+oscar	legal
+erin	ops
+erin	sales
+grace	sales
+-- 12 rows
+1	NULL	26.00	Al	Al
+-- 1 rows
+NULL	1	NULL	26	26	NULL
+eng	5	19300	29	59	4825.00
+hr	2	7500	40	46	3750.00
+legal	1	7300	52	52	7300.00
+ops	1	8000	28	28	8000.00
+sales	2	4600	33	42	2300.00
+-- 6 rows
+8	11800
+9	10000
+2	7800
+1	7600
+5	7500
+-- 5 rows
+victor	2357
+peggy	9541
+grace	11160
+erin	15972
+victor	17551
+-- 5 rows
+-- 0 rows
+-- 0 rows
+10	erin
+9	erin
+8	victor
+5	x
+4	victor
+2	peggy
+-- 6 rows
+1	grace	hr	5600	40
+2	peggy	eng	4800	59
+6	oscar	legal	7300	52
+8	victor	eng	8800	49
+9	erin	ops	8000	28
+-- 5 rows
+oscar	NULL
+peggy	eng
+victor	eng
+x	eng
+frank	eng
+victor	eng
+grace	hr
+ivan	hr
+oscar	legal
+erin	ops
+erin	sales
+grace	sales
+-- 12 rows
+12	oscar	NULL	NULL	26
+8	victor	eng	8800	49
+2	peggy	eng	4800	59
+5	x	eng	4500	29
+4	victor	eng	1200	43
+7	frank	eng	NULL	56
+1	grace	hr	5600	40
+3	ivan	hr	1900	46
+6	oscar	legal	7300	52
+9	erin	ops	8000	28
+11	grace	sales	2900	33
+10	erin	sales	1700	42
+-- 12 rows
+1	NULL	26.00	oscar	oscar
+-- 1 rows
+grace	ivan
+peggy	victor
+peggy	x
+-- 3 rows
+trent	ivan
+peggy	victor
+peggy	x
+-- 3 rows
+error
+ops	1	8000.00
+-- 1 rows
+error
+9
+-- 1 rows

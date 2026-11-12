@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the sat command-line tool (release mode, LDC).
+# Build the sat command-line tool (bin/sat) from any working directory.
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 --config=cli
+exec dub build -b release --compiler=ldc2 --quiet

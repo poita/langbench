@@ -1,0 +1,13 @@
+{
+  "title": "T"
+}
+--
+=== main
+Prelude {{ title }}
+{% set child_var = "cv" %}{% macro cm() %}child-macro{% endmacro %}{% extends "base" %}
+{% set after = "set-after-extends" %}{% macro am() %}macro-after{% endmacro %}
+{% block body %}{{ child_var }} {{ after }} {{ cm() }} {{ am() }} {{ pm() }} {{ parent_var }} {{ later is defined }}{% set inblock = 1 %}{% endblock %}
+ignored text
+
+=== base
+{% set parent_var = "pv" %}{% macro pm() %}parent-macro{% endmacro %}<{% block body %}{% endblock %}>{% set later = 1 %}{{ inblock is defined }}

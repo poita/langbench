@@ -1,62 +1,65 @@
-// Package parser reads Datalog source text into an ast.Program.
+// Package parser turns Datalog source text into an ast.Program.
 //
-// Parsing is a single pass over the bytes: the lexer feeds the recursive
-// descent parser one token at a time, and constants, predicates and variables
-// are interned as they are seen. When the whole input has been read the
-// constants are sorted into the language's total order and every constant
-// reference is renumbered to its rank.
+// The accepted language is described in the repository README: facts, rules
+// with positive, negated and comparison literals, and "?-" queries, with
+// "%" line comments.
 package parser
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 
-	"datalog/ast"
+	"example.com/datalog/ast"
 )
 
-// SyntaxError reports malformed input.
-type SyntaxError struct {
-	Line int
-	Msg  string
-}
-
-func (e *SyntaxError) Error() string { return fmt.Sprintf("line %d: %s", e.Line+1, e.Msg) }
-
-// Parse parses a complete program.
-func Parse(src []byte) (*ast.Program, error) {
-	p := &parser{
-		lex:       lexer{src: src},
-		prog:      &ast.Program{},
-		predIDs:   map[ast.Pred]int{},
-		identIDs:  map[string]int{},
-		intIDs:    map[int64]int{},
-		rawConsts: nil,
-	}
+// Parse parses a whole program. It returns a *SyntaxError for malformed
+// input. Parsing does not check safety or stratification; see package
+// analysis.
+func Parse(src string) (*ast.Program, error) {
+	p := &parser{lex: lexer{src: src}}
 	if err := p.advance(); err != nil {
 		return nil, err
 	}
+	prog := &ast.Program{}
 	for p.tok.kind != tEOF {
-		if err := p.clause(); err != nil {
+		if err := p.clause(prog); err != nil {
 			return nil, err
 		}
 	}
-	p.renumber()
-	return p.prog, nil
+	return prog, nil
+}
+
+// ParseAtom parses a single atom (a query pattern), with or without a leading
+// "?-" and a trailing ".".
+func ParseAtom(src string) (ast.Atom, error) {
+	p := &parser{lex: lexer{src: src}}
+	if err := p.advance(); err != nil {
+		return ast.Atom{}, err
+	}
+	if p.tok.kind == tQuery {
+		if err := p.advance(); err != nil {
+			return ast.Atom{}, err
+		}
+	}
+	a, err := p.atom()
+	if err != nil {
+		return a, err
+	}
+	if p.tok.kind == tDot {
+		if err := p.advance(); err != nil {
+			return a, err
+		}
+	}
+	if p.tok.kind != tEOF {
+		return a, p.unexpected("end of input")
+	}
+	return a, nil
 }
 
 type parser struct {
 	lex  lexer
-	tok  token // current token
-	prog *ast.Program
-
-	predIDs   map[ast.Pred]int
-	identIDs  map[string]int
-	intIDs    map[int64]int
-	rawConsts []ast.Constant // constants in first-seen order
-
-	vars    map[string]int // per-clause variable slots
-	numVars int
+	tok  token
+	anon int
 }
 
 func (p *parser) advance() error {
@@ -68,25 +71,22 @@ func (p *parser) advance() error {
 	return nil
 }
 
-func (p *parser) errf(format string, args ...any) error {
-	return &SyntaxError{Line: p.tok.line, Msg: fmt.Sprintf(format, args...)}
+func (p *parser) unexpected(want string) error {
+	got := p.tok.text
+	if p.tok.kind == tEOF {
+		got = "end of input"
+	}
+	return p.lex.errorf(p.tok.pos, "expected %s, found %q", want, got)
 }
 
-func (p *parser) expect(k tokKind) error {
+func (p *parser) expect(k tokKind, what string) error {
 	if p.tok.kind != k {
-		return p.errf("expected %v, found %v", k, p.tok.kind)
+		return p.unexpected(what)
 	}
 	return p.advance()
 }
 
-func (p *parser) resetClause() {
-	p.vars = map[string]int{}
-	p.numVars = 0
-}
-
-// clause = fact | rule | query.
-func (p *parser) clause() error {
-	p.resetClause()
+func (p *parser) clause(prog *ast.Program) error {
 	if p.tok.kind == tQuery {
 		if err := p.advance(); err != nil {
 			return err
@@ -95,10 +95,10 @@ func (p *parser) clause() error {
 		if err != nil {
 			return err
 		}
-		if err := p.expect(tDot); err != nil {
+		if err := p.expect(tDot, "\".\""); err != nil {
 			return err
 		}
-		p.prog.Queries = append(p.prog.Queries, a)
+		prog.Queries = append(prog.Queries, a)
 		return nil
 	}
 	head, err := p.atom()
@@ -106,7 +106,7 @@ func (p *parser) clause() error {
 		return err
 	}
 	rule := ast.Rule{Head: head}
-	if p.tok.kind == tNeck {
+	if p.tok.kind == tRule {
 		if err := p.advance(); err != nil {
 			return err
 		}
@@ -124,15 +124,13 @@ func (p *parser) clause() error {
 			}
 		}
 	}
-	if err := p.expect(tDot); err != nil {
+	if err := p.expect(tDot, "\".\""); err != nil {
 		return err
 	}
-	rule.NumVars = p.numVars
-	p.prog.Rules = append(p.prog.Rules, rule)
+	prog.Rules = append(prog.Rules, rule)
 	return nil
 }
 
-// literal = atom | "not" atom | term cmpop term.
 func (p *parser) literal() (ast.Literal, error) {
 	if p.tok.kind == tNot {
 		if err := p.advance(); err != nil {
@@ -142,15 +140,15 @@ func (p *parser) literal() (ast.Literal, error) {
 		return ast.Literal{Kind: ast.Negative, Atom: a}, err
 	}
 	if p.tok.kind == tIdent {
-		// An identifier followed by "(" starts an atom; otherwise it is a
-		// constant on the left of a comparison. Peek with a copy of the lexer.
-		save := p.lex
-		nxt, err := p.lex.next()
-		p.lex = save
-		if err != nil {
+		// Either an atom (identifier followed by "(") or a constant
+		// on the left of a comparison.
+		save, savePos := p.tok, p.lex.pos
+		if err := p.advance(); err != nil {
 			return ast.Literal{}, err
 		}
-		if nxt.kind == tLParen {
+		isAtom := p.tok.kind == tLParen
+		p.tok, p.lex.pos = save, savePos
+		if isAtom {
 			a, err := p.atom()
 			return ast.Literal{Kind: ast.Positive, Atom: a}, err
 		}
@@ -161,20 +159,20 @@ func (p *parser) literal() (ast.Literal, error) {
 	}
 	var op ast.CmpOp
 	switch p.tok.kind {
-	case tEq:
-		op = ast.Eq
-	case tNe:
-		op = ast.Ne
-	case tLt:
-		op = ast.Lt
-	case tLe:
-		op = ast.Le
-	case tGt:
-		op = ast.Gt
-	case tGe:
-		op = ast.Ge
+	case tEQ:
+		op = ast.EQ
+	case tNE:
+		op = ast.NE
+	case tLT:
+		op = ast.LT
+	case tLE:
+		op = ast.LE
+	case tGT:
+		op = ast.GT
+	case tGE:
+		op = ast.GE
 	default:
-		return ast.Literal{}, p.errf("expected comparison operator, found %v", p.tok.kind)
+		return ast.Literal{}, p.unexpected("comparison operator")
 	}
 	if err := p.advance(); err != nil {
 		return ast.Literal{}, err
@@ -186,127 +184,52 @@ func (p *parser) literal() (ast.Literal, error) {
 	return ast.Literal{Kind: ast.Comparison, Op: op, Left: left, Right: right}, nil
 }
 
-// atom = identifier "(" term ("," term)* ")".
 func (p *parser) atom() (ast.Atom, error) {
 	if p.tok.kind != tIdent {
-		return ast.Atom{}, p.errf("expected predicate name, found %v", p.tok.kind)
+		return ast.Atom{}, p.unexpected("predicate name")
 	}
-	name := p.tok.text
+	a := ast.Atom{Pred: p.tok.text}
 	if err := p.advance(); err != nil {
-		return ast.Atom{}, err
+		return a, err
 	}
-	if err := p.expect(tLParen); err != nil {
-		return ast.Atom{}, err
+	if err := p.expect(tLParen, "\"(\""); err != nil {
+		return a, err
 	}
-	var args []ast.Term
 	for {
 		t, err := p.term()
 		if err != nil {
-			return ast.Atom{}, err
+			return a, err
 		}
-		args = append(args, t)
+		a.Args = append(a.Args, t)
 		if p.tok.kind != tComma {
 			break
 		}
 		if err := p.advance(); err != nil {
-			return ast.Atom{}, err
+			return a, err
 		}
 	}
-	if err := p.expect(tRParen); err != nil {
-		return ast.Atom{}, err
-	}
-	key := ast.Pred{Name: name, Arity: len(args)}
-	id, ok := p.predIDs[key]
-	if !ok {
-		id = len(p.prog.Preds)
-		p.predIDs[key] = id
-		p.prog.Preds = append(p.prog.Preds, key)
-	}
-	return ast.Atom{Pred: id, Args: args}, nil
+	return a, p.expect(tRParen, "\")\"")
 }
 
-// term = constant | variable | "_".
 func (p *parser) term() (ast.Term, error) {
 	t := p.tok
+	var res ast.Term
 	switch t.kind {
-	case tVar:
-		id, ok := p.vars[t.text]
-		if !ok {
-			id = p.numVars
-			p.numVars++
-			p.vars[t.text] = id
-		}
-		return ast.Term{IsVar: true, ID: id}, p.advance()
-	case tAnon:
-		id := p.numVars
-		p.numVars++
-		return ast.Term{IsVar: true, ID: id}, p.advance()
 	case tIdent:
-		id, ok := p.identIDs[t.text]
-		if !ok {
-			id = len(p.rawConsts)
-			p.identIDs[t.text] = id
-			p.rawConsts = append(p.rawConsts, ast.Constant{Name: t.text})
-		}
-		return ast.Term{ID: id}, p.advance()
+		res = ast.C(ast.Sym(t.text))
+	case tVar:
+		res = ast.V(t.text)
+	case tAnon:
+		res = ast.V(fmt.Sprintf("_%d", p.anon))
+		p.anon++
 	case tInt:
-		v, err := strconv.ParseInt(t.text, 10, 64)
+		n, err := strconv.ParseInt(t.text, 10, 64)
 		if err != nil {
-			return ast.Term{}, p.errf("bad integer %q", t.text)
+			return res, p.lex.errorf(t.pos, "integer out of range: %s", t.text)
 		}
-		id, ok := p.intIDs[v]
-		if !ok {
-			id = len(p.rawConsts)
-			p.intIDs[v] = id
-			p.rawConsts = append(p.rawConsts, ast.Constant{IsInt: true, Int: v})
-		}
-		return ast.Term{ID: id}, p.advance()
+		res = ast.C(ast.Int(n))
+	default:
+		return res, p.unexpected("term")
 	}
-	return ast.Term{}, p.errf("expected a term, found %v", t.kind)
-}
-
-// renumber sorts the constants into the language order and rewrites every
-// constant reference from first-seen id to rank.
-func (p *parser) renumber() {
-	n := len(p.rawConsts)
-	order := make([]int, n) // order[rank] = raw id
-	for i := range order {
-		order[i] = i
-	}
-	sort.Slice(order, func(a, b int) bool {
-		return ast.Compare(p.rawConsts[order[a]], p.rawConsts[order[b]]) < 0
-	})
-	rank := make([]int, n)
-	consts := make([]ast.Constant, n)
-	for r, raw := range order {
-		rank[raw] = r
-		consts[r] = p.rawConsts[raw]
-	}
-	p.prog.Consts = consts
-	fix := func(t *ast.Term) {
-		if !t.IsVar {
-			t.ID = rank[t.ID]
-		}
-	}
-	fixAtom := func(a *ast.Atom) {
-		for i := range a.Args {
-			fix(&a.Args[i])
-		}
-	}
-	for i := range p.prog.Rules {
-		r := &p.prog.Rules[i]
-		fixAtom(&r.Head)
-		for j := range r.Body {
-			l := &r.Body[j]
-			if l.Kind == ast.Comparison {
-				fix(&l.Left)
-				fix(&l.Right)
-			} else {
-				fixAtom(&l.Atom)
-			}
-		}
-	}
-	for i := range p.prog.Queries {
-		fixAtom(&p.prog.Queries[i])
-	}
+	return res, p.advance()
 }

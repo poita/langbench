@@ -1,0 +1,120 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 CIN-003 B
+9 PAY A ember 1
+10 TRIGGER A ~2 #24 1
+11 TRIGGER A ~3 #25 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 9 cap 10 vault 20 hand 2 ash 0 rift 0
+player B spire 40 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-003
+hand A 2 #23 TID-007
+field A #24 CIN-002 2/2 w0 c0 ready - kw -
+field A #25 CIN-002 2/2 w0 c0 ready - kw -
+chain 1 ~1 A rite #21 0 B
+chain 2 ~3 A trigger #25 1
+chain 3 ~2 A trigger #24 1
+STATE END
+12 PASS A
+13 PASS B
+14 RESOLVE ~2
+15 BUFF #24 1 0
+16 PASS A
+17 PASS B
+18 RESOLVE ~3
+19 BUFF #25 1 0
+20 PASS A
+21 PASS B
+22 RESOLVE ~1
+23 DAMAGE #21 B 2
+24 SPIRE B -2 38
+25 SPENT #21 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 9 cap 10 vault 20 hand 2 ash 1 rift 0
+player B spire 38 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-003
+hand A 2 #23 TID-007
+field A #24 CIN-002 3/2 w0 c0 ready - kw -
+field A #25 CIN-002 3/2 w0 c0 ready - kw -
+ash A 1 #21 CIN-003
+effect 1 ts3 A turn modify 1 0 on #24
+effect 2 ts4 A turn modify 1 0 on #25
+STATE END
+26 PLAY A ~4 #23 TID-007
+27 PAY A ember 2
+28 TRIGGER A ~5 #24 1
+29 TRIGGER A ~6 #25 1
+30 PASS A
+31 PASS B
+32 RESOLVE ~5
+33 BUFF #24 1 0
+34 PASS A
+35 PASS B
+36 RESOLVE ~6
+37 BUFF #25 1 0
+38 PASS A
+39 PASS B
+40 RESOLVE ~4
+41 DRAW A #1 CIN-001
+42 DRAW A #2 CIN-001
+43 SPENT #23 TID-007
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 7 cap 10 vault 18 hand 3 ash 2 rift 0
+player B spire 38 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 CIN-003
+hand A 2 #1 CIN-001
+hand A 3 #2 CIN-001
+field A #24 CIN-002 4/2 w0 c0 ready - kw -
+field A #25 CIN-002 4/2 w0 c0 ready - kw -
+ash A 1 #21 CIN-003
+ash A 2 #23 TID-007
+effect 1 ts3 A turn modify 1 0 on #24
+effect 2 ts4 A turn modify 1 0 on #25
+effect 3 ts5 A turn modify 1 0 on #24
+effect 4 ts6 A turn modify 1 0 on #25
+STATE END
+44 PLAY A ~7 #22 CIN-003 B
+45 PAY A ember 1
+46 TRIGGER A ~8 #24 1
+47 TRIGGER A ~9 #25 1
+48 PASS A
+49 PASS B
+50 RESOLVE ~8
+51 BUFF #24 1 0
+52 PASS A
+53 PASS B
+54 RESOLVE ~9
+55 BUFF #25 1 0
+56 PASS A
+57 PASS B
+58 RESOLVE ~7
+59 DAMAGE #22 B 2
+60 SPIRE B -2 36
+61 SPENT #22 CIN-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 6 cap 10 vault 18 hand 2 ash 3 rift 0
+player B spire 36 ember 10 cap 10 vault 20 hand 0 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand A 2 #2 CIN-001
+field A #24 CIN-002 5/2 w0 c0 ready - kw -
+field A #25 CIN-002 5/2 w0 c0 ready - kw -
+ash A 1 #21 CIN-003
+ash A 2 #23 TID-007
+ash A 3 #22 CIN-003
+effect 1 ts3 A turn modify 1 0 on #24
+effect 2 ts4 A turn modify 1 0 on #25
+effect 3 ts5 A turn modify 1 0 on #24
+effect 4 ts6 A turn modify 1 0 on #25
+effect 5 ts7 A turn modify 1 0 on #24
+effect 6 ts8 A turn modify 1 0 on #25
+STATE END
+62 RESULT pending none

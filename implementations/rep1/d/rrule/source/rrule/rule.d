@@ -1,19 +1,13 @@
 /**
- * The recurrence rule record and the parser for RFC 5545 `RRULE` values.
- *
- * Every list-valued `BY…` part is stored as boolean lookup tables indexed by
- * value (separate tables for positive and negative values) so that each
- * filter test during expansion is one or two array reads.
+ * Recurrence rule representation and parsing of the `RRULE` value syntax.
  */
 module rrule.rule;
 
-
-import rrule.calendar : LocalDateTime;
-import rrule.errors;
-import rrule.timestamp : parseTimestamp;
+import rrule.calendar : Weekday;
+import rrule.datetime;
 
 /// Recurrence frequency.
-enum Freq : ubyte
+enum Freq
 {
     yearly,
     monthly,
@@ -21,289 +15,260 @@ enum Freq : ubyte
     daily,
 }
 
-/// A `BYDAY` entry with an ordinal prefix, e.g. `2MO` or `-1FR`.
-struct OrdinalDay
+/// One `BYDAY` entry: a weekday with an optional ordinal (`2MO`, `-1FR`).
+struct ByDay
 {
-    /// Signed ordinal (never 0).
+    /// Weekday, 0 = Monday … 6 = Sunday.
+    int weekday;
+    /// Signed ordinal; 0 when the entry has none.
     int ordinal;
-    /// Weekday, Monday = 0.
-    ubyte weekday;
 }
 
-/**
- * A parsed recurrence rule.
- *
- * Presence flags (`hasMonth`, …) record which parts were written in the rule;
- * the lookup tables are only meaningful for parts that are present.
- */
+/// A parsed recurrence rule. Defaults that depend on DTSTART are *not* applied here.
 struct Rule
 {
     /// `FREQ`.
-    Freq freq = Freq.yearly;
+    Freq freq;
     /// `INTERVAL` (default 1).
     int interval = 1;
-    /// `COUNT` if `hasCount`.
+    /// `COUNT`, or 0 when absent.
     int count;
-    /// True if `COUNT` was given.
-    bool hasCount;
-    /// `UNTIL` if `hasUntil`.
-    LocalDateTime until;
-    /// True if `UNTIL` was given.
+    /// Whether `UNTIL` is present.
     bool hasUntil;
-    /// `WKST`, Monday = 0 (default Monday).
-    int weekStart;
-
-    /// True if `BYMONTH` is present.
-    bool hasMonth;
-    /// True if `BYMONTHDAY` is present.
-    bool hasMonthDay;
-    /// True if `BYYEARDAY` is present.
-    bool hasYearDay;
-    /// True if `BYWEEKNO` is present.
-    bool hasWeekNo;
-    /// True if `BYDAY` with plain weekday codes is present.
-    bool hasWeekdays;
-
-    /// `BYMONTH` table, indexed by month 1–12.
-    bool[13] month;
-    /// `BYMONTHDAY` positive values, indexed 1–31.
-    bool[32] monthDay;
-    /// `BYMONTHDAY` negative values, indexed by absolute value 1–31.
-    bool[32] monthDayNeg;
-    /// `BYYEARDAY` positive values, indexed 1–366.
-    bool[367] yearDay;
-    /// `BYYEARDAY` negative values, indexed by absolute value 1–366.
-    bool[367] yearDayNeg;
-    /// `BYWEEKNO` positive values, indexed 1–53.
-    bool[54] weekNo;
-    /// `BYWEEKNO` negative values, indexed by absolute value 1–53.
-    bool[54] weekNoNeg;
-    /// Plain `BYDAY` weekdays, indexed 0–6 (Monday = 0).
-    bool[7] weekday;
-    /// Ordinal `BYDAY` entries (empty unless the list is ordinal-prefixed).
-    OrdinalDay[] ordinalDays;
-    /// `BYSETPOS` values (empty if absent).
-    int[] setPos;
-
-    /// True if any `BYDAY` form is present.
-    pure nothrow @nogc @safe bool hasByDay() const
-    {
-        return hasWeekdays || ordinalDays.length != 0;
-    }
-
-    /// Resets the rule to its defaults, keeping array storage for reuse.
-    nothrow @trusted void reset()
-    {
-        auto od = ordinalDays;
-        auto sp = setPos;
-        this = Rule.init;
-        od.length = 0;
-        sp.length = 0;
-        od.assumeSafeAppend();
-        sp.assumeSafeAppend();
-        ordinalDays = od;
-        setPos = sp;
-    }
-}
-
-private pure nothrow @safe int weekdayCode(char a, char b)
-{
-    switch (a)
-    {
-    case 'M': return b == 'O' ? 0 : -1;
-    case 'T': return b == 'U' ? 1 : b == 'H' ? 3 : -1;
-    case 'W': return b == 'E' ? 2 : -1;
-    case 'F': return b == 'R' ? 4 : -1;
-    case 'S': return b == 'A' ? 5 : b == 'U' ? 6 : -1;
-    default: return -1;
-    }
-}
-
-private struct Cursor
-{
-    const(char)[] text;
-    size_t pos;
-
-    @property bool atEnd() const pure nothrow @safe @nogc { return pos >= text.length; }
-}
-
-private @safe int parseInteger(ref Cursor c, int lo, int hi, bool allowZero, string what)
-{
-    bool neg = false;
-    if (!c.atEnd && c.text[c.pos] == '-')
-    {
-        neg = true;
-        ++c.pos;
-    }
-    immutable start = c.pos;
-    long v = 0;
-    while (!c.atEnd && c.text[c.pos] >= '0' && c.text[c.pos] <= '9')
-    {
-        v = v * 10 + (c.text[c.pos] - '0');
-        if (v > 1_000_000)
-            throw new RRuleException("number out of range in " ~ what);
-        ++c.pos;
-    }
-    if (c.pos == start)
-        throw new RRuleException("expected a number in " ~ what);
-    if (neg)
-        v = -v;
-    if ((v == 0 && !allowZero) || v < lo || v > hi)
-        throw new RRuleException("value out of range in " ~ what);
-    return cast(int) v;
-}
-
-/// Iterates the `,`-separated items of `value`, calling `item` with a cursor on each.
-private void eachItem(const(char)[] value, string what, scope void delegate(ref Cursor) @safe item) @safe
-{
-    auto c = Cursor(value, 0);
-    if (value.length == 0)
-        throw new RRuleException("empty value for " ~ what);
-    while (true)
-    {
-        item(c);
-        if (c.atEnd)
-            break;
-        if (c.text[c.pos] != ',')
-            throw new RRuleException("unexpected character in " ~ what);
-        ++c.pos;
-    }
+    /// `UNTIL`; meaningful only if `hasUntil`.
+    LocalDateTime until;
+    /// `WKST` (default Monday).
+    int weekStart = Weekday.monday;
+    /// `BYMONTH`.
+    int[] byMonth;
+    /// `BYMONTHDAY`.
+    int[] byMonthDay;
+    /// `BYYEARDAY`.
+    int[] byYearDay;
+    /// `BYWEEKNO`.
+    int[] byWeekNo;
+    /// `BYDAY`.
+    ByDay[] byDay;
+    /// `BYSETPOS`.
+    int[] bySetPos;
 }
 
 /**
- * Parses an `RRULE` value such as `FREQ=MONTHLY;BYDAY=-1FR;COUNT=10` into
- * `rule`, replacing its previous contents. The rule's array storage is reused,
- * so slices of `rule.ordinalDays` / `rule.setPos` obtained earlier are
- * invalidated.
+ * Parses an `RRULE` value such as `FREQ=MONTHLY;BYDAY=-1FR;COUNT=10`.
  *
- * Throws: `RRuleException` on malformed or out-of-range input.
+ * Throws: `ParseException` on malformed input. Only the syntax is checked,
+ * not the cross-part restrictions of RFC 5545.
  */
-@safe void parseRuleInto(ref Rule rule, const(char)[] text)
-{
-    rule.reset();
-    bool haveFreq = false;
-    size_t i = 0;
-    while (i <= text.length)
-    {
-        size_t j = i;
-        while (j < text.length && text[j] != ';')
-            ++j;
-        auto part = text[i .. j];
-        i = j + 1;
-        if (part.length == 0)
-            throw new RRuleException("empty rule part");
-        size_t eq = 0;
-        while (eq < part.length && part[eq] != '=')
-            ++eq;
-        if (eq == part.length)
-            throw new RRuleException("rule part without '=': " ~ part.idup);
-        auto name = part[0 .. eq];
-        auto value = part[eq + 1 .. $];
-        parsePart(rule, name, value, haveFreq);
-    }
-    if (!haveFreq)
-        throw new RRuleException("missing FREQ");
-}
-
-private @safe void parsePart(ref Rule rule, const(char)[] name, const(char)[] value, ref bool haveFreq)
-{
-    switch (name)
-    {
-    case "FREQ":
-        switch (value)
-        {
-        case "YEARLY": rule.freq = Freq.yearly; break;
-        case "MONTHLY": rule.freq = Freq.monthly; break;
-        case "WEEKLY": rule.freq = Freq.weekly; break;
-        case "DAILY": rule.freq = Freq.daily; break;
-        default: throw new RRuleException("unsupported FREQ: " ~ value.idup);
-        }
-        haveFreq = true;
-        break;
-    case "INTERVAL":
-        auto c = Cursor(value, 0);
-        rule.interval = parseInteger(c, 1, 100, false, "INTERVAL");
-        break;
-    case "COUNT":
-        auto c = Cursor(value, 0);
-        rule.count = parseInteger(c, 1, 100_000, false, "COUNT");
-        rule.hasCount = true;
-        break;
-    case "UNTIL":
-        rule.until = parseTimestamp(value);
-        rule.hasUntil = true;
-        break;
-    case "WKST":
-        immutable w = value.length == 2 ? weekdayCode(value[0], value[1]) : -1;
-        if (w < 0)
-            throw new RRuleException("invalid WKST: " ~ value.idup);
-        rule.weekStart = w;
-        break;
-    case "BYMONTH":
-        eachItem(value, "BYMONTH", (ref Cursor c) {
-            rule.month[parseInteger(c, 1, 12, false, "BYMONTH")] = true;
-        });
-        rule.hasMonth = true;
-        break;
-    case "BYMONTHDAY":
-        eachItem(value, "BYMONTHDAY", (ref Cursor c) {
-            immutable v = parseInteger(c, -31, 31, false, "BYMONTHDAY");
-            if (v > 0) rule.monthDay[v] = true; else rule.monthDayNeg[-v] = true;
-        });
-        rule.hasMonthDay = true;
-        break;
-    case "BYYEARDAY":
-        eachItem(value, "BYYEARDAY", (ref Cursor c) {
-            immutable v = parseInteger(c, -366, 366, false, "BYYEARDAY");
-            if (v > 0) rule.yearDay[v] = true; else rule.yearDayNeg[-v] = true;
-        });
-        rule.hasYearDay = true;
-        break;
-    case "BYWEEKNO":
-        eachItem(value, "BYWEEKNO", (ref Cursor c) {
-            immutable v = parseInteger(c, -53, 53, false, "BYWEEKNO");
-            if (v > 0) rule.weekNo[v] = true; else rule.weekNoNeg[-v] = true;
-        });
-        rule.hasWeekNo = true;
-        break;
-    case "BYDAY":
-        eachItem(value, "BYDAY", (ref Cursor c) {
-            int ord = 0;
-            bool hasOrd = false;
-            if (!c.atEnd && (c.text[c.pos] == '-' || (c.text[c.pos] >= '0' && c.text[c.pos] <= '9')))
-            {
-                ord = parseInteger(c, -53, 53, false, "BYDAY");
-                hasOrd = true;
-            }
-            if (c.pos + 2 > c.text.length)
-                throw new RRuleException("invalid BYDAY entry");
-            immutable w = weekdayCode(c.text[c.pos], c.text[c.pos + 1]);
-            if (w < 0)
-                throw new RRuleException("invalid BYDAY weekday");
-            c.pos += 2;
-            if (hasOrd)
-                rule.ordinalDays ~= OrdinalDay(ord, cast(ubyte) w);
-            else
-            {
-                rule.weekday[w] = true;
-                rule.hasWeekdays = true;
-            }
-        });
-        break;
-    case "BYSETPOS":
-        eachItem(value, "BYSETPOS", (ref Cursor c) {
-            rule.setPos ~= parseInteger(c, -366, 366, false, "BYSETPOS");
-        });
-        break;
-    default:
-        throw new RRuleException("unsupported rule part: " ~ name.idup);
-    }
-}
-
-/// Parses an `RRULE` value into a fresh `Rule`. See `parseRuleInto`.
-@safe Rule parseRule(const(char)[] text)
+Rule parseRule(const(char)[] text) @safe pure
 {
     Rule r;
-    parseRuleInto(r, text);
+    bool haveFreq;
+    foreach (part; splitOn(text, ';'))
+    {
+        const eq = indexOf(part, '=');
+        if (eq < 0)
+            throw new ParseException("expected NAME=VALUE: " ~ part.idup);
+        const name = part[0 .. eq];
+        const value = part[eq + 1 .. $];
+        switch (name)
+        {
+        case "FREQ":
+            switch (value)
+            {
+            case "YEARLY":
+                r.freq = Freq.yearly;
+                break;
+            case "MONTHLY":
+                r.freq = Freq.monthly;
+                break;
+            case "WEEKLY":
+                r.freq = Freq.weekly;
+                break;
+            case "DAILY":
+                r.freq = Freq.daily;
+                break;
+            default:
+                throw new ParseException("unsupported FREQ: " ~ value.idup);
+            }
+            haveFreq = true;
+            break;
+        case "INTERVAL":
+            r.interval = parseInt(value);
+            if (r.interval < 1)
+                throw new ParseException("INTERVAL must be positive");
+            break;
+        case "COUNT":
+            r.count = parseInt(value);
+            if (r.count < 1)
+                throw new ParseException("COUNT must be positive");
+            break;
+        case "UNTIL":
+            r.until = LocalDateTime.parse(value);
+            r.hasUntil = true;
+            break;
+        case "WKST":
+            r.weekStart = parseWeekday(value);
+            break;
+        case "BYMONTH":
+            r.byMonth = parseIntList(value);
+            break;
+        case "BYMONTHDAY":
+            r.byMonthDay = parseIntList(value);
+            break;
+        case "BYYEARDAY":
+            r.byYearDay = parseIntList(value);
+            break;
+        case "BYWEEKNO":
+            r.byWeekNo = parseIntList(value);
+            break;
+        case "BYSETPOS":
+            r.bySetPos = parseIntList(value);
+            break;
+        case "BYDAY":
+            r.byDay = null;
+            foreach (item; splitOn(value, ','))
+            {
+                if (item.length < 2)
+                    throw new ParseException("invalid BYDAY entry: " ~ item.idup);
+                ByDay b;
+                b.weekday = parseWeekday(item[$ - 2 .. $]);
+                const prefix = item[0 .. $ - 2];
+                b.ordinal = prefix.length ? parseInt(prefix) : 0;
+                r.byDay ~= b;
+            }
+            break;
+        default:
+            throw new ParseException("unsupported rule part: " ~ name.idup);
+        }
+    }
+    if (!haveFreq)
+        throw new ParseException("FREQ is required");
+    validate(r);
     return r;
+}
+
+private void validate(const ref Rule r) @safe pure
+{
+    void range(const int[] values, int limit, string what)
+    {
+        foreach (v; values)
+            if (v == 0 || v < -limit || v > limit)
+                throw new ParseException("value out of range in " ~ what);
+    }
+
+    foreach (m; r.byMonth)
+        if (m < 1 || m > 12)
+            throw new ParseException("value out of range in BYMONTH");
+    range(r.byMonthDay, 31, "BYMONTHDAY");
+    range(r.byYearDay, 366, "BYYEARDAY");
+    range(r.byWeekNo, 53, "BYWEEKNO");
+    range(r.bySetPos, 366, "BYSETPOS");
+    foreach (b; r.byDay)
+        if (b.ordinal < -53 || b.ordinal > 53)
+            throw new ParseException("ordinal out of range in BYDAY");
+}
+
+private int parseWeekday(const(char)[] s) @safe pure
+{
+    switch (s)
+    {
+    case "MO":
+        return Weekday.monday;
+    case "TU":
+        return Weekday.tuesday;
+    case "WE":
+        return Weekday.wednesday;
+    case "TH":
+        return Weekday.thursday;
+    case "FR":
+        return Weekday.friday;
+    case "SA":
+        return Weekday.saturday;
+    case "SU":
+        return Weekday.sunday;
+    default:
+        throw new ParseException("invalid weekday: " ~ s.idup);
+    }
+}
+
+/// Parses a decimal integer with an optional leading `-`.
+int parseInt(const(char)[] s) @safe pure
+{
+    bool neg;
+    auto t = s;
+    if (t.length && t[0] == '-')
+    {
+        neg = true;
+        t = t[1 .. $];
+    }
+    if (t.length == 0 || t.length > 9)
+        throw new ParseException("invalid integer: " ~ s.idup);
+    int v;
+    foreach (c; t)
+    {
+        if (c < '0' || c > '9')
+            throw new ParseException("invalid integer: " ~ s.idup);
+        v = v * 10 + (c - '0');
+    }
+    return neg ? -v : v;
+}
+
+private int[] parseIntList(const(char)[] s) @safe pure
+{
+    int[] r;
+    foreach (item; splitOn(s, ','))
+        r ~= parseInt(item);
+    return r;
+}
+
+private ptrdiff_t indexOf(const(char)[] s, char c) @safe pure nothrow @nogc
+{
+    foreach (i, ch; s)
+        if (ch == c)
+            return i;
+    return -1;
+}
+
+private const(char)[][] splitOn(const(char)[] s, char sep) @safe pure nothrow
+{
+    const(char)[][] r;
+    size_t start;
+    foreach (i, ch; s)
+        if (ch == sep)
+        {
+            r ~= s[start .. i];
+            start = i + 1;
+        }
+    r ~= s[start .. $];
+    return r;
+}
+
+///
+@safe unittest
+{
+    const r = parseRule("FREQ=MONTHLY;INTERVAL=2;BYDAY=-1FR,MO;WKST=SU;COUNT=10");
+    assert(r.freq == Freq.monthly && r.interval == 2 && r.count == 10);
+    assert(r.weekStart == Weekday.sunday);
+    assert(r.byDay == [ByDay(Weekday.friday, -1), ByDay(Weekday.monday, 0)]);
+}
+
+@safe unittest
+{
+    import std.exception : assertThrown;
+
+    const r = parseRule("FREQ=YEARLY;UNTIL=20240430T000000;BYMONTH=1,12;BYMONTHDAY=-1,31;"
+            ~ "BYYEARDAY=-366,366;BYWEEKNO=53,-53;BYSETPOS=-1,1");
+    assert(r.hasUntil && r.until == LocalDateTime(2024, 4, 30));
+    assert(r.byMonth == [1, 12] && r.byMonthDay == [-1, 31]);
+    assert(r.byYearDay == [-366, 366] && r.byWeekNo == [53, -53] && r.bySetPos == [-1, 1]);
+    assert(r.interval == 1 && r.count == 0 && r.weekStart == Weekday.monday);
+
+    assertThrown!ParseException(parseRule("INTERVAL=2"));
+    assertThrown!ParseException(parseRule("FREQ=HOURLY"));
+    assertThrown!ParseException(parseRule("FREQ=DAILY;BYDAY=XX"));
+    assertThrown!ParseException(parseRule("FREQ=DAILY;COUNT=x"));
+    assertThrown!ParseException(parseRule("FREQ=DAILY;BYMONTH=13"));
+    assertThrown!ParseException(parseRule("FREQ=DAILY;BYMONTHDAY=0"));
+    assertThrown!ParseException(parseRule("FREQ=DAILY;FOO=1"));
+    assertThrown!ParseException(parseRule("FREQ"));
 }

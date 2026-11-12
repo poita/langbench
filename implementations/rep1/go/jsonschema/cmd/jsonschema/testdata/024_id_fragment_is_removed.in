@@ -1,0 +1,34 @@
+{
+  "schema": {
+    "$id": "https://example.test/root#",
+    "$defs": {
+      "i": {
+        "$id": "https://example.test/int#",
+        "type": "integer"
+      }
+    },
+    "properties": {
+      "a": {
+        "$ref": "https://example.test/int"
+      },
+      "b": {
+        "$ref": "int"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "both refs find the fragmentless base URI",
+      "data": {
+        "a": 1,
+        "b": 2
+      }
+    },
+    {
+      "description": "and the target still asserts",
+      "data": {
+        "a": "x"
+      }
+    }
+  ]
+}

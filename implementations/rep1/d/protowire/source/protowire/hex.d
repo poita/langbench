@@ -1,51 +1,72 @@
-/**
- * Hexadecimal conversion (lowercase only).
- */
+/// Lowercase hexadecimal conversion for byte strings.
 module protowire.hex;
 
-import protowire.memory : ByteBuffer;
+import std.array : Appender;
+import protowire.errors : WireException;
 
-private immutable ubyte[256] nibbleTable = () {
-    ubyte[256] t;
-    t[] = 0xff;
-    foreach (i; 0 .. 10)
-        t['0' + i] = cast(ubyte) i;
-    foreach (i; 0 .. 6)
-        t['a' + i] = cast(ubyte)(10 + i);
-    return t;
-}();
+private immutable char[16] digits = "0123456789abcdef";
 
-/**
- * Decode a string of lowercase hex digits and append the bytes to `output`.
- *
- * Returns false (appending nothing) if `hex` has odd length or contains
- * anything other than `0-9a-f`.
- */
-bool hexDecode(const(ubyte)[] hex, ref ByteBuffer output) nothrow @nogc @trusted
+/// Appends the lowercase hex of `bytes` to `sink`.
+void appendHex(ref Appender!(char[]) sink, scope const(ubyte)[] bytes) @safe pure
 {
-    if (hex.length & 1)
-        return false;
-    const n = hex.length / 2;
-    output.reserve(n);
-    ubyte* d = output.tail;
-    const(ubyte)* s = hex.ptr;
-    ubyte acc = 0;
-    foreach (i; 0 .. n)
+    sink.reserve(bytes.length * 2);
+    foreach (b; bytes)
     {
-        const hi = nibbleTable[s[2 * i]];
-        const lo = nibbleTable[s[2 * i + 1]];
-        acc |= hi | lo;
-        d[i] = cast(ubyte)((hi << 4) | (lo & 15));
+        sink.put(digits[b >> 4]);
+        sink.put(digits[b & 15]);
     }
-    if (acc > 15)
-        return false;
-    output.advance(n);
-    return true;
 }
 
-/// Value of one lowercase hex digit, or -1.
-int hexDigitValue(ubyte c) pure nothrow @nogc @safe
+/// Lowercase hex of `bytes` (empty input gives an empty string).
+string toHex(scope const(ubyte)[] bytes) @safe pure
 {
-    const v = nibbleTable[c];
-    return v == 0xff ? -1 : v;
+    auto sink = Appender!(char[])();
+    appendHex(sink, bytes);
+    return (() @trusted => cast(string) sink.data)();
+}
+
+/// Value of a lowercase hex digit, or -1.
+int hexDigitValue(char c) @safe pure nothrow @nogc
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    return -1;
+}
+
+/// Decodes a string of lowercase hex digits. Throws `WireException` on an odd
+/// length or any character that is not `0-9a-f` (uppercase is rejected).
+ubyte[] fromHex(scope const(char)[] hex) @safe pure
+{
+    if (hex.length & 1)
+        throw new WireException("odd number of hex digits");
+    auto result = new ubyte[hex.length / 2];
+    foreach (i; 0 .. result.length)
+    {
+        immutable hi = hexDigitValue(hex[2 * i]);
+        immutable lo = hexDigitValue(hex[2 * i + 1]);
+        if (hi < 0 || lo < 0)
+            throw new WireException("invalid hex digit");
+        result[i] = cast(ubyte)((hi << 4) | lo);
+    }
+    return result;
+}
+
+@safe pure unittest
+{
+    assert(toHex([]) == "");
+    assert(toHex([0x00, 0xff, 0x0a]) == "00ff0a");
+    assert(fromHex("00ff0a") == [0x00, 0xff, 0x0a]);
+    assert(fromHex("") == []);
+}
+
+@safe pure unittest
+{
+    import std.exception : assertThrown;
+
+    assertThrown!WireException(fromHex("abc"));
+    assertThrown!WireException(fromHex("AB"));
+    assertThrown!WireException(fromHex("0g"));
+    assertThrown!WireException(fromHex("0 "));
 }

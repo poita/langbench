@@ -1,42 +1,73 @@
 package jsonschema
 
-// bitset is a growable set of small non-negative integers.
-type bitset []uint64
-
-func (b *bitset) set(i int) {
-	w := i >> 6
-	if w >= len(*b) {
-		*b = append(*b, make([]uint64, w+1-len(*b))...)
-	}
-	(*b)[w] |= 1 << (uint(i) & 63)
+// annots holds the evaluation annotations used by unevaluatedItems and
+// unevaluatedProperties: which array indices and which object members a schema
+// has evaluated. Index sets are kept compactly: a prefix [0,prefix), a suffix
+// [from,∞), and an explicit bitmap for scattered indices (from "contains").
+type annots struct {
+	prefix  int
+	hasFrom bool
+	from    int
+	bits    []bool
+	props   map[string]struct{}
 }
 
-func (b bitset) has(i int) bool {
-	w := i >> 6
-	return w < len(b) && b[w]&(1<<(uint(i)&63)) != 0
-}
-
-func (b *bitset) or(o bitset) {
-	if len(o) > len(*b) {
-		*b = append(*b, make([]uint64, len(o)-len(*b))...)
-	}
-	for i, w := range o {
-		(*b)[i] |= w
+func (a *annots) markPrefix(n int) {
+	if n > a.prefix {
+		a.prefix = n
 	}
 }
 
-// annot holds the annotations a schema object produced for one instance:
-// the evaluated array indices and the evaluated object member positions.
-type annot struct {
-	items bitset
-	props bitset
+func (a *annots) markFrom(i int) {
+	if !a.hasFrom || i < a.from {
+		a.hasFrom, a.from = true, i
+	}
 }
 
-// merge adds the annotations of o to a. Both may be nil.
-func (a *annot) merge(o *annot) {
-	if a == nil || o == nil {
-		return
+func (a *annots) markIndex(i, length int) {
+	if a.bits == nil {
+		a.bits = make([]bool, length)
 	}
-	a.items.or(o.items)
-	a.props.or(o.props)
+	if i < len(a.bits) {
+		a.bits[i] = true
+	}
+}
+
+func (a *annots) markProp(name string) {
+	if a.props == nil {
+		a.props = make(map[string]struct{})
+	}
+	a.props[name] = struct{}{}
+}
+
+func (a *annots) itemEvaluated(i int) bool {
+	return i < a.prefix || (a.hasFrom && i >= a.from) || (i < len(a.bits) && a.bits[i])
+}
+
+func (a *annots) propEvaluated(name string) bool {
+	_, ok := a.props[name]
+	return ok
+}
+
+// merge adds everything in o to a.
+func (a *annots) merge(o *annots) {
+	a.markPrefix(o.prefix)
+	if o.hasFrom {
+		a.markFrom(o.from)
+	}
+	if len(o.bits) > 0 {
+		if len(a.bits) < len(o.bits) {
+			nb := make([]bool, len(o.bits))
+			copy(nb, a.bits)
+			a.bits = nb
+		}
+		for i, b := range o.bits {
+			if b {
+				a.bits[i] = true
+			}
+		}
+	}
+	for k := range o.props {
+		a.markProp(k)
+	}
 }

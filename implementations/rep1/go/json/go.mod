@@ -1,3 +1,3 @@
-module example.com/jsoncanon
+module github.com/example/jsoncanon
 
-go 1.27.1
+go 1.27

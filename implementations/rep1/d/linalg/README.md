@@ -1,82 +1,79 @@
 # linalg
 
-A small dense real linear-algebra library for D, plus a command-line driver
-that runs a script of matrix operations over [Matrix Market](https://math.nist.gov/MatrixMarket/formats.html)
-files. Everything is written from scratch on top of Phobos/druntime — no BLAS,
-LAPACK or other numerical library.
+A small dense real linear algebra library for D, with a command-line driver
+that runs a script of matrix operations on [Matrix Market](https://math.nist.gov/MatrixMarket/)
+files. Everything is written from scratch on the D standard library — no BLAS,
+LAPACK or other linear algebra code.
 
 Operations: `add`, `mul`, `transpose`, LU with partial pivoting (`lu`, `det`,
-`inv`, `solve`), Householder QR (`qr`, `lstsq`), Cholesky (`chol`), symmetric
-eigendecomposition by cyclic Jacobi (`eig`), SVD by one-sided Jacobi (`svd`,
-`cond`), and the 1-, ∞- and Frobenius norms. The floating-point evaluation
-order of every algorithm is fixed, so results are reproducible.
-
-## Layout
-
-```
-dub.json              package manifest (configurations: cli, library, unittest)
-build.sh, run.sh      build the CLI / run it from any directory
-source/app.d          the command-line tool (thin wrapper)
-source/linalg/        the library
-    package.d         `import linalg;` re-exports everything
-    matrix.d          Matrix type, add / multiply / transpose / norms
-    lu.d              LU, determinant, solve, inverse
-    qr.d              Householder QR, least squares
-    cholesky.d        Cholesky
-    eigen.d           symmetric Jacobi eigensolver
-    svd.d             one-sided Jacobi SVD, singular values, condition number
-    signs.d           sign normalisation of eigen/singular vectors
-    mmio.d            Matrix Market reader and writer
-    script.d          command-script parser and runner
-    errors.d          LinalgException / ErrorCode
-tests/                unit tests (separate from the library sources)
-```
+`inv`, `solve`), Householder QR (`qr`, `lstsq`), Cholesky (`chol`), cyclic
+Jacobi symmetric eigendecomposition (`eig`), one-sided Jacobi SVD (`svd`,
+`cond`), and the 1, ∞ and Frobenius norms. The algorithms are the classical
+dense ones, with every sum accumulated in a fixed, documented order, so results
+are reproducible bit for bit. Eigen/singular vectors are sign-normalised and
+sorted so that results are unique.
 
 ## Building
 
 Requires LDC and dub.
 
 ```sh
-./build.sh                                # or: dub build -b release --compiler=ldc2
-dub test --compiler=ldc2                  # unit tests
+dub build -b release --compiler=ldc2     # builds ./linalg
+./build.sh                               # same thing, from any directory
 ```
 
-The executable is `bin/linalg`.
+The build passes `--fp-contract=off` to LDC (see `dub.sdl`) so that the
+compiler never fuses multiply-adds and the rounding follows the written order
+of operations.
 
-## Command-line usage
-
-```
-linalg <input directory> <output directory>
-```
-
-The input directory holds `commands.txt` and the matrix files it names. One
-command per line (`#` comments and blank lines are ignored):
-
-```
-add A B        mul A B        transpose A     lu A         det A
-inv A          solve A B      qr A            chol A       eig A
-svd A          lstsq A B      norm1 A         norminf A    normfro A
-cond A
-```
-
-Matrices are Matrix Market files (`coordinate` or `array`; `real`, `integer`
-or `pattern`; `general`, `symmetric` or `skew-symmetric`). Each command *N*
-writes `NNN_<suffix>.mtx` files (e.g. `003_lu_L.mtx`) in `array real general`
-form with `%.10e` values, column-major. A command that cannot be carried out
-(`dimension_mismatch`, `not_square`, `not_symmetric`, `not_positive_definite`,
-`singular`) writes `NNN_error.txt` containing the code, and the script goes on.
-The program always exits 0 once it has started; nothing is printed to stdout.
+## Command line
 
 ```sh
-$ cat in/commands.txt
-add a.mtx b.mtx
-det a.mtx
-chol s.mtx
-$ ./run.sh in out && ls out
-001_add.mtx  002_det.mtx  003_chol_L.mtx
+./run.sh <input directory> <output directory>
 ```
 
-## Library example
+The input directory holds `commands.txt` and the matrix files it names. Each
+non-blank, non-`#` line is one command, `op file [file]`; commands are numbered
+from 1. Results go to the (existing, empty) output directory as
+`NNN_<suffix>.mtx` in Matrix Market `array real general` form with `%.10e`
+values, e.g. `003_lu_L.mtx`. A command that cannot be carried out writes
+`NNN_error.txt` holding one of `dimension_mismatch`, `not_square`,
+`not_symmetric`, `not_positive_definite`, `singular`, and the rest of the
+script still runs. The exit status is 0.
+
+| command | arguments | result files |
+|---|---|---|
+| `add`, `mul` | `A B` | `add`, `mul` |
+| `transpose` | `A` | `transpose` |
+| `lu` | `A` | `lu_P`, `lu_L`, `lu_U` |
+| `det`, `norm1`, `norminf`, `normfro`, `cond` | `A` | same name, 1x1 |
+| `inv` | `A` | `inv` |
+| `solve`, `lstsq` | `A B` | `solve`, `lstsq` |
+| `qr` | `A` | `qr_Q`, `qr_R` |
+| `chol` | `A` | `chol_L` |
+| `eig` | `A` | `eig_w`, `eig_V` |
+| `svd` | `A` | `svd_U`, `svd_S`, `svd_V` |
+
+## Library
+
+The package is split by responsibility:
+
+| module | contents |
+|---|---|
+| `linalg.matrix` | the dense row-major `Matrix` type |
+| `linalg.ops` | `add`, `mul`, `transpose`, `norm1`, `normInf`, `normFro`, `isSymmetric` |
+| `linalg.lu` | `luDecompose`, `luFactor`, `determinant`, `solve`, `inverse` |
+| `linalg.qr` | `qrDecompose`, `leastSquares` |
+| `linalg.cholesky` | `cholesky` |
+| `linalg.eigen` | `symmetricEigen` |
+| `linalg.svd` | `svd`, `condition` |
+| `linalg.ordering` | sort order and sign conventions for vectors |
+| `linalg.mmio` | Matrix Market parsing and formatting |
+| `linalg.script` | the command-script driver used by the CLI |
+| `linalg.errors` | `LinAlgException` and `ErrorCode` |
+
+`import linalg;` pulls in all of them. Failures are `LinAlgException`s whose
+`code` is the `ErrorCode`.
 
 ```d
 import std.stdio;
@@ -84,34 +81,43 @@ import linalg;
 
 void main()
 {
-    auto a = Matrix.fromRows([[4.0, 2.0], [2.0, 5.0]]);
-    auto b = Matrix.fromRows([[1.0], [2.0]]);
+    auto a = Matrix.fromRows([[4.0, 3.0], [6.0, 3.0]]);
+    auto b = Matrix.fromRows([[10.0], [12.0]]);
 
-    auto x = solve(a, b);                 // A x = b via LU
-    writeln(x.data);
+    auto x = solve(a, b);                  // A x = b
+    writeln(x[0, 0], " ", x[1, 0]);        // 1 2
 
-    auto l = cholesky(a);                 // A = L Lᵀ
-    auto e = symmetricEigen(a);           // ascending eigenvalues, e.V columns
-    auto s = svd(a);                      // s.U, s.s, s.V
-    writeln(e.w, " ", s.s, " cond=", conditionNumber(a));
+    writeln(determinant(a));               // -6
+
+    auto e = symmetricEigen(Matrix.fromRows([[2.0, 1.0], [1.0, 3.0]]));
+    writeln(e.w);                          // ascending eigenvalues
 
     try
-        inverse(Matrix.fromRows([[1.0, 2.0], [2.0, 4.0]]));
-    catch (LinalgException ex)
-        writeln(ex.code);                 // ErrorCode.singular
-
-    auto m = parseMatrixMarket("%%MatrixMarket matrix array real general\n1 1\n2.5\n");
-    write(formatMatrixMarket(m));         // `%.10e` array output
+        cholesky(a);                       // not symmetric
+    catch (LinAlgException err)
+        writeln(err.code);                 // notSymmetric
 }
 ```
 
-Add it to a dub project with `"dependencies": { "linalg": { "path": "../linalg" } }`
-and select the `library` configuration (`"subConfigurations": { "linalg": "library" }`).
+To depend on the library only (without the executable configuration), use
+`subConfiguration "linalg" "library"` in your `dub.sdl`.
 
-## Notes on conventions
+## Tests
 
-* Factorisations never modify their inputs; they work on copies.
-* `lu`/`det` use first-maximum pivoting; `qr` forces a non-negative diagonal
-  on `R`; eigenvectors and left singular vectors are sign-normalised so the
-  largest-magnitude component (first on ties) is positive.
-* `eig` and `svd` use Jacobi sweeps (at most 60), `O(n³)` per sweep.
+The tests are D `unittest` blocks next to the code they test, run by dub:
+
+```sh
+dub test --compiler=ldc2
+```
+
+The end-to-end suite lives in the parent repository: `python3 run_tests.py
+linalg -- linalg/run.sh`.
+
+## Layout
+
+```
+dub.sdl            package manifest (configurations: application, library)
+build.sh run.sh    build and run wrappers
+source/app.d       command-line entry point
+source/linalg/     the library
+```

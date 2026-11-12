@@ -1,0 +1,15 @@
+[package]
+name = "linalg"
+version = "0.1.0"
+edition = "2021"
+description = "Dense real linear algebra (LU, QR, Cholesky, Jacobi eigen/SVD) with a Matrix Market script driver"
+license = "MIT"
+readme = "README.md"
+
+[lib]
+name = "linalg"
+path = "src/lib.rs"
+
+[[bin]]
+name = "linalg"
+path = "src/main.rs"

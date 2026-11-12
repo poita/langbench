@@ -1,106 +1,103 @@
 # commonmark
 
-A CommonMark-to-HTML converter written in D, using only the standard library.
-It implements the subset of CommonMark 0.31.2 described in
-`problems/commonmark/SPEC.md` and produces the same output as the `cmark`
-reference implementation for it:
+A CommonMark-to-HTML converter written in D, with no dependencies beyond the
+standard library. It produces the same HTML as the reference implementation
+[`cmark`](https://github.com/commonmark/cmark) 0.31.2 for a practical subset
+of CommonMark:
 
-- block level: thematic breaks, ATX and setext headings, indented and fenced
-  code, paragraphs, block quotes, lists (tight/loose);
-- inline level: backslash escapes, entity references (`&amp; &lt; &gt; &quot;`
-  and numeric), code spans, emphasis/strong (full delimiter-run rules),
-  inline links and images, autolinks, hard and soft line breaks.
+- thematic breaks, ATX and setext headings, indented and fenced code blocks,
+  paragraphs, block quotes, lists (tight and loose);
+- backslash escapes, entities (numeric ones and `&amp;` `&lt;` `&gt;`
+  `&quot;`), code spans, emphasis and strong emphasis, inline links and images
+  (all destination and title forms), autolinks, hard and soft line breaks.
 
-Raw HTML, link reference definitions and extensions (tables, ...) are not
-supported. The parser is written from scratch: no Markdown library is used.
+Not supported (they are outside the subset): raw HTML and HTML blocks, link
+reference definitions and reference links, and extensions such as tables.
 
-## Design
+The implementation is a cmark-style two-phase parser: a line-by-line block
+parser builds the block tree, then each paragraph and heading is parsed into
+inlines with the delimiter-stack / bracket-stack / process-emphasis
+algorithm, and one walk over the tree writes the HTML. The work is linear in
+the input size (code spans use a backtick memo; emphasis uses `openers_bottom`
+bounds), and inline nesting thousands of levels deep is handled iteratively.
 
-Three stages over one in-memory copy of the input:
+## Layout
 
-| module                | responsibility                                              |
-|-----------------------|-------------------------------------------------------------|
-| `commonmark.blocks`   | line-by-line block parser (container matching, block starts, lazy continuation, list tightness) |
-| `commonmark.inlines`  | single-pass inline parser: backtick memo, delimiter stack, bracket stack, process-emphasis with `openers_bottom` |
-| `commonmark.html`     | iterative HTML renderer, HTML/href escaping                 |
-| `commonmark.scanners` | in-place scanners: autolinks, link destinations and titles  |
-| `commonmark.entities` | entity decoding, backslash unescaping, UTF-8 encoding       |
-| `commonmark.ast`      | `Block`, `BlockKind`, `Document` (index-linked block tree)  |
-| `commonmark.buffer`   | growable output buffer                                      |
-| `commonmark.chars`    | ASCII character classes                                     |
-| `commonmark` (`package.d`) | public API                                             |
-
-Block nodes and inline nodes are records in arrays linked by integer indices,
-so wrapping nodes for emphasis and links is O(1) per node. Inlines are parsed
-and rendered one block at a time, reusing the same arenas. Total cost is
-O(N + L·D) time and O(N) memory.
+| Path | Contents |
+| --- | --- |
+| `source/commonmark/package.d` | public entry point, `toHtml` |
+| `source/commonmark/ast.d` | the block tree (`Block`, `BlockKind`) |
+| `source/commonmark/block.d` | phase 1: `parseBlocks` |
+| `source/commonmark/inline.d` | phase 2: `InlineParser`, `InlineNode` |
+| `source/commonmark/html.d` | `renderHtml` |
+| `source/commonmark/text.d` | character classes, escaping, entity and URL helpers |
+| `source/commonmark/conformance.d` | spec-example and stress tests |
+| `cli/` | the command-line tool (dub sub-package `commonmark:cli`) |
+| `tests/data/spec_examples.json` | CommonMark spec examples used by the tests |
 
 ## Building
 
-Requires LDC 1.41 and dub 1.40.
+Requires LDC and dub.
 
+```sh
+./build.sh          # dub build -b release --compiler=ldc2 :cli
 ```
-./build.sh          # dub build -b release --compiler=ldc2  ->  bin/commonmark
-dub test --compiler=ldc2   # run the unit tests
-```
+
+This produces `bin/commonmark`. To build only the library, run
+`dub build -b release --compiler=ldc2` in this directory.
 
 ## Command-line use
 
-```
-./run.sh < input.md > output.html
+The tool reads a Markdown document (UTF-8) from standard input and writes the
+HTML to standard output:
+
+```sh
+printf '# Hello\n\nSome *emphasis* and a [link](/url "title").\n' | ./run.sh
 ```
 
-The whole of stdin is the Markdown document (UTF-8, LF line endings); the HTML
-is written to stdout in a single write. The exit status is 0 on success.
+```html
+<h1>Hello</h1>
+<p>Some <em>emphasis</em> and a <a href="/url" title="title">link</a>.</p>
+```
 
-```
-$ printf '# Hi\n\nSome *emphasis* and a [link](/x "t").\n' | ./run.sh
-<h1>Hi</h1>
-<p>Some <em>emphasis</em> and a <a href="/x" title="t">link</a>.</p>
-```
+`run.sh` can be invoked from any directory. The exit code is 0 on success.
 
 ## Using the library
 
-Add the package as a dependency (use the `library` configuration):
+Add it to your `dub.sdl` (`dependency "commonmark" path="path/to/commonmark"`)
+and call `toHtml`:
 
-```sdl
-dependency "commonmark" path="../commonmark"
-subConfiguration "commonmark" "library"
+```d
+import commonmark;
+import std.stdio : write;
+
+void main()
+{
+    write(toHtml("Hello, *world*! See <https://dlang.org>.\n"));
+}
 ```
+
+The stages are available separately: `parseBlocks(markdown)` returns the
+`Block` tree (see `commonmark.ast`), `renderHtml(document)` renders a tree, and
+`InlineParser.parse(content)` parses the raw text of a paragraph or heading
+into an array of `InlineNode`s.
 
 ```d
 import commonmark;
 
-void main()
-{
-    import std.stdio : write;
-
-    // Convert to a string ...
-    write(toHtml("Hello *world*, see [D](https://dlang.org)\n"));
-
-    // ... or append to a reusable buffer.
-    Buffer out_;
-    toHtml("- one\n- two\n", out_);
-    write(out_.data);
-
-    // The block structure can be inspected without rendering.
-    auto doc = parseBlocks("# Title\n\ntext\n");
-    assert(doc.blocks[doc.blocks[0].firstChild].kind == BlockKind.heading);
-}
+auto doc = parseBlocks("# Title\n\ntext\n");
+assert(doc.firstChild.kind == BlockKind.heading);
+assert(doc.firstChild.level == 1);
+assert(renderHtml(doc) == "<h1>Title</h1>\n<p>text</p>\n");
 ```
-
-`toHtml` never throws on any input; it is linear in the input size for the
-pathological cases (many unmatched brackets, delimiters or backticks).
 
 ## Tests
 
-Unit tests live in `tests/commonmark_tests/` (separate from the library source):
-block structure, inline constructs, scanners, entities, HTML escaping and all
-473 examples of the CommonMark specification that fall inside the supported
-subset. Run them with `dub test --compiler=ldc2`.
-
-The end-to-end tests are run from the repository root:
-
+```sh
+dub test --compiler=ldc2
 ```
-commonmark/build.sh && python3 run_tests.py commonmark -- commonmark/run.sh
-```
+
+The tests are `unittest` blocks: unit tests in each module, plus
+`conformance.d`, which runs the CommonMark spec examples in
+`tests/data/spec_examples.json` and some stress tests (deep nesting,
+pathological delimiter and backtick input).

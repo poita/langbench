@@ -1,7 +1,6 @@
 .dub/
-buildsys
-buildsys-test
+/kiln
+/kiln-*
 *.o
 *.a
 dub.selections.json
-scratch/

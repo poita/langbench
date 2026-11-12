@@ -1,0 +1,48 @@
+cabal-version:      2.4
+name:               softfloat
+version:            0.1.0.0
+synopsis:           Software IEEE-754 binary32 arithmetic on raw bit patterns
+description:
+  Addition, subtraction, multiplication, division and square root for
+  IEEE-754 single precision, implemented with bounded-width integer
+  arithmetic only (round-to-nearest-even, full gradual underflow).
+license:            MIT
+author:             softfloat contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Numeric
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Numeric.SoftFloat
+                    Numeric.SoftFloat.Protocol
+                    Numeric.SoftFloat.Internal.Unpack
+                    Numeric.SoftFloat.Internal.Round
+                    Numeric.SoftFloat.Internal.Ops
+  build-depends:    base >=4 && <5,
+                    bytestring
+
+executable softfloat
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    softfloat
+
+test-suite softfloat-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    hspec,
+                    QuickCheck,
+                    softfloat

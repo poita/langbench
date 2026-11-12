@@ -1,0 +1,37 @@
+-- | Worked examples from the specification (section 21), as @(name, commands, results)@.
+-- Copied verbatim from the worked examples of the format specification.
+module Examples (examples) where
+
+examples :: [(String, String, String)]
+examples =
+  [ ("21.2 Deleting everything, then reusing the freed page",
+      "put \"k1\" \"x\"\nput \"k2\" \"y\"\ndelete \"k1\"\ndelete \"k2\"\nstat\nput \"k3\" \"z\"\nstat\n",
+      "[1] ok put created\n[2] ok put created\n[3] ok delete removed\n[4] ok delete removed\n[5] ok stat\n  pages 2\n  free 1\n  freehead 2\n  docs 0\n  root 0\n  height 0\n  commits 4\n  indexes 0\n  wal 8512\n[6] ok put created\n[7] ok stat\n  pages 2\n  free 0\n  freehead 0\n  docs 1\n  root 2\n  height 1\n  commits 5\n  indexes 0\n  wal 10632\n")
+  , ("21.3 An overflow chain",
+      "put \"big\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]\nstat\nget \"big\"\ndelete \"big\"\nstat\n",
+      "[1] ok put created\n[2] ok stat\n  pages 3\n  free 0\n  freehead 0\n  docs 1\n  root 3\n  height 1\n  commits 1\n  indexes 0\n  wal 3200\n[3] ok get value\n  [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25]\n[4] ok delete removed\n[5] ok stat\n  pages 3\n  free 2\n  freehead 3\n  docs 0\n  root 0\n  height 0\n  commits 2\n  indexes 0\n  wal 6368\n")
+  , ("21.4 Rollback and commit",
+      "begin\nput \"a\" 1\nput \"b\" 2\nstat\nrollback\nstat\nbegin\nput \"a\" 1\ncommit\nstat\n",
+      "[1] ok begin\n[2] ok put created\n[3] ok put created\n[4] ok stat\n  pages 2\n  free 0\n  freehead 0\n  docs 2\n  root 2\n  height 1\n  commits 0\n  indexes 0\n  wal 32\n[5] ok rollback\n[6] ok stat\n  pages 1\n  free 0\n  freehead 0\n  docs 0\n  root 0\n  height 0\n  commits 0\n  indexes 0\n  wal 32\n[7] ok begin\n[8] ok put created\n[9] ok commit 1 frames 2\n[10] ok stat\n  pages 2\n  free 0\n  freehead 0\n  docs 1\n  root 2\n  height 1\n  commits 1\n  indexes 0\n  wal 2152\n")
+  , ("21.5 Errors",
+      "put \"a\" 1\nput \"a\" 2\nget \"zz\"\ndelete \"zz\"\nfrobnicate\nput \"a\"\nput \"a\" 007\nput \"a\" 9223372036854775808\nput \"a\" {x:1,x:2}\nput \"\\ud800\" 1\nput \"\" 1\ncommit\nrollback\nbegin\nbegin\ncheckpoint\n",
+      "[1] ok put created\n[2] ok put replaced\n[3] error not-found\n[4] error not-found\n[5] error unknown-command\n[6] error syntax\n[7] error syntax\n[8] error int-range\n[9] error dup-field\n[10] error bad-utf8\n[11] error bad-key\n[12] error no-txn\n[13] error no-txn\n[14] ok begin\n[15] error txn-active\n[16] error txn-active\n")
+  , ("21.6 A secondary index and `find`",
+      "put \"u1\" {name:\"ada\",age:36}\nput \"u2\" {name:\"bob\",age:29}\nput \"u3\" {name:\"cy\",age:36}\ncreate index age\nindexes\nfind age == 36\nfind age > 30\nfind age == 36 and name == \"cy\"\nfind not(age == 36)\nstat\n",
+      "[1] ok put created\n[2] ok put created\n[3] ok put created\n[4] ok create index age entries 3\n[5] ok indexes 1\n  0 age root 3 entries 3\n[6] ok find 2 plan index age\n  \"u1\" = {\"age\":36,\"name\":\"ada\"}\n  \"u3\" = {\"age\":36,\"name\":\"cy\"}\n[7] ok find 2 plan index age\n  \"u1\" = {\"age\":36,\"name\":\"ada\"}\n  \"u3\" = {\"age\":36,\"name\":\"cy\"}\n[8] ok find 1 plan index age\n  \"u3\" = {\"age\":36,\"name\":\"cy\"}\n[9] ok find 1 plan scan\n  \"u2\" = {\"age\":29,\"name\":\"bob\"}\n[10] ok stat\n  pages 3\n  free 0\n  freehead 0\n  docs 3\n  root 2\n  height 1\n  commits 4\n  indexes 1\n  wal 8512\n")
+  , ("21.7 Scan ranges",
+      "put \"a\" 1\nput \"b\" 2\nput \"c\" 3\nput \"d\" 4\nscan\nscan from \"b\"\nscan to \"c\"\nscan from \"b\" to \"d\"\nscan limit 2\nscan reverse limit 2\nscan keys reverse\nscan from \"d\" to \"b\"\n",
+      "[1] ok put created\n[2] ok put created\n[3] ok put created\n[4] ok put created\n[5] ok scan 4\n  \"a\" = 1\n  \"b\" = 2\n  \"c\" = 3\n  \"d\" = 4\n[6] ok scan 3\n  \"b\" = 2\n  \"c\" = 3\n  \"d\" = 4\n[7] ok scan 2\n  \"a\" = 1\n  \"b\" = 2\n[8] ok scan 2\n  \"b\" = 2\n  \"c\" = 3\n[9] ok scan 2\n  \"a\" = 1\n  \"b\" = 2\n[10] ok scan 2\n  \"d\" = 4\n  \"c\" = 3\n[11] ok scan 4\n  \"d\"\n  \"c\"\n  \"b\"\n  \"a\"\n[12] ok scan 0\n")
+  , ("21.8 `update` and `unset`",
+      "put \"u1\" {name:\"ada\"}\nupdate \"u1\" age 36\nupdate \"u1\" addr.city \"oslo\"\nget \"u1\"\nunset \"u1\" addr.city\nget \"u1\"\nunset \"u1\" addr.zip\nunset \"u1\" name.first\nupdate \"u2\" age 1\n",
+      "[1] ok put created\n[2] ok update updated\n[3] ok update updated\n[4] ok get value\n  {\"addr\":{\"city\":\"oslo\"},\"age\":36,\"name\":\"ada\"}\n[5] ok unset updated\n[6] ok get value\n  {\"addr\":{},\"age\":36,\"name\":\"ada\"}\n[7] error no-field\n[8] error not-object\n[9] error not-found\n")
+  , ("21.9 Checkpoint and `drop index`",
+      "put \"u1\" {age:1}\ncreate index age\nstat\ncheckpoint\nstat\ndrop index age\nstat\ndrop index age\n",
+      "[1] ok put created\n[2] ok create index age entries 1\n[3] ok stat\n  pages 3\n  free 0\n  freehead 0\n  docs 1\n  root 2\n  height 1\n  commits 2\n  indexes 1\n  wal 4272\n[4] ok checkpoint pages 3\n[5] ok stat\n  pages 3\n  free 0\n  freehead 0\n  docs 1\n  root 2\n  height 1\n  commits 2\n  indexes 1\n  wal 32\n[6] ok drop index age pages 1\n[7] ok stat\n  pages 3\n  free 1\n  freehead 3\n  docs 1\n  root 2\n  height 1\n  commits 3\n  indexes 0\n  wal 2152\n[8] error index-missing\n")
+  , ("21.12 A split, a borrow and a merge",
+      "put \"k1\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k2\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k3\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k4\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k5\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k6\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nstat\nscan keys\ndelete \"k1\"\ndelete \"k2\"\ndelete \"k3\"\nstat\nscan keys\n",
+      "[1] ok put created\n[2] ok put created\n[3] ok put created\n[4] ok put created\n[5] ok put created\n[6] ok put created\n[7] ok stat\n  pages 4\n  free 0\n  freehead 0\n  docs 6\n  root 4\n  height 2\n  commits 6\n  indexes 0\n  wal 14848\n[8] ok scan 6\n  \"k1\"\n  \"k2\"\n  \"k3\"\n  \"k4\"\n  \"k5\"\n  \"k6\"\n[9] ok delete removed\n[10] ok delete removed\n[11] ok delete removed\n[12] ok stat\n  pages 4\n  free 2\n  freehead 4\n  docs 3\n  root 2\n  height 1\n  commits 9\n  indexes 0\n  wal 25400\n[13] ok scan 3\n  \"k4\"\n  \"k5\"\n  \"k6\"\n")
+  , ("21.13 A page left thin by a replace, and a borrow that does not fill it",
+      "put \"k1\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k2\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k3\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k4\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k5\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k6\" [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20]\nput \"k1\" 1\nput \"k2\" 2\nstat\ndelete \"k3\"\nstat\nscan keys\n",
+      "[1] ok put created\n[2] ok put created\n[3] ok put created\n[4] ok put created\n[5] ok put created\n[6] ok put created\n[7] ok put replaced\n[8] ok put replaced\n[9] ok stat\n  pages 4\n  free 0\n  freehead 0\n  docs 6\n  root 4\n  height 2\n  commits 8\n  indexes 0\n  wal 19088\n[10] ok delete removed\n[11] ok stat\n  pages 4\n  free 0\n  freehead 0\n  docs 5\n  root 4\n  height 2\n  commits 9\n  indexes 0\n  wal 23304\n[12] ok scan 5\n  \"k1\"\n  \"k2\"\n  \"k4\"\n  \"k5\"\n  \"k6\"\n")
+  ]

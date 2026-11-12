@@ -1,3 +1,3 @@
-module example.com/regex
+module example.com/regexbt
 
 go 1.27

@@ -1,29 +1,28 @@
 name "mime"
-description "MIME email parser: mbox/.eml mailboxes to a normalised text dump plus decoded attachments"
-authors "Peter Alexander"
-copyright "Copyright © 2025"
+description "MIME email parser: mbox/.eml reading, RFC 2047/2231 decoding, addresses, dates and a normalised dump"
+authors "mime authors"
+copyright "Copyright © 2025, mime authors"
 license "MIT"
 
-targetPath "bin"
 sourcePaths "source"
 importPaths "source"
 
-configuration "application" {
+// Default configuration: the command-line tool (bin/mime).
+configuration "cli" {
     targetType "executable"
     targetName "mime"
+    targetPath "bin"
     mainSourceFile "source/app.d"
 }
 
+// Use this configuration when depending on the package as a library.
 configuration "library" {
     targetType "library"
-    targetName "mime"
     excludedSourceFiles "source/app.d"
 }
 
+// `dub test` runs the unittest blocks of every library module.
 configuration "unittest" {
     targetType "library"
-    targetName "mime-test"
     excludedSourceFiles "source/app.d"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
 }

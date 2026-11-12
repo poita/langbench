@@ -1,87 +1,82 @@
 package sat
 
-// varHeap is an indexed binary max-heap of variables ordered by activity.
-// The tie-breaking rules (strict comparisons in sift-up/sift-down) are part
-// of the solver's deterministic behaviour.
+// varHeap is a binary max-heap of variables ordered by activity. It supports
+// O(log n) insertion, removal of the maximum and key increase.
 type varHeap struct {
-	act   *[]float64 // shared with the solver
-	items []int32
-	pos   []int32 // position of each variable in items, or -1
+	act     *[]float64 // shared with the solver
+	heap    []int
+	indices []int // position of each variable in heap, or -1
 }
 
-func newVarHeap(act *[]float64, n int) *varHeap {
-	h := &varHeap{act: act, pos: make([]int32, n)}
-	for i := range h.pos {
-		h.pos[i] = -1
-	}
-	return h
-}
-
-func (h *varHeap) contains(v int32) bool { return h.pos[v] >= 0 }
-
-func (h *varHeap) insert(v int32) {
-	h.pos[v] = int32(len(h.items))
-	h.items = append(h.items, v)
-	h.up(int(h.pos[v]))
-}
-
-// increased restores the heap order after the activity of v has grown.
-func (h *varHeap) increased(v int32) {
-	if p := h.pos[v]; p >= 0 {
-		h.up(int(p))
+func (h *varHeap) grow(n int) {
+	for len(h.indices) < n {
+		h.indices = append(h.indices, -1)
 	}
 }
 
-func (h *varHeap) pop() int32 {
-	top := h.items[0]
-	last := h.items[len(h.items)-1]
-	h.items = h.items[:len(h.items)-1]
-	h.pos[top] = -1
-	if len(h.items) > 0 {
-		h.items[0] = last
-		h.pos[last] = 0
+func (h *varHeap) contains(v int) bool { return h.indices[v] >= 0 }
+func (h *varHeap) empty() bool         { return len(h.heap) == 0 }
+func (h *varHeap) less(a, b int) bool  { return (*h.act)[a] > (*h.act)[b] }
+
+func (h *varHeap) insert(v int) {
+	h.indices[v] = len(h.heap)
+	h.heap = append(h.heap, v)
+	h.up(h.indices[v])
+}
+
+// increased restores the heap order after the activity of v grew.
+func (h *varHeap) increased(v int) {
+	if h.contains(v) {
+		h.up(h.indices[v])
+	}
+}
+
+func (h *varHeap) removeMax() int {
+	top := h.heap[0]
+	last := h.heap[len(h.heap)-1]
+	h.heap = h.heap[:len(h.heap)-1]
+	h.indices[top] = -1
+	if len(h.heap) > 0 {
+		h.heap[0] = last
+		h.indices[last] = 0
 		h.down(0)
 	}
 	return top
 }
 
 func (h *varHeap) up(i int) {
-	act := *h.act
-	x := h.items[i]
-	ax := act[x]
+	v := h.heap[i]
 	for i > 0 {
 		p := (i - 1) >> 1
-		if act[h.items[p]] >= ax {
+		if !h.less(v, h.heap[p]) {
 			break
 		}
-		h.items[i] = h.items[p]
-		h.pos[h.items[i]] = int32(i)
+		h.heap[i] = h.heap[p]
+		h.indices[h.heap[i]] = i
 		i = p
 	}
-	h.items[i] = x
-	h.pos[x] = int32(i)
+	h.heap[i] = v
+	h.indices[v] = i
 }
 
 func (h *varHeap) down(i int) {
-	act := *h.act
-	x := h.items[i]
-	ax := act[x]
-	n := len(h.items)
+	v := h.heap[i]
+	n := len(h.heap)
 	for {
 		c := 2*i + 1
 		if c >= n {
 			break
 		}
-		if r := c + 1; r < n && act[h.items[r]] > act[h.items[c]] {
-			c = r
+		if c+1 < n && h.less(h.heap[c+1], h.heap[c]) {
+			c++
 		}
-		if act[h.items[c]] <= ax {
+		if !h.less(h.heap[c], v) {
 			break
 		}
-		h.items[i] = h.items[c]
-		h.pos[h.items[i]] = int32(i)
+		h.heap[i] = h.heap[c]
+		h.indices[h.heap[i]] = i
 		i = c
 	}
-	h.items[i] = x
-	h.pos[x] = int32(i)
+	h.heap[i] = v
+	h.indices[v] = i
 }

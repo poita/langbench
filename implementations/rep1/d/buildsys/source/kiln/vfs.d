@@ -1,152 +1,198 @@
-/// The virtual file system: path -> immutable content with cached hashes.
+/**
+ * The virtual file system: a flat map from workspace paths to contents, with
+ * lazily cached content hashes and a sorted index for `glob`.
+ */
 module kiln.vfs;
 
+import kiln.glob : GlobPattern;
 import kiln.hash : fnv1a;
-import kiln.paths : isGlobEligible;
+import kiln.text : cmpBytes, isGeneratedPath, startsWithBytes;
 
-/// An in-memory flat file system.
-///
-/// Content buffers are immutable and shared by reference, so reading a file
-/// never copies it. Each file caches its FNV-1a hash, computed lazily.
-final class Vfs
+/// The path of the persisted build state.
+enum stateFilePath = ".kiln-state";
+
+/// One file: its content, a cached hash of that content and a modification stamp.
+final class FileEntry
 {
-    private static struct Rec
+    /// The file's bytes.
+    string content;
+    /// Modification stamp (updated by `touch`; never used for change detection).
+    ulong stamp;
+    private ulong cachedHash;
+    private bool hashed;
+
+    ///
+    this(string content, ulong stamp = 0) @safe pure nothrow @nogc
     {
-        string content;
-        ulong hash;
-        bool hashValid;
-        long stamp;
+        this.content = content;
+        this.stamp = stamp;
     }
 
-    private Rec[string] files;
-    private string[] index; // sorted glob-eligible paths
-    private bool indexDirty = true;
-    private long stampCounter;
+    /// FNV-1a hash of the content, computed once per distinct content.
+    ulong hash() @safe pure nothrow @nogc
+    {
+        if (!hashed)
+        {
+            cachedHash = fnv1a(content);
+            hashed = true;
+        }
+        return cachedHash;
+    }
+}
+
+/// The virtual file system of a session.
+final class Vfs
+{
+    private FileEntry[string] files;
+    private string[] globIndex;
+    private bool globIndexDirty = true;
+    private ulong clock;
 
     /// True if a file exists at `path`.
-    bool exists(const(char)[] path) const @safe
+    bool exists(const(char)[] path) const
     {
         return (path in files) !is null;
     }
 
-    /// The content of `path`, which must exist.
-    string content(const(char)[] path) const @safe
+    /// The entry at `path`, or null.
+    FileEntry get(const(char)[] path)
     {
-        return files[path].content;
+        auto p = path in files;
+        return p ? *p : null;
     }
 
-    /// The content hash of `path`, which must exist. Computed at most once per content.
-    ulong hash(const(char)[] path) @safe
+    /// Content of `path`; null if absent.
+    string read(const(char)[] path)
     {
-        auto r = path in files;
-        assert(r !is null);
-        if (!r.hashValid)
-        {
-            r.hash = fnv1a(r.content);
-            r.hashValid = true;
-        }
-        return r.hash;
+        auto f = get(path);
+        return f is null ? null : f.content;
     }
 
-    /// Creates or replaces a file; its hash is computed on first use.
-    void put(string path, string content) @safe
+    /// Creates or replaces the file at `path`.
+    void write(string path, string content)
     {
-        if (auto r = path in files)
+        auto p = path in files;
+        if (p is null)
         {
-            r.content = content;
-            r.hashValid = false;
-            r.stamp = ++stampCounter;
+            if (isGlobbable(path))
+                globIndexDirty = true;
+            files[path] = new FileEntry(content, ++clock);
         }
         else
         {
-            files[path] = Rec(content, 0, false, ++stampCounter);
-            if (isGlobEligible(path))
-                indexDirty = true;
+            *p = new FileEntry(content, ++clock);
         }
     }
 
-    /// Creates or replaces a file whose hash is already known.
-    void putHashed(string path, string content, ulong h) @safe
+    /// Removes the file at `path`; returns whether it existed.
+    bool remove(string path)
     {
-        put(path, content);
-        auto r = path in files;
-        r.hash = h;
-        r.hashValid = true;
-    }
-
-    /// Removes a file; returns whether it existed.
-    bool remove(string path) @safe
-    {
-        if (path !in files)
+        if ((path in files) is null)
             return false;
+        if (isGlobbable(path))
+            globIndexDirty = true;
         files.remove(path);
-        if (isGlobEligible(path))
-            indexDirty = true;
         return true;
     }
 
-    /// Updates the modification stamp of a file (never used for change detection).
-    void touch(const(char)[] path) @safe
+    /// Updates the modification stamp of `path` (and nothing else).
+    void touch(const(char)[] path)
     {
-        if (auto r = path in files)
-            r.stamp = ++stampCounter;
+        if (auto f = get(path))
+            f.stamp = ++clock;
     }
 
-    /// Number of files.
-    size_t length() const @safe
+    /// Hash of the file at `path`; false if the file does not exist.
+    bool hashOf(const(char)[] path, out ulong h)
     {
-        return files.length;
+        auto f = get(path);
+        if (f is null)
+            return false;
+        h = f.hash();
+        return true;
     }
 
-    /// Every path, sorted ascending by byte order.
-    string[] paths() @safe
+    /// All paths, sorted ascending by byte order.
+    string[] paths()
     {
         import std.algorithm.sorting : sort;
 
         auto r = files.keys;
-        r.sort();
+        r.sort!((a, b) => cmpBytes(a, b) < 0);
         return r;
     }
 
-    /// Sorted list of glob-eligible paths (rebuilt lazily when the set changed).
-    const(string)[] globIndex() @safe
-    {
-        if (indexDirty)
-        {
-            import std.algorithm.sorting : sort;
+    /// Number of files.
+    size_t length() const { return files.length; }
 
-            string[] r;
-            r.reserve(files.length);
-            foreach (k, ref v; files)
-                if (isGlobEligible(k))
-                    r ~= k;
-            r.sort();
-            index = r;
-            indexDirty = false;
-        }
-        return index;
+    /// Whether `glob` may see `path`: not under `out/` and not the state file.
+    static bool isGlobbable(const(char)[] path) @safe pure nothrow @nogc
+    {
+        return !isGeneratedPath(path) && path != stateFilePath;
     }
 
-    /// The contiguous slice of the glob index whose paths start with `prefix`.
-    const(string)[] globRange(const(char)[] prefix) @safe
+    /// The sorted workspace paths matching `pattern` (excluding generated files and the state file).
+    string[] glob(ref const GlobPattern pattern)
     {
-        auto idx = globIndex();
-        if (prefix.length == 0)
-            return idx;
-        // lower bound
-        size_t lo = 0, hi = idx.length;
+        import std.algorithm.sorting : sort;
+
+        if (globIndexDirty)
+        {
+            globIndex.length = 0;
+            foreach (k; files.byKey)
+                if (isGlobbable(k))
+                    globIndex ~= k;
+            globIndex.sort!((a, b) => cmpBytes(a, b) < 0);
+            globIndexDirty = false;
+        }
+        const prefix = pattern.literalPrefix;
+        // Lower bound of the prefix in the sorted index.
+        size_t lo = 0, hi = globIndex.length;
         while (lo < hi)
         {
-            const mid = lo + (hi - lo) / 2;
-            if (idx[mid] < prefix)
+            const mid = (lo + hi) / 2;
+            if (cmpBytes(globIndex[mid], prefix) < 0)
                 lo = mid + 1;
             else
                 hi = mid;
         }
-        size_t end = lo;
-        while (end < idx.length && idx[end].length >= prefix.length
-                && idx[end][0 .. prefix.length] == prefix)
-            ++end;
-        return idx[lo .. end];
+        string[] result;
+        for (size_t i = lo; i < globIndex.length && startsWithBytes(globIndex[i], prefix); ++i)
+            if (pattern.matches(globIndex[i]))
+                result ~= globIndex[i];
+        return result;
     }
+}
+
+unittest
+{
+    auto fs = new Vfs;
+    fs.write("src/b.txt", "b\n");
+    fs.write("src/a.txt", "a\n");
+    fs.write("src/sub/c.txt", "c\n");
+    fs.write("out/x.txt", "x\n");
+    fs.write(".kiln-state", "kiln-state 1\n");
+    GlobPattern g;
+    assert(GlobPattern.compile("**/*.txt", g));
+    assert(fs.glob(g) == ["src/a.txt", "src/b.txt", "src/sub/c.txt"]);
+    assert(GlobPattern.compile("src/*.txt", g));
+    assert(fs.glob(g) == ["src/a.txt", "src/b.txt"]);
+    fs.write("src/0.txt", "0\n");
+    fs.remove("src/b.txt");
+    assert(fs.glob(g) == ["src/0.txt", "src/a.txt"]);
+    assert(GlobPattern.compile("**", g));
+    assert(fs.glob(g).length == 3);
+}
+
+unittest
+{
+    auto fs = new Vfs;
+    fs.write("a", "hello\n");
+    ulong h;
+    assert(fs.hashOf("a", h) && h == fnv1a("hello\n"));
+    assert(!fs.hashOf("b", h));
+    const before = fs.get("a").stamp;
+    fs.touch("a");
+    assert(fs.get("a").stamp > before && fs.read("a") == "hello\n");
+    assert(fs.paths() == ["a"]);
 }

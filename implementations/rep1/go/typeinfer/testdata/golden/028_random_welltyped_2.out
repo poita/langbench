@@ -1,0 +1,200 @@
+s : 'a -> int
+v : int
+c : (('a -> 'b -> int) -> 'c) -> 'c
+m : 'a -> ('b -> 'c -> 'b) -> 'd -> 'e -> 'f -> 'b -> 'c list -> 'b
+x1 : ('a -> 'b -> int) * (('c -> bool) * ('d list -> int) * ((int -> 'e) -> 'e)) * int
+c : int -> int
+x : ('a -> 'b -> int) * (('c -> bool) * ('d list -> int) * ((int -> 'e) -> 'e)) * int
+b : bool
+u : (int * (bool -> bool) -> 'a) -> 'a
+r : 'a -> bool
+q : 'a -> int * int
+acc : int
+y : 'a list
+f : 'a -> bool
+fn : 'a -> 'b -> 'c -> 'd -> 'e list
+- : bool
+- : 'a -> bool
+t : int * ((('a -> 'b -> int) * unit * int) * (('c -> 'd -> int) * (('e -> bool) * ('f list -> int) * ((int -> 'g) -> 'g)) * int)) * (bool * int) list
+l : 'a -> 'b -> 'c -> bool
+- : 'a -> 'b -> 'c -> 'd -> 'c
+z : int
+y : 'a list
+fn : ((('a -> 'b -> 'a) -> 'a -> 'b list -> 'a) -> ('c list -> int) -> int -> 'd) -> ('e -> 'f -> int) * (('g -> 'h -> int) * ((('a -> 'b -> 'a) -> 'a -> 'b list -> 'a) -> ('c list -> int) -> int -> 'd) * ((('a -> 'b -> 'a) -> 'a -> 'b list -> 'a) -> ('c list -> int) -> int -> 'd)) * ('i -> 'j -> 'd)
+e : 'a -> 'b -> 'c -> (int -> int -> 'd) -> 'e -> 'd
+h : ('a -> bool) -> (int -> bool) -> 'b -> 'a -> bool
+- : 'a list -> int
+f : 'a list
+x2 : 'a list
+z : int
+- : 'a -> 'b -> 'c -> 'd -> 'e -> bool
+s : int
+x1 : 'a -> 'b list
+k : unit
+c : int
+n : 'a -> 'b -> 'c -> (int -> int -> 'd) -> 'e -> 'd
+y : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g -> int
+g : 'a -> 'b -> 'c -> 'd -> 'e -> int
+- : 'a -> (int -> int -> 'b) -> 'c -> 'b
+c : 'a list
+e : int * ((('a -> 'b -> int) * unit * int) * (('c -> 'd -> int) * (('e -> bool) * ('f list -> int) * ((int -> 'g) -> 'g)) * int)) * (bool * int) list
+x1 : 'a -> 'b -> 'c -> 'd -> int
+b : unit
+y : 'a -> ('b -> 'c list -> int) * ('d -> 'e -> 'f -> bool * unit * int)
+r : 'a -> 'b -> 'c -> 'd -> int
+d : 'a list -> 'a
+lst : 'a -> (bool -> int -> 'b * 'c) -> 'b
+h : ('a -> 'b) -> 'c -> ('c -> 'a) -> 'b list
+- : unit
+x2 : ('a -> 'b -> 'c -> int) * int * int
+r : int
+lst : int
+- : 'a -> int -> int
+y : int
+- : 'a -> 'b -> 'c -> ('c * 'b) * 'b * ((int * int * bool) * ('a * 'c * 'a) * ('d -> 'e -> 'f -> unit))
+h : 'a list
+t : 'a list
+v : 'a -> int list
+k : int
+- : 'a -> 'b -> 'c list
+n : 'a list
+w : 'a -> 'b list
+- : 'a -> 'b -> 'c -> int
+q : bool
+y : (int -> 'a) -> 'a
+acc : 'a list
+r : 'a -> 'b -> ('c * 'd -> 'c) list
+n : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> int
+n : 'a -> int
+r : int -> bool
+x : bool * unit
+v : bool
+- : int
+h : bool
+x2 : bool
+lst : bool
+t : (bool -> 'a) -> int -> 'a
+s : 'a -> (((bool -> bool) -> 'b -> 'c -> 'd) -> 'c -> 'b -> 'd) list
+t : 'a list
+acc : 'a -> (('b list -> bool) -> 'c) -> 'c
+- : bool
+t : 'a -> 'b -> 'c -> 'd -> 'e list
+f : ('a -> 'b -> 'c -> 'd list) list
+u : bool
+acc : bool
+- : bool
+- : 'a -> 'b -> 'c -> (int * 'd list) list
+g : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> int
+r : int
+- : 'a -> 'b list
+b : bool
+g : 'a -> 'b -> 'c -> 'd -> int
+- : 'a -> (('b -> 'c -> 'd -> 'e -> 'f list) -> 'g) -> 'h -> 'g
+- : (int * ('a -> (bool -> 'b) -> 'b)) list
+- : int * ('a -> 'b -> 'c -> 'd -> 'e list) * (bool -> ('f list -> ('g -> 'h list) -> int -> 'g -> 'h list) -> ('g -> 'h list) -> ('g -> 'h list) list)
+lst : int -> int -> 'a -> (int list -> 'b) -> 'b
+k : int
+u : int
+fn : bool * unit -> (bool * unit -> bool * unit) -> bool * unit
+s : 'a list
+- : 'a -> 'b -> 'c -> 'd list -> 'd
+h : bool
+s : int * ((('a -> 'b -> int) * unit * int) * (('c -> 'd -> int) * (('e -> bool) * ('f list -> int) * ((int -> 'g) -> 'g)) * int)) * (bool * int) list
+acc : 'a list
+t : bool
+lst : 'a -> int
+l : int * ('a list * ('b list -> 'b)) * int
+l : 'a list
+f : 'a -> 'b -> 'c -> int
+- : int
+- : 'a -> 'b -> int
+- : int
+e : bool
+t : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+a : 'a -> 'b -> ('c -> 'd -> 'e -> int) * ('f -> 'g -> 'h -> bool) * ('i -> unit)
+v : int * ('a -> 'b -> 'c -> 'd -> int)
+acc : int * ((('a -> 'b -> int) * unit * int) * (('c -> 'd -> int) * (('e -> bool) * ('f list -> int) * ((int -> 'g) -> 'g)) * int)) * (bool * int) list
+z : bool
+d : 'a list
+s : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'f
+fn : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'c list
+g : 'a -> 'b list
+x2 : int
+q : bool -> bool
+r : 'a -> 'b -> int
+x2 : 'a list
+- : 'a * 'b -> 'a
+q : int * ('a * 'b -> 'b) * ('c -> 'd -> 'e -> bool)
+s : bool list
+lst : 'a list list
+n : int
+w : 'a -> 'a
+- : 'a -> int
+y : (int -> 'a list -> 'b) -> 'c -> 'd -> 'e -> 'f -> 'e * int
+s : (('a -> 'b -> 'c -> 'd -> int) -> 'e) -> 'e
+s : unit
+b : int * bool * 'a list
+d : ('a -> 'b -> 'c -> 'd list) -> 'e
+k : bool
+- : 'a list
+l : 'a -> 'b -> 'c -> 'd -> 'e -> 'a
+q : 'a -> int
+r : int
+g : 'a list
+m : 'a -> (('b list -> bool) -> 'c list) -> int
+- : 'a list
+- : 'a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'a
+t : 'a -> 'b -> 'c -> 'd -> 'e -> 'f list
+- : bool
+x1 : 'a -> 'b -> 'c -> 'd -> 'e list list
+x2 : 'a -> 'b -> int
+b : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g list) * ('h -> bool)
+m : 'a -> 'b -> 'c -> 'd -> 'a
+a : unit
+q : ('a -> 'b -> 'c -> 'd -> 'e -> 'f -> 'g list) * ('h -> bool)
+f : int -> bool
+h : bool * (int * ('a -> 'b -> 'c -> 'd -> int))
+n : int
+fn : int
+w : int
+d : 'a -> 'a
+z : 'a -> 'b -> ((int * int * 'a) * int * 'c list) * bool
+u : 'a -> 'b list
+s : bool
+q : int
+p : int
+v : 'a list
+q : 'a -> 'b -> int -> int list
+d : bool -> 'a -> bool -> ((bool * bool * bool) * ('b -> 'c -> 'c)) * (bool list * ('d -> 'e -> bool) * ('f list -> int))
+fn : 'a list
+r : int * ((('a -> 'b -> int) * unit * int) * (('c -> 'd -> int) * (('e -> bool) * ('f list -> int) * ((int -> 'g) -> 'g)) * int)) * (bool * int) list
+- : 'a -> 'b -> ((('c -> 'd -> 'c) -> 'c -> 'd list -> 'c) -> ('c -> 'd -> 'c) -> 'c -> 'd list -> 'c) list
+q : bool * (int * ('a -> 'b -> 'c -> 'd -> int))
+- : int
+- : ('a -> 'b -> 'c -> 'c) list * ((bool * int) * (('d -> 'e -> 'f -> 'g -> 'h -> 'i list) * 'j list) * (bool * (int * ('k -> 'l -> 'm -> 'n -> int)))) * ('o -> 'p -> 'q -> 'r -> 's -> 't -> unit)
+q : 'a -> 'b -> 'c list
+l : 'a list
+- : bool
+t : ('a -> 'b -> int) * (bool * unit)
+e : 'a -> ('b -> 'c -> 'c) list * int * bool
+r : (('a list -> 'a) -> 'b) -> 'c -> 'b
+h : 'a list
+f : (('a list -> 'a) -> 'b) -> 'c -> 'b
+x2 : 'a -> 'b -> 'c -> 'd -> int
+- : 'a -> bool list
+x1 : 'a -> 'b -> int
+- : 'a list
+- : 'a -> 'b -> 'c -> bool
+c : int
+- : 'a -> ('b -> unit) * ('c -> unit * 'c * ('d -> 'e -> 'f -> 'g -> int))
+a : 'a -> int * 'b list
+c : int
+fn : 'a -> bool -> (bool list * bool list * 'a) * ('b -> 'c -> 'd -> int) * ('e -> 'f -> 'g list)
+s : int
+a : 'a -> 'b -> 'c -> bool
+x1 : int
+c : 'a list
+- : 'a list
+d : 'a list -> 'a
+h : 'a -> 'b -> 'c -> 'd -> 'a
+c : bool

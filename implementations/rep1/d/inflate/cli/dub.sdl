@@ -1,0 +1,8 @@
+name "cli"
+description "Command-line front end: hex-encoded raw DEFLATE on stdin, hex-encoded output on stdout"
+authors "inflate contributors"
+license "MIT"
+targetType "executable"
+targetName "inflate-cli"
+targetPath "../bin"
+dependency "inflate" path=".."

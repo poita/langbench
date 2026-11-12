@@ -2,317 +2,218 @@ package cards
 
 import (
 	"errors"
+	"fmt"
 	"os"
-	"strings"
+	"regexp"
 
-	"cardgame/sexpr"
+	"github.com/spiremark/cardgame/sexpr"
 )
 
-// ErrBadDatabase is returned for every unreadable or invalid database.
-var ErrBadDatabase = errors.New("cards: bad database")
+// ErrBadDatabase is wrapped by every error returned from Parse and Load that
+// stems from an unreadable or invalid database.
+var ErrBadDatabase = errors.New("bad database")
 
-type bad struct{}
-
-type parser struct {
-	db   *DB
-	deps Dep // dependency bits gathered while parsing one aura clause
+func bad(format string, args ...any) error {
+	return fmt.Errorf("%w: %s", ErrBadDatabase, fmt.Sprintf(format, args...))
 }
 
-func fail() { panic(bad{}) }
+var cardIDRe = regexp.MustCompile(`^[A-Z]{3}-[0-9]{3}$`)
 
-// Load reads and validates the database stored in the named file.
-func Load(path string) (*DB, error) {
-	src, err := os.ReadFile(path)
+// Load reads and validates the database at path.
+func Load(path string) (*Database, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, ErrBadDatabase
+		return nil, bad("%v", err)
 	}
-	return Parse(src)
+	return Parse(string(data))
 }
 
-// Parse validates a database held in memory. Any problem — lexical,
-// grammatical or semantic — yields ErrBadDatabase.
-func Parse(src []byte) (db *DB, err error) {
-	nodes, perr := sexpr.Parse(src)
-	if perr != nil {
-		return nil, ErrBadDatabase
+// Parse validates src as a card database (SPEC section 5).
+func Parse(src string) (*Database, error) {
+	nodes, err := sexpr.ParseAll(src)
+	if err != nil {
+		return nil, bad("%v", err)
 	}
-	db = &DB{cards: map[string]*Card{}, tags: map[string]int{}}
-	p := &parser{db: db}
-	defer func() {
-		if r := recover(); r != nil {
-			if _, ok := r.(bad); !ok {
-				panic(r)
-			}
-			db, err = nil, ErrBadDatabase
-		}
-	}()
+	db := &Database{byID: map[string]*Card{}}
 	for _, n := range nodes {
-		c := p.card(n)
-		if db.cards[c.ID] != nil {
-			fail()
+		c, err := parseCard(n)
+		if err != nil {
+			return nil, err
 		}
-		db.cards[c.ID] = c
+		if _, dup := db.byID[c.ID]; dup {
+			return nil, bad("duplicate card %s", c.ID)
+		}
+		db.byID[c.ID] = c
 		db.order = append(db.order, c)
 	}
-	p.resolveCards()
+	for _, c := range db.order {
+		for _, ab := range c.Abilities {
+			if err := checkRefs(db, ab.Effects); err != nil {
+				return nil, err
+			}
+		}
+	}
 	return db, nil
 }
 
-func (db *DB) tagID(name string) int {
-	if id, ok := db.tags[name]; ok {
-		return id
-	}
-	id := len(db.tags)
-	db.tags[name] = id
-	return id
-}
-
-// pendingRefs are summon/conjure effects checked once all cards are known.
-func (p *parser) resolveCards() {
-	for _, c := range p.db.order {
-		for _, a := range c.Abilities {
-			p.resolveEffects(a.Effects)
-		}
-	}
-}
-
-func (p *parser) resolveEffects(es []*Effect) {
-	for _, e := range es {
-		switch e.Kind {
-		case EffSummon, EffConjure:
-			t := p.db.cards[e.CardID]
-			if t == nil || (e.Kind == EffSummon && t.Type == Rite) {
-				fail()
+func checkRefs(db *Database, effs []*Effect) error {
+	for _, e := range effs {
+		if e.Op == OpSummon || e.Op == OpConjure {
+			c, ok := db.byID[e.CardID]
+			if !ok {
+				return bad("unknown card %s", e.CardID)
 			}
-			e.Card = t
-		case EffDelay, EffEach, EffRepeat:
-			p.resolveEffects(e.Body)
-		case EffIf:
-			p.resolveEffects(e.Body)
-			p.resolveEffects(e.Else)
+			if e.Op == OpSummon && c.Type == Rite {
+				return bad("summon of rite %s", e.CardID)
+			}
+		}
+		if err := checkRefs(db, e.Body); err != nil {
+			return err
+		}
+		if err := checkRefs(db, e.Else); err != nil {
+			return err
 		}
 	}
+	return nil
 }
 
-func validCardID(s string) bool {
-	if len(s) != 7 || s[3] != '-' {
-		return false
+func parseCard(n sexpr.Node) (*Card, error) {
+	name, args, ok := n.Head()
+	if !ok || name != "card" {
+		return nil, bad("top-level form is not a card")
 	}
-	for i := 0; i < 3; i++ {
-		if s[i] < 'A' || s[i] > 'Z' {
-			return false
-		}
+	if len(args) < 1 || args[0].Kind != sexpr.Symbol || !cardIDRe.MatchString(args[0].Text) {
+		return nil, bad("bad card id")
 	}
-	for i := 4; i < 7; i++ {
-		if s[i] < '0' || s[i] > '9' {
-			return false
-		}
-	}
-	return true
-}
-
-// list checks that n is a list whose head is head and whose length is
-// within [min, max] (counting the head), and returns its arguments.
-func list(n *sexpr.Node, head string, min, max int) []*sexpr.Node {
-	if n.Kind != sexpr.List || len(n.Items) == 0 || !n.Items[0].IsSym(head) {
-		fail()
-	}
-	if len(n.Items) < min || (max >= 0 && len(n.Items) > max) {
-		fail()
-	}
-	return n.Items[1:]
-}
-
-func intOf(n *sexpr.Node) int64 {
-	if n.Kind != sexpr.Int {
-		fail()
-	}
-	return n.Int
-}
-
-func symOf(n *sexpr.Node) string {
-	if n.Kind != sexpr.Symbol {
-		fail()
-	}
-	return n.Text
-}
-
-func strOf(n *sexpr.Node) string {
-	if n.Kind != sexpr.String {
-		fail()
-	}
-	return n.Text
-}
-
-func cmpOf(n *sexpr.Node) Cmp {
-	s := symOf(n)
-	for i, name := range cmpNames {
-		if name == s {
-			return Cmp(i)
-		}
-	}
-	fail()
-	return 0
-}
-
-func typeOf(n *sexpr.Node) Type {
-	switch symOf(n) {
-	case "unit":
-		return Unit
-	case "rite":
-		return Rite
-	case "relic":
-		return Relic
-	}
-	fail()
-	return 0
-}
-
-func scopeOf(n *sexpr.Node) Scope {
-	switch symOf(n) {
-	case "yours":
-		return Yours
-	case "theirs":
-		return Theirs
-	case "all":
-		return All
-	}
-	fail()
-	return 0
-}
-
-func keywordOf(n *sexpr.Node) Keyword {
-	k, ok := KeywordByName(symOf(n))
-	if !ok {
-		fail()
-	}
-	return k
-}
-
-// kwspec parses <keyword> or (plating <int>).
-func kwspec(n *sexpr.Node) KwInst {
-	if n.Kind == sexpr.List {
-		a := list(n, "plating", 2, 2)
-		return KwInst{K: Plating, N: int(intOf(a[0]))}
-	}
-	k := keywordOf(n)
-	if k == Plating {
-		fail()
-	}
-	return KwInst{K: k}
-}
-
-// ---------------------------------------------------------------- cards ---
-
-func (p *parser) card(n *sexpr.Node) *Card {
-	if n.Kind != sexpr.List || len(n.Items) < 2 || !n.Items[0].IsSym("card") {
-		fail()
-	}
-	idn := n.Items[1]
-	if idn.Kind != sexpr.Symbol || !validCardID(idn.Text) {
-		fail()
-	}
-	c := &Card{ID: idn.Text}
-	var haveName, haveType, haveCost, haveBody, haveTags, haveKw, haveText bool
+	c := &Card{ID: args[0].Text}
+	var seenName, seenType, seenCost, seenBody, seenTags, seenKW, seenText, seenResolve bool
 	var resolve *Ability
 	var ons, acts, auras []*Ability
-	for _, cl := range n.Items[2:] {
-		if cl.Kind != sexpr.List || len(cl.Items) == 0 {
-			fail()
+	for _, cl := range args[1:] {
+		h, a, ok := cl.Head()
+		if !ok {
+			return nil, bad("%s: malformed clause", c.ID)
 		}
-		switch cl.Items[0].Text {
+		switch h {
 		case "name":
-			a := list(cl, "name", 2, 2)
-			if haveName {
-				fail()
+			if seenName || len(a) != 1 || a[0].Kind != sexpr.String {
+				return nil, bad("%s: bad name", c.ID)
 			}
-			haveName, c.Name = true, strOf(a[0])
+			seenName, c.Name = true, a[0].Text
 		case "type":
-			a := list(cl, "type", 2, 2)
-			if haveType {
-				fail()
+			if seenType || len(a) != 1 || a[0].Kind != sexpr.Symbol {
+				return nil, bad("%s: bad type", c.ID)
 			}
-			haveType, c.Type = true, typeOf(a[0])
+			switch a[0].Text {
+			case "unit":
+				c.Type = Unit
+			case "rite":
+				c.Type = Rite
+			case "relic":
+				c.Type = Relic
+			default:
+				return nil, bad("%s: unknown type", c.ID)
+			}
+			seenType = true
 		case "cost":
-			a := list(cl, "cost", 2, 2)
-			if haveCost {
-				fail()
+			if seenCost || len(a) != 1 || a[0].Kind != sexpr.Int || a[0].Num < 0 {
+				return nil, bad("%s: bad cost", c.ID)
 			}
-			haveCost, c.Cost = true, intOf(a[0])
-			if c.Cost < 0 {
-				fail()
-			}
+			seenCost, c.Cost = true, int(a[0].Num)
 		case "body":
-			a := list(cl, "body", 3, 3)
-			if haveBody {
-				fail()
+			if seenBody || len(a) != 2 || a[0].Kind != sexpr.Int || a[1].Kind != sexpr.Int ||
+				a[0].Num < 0 || a[1].Num < 0 {
+				return nil, bad("%s: bad body", c.ID)
 			}
-			haveBody, c.Edge, c.Core = true, intOf(a[0]), intOf(a[1])
-			if c.Edge < 0 || c.Core < 0 {
-				fail()
-			}
+			seenBody, c.Edge, c.Core = true, int(a[0].Num), int(a[1].Num)
 		case "tags":
-			a := list(cl, "tags", 1, -1)
-			if haveTags {
-				fail()
+			if seenTags {
+				return nil, bad("%s: tags twice", c.ID)
 			}
-			haveTags = true
+			seenTags = true
 			for _, t := range a {
-				s := symOf(t)
-				c.Tags = append(c.Tags, s)
-				c.TagIDs = append(c.TagIDs, p.db.tagID(s))
+				if t.Kind != sexpr.Symbol {
+					return nil, bad("%s: tag is not a symbol", c.ID)
+				}
+				c.Tags = append(c.Tags, t.Text)
 			}
 		case "keywords":
-			a := list(cl, "keywords", 1, -1)
-			if haveKw {
-				fail()
+			if seenKW {
+				return nil, bad("%s: keywords twice", c.ID)
 			}
-			haveKw = true
+			seenKW = true
 			for _, k := range a {
-				ki := kwspec(k)
-				c.Keywords = append(c.Keywords, ki)
-				c.KwMask |= 1 << ki.K
+				kw, err := parseKwSpec(k)
+				if err != nil {
+					return nil, bad("%s: %v", c.ID, err)
+				}
+				c.Keywords = append(c.Keywords, kw)
+				c.keywordMask |= 1 << uint(kw.K)
 			}
 		case "text":
-			a := list(cl, "text", 2, 2)
-			if haveText {
-				fail()
+			if seenText || len(a) != 1 || a[0].Kind != sexpr.String {
+				return nil, bad("%s: bad text", c.ID)
 			}
-			haveText, c.Text = true, strOf(a[0])
+			seenText, c.Text = true, a[0].Text
 		case "resolve":
-			if resolve != nil {
-				fail()
+			if seenResolve {
+				return nil, bad("%s: resolve twice", c.ID)
 			}
-			resolve = p.ability(cl, AbResolve)
+			seenResolve = true
+			ab, err := parseAbility(AbResolve, 0, a)
+			if err != nil {
+				return nil, bad("%s: %v", c.ID, err)
+			}
+			resolve = ab
 		case "on":
-			ons = append(ons, p.ability(cl, AbOn))
+			if len(a) < 1 || a[0].Kind != sexpr.Symbol {
+				return nil, bad("%s: bad on clause", c.ID)
+			}
+			ev := -1
+			for i, en := range eventNames {
+				if en == a[0].Text {
+					ev = i
+				}
+			}
+			if ev < 0 {
+				return nil, bad("%s: unknown event %s", c.ID, a[0].Text)
+			}
+			ab, err := parseAbility(AbOn, Event(ev), a[1:])
+			if err != nil {
+				return nil, bad("%s: %v", c.ID, err)
+			}
+			ons = append(ons, ab)
 		case "act":
-			acts = append(acts, p.ability(cl, AbAct))
+			ab, err := parseAbility(AbAct, 0, a)
+			if err != nil {
+				return nil, bad("%s: %v", c.ID, err)
+			}
+			acts = append(acts, ab)
 		case "aura":
-			auras = append(auras, p.auraAbility(cl))
+			ab, err := parseAura(a)
+			if err != nil {
+				return nil, bad("%s: %v", c.ID, err)
+			}
+			auras = append(auras, ab)
 		default:
-			fail()
+			return nil, bad("%s: unknown clause %s", c.ID, h)
 		}
 	}
-	if !haveName || !haveType || !haveCost {
-		fail()
+	if !seenName || !seenType || !seenCost {
+		return nil, bad("%s: missing name, type or cost", c.ID)
 	}
-	if (c.Type == Unit) != haveBody {
-		fail()
+	if (c.Type == Unit) != seenBody {
+		return nil, bad("%s: body is required exactly on units", c.ID)
 	}
-	if (c.Type == Rite) != (resolve != nil) {
-		fail()
+	if (c.Type == Rite) != seenResolve {
+		return nil, bad("%s: resolve is required exactly on rites", c.ID)
 	}
-	for _, k := range c.Keywords {
+	for _, kw := range c.Keywords {
 		switch {
-		case k.K == Swift:
-			if c.Type != Rite {
-				fail()
-			}
-		default:
-			if c.Type != Unit {
-				fail()
-			}
+		case kw.K == Swift && c.Type != Rite:
+			return nil, bad("%s: swift only on rites", c.ID)
+		case kw.K != Swift && c.Type != Unit:
+			return nil, bad("%s: keyword %s only on units", c.ID, kw.K)
 		}
 	}
 	if resolve != nil {
@@ -321,574 +222,808 @@ func (p *parser) card(n *sexpr.Node) *Card {
 	c.Abilities = append(c.Abilities, ons...)
 	c.Abilities = append(c.Abilities, acts...)
 	c.Abilities = append(c.Abilities, auras...)
-	for i, a := range c.Abilities {
-		if a.Kind == AbOn {
-			c.ByEvent[a.Event] = append(c.ByEvent[a.Event], i+1)
-		}
+	for i, ab := range c.Abilities {
+		ab.Index = i + 1
 	}
-	return c
+	return c, nil
 }
 
-// ability parses a resolve, on or act clause.
-func (p *parser) ability(cl *sexpr.Node, kind AbilityKind) *Ability {
-	a := &Ability{Kind: kind, TargetsText: "-"}
-	items := cl.Items[1:]
-	if kind == AbOn {
-		if len(items) == 0 {
-			fail()
+func parseKwSpec(n sexpr.Node) (KW, error) {
+	if n.Kind == sexpr.Symbol {
+		k, ok := KeywordByName(n.Text)
+		if !ok || k == Plating {
+			return KW{}, fmt.Errorf("bad keyword %q", n.Text)
 		}
-		a.Event = eventOf(items[0])
-		items = items[1:]
+		return KW{K: k}, nil
 	}
-	var haveCost, haveTargets bool
-	var effects []string
-	i := 0
-	for ; i < len(items); i++ {
-		it := items[i]
-		h := it.Head()
-		if h == "cost" {
-			if kind != AbAct || haveCost {
-				fail()
+	h, a, ok := n.Head()
+	if ok && h == "plating" && len(a) == 1 && a[0].Kind == sexpr.Int {
+		return KW{K: Plating, N: int(a[0].Num)}, nil
+	}
+	return KW{}, fmt.Errorf("bad keyword spec %s", n)
+}
+
+func parseAbility(kind AbilityKind, ev Event, parts []sexpr.Node) (*Ability, error) {
+	ab := &Ability{Kind: kind, Event: ev}
+	seenCost, seenTargets, seenEffect := false, false, false
+	for i := range parts {
+		p := parts[i]
+		h, a, ok := p.Head()
+		if ok && h == "cost" {
+			if kind != AbAct || seenCost || seenEffect {
+				return nil, errors.New("misplaced cost clause")
 			}
-			haveCost = true
-			a.Cost = costItems(it)
-			a.CostText = it.String()
-		} else if h == "targets" {
-			if haveTargets {
-				fail()
+			seenCost = true
+			for _, ci := range a {
+				item, err := parseCostItem(ci)
+				if err != nil {
+					return nil, err
+				}
+				ab.Cost = append(ab.Cost, item)
 			}
-			haveTargets = true
-			a.Targets = targetSpecs(p, it)
-			a.TargetsText = it.String()
-		} else {
-			break
+			pc := p
+			ab.costNode = &pc
+			continue
 		}
+		if ok && h == "targets" {
+			if seenTargets || seenEffect {
+				return nil, errors.New("misplaced targets clause")
+			}
+			seenTargets = true
+			if len(a) == 0 {
+				return nil, errors.New("empty targets clause")
+			}
+			for _, t := range a {
+				ts, err := parseTargetSpec(t)
+				if err != nil {
+					return nil, err
+				}
+				ab.Targets = append(ab.Targets, ts)
+			}
+			pt := p
+			ab.targetsNode = &pt
+			continue
+		}
+		e, err := parseEffect(p)
+		if err != nil {
+			return nil, err
+		}
+		seenEffect = true
+		ab.Effects = append(ab.Effects, e)
+		ab.effectNodes = append(ab.effectNodes, p)
 	}
-	if kind == AbAct && !haveCost {
-		fail()
+	if kind == AbAct && !seenCost {
+		return nil, errors.New("act without cost")
 	}
-	rest := items[i:]
-	if len(rest) == 0 {
-		fail()
+	if len(ab.Effects) == 0 {
+		return nil, errors.New("ability without effects")
 	}
-	for _, e := range rest {
-		a.Effects = append(a.Effects, p.effect(e))
-		effects = append(effects, e.String())
-	}
-	a.BodyText = strings.Join(effects, " ")
-	return a
+	return ab, nil
 }
 
-func eventOf(n *sexpr.Node) Event {
-	s := symOf(n)
-	for i, name := range eventNames {
-		if name == s {
-			return Event(i)
-		}
+func parseAura(parts []sexpr.Node) (*Ability, error) {
+	if len(parts) == 0 {
+		return nil, errors.New("empty aura")
 	}
-	fail()
-	return 0
+	ab := &Ability{Kind: AbAura}
+	for _, p := range parts {
+		s, err := parseStatic(p)
+		if err != nil {
+			return nil, err
+		}
+		ab.Statics = append(ab.Statics, s)
+		ab.effectNodes = append(ab.effectNodes, p)
+	}
+	return ab, nil
 }
 
-func costItems(n *sexpr.Node) []CostItem {
-	var out []CostItem
-	for _, it := range list(n, "cost", 1, -1) {
-		if it.Kind != sexpr.List || len(it.Items) == 0 {
-			fail()
-		}
-		switch it.Items[0].Text {
-		case "ember":
-			out = append(out, CostItem{CostEmber, intOf(list(it, "ember", 2, 2)[0])})
-		case "spire":
-			out = append(out, CostItem{CostSpire, intOf(list(it, "spire", 2, 2)[0])})
-		case "discard":
-			out = append(out, CostItem{CostDiscard, intOf(list(it, "discard", 2, 2)[0])})
-		case "counters":
-			out = append(out, CostItem{CostCounters, intOf(list(it, "counters", 2, 2)[0])})
-		case "exhaust":
-			list(it, "exhaust", 1, 1)
-			out = append(out, CostItem{Kind: CostExhaust})
-		case "sacself":
-			list(it, "sacself", 1, 1)
-			out = append(out, CostItem{Kind: CostSacself})
-		case "once":
-			list(it, "once", 1, 1)
-			out = append(out, CostItem{Kind: CostOnce})
-		default:
-			fail()
-		}
+func parseCostItem(n sexpr.Node) (CostItem, error) {
+	h, a, ok := n.Head()
+	if !ok {
+		return CostItem{}, fmt.Errorf("bad cost item %s", n)
 	}
-	return out
+	intArg := func(k CostKind) (CostItem, error) {
+		if len(a) != 1 || a[0].Kind != sexpr.Int {
+			return CostItem{}, fmt.Errorf("bad cost item %s", n)
+		}
+		return CostItem{Kind: k, N: int(a[0].Num)}, nil
+	}
+	noArg := func(k CostKind) (CostItem, error) {
+		if len(a) != 0 {
+			return CostItem{}, fmt.Errorf("bad cost item %s", n)
+		}
+		return CostItem{Kind: k}, nil
+	}
+	switch h {
+	case "ember":
+		return intArg(CostEmber)
+	case "spire":
+		return intArg(CostSpire)
+	case "discard":
+		return intArg(CostDiscard)
+	case "counters":
+		return intArg(CostCounters)
+	case "exhaust":
+		return noArg(CostExhaust)
+	case "sacself":
+		return noArg(CostSacself)
+	case "once":
+		return noArg(CostOnce)
+	}
+	return CostItem{}, fmt.Errorf("bad cost item %s", n)
 }
 
-func targetSpecs(p *parser, n *sexpr.Node) []TargetSpec {
-	args := list(n, "targets", 2, -1)
-	var out []TargetSpec
-	for _, t := range args {
-		if t.Kind != sexpr.List || len(t.Items) == 0 {
-			fail()
+func parseTargetSpec(n sexpr.Node) (TargetSpec, error) {
+	h, a, ok := n.Head()
+	if !ok {
+		return TargetSpec{}, fmt.Errorf("bad target spec %s", n)
+	}
+	var kind TSKind
+	filtered := true
+	switch h {
+	case "unit":
+		kind = TSUnit
+	case "relic":
+		kind = TSRelic
+	case "any":
+		kind = TSAny
+	case "ashcard":
+		kind = TSAshcard
+	case "player":
+		kind, filtered = TSPlayer, false
+	case "chained":
+		kind, filtered = TSChained, false
+	default:
+		return TargetSpec{}, fmt.Errorf("bad target spec %s", n)
+	}
+	ts := TargetSpec{Kind: kind}
+	if !filtered {
+		if len(a) != 0 {
+			return TargetSpec{}, fmt.Errorf("bad target spec %s", n)
 		}
-		switch t.Items[0].Text {
-		case "unit":
-			out = append(out, TargetSpec{TSUnit, p.filters(t.Items[1:])})
-		case "relic":
-			out = append(out, TargetSpec{TSRelic, p.filters(t.Items[1:])})
-		case "any":
-			out = append(out, TargetSpec{TSAny, p.filters(t.Items[1:])})
-		case "ashcard":
-			out = append(out, TargetSpec{TSAshcard, p.filters(t.Items[1:])})
-		case "player":
-			list(t, "player", 1, 1)
-			out = append(out, TargetSpec{Kind: TSPlayer})
-		case "chained":
-			list(t, "chained", 1, 1)
-			out = append(out, TargetSpec{Kind: TSChained})
-		default:
-			fail()
+		return ts, nil
+	}
+	fs, err := parseFilters(a)
+	if err != nil {
+		return TargetSpec{}, err
+	}
+	ts.Filters = fs
+	return ts, nil
+}
+
+func parseCmp(n sexpr.Node) (Cmp, error) {
+	if n.Kind == sexpr.Symbol {
+		for i, s := range cmpNames {
+			if s == n.Text {
+				return Cmp(i), nil
+			}
 		}
 	}
-	return out
+	return 0, fmt.Errorf("bad comparator %s", n)
 }
 
-func (p *parser) auraAbility(cl *sexpr.Node) *Ability {
-	a := &Ability{Kind: AbAura, TargetsText: "-"}
-	args := list(cl, "aura", 2, -1)
-	p.deps = 0
-	var texts []string
-	var statics []*Static
-	for _, s := range args {
-		statics = append(statics, p.static(s))
-		texts = append(texts, s.String())
-	}
-	for _, s := range statics {
-		flatten(s, nil, p.deps, &a.Leaves)
-	}
-	a.BodyText = strings.Join(texts, " ")
-	return a
-}
-
-func flatten(s *Static, conds []*Cond, deps Dep, out *[]Leaf) {
-	if s.Kind != StWhen {
-		cs := append([]*Cond(nil), conds...)
-		*out = append(*out, Leaf{S: s, Conds: cs, Deps: deps})
-		return
-	}
-	nc := append(append([]*Cond(nil), conds...), s.Cond)
-	for _, sub := range s.Subs {
-		flatten(sub, nc, deps, out)
-	}
-}
-
-func (p *parser) static(n *sexpr.Node) *Static {
-	if n.Kind != sexpr.List || len(n.Items) == 0 {
-		fail()
-	}
-	switch n.Items[0].Text {
-	case "modify":
-		a := list(n, "modify", 4, 4)
-		return &Static{Kind: StModify, A: p.amount(a[0]), B: p.amount(a[1]), Sel: p.objSel(a[2])}
-	case "setbody":
-		a := list(n, "setbody", 4, 4)
-		return &Static{Kind: StSetbody, A: p.amount(a[0]), B: p.amount(a[1]), Sel: p.objSel(a[2])}
-	case "swapstats":
-		a := list(n, "swapstats", 2, 2)
-		return &Static{Kind: StSwap, Sel: p.objSel(a[0])}
-	case "grant":
-		a := list(n, "grant", 3, 3)
-		return &Static{Kind: StGrant, Kw: kwspec(a[0]), Sel: p.objSel(a[1])}
-	case "cheaper":
-		a := list(n, "cheaper", 2, -1)
-		s := &Static{Kind: StCheaper, Cheaper: intOf(a[0])}
-		for _, f := range a[1:] {
-			s.CardF = append(s.CardF, cardFilter(p, f))
-		}
-		return s
-	case "when":
-		a := list(n, "when", 2, -1)
-		s := &Static{Kind: StWhen, Cond: p.cond(a[0])}
-		for _, sub := range a[1:] {
-			s.Subs = append(s.Subs, p.static(sub))
-		}
-		return s
-	}
-	fail()
-	return nil
-}
-
-func cardFilter(p *parser, n *sexpr.Node) CardFilter {
-	if n.Kind != sexpr.List || len(n.Items) == 0 {
-		fail()
-	}
-	switch n.Items[0].Text {
-	case "type":
-		a := list(n, "type", 2, 2)
-		return CardFilter{Kind: FType, Type: typeOf(a[0])}
-	case "tag":
-		a := list(n, "tag", 2, 2)
-		return CardFilter{Kind: FTag, Tag: p.db.tagID(symOf(a[0]))}
-	case "cost":
-		a := list(n, "cost", 3, 3)
-		return CardFilter{Kind: FCost, Cmp: cmpOf(a[0]), N: intOf(a[1])}
-	}
-	fail()
-	return CardFilter{}
-}
-
-// -------------------------------------------------------------- selectors ---
-
-func (p *parser) filters(ns []*sexpr.Node) []Filter {
+func parseFilters(ns []sexpr.Node) ([]Filter, error) {
 	var out []Filter
 	for _, n := range ns {
-		out = append(out, p.filter(n))
+		f, err := parseFilter(n)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, f)
 	}
-	return out
+	return out, nil
 }
 
-func (p *parser) filter(n *sexpr.Node) Filter {
-	if n.Kind != sexpr.List || len(n.Items) == 0 {
-		fail()
+func parseFilter(n sexpr.Node) (Filter, error) {
+	h, a, ok := n.Head()
+	if !ok {
+		return Filter{}, fmt.Errorf("bad filter %s", n)
 	}
-	switch n.Items[0].Text {
-	case "kw":
-		a := list(n, "kw", 2, 2)
-		return Filter{Kind: FKw, Kw: keywordOf(a[0])}
-	case "no-kw":
-		a := list(n, "no-kw", 2, 2)
-		return Filter{Kind: FNoKw, Kw: keywordOf(a[0])}
+	errf := func() (Filter, error) { return Filter{}, fmt.Errorf("bad filter %s", n) }
+	switch h {
+	case "kw", "no-kw":
+		if len(a) != 1 || a[0].Kind != sexpr.Symbol {
+			return errf()
+		}
+		k, ok := KeywordByName(a[0].Text)
+		if !ok {
+			return errf()
+		}
+		kind := FKw
+		if h == "no-kw" {
+			kind = FNoKw
+		}
+		return Filter{Kind: kind, KW: k}, nil
 	case "tag":
-		a := list(n, "tag", 2, 2)
-		return Filter{Kind: FTag, Tag: p.db.tagID(symOf(a[0]))}
+		if len(a) != 1 || a[0].Kind != sexpr.Symbol {
+			return errf()
+		}
+		return Filter{Kind: FTag, Tag: a[0].Text}, nil
 	case "type":
-		a := list(n, "type", 2, 2)
-		return Filter{Kind: FType, Type: typeOf(a[0])}
+		if len(a) != 1 || a[0].Kind != sexpr.Symbol {
+			return errf()
+		}
+		for i, s := range typeNames {
+			if s == a[0].Text {
+				return Filter{Kind: FType, Type: Type(i)}, nil
+			}
+		}
+		return errf()
 	case "cost", "edge", "core":
-		kind := map[string]FilterKind{"cost": FCost, "edge": FEdge, "core": FCore}[n.Items[0].Text]
-		a := list(n, n.Items[0].Text, 3, 3)
-		return Filter{Kind: kind, Cmp: cmpOf(a[0]), N: intOf(a[1])}
-	case "wounded":
-		list(n, "wounded", 1, 1)
-		p.deps |= DepWounds
-		return Filter{Kind: FWounded}
-	case "ready":
-		list(n, "ready", 1, 1)
-		p.deps |= DepReady
-		return Filter{Kind: FReady}
-	case "exhausted":
-		list(n, "exhausted", 1, 1)
-		p.deps |= DepReady
-		return Filter{Kind: FExhausted}
-	case "settling":
-		list(n, "settling", 1, 1)
-		p.deps |= DepTurn
-		return Filter{Kind: FSettling}
-	case "attacking":
-		list(n, "attacking", 1, 1)
-		p.deps |= DepCombat
-		return Filter{Kind: FAttacking}
-	case "blocking":
-		list(n, "blocking", 1, 1)
-		p.deps |= DepCombat
-		return Filter{Kind: FBlocking}
-	case "mine":
-		list(n, "mine", 1, 1)
-		return Filter{Kind: FMine}
-	case "enemy":
-		list(n, "enemy", 1, 1)
-		return Filter{Kind: FEnemy}
-	case "other":
-		list(n, "other", 1, 1)
-		return Filter{Kind: FOther}
+		if len(a) != 2 || a[1].Kind != sexpr.Int {
+			return errf()
+		}
+		c, err := parseCmp(a[0])
+		if err != nil {
+			return Filter{}, err
+		}
+		kind := map[string]FilterKind{"cost": FCost, "edge": FEdge, "core": FCore}[h]
+		return Filter{Kind: kind, Cmp: c, N: int(a[1].Num)}, nil
+	case "wounded", "ready", "exhausted", "settling", "attacking", "blocking", "mine", "enemy", "other":
+		if len(a) != 0 {
+			return errf()
+		}
+		kind := map[string]FilterKind{
+			"wounded": FWounded, "ready": FReady, "exhausted": FExhausted,
+			"settling": FSettling, "attacking": FAttacking, "blocking": FBlocking,
+			"mine": FMine, "enemy": FEnemy, "other": FOther,
+		}[h]
+		return Filter{Kind: kind}, nil
 	case "not":
-		a := list(n, "not", 2, 2)
-		inner := p.filter(a[0])
-		return Filter{Kind: FNot, Inner: &inner}
+		if len(a) != 1 {
+			return errf()
+		}
+		inner, err := parseFilter(a[0])
+		if err != nil {
+			return Filter{}, err
+		}
+		return Filter{Kind: FNot, Not: &inner}, nil
 	}
-	fail()
-	return Filter{}
+	return errf()
 }
 
-func (p *parser) objSel(n *sexpr.Node) *Sel {
+func parseTargetRef(a []sexpr.Node) (int, bool) {
+	if len(a) == 1 && a[0].Kind == sexpr.Int && a[0].Num >= 1 && a[0].Num <= 1<<30 {
+		return int(a[0].Num), true
+	}
+	return 0, false
+}
+
+func parseScope(n sexpr.Node) (Scope, error) {
+	if n.Kind == sexpr.Symbol {
+		switch n.Text {
+		case "yours":
+			return Yours, nil
+		case "theirs":
+			return Theirs, nil
+		case "all":
+			return All, nil
+		}
+	}
+	return 0, fmt.Errorf("bad scope %s", n)
+}
+
+func parseSelector(n sexpr.Node) (*Selector, error) {
 	if n.Kind == sexpr.Symbol {
 		switch n.Text {
 		case "self":
-			return &Sel{Kind: SelSelf}
+			return &Selector{Kind: SelSelf}, nil
 		case "it":
-			return &Sel{Kind: SelIt}
+			return &Selector{Kind: SelIt}, nil
 		case "that":
-			return &Sel{Kind: SelThat}
+			return &Selector{Kind: SelThat}, nil
 		}
-		fail()
+		return nil, fmt.Errorf("bad selector %s", n)
 	}
-	if n.Kind != sexpr.List || len(n.Items) == 0 {
-		fail()
+	h, a, ok := n.Head()
+	if !ok {
+		return nil, fmt.Errorf("bad selector %s", n)
 	}
-	switch n.Items[0].Text {
+	switch h {
 	case "t":
-		return p.tSel(n)
-	case "units":
-		a := list(n, "units", 2, -1)
-		return &Sel{Kind: SelUnits, Scope: scopeOf(a[0]), Filters: p.filters(a[1:])}
-	case "relics":
-		a := list(n, "relics", 2, -1)
-		return &Sel{Kind: SelRelics, Scope: scopeOf(a[0]), Filters: p.filters(a[1:])}
-	case "random-unit":
-		a := list(n, "random-unit", 2, -1)
-		return &Sel{Kind: SelRandomUnit, Scope: scopeOf(a[0]), Filters: p.filters(a[1:])}
-	case "cards":
-		a := list(n, "cards", 3, -1)
-		var z Zone
-		switch symOf(a[0]) {
-		case "hand":
-			z = ZoneHand
-		case "ash":
-			z = ZoneAsh
-		case "vault":
-			z = ZoneVault
-		case "rift":
-			z = ZoneRift
-		default:
-			fail()
+		t, ok := parseTargetRef(a)
+		if !ok {
+			return nil, fmt.Errorf("bad selector %s", n)
 		}
-		p.deps |= DepZones
-		return &Sel{Kind: SelCards, Zone: z, Scope: scopeOf(a[1]), Filters: p.filters(a[2:])}
+		return &Selector{Kind: SelTarget, N: t}, nil
+	case "units", "relics", "random-unit":
+		if len(a) < 1 {
+			return nil, fmt.Errorf("bad selector %s", n)
+		}
+		sc, err := parseScope(a[0])
+		if err != nil {
+			return nil, err
+		}
+		fs, err := parseFilters(a[1:])
+		if err != nil {
+			return nil, err
+		}
+		kind := map[string]SelKind{"units": SelUnits, "relics": SelRelics, "random-unit": SelRandomUnit}[h]
+		return &Selector{Kind: kind, Scope: sc, Filters: fs}, nil
+	case "cards":
+		if len(a) < 2 || a[0].Kind != sexpr.Symbol {
+			return nil, fmt.Errorf("bad selector %s", n)
+		}
+		z := -1
+		for i, s := range []string{"hand", "ash", "vault", "rift"} {
+			if s == a[0].Text {
+				z = i
+			}
+		}
+		if z < 0 {
+			return nil, fmt.Errorf("bad zone in %s", n)
+		}
+		sc, err := parseScope(a[1])
+		if err != nil {
+			return nil, err
+		}
+		fs, err := parseFilters(a[2:])
+		if err != nil {
+			return nil, err
+		}
+		return &Selector{Kind: SelCards, Zone: CardZone(z), Scope: sc, Filters: fs}, nil
 	}
-	fail()
-	return nil
+	return nil, fmt.Errorf("bad selector %s", n)
 }
 
-func (p *parser) tSel(n *sexpr.Node) *Sel {
-	a := list(n, "t", 2, 2)
-	v := intOf(a[0])
-	if v < 1 || v > 1<<20 {
-		fail()
-	}
-	return &Sel{Kind: SelT, N: int(v)}
-}
-
-func (p *parser) playerSel(n *sexpr.Node) *Sel {
+func parsePlayerSel(n sexpr.Node) (*PlayerSel, error) {
 	if n.Kind == sexpr.Symbol {
 		switch n.Text {
 		case "you":
-			return &Sel{Kind: SelYou}
+			return &PlayerSel{Kind: PYou}, nil
 		case "foe":
-			return &Sel{Kind: SelFoe}
+			return &PlayerSel{Kind: PFoe}, nil
 		case "both":
-			return &Sel{Kind: SelBoth}
+			return &PlayerSel{Kind: PBoth}, nil
 		}
-		fail()
+		return nil, fmt.Errorf("bad player selector %s", n)
 	}
-	if n.Kind != sexpr.List || len(n.Items) == 0 {
-		fail()
+	h, a, ok := n.Head()
+	if !ok {
+		return nil, fmt.Errorf("bad player selector %s", n)
 	}
-	switch n.Items[0].Text {
+	switch h {
 	case "t":
-		return p.tSel(n)
+		t, ok := parseTargetRef(a)
+		if !ok {
+			return nil, fmt.Errorf("bad player selector %s", n)
+		}
+		return &PlayerSel{Kind: PTarget, N: t}, nil
 	case "owner-of":
-		a := list(n, "owner-of", 2, 2)
-		return &Sel{Kind: SelOwnerOf, Inner: p.objSel(a[0])}
+		if len(a) != 1 {
+			return nil, fmt.Errorf("bad player selector %s", n)
+		}
+		s, err := parseSelector(a[0])
+		if err != nil {
+			return nil, err
+		}
+		return &PlayerSel{Kind: POwnerOf, Sel: s}, nil
 	}
-	fail()
-	return nil
+	return nil, fmt.Errorf("bad player selector %s", n)
 }
 
-// dmgSel parses the second argument of damage.
-func (p *parser) dmgSel(n *sexpr.Node) *Sel {
-	if n.Kind == sexpr.Symbol && (n.Text == "you" || n.Text == "foe" || n.Text == "both") {
-		return p.playerSel(n)
+func parseDSel(n sexpr.Node) (*DSel, error) {
+	isPlayer := false
+	if n.Kind == sexpr.Symbol {
+		isPlayer = n.Text == "you" || n.Text == "foe" || n.Text == "both"
+	} else if h, _, ok := n.Head(); ok {
+		isPlayer = h == "owner-of"
 	}
-	if n.Head() == "owner-of" {
-		return p.playerSel(n)
+	if isPlayer {
+		p, err := parsePlayerSel(n)
+		if err != nil {
+			return nil, err
+		}
+		return &DSel{Player: p}, nil
 	}
-	return p.objSel(n)
+	s, err := parseSelector(n)
+	if err != nil {
+		return nil, err
+	}
+	return &DSel{Obj: s}, nil
 }
 
-func (p *parser) amount(n *sexpr.Node) Amount {
+func parseAmount(n sexpr.Node) (*Amount, error) {
 	if n.Kind == sexpr.Int {
-		return Amount{Kind: AmtConst, N: n.Int}
+		return &Amount{Kind: AConst, N: int(n.Num)}, nil
 	}
-	if n.Kind != sexpr.List || len(n.Items) == 0 {
-		fail()
+	h, a, ok := n.Head()
+	if !ok || len(a) != 1 {
+		return nil, fmt.Errorf("bad amount %s", n)
 	}
-	switch n.Items[0].Text {
-	case "count":
-		a := list(n, "count", 2, 2)
-		return Amount{Kind: AmtCount, Sel: p.objSel(a[0])}
-	case "hand":
-		a := list(n, "hand", 2, 2)
-		p.deps |= DepZones
-		return Amount{Kind: AmtHand, Sel: p.playerSel(a[0])}
-	case "ash":
-		a := list(n, "ash", 2, 2)
-		p.deps |= DepZones
-		return Amount{Kind: AmtAsh, Sel: p.playerSel(a[0])}
-	case "vault":
-		a := list(n, "vault", 2, 2)
-		p.deps |= DepZones
-		return Amount{Kind: AmtVault, Sel: p.playerSel(a[0])}
-	case "edge":
-		a := list(n, "edge", 2, 2)
-		return Amount{Kind: AmtEdge, Sel: p.objSel(a[0])}
-	case "core":
-		a := list(n, "core", 2, 2)
-		return Amount{Kind: AmtCore, Sel: p.objSel(a[0])}
-	case "wounds":
-		a := list(n, "wounds", 2, 2)
-		p.deps |= DepWounds
-		return Amount{Kind: AmtWounds, Sel: p.objSel(a[0])}
+	switch h {
+	case "count", "edge", "core", "wounds":
+		s, err := parseSelector(a[0])
+		if err != nil {
+			return nil, err
+		}
+		kind := map[string]AmtKind{"count": ACount, "edge": AEdge, "core": ACore, "wounds": AWounds}[h]
+		return &Amount{Kind: kind, Sel: s}, nil
+	case "hand", "ash", "vault":
+		p, err := parsePlayerSel(a[0])
+		if err != nil {
+			return nil, err
+		}
+		kind := map[string]AmtKind{"hand": AHand, "ash": AAsh, "vault": AVault}[h]
+		return &Amount{Kind: kind, PSel: p}, nil
 	}
-	fail()
-	return Amount{}
+	return nil, fmt.Errorf("bad amount %s", n)
 }
 
-func (p *parser) cond(n *sexpr.Node) *Cond {
-	if n.Kind != sexpr.List || len(n.Items) == 0 {
-		fail()
+func parseCond(n sexpr.Node) (*Cond, error) {
+	h, a, ok := n.Head()
+	if !ok {
+		return nil, fmt.Errorf("bad condition %s", n)
 	}
-	switch h := n.Items[0].Text; h {
-	case "count":
-		a := list(n, h, 4, 4)
-		return &Cond{Kind: CondCount, Sel: p.objSel(a[0]), Cmp: cmpOf(a[1]), N: intOf(a[2])}
-	case "spire", "hand", "ash", "vault", "ember":
-		a := list(n, h, 4, 4)
-		kind := map[string]CondKind{"spire": CondSpire, "hand": CondHand, "ash": CondAsh,
-			"vault": CondVault, "ember": CondEmber}[h]
-		p.deps |= map[string]Dep{"spire": DepSpire, "hand": DepZones, "ash": DepZones,
-			"vault": DepZones, "ember": DepEmber}[h]
-		return &Cond{Kind: kind, Sel: p.playerSel(a[0]), Cmp: cmpOf(a[1]), N: intOf(a[2])}
+	errf := func() (*Cond, error) { return nil, fmt.Errorf("bad condition %s", n) }
+	switch h {
 	case "myturn":
-		list(n, h, 1, 1)
-		p.deps |= DepTurn
-		return &Cond{Kind: CondMyTurn}
+		if len(a) != 0 {
+			return errf()
+		}
+		return &Cond{Kind: CMyTurn}, nil
 	case "and", "or":
-		a := list(n, h, 1, -1)
-		c := &Cond{Kind: CondAnd}
+		c := &Cond{Kind: CAnd}
 		if h == "or" {
-			c.Kind = CondOr
+			c.Kind = COr
 		}
 		for _, s := range a {
-			c.Subs = append(c.Subs, p.cond(s))
+			sub, err := parseCond(s)
+			if err != nil {
+				return nil, err
+			}
+			c.Subs = append(c.Subs, sub)
 		}
-		return c
+		return c, nil
 	case "not":
-		a := list(n, h, 2, 2)
-		return &Cond{Kind: CondNot, Subs: []*Cond{p.cond(a[0])}}
+		if len(a) != 1 {
+			return errf()
+		}
+		sub, err := parseCond(a[0])
+		if err != nil {
+			return nil, err
+		}
+		return &Cond{Kind: CNot, Subs: []*Cond{sub}}, nil
+	case "count", "spire", "hand", "ash", "vault", "ember":
+		if len(a) != 3 || a[2].Kind != sexpr.Int {
+			return errf()
+		}
+		cmp, err := parseCmp(a[1])
+		if err != nil {
+			return nil, err
+		}
+		c := &Cond{Cmp: cmp, N: int(a[2].Num)}
+		if h == "count" {
+			c.Kind = CCount
+			c.Sel, err = parseSelector(a[0])
+		} else {
+			c.Kind = map[string]CondKind{"spire": CSpire, "hand": CHand, "ash": CAsh, "vault": CVault, "ember": CEmber}[h]
+			c.PSel, err = parsePlayerSel(a[0])
+		}
+		if err != nil {
+			return nil, err
+		}
+		return c, nil
 	}
-	fail()
-	return nil
+	return errf()
 }
 
-// ---------------------------------------------------------------- effects ---
-
-func (p *parser) effects(ns []*sexpr.Node) []*Effect {
-	out := make([]*Effect, 0, len(ns))
+func parseEffects(ns []sexpr.Node) ([]*Effect, error) {
+	var out []*Effect
 	for _, n := range ns {
-		out = append(out, p.effect(n))
+		e, err := parseEffect(n)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, e)
 	}
-	return out
+	return out, nil
 }
 
-// effectList parses a parenthesised list of effects.
-func (p *parser) effectList(n *sexpr.Node) []*Effect {
-	if n.Kind != sexpr.List {
-		fail()
+func parseEffect(n sexpr.Node) (*Effect, error) {
+	h, a, ok := n.Head()
+	if !ok {
+		return nil, fmt.Errorf("bad effect %s", n)
 	}
-	return p.effects(n.Items)
-}
-
-func (p *parser) effect(n *sexpr.Node) *Effect {
-	if n.Kind != sexpr.List || len(n.Items) == 0 || n.Items[0].Kind != sexpr.Symbol {
-		fail()
+	e := &Effect{Node: n}
+	errf := func() (*Effect, error) { return nil, fmt.Errorf("bad effect %s", n) }
+	var err error
+	// Shapes: s = selector, p = player selector, a = amount.
+	shape := func(op Op, want string) (*Effect, error) {
+		if len(a) != len(want) {
+			return errf()
+		}
+		e.Op = op
+		var amts []*Amount
+		for i, w := range want {
+			switch w {
+			case 'a':
+				var am *Amount
+				if am, err = parseAmount(a[i]); err != nil {
+					return nil, err
+				}
+				amts = append(amts, am)
+			case 's':
+				if e.Sel, err = parseSelector(a[i]); err != nil {
+					return nil, err
+				}
+			case 'p':
+				if e.PSel, err = parsePlayerSel(a[i]); err != nil {
+					return nil, err
+				}
+			case 'd':
+				if e.DSel, err = parseDSel(a[i]); err != nil {
+					return nil, err
+				}
+			}
+		}
+		if len(amts) > 0 {
+			e.A1 = amts[0]
+		}
+		if len(amts) > 1 {
+			e.A2 = amts[1]
+		}
+		return e, nil
 	}
-	h := n.Items[0].Text
 	switch h {
 	case "damage":
-		a := list(n, h, 3, 3)
-		return &Effect{Kind: EffDamage, A: p.amount(a[0]), Sel: p.dmgSel(a[1])}
-	case "destroy", "sacrifice", "exile", "bounce", "ready", "exhaust", "doom", "strip", "control",
-		"reanimate", "recall", "swapstats":
-		a := list(n, h, 2, 2)
-		kind := map[string]EffKind{"destroy": EffDestroy, "sacrifice": EffSacrifice, "exile": EffExile,
-			"bounce": EffBounce, "ready": EffReady, "exhaust": EffExhaust, "doom": EffDoom,
-			"strip": EffStrip, "control": EffControl, "reanimate": EffReanimate, "recall": EffRecall,
-			"swapstats": EffSwapstats}[h]
-		return &Effect{Kind: kind, Sel: p.objSel(a[0])}
-	case "draw", "discard", "mill", "spire", "ember", "cap", "shield":
-		a := list(n, h, 3, 3)
-		kind := map[string]EffKind{"draw": EffDraw, "discard": EffDiscard, "mill": EffMill,
-			"spire": EffSpire, "ember": EffEmber, "cap": EffCap, "shield": EffShield}[h]
-		return &Effect{Kind: kind, A: p.amount(a[0]), Sel: p.playerSel(a[1])}
-	case "modify", "setbody":
-		a := list(n, h, 4, 4)
-		kind := EffModify
-		if h == "setbody" {
-			kind = EffSetbody
-		}
-		return &Effect{Kind: kind, A: p.amount(a[0]), B: p.amount(a[1]), Sel: p.objSel(a[2])}
-	case "grant":
-		a := list(n, h, 3, 3)
-		return &Effect{Kind: EffGrant, Kw: kwspec(a[0]), Sel: p.objSel(a[1])}
-	case "counters", "ward":
-		a := list(n, h, 3, 3)
-		kind := EffCounters
-		if h == "ward" {
-			kind = EffWard
-		}
-		return &Effect{Kind: kind, A: p.amount(a[0]), Sel: p.objSel(a[1])}
-	case "summon", "conjure":
-		a := list(n, h, 4, 4)
-		id := symOf(a[0])
-		if !validCardID(id) {
-			fail()
-		}
-		kind := EffSummon
-		if h == "conjure" {
-			kind = EffConjure
-		}
-		return &Effect{Kind: kind, CardID: id, A: p.amount(a[1]), Sel: p.playerSel(a[2])}
-	case "negate":
-		a := list(n, h, 2, 2)
-		if a[0].Head() != "t" {
-			fail()
-		}
-		return &Effect{Kind: EffNegate, Sel: p.tSel(a[0])}
-	case "dig":
-		a := list(n, h, 4, 4)
-		if a[1].Kind != sexpr.List {
-			fail()
-		}
-		return &Effect{Kind: EffDig, DigK: intOf(a[0]), Filters: p.filters(a[1].Items), Sel: p.playerSel(a[2])}
-	case "delay":
-		a := list(n, h, 2, -1)
-		var w When
-		switch symOf(a[0]) {
-		case "turn-end":
-			w = TurnEnd
-		case "end-of-combat":
-			w = EndOfCombat
-		case "your-next-turn-start":
-			w = YourNextTurnStart
-		default:
-			fail()
-		}
-		return &Effect{Kind: EffDelay, When: w, Body: p.effects(a[1:])}
-	case "if":
-		a := list(n, h, 3, 4)
-		e := &Effect{Kind: EffIf, Cond: p.cond(a[0]), Body: p.effectList(a[1])}
-		if len(a) == 3 {
-			e.HasElse = true
-			e.Else = p.effectList(a[2])
-		}
-		return e
-	case "each":
-		a := list(n, h, 2, -1)
-		return &Effect{Kind: EffEach, Sel: p.objSel(a[0]), Body: p.effects(a[1:])}
-	case "repeat":
-		a := list(n, h, 2, -1)
-		return &Effect{Kind: EffRepeat, A: p.amount(a[0]), Body: p.effects(a[1:])}
+		return shape(OpDamage, "ad")
+	case "destroy":
+		return shape(OpDestroy, "s")
+	case "sacrifice":
+		return shape(OpSacrifice, "s")
+	case "exile":
+		return shape(OpExile, "s")
+	case "bounce":
+		return shape(OpBounce, "s")
+	case "draw":
+		return shape(OpDraw, "ap")
+	case "discard":
+		return shape(OpDiscard, "ap")
+	case "mill":
+		return shape(OpMill, "ap")
+	case "spire":
+		return shape(OpSpire, "ap")
+	case "ember":
+		return shape(OpEmber, "ap")
+	case "cap":
+		return shape(OpCap, "ap")
+	case "modify":
+		return shape(OpModify, "aas")
+	case "setbody":
+		return shape(OpSetbody, "aas")
+	case "swapstats":
+		return shape(OpSwapstats, "s")
+	case "strip":
+		return shape(OpStrip, "s")
+	case "control":
+		return shape(OpControl, "s")
+	case "counters":
+		return shape(OpCounters, "as")
+	case "ready":
+		return shape(OpReady, "s")
+	case "exhaust":
+		return shape(OpExhaust, "s")
+	case "doom":
+		return shape(OpDoom, "s")
+	case "ward":
+		return shape(OpWard, "as")
+	case "shield":
+		return shape(OpShield, "ap")
+	case "reanimate":
+		return shape(OpReanimate, "s")
+	case "recall":
+		return shape(OpRecall, "s")
 	case "nothing":
-		list(n, h, 1, 1)
-		return &Effect{Kind: EffNothing}
+		if len(a) != 0 {
+			return errf()
+		}
+		e.Op = OpNothing
+		return e, nil
+	case "negate":
+		if len(a) != 1 {
+			return errf()
+		}
+		if e.Sel, err = parseSelector(a[0]); err != nil {
+			return nil, err
+		}
+		if e.Sel.Kind != SelTarget {
+			return errf()
+		}
+		e.Op = OpNegate
+		return e, nil
+	case "grant":
+		if len(a) != 2 {
+			return errf()
+		}
+		if e.KW, err = parseKwSpec(a[0]); err != nil {
+			return nil, err
+		}
+		if e.Sel, err = parseSelector(a[1]); err != nil {
+			return nil, err
+		}
+		e.Op = OpGrant
+		return e, nil
+	case "summon", "conjure":
+		if len(a) != 3 || a[0].Kind != sexpr.Symbol {
+			return errf()
+		}
+		e.CardID = a[0].Text
+		if e.A1, err = parseAmount(a[1]); err != nil {
+			return nil, err
+		}
+		if e.PSel, err = parsePlayerSel(a[2]); err != nil {
+			return nil, err
+		}
+		e.Op = OpSummon
+		if h == "conjure" {
+			e.Op = OpConjure
+		}
+		return e, nil
+	case "dig":
+		if len(a) != 3 || a[0].Kind != sexpr.Int || a[1].Kind != sexpr.List {
+			return errf()
+		}
+		e.K = int(a[0].Num)
+		if e.Filters, err = parseFilters(a[1].Kids); err != nil {
+			return nil, err
+		}
+		if e.PSel, err = parsePlayerSel(a[2]); err != nil {
+			return nil, err
+		}
+		e.Op = OpDig
+		return e, nil
+	case "delay":
+		if len(a) < 1 || a[0].Kind != sexpr.Symbol {
+			return errf()
+		}
+		w := -1
+		for i, s := range whenNames {
+			if s == a[0].Text {
+				w = i
+			}
+		}
+		if w < 0 {
+			return errf()
+		}
+		e.Op, e.When = OpDelay, When(w)
+		if e.Body, err = parseEffects(a[1:]); err != nil {
+			return nil, err
+		}
+		return e, nil
+	case "if":
+		if len(a) != 2 && len(a) != 3 {
+			return errf()
+		}
+		if e.Cond, err = parseCond(a[0]); err != nil {
+			return nil, err
+		}
+		for i := 1; i < len(a); i++ {
+			if a[i].Kind != sexpr.List {
+				return errf()
+			}
+			list, err := parseEffects(a[i].Kids)
+			if err != nil {
+				return nil, err
+			}
+			if i == 1 {
+				e.Body = list
+			} else {
+				e.Else, e.HasElse = list, true
+			}
+		}
+		e.Op = OpIf
+		return e, nil
+	case "each":
+		if len(a) < 1 {
+			return errf()
+		}
+		if e.Sel, err = parseSelector(a[0]); err != nil {
+			return nil, err
+		}
+		if e.Body, err = parseEffects(a[1:]); err != nil {
+			return nil, err
+		}
+		e.Op = OpEach
+		return e, nil
+	case "repeat":
+		if len(a) < 1 {
+			return errf()
+		}
+		if e.A1, err = parseAmount(a[0]); err != nil {
+			return nil, err
+		}
+		if e.Body, err = parseEffects(a[1:]); err != nil {
+			return nil, err
+		}
+		e.Op = OpRepeat
+		return e, nil
 	}
-	fail()
-	return nil
+	return errf()
+}
+
+func parseStatic(n sexpr.Node) (*Static, error) {
+	h, a, ok := n.Head()
+	if !ok {
+		return nil, fmt.Errorf("bad static %s", n)
+	}
+	s := &Static{Node: n}
+	errf := func() (*Static, error) { return nil, fmt.Errorf("bad static %s", n) }
+	var err error
+	switch h {
+	case "modify", "setbody":
+		if len(a) != 3 {
+			return errf()
+		}
+		if s.A1, err = parseAmount(a[0]); err != nil {
+			return nil, err
+		}
+		if s.A2, err = parseAmount(a[1]); err != nil {
+			return nil, err
+		}
+		if s.Sel, err = parseSelector(a[2]); err != nil {
+			return nil, err
+		}
+		s.Kind = StModify
+		if h == "setbody" {
+			s.Kind = StSetbody
+		}
+		return s, nil
+	case "swapstats":
+		if len(a) != 1 {
+			return errf()
+		}
+		if s.Sel, err = parseSelector(a[0]); err != nil {
+			return nil, err
+		}
+		s.Kind = StSwap
+		return s, nil
+	case "grant":
+		if len(a) != 2 {
+			return errf()
+		}
+		if s.KW, err = parseKwSpec(a[0]); err != nil {
+			return nil, err
+		}
+		if s.Sel, err = parseSelector(a[1]); err != nil {
+			return nil, err
+		}
+		s.Kind = StGrant
+		return s, nil
+	case "cheaper":
+		if len(a) < 1 || a[0].Kind != sexpr.Int {
+			return errf()
+		}
+		s.Kind, s.N = StCheaper, int(a[0].Num)
+		for _, f := range a[1:] {
+			fl, err := parseFilter(f)
+			if err != nil {
+				return nil, err
+			}
+			switch fl.Kind {
+			case FType, FTag, FCost:
+				s.CardFilters = append(s.CardFilters, CardFilter{Kind: fl.Kind, Type: fl.Type, Tag: fl.Tag, Cmp: fl.Cmp, N: fl.N})
+			default:
+				return errf()
+			}
+		}
+		return s, nil
+	case "when":
+		if len(a) < 1 {
+			return errf()
+		}
+		if s.Cond, err = parseCond(a[0]); err != nil {
+			return nil, err
+		}
+		for _, b := range a[1:] {
+			sub, err := parseStatic(b)
+			if err != nil {
+				return nil, err
+			}
+			s.Body = append(s.Body, sub)
+		}
+		s.Kind = StWhen
+		return s, nil
+	}
+	return errf()
 }

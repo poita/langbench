@@ -1,0 +1,2 @@
+[.[] | select(.active) | .tags[]] | group_by(.) | map({tag: .[0], n: length}) | sort_by(-.n, .tag)
+[{"active":true,"tags":["a","b"]},{"active":false,"tags":["a"]},{"active":true,"tags":["b","c","b"]},{"active":true,"tags":[]}]

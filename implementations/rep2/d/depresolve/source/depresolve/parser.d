@@ -1,89 +1,135 @@
 /**
- * Parser for the textual registry format.
+ * Parser for the textual input format: registry lines followed by a root
+ * line.
  *
  * ---
- * a 1.0.0: c ^1.0.0
- * c 1.2.5:
+ * a 1.0.0: b ^1.0.0
+ * b 1.2.0:
  * root: a *
  * ---
- *
- * Zero or more registry lines followed by exactly one root line.
  */
 module depresolve.parser;
 
-import std.string : indexOf;
+import std.conv : to;
 
 import depresolve.range;
 import depresolve.registry;
 import depresolve.semver;
 
-/**
- * Parse a whole input text (registry lines and the final root line) into a
- * `Registry`. Package names in the result are slices of `text`, not copies.
- *
- * Throws: `ParseException` if the text is malformed or has no root line.
- */
-Registry parseInput(string text) pure @safe
+/// A parsed input: the registry and the root manifest's requirements.
+struct Problem
 {
-    RegistryBuilder builder;
-    bool sawRoot = false;
-    size_t pos = 0;
-    while (pos < text.length)
-    {
-        if (sawRoot)
-            throw new ParseException("root line must be the last line");
-        auto eol = text[pos .. $].indexOf('\n');
-        immutable end = eol < 0 ? text.length : pos + eol;
-        auto line = text[pos .. end];
-        pos = end + 1;
-
-        immutable colon = line.indexOf(':');
-        if (colon < 0)
-            throw new ParseException("missing ':' in line '" ~ line ~ "'");
-        auto head = line[0 .. colon];
-        auto reqs = parseRequirements(line[colon + 1 .. $]);
-        if (head == "root")
-        {
-            builder.setRoot(reqs);
-            sawRoot = true;
-        }
-        else
-        {
-            immutable sp = head.indexOf(' ');
-            if (sp <= 0)
-                throw new ParseException("malformed package version: '" ~ head ~ "'");
-            builder.addVersion(head[0 .. sp], parseVersion(head[sp + 1 .. $]), reqs);
-        }
-    }
-    if (!sawRoot)
-        throw new ParseException("missing root line");
-    return builder.build();
+    /// All declared package versions (not yet sealed).
+    Registry registry;
+    /// Root requirements, in the order listed. Bound once the registry is sealed
+    /// by the resolver; see `depresolve.resolver.resolve`.
+    Requirement[] root;
 }
 
 /**
- * Parse the text after the colon of a line: either empty, or a space followed
- * by `name range` items separated by `", "`.
+ * Parses a complete input text.
+ *
+ * Every line must end with `\n`; the last line must be the root line.
+ *
+ * Throws: `ParseException` when the text is malformed.
  */
-RequirementSpec[] parseRequirements(string text) pure @safe
+Problem parseProblem(const(char)[] text) pure @safe
 {
-    RequirementSpec[] into;
-    if (text.length == 0)
-        return into;
-    if (text[0] != ' ')
-        throw new ParseException("expected ' ' after ':'");
-    text = text[1 .. $];
+    Problem prob;
+    size_t pos = 0;
+    bool haveRoot = false;
+
+    while (pos < text.length)
+    {
+        if (haveRoot)
+            throw new ParseException("data after the root line");
+
+        if (text.length - pos >= 5 && text[pos .. pos + 5] == "root:")
+        {
+            pos += 5;
+            prob.root = parseRequirements(prob.registry, text, pos);
+            haveRoot = true;
+        }
+        else
+        {
+            const nameStart = pos;
+            while (pos < text.length && text[pos] != ' ' && text[pos] != '\n')
+                ++pos;
+            if (pos >= text.length || text[pos] != ' ' || pos == nameStart)
+                throw new ParseException("malformed registry line at offset " ~ nameStart.to!string);
+            const name = text[nameStart .. pos].idup;
+            ++pos;
+            const ver = parseVersionAt(text, pos);
+            expect(text, pos, ':');
+            const reqs = parseRequirements(prob.registry, text, pos);
+            prob.registry.add(name, ver, reqs);
+        }
+        expect(text, pos, '\n');
+    }
+    if (!haveRoot)
+        throw new ParseException("missing root line");
+    return prob;
+}
+
+/// Parses `""` or `" name range, name range"` up to (not including) the newline.
+private Requirement[] parseRequirements(ref Registry reg, const(char)[] text, ref size_t pos)
+    pure @safe
+{
+    Requirement[] reqs;
+    if (pos < text.length && text[pos] == '\n')
+        return reqs;
+    expect(text, pos, ' ');
     while (true)
     {
-        immutable comma = text.indexOf(',');
-        auto item = comma < 0 ? text : text[0 .. comma];
-        immutable sp = item.indexOf(' ');
-        if (sp <= 0)
-            throw new ParseException("malformed requirement: '" ~ item ~ "'");
-        into ~= RequirementSpec(item[0 .. sp], parseRange(item[sp + 1 .. $]));
-        if (comma < 0)
-            return into;
-        if (comma + 1 >= text.length || text[comma + 1] != ' ')
-            throw new ParseException("expected ', ' between requirements");
-        text = text[comma + 2 .. $];
+        const nameStart = pos;
+        while (pos < text.length && text[pos] != ' ' && text[pos] != '\n')
+            ++pos;
+        if (pos >= text.length || text[pos] != ' ' || pos == nameStart)
+            throw new ParseException("malformed requirement at offset " ~ nameStart.to!string);
+        const id = reg.intern(text[nameStart .. pos].idup);
+        ++pos;
+        reqs ~= Requirement(id, parseRangeAt(text, pos));
+        if (pos < text.length && text[pos] == ',')
+        {
+            ++pos;
+            expect(text, pos, ' ');
+        }
+        else
+            break;
     }
+    return reqs;
+}
+
+unittest
+{
+    auto p = parseProblem("a 1.0.0: b ^1.0.0, c *\nb 1.2.0:\nroot: a *\n");
+    assert(p.registry.packages.length == 3);
+    assert(p.root.length == 1);
+    assert(p.registry.pool.length == 2);
+    assert(p.registry.packages[p.root[0].pkg].name == "a");
+}
+
+unittest
+{
+    auto p = parseProblem("root:\n");
+    assert(p.root.length == 0);
+    assert(p.registry.packages.length == 0);
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+    assertThrown!ParseException(parseProblem(""));
+    assertThrown!ParseException(parseProblem("a 1.0.0:\n"));
+    assertThrown!ParseException(parseProblem("root:\na 1.0.0:\n"));
+    assertThrown!ParseException(parseProblem("a 1.0.0 b *\nroot:\n"));
+    assertThrown!ParseException(parseProblem("root: a *"));
+}
+
+unittest
+{
+    // A package whose name merely starts with "root" is an ordinary package.
+    auto p = parseProblem("rootx 1.0.0:\nroot: rootx *\n");
+    assert(p.registry.find("rootx") != none);
+    assert(p.root.length == 1);
 }

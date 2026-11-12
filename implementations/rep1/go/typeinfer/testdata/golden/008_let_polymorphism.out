@@ -1,0 +1,20 @@
+id : 'a -> 'a
+- : int * bool
+- : int * bool
+error: unify
+error: unify
+- : (int -> 'a) -> 'a * 'a
+error: unify
+- : 'a -> int * bool * 'a
+pair : 'a -> 'a * 'a
+p1 : ('a -> 'a) * ('a -> 'a)
+- : 'a -> 'a * 'a
+- : 'a -> ('a * int) * ('a * bool)
+g : 'a -> 'a
+- : 'a -> 'a
+- : int * bool
+- : int * bool
+error: unbound
+compose : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+k : 'a -> 'a
+- : int * bool

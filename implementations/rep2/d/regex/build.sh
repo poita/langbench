@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the regex command-line tool.
+# Build the regex CLI (release mode, LDC). Works from any directory.
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 -q
+exec dub build -b release --compiler=ldc2 --quiet

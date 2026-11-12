@@ -1,49 +1,57 @@
-/**
- * Recursive-descent parser turning filter source text into an AST.
- */
+/// Recursive-descent parser: filter text to a `Node` tree.
 module jq.parser;
 
 import jq.ast;
+import jq.error;
 import jq.lexer;
-import jq.ops : BinOp;
 import jq.value;
 
-/// Parse the filter `src`. Throws `FilterException` if it is malformed.
+/// Compiles filter text. Throws `JqSyntaxError` if it is not valid.
 Node parseFilter(string src)
 {
-    auto p = new FilterParser(src);
-    return p.parseProgram();
+    auto p = Parser(tokenize(src));
+    auto n = p.parsePipe();
+    if (p.peek.kind != Tok.eof)
+        throw new JqSyntaxError("unexpected token at offset " ~ itoa(p.peek.pos));
+    return n;
 }
 
-private final class FilterParser
+private string itoa(size_t n)
+{
+    import std.conv : to;
+
+    return n.to!string;
+}
+
+private struct Parser
 {
     Token[] toks;
-    size_t pos;
-    int[string] varIds;
+    size_t p;
+    int[string] vars;
 
-    this(string src)
+    this(Token[] t)
     {
-        toks = tokenize(src);
+        toks = t;
     }
 
-    FilterException fail(string msg)
+    ref const(Token) peek() const
     {
-        return new FilterException(msg, toks[pos].start);
+        return toks[p];
     }
 
-    ref const(Token) peek() const { return toks[pos]; }
-    Tok kind() const { return toks[pos].kind; }
-
-    bool isIdent(string name) const
+    Token next()
     {
-        return toks[pos].kind == Tok.ident && toks[pos].text == name;
+        auto t = toks[p];
+        if (t.kind != Tok.eof)
+            ++p;
+        return t;
     }
 
     bool accept(Tok k)
     {
-        if (toks[pos].kind == k)
+        if (toks[p].kind == k)
         {
-            ++pos;
+            ++p;
             return true;
         }
         return false;
@@ -52,108 +60,73 @@ private final class FilterParser
     void expect(Tok k, string what)
     {
         if (!accept(k))
-            throw fail("expected " ~ what);
+            throw new JqSyntaxError("expected " ~ what ~ " at offset " ~ itoa(toks[p].pos));
+    }
+
+    bool isKeyword(string kw) const
+    {
+        return toks[p].kind == Tok.ident && toks[p].text == kw;
     }
 
     void expectKeyword(string kw)
     {
-        if (!isIdent(kw))
-            throw fail("expected '" ~ kw ~ "'");
-        ++pos;
-    }
-
-    Node parseProgram()
-    {
-        if (kind == Tok.eof)
-            return finish(new Node(Kind.identity));
-        auto n = parsePipe();
-        if (kind != Tok.eof)
-            throw fail("unexpected token");
-        return n;
-    }
-
-    // -- node construction ---------------------------------------------------
-
-    Node finish(Node n)
-    {
-        final switch (n.kind)
-        {
-        case Kind.identity, Kind.literal, Kind.variable:
-        case Kind.arrayCons, Kind.not, Kind.length, Kind.keys, Kind.type, Kind.add,
-            Kind.sort, Kind.unique, Kind.reverse, Kind.min, Kind.max,
-            Kind.toStringOp, Kind.toNumberOp, Kind.map, Kind.sortBy, Kind.groupBy:
-            n.single = true;
-            break;
-        case Kind.field:
-            n.single = !n.opt && n.a.single;
-            break;
-        case Kind.index:
-            n.single = !n.opt && n.a.single && n.b.single;
-            break;
-        case Kind.slice:
-            n.single = !n.opt && n.a.single && (n.b is null || n.b.single) && (n.c is null || n.c.single);
-            break;
-        case Kind.iterate, Kind.tryOp, Kind.comma, Kind.empty, Kind.error, Kind.errorOf, Kind.select:
-            n.single = false;
-            break;
-        case Kind.pipe, Kind.binop, Kind.and, Kind.or, Kind.asOp:
-            n.single = n.a.single && n.b.single;
-            break;
-        case Kind.neg, Kind.has:
-            n.single = n.a.single;
-            break;
-        case Kind.objCons:
-            n.single = true;
-            foreach (x; n.ks)
-                n.single = n.single && x.single;
-            foreach (x; n.vs)
-                n.single = n.single && x.single;
-            break;
-        case Kind.ifOp:
-            n.single = n.a.single && n.b.single && n.c.single;
-            break;
-        case Kind.reduce:
-            n.single = n.b.single;
-            break;
-        }
-        return n;
-    }
-
-    Node mk(Kind k, Node a = null, Node b = null, Node c = null)
-    {
-        auto n = new Node(k);
-        n.a = a;
-        n.b = b;
-        n.c = c;
-        return finish(n);
-    }
-
-    Node literal(Value v)
-    {
-        auto n = new Node(Kind.literal);
-        n.lit = v;
-        return finish(n);
-    }
-
-    Node field(Node target, string name, bool opt = false)
-    {
-        auto n = new Node(Kind.field);
-        n.a = target;
-        n.key = new JStr(name);
-        n.opt = opt;
-        return finish(n);
+        if (!isKeyword(kw))
+            throw new JqSyntaxError("expected '" ~ kw ~ "' at offset " ~ itoa(toks[p].pos));
+        ++p;
     }
 
     int varId(string name)
     {
-        if (auto p = name in varIds)
-            return *p;
-        const id = cast(int) varIds.length;
-        varIds[name] = id;
+        if (auto q = name in vars)
+            return *q;
+        immutable id = cast(int) vars.length;
+        vars[name] = id;
         return id;
     }
 
-    // -- grammar -------------------------------------------------------------
+    // ---- node constructors (they also compute `single`) ----
+
+    static Node mk(Op op, Node a = null, Node b = null, Node c = null)
+    {
+        auto n = new Node(op);
+        n.a = a;
+        n.b = b;
+        n.c = c;
+        return n;
+    }
+
+    static Node mkLit(Value v)
+    {
+        auto n = mk(Op.literal);
+        n.lit = v;
+        n.single = true;
+        return n;
+    }
+
+    static Node mkIdentity()
+    {
+        auto n = mk(Op.identity);
+        n.single = true;
+        return n;
+    }
+
+    static Node mkField(Node target, string name)
+    {
+        auto n = mk(Op.field, target);
+        n.name = name;
+        n.single = target.single;
+        return n;
+    }
+
+    static Node mkBin(BinOp op, Node a, Node b)
+    {
+        auto n = mk(Op.binop, a, b);
+        n.bop = op;
+        n.single = a.single && b.single;
+        return n;
+    }
+
+    // ---- grammar ----
 
     Node parsePipe()
     {
@@ -161,7 +134,9 @@ private final class FilterParser
         if (accept(Tok.pipe))
         {
             auto r = parsePipe();
-            return mk(Kind.pipe, l, r);
+            auto n = mk(Op.pipe, l, r);
+            n.single = l.single && r.single;
+            return n;
         }
         return l;
     }
@@ -170,20 +145,19 @@ private final class FilterParser
     {
         auto l = parseOr();
         while (accept(Tok.comma))
-        {
-            auto r = parseOr();
-            l = mk(Kind.comma, l, r);
-        }
+            l = mk(Op.comma, l, parseOr());
         return l;
     }
 
     Node parseOr()
     {
         auto l = parseAnd();
-        while (isIdent("or"))
+        while (isKeyword("or"))
         {
-            ++pos;
-            l = mk(Kind.or, l, parseAnd());
+            ++p;
+            auto r = parseAnd();
+            l = mk(Op.or, l, r);
+            l.single = l.a.single && r.single;
         }
         return l;
     }
@@ -191,264 +165,342 @@ private final class FilterParser
     Node parseAnd()
     {
         auto l = parseCmp();
-        while (isIdent("and"))
+        while (isKeyword("and"))
         {
-            ++pos;
-            l = mk(Kind.and, l, parseCmp());
+            ++p;
+            auto r = parseCmp();
+            l = mk(Op.and, l, r);
+            l.single = l.a.single && r.single;
         }
         return l;
-    }
-
-    Node binop(BinOp op, Node a, Node b)
-    {
-        auto n = new Node(Kind.binop);
-        n.op = op;
-        n.a = a;
-        n.b = b;
-        return finish(n);
     }
 
     Node parseCmp()
     {
         auto l = parseAdd();
         BinOp op;
-        switch (kind)
+        switch (peek.kind)
         {
-        case Tok.eq: op = BinOp.eq; break;
-        case Tok.ne: op = BinOp.ne; break;
-        case Tok.lt: op = BinOp.lt; break;
-        case Tok.le: op = BinOp.le; break;
-        case Tok.gt: op = BinOp.gt; break;
-        case Tok.ge: op = BinOp.ge; break;
-        default: return l;
+        case Tok.eq:
+            op = BinOp.eq;
+            break;
+        case Tok.ne:
+            op = BinOp.ne;
+            break;
+        case Tok.lt:
+            op = BinOp.lt;
+            break;
+        case Tok.le:
+            op = BinOp.le;
+            break;
+        case Tok.gt:
+            op = BinOp.gt;
+            break;
+        case Tok.ge:
+            op = BinOp.ge;
+            break;
+        default:
+            return l;
         }
-        ++pos;
-        return binop(op, l, parseAdd());
+        ++p;
+        return mkBin(op, l, parseAdd());
     }
 
     Node parseAdd()
     {
         auto l = parseMul();
-        while (kind == Tok.plus || kind == Tok.minus)
+        while (true)
         {
-            const op = kind == Tok.plus ? BinOp.add : BinOp.sub;
-            ++pos;
-            l = binop(op, l, parseMul());
+            if (accept(Tok.plus))
+                l = mkBin(BinOp.add, l, parseMul());
+            else if (accept(Tok.minus))
+                l = mkBin(BinOp.sub, l, parseMul());
+            else
+                return l;
         }
-        return l;
     }
 
     Node parseMul()
     {
         auto l = parseUnary();
-        while (kind == Tok.star || kind == Tok.slash || kind == Tok.percent)
+        while (true)
         {
-            const op = kind == Tok.star ? BinOp.mul : (kind == Tok.slash ? BinOp.div : BinOp.mod);
-            ++pos;
-            l = binop(op, l, parseUnary());
+            if (accept(Tok.star))
+                l = mkBin(BinOp.mul, l, parseUnary());
+            else if (accept(Tok.slash))
+                l = mkBin(BinOp.div, l, parseUnary());
+            else if (accept(Tok.percent))
+                l = mkBin(BinOp.mod, l, parseUnary());
+            else
+                return l;
         }
-        return l;
-    }
-
-    Node negate(Node x)
-    {
-        if (x.kind == Kind.literal && x.lit.type == Type.number)
-            return literal(Value.makeNumber(-x.lit.num));
-        return mk(Kind.neg, x);
     }
 
     Node parseUnary()
     {
         if (accept(Tok.minus))
-            return negate(parseUnary());
+        {
+            auto x = parseUnary();
+            auto n = mk(Op.neg, x);
+            n.single = x.single;
+            return n;
+        }
         return parsePostfix(true);
     }
 
+    /// postfix := primary { suffix }; with `allowAs`, also `postfix as $x | pipe`.
     Node parsePostfix(bool allowAs)
     {
-        Node t = parsePrimary();
-        bool optable = t.kind == Kind.field && t.a.kind == Kind.identity && !t.opt;
+        bool lastIsPathOp; // does `t` end in a field/index/slice/iterate op?
+        auto t = parsePrimary(lastIsPathOp);
         while (true)
         {
-            const k = kind;
-            if (k == Tok.dot)
+            immutable k = peek.kind;
+            if (k == Tok.field)
             {
-                const nx = toks[pos + 1];
-                if ((nx.kind == Tok.ident || nx.kind == Tok.str) && nx.start == toks[pos].end)
-                {
-                    pos += 2;
-                    t = field(t, nx.text);
-                    optable = true;
-                    continue;
-                }
-                if (nx.kind == Tok.lbrack)
-                {
-                    ++pos;
-                    continue;
-                }
-                break;
+                auto tk = next();
+                t = mkField(t, tk.text);
+                lastIsPathOp = true;
+            }
+            else if (k == Tok.dot && toks[p + 1].adjacent && toks[p + 1].kind == Tok.string_)
+            {
+                ++p;
+                t = mkField(t, next().text);
+                lastIsPathOp = true;
+            }
+            else if (k == Tok.dot && toks[p + 1].adjacent && toks[p + 1].kind == Tok.lbrack)
+            {
+                ++p; // `.a.[0]`
             }
             else if (k == Tok.lbrack)
             {
-                ++pos;
-                if (accept(Tok.rbrack))
-                {
-                    t = mk(Kind.iterate, t);
-                }
-                else if (accept(Tok.colon))
-                {
-                    auto hi = parsePipe();
-                    expect(Tok.rbrack, "']'");
-                    t = mk(Kind.slice, t, null, hi);
-                }
-                else
-                {
-                    auto e = parsePipe();
-                    if (accept(Tok.colon))
-                    {
-                        Node hi = null;
-                        if (kind != Tok.rbrack)
-                            hi = parsePipe();
-                        expect(Tok.rbrack, "']'");
-                        t = mk(Kind.slice, t, e, hi);
-                    }
-                    else
-                    {
-                        expect(Tok.rbrack, "']'");
-                        t = mk(Kind.index, t, e);
-                    }
-                }
-                optable = true;
+                ++p;
+                t = parseBracket(t);
+                lastIsPathOp = true;
             }
             else if (k == Tok.question)
             {
-                ++pos;
-                if (optable)
+                ++p;
+                if (lastIsPathOp)
                 {
                     t.opt = true;
-                    finish(t);
+                    t.single = false;
+                    lastIsPathOp = false;
                 }
                 else
-                    t = mk(Kind.tryOp, t);
-                optable = false;
+                {
+                    t = mk(Op.try_, t);
+                }
             }
             else
                 break;
         }
-        if (allowAs && isIdent("as"))
+        if (allowAs && isKeyword("as"))
         {
-            ++pos;
-            if (kind != Tok.variable)
-                throw fail("expected variable after 'as'");
-            const id = varId(toks[pos].text);
-            ++pos;
-            expect(Tok.pipe, "'|' after binding");
+            ++p;
+            auto v = next();
+            if (v.kind != Tok.var)
+                throw new JqSyntaxError("expected a variable after 'as'");
+            expect(Tok.pipe, "'|'");
             auto body_ = parsePipe();
-            auto n = new Node(Kind.asOp);
-            n.a = t;
-            n.varId = id;
-            n.b = body_;
-            return finish(n);
+            auto n = mk(Op.bind, t, body_);
+            n.varId = varId(v.text);
+            n.single = t.single && body_.single;
+            return n;
         }
         return t;
     }
 
-    Node parsePrimary()
+    /// Parses after `[`: index, iterate or slice.
+    Node parseBracket(Node target)
     {
-        const tk = toks[pos];
-        switch (tk.kind)
+        if (accept(Tok.rbrack))
+        {
+            auto n = mk(Op.iterate, target);
+            return n;
+        }
+        Node from, to;
+        if (peek.kind == Tok.colon)
+        {
+            ++p;
+            if (peek.kind != Tok.rbrack)
+                to = parsePipe();
+            expect(Tok.rbrack, "']'");
+            return mk(Op.slice, target, from, to);
+        }
+        from = parsePipe();
+        if (accept(Tok.colon))
+        {
+            if (peek.kind != Tok.rbrack)
+                to = parsePipe();
+            expect(Tok.rbrack, "']'");
+            return mk(Op.slice, target, from, to);
+        }
+        expect(Tok.rbrack, "']'");
+        auto n = mk(Op.index, target, from);
+        n.single = target.single && from.single;
+        return n;
+    }
+
+    /// `isPath` reports whether the primary is itself a field access (`.a`, `."a"`),
+    /// which a following `?` makes tolerant rather than wrapping in try.
+    Node parsePrimary(out bool isPath)
+    {
+        auto t = next();
+        if (t.kind == Tok.field)
+        {
+            isPath = true;
+            return mkField(mkIdentity(), t.text);
+        }
+        if (t.kind == Tok.dot && peek.kind == Tok.string_ && peek.adjacent)
+        {
+            isPath = true;
+            return mkField(mkIdentity(), next().text);
+        }
+        isPath = false;
+        switch (t.kind)
         {
         case Tok.dot:
-            {
-                ++pos;
-                const nx = toks[pos];
-                if ((nx.kind == Tok.ident || nx.kind == Tok.str) && nx.start == tk.end)
-                {
-                    ++pos;
-                    return field(mk(Kind.identity), nx.text);
-                }
-                return mk(Kind.identity);
-            }
+            return mkIdentity();
         case Tok.number:
-            ++pos;
-            return literal(Value.makeNumber(tk.num));
-        case Tok.str:
-            ++pos;
-            return literal(Value.makeString(tk.text));
-        case Tok.variable:
+            return mkLit(Value.makeNumber(t.num));
+        case Tok.string_:
+            return mkLit(Value.makeString(t.text));
+        case Tok.var:
             {
-                ++pos;
-                if ((tk.text in varIds) is null)
-                    throw new FilterException("$" ~ tk.text ~ " is not defined", tk.start);
-                auto n = new Node(Kind.variable);
-                n.varId = varIds[tk.text];
-                return finish(n);
+                auto n = mk(Op.var);
+                n.varId = varId(t.text);
+                n.name = t.text;
+                n.single = true;
+                return n;
             }
         case Tok.lparen:
             {
-                ++pos;
                 auto e = parsePipe();
                 expect(Tok.rparen, "')'");
-                // A parenthesised term is no longer a raw suffix: wrap so `(.a)?` means try.
-                if (e.kind == Kind.field || e.kind == Kind.index || e.kind == Kind.slice || e.kind == Kind.iterate)
-                    return paren(e);
                 return e;
             }
         case Tok.lbrack:
             {
-                ++pos;
-                if (accept(Tok.rbrack))
-                    return mk(Kind.arrayCons);
-                auto e = parsePipe();
+                Node body_;
+                if (peek.kind != Tok.rbrack)
+                    body_ = parsePipe();
                 expect(Tok.rbrack, "']'");
-                return mk(Kind.arrayCons, e);
+                auto n = mk(Op.array, body_);
+                n.single = true;
+                return n;
             }
         case Tok.lbrace:
             return parseObject();
         case Tok.ident:
-            return parseIdent();
+            return parseIdent(t);
         default:
-            throw fail("unexpected token");
+            throw new JqSyntaxError("unexpected token at offset " ~ itoa(t.pos));
         }
     }
 
-    /// Mark a parenthesised suffix chain so that a following `?` is a `try`.
-    Node paren(Node e)
+    Node parseObject()
     {
-        // Pipe with identity is a cheap no-op wrapper that is not "optable".
-        return mk(Kind.pipe, mk(Kind.identity), e);
+        auto n = mk(Op.object);
+        bool single = true;
+        if (!accept(Tok.rbrace))
+        {
+            while (true)
+            {
+                ObjEntry e;
+                auto t = next();
+                if (t.kind == Tok.ident || t.kind == Tok.string_)
+                {
+                    e.litKey = t.text;
+                    if (accept(Tok.colon))
+                        e.val = parseObjVal();
+                    else
+                        e.val = mkField(mkIdentity(), t.text);
+                }
+                else if (t.kind == Tok.var)
+                {
+                    e.litKey = t.text;
+                    auto v = mk(Op.var);
+                    v.varId = varId(t.text);
+                    v.name = t.text;
+                    v.single = true;
+                    e.val = v;
+                }
+                else if (t.kind == Tok.lparen)
+                {
+                    e.keyExpr = parsePipe();
+                    expect(Tok.rparen, "')'");
+                    expect(Tok.colon, "':'");
+                    e.val = parseObjVal();
+                    single = single && e.keyExpr.single;
+                }
+                else
+                    throw new JqSyntaxError("bad object key at offset " ~ itoa(t.pos));
+                single = single && e.val.single;
+                n.entries ~= e;
+                if (accept(Tok.comma))
+                    continue;
+                expect(Tok.rbrace, "'}'");
+                break;
+            }
+        }
+        n.single = single;
+        return n;
     }
 
-    Node parseIdent()
+    Node parseObjTerm()
     {
-        const tk = toks[pos];
-        ++pos;
-        switch (tk.text)
+        if (accept(Tok.minus))
         {
-        case "true": return literal(Value.makeBool(true));
-        case "false": return literal(Value.makeBool(false));
-        case "null": return literal(Value.makeNull);
+            auto x = parseObjTerm();
+            auto n = mk(Op.neg, x);
+            n.single = x.single;
+            return n;
+        }
+        return parsePostfix(false);
+    }
+
+    Node parseObjVal()
+    {
+        auto l = parseObjTerm();
+        if (accept(Tok.pipe))
+        {
+            auto r = parseObjVal();
+            auto n = mk(Op.pipe, l, r);
+            n.single = l.single && r.single;
+            return n;
+        }
+        return l;
+    }
+
+    Node parseIdent(Token t)
+    {
+        switch (t.text)
+        {
+        case "true":
+            return mkLit(Value.makeBool(true));
+        case "false":
+            return mkLit(Value.makeBool(false));
+        case "null":
+            return mkLit(Value.makeNull());
         case "if":
             return parseIf();
         case "reduce":
             {
                 auto src = parsePostfix(false);
                 expectKeyword("as");
-                if (kind != Tok.variable)
-                    throw fail("expected variable");
-                const id = varId(toks[pos].text);
-                ++pos;
+                auto v = next();
+                if (v.kind != Tok.var)
+                    throw new JqSyntaxError("expected a variable after 'as'");
                 expect(Tok.lparen, "'('");
                 auto init = parsePipe();
                 expect(Tok.semi, "';'");
                 auto upd = parsePipe();
                 expect(Tok.rparen, "')'");
-                auto n = new Node(Kind.reduce);
-                n.a = src;
-                n.varId = id;
-                n.b = init;
-                n.c = upd;
-                return finish(n);
+                auto n = mk(Op.reduce, src, init, upd);
+                n.varId = varId(v.text);
+                n.single = init.single;
+                return n;
             }
         default:
             break;
@@ -461,35 +513,7 @@ private final class FilterParser
                 args ~= parsePipe();
             expect(Tok.rparen, "')'");
         }
-        Kind k0;
-        bool wantArg = false;
-        switch (tk.text)
-        {
-        case "empty": k0 = Kind.empty; break;
-        case "error": k0 = args.length ? Kind.errorOf : Kind.error; wantArg = args.length > 0; break;
-        case "not": k0 = Kind.not; break;
-        case "length": k0 = Kind.length; break;
-        case "keys": k0 = Kind.keys; break;
-        case "has": k0 = Kind.has; wantArg = true; break;
-        case "type": k0 = Kind.type; break;
-        case "add": k0 = Kind.add; break;
-        case "select": k0 = Kind.select; wantArg = true; break;
-        case "map": k0 = Kind.map; wantArg = true; break;
-        case "sort": k0 = Kind.sort; break;
-        case "sort_by": k0 = Kind.sortBy; wantArg = true; break;
-        case "group_by": k0 = Kind.groupBy; wantArg = true; break;
-        case "unique": k0 = Kind.unique; break;
-        case "reverse": k0 = Kind.reverse; break;
-        case "min": k0 = Kind.min; break;
-        case "max": k0 = Kind.max; break;
-        case "tostring": k0 = Kind.toStringOp; break;
-        case "tonumber": k0 = Kind.toNumberOp; break;
-        default:
-            throw new FilterException(tk.text ~ "/" ~ cast(char)('0' + args.length) ~ " is not defined", tk.start);
-        }
-        if (wantArg ? args.length != 1 : args.length != 0)
-            throw new FilterException("wrong number of arguments to " ~ tk.text, tk.start);
-        return mk(k0, wantArg ? args[0] : null);
+        return mkCall(t.text, args);
     }
 
     Node parseIf()
@@ -498,102 +522,145 @@ private final class FilterParser
         expectKeyword("then");
         auto then_ = parsePipe();
         Node else_;
-        if (isIdent("elif"))
+        if (isKeyword("elif"))
         {
-            ++pos;
-            else_ = parseIf();
-            return mk(Kind.ifOp, cond, then_, else_);
+            ++p;
+            else_ = parseIf(); // consumes through the shared `end`
+            auto n = mk(Op.if_, cond, then_, else_);
+            n.single = cond.single && then_.single && else_.single;
+            return n;
         }
-        if (isIdent("else"))
+        if (isKeyword("else"))
         {
-            ++pos;
+            ++p;
             else_ = parsePipe();
         }
-        else
-            else_ = mk(Kind.identity);
         expectKeyword("end");
-        return mk(Kind.ifOp, cond, then_, else_);
+        auto n = mk(Op.if_, cond, then_, else_);
+        n.single = cond.single && then_.single && (else_ is null || else_.single);
+        return n;
     }
 
-    Node keyLiteral(string s)
+    Node mkCall(string name, Node[] args)
     {
-        return literal(Value.makeString(s));
-    }
-
-    Node parseObjTerm()
-    {
-        if (accept(Tok.minus))
-            return negate(parseObjTerm());
-        return parsePostfix(false);
-    }
-
-    Node parseObjVal()
-    {
-        auto l = parseObjTerm();
-        while (accept(Tok.pipe))
-            l = mk(Kind.pipe, l, parseObjTerm());
-        return l;
-    }
-
-    Node parseObject()
-    {
-        ++pos; // {
-        auto n = new Node(Kind.objCons);
-        if (!accept(Tok.rbrace))
+        auto n = mk(Op.call);
+        n.name = name;
+        n.args = args;
+        void arity(size_t k)
         {
-            while (true)
-            {
-                const tk = toks[pos];
-                if (tk.kind == Tok.ident || tk.kind == Tok.str)
-                {
-                    ++pos;
-                    n.ks ~= keyLiteral(tk.text);
-                    if (accept(Tok.colon))
-                        n.vs ~= parseObjVal();
-                    else
-                        n.vs ~= field(mk(Kind.identity), tk.text);
-                }
-                else if (tk.kind == Tok.variable)
-                {
-                    ++pos;
-                    if ((tk.text in varIds) is null)
-                        throw new FilterException("$" ~ tk.text ~ " is not defined", tk.start);
-                    auto v = new Node(Kind.variable);
-                    v.varId = varIds[tk.text];
-                    n.ks ~= keyLiteral(tk.text);
-                    n.vs ~= finish(v);
-                }
-                else if (tk.kind == Tok.lparen)
-                {
-                    ++pos;
-                    n.ks ~= parsePipe();
-                    expect(Tok.rparen, "')'");
-                    expect(Tok.colon, "':'");
-                    n.vs ~= parseObjVal();
-                }
-                else
-                    throw fail("bad object key");
-                if (accept(Tok.comma))
-                    continue;
-                expect(Tok.rbrace, "'}'");
-                break;
-            }
+            if (args.length != k)
+                throw new JqSyntaxError(name ~ " takes " ~ itoa(k) ~ " argument(s)");
         }
-        n.distinctLiteralKeys = true;
-        foreach (i, k; n.ks)
+
+        switch (name)
         {
-            if (k.kind != Kind.literal || k.lit.type != Type.string)
+        case "empty":
+            arity(0);
+            n.bi = Builtin.empty;
+            return n;
+        case "error":
+            if (args.length == 0)
             {
-                n.distinctLiteralKeys = false;
-                break;
+                n.bi = Builtin.error0;
+                n.single = true; // raises
             }
-            foreach (j; 0 .. i)
-                if (n.ks[j].kind == Kind.literal && n.ks[j].lit.str.s == k.lit.str.s)
-                    n.distinctLiteralKeys = false;
+            else
+            {
+                arity(1);
+                n.bi = Builtin.error1;
+            }
+            return n;
+        case "select":
+            arity(1);
+            n.bi = Builtin.select;
+            return n;
+        case "map":
+            arity(1);
+            n.bi = Builtin.map;
+            n.single = true;
+            return n;
+        case "sort_by":
+            arity(1);
+            n.bi = Builtin.sort_by;
+            n.single = true;
+            return n;
+        case "group_by":
+            arity(1);
+            n.bi = Builtin.group_by;
+            n.single = true;
+            return n;
+        case "has":
+            arity(1);
+            n.bi = Builtin.has;
+            n.single = args[0].single;
+            return n;
+        default:
+            break;
         }
-        if (n.distinctLiteralKeys)
-            foreach (k; n.ks)
-                n.litKeys ~= k.lit.str;
-        return finish(n);
+        arity(0);
+        n.single = true;
+        switch (name)
+        {
+        case "not":
+            n.bi = Builtin.not;
+            break;
+        case "length":
+            n.bi = Builtin.length;
+            break;
+        case "keys":
+            n.bi = Builtin.keys;
+            break;
+        case "type":
+            n.bi = Builtin.type;
+            break;
+        case "add":
+            n.bi = Builtin.add;
+            break;
+        case "sort":
+            n.bi = Builtin.sort;
+            break;
+        case "unique":
+            n.bi = Builtin.unique;
+            break;
+        case "reverse":
+            n.bi = Builtin.reverse;
+            break;
+        case "min":
+            n.bi = Builtin.min;
+            break;
+        case "max":
+            n.bi = Builtin.max;
+            break;
+        case "tostring":
+            n.bi = Builtin.tostring;
+            break;
+        case "tonumber":
+            n.bi = Builtin.tonumber;
+            break;
+        default:
+            throw new JqSyntaxError("unknown function: " ~ name);
+        }
+        return n;
     }
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+
+    // `.a?` makes one operation tolerant; `(.a)?` and `f?` are try
+    auto n = parseFilter(".a.b?");
+    assert(n.op == Op.field && n.opt && !n.a.opt);
+    n = parseFilter("(.a)?");
+    assert(n.op == Op.try_);
+    n = parseFilter(".a??");
+    assert(n.op == Op.try_ && n.a.opt);
+    // `|` is right-associative and looser than `,`
+    n = parseFilter("1, 2 | 3");
+    assert(n.op == Op.pipe && n.a.op == Op.comma);
+    // `as` binds the rest of the pipe
+    n = parseFilter(". as $x | $x, 1");
+    assert(n.op == Op.bind && n.b.op == Op.comma);
+    assertThrown!JqSyntaxError(parseFilter("1 +"));
+    assertThrown!JqSyntaxError(parseFilter("[1"));
 }

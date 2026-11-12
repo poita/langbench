@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ordered-map"
+version = "0.1.0"
+description = "A balanced (AVL) ordered map from integer keys to string values with rank/select, neighbour and range queries."
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+ordered-map = "ordered_map.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

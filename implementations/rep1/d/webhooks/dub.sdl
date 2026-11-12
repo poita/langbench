@@ -1,33 +1,21 @@
 name "webhooks"
-description "Standard Webhooks signing/verification library with a deterministic delivery simulator"
-authors "webhooks contributors"
-copyright "Copyright © webhooks contributors"
+description "Standard Webhooks: SHA-256, HMAC, Base64, signing/verification and a delivery simulator"
+authors "Peter Alexander"
+copyright "Copyright © 2026"
 license "MIT"
+targetType "executable"
+targetName "webhooks"
+targetPath "bin"
 
-// Default configuration: the command-line tool (reads commands on stdin).
-configuration "cli" {
+configuration "application" {
     targetType "executable"
-    targetName "webhooks"
-    targetPath "bin"
-    sourcePaths "source" "cli"
+    sourcePaths "source" "app"
     importPaths "source"
-    mainSourceFile "cli/app.d"
+    mainSourceFile "app/main.d"
 }
 
-// The reusable library (what `dependency "webhooks" ...` consumers get).
 configuration "library" {
     targetType "library"
-    targetName "webhooks"
-    targetPath "bin"
     sourcePaths "source"
     importPaths "source"
-}
-
-// Used by `dub test`: library sources plus the separate test modules.
-configuration "unittest" {
-    targetType "library"
-    targetName "webhooks-test"
-    targetPath "bin"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
 }

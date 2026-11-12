@@ -1,6 +1,5 @@
 // Command mime parses a mailbox (an mbox file or a directory of .eml files)
-// and writes a normalised dump of every message, plus the decoded bytes of
-// every attachment, into an output directory.
+// and writes a normalised dump of each message plus its attachments.
 //
 // Usage:
 //
@@ -11,8 +10,8 @@ import (
 	"fmt"
 	"os"
 
-	"mimedump/export"
-	"mimedump/mailbox"
+	"example.com/mime/dump"
+	"example.com/mime/mailbox"
 )
 
 func main() {
@@ -20,11 +19,12 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: mime <input path> <output directory>")
 		os.Exit(2)
 	}
-	mb, err := mailbox.Open(os.Args[1])
-	if err == nil {
-		err = export.Write(mb, os.Args[2])
-	}
+	sources, err := mailbox.Load(os.Args[1])
 	if err != nil {
+		fmt.Fprintln(os.Stderr, "mime:", err)
+		os.Exit(1)
+	}
+	if err := dump.WriteAll(os.Args[2], sources); err != nil {
 		fmt.Fprintln(os.Stderr, "mime:", err)
 		os.Exit(1)
 	}

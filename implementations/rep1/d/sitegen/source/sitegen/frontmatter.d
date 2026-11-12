@@ -1,49 +1,69 @@
-/// Splitting content files into TOML front matter and a Markdown body.
+/**
+ * Splitting a content file into its TOML front matter and its Markdown body.
+ */
 module sitegen.frontmatter;
 
 import sitegen.toml;
 
-/// A content file split into its metadata and body.
+/// A content file split into its parts.
 struct FrontMatter
 {
-    TomlDocument meta; /// the parsed front matter
-    string body_; /// everything after the closing `+++` line
+    /// The parsed front matter.
+    TomlDocument meta;
+    /// Everything after the closing `+++` line, verbatim.
+    string body_;
 }
 
-/// Thrown when a content file does not start with valid front matter.
-class FrontMatterException : Exception
-{
-    this(string msg, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
-    {
-        super(msg, file, line);
-    }
-}
-
-/// Split `text` at its `+++` delimiter lines and parse the front matter.
-///
-/// The text must start with `+++\n`; the front matter ends at the first later
-/// line that is exactly `+++`.
+/**
+ * Splits `text` into front matter and body.
+ *
+ * The file must begin with the line `+++`; the front matter ends at the next
+ * line that is exactly `+++`.
+ *
+ * Throws: `TomlException` if the delimiters or the front matter are malformed.
+ */
 FrontMatter splitFrontMatter(string text)
 {
     enum opening = "+++\n";
     if (text.length < opening.length || text[0 .. opening.length] != opening)
-        throw new FrontMatterException("content file does not start with '+++'");
+        throw new TomlException("content file does not start with '+++'", 1);
     size_t pos = opening.length;
     while (pos <= text.length)
     {
-        size_t e = pos;
-        while (e < text.length && text[e] != '\n')
-            ++e;
-        if (text[pos .. e] == "+++")
+        size_t eol = pos;
+        while (eol < text.length && text[eol] != '\n') eol++;
+        if (text[pos .. eol] == "+++")
         {
             FrontMatter fm;
             fm.meta = parseToml(text[opening.length .. pos]);
-            fm.body_ = e < text.length ? text[e + 1 .. $] : "";
+            fm.body_ = eol < text.length ? text[eol + 1 .. $] : "";
             return fm;
         }
-        if (e >= text.length)
-            break;
-        pos = e + 1;
+        if (eol >= text.length) break;
+        pos = eol + 1;
     }
-    throw new FrontMatterException("front matter is not closed");
+    throw new TomlException("front matter is not closed", 1);
+}
+
+unittest
+{
+    auto fm = splitFrontMatter("+++\ntitle = \"T\"\nnote = \"+++ inside\"\n+++\nBody\n+++\nmore\n");
+    assert(fm.meta["title"].str == "T");
+    assert(fm.meta["note"].str == "+++ inside");
+    assert(fm.body_ == "Body\n+++\nmore\n");
+}
+
+unittest
+{
+    assert(splitFrontMatter("+++\ntitle = \"T\"\n+++").body_ == "");
+    assert(splitFrontMatter("+++\n+++\n").body_ == "");
+    assert(splitFrontMatter("+++\ntitle = \"T\"\n+++\n\n\nx").body_ == "\n\nx");
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+
+    assertThrown!TomlException(splitFrontMatter("title = 1\n"));
+    assertThrown!TomlException(splitFrontMatter("+++\ntitle = \"T\"\n"));
 }

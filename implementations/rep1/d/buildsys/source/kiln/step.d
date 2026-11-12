@@ -1,92 +1,69 @@
-/// Build steps and phony targets produced by evaluating build files.
+/**
+ * Build steps: the unit of work produced by evaluating a build file.
+ */
 module kiln.step;
 
-import kiln.bytes : decimal;
-import kiln.commands : CmdInfo;
-import kiln.value;
+import kiln.text : escapeForCommand;
+import kiln.value : Value;
 
-/// A build step: one command with declared inputs and outputs.
+/// A build step.
 final class Step
 {
-    int serial; /// creation order across the whole build
-    string[] outs; /// declared outputs
-    string[] ins; /// declared inputs (files and phony references)
-    string[] afters; /// order-only dependencies
-    long cost; /// simulated cost
-    string depfile; /// depfile path, or null
-    const(CmdInfo)* cmd;
-    Value[] args; /// command arguments (`str` or `int` values)
-    string canonical; /// canonical command string
-    string[] fileInputs; /// declared inputs that are not phony references
-    string[] fullOutputs; /// declared outputs followed by the depfile
+    /// Creation order across the whole build (0, 1, 2, ...).
+    int serial;
+    /// Declared outputs, in order (never empty once validated).
+    string[] outs;
+    /// Declared inputs (files and `@phony` references), in order.
+    string[] ins;
+    /// Order-only dependencies.
+    string[] afters;
+    /// The depfile path, if `hasDepfile`.
+    string depfile;
+    ///
+    bool hasDepfile;
+    /// The command name.
+    string cmdName;
+    /// The evaluated command arguments.
+    Value[] cmdArgs;
+    /// The cost in simulated time units.
+    long cost;
+    /// The canonical command string, e.g. `write("hi\n")`.
+    string cmdString;
+    /// Declared inputs that are not phony references (the hashed dependencies).
+    string[] fileInputs;
+    /// Declared outputs followed by the depfile.
+    string[] fullOuts;
 
-    /// The primary output path.
-    string primary() const @safe
+    /// The step's primary output: the first declared output.
+    string primary() const @safe pure nothrow @nogc
     {
         return outs[0];
     }
 }
 
-/// A phony target declaration.
-struct PhonyDecl
+/// Renders `name(arg, arg, ...)` canonically.
+string canonicalCommand(string name, const(Value)[] args) @safe pure nothrow
 {
-    string name; /// without the leading `@`
-    string[] deps;
-}
+    import std.conv : to;
 
-/// Renders a command in canonical form: `name(arg, arg, ...)`.
-string canonicalCommand(string name, const(Value)[] args) @safe
-{
     string r = name ~ "(";
     foreach (i, ref a; args)
     {
-        if (i)
+        if (i > 0)
             r ~= ", ";
         if (a.type == Value.Type.integer)
-            r ~= decimal(a.num);
+            r ~= a.num.to!string;
         else
-            r ~= quoteString(a.s);
+            r ~= "\"" ~ escapeForCommand(a.text) ~ "\"";
     }
     return r ~ ")";
 }
 
-/// Quotes a string for the canonical command rendering.
-string quoteString(const(char)[] s) @safe
+unittest
 {
-    static immutable hex = "0123456789abcdef";
-    char[] r;
-    r.reserve(s.length + 2);
-    r ~= '"';
-    foreach (c; s)
-    {
-        switch (c)
-        {
-        case '\\':
-            r ~= `\\`;
-            break;
-        case '"':
-            r ~= `\"`;
-            break;
-        case '\n':
-            r ~= `\n`;
-            break;
-        case '\t':
-            r ~= `\t`;
-            break;
-        case '\r':
-            r ~= `\r`;
-            break;
-        default:
-            if (cast(ubyte) c < 0x20 || c == 0x7f)
-            {
-                r ~= `\x`;
-                r ~= hex[(cast(ubyte) c) >> 4];
-                r ~= hex[(cast(ubyte) c) & 15];
-            }
-            else
-                r ~= c;
-        }
-    }
-    r ~= '"';
-    return (() @trusted => cast(string) r)();
+    assert(canonicalCommand("concat", []) == "concat()");
+    assert(canonicalCommand("write", [Value.ofStr("hello\n")]) == `write("hello\n")`);
+    assert(canonicalCommand("replace", [Value.ofStr("a\\b"), Value.ofStr("c")]) == `replace("a\\b", "c")`);
+    assert(canonicalCommand("indent", [Value.ofInt(4)]) == "indent(4)");
+    assert(canonicalCommand("grep", [Value.ofStr("ü")]) == "grep(\"ü\")");
 }

@@ -1,0 +1,28 @@
+{
+  "schema": {
+    "type": "object",
+    "madeUpKeyword": {
+      "type": "integer"
+    },
+    "properties": {
+      "x": {
+        "type": "string",
+        "alsoMadeUp": 3
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "x is a string",
+      "data": {
+        "x": "s"
+      }
+    },
+    {
+      "description": "x is a number",
+      "data": {
+        "x": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+[package]
+name = "ordered-map"
+version = "0.1.0"
+edition = "2021"
+description = "An AVL-tree ordered map from i64 keys with rank/select, neighbour and range queries, plus a line-oriented command-line driver"
+license = "MIT"
+readme = "README.md"
+keywords = ["avl", "ordered-map", "order-statistics", "data-structure"]
+categories = ["data-structures"]
+
+[lib]
+name = "ordered_map"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ordered-map"
+path = "src/main.rs"

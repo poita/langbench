@@ -1,141 +1,127 @@
 # gitrepo
 
-A small D library and command-line tool that read a git repository straight
-off disk — without `git`, without a zlib or SHA-1 library. The object database,
-DEFLATE decompression, SHA-1, pack index/pack file parsing, delta
-reconstruction, refs and git's revision syntax are all implemented here, using
-only the D standard library for file I/O and containers.
+`gitrepo` reads a git repository straight off disk and answers queries about
+it — `log`, `ls-tree`, `cat-file`, `diff`, `rev-parse`, `count-objects` —
+without running `git` and without any git, zlib or SHA-1 library. The object
+database, DEFLATE decompression and SHA-1 are implemented here, in D, using
+only Phobos.
 
-It answers six queries: `log`, `ls-tree`, `cat-file`, `diff`, `rev-parse` and
-`count-objects`.
-
-## Layout
-
-| path | contents |
-|---|---|
-| `source/gitrepo/` | the library, one module per responsibility (below) |
-| `cli/main.d` | the thin command-line front end |
-| `tests/unit/` | unit tests (`dub test`), separate from the library source |
-| `dub.sdl` | package manifest: configurations `application`, `library`, `unittest` |
-| `build.sh`, `run.sh` | build and run helpers |
-
-Library modules:
-
-| module | role |
-|---|---|
-| `gitrepo.sha1` | SHA-1 (FIPS 180-4) |
-| `gitrepo.inflate` | zlib/DEFLATE decoder with two-level Huffman tables |
-| `gitrepo.delta` | git delta application |
-| `gitrepo.pack` | pack index v2 lookup, object types |
-| `gitrepo.odb` | object store: loose objects, packs, `OFS_DELTA`/`REF_DELTA`, caches |
-| `gitrepo.objects` | commit, tree and tag parsing |
-| `gitrepo.refs` | `HEAD`, loose refs, `packed-refs` |
-| `gitrepo.revision` | revision syntax (`^`, `~`, `^{...}`, abbreviations) |
-| `gitrepo.repository` | `Repository`: facade with parsed-object caches and history walk |
-| `gitrepo.queries` | the six queries, `execute()` dispatcher, tree flatten/diff |
-| `gitrepo.quote` | git's default path quoting |
-| `gitrepo.batch` | `commands.txt` → `NNN.out` driver used by the CLI |
-| `gitrepo` | `package.d`: imports everything above |
+It is split into a reusable library (`source/gitrepo/`) and a thin
+command-line tool (`app/main.d`).
 
 ## Building
 
-Requires LDC and dub.
+Requires LDC and dub (developed with LDC 1.41.0 and dub 1.40.0).
 
-```
-./build.sh          # dub build -b release --compiler=ldc2 --config=application
-```
-
-This produces `bin/gitrepo`. `./run.sh` runs it from any directory.
-
-Unit tests:
-
-```
-dub test --compiler=ldc2
+```sh
+./build.sh                                # runs: dub build -b release --compiler=ldc2
+dub test --compiler=ldc2                  # unit and integration tests
 ```
 
-## Command-line usage
+The executable is written to `./gitrepo`.
+
+## Command-line use
 
 ```
-gitrepo <input dir> <output dir>
+gitrepo <input path> <output dir>      # or: ./run.sh <input path> <output dir>
 ```
 
-`<input dir>` holds `repo/` (a `.git` directory or bare repository) and
-`commands.txt` with one command per line. For command *k* the tool writes
-`<output dir>/NNN.out` (`001.out`, `002.out`, …). A command that fails
-(unknown command, bad arguments, unresolvable revision, missing or damaged
-object) produces a file containing just `error`; the exit status is still 0.
+`<input path>` is a directory holding
 
-Commands (tokens are separated by single spaces; empty tokens are invalid):
+* `repo/` — the contents of a `.git` directory (or a bare repository), and
+* `commands.txt` — one query per line, tokens separated by single spaces.
+
+For the command on line *k* the tool writes `<output dir>/NNN.out` (*k*
+zero-padded to at least three digits). A command that fails — unknown
+command, bad arguments, unresolvable revision, missing or damaged object —
+produces a file containing `error`. The exit status is 0 whenever the batch ran.
 
 | command | output |
 |---|---|
-| `log <rev> [<n>]` | `<id> <author> <author time> <subject>` per commit, newest committer date first |
-| `ls-tree <rev> [<path>]` | `<mode> <type> <id>\t<name>` per entry |
-| `cat-file <rev>` | `<type> <size>\n` then the verified payload |
-| `diff <rev1> <rev2>` | `:<mode1> <mode2> <id1> <id2> <A\|D\|M\|T>\t<path>` per changed path |
-| `rev-parse <rev>` | the 40-digit id |
+| `log <rev> [<n>]` | `<id> <author> <author-time> <subject>` per commit, newest committer date first |
+| `ls-tree <rev> [<path>]` | `<mode> <type> <id>\t<name>` per tree entry |
+| `cat-file <rev>` | `<type> <size>\n` + payload, after verifying the object's SHA-1 |
+| `diff <rev1> <rev2>` | raw recursive tree diff (`:<mode1> <mode2> <id1> <id2> <A/D/M/T>\t<path>`) |
+| `rev-parse <rev>` | the object id |
 | `count-objects` | `loose:`, `in-pack:` and `packs:` counts |
 
-Example:
+Revisions understand `HEAD`, branch/tag names (with git's `refs/…` search
+order), abbreviated ids, `^`, `^n`, `~n` and `^{commit|tree|blob|tag|object|}`.
+Names, paths and messages are handled as raw bytes, never decoded as UTF-8.
 
-```
-$ cat in/commands.txt
-count-objects
-rev-parse main~1
-log main 2
-$ ./run.sh in out
-$ cat out/003.out
-bc99f2827e555cad8970b6d96d3c0cf224336304 Ada Lovelace 1400003600 Add only.txt
-0f5efe1e004bb7db3eed8d431f1dd464c55070b7 Ada Lovelace 1400000000 Empty tree commit
-```
+## Library layout
 
-## Library usage
+| module | responsibility |
+|---|---|
+| `gitrepo.sha1` | SHA-1 (FIPS 180-4) |
+| `gitrepo.inflate` | zlib / DEFLATE decoder |
+| `gitrepo.delta` | git delta application |
+| `gitrepo.packindex` | pack index v2 lookup (fanout + binary search) |
+| `gitrepo.store` | loose + packed object store with `OFS_DELTA`/`REF_DELTA`; per-run caching |
+| `gitrepo.parse` | commit, tree and tag parsers |
+| `gitrepo.refs` | `HEAD`, loose refs, `packed-refs` |
+| `gitrepo.revision` | revision resolution and peeling |
+| `gitrepo.repository` | `Repository`: store + refs + parsed-object caches |
+| `gitrepo.commands` | the six queries |
+| `gitrepo.quote` | git path quoting |
+| `gitrepo.batch` | the `commands.txt` → `NNN.out` driver |
+
+Every failure in the library is reported by throwing `gitrepo.errors.GitError`.
+
+Notes on behaviour: the Adler-32 trailer of zlib streams is not checked
+(corruption is caught by the DEFLATE decoder, the object header check, and by
+`cat-file`'s SHA-1 verification). Objects are inflated and parsed at most once
+per `Repository`; `log` uses a priority queue; abbreviated ids are resolved
+by binary search.
+
+## Library example
 
 ```d
 import std.stdio;
-import gitrepo;
+import gitrepo.repository;
+import gitrepo.revision;
+import gitrepo.objecttype;
+import gitrepo.errors;
 
 void main()
 {
-    // One Repository per process: packs are read once and every decoded
-    // object, commit and tree is cached.
-    auto repo = new Repository("project/.git");
-
-    // Revision syntax: names, abbreviations, ^, ~ and ^{...}
-    ObjectId head = repo.revParse("HEAD");
-    ObjectId parent = repo.revParse("HEAD~1");
-
-    // History in git's default order
-    foreach (entry; repo.log(head, 5))
-        writeln(entry.id, " ", entry.commit.authorName, ": ", entry.commit.subject);
-
-    // Trees
-    foreach (e; repo.tree(repo.peel(head, ObjectType.tree)).entries)
-        writeln(e.mode, " ", e.name, " ", e.id);
-
-    // Verified object content (SHA-1 of the stored form must equal the id)
-    auto obj = repo.readVerified(head);
-    writeln(typeName(obj.type), " of ", obj.data.length, " bytes");
-
-    // Whole queries return the exact bytes the CLI writes
-    auto bytes = execute(repo, "diff HEAD~1 HEAD");
-    write(cast(string) bytes);
-
-    // Failures are GitError exceptions
+    auto repo = new Repository("/path/to/project/.git");
     try
-        repo.revParse("no-such-branch");
+    {
+        // Resolve a revision and walk to its commit and tree.
+        auto id = resolveRevision(repo, "main~2");
+        auto commit = repo.commit(peel(repo, id, ObjectType.commit));
+        writeln("subject: ", cast(const(char)[]) commit.subject);
+        foreach (entry; repo.tree(commit.tree))
+            writefln("%06o %s %s\t%s", entry.mode, entry.typeName, entry.id, cast(const(char)[]) entry.name);
+    }
     catch (GitError e)
+    {
         writeln("failed: ", e.msg);
+    }
 }
 ```
 
-The low-level pieces are usable on their own too: `Inflater.decompress` for
-zlib streams, `applyDelta` for git deltas, `Sha1`/`sha1Of` for hashing, and
-`ObjectStore` for raw object access.
+The `gitrepo.commands.execute(repo, "log main 5")` function runs a command line
+exactly as the CLI does and returns the output bytes.
 
-## Notes
+To use the library from another dub project, depend on the `library`
+configuration:
 
-- Ref names, paths, author names and messages are carried through as raw bytes.
-- The Adler-32 trailer of zlib streams is not verified; damaged streams are
-  caught by header checks and, for `cat-file`, by the SHA-1 comparison.
-- Only the repository's `HEAD`, `refs/`, `packed-refs` and `objects/` are read.
+```json
+"dependencies": { "gitrepo": { "path": "../gitrepo" } },
+"subConfigurations": { "gitrepo": "library" }
+```
+
+## Layout
+
+```
+app/main.d          command-line entry point
+source/gitrepo/     the library
+tests/              integration tests and fixture builders (used by `dub test`)
+build.sh run.sh     build and run helpers
+```
+
+## Licence
+
+MIT.

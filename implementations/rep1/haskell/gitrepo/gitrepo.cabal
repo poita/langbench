@@ -1,0 +1,73 @@
+cabal-version:      3.0
+name:               gitrepo
+version:            0.1.0.0
+synopsis:           Read a git repository straight off disk, with no git, zlib or SHA-1 library
+description:
+  A from-scratch reader for the git object database: SHA-1, an RFC 1950/1951
+  decompressor, loose objects, version-2 pack indexes and packfiles (including
+  @OFS_DELTA@ and @REF_DELTA@), refs, @packed-refs@ and the revision syntax
+  (@^@, @~@, @^{...}@, abbreviated ids).  On top of that it answers the six
+  queries @log@, @ls-tree@, @cat-file@, @diff@, @rev-parse@ and
+  @count-objects@.
+license:            MIT
+author:             gitrepo contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Git
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Git
+    Git.Batch
+    Git.Command
+    Git.Delta
+    Git.Inflate
+    Git.Object
+    Git.Pack
+    Git.Query
+    Git.Quote
+    Git.Ref
+    Git.Revision
+    Git.SHA1
+    Git.Store
+    Git.Types
+  build-depends:
+    base       >=4.18 && <5,
+    array      >=0.5 && <0.6,
+    bytestring >=0.11 && <0.13,
+    containers >=0.6 && <0.9,
+    directory  >=1.3 && <1.4,
+    filepath   >=1.4 && <1.6
+
+executable gitrepo
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    base,
+    gitrepo
+
+test-suite gitrepo-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    TestRepo
+  build-depends:
+    base,
+    bytestring,
+    containers,
+    directory,
+    filepath,
+    gitrepo,
+    hspec      >=2.10,
+    QuickCheck >=2.14,
+    unix

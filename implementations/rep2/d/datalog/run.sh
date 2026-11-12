@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the datalog tool: Datalog program on stdin, query answers on stdout.
+# Run the datalog tool: program on stdin, answers on stdout.
 exec "$(dirname "$0")/bin/datalog" "$@"

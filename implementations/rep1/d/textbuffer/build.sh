@@ -1,6 +1,5 @@
 #!/bin/sh
-# Build the textbuffer command-line tool into bin/textbuffer.
+# Build the textbuffer CLI (bin/textbuffer) with dub + LDC.
 set -e
-DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$DIR"
-dub build -b release --compiler=ldc2 -c cli --quiet
+cd "$(dirname "$0")"
+exec dub build -b release --compiler=ldc2 --quiet

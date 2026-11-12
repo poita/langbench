@@ -2,316 +2,336 @@ package tmpl
 
 import (
 	"math"
+	"math/big"
 	"strings"
-	"unicode/utf8"
 )
 
-func checkDefined(vs ...Value) {
-	for _, v := range vs {
-		if IsUndefined(v) {
-			fail(UndefinedError, "use of an undefined value")
-		}
+type numKind uint8
+
+const (
+	numNone numKind = iota
+	numInt
+	numFloat
+)
+
+// toNum classifies v as a number. Booleans are integers.
+func toNum(v Value) (int64, float64, numKind) {
+	switch x := v.(type) {
+	case int64:
+		return x, 0, numInt
+	case float64:
+		return 0, x, numFloat
+	case bool:
+		return b2i(x), 0, numInt
 	}
+	return 0, 0, numNone
 }
 
-func isFloat(v Value) bool { _, ok := v.(float64); return ok }
-
-// binary evaluates an arithmetic or concatenation operator on defined values.
-func binary(op binOp, a, b Value) Value {
-	checkDefined(a, b)
-	if op == opConcat {
-		return toString(a) + toString(b)
+func asFloat(i int64, f float64, k numKind) float64 {
+	if k == numInt {
+		return float64(i)
 	}
-	an, bn := isNumber(a), isNumber(b)
+	return f
+}
+
+func floorDivInt(a, b int64) int64 {
+	q := a / b
+	if a%b != 0 && (a < 0) != (b < 0) {
+		q--
+	}
+	return q
+}
+
+func modInt(a, b int64) int64 {
+	r := a % b
+	if r != 0 && (r < 0) != (b < 0) {
+		r += b
+	}
+	return r
+}
+
+func modFloat(a, b float64) float64 {
+	r := math.Mod(a, b)
+	if r != 0 && (r < 0) != (b < 0) {
+		r += b
+	}
+	return r
+}
+
+func powInt(base, exp int64) int64 {
+	result := int64(1)
+	for exp > 0 {
+		if exp&1 == 1 {
+			result *= base
+		}
+		base *= base
+		exp >>= 1
+	}
+	return result
+}
+
+// binaryOp applies an arithmetic operator to two defined values.
+func binaryOp(op opcode, a, b Value) Value {
+	ai, af, ak := toNum(a)
+	bi, bf, bk := toNum(b)
+	bothNum := ak != numNone && bk != numNone
+	bothInt := ak == numInt && bk == numInt
 	switch op {
 	case opAdd:
-		if an && bn {
-			if isFloat(a) || isFloat(b) {
-				return toFloat(a) + toFloat(b)
-			}
-			return toInt64(a) + toInt64(b)
+		switch {
+		case bothInt:
+			return ai + bi
+		case bothNum:
+			return asFloat(ai, af, ak) + asFloat(bi, bf, bk)
 		}
 		switch x := a.(type) {
 		case string:
 			if y, ok := b.(string); ok {
 				return x + y
 			}
-		case List:
-			if y, ok := b.(List); ok {
-				out := make(List, 0, len(x)+len(y))
+		case []Value:
+			if y, ok := b.([]Value); ok {
+				out := make([]Value, 0, len(x)+len(y))
 				return append(append(out, x...), y...)
 			}
 		}
-		fail(TypeError, "unsupported operands for +")
 	case opSub:
-		if an && bn {
-			if isFloat(a) || isFloat(b) {
-				return toFloat(a) - toFloat(b)
-			}
-			return toInt64(a) - toInt64(b)
+		switch {
+		case bothInt:
+			return ai - bi
+		case bothNum:
+			return asFloat(ai, af, ak) - asFloat(bi, bf, bk)
 		}
-		fail(TypeError, "unsupported operands for -")
 	case opMul:
-		if an && bn {
-			if isFloat(a) || isFloat(b) {
-				return toFloat(a) * toFloat(b)
-			}
-			return toInt64(a) * toInt64(b)
+		switch {
+		case bothInt:
+			return ai * bi
+		case bothNum:
+			return asFloat(ai, af, ak) * asFloat(bi, bf, bk)
 		}
-		if s, ok := a.(string); ok && isIntLike(b) {
-			return repeat(s, toInt64(b))
+		if s, ok := a.(string); ok && bk == numInt {
+			return repeat(s, bi)
 		}
-		if s, ok := b.(string); ok && isIntLike(a) {
-			return repeat(s, toInt64(a))
+		if s, ok := b.(string); ok && ak == numInt {
+			return repeat(s, ai)
 		}
-		fail(TypeError, "unsupported operands for *")
 	case opDiv:
-		if an && bn {
-			d := toFloat(b)
+		if bothNum {
+			d := asFloat(bi, bf, bk)
 			if d == 0 {
-				fail(TypeError, "division by zero")
+				throw(KindType, "division by zero")
 			}
-			return toFloat(a) / d
+			return asFloat(ai, af, ak) / d
 		}
-		fail(TypeError, "unsupported operands for /")
 	case opFloorDiv:
-		if an && bn {
-			if isFloat(a) || isFloat(b) {
-				d := toFloat(b)
-				if d == 0 {
-					fail(TypeError, "division by zero")
-				}
-				return math.Floor(toFloat(a) / d)
+		if bothInt {
+			if bi == 0 {
+				throw(KindType, "division by zero")
 			}
-			x, y := toInt64(a), toInt64(b)
-			if y == 0 {
-				fail(TypeError, "division by zero")
-			}
-			q := x / y
-			if (x%y != 0) && ((x < 0) != (y < 0)) {
-				q--
-			}
-			return q
+			return floorDivInt(ai, bi)
 		}
-		fail(TypeError, "unsupported operands for //")
+		if bothNum {
+			d := asFloat(bi, bf, bk)
+			if d == 0 {
+				throw(KindType, "division by zero")
+			}
+			return math.Floor(asFloat(ai, af, ak) / d)
+		}
 	case opMod:
-		if an && bn {
-			if isFloat(a) || isFloat(b) {
-				x, y := toFloat(a), toFloat(b)
-				if y == 0 {
-					fail(TypeError, "modulo by zero")
-				}
-				r := math.Mod(x, y)
-				if r != 0 && (r < 0) != (y < 0) {
-					r += y
-				}
-				return r
+		if bothInt {
+			if bi == 0 {
+				throw(KindType, "modulo by zero")
 			}
-			x, y := toInt64(a), toInt64(b)
-			if y == 0 {
-				fail(TypeError, "modulo by zero")
-			}
-			r := x % y
-			if r != 0 && (r < 0) != (y < 0) {
-				r += y
-			}
-			return r
+			return modInt(ai, bi)
 		}
-		fail(TypeError, "unsupported operands for %%")
+		if bothNum {
+			d := asFloat(bi, bf, bk)
+			if d == 0 {
+				throw(KindType, "modulo by zero")
+			}
+			return modFloat(asFloat(ai, af, ak), d)
+		}
 	case opPow:
-		if an && bn {
-			if isFloat(a) || isFloat(b) {
-				x, y := toFloat(a), toFloat(b)
-				if x == 0 && y < 0 {
-					fail(TypeError, "zero to a negative power")
-				}
-				return math.Pow(x, y)
+		if bothInt {
+			if bi >= 0 {
+				return powInt(ai, bi)
 			}
-			x, y := toInt64(a), toInt64(b)
-			if y < 0 {
-				if x == 0 {
-					fail(TypeError, "zero to a negative power")
-				}
-				return math.Pow(float64(x), float64(y))
+			if ai == 0 {
+				throw(KindType, "zero to a negative power")
 			}
-			result := int64(1)
-			for ; y > 0; y-- {
-				result *= x
-			}
-			return result
+			return powFloat(float64(ai), float64(bi))
 		}
-		fail(TypeError, "unsupported operands for **")
+		if bothNum {
+			x, y := asFloat(ai, af, ak), asFloat(bi, bf, bk)
+			if x == 0 && y < 0 {
+				throw(KindType, "zero to a negative power")
+			}
+			return powFloat(x, y)
+		}
+	case opConcat:
+		return toString(a) + toString(b)
 	}
+	throw(KindType, "unsupported operand types for the operator")
 	return nil
 }
 
 func repeat(s string, n int64) string {
-	if n <= 0 || s == "" {
+	if n <= 0 {
 		return ""
 	}
 	return strings.Repeat(s, int(n))
 }
 
-func negate(v Value) Value {
-	checkDefined(v)
-	switch x := v.(type) {
-	case int64:
-		return -x
-	case float64:
-		return -x
-	case bool:
-		return -toInt64(x)
+// equal implements == on two defined values.
+func equal(a, b Value) bool {
+	switch x := a.(type) {
+	case string:
+		y, ok := b.(string)
+		return ok && x == y
+	case int64, float64, bool:
+		ai, af, ak := toNum(a)
+		bi, bf, bk := toNum(b)
+		switch {
+		case bk == numNone:
+			return false
+		case ak == numInt && bk == numInt:
+			return ai == bi
+		}
+		return asFloat(ai, af, ak) == asFloat(bi, bf, bk)
+	case noneType:
+		_, ok := b.(noneType)
+		return ok
+	case []Value:
+		y, ok := b.([]Value)
+		if !ok || len(x) != len(y) {
+			return false
+		}
+		for i := range x {
+			if !equal(x[i], y[i]) {
+				return false
+			}
+		}
+		return true
+	case *Dict:
+		y, ok := b.(*Dict)
+		if !ok || x.Len() != y.Len() {
+			return false
+		}
+		for k, v := range x.m {
+			w, ok := y.m[k]
+			if !ok || !equal(v, w) {
+				return false
+			}
+		}
+		return true
 	}
-	fail(TypeError, "bad operand for unary -")
-	return nil
+	return false
 }
 
-// compare evaluates one comparison operator on two evaluated operands.
-func compare(op cmpOp, a, b Value) bool {
-	checkDefined(a, b)
+// compareOp applies a comparison or membership operator to defined values.
+func compareOp(op opcode, a, b Value) bool {
 	switch op {
-	case cmpEq:
-		return equals(a, b)
-	case cmpNe:
-		return !equals(a, b)
-	case cmpIn, cmpNotIn:
-		return contains(b, a) == (op == cmpIn)
+	case opEq:
+		return equal(a, b)
+	case opNe:
+		return !equal(a, b)
+	case opIn:
+		return contains(b, a)
+	case opNotIn:
+		return !contains(b, a)
 	}
-	var c int
-	switch {
-	case isNumber(a) && isNumber(b):
-		if isFloat(a) || isFloat(b) {
-			x, y := toFloat(a), toFloat(b)
-			switch {
-			case x < y:
-				c = -1
-			case x > y:
-				c = 1
-			}
-		} else {
-			x, y := toInt64(a), toInt64(b)
-			switch {
-			case x < y:
-				c = -1
-			case x > y:
-				c = 1
-			}
-		}
-	default:
-		x, ok1 := a.(string)
-		y, ok2 := b.(string)
-		if !ok1 || !ok2 {
-			fail(TypeError, "values cannot be ordered")
-		}
-		c = strings.Compare(x, y)
-	}
+	c := order(a, b)
 	switch op {
-	case cmpLt:
+	case opLt:
 		return c < 0
-	case cmpLe:
+	case opLe:
 		return c <= 0
-	case cmpGt:
+	case opGt:
 		return c > 0
 	}
 	return c >= 0
 }
 
-// contains implements "needle in haystack".
-func contains(haystack, needle Value) bool {
-	switch h := haystack.(type) {
-	case string:
-		n, ok := needle.(string)
-		if !ok {
-			fail(TypeError, "'in <string>' requires a string")
+// order compares two numbers or two strings, returning -1, 0 or 1.
+func order(a, b Value) int {
+	if x, ok := a.(string); ok {
+		if y, ok := b.(string); ok {
+			return strings.Compare(x, y)
 		}
-		return strings.Contains(h, n)
+		throw(KindType, "cannot order a string and a non-string")
+	}
+	ai, af, ak := toNum(a)
+	bi, bf, bk := toNum(b)
+	if ak == numNone || bk == numNone {
+		throw(KindType, "values cannot be ordered")
+	}
+	if ak == numInt && bk == numInt {
+		switch {
+		case ai < bi:
+			return -1
+		case ai > bi:
+			return 1
+		}
+		return 0
+	}
+	x, y := asFloat(ai, af, ak), asFloat(bi, bf, bk)
+	switch {
+	case x < y:
+		return -1
+	case x > y:
+		return 1
+	}
+	return 0
+}
+
+// contains implements "item in container".
+func contains(container, item Value) bool {
+	switch c := container.(type) {
+	case string:
+		s, ok := item.(string)
+		if !ok {
+			throw(KindType, "'in <string>' requires a string")
+		}
+		return strings.Contains(c, s)
 	case *Dict:
-		n, ok := needle.(string)
+		s, ok := item.(string)
 		if !ok {
 			return false
 		}
-		_, found := h.Get(n)
+		_, found := c.m[s]
 		return found
-	case List:
-		for _, e := range h {
-			if equals(e, needle) {
+	case []Value:
+		for _, e := range c {
+			if equal(e, item) {
 				return true
 			}
 		}
 		return false
 	}
-	fail(TypeError, "argument is not iterable")
+	throw(KindType, "argument of 'in' is not a container")
 	return false
 }
 
-// getItem implements a.NAME and a[key].
-func getItem(obj, key Value) Value {
-	checkDefined(obj, key)
-	switch o := obj.(type) {
-	case *Dict:
-		if k, ok := key.(string); ok {
-			if v, found := o.Get(k); found {
-				return v
-			}
-		}
-	case List:
-		if isIntLike(key) {
-			i := toInt64(key)
-			if i < 0 {
-				i += int64(len(o))
-			}
-			if i >= 0 && i < int64(len(o)) {
-				return o[i]
-			}
-		}
-	case string:
-		if isIntLike(key) {
-			return stringIndex(o, toInt64(key))
-		}
-	case *loopRec:
-		if k, ok := key.(string); ok {
-			return o.attr(k)
-		}
+// powFloat computes x**y. Go's math.Pow is not correctly rounded, while the
+// reference semantics use the C library's pow, so integral exponents of
+// moderate size are computed in extended precision and rounded once.
+func powFloat(x, y float64) float64 {
+	if y != math.Trunc(y) || math.Abs(y) > 4096 || x == 0 || math.IsInf(x, 0) || math.IsNaN(x) {
+		return math.Pow(x, y)
 	}
-	return Undefined
-}
-
-func stringIndex(s string, i int64) Value {
-	if i < 0 {
-		i += int64(utf8.RuneCountInString(s))
-		if i < 0 {
-			return Undefined
+	n := int(math.Abs(y))
+	const prec = 256
+	result := new(big.Float).SetPrec(prec).SetInt64(1)
+	base := new(big.Float).SetPrec(prec).SetFloat64(x)
+	for ; n > 0; n >>= 1 {
+		if n&1 == 1 {
+			result.Mul(result, base)
 		}
+		base.Mul(base, base)
 	}
-	for pos := 0; pos < len(s); {
-		_, n := utf8.DecodeRuneInString(s[pos:])
-		if i == 0 {
-			return s[pos : pos+n]
-		}
-		i--
-		pos += n
+	if y < 0 {
+		result.Quo(new(big.Float).SetPrec(prec).SetInt64(1), result)
 	}
-	return Undefined
-}
-
-// loopRec is the value of "loop" inside a for body. It is updated in place.
-type loopRec struct {
-	index  int // 0-based
-	length int
-}
-
-func (l *loopRec) attr(k string) Value {
-	switch k {
-	case "index":
-		return int64(l.index + 1)
-	case "index0":
-		return int64(l.index)
-	case "first":
-		return l.index == 0
-	case "last":
-		return l.index == l.length-1
-	case "length":
-		return int64(l.length)
-	}
-	return Undefined
+	f, _ := result.Float64()
+	return f
 }

@@ -1,0 +1,102 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 TRIGGER B ~1 #42 1
+7 RESOLVE ~1
+8 EMBERGAIN B 1 51
+9 PHASE draw
+10 PHASE main1
+11 PASS A
+12 PASS B
+13 PHASE clash-attack
+14 PHASE main2
+15 PASS A
+16 PASS B
+17 PHASE dusk-trigger
+18 TRIGGER A ~2 #21 1
+19 PASS A
+20 PASS B
+21 RESOLVE ~2
+22 SPIRE A +1 41
+23 PASS A
+24 PASS B
+25 PHASE dusk-discard
+26 PHASE dusk-cleanup
+27 TURN 2 B
+28 PHASE dawn
+29 EMBER A 51 51
+30 EMBER B 51 51
+31 TRIGGER B ~3 #42 1
+32 RESOLVE ~3
+33 EMBERGAIN B 1 52
+34 PHASE draw
+35 DRAW B #22 TID-001
+36 PHASE main1
+37 PASS B
+38 PASS A
+39 PHASE clash-attack
+40 PHASE main2
+41 PASS B
+42 PASS A
+43 PHASE dusk-trigger
+44 TRIGGER A ~4 #21 1
+45 PASS B
+46 PASS A
+47 RESOLVE ~4
+48 SPIRE A +1 42
+49 PASS B
+50 PASS A
+51 PHASE dusk-discard
+52 PHASE dusk-cleanup
+53 TURN 3 A
+54 PHASE dawn
+55 EMBER A 52 52
+56 EMBER B 51 51
+57 TRIGGER B ~5 #42 1
+58 RESOLVE ~5
+59 EMBERGAIN B 1 52
+60 PHASE draw
+61 DRAW A #1 CIN-001
+62 PHASE main1
+STATE BEGIN
+turn 3 active A phase main1 decision A priority
+player A spire 42 ember 52 cap 52 vault 19 hand 1 ash 0 rift 0
+player B spire 40 ember 52 cap 51 vault 19 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #22 TID-001
+field A #21 NEU-004 2/3 w0 c0 ready - kw -
+field B #42 LOM-029 1/4 w0 c0 ready - kw -
+STATE END
+63 PASS A
+64 PASS B
+65 PHASE clash-attack
+66 PHASE main2
+67 PASS A
+68 PASS B
+69 PHASE dusk-trigger
+70 TRIGGER A ~6 #21 1
+71 PASS A
+72 PASS B
+73 RESOLVE ~6
+74 SPIRE A +1 43
+75 PASS A
+76 PASS B
+77 PHASE dusk-discard
+78 PHASE dusk-cleanup
+79 RESULT draw turn-limit
+STATE BEGIN
+turn 4 active B phase dusk-cleanup decision - over
+result draw turn-limit
+player A spire 43 ember 52 cap 52 vault 19 hand 1 ash 0 rift 0
+player B spire 40 ember 52 cap 51 vault 19 hand 1 ash 0 rift 0
+hand A 1 #1 CIN-001
+hand B 1 #22 TID-001
+field A #21 NEU-004 2/3 w0 c0 ready - kw -
+field B #42 LOM-029 1/4 w0 c0 ready - kw -
+STATE END
+LEGAL BEGIN - over
+LEGAL END
+ERR 45 game-over
+ERR 46 game-over

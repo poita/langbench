@@ -1,0 +1,20 @@
+@module main
+fn fib(n: Int) -> Int { if n < 2 { n } else { fib(n-1) + fib(n-2) } }
+fn main() {
+    let xs = listMap([1,2,3], |x| x * x);
+    var total = 0;
+    for x in xs { total = total + x; }
+    print(showInt(total));
+    print(showInt(fib(20)));
+    var i = 0;
+    while true { i = i + 1; if i > 5 { break; } else { continue; } }
+    print(showInt(i));
+    let s = "abc";
+    for c in s { emit(showChar(c)); emit("-"); }
+    print("");
+    print(showFloat(1.5 + 2.25));
+    print(showInt(5 / 2) ++ showInt(-5 / 2) ++ showInt(5 % 3));
+    let m = #["a": 1];
+    m["b"] = 2;
+    print(showInt(m["a"] + m["b"]));
+}

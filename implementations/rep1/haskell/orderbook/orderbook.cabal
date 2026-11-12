@@ -1,0 +1,53 @@
+cabal-version:      3.0
+name:               orderbook
+version:            0.1.0.0
+synopsis:           Single-instrument limit order book matching engine
+description:
+  A pure, price-time-priority limit order book with limit, IOC, FOK and
+  market orders, cancel, replace and book snapshots, plus a line-oriented
+  command-line front end.
+license:            MIT
+author:             orderbook contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Finance
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  OrderBook
+                    OrderBook.Types
+                    OrderBook.Book
+                    OrderBook.Engine
+                    OrderBook.Parse
+                    OrderBook.Render
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    containers
+
+executable orderbook
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    orderbook
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+
+test-suite orderbook-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    Reference
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    hspec,
+                    QuickCheck,
+                    orderbook

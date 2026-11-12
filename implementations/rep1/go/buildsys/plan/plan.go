@@ -1,27 +1,35 @@
-// Package plan defines the build description produced by evaluating Kiln
-// build files: steps, phony targets and the default target list.
+// Package plan defines the build description produced by evaluating KBL build
+// files: the steps, phony targets and default targets.
 package plan
 
-import "buildsys/command"
+import "buildsys/cmds"
 
 // Step is one build step.
 type Step struct {
-	Serial  int      // order of creation across the whole build
-	Outs    []string // declared outputs; Outs[0] is the primary output
-	Ins     []string // declared inputs, including "@phony" references
-	After   []string // order-only dependencies
-	Depfile string   // depfile path, or "" if none
-	Cmd     string   // command name
-	Args    []command.Arg
-	Cost    int64
-
-	FileIns   []string // declared inputs that are not phony references
-	FullOuts  []string // Outs followed by Depfile (if any)
-	CmdString string   // canonical command string
+	Serial     int      // creation order across the whole build
+	Outputs    []string // declared outputs; Outputs[0] is the primary output
+	Depfile    string   // depfile path, or "" when there is none
+	Inputs     []string // declared inputs, including "@phony" references
+	After      []string // order-only dependencies
+	FileInputs []string // the declared inputs that are not phony references
+	Spec       *cmds.Spec
+	Args       []cmds.Arg
+	Command    string // canonical command string
+	Cost       int
 }
 
 // Primary returns the step's primary output path.
-func (s *Step) Primary() string { return s.Outs[0] }
+func (s *Step) Primary() string { return s.Outputs[0] }
+
+// AllOutputs returns the declared outputs followed by the depfile, if any.
+func (s *Step) AllOutputs() []string {
+	if s.Depfile == "" {
+		return s.Outputs
+	}
+	out := make([]string, 0, len(s.Outputs)+1)
+	out = append(out, s.Outputs...)
+	return append(out, s.Depfile)
+}
 
 // Phony is a phony target; its dependencies are ordering-only.
 type Phony struct {
@@ -33,5 +41,24 @@ type Phony struct {
 type Plan struct {
 	Steps    []*Step
 	Phonies  []*Phony // in declaration order
-	Defaults []string // the default target list, duplicates kept
+	Defaults []string
+
+	phonyIndex map[string]*Phony
+}
+
+// FindPhony returns the phony target with the given name.
+func (p *Plan) FindPhony(name string) *Phony { return p.phonyIndex[name] }
+
+// AddPhony appends a phony target. It reports false, leaving the plan
+// unchanged, if a phony target of that name already exists.
+func (p *Plan) AddPhony(ph *Phony) bool {
+	if _, dup := p.phonyIndex[ph.Name]; dup {
+		return false
+	}
+	if p.phonyIndex == nil {
+		p.phonyIndex = make(map[string]*Phony)
+	}
+	p.phonyIndex[ph.Name] = ph
+	p.Phonies = append(p.Phonies, ph)
+	return true
 }

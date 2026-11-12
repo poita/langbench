@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the chip8 CLI: reads the problem input on stdin, writes the result to stdout.
-exec "$(dirname "$0")/chip8" "$@"
+# Run the chip8 tool: ROM/cycles/key schedule on stdin, display + CPU state on stdout.
+exec "$(dirname "$0")/bin/chip8" "$@"

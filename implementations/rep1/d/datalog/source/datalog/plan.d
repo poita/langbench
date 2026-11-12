@@ -4,232 +4,283 @@ module datalog.plan;
 import datalog.ast;
 import datalog.relation;
 
-/// What to do with one argument position of a positive body atom.
+/// What to do with one column of a candidate row.
 enum OpKind : ubyte
 {
-    constant, /// the tuple value must equal `val`
-    variable, /// the tuple value must equal variable slot `val` (already bound)
-    bind /// store the tuple value into variable slot `val`
+    eqConst, /// the column must equal a constant rank
+    eqSlot, /// the column must equal the variable slot's value
+    bind, /// store the column into the variable slot
 }
 
-/// An argument-position action.
+/// One per-column operation of a join step.
 struct ArgOp
 {
     OpKind kind;
-    uint val;
-    uint pos; /// argument position in the atom
+    ubyte col;
+    /// For `eqConst`/`eqSlot`: the value is known before the step starts, so
+    /// the column is part of the index key.
+    bool inKey;
+    uint value; /// constant rank or slot number
 }
 
-/// How a step reads its relation.
-enum StepKind : ubyte
+/// Which rows of a predicate a step may read in the current round.
+enum Window : ubyte
 {
-    scan, /// iterate a position range
-    lookup, /// hash-index lookup on the bound positions
-    probe /// every argument is bound: one membership test
+    all, /// everything that existed at the start of the round (old and delta)
+    old, /// only rows older than the round's delta
+    delta, /// only the rows added by the previous round
 }
 
-/// A negated atom or comparison, evaluated as soon as its variables are bound.
+/// A constant rank or a variable slot.
+struct Operand
+{
+    bool isConst;
+    uint value;
+}
+
+/// A filter run as soon as its variables are bound: a comparison or a negated atom.
 struct Filter
 {
-    bool negated; /// negated atom if true, otherwise a comparison
-    uint pred;
-    Term[] args;
-    CmpOp op;
-    Term lhs, rhs;
+    bool negation;
+    CmpOp op; // comparison
+    Operand lhs, rhs; // comparison
+    uint predicate; // negation
+    Operand[] args; // negation
 }
 
-/// One nested-loop level of a join.
+/// One nested-loop level: read the rows of `predicate` in `window` matching
+/// the bound columns, bind the new variables, then apply `filters`.
 struct Step
 {
-    StepKind kind;
-    bool isDelta; /// scan only the previous round's delta range
-    uint pred;
-    ArgOp[] keyOps; /// lookup: key values in column order; probe: the whole tuple
-    ArgOp[] matchOps; /// scan/lookup: checks and bindings applied to each fetched tuple
-    Index index; /// lookup only
-    Filter[] after; /// filters to apply once this step has bound its variables
+    uint predicate;
+    Window window;
+    ArgOp[] ops; /// in column order
+    uint mask; /// bound columns (key of the index); 0 means scan
+    size_t indexNo; /// number of the index in the relation when `mask != 0`
+    Operand[] key; /// key operands in column order
+    Filter[] filters;
 }
 
-/// A compiled rule variant.
-struct Plan
+/// An executable form of a rule (or of one delta variant of a rule).
+struct JoinPlan
 {
-    uint headPred;
-    Term[] head;
-    uint numVars;
-    Filter[] initial; /// filters that need no variables bound
+    uint headPredicate;
+    Operand[] head;
+    uint numSlots;
+    Filter[] preFilters; /// filters without variables, checked before the first step
     Step[] steps;
-    Index[] indexes; /// every index used by the steps
 }
 
-/// Compile `rule` into a join plan.
-///
-/// `deltaLiteral` is the body position of the positive atom to scan over the
-/// delta range (placed first), or -1 for the full plan. Indexes the plan needs
-/// are created on `relations` (but not populated).
-Plan compilePlan(const Program program, ref const Rule rule, int deltaLiteral, Relation[] relations) @safe
+private uint[] variablesOf(const Literal lit) @safe pure nothrow
 {
-    Plan plan;
-    plan.headPred = rule.head.pred;
-    plan.head = rule.head.args.dup;
-    plan.numVars = rule.numVars;
-
-    auto bound = new bool[rule.numVars];
-
-    const order = orderAtoms(rule, deltaLiteral);
-
-    // Per-step variable-bound-after snapshots, used to attach filters.
-    bound[] = false;
-    bool[][] boundAfter;
-    foreach (bi; order)
+    uint[] vs;
+    void add(Term t)
     {
-        ref const atom = rule.body[bi].atom;
-        Step step;
-        step.pred = atom.pred;
-        step.isDelta = (cast(int) bi == deltaLiteral);
-
-        bool allBound = true;
-        uint keyMask = 0;
-        auto seen = bound.dup; // variables bound before or within this atom
-        ArgOp[] ops;
-        foreach (j, t; atom.args)
-        {
-            if (!t.isVariable)
-            {
-                ops ~= ArgOp(OpKind.constant, t.id, cast(uint) j);
-                keyMask |= 1u << j;
-            }
-            else if (bound[t.id])
-            {
-                ops ~= ArgOp(OpKind.variable, t.id, cast(uint) j);
-                keyMask |= 1u << j;
-            }
-            else if (seen[t.id])
-            {
-                ops ~= ArgOp(OpKind.variable, t.id, cast(uint) j); // repeated within the atom
-                allBound = false;
-            }
-            else
-            {
-                ops ~= ArgOp(OpKind.bind, t.id, cast(uint) j);
-                seen[t.id] = true;
-                allBound = false;
-            }
-        }
-
-        if (step.isDelta)
-        {
-            step.kind = StepKind.scan;
-            step.matchOps = ops;
-        }
-        else if (allBound)
-        {
-            step.kind = StepKind.probe;
-            step.keyOps = ops;
-        }
-        else if (keyMask != 0)
-        {
-            step.kind = StepKind.lookup;
-            foreach (op; ops)
-                if (keyMask & (1u << op.pos))
-                    step.keyOps ~= op;
-                else
-                    step.matchOps ~= op;
-            step.index = relations[atom.pred].index(keyMask);
-            plan.indexes ~= step.index;
-        }
-        else
-        {
-            step.kind = StepKind.scan;
-            step.matchOps = ops;
-        }
-
-        bound = seen;
-        boundAfter ~= bound.dup;
-        plan.steps ~= step;
+        if (t.kind == TermKind.variable)
+            vs ~= t.id;
     }
 
-    // Attach negations and comparisons at the earliest step binding all their variables.
-    foreach (ref lit; rule.body)
+    final switch (lit.kind)
     {
+    case LiteralKind.positive:
+    case LiteralKind.negated:
+        foreach (t; lit.atom.args)
+            add(t);
+        break;
+    case LiteralKind.comparison:
+        add(lit.lhs);
+        add(lit.rhs);
+        break;
+    }
+    return vs;
+}
+
+private Operand operandOf(Term t, const(uint)[] rank) @safe pure nothrow
+{
+    return t.kind == TermKind.constant ? Operand(true, rank[t.id]) : Operand(false, t.id);
+}
+
+/// Compiles `rule` into a plan.
+///
+/// Params:
+///   program = the program the rule belongs to
+///   rule = a safe rule with a non-empty body
+///   deltaLiteral = index into `rule.body` of the positive literal that reads
+///       the delta, or -1 for a plan that reads everything
+///   inStratum = per predicate: whether it belongs to the stratum being evaluated
+///   rank = constant id -> rank
+///   relations = per predicate relation; the indexes the plan needs are created here
+JoinPlan compileRule(const Program program, ref const Rule rule, int deltaLiteral,
+    const(bool)[] inStratum, const(uint)[] rank, Relation[] relations) @safe pure
+{
+    JoinPlan plan;
+    plan.headPredicate = rule.head.predicate;
+    plan.numSlots = rule.numVars;
+    foreach (t; rule.head.args)
+        plan.head ~= operandOf(t, rank);
+
+    auto bound = new bool[rule.numVars];
+    size_t[] remaining;
+    foreach (i, ref lit; rule.body)
         if (lit.kind == LiteralKind.positive)
-            continue;
+            remaining ~= i;
+
+    // Filters still waiting for their variables.
+    size_t[] pending;
+    foreach (i, ref lit; rule.body)
+        if (lit.kind != LiteralKind.positive)
+            pending ~= i;
+
+    Filter makeFilter(ref const Literal lit)
+    {
         Filter f;
-        Term[] terms;
-        if (lit.kind == LiteralKind.negative)
+        if (lit.kind == LiteralKind.negated)
         {
-            f.negated = true;
-            f.pred = lit.atom.pred;
-            f.args = lit.atom.args.dup;
-            terms = f.args;
+            f.negation = true;
+            f.predicate = lit.atom.predicate;
+            foreach (t; lit.atom.args)
+                f.args ~= operandOf(t, rank);
         }
         else
         {
             f.op = lit.op;
-            f.lhs = lit.lhs;
-            f.rhs = lit.rhs;
-            terms = [lit.lhs, lit.rhs];
+            f.lhs = operandOf(lit.lhs, rank);
+            f.rhs = operandOf(lit.rhs, rank);
         }
-        int at = -1;
-        for (; at < cast(int) boundAfter.length; ++at)
+        return f;
+    }
+
+    // Moves the filters that have all their variables bound into `into`.
+    void releaseFilters(ref Filter[] into)
+    {
+        size_t[] still;
+        foreach (i; pending)
         {
-            bool ok = true;
-            foreach (t; terms)
-                if (t.isVariable && (at < 0 || !boundAfter[at][t.id]))
-                    ok = false;
-            if (ok)
-                break;
+            bool ready = true;
+            foreach (v; variablesOf(rule.body[i]))
+                ready = ready && bound[v];
+            if (ready)
+                into ~= makeFilter(rule.body[i]);
+            else
+                still ~= i;
         }
-        // Safety guarantees every variable is eventually bound.
-        assert(at < cast(int) boundAfter.length, "unsafe rule reached the planner");
-        if (at < 0)
-            plan.initial ~= f;
+        pending = still;
+    }
+
+    releaseFilters(plan.preFilters);
+
+    bool first = true;
+    while (remaining.length)
+    {
+        // Choose the next atom: the delta atom first, then the one with most
+        // bound arguments, ties in body order.
+        size_t bestPos = 0;
+        if (first && deltaLiteral >= 0)
+        {
+            foreach (k, li; remaining)
+                if (li == deltaLiteral)
+                    bestPos = k;
+        }
         else
-            plan.steps[at].after ~= f;
+        {
+            int bestScore = -1;
+            foreach (k, li; remaining)
+            {
+                int score;
+                foreach (t; rule.body[li].atom.args)
+                    if (t.kind == TermKind.constant || bound[t.id])
+                        ++score;
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestPos = k;
+                }
+            }
+        }
+        immutable li = remaining[bestPos];
+        remaining = remaining[0 .. bestPos] ~ remaining[bestPos + 1 .. $];
+        first = false;
+
+        ref const lit = rule.body[li];
+        Step step;
+        step.predicate = lit.atom.predicate;
+        if (cast(int) li == deltaLiteral)
+            step.window = Window.delta;
+        else if (deltaLiteral >= 0 && inStratum[step.predicate] && cast(int) li < deltaLiteral)
+            step.window = Window.old;
+        else
+            step.window = Window.all;
+
+        const boundBefore = bound.dup;
+        foreach (col, t; lit.atom.args)
+        {
+            ArgOp op;
+            op.col = cast(ubyte) col;
+            if (t.kind == TermKind.constant)
+            {
+                op.kind = OpKind.eqConst;
+                op.value = rank[t.id];
+                op.inKey = true;
+            }
+            else if (boundBefore[t.id])
+            {
+                op.kind = OpKind.eqSlot;
+                op.value = t.id;
+                op.inKey = true;
+            }
+            else if (bound[t.id])
+            {
+                op.kind = OpKind.eqSlot; // repeated within this atom
+                op.value = t.id;
+            }
+            else
+            {
+                op.kind = OpKind.bind;
+                op.value = t.id;
+                bound[t.id] = true;
+            }
+            if (op.inKey)
+            {
+                step.mask |= 1u << col;
+                step.key ~= Operand(op.kind == OpKind.eqConst, op.value);
+            }
+            step.ops ~= op;
+        }
+        if (step.mask != 0 && step.window != Window.delta)
+            step.indexNo = relations[step.predicate].indexFor(step.mask);
+        releaseFilters(step.filters);
+        plan.steps ~= step;
     }
     return plan;
 }
 
-/// Order the positive atoms of `rule`: the delta atom (if any) first, then greedily the
-/// atom with the most bound arguments (constants or already-bound variables), ties by body order.
-private size_t[] orderAtoms(ref const Rule rule, int deltaLiteral) @safe
+@safe pure unittest
 {
-    auto bound = new bool[rule.numVars];
-    size_t[] order;
+    import datalog.parser : parseProgram;
 
-    void place(size_t bodyIndex)
-    {
-        order ~= bodyIndex;
-        foreach (t; rule.body[bodyIndex].atom.args)
-            if (t.isVariable)
-                bound[t.id] = true;
-    }
+    auto prog = parseProgram("p(X, Z) :- q(X, Y), r(Y, Z), not s(Z), X < Z. p(1, 2) :- not s(1).");
+    auto rank = prog.symbols.ranks;
+    auto rels = new Relation[prog.predicates.length];
+    foreach (i, p; prog.predicates)
+        rels[i] = new Relation(p.arity);
+    auto inStratum = new bool[prog.predicates.length];
 
-    size_t[] remaining;
-    foreach (i, ref lit; rule.body)
-        if (lit.kind == LiteralKind.positive && cast(int) i != deltaLiteral)
-            remaining ~= i;
-    if (deltaLiteral >= 0)
-        place(cast(size_t) deltaLiteral);
+    auto plan = compileRule(prog, prog.rules[0], -1, inStratum, rank, rels);
+    assert(plan.steps.length == 2);
+    // q is first (no bound arguments anywhere, body order); r then has Y bound.
+    assert(prog.predicates[plan.steps[0].predicate].name == "q");
+    assert(plan.steps[0].mask == 0);
+    assert(plan.steps[1].mask == 0b01);
+    assert(plan.steps[0].filters.length == 0);
+    assert(plan.steps[1].filters.length == 2); // `not s(Z)` and `X < Z`
 
-    while (remaining.length)
-    {
-        size_t best = 0;
-        int bestScore = -1;
-        foreach (k, bi; remaining)
-        {
-            int score = 0;
-            foreach (t; rule.body[bi].atom.args)
-                if (!t.isVariable || bound[t.id])
-                    ++score;
-            if (score > bestScore)
-            {
-                bestScore = score;
-                best = k;
-            }
-        }
-        immutable chosen = remaining[best];
-        remaining = remaining[0 .. best] ~ remaining[best + 1 .. $];
-        place(chosen);
-    }
-    return order;
+    // Delta on r: r goes first, then q probes on Y.
+    auto delta = compileRule(prog, prog.rules[0], 1, inStratum, rank, rels);
+    assert(prog.predicates[delta.steps[0].predicate].name == "r");
+    assert(delta.steps[0].window == Window.delta);
+    assert(delta.steps[1].mask == 0b10);
+
+    // A body without positive atoms has only pre-filters.
+    auto bodyless = compileRule(prog, prog.rules[1], -1, inStratum, rank, rels);
+    assert(bodyless.steps.length == 0 && bodyless.preFilters.length == 1);
 }

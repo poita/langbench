@@ -1,111 +1,130 @@
 /**
- * Semantic versions (`MAJOR.MINOR.PATCH`) and their packed integer keys.
+ * Semantic versions (`MAJOR.MINOR.PATCH`, no prerelease or build suffixes).
  *
- * Every version is packed into a single 64-bit unsigned integer, 21 bits per
- * component, so that comparing two versions is one integer comparison. The
- * packing is monotone and has headroom above the largest legal component
- * (1,000,000), so the exclusive bounds that ranges produce, such as
- * `(X+1).0.0` or `X.(Y+1).0`, are ordinary keys too.
+ * Components are compared numerically, so `1.10.0` is newer than `1.9.0`.
  */
 module depresolve.semver;
 
-import std.format : format;
+import std.conv : to;
 
-/// Raised when input text is not well formed.
+/// Thrown when text cannot be parsed as a version, range or registry.
 class ParseException : Exception
 {
+    ///
     this(string msg, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
     {
         super(msg, file, line);
     }
 }
 
-/// A version packed into one integer that orders like the version itself.
-alias VersionKey = ulong;
-
-/// Number of bits used for each component of a `VersionKey`.
-enum componentBits = 21;
-
-/// Largest component value a `Version` may hold (the SPEC limit).
-enum uint maxComponent = 1_000_000;
-
-/// Mask selecting one component of a `VersionKey`.
-private enum ulong componentMask = (1UL << componentBits) - 1;
-
-/// Pack three components into a key. Components up to `2^21 - 1` are accepted.
-VersionKey packKey(uint major, uint minor, uint patch) pure nothrow @nogc @safe
-{
-    return (cast(ulong) major << (2 * componentBits))
-        | (cast(ulong) minor << componentBits)
-        | cast(ulong) patch;
-}
-
-/// A concrete version `MAJOR.MINOR.PATCH`.
+/// A `MAJOR.MINOR.PATCH` version. Ordered numerically, major component first.
 struct Version
 {
+    /// Version components.
     uint major, minor, patch;
 
-    /// The packed integer key of this version.
-    VersionKey key() const pure nothrow @nogc @safe
-    {
-        return packKey(major, minor, patch);
-    }
-
-    /// Recover a version from a key produced by `key`.
-    static Version fromKey(VersionKey k) pure nothrow @nogc @safe
-    {
-        return Version(cast(uint)((k >> (2 * componentBits)) & componentMask),
-                       cast(uint)((k >> componentBits) & componentMask),
-                       cast(uint)(k & componentMask));
-    }
-
     /// Numeric, component-wise ordering.
-    int opCmp(const Version rhs) const pure nothrow @nogc @safe
+    int opCmp(const Version o) const pure nothrow @nogc @safe
     {
-        immutable a = key, b = rhs.key;
-        return a < b ? -1 : (a > b ? 1 : 0);
+        if (major != o.major) return major < o.major ? -1 : 1;
+        if (minor != o.minor) return minor < o.minor ? -1 : 1;
+        if (patch != o.patch) return patch < o.patch ? -1 : 1;
+        return 0;
     }
 
-    /// `MAJOR.MINOR.PATCH`
+    /// Equality (component-wise).
+    bool opEquals(const Version o) const pure nothrow @nogc @safe
+    {
+        return major == o.major && minor == o.minor && patch == o.patch;
+    }
+
+    /// Formats as `MAJOR.MINOR.PATCH`.
     string toString() const pure @safe
     {
-        return format("%d.%d.%d", major, minor, patch);
+        return major.to!string ~ "." ~ minor.to!string ~ "." ~ patch.to!string;
+    }
+
+    /// The smallest version: `0.0.0`.
+    static Version min() pure nothrow @nogc @safe { return Version(0, 0, 0); }
+
+    /// A version greater than any real one (used as an open upper bound).
+    static Version infinity() pure nothrow @nogc @safe
+    {
+        return Version(uint.max, uint.max, uint.max);
+    }
+
+    /// The next version after this one in patch order (`1.2.3` -> `1.2.4`).
+    Version nextPatch() const pure nothrow @nogc @safe
+    {
+        return Version(major, minor, patch + 1);
     }
 }
 
 /**
- * Parse `MAJOR.MINOR.PATCH` strictly: three decimal numbers without leading
- * zeros, no whitespace, no prerelease or build suffix.
+ * Parses a version from `text[pos .. $]`, advancing `pos` past it.
  *
- * Throws: `ParseException`
+ * Throws: `ParseException` on malformed input.
  */
+Version parseVersionAt(const(char)[] text, ref size_t pos) pure @safe
+{
+    Version v;
+    v.major = parseNum(text, pos);
+    expect(text, pos, '.');
+    v.minor = parseNum(text, pos);
+    expect(text, pos, '.');
+    v.patch = parseNum(text, pos);
+    return v;
+}
+
+/// Parses a complete version string such as `"1.20.3"`.
 Version parseVersion(const(char)[] text) pure @safe
 {
-    uint[3] parts;
-    size_t i = 0;
-    foreach (p; 0 .. 3)
+    size_t pos = 0;
+    auto v = parseVersionAt(text, pos);
+    if (pos != text.length)
+        throw new ParseException("trailing characters after version: " ~ text.idup);
+    return v;
+}
+
+package uint parseNum(const(char)[] text, ref size_t pos) pure @safe
+{
+    size_t start = pos;
+    ulong n = 0;
+    while (pos < text.length && text[pos] >= '0' && text[pos] <= '9')
     {
-        immutable start = i;
-        ulong value = 0;
-        while (i < text.length && text[i] >= '0' && text[i] <= '9')
-        {
-            value = value * 10 + (text[i] - '0');
-            if (value > componentMask)
-                throw new ParseException("version component too large: " ~ text.idup);
-            ++i;
-        }
-        immutable digits = i - start;
-        if (digits == 0 || (digits > 1 && text[start] == '0'))
-            throw new ParseException("malformed version: '" ~ text.idup ~ "'");
-        parts[p] = cast(uint) value;
-        if (p < 2)
-        {
-            if (i >= text.length || text[i] != '.')
-                throw new ParseException("malformed version: '" ~ text.idup ~ "'");
-            ++i;
-        }
+        n = n * 10 + (text[pos] - '0');
+        if (n > uint.max - 1)
+            throw new ParseException("number too large");
+        ++pos;
     }
-    if (i != text.length)
-        throw new ParseException("malformed version: '" ~ text.idup ~ "'");
-    return Version(parts[0], parts[1], parts[2]);
+    if (pos == start)
+        throw new ParseException("expected a number at offset " ~ start.to!string);
+    return cast(uint) n;
+}
+
+package void expect(const(char)[] text, ref size_t pos, char c) pure @safe
+{
+    if (pos >= text.length || text[pos] != c)
+        throw new ParseException("expected '" ~ c ~ "' at offset " ~ pos.to!string);
+    ++pos;
+}
+
+unittest
+{
+    assert(parseVersion("1.2.3") == Version(1, 2, 3));
+    assert(parseVersion("0.0.0") == Version.min);
+    assert(parseVersion("1.10.0") > parseVersion("1.9.0"));
+    assert(parseVersion("2.0.0") > parseVersion("1.999999.999999"));
+    assert(Version(1, 2, 3).toString == "1.2.3");
+    assert(Version(1, 2, 3).nextPatch == Version(1, 2, 4));
+    assert(Version(1, 2, 3) < Version.infinity);
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+    assertThrown!ParseException(parseVersion("1.2"));
+    assertThrown!ParseException(parseVersion("1.2.3.4"));
+    assertThrown!ParseException(parseVersion("a.b.c"));
+    assertThrown!ParseException(parseVersion(""));
 }

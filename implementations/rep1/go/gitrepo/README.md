@@ -1,53 +1,63 @@
 # gitrepo
 
-`gitrepo` reads a git repository straight off disk — loose objects,
-packfiles, refs — and answers queries about it. It is a Go library plus a thin
-command-line tool. Everything is implemented from scratch with the standard
-library only: the SHA-1 routine, the DEFLATE/zlib decoder, pack index and
-packfile parsing, delta reconstruction, ref and revision resolution. It never
-runs `git` and never writes to the repository.
+A small Go library and command-line tool that read a git repository straight
+off disk and answer queries about it. It does not run `git` and uses no git,
+zlib or SHA-1 library: SHA-1, DEFLATE/zlib decoding, loose objects, pack
+indexes, packfiles with `OFS_DELTA`/`REF_DELTA` chains, refs and git's revision
+syntax are all implemented here, using only the Go standard library.
 
 ## Layout
 
-| Path | Responsibility |
-|---|---|
-| `sha1/` | SHA-1 (FIPS 180-4), streaming |
-| `inflate/` | table-driven DEFLATE + zlib wrapper decoder |
-| `store.go`, `pack.go` | object store: loose objects, `.idx` v2 / `.pack` v2, `OFS_DELTA` / `REF_DELTA`, caches |
-| `object.go` | commit, tree and tag parsing |
-| `refs.go`, `rev.go` | `HEAD`, loose refs, `packed-refs`; `^`, `~`, `^{...}`, abbreviated ids |
-| `log.go`, `tree.go`, `quote.go` | history walk (binary heap), tree lookup and diff, path quoting |
-| `exec.go` | the query language (`log`, `ls-tree`, `cat-file`, `diff`, `rev-parse`, `count-objects`) |
-| `cmd/gitrepo/` | the command-line tool |
+| package            | responsibility                                                   |
+|--------------------|------------------------------------------------------------------|
+| `gitrepo/sha1`     | SHA-1 (FIPS 180-4)                                               |
+| `gitrepo/inflate`  | DEFLATE (RFC 1951) and zlib (RFC 1950) decoder                   |
+| `gitrepo/object`   | object types and ids; commit, tree and tag parsing               |
+| `gitrepo/odb`      | object database: loose objects, pack index v2, packs, deltas     |
+| `gitrepo`          | refs, revision syntax (`^`, `~`, `^{type}`, abbreviations), `Log`, `LsTree`, `CatFile`, `Diff`, `QuotePath` |
+| `gitrepo/query`    | the textual command language used by the CLI                     |
+| `cmd/gitrepo`      | the command-line tool                                            |
 
-## Build
+## Build and test
 
-Requires Go 1.27 or newer.
-
-```
-./build.sh          # writes bin/gitrepo
-go test ./...       # unit tests
-```
-
-## Command-line use
+Requires Go 1.27.1.
 
 ```
-./run.sh <input dir> <output dir>
+./build.sh          # builds bin/gitrepo (go build ./cmd/gitrepo)
+go test ./...       # unit tests; also replays problems/gitrepo/tests when present
 ```
 
-`<input dir>` contains `repo/` (a `.git` directory or bare repository) and
-`commands.txt` (one query per line, split on single spaces). For line *k* the
-answer is written to `<output dir>/NNN.out` (`001.out`, `002.out`, …). A query
-that fails writes `error` and the exit status is still 0.
+## Command-line usage
 
-| Query | Output |
-|---|---|
-| `log <rev> [<n>]` | `<id> <author> <author time> <subject>` per commit, newest committer date first |
-| `ls-tree <rev> [<path>]` | `<mode> <type> <id>\t<name>` per entry |
-| `cat-file <rev>` | `<type> <size>\n` then the verified payload |
-| `diff <rev1> <rev2>` | `:<mode1> <mode2> <id1> <id2> <A\|D\|M\|T>\t<path>` per changed path |
-| `rev-parse <rev>` | the 40-digit id |
-| `count-objects` | `loose:`, `in-pack:` and `packs:` lines |
+```
+./run.sh <input path> <output dir>
+```
+
+`<input path>` is a directory containing `repo/` (a `.git` directory or bare
+repository) and `commands.txt`, one query per line. For line *k* the tool
+writes `<output dir>/NNN.out` (*k* zero-padded to at least three digits). A
+query that fails produces the file content `error`; the exit status is 0.
+Arguments are separated by single spaces; empty arguments are errors.
+
+| command                  | output                                                        |
+|--------------------------|---------------------------------------------------------------|
+| `log <rev> [<n>]`        | `<id> <author name> <author time> <subject>`, newest committer date first |
+| `ls-tree <rev> [<path>]` | `<mode> <type> <id>TAB<quoted name>` per entry                |
+| `cat-file <rev>`         | `<type> <size>`, then the payload; the SHA-1 is verified      |
+| `diff <rev1> <rev2>`     | `:<mode1> <mode2> <id1> <id2> <A|D|M|T>TAB<path>`, sorted by path |
+| `rev-parse <rev>`        | the object id                                                 |
+| `count-objects`          | `loose:`, `in-pack:` and `packs:` counts                      |
+
+Example `commands.txt`:
+
+```
+count-objects
+rev-parse main~2
+log main 5
+ls-tree HEAD src
+diff v1.0 main
+cat-file v1.0^{tree}
+```
 
 ## Library example
 
@@ -67,41 +77,39 @@ func main() {
 		log.Fatal(err)
 	}
 
-	id, err := repo.ResolveRevision("main~2")
+	id, err := repo.RevParse("main~2") // ids, refs, abbreviations, ^ ~ ^{type}
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("main~2 is", id)
+	fmt.Println(id)
 
-	// Walk history, newest first (committer date), at most 10 commits.
-	head, _ := repo.ResolveRevision("HEAD")
-	err = repo.Walk(head, 10, func(id gitrepo.ID, c *gitrepo.Commit) {
-		fmt.Printf("%s %s\n", id, c.Subject)
-	})
+	commits, err := repo.Log("HEAD", 5)
 	if err != nil {
 		log.Fatal(err)
 	}
+	for _, c := range commits {
+		fmt.Printf("%s %s\n", c.ID, c.Subject)
+	}
 
-	// Read and verify an object.
-	typ, data, err := repo.VerifyObject(id)
-	fmt.Println(typ, len(data), err)
-
-	// Or run a query line exactly as the CLI does.
-	out, err := repo.Execute("diff HEAD~1 HEAD")
-	fmt.Printf("%s %v\n", out, err)
+	changes, err := repo.Diff("v1.0", "main")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, d := range changes {
+		fmt.Printf("%c %s\n", d.Status, gitrepo.QuotePath(d.Path))
+	}
 }
 ```
 
-A `Repository` caches everything it decodes (pack positions, parsed commits and
-trees) for its whole lifetime; it is not safe for concurrent use.
+A `Repo` reads the pack indexes and the set of loose objects once when opened
+and caches every object, commit and tree it decodes, so each is decoded at
+most once. It is not safe for concurrent use. Names, paths and messages are
+opaque bytes and are never reinterpreted as text.
 
-## Design notes
+## Notes
 
-* Pack and index files are read whole into memory once; ids are found with a
-  fanout-bounded binary search over the raw index bytes.
-* Objects reconstructed from a pack are memoised by pack position, so a delta
-  chain is decoded once however many objects sit on top of it.
-* Loose objects are listed once at open time; reading one costs a set lookup.
-* Inflate stops at the final end-of-block symbol, so objects stored back to
-  back in a pack need no length bookkeeping. The Adler-32 trailer is ignored;
-  corruption is caught by header checks and, for `cat-file`, the SHA-1 check.
+* Only `HEAD`, `refs/**`, `packed-refs` and `objects/` are read; `config`,
+  `logs/`, commit-graphs and multi-pack indexes are ignored.
+* Packs with an unusable index or header are ignored, as are `.idx`/`.pack`
+  files without a partner.
+* The zlib Adler-32 trailer is verified, so damaged streams are errors.

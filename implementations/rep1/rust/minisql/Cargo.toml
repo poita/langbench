@@ -1,0 +1,17 @@
+[package]
+name = "minisql"
+version = "0.1.0"
+edition = "2021"
+description = "A small in-memory relational database that executes a subset of SQL"
+license = "MIT"
+readme = "README.md"
+keywords = ["sql", "database", "in-memory"]
+categories = ["database-implementations"]
+
+[lib]
+name = "minisql"
+path = "src/lib.rs"
+
+[[bin]]
+name = "minisql"
+path = "src/main.rs"

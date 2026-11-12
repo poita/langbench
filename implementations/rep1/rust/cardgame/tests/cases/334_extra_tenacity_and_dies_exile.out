@@ -1,0 +1,157 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 2 ash 0 rift 1
+player B spire 30 ember 10 cap 10 vault 10 hand 8 ash 0 rift 0
+hand A 1 #11 EXT-001
+hand A 2 #12 EXT-001
+hand B 1 #26 EXT-003
+hand B 2 #27 EXT-003
+hand B 3 #28 EXT-003
+hand B 4 #29 EXT-003
+hand B 5 #30 EXT-003
+hand B 6 #31 EXT-003
+hand B 7 #32 EXT-003
+hand B 8 #33 EXT-003
+field A #13 EXT-018 3/4 w0 c0 ready - kw provoke,tenacity
+field A #14 EXT-001 1/1 w0 c0 ready - kw -
+rift A 1 #15 EXT-001
+effect 1 ts2 A aura grant venom on -
+STATE END
+8 PASS A
+9 PLAY B ~1 #26 EXT-003
+10 PAY B ember 1
+11 PASS B
+12 PASS A
+13 RESOLVE ~1
+14 DAMAGE #26 #13 1
+15 DAMAGE #26 #14 1
+16 SPENT #26 EXT-003
+17 DESTROY #14 EXT-001
+18 PASS A
+19 PLAY B ~2 #27 EXT-003
+20 PAY B ember 1
+21 PASS B
+22 PASS A
+23 RESOLVE ~2
+24 DAMAGE #27 #13 1
+25 SPENT #27 EXT-003
+26 PASS A
+27 PLAY B ~3 #28 EXT-003
+28 PAY B ember 1
+29 PASS B
+30 PASS A
+31 RESOLVE ~3
+32 DAMAGE #28 #13 1
+33 SPENT #28 EXT-003
+34 PASS A
+35 PLAY B ~4 #29 EXT-003
+36 PAY B ember 1
+37 PASS B
+38 PASS A
+39 RESOLVE ~4
+40 DAMAGE #29 #13 1
+41 SPENT #29 EXT-003
+42 TENACITY #13
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 2 ash 1 rift 1
+player B spire 30 ember 6 cap 10 vault 10 hand 4 ash 4 rift 0
+hand A 1 #11 EXT-001
+hand A 2 #12 EXT-001
+hand B 1 #30 EXT-003
+hand B 2 #31 EXT-003
+hand B 3 #32 EXT-003
+hand B 4 #33 EXT-003
+field A #13 EXT-018 3/4 w0 c0 ready tenacity-used kw provoke,tenacity
+ash A 1 #14 EXT-001
+ash B 1 #26 EXT-003
+ash B 2 #27 EXT-003
+ash B 3 #28 EXT-003
+ash B 4 #29 EXT-003
+rift A 1 #15 EXT-001
+effect 1 ts2 A aura grant venom on -
+STATE END
+43 PASS A
+44 PLAY B ~5 #30 EXT-003
+45 PAY B ember 1
+46 PASS B
+47 PASS A
+48 RESOLVE ~5
+49 DAMAGE #30 #13 1
+50 SPENT #30 EXT-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 2 ash 1 rift 1
+player B spire 30 ember 5 cap 10 vault 10 hand 3 ash 5 rift 0
+hand A 1 #11 EXT-001
+hand A 2 #12 EXT-001
+hand B 1 #31 EXT-003
+hand B 2 #32 EXT-003
+hand B 3 #33 EXT-003
+field A #13 EXT-018 3/4 w1 c0 ready tenacity-used kw provoke,tenacity
+ash A 1 #14 EXT-001
+ash B 1 #26 EXT-003
+ash B 2 #27 EXT-003
+ash B 3 #28 EXT-003
+ash B 4 #29 EXT-003
+ash B 5 #30 EXT-003
+rift A 1 #15 EXT-001
+effect 1 ts2 A aura grant venom on -
+STATE END
+51 PASS A
+52 PLAY B ~6 #31 EXT-003
+53 PAY B ember 1
+54 PASS B
+55 PASS A
+56 RESOLVE ~6
+57 DAMAGE #31 #13 1
+58 SPENT #31 EXT-003
+59 PASS A
+60 PLAY B ~7 #32 EXT-003
+61 PAY B ember 1
+62 PASS B
+63 PASS A
+64 RESOLVE ~7
+65 DAMAGE #32 #13 1
+66 SPENT #32 EXT-003
+67 PASS A
+68 PLAY B ~8 #33 EXT-003
+69 PAY B ember 1
+70 PASS B
+71 PASS A
+72 RESOLVE ~8
+73 DAMAGE #33 #13 1
+74 SPENT #33 EXT-003
+75 DESTROY #13 EXT-018
+76 TRIGGER A ~9 #13 1
+77 PASS A
+78 PASS B
+79 RESOLVE ~9
+80 EXILE #11 EXT-001 hand
+81 EXILE #12 EXT-001 hand
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 2 rift 3
+player B spire 30 ember 2 cap 10 vault 10 hand 0 ash 8 rift 0
+ash A 1 #14 EXT-001
+ash A 2 #13 EXT-018
+ash B 1 #26 EXT-003
+ash B 2 #27 EXT-003
+ash B 3 #28 EXT-003
+ash B 4 #29 EXT-003
+ash B 5 #30 EXT-003
+ash B 6 #31 EXT-003
+ash B 7 #32 EXT-003
+ash B 8 #33 EXT-003
+rift A 1 #15 EXT-001
+rift A 2 #11 EXT-001
+rift A 3 #12 EXT-001
+STATE END
+82 RESULT pending none

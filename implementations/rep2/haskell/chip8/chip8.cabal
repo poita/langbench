@@ -1,0 +1,66 @@
+cabal-version:      3.0
+name:               chip8
+version:            0.1.0.0
+synopsis:           A deterministic CHIP-8 interpreter library and command-line tool
+description:
+  A small, fully deterministic CHIP-8 interpreter.  The library exposes an
+  immutable-in, immutable-out API ('Chip8.runRom') as well as the underlying
+  mutable machine in 'ST'.  The @chip8@ executable reads a ROM, a cycle budget
+  and an optional key schedule from standard input and prints the final
+  display and CPU state.
+category:           Emulation
+license:            MIT
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Chip8
+    Chip8.Font
+    Chip8.Input
+    Chip8.Instruction
+    Chip8.Machine
+    Chip8.Output
+    Chip8.Run
+    Chip8.Snapshot
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.14 && <5
+    , bytestring  >=0.10 && <0.13
+
+executable chip8
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , chip8
+
+test-suite chip8-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Chip8.InputSpec
+    Chip8.InstructionSpec
+    Chip8.MachineSpec
+    Chip8.OutputSpec
+    Chip8.RunSpec
+    Chip8.TestUtil
+  build-depends:
+    , array
+    , base
+    , bytestring
+    , chip8
+    , hspec        >=2.7
+    , QuickCheck   >=2.13

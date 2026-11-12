@@ -1,0 +1,17 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+ERR 10 bad-syntax
+ERR 11 not-your-turn
+ERR 12 wrong-decision
+ERR 13 no-such-card
+ERR 14 bad-target-count
+ERR 15 illegal-target
+ERR 16 cannot-afford
+8 PLAY A ~1 #2 CIN-003 A
+9 PAY A ember 1
+10 RESULT pending none

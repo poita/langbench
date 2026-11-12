@@ -1,59 +1,70 @@
 /**
- * Error plumbing shared by every stage of Kiln.
+ * Error plumbing shared by every stage of the engine.
  *
- * Every failure that a build can report is a $(LREF KilnError) carrying the
- * error *kind* (for example `E_TYPE`) and a *detail* string. The log line
- * for a failed build is `error <kind> <detail>`.
+ * Every failure a build can report — a syntax error, a type error, a missing
+ * input, a failing command — is a $(LREF KilnError). It carries the error
+ * `kind` (for example `E_TYPE`) and the `detail` text that follows the kind on
+ * the log line.
  */
 module kiln.errors;
 
-/// The exception thrown for every error described by the specification.
+/// The single exception type for every Kiln build error.
 class KilnError : Exception
 {
-    /// The error kind, such as `E_PARSE` or `E_CYCLE`.
+    /// The error kind, e.g. `"E_PARSE"`.
     string kind;
-    /// The kind-specific detail; empty for kinds that have none.
+    /// The detail text; empty for kinds that have none.
     string detail;
+    /// Whether the kind has a detail (`E_NO_DEFAULT` and `E_DIV_ZERO` do not).
+    bool hasDetail;
 
     ///
-    this(string kind, string detail = "", string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
+    this(string kind, string detail, bool hasDetail = true,
+            string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
     {
-        super(detail.length ? kind ~ " " ~ detail : kind, file, line);
+        super(kind, file, line);
         this.kind = kind;
         this.detail = detail;
+        this.hasDetail = hasDetail;
     }
 
-    /// The text that follows `error ` on a log line.
+    /// The text of the log's `error` line without its leading indentation.
     string render() const @safe pure nothrow
     {
-        return detail.length ? kind ~ " " ~ detail : kind;
+        return hasDetail ? kind ~ " " ~ detail : kind;
     }
 }
 
-/// `E_PARSE <file>:<line>`
-KilnError parseError(string file, int line) @safe pure
+/// Throws a `KilnError` whose detail is `detail`.
+noreturn fail(string kind, string detail, string file = __FILE__, size_t line = __LINE__) @safe pure
+{
+    throw new KilnError(kind, detail, true, file, line);
+}
+
+/// Throws a `KilnError` that has no detail.
+noreturn failBare(string kind, string file = __FILE__, size_t line = __LINE__) @safe pure
+{
+    throw new KilnError(kind, "", false, file, line);
+}
+
+/// Throws `E_PARSE <file>:<line>`.
+noreturn failParse(string file, int line) @safe pure
 {
     import std.conv : to;
 
-    return new KilnError("E_PARSE", file ~ ":" ~ line.to!string);
+    throw new KilnError("E_PARSE", file ~ ":" ~ line.to!string);
 }
 
-/// `E_TYPE <site>: expected <expected>, got <actual>`
-KilnError typeError(string site, string expected, string actual) @safe pure
+/// Builds the `E_TYPE <site>: expected <expected>, got <actual>` error.
+noreturn failType(string site, string expected, string actual) @safe pure
 {
-    return new KilnError("E_TYPE", site ~ ": expected " ~ expected ~ ", got " ~ actual);
+    throw new KilnError("E_TYPE", site ~ ": expected " ~ expected ~ ", got " ~ actual);
 }
 
-/// `E_ARG <kind> <name>: <reason>`
-KilnError argError(string kind, string name, string reason) @safe pure
+@safe pure unittest
 {
-    return new KilnError("E_ARG", kind ~ " " ~ name ~ ": " ~ reason);
-}
-
-/// `E_ARITY <kind> <name>: expected <expected>, got <got>`
-KilnError arityError(string kind, string name, string expected, size_t got) @safe pure
-{
-    import std.conv : to;
-
-    return new KilnError("E_ARITY", kind ~ " " ~ name ~ ": expected " ~ expected ~ ", got " ~ got.to!string);
+    auto e = new KilnError("E_TYPE", "operator +: expected int, got str");
+    assert(e.render == "E_TYPE operator +: expected int, got str");
+    auto b = new KilnError("E_NO_DEFAULT", "", false);
+    assert(b.render == "E_NO_DEFAULT");
 }

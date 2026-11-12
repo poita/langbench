@@ -1,3 +1,4 @@
 #!/bin/sh
-# Run the regex command-line tool: stdin -> stdout.
-exec "$(dirname "$0")/bin/regex-cli" "$@"
+# Run the btregex CLI: reads the batch format on stdin, writes results to stdout.
+DIR=$(cd "$(dirname "$0")" && pwd)
+exec "$DIR/bin/btregex" "$@"

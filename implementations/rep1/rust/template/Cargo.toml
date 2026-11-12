@@ -1,0 +1,17 @@
+[package]
+name = "template"
+version = "0.1.0"
+edition = "2021"
+description = "A small Jinja2-style template engine: expressions, filters, loops, macros, include and inheritance"
+license = "MIT"
+readme = "README.md"
+keywords = ["template", "jinja", "engine"]
+categories = ["template-engine"]
+
+[lib]
+name = "template"
+path = "src/lib.rs"
+
+[[bin]]
+name = "template"
+path = "src/main.rs"

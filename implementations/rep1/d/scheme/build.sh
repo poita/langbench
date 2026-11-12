@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the interpreter: produces bin/scheme.
+# Build the scheme interpreter (release mode, LDC).
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 --config=cli -q
+dub build -b release --compiler=ldc2 --quiet

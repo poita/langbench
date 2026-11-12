@@ -1,0 +1,31 @@
+@module main
+fn counter(start: Int) -> fn(Int) -> Int {
+    var base = start;
+    let f = |d: Int| base + d;
+    base = base + 100;
+    f
+}
+
+fn main() {
+    let f = counter(1);
+    print(showInt(f(5)));
+
+    var fs: [fn() -> Int] = listNew();
+    for i in 0 .. 4 {
+        push(fs, || i * i);
+    }
+    var acc = 0;
+    for g in fs {
+        acc = acc + g();
+    }
+    print(showInt(acc));
+
+    let xs = [5, 3, 8, 1];
+    print(strJoin(listMap(sortBy(xs, |a, b| cmpI(a, b)), |v| showInt(v)), ","));
+    print(showInt(listFold(xs, 0, |a, x| a + x)));
+
+    let shared = [1, 2];
+    let grow = || push(shared, 3);
+    grow();
+    print(showInt(listLen(shared)));
+}

@@ -1,26 +1,22 @@
-// Package sat is a small conflict-driven clause-learning (CDCL) SAT solver
-// for propositional formulas in conjunctive normal form.
+// Package sat is a conflict-driven clause-learning (CDCL) SAT solver in the
+// style of MiniSat.
 //
-// The solver is MiniSat-style: two watched literals, first-UIP clause
-// learning with local clause minimisation, VSIDS branching on an indexed
-// binary heap, phase saving, Luby restarts and activity-based learnt-clause
-// reduction. The search is fully deterministic: the same clauses added in
-// the same order always give the same decisions, learnt clauses and model.
+// A [Solver] is built by adding clauses over integer literals using the
+// DIMACS convention: variable k (k >= 1) is the literal k, its negation is
+// -k, and 0 is never a literal. After all clauses are added, [Solver.Solve]
+// decides satisfiability and, for satisfiable formulas, [Solver.Model]
+// returns a satisfying assignment.
 //
-// Literals follow the DIMACS convention: variables are numbered from 1, the
-// literal k means "variable k is true" and -k means "variable k is false".
-// 0 is never a literal.
+// The solver implements two-watched-literal unit propagation, first-UIP
+// clause learning with local clause minimisation, VSIDS branching with phase
+// saving, Luby restarts and activity-based deletion of learnt clauses.
 //
-// Typical use:
-//
-//	s := sat.NewSolver(3)
+//	s := sat.New()
 //	s.AddClause(1, -2)
 //	s.AddClause(2, 3)
 //	if s.Solve() == sat.Satisfiable {
-//		fmt.Println(s.Model()) // Model()[i] is the value of variable i+1
+//		fmt.Println(s.Model()) // e.g. [false false true]
 //	}
 //
-// Formulas in DIMACS files are read with ParseDIMACS and can be solved in one
-// step with Solve; WriteResult prints the answer in the competition-style
-// "SAT / UNSAT" format used by the accompanying command-line tool.
+// A Solver is not safe for concurrent use.
 package sat

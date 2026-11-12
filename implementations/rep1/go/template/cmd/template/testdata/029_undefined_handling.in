@@ -1,0 +1,17 @@
+{
+  "d": {
+    "k": "v",
+    "n": null,
+    "z": 0,
+    "l": []
+  },
+  "lst": [
+    1
+  ]
+}
+--
+=== main
+{{ missing is defined }} {{ missing is not defined }} {{ d is defined }} {{ d.k is defined }} {{ d.x is defined }} {{ d["x"] is not defined }} {{ d.n is defined }} {{ d.z is defined }} {{ lst[0] is defined }} {{ lst[1] is defined }} {{ lst[-2] is defined }} {{ lst.x is defined }} {{ "s".x is defined }} {{ d.n.x is defined }} {{ (5).x is defined }}
+{{ missing|default("m") }} {{ d.x|default("dx") }} {{ d.n|default("not replaced") }} {{ d.z|default(9) }} {{ lst[5]|default(lst[0]) }} {{ d.l|first|default("empty") }}
+{% set u = missing %}{{ u is defined }} {% set v = d.x %}{{ v is defined }} {{ v|default("V") }} {% if missing is defined %}yes{% else %}no{% endif %} {% if d.k is defined and d.k == "v" %}ok{% endif %} {% if missing is not defined or missing %}short{% endif %} {{ 1 > 2 > missing }} {{ 0 and missing }} {{ 1 or missing }}
+{% macro m(a, b) %}{{ a is defined }}{{ b is defined }}{{ b|default("B") }}{% endmacro %}{{ m(1) }} {{ m(missing, 2) }} {{ m(b=1) }}

@@ -1,4 +1,4 @@
 #!/bin/sh
-# Usage: run.sh <input-dir> <output-dir>
-DIR=$(cd "$(dirname "$0")" && pwd)
-exec "$DIR/bin/svgraster" "$@"
+# Run svgraster: run.sh <input-dir> <output-dir>
+dir=$(cd "$(dirname "$0")" && pwd)
+exec "$dir/bin/svgraster" "$@"

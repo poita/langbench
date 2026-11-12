@@ -1,6 +1,6 @@
-bin/
 .dub/
-*.o
+bin/
 *.a
+*.o
+*-test-*
 dub.selections.json
-protowire-test*

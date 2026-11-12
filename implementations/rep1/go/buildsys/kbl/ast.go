@@ -1,17 +1,16 @@
 package kbl
 
-type expr interface{}
-
+// Expressions.
 type (
+	expr interface{}
+
 	intLit  struct{ v int64 }
 	boolLit struct{ v bool }
-	// strLit is a string literal: constant text and/or interpolations.
-	strLit struct {
-		parts []strPart
-	}
-	varRef  struct{ name string }
-	listLit struct{ elems []expr }
-	unary   struct {
+	// strLit is a string literal: a sequence of literal and interpolated parts.
+	strLit struct{ parts []strPart }
+	varRef struct{ name string }
+	list   struct{ elems []expr }
+	unary  struct {
 		op string
 		x  expr
 	}
@@ -19,22 +18,23 @@ type (
 		op   string
 		l, r expr
 	}
-	indexExpr struct{ x, i expr }
-	call      struct {
+	call struct {
 		name string
 		args []expr
 	}
+	index struct{ x, i expr }
 )
 
+// strPart is either literal text (e == nil) or an interpolated expression.
 type strPart struct {
-	lit  string
-	e    expr // nil for a literal part
-	isEx bool
+	lit string
+	e   expr
 }
 
-type stmt interface{}
-
+// Statements.
 type (
+	stmt interface{}
+
 	letStmt struct {
 		name string
 		e    expr
@@ -51,19 +51,20 @@ type (
 		e    expr
 	}
 	useStmt struct {
-		name string
+		rule string
 		args []useArg
 	}
 	whenStmt struct {
-		conds     []expr
-		bodies    [][]stmt
-		otherwise []stmt
-		hasOther  bool
+		conds    []expr
+		bodies   [][]stmt
+		other    []stmt
+		hasOther bool
 	}
 	eachStmt struct {
-		index, name string // index is "" in the one-name form
-		subject     expr
-		body        []stmt
+		index   string // "" in the one-name form
+		name    string
+		subject expr
+		body    []stmt
 	}
 	ruleStmt struct {
 		name   string
@@ -74,18 +75,19 @@ type (
 )
 
 type useArg struct {
-	kw string // "" for positional
+	kw string // "" for a positional argument
 	e  expr
 }
 
 type param struct {
 	name string
-	def  expr // nil if required
+	def  expr // nil when there is no default
 }
 
+// stepField is one line of a step block.
 type stepField struct {
-	kind string // out in after cost depfile cmd
-	e    expr   // for non-cmd fields
-	cmd  string
-	args []expr
+	kind string // out, in, after, cost, depfile, cmd
+	e    expr   // the field expression (not for cmd)
+	cmd  string // command name (cmd only)
+	args []expr // command arguments (cmd only)
 }

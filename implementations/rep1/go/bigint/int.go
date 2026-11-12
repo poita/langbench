@@ -1,56 +1,24 @@
 package bigint
 
-import (
-	"errors"
-	"math/bits"
-)
-
-// Errors returned by Int operations.
-var (
-	// ErrDivideByZero is returned by Div, Rem and DivMod when the divisor is zero.
-	ErrDivideByZero = errors.New("bigint: division by zero")
-	// ErrNegativeExponent is returned by Exp when the exponent is negative.
-	ErrNegativeExponent = errors.New("bigint: negative exponent")
-	// ErrExponentTooLarge is returned by Exp when the exponent does not fit in
-	// a uint64 and the base is not 0, 1 or -1 (the result could not be
-	// represented in any memory).
-	ErrExponentTooLarge = errors.New("bigint: exponent too large")
-)
-
-// An Int is an arbitrary-precision signed integer. The zero value is 0.
-// Ints are immutable; all methods return new values.
+// Int is a signed arbitrary-precision integer. The zero value is 0. Values are
+// immutable; all methods return new values. Methods accept a nil *Int as an
+// operand only where documented; otherwise use the zero value.
 type Int struct {
-	neg bool // never true when mag is empty
-	mag nat
+	neg bool // true only if the value is negative (never for zero)
+	mag nat  // absolute value
 }
 
-// newInt builds an Int from a normalised magnitude, normalising the sign of zero.
-func newInt(neg bool, mag nat) *Int {
-	return &Int{neg: neg && len(mag) > 0, mag: mag}
-}
-
-// FromInt64 returns an Int with the value v.
-func FromInt64(v int64) *Int {
-	neg := v < 0
-	u := uint64(v)
-	if neg {
-		u = -u // correct for math.MinInt64 as well
+// New returns an Int with the value x.
+func New(x int64) *Int {
+	if x < 0 {
+		// -x overflows for MinInt64, but uint64(-x) wraps to the right value.
+		return &Int{neg: true, mag: natFromUint64(uint64(-x))}
 	}
-	return fromUint64(neg, u)
+	return &Int{mag: natFromUint64(uint64(x))}
 }
 
-// FromUint64 returns an Int with the value v.
-func FromUint64(v uint64) *Int { return fromUint64(false, v) }
-
-func fromUint64(neg bool, u uint64) *Int {
-	var mag nat
-	for ; u != 0; u /= base {
-		mag = append(mag, limb(u%base))
-	}
-	return newInt(neg, mag)
-}
-
-// Sign returns -1, 0 or +1 according to the sign of x.
+// Sign returns -1, 0 or +1 according to whether x is negative, zero or
+// positive.
 func (x *Int) Sign() int {
 	switch {
 	case len(x.mag) == 0:
@@ -61,111 +29,99 @@ func (x *Int) Sign() int {
 	return 1
 }
 
-// IsZero reports whether x is zero.
-func (x *Int) IsZero() bool { return len(x.mag) == 0 }
-
 // Neg returns -x.
-func (x *Int) Neg() *Int { return newInt(!x.neg, x.mag) }
+func (x *Int) Neg() *Int { return &Int{neg: !x.neg && len(x.mag) > 0, mag: x.mag} }
 
 // Abs returns |x|.
-func (x *Int) Abs() *Int { return newInt(false, x.mag) }
+func (x *Int) Abs() *Int { return &Int{mag: x.mag} }
 
-// Cmp compares x and y, returning -1 if x < y, 0 if x == y and +1 if x > y.
+// Cmp compares x and y and returns -1 if x < y, 0 if x == y and +1 if x > y.
 func (x *Int) Cmp(y *Int) int {
-	sx, sy := x.Sign(), y.Sign()
-	if sx != sy {
-		if sx < sy {
-			return -1
+	switch {
+	case x.neg == y.neg:
+		c := x.mag.cmp(y.mag)
+		if x.neg {
+			return -c
 		}
-		return 1
+		return c
+	case x.neg:
+		return -1
 	}
-	c := x.mag.cmp(y.mag)
-	if sx < 0 {
-		return -c
-	}
-	return c
+	return 1
 }
 
 // Add returns x + y.
-func (x *Int) Add(y *Int) *Int { return addSigned(x, y, y.neg) }
+func (x *Int) Add(y *Int) *Int { return addSigned(x, y.mag, y.neg) }
 
 // Sub returns x - y.
-func (x *Int) Sub(y *Int) *Int { return addSigned(x, y, !y.neg) }
+func (x *Int) Sub(y *Int) *Int { return addSigned(x, y.mag, !y.neg) }
 
-// addSigned returns x + (±|y|), where yneg is the sign to use for y.
-func addSigned(x, y *Int, yneg bool) *Int {
+// addSigned returns x + (±ym), where the sign of the second operand is yneg.
+func addSigned(x *Int, ym nat, yneg bool) *Int {
 	if x.neg == yneg {
-		return newInt(x.neg, x.mag.add(y.mag))
+		return &Int{neg: x.neg, mag: x.mag.add(ym)}
 	}
-	switch x.mag.cmp(y.mag) {
+	switch x.mag.cmp(ym) {
 	case 0:
 		return &Int{}
 	case 1:
-		return newInt(x.neg, x.mag.sub(y.mag))
+		return &Int{neg: x.neg, mag: x.mag.sub(ym)}
 	}
-	return newInt(yneg, y.mag.sub(x.mag))
+	return &Int{neg: yneg, mag: ym.sub(x.mag)}
 }
 
-// Mul returns x · y.
+// Mul returns x * y.
 func (x *Int) Mul(y *Int) *Int {
-	return newInt(x.neg != y.neg, x.mag.mul(y.mag))
+	m := x.mag.mul(y.mag)
+	return &Int{neg: x.neg != y.neg && len(m) > 0, mag: m}
 }
 
-// DivMod returns the quotient and remainder of x / y with C semantics: the
+// QuoRem returns the quotient and remainder of x / y with C semantics: the
 // quotient is truncated toward zero and the remainder has the sign of x (or is
-// zero), so that x == q·y + r and |r| < |y|. It returns ErrDivideByZero if y
+// zero), so that x == q*y + r and |r| < |y|. It returns ErrDivisionByZero if y
 // is zero.
-func (x *Int) DivMod(y *Int) (q, r *Int, err error) {
-	if y.IsZero() {
-		return nil, nil, ErrDivideByZero
+func (x *Int) QuoRem(y *Int) (q, r *Int, err error) {
+	if len(y.mag) == 0 {
+		return nil, nil, ErrDivisionByZero
 	}
 	qm, rm := x.mag.divMod(y.mag)
-	return newInt(x.neg != y.neg, qm), newInt(x.neg, rm), nil
+	q = &Int{neg: x.neg != y.neg && len(qm) > 0, mag: qm}
+	r = &Int{neg: x.neg && len(rm) > 0, mag: rm}
+	return q, r, nil
 }
 
-// Div returns the quotient x / y truncated toward zero, or ErrDivideByZero.
-func (x *Int) Div(y *Int) (*Int, error) {
-	q, _, err := x.DivMod(y)
+// Quo returns the truncated quotient x / y, or ErrDivisionByZero.
+func (x *Int) Quo(y *Int) (*Int, error) {
+	q, _, err := x.QuoRem(y)
 	return q, err
 }
 
-// Rem returns the remainder of x / y, with the sign of x, or ErrDivideByZero.
+// Rem returns the remainder x % y (sign of x), or ErrDivisionByZero.
 func (x *Int) Rem(y *Int) (*Int, error) {
-	_, r, err := x.DivMod(y)
+	_, r, err := x.QuoRem(y)
 	return r, err
 }
 
-// Exp returns x raised to the power y. It returns ErrNegativeExponent if y is
-// negative. x^0 is 1 for every x, including 0.
+// Exp returns x raised to the power y, with 0^0 == 1. It returns
+// ErrNegativeExponent if y is negative, and ErrExponentTooLarge if y exceeds
+// 64 bits and x is not 0, 1 or -1.
 func (x *Int) Exp(y *Int) (*Int, error) {
 	if y.neg {
 		return nil, ErrNegativeExponent
 	}
-	var e uint64
-	for i := len(y.mag) - 1; i >= 0; i-- {
-		hi, lo := bits.Mul64(e, base)
-		lo, carry := bits.Add64(lo, uint64(y.mag[i]), 0)
-		if hi != 0 || carry != 0 {
-			// Only 0, 1 and -1 have a representable power.
-			return x.expHuge(y)
-		}
-		e = lo
+	if len(y.mag) == 0 {
+		return New(1), nil
 	}
-	return x.ExpUint64(e), nil
-}
-
-// expHuge handles exponents that do not fit in a uint64.
-func (x *Int) expHuge(y *Int) (*Int, error) {
-	if len(x.mag) == 0 {
+	odd := y.mag[0]&1 == 1 // base 10^9 is even, so parity is the low limb's
+	switch {
+	case len(x.mag) == 0:
 		return &Int{}, nil
+	case len(x.mag) == 1 && x.mag[0] == 1: // x == ±1
+		return &Int{neg: x.neg && odd, mag: nat{1}}, nil
 	}
-	if len(x.mag) == 1 && x.mag[0] == 1 {
-		return newInt(x.neg && y.mag[0]&1 == 1, x.mag), nil
+	e, ok := y.mag.uint64()
+	if !ok {
+		return nil, ErrExponentTooLarge
 	}
-	return nil, ErrExponentTooLarge
-}
-
-// ExpUint64 returns x raised to the power e.
-func (x *Int) ExpUint64(e uint64) *Int {
-	return newInt(x.neg && e&1 == 1, x.mag.pow(e))
+	return &Int{neg: x.neg && odd, mag: x.mag.pow(e)}, nil
 }

@@ -6,376 +6,384 @@ import (
 	"strings"
 
 	"buildsys/glob"
-	"buildsys/kilnerr"
+	"buildsys/kerr"
 )
 
-// builtin describes one built-in function. types holds the accepted type
-// token per argument; for variadic functions the first entry applies to all
-// arguments beyond the end of the slice.
+// argType is a set of accepted value kinds for a built-in's argument.
+type argType struct {
+	kinds [4]bool
+	token string
+}
+
+func (t argType) accepts(v Value) bool { return t.kinds[v.K] }
+func (t argType) expected() string     { return t.token }
+
+var (
+	tS   = argType{[4]bool{KStr: true}, "str"}
+	tI   = argType{[4]bool{KInt: true}, "int"}
+	tL   = argType{[4]bool{KList: true}, "list"}
+	tV   = argType{[4]bool{true, true, true, true}, "any"}
+	tSL  = argType{[4]bool{KStr: true, KList: true}, "str|list"}
+	tSI  = argType{[4]bool{KStr: true, KInt: true}, "str|int"}
+	tSIB = argType{[4]bool{KBool: true, KInt: true, KStr: true}, "str|int|bool"}
+)
+
 type builtin struct {
-	minArgs, maxArgs int
-	types            []string
-	fn               func(ip *Interp, a []Value) Value
+	min, max int
+	types    []argType // type of argument i is types[min(i, len-1)]
+	run      func(it *interp, a []Value) (Value, error)
 }
 
-var builtins map[string]*builtin
-
-func fixed(types []string, fn func(ip *Interp, a []Value) Value) *builtin {
-	return &builtin{minArgs: len(types), maxArgs: len(types), types: types, fn: fn}
+func fixed(types []argType, run func(it *interp, a []Value) (Value, error)) *builtin {
+	return &builtin{min: len(types), max: len(types), types: types, run: run}
 }
 
-func ts(t ...string) []string { return t }
-
-func init() {
-	b := map[string]*builtin{}
-	b["len"] = fixed(ts("str|list"), func(_ *Interp, a []Value) Value {
-		if a[0].K == KStr {
-			return vInt(int64(len(a[0].S)))
-		}
-		return vInt(int64(len(a[0].L)))
-	})
-	b["count"] = fixed(ts("list"), func(_ *Interp, a []Value) Value { return vInt(int64(len(a[0].L))) })
-	b["upper"] = fixed(ts("str"), func(_ *Interp, a []Value) Value {
-		return vStr(string(asciiMap([]byte(a[0].S), 'a', 'z', 'A'-'a')))
-	})
-	b["lower"] = fixed(ts("str"), func(_ *Interp, a []Value) Value {
-		return vStr(string(asciiMap([]byte(a[0].S), 'A', 'Z', 'a'-'A')))
-	})
-	b["trim"] = fixed(ts("str"), func(_ *Interp, a []Value) Value {
-		return vStr(strings.Trim(a[0].S, " \t\n\r"))
-	})
-	b["replace"] = fixed(ts("str", "str", "str"), func(_ *Interp, a []Value) Value {
-		if a[1].S == "" {
-			raise(kilnerr.Arg, "fn replace: empty pattern")
-		}
-		return vStr(strings.ReplaceAll(a[0].S, a[1].S, a[2].S))
-	})
-	b["starts_with"] = fixed(ts("str", "str"), func(_ *Interp, a []Value) Value {
-		return vBool(strings.HasPrefix(a[0].S, a[1].S))
-	})
-	b["ends_with"] = fixed(ts("str", "str"), func(_ *Interp, a []Value) Value {
-		return vBool(strings.HasSuffix(a[0].S, a[1].S))
-	})
-	b["contains"] = fixed(ts("str", "str"), func(_ *Interp, a []Value) Value {
-		return vBool(strings.Contains(a[0].S, a[1].S))
-	})
-	b["substr"] = fixed(ts("str", "int", "int"), func(_ *Interp, a []Value) Value {
-		s, n := clamp(a[1].I, a[2].I, len(a[0].S))
-		return vStr(a[0].S[s : s+n])
-	})
-	b["split"] = fixed(ts("str", "str"), func(_ *Interp, a []Value) Value {
-		if a[1].S == "" {
-			raise(kilnerr.Arg, "fn split: empty separator")
-		}
-		parts := strings.Split(a[0].S, a[1].S)
-		out := make([]Value, len(parts))
-		for i, p := range parts {
-			out[i] = vStr(p)
-		}
-		return vList(out)
-	})
-	b["join"] = fixed(ts("list", "str"), func(_ *Interp, a []Value) Value {
-		var sb strings.Builder
-		for i, e := range a[0].L {
-			switch e.K {
-			case KStr:
-				if i > 0 {
-					sb.WriteString(a[1].S)
-				}
-				sb.WriteString(e.S)
-			case KInt:
-				if i > 0 {
-					sb.WriteString(a[1].S)
-				}
-				sb.WriteString(strconv.FormatInt(e.I, 10))
-			default:
-				typeErr("fn join element "+itoa(i), "str|int", e.K)
-			}
-		}
-		return vStr(sb.String())
-	})
-	b["str"] = fixed(ts("str|int|bool"), func(_ *Interp, a []Value) Value {
-		switch a[0].K {
-		case KInt:
-			return vStr(strconv.FormatInt(a[0].I, 10))
-		case KBool:
-			return vStr(boolText(a[0]))
-		}
-		return a[0]
-	})
-	b["int"] = fixed(ts("str|int"), func(_ *Interp, a []Value) Value {
-		if a[0].K == KInt {
-			return a[0]
-		}
-		s := a[0].S
-		digits := s
-		if strings.HasPrefix(s, "-") {
-			digits = s[1:]
-		}
-		if digits == "" || strings.Trim(digits, "0123456789") != "" {
-			raise(kilnerr.Arg, "fn int: bad integer")
-		}
-		n, err := strconv.ParseInt(s, 10, 64)
-		if err != nil {
-			raise(kilnerr.Arg, "fn int: bad integer")
-		}
-		return vInt(n)
-	})
-	b["dirname"] = fixed(ts("str"), func(_ *Interp, a []Value) Value {
-		if i := strings.LastIndexByte(a[0].S, '/'); i >= 0 {
-			return vStr(a[0].S[:i])
-		}
-		return vStr("")
-	})
-	b["basename"] = fixed(ts("str"), func(_ *Interp, a []Value) Value { return vStr(baseName(a[0].S)) })
-	b["stem"] = fixed(ts("str"), func(_ *Interp, a []Value) Value {
-		base := baseName(a[0].S)
-		if i := extIndex(base); i >= 0 {
-			return vStr(base[:i])
-		}
-		return vStr(base)
-	})
-	b["ext"] = fixed(ts("str"), func(_ *Interp, a []Value) Value {
-		base := baseName(a[0].S)
-		if i := extIndex(base); i >= 0 {
-			return vStr(base[i:])
-		}
-		return vStr("")
-	})
-	b["pathjoin"] = &builtin{minArgs: 1, maxArgs: 8, types: ts("str"), fn: func(_ *Interp, a []Value) Value {
-		parts := make([]string, 0, len(a))
-		for _, v := range a {
-			if v.S != "" {
-				parts = append(parts, v.S)
-			}
-		}
-		return vStr(strings.Join(parts, "/"))
-	}}
-	b["map"] = fixed(ts("list", "str"), func(_ *Interp, a []Value) Value {
-		pat := a[1].S
-		out := make([]Value, len(a[0].L))
-		for i, e := range a[0].L {
-			if e.K != KStr {
-				typeErr("fn map element "+itoa(i), "str", e.K)
-			}
-			out[i] = vStr(applyMap(pat, e.S))
-		}
-		return vList(out)
-	})
-	b["filter"] = fixed(ts("list", "str"), func(_ *Interp, a []Value) Value { return filterList("filter", a, true) })
-	b["reject"] = fixed(ts("list", "str"), func(_ *Interp, a []Value) Value { return filterList("reject", a, false) })
-	b["sort"] = fixed(ts("list"), func(_ *Interp, a []Value) Value {
-		out := append([]Value(nil), a[0].L...)
-		sort.SliceStable(out, func(i, j int) bool { return Compare(out[i], out[j]) < 0 })
-		return vList(out)
-	})
-	b["uniq"] = fixed(ts("list"), func(_ *Interp, a []Value) Value {
-		seen := make(map[string]struct{}, len(a[0].L))
-		out := make([]Value, 0, len(a[0].L))
-		var key []byte
-		for _, e := range a[0].L {
-			key = appendKey(key[:0], e)
-			if _, dup := seen[string(key)]; dup {
-				continue
-			}
-			seen[string(key)] = struct{}{}
-			out = append(out, e)
-		}
-		return vList(out)
-	})
-	b["reverse"] = fixed(ts("list"), func(_ *Interp, a []Value) Value {
-		n := len(a[0].L)
-		out := make([]Value, n)
-		for i, e := range a[0].L {
-			out[n-1-i] = e
-		}
-		return vList(out)
-	})
-	b["first"] = fixed(ts("list"), func(_ *Interp, a []Value) Value {
-		if len(a[0].L) == 0 {
-			raise(kilnerr.Arg, "fn first: empty list")
-		}
-		return a[0].L[0]
-	})
-	b["last"] = fixed(ts("list"), func(_ *Interp, a []Value) Value {
-		if len(a[0].L) == 0 {
-			raise(kilnerr.Arg, "fn last: empty list")
-		}
-		return a[0].L[len(a[0].L)-1]
-	})
-	b["slice"] = fixed(ts("list", "int", "int"), func(_ *Interp, a []Value) Value {
-		s, n := clamp(a[1].I, a[2].I, len(a[0].L))
-		return vList(append([]Value(nil), a[0].L[s:s+n]...))
-	})
-	b["has"] = fixed(ts("list", ""), func(_ *Interp, a []Value) Value {
-		return vBool(indexOf(a[0].L, a[1]) >= 0)
-	})
-	b["indexof"] = fixed(ts("list", ""), func(_ *Interp, a []Value) Value {
-		return vInt(int64(indexOf(a[0].L, a[1])))
-	})
-	b["range"] = fixed(ts("int"), func(_ *Interp, a []Value) Value {
-		if a[0].I < 0 {
-			raise(kilnerr.Arg, "fn range: negative")
-		}
-		out := make([]Value, a[0].I)
-		for i := range out {
-			out[i] = vInt(int64(i))
-		}
-		return vList(out)
-	})
-	b["sum"] = fixed(ts("list"), func(_ *Interp, a []Value) Value {
-		var s int64
-		for i, e := range a[0].L {
-			if e.K != KInt {
-				typeErr("fn sum element "+itoa(i), "int", e.K)
-			}
-			s += e.I
-		}
-		return vInt(s)
-	})
-	b["flatten"] = fixed(ts("list"), func(_ *Interp, a []Value) Value {
-		var out []Value
-		for _, e := range a[0].L {
-			if e.K == KList {
-				out = append(out, e.L...)
-			} else {
-				out = append(out, e)
-			}
-		}
-		return vList(out)
-	})
-	b["zip"] = fixed(ts("list", "list"), func(_ *Interp, a []Value) Value {
-		n := len(a[0].L)
-		if len(a[1].L) < n {
-			n = len(a[1].L)
-		}
-		out := make([]Value, n)
-		for i := 0; i < n; i++ {
-			out[i] = vList([]Value{a[0].L[i], a[1].L[i]})
-		}
-		return vList(out)
-	})
-	b["is_str"] = fixed(ts(""), func(_ *Interp, a []Value) Value { return vBool(a[0].K == KStr) })
-	b["is_int"] = fixed(ts(""), func(_ *Interp, a []Value) Value { return vBool(a[0].K == KInt) })
-	b["is_bool"] = fixed(ts(""), func(_ *Interp, a []Value) Value { return vBool(a[0].K == KBool) })
-	b["is_list"] = fixed(ts(""), func(_ *Interp, a []Value) Value { return vBool(a[0].K == KList) })
-	b["glob"] = fixed(ts("str"), func(ip *Interp, a []Value) Value {
-		p, ok := glob.Compile(a[0].S)
-		if !ok {
-			raise(kilnerr.Arg, "fn glob: bad pattern")
-		}
-		cands := ip.fs.Candidates(p.LiteralPrefix())
-		out := make([]Value, 0, 8)
-		for _, c := range cands {
-			if p.Match(c) {
-				out = append(out, vStr(c))
-			}
-		}
-		return vList(out)
-	})
-	builtins = b
+func argErr(name, reason string) error {
+	return kerr.New(kerr.Arg, "fn %s: %s", name, reason)
 }
 
-func asciiMap(b []byte, lo, hi byte, delta int) []byte {
-	for i, c := range b {
-		if c >= lo && c <= hi {
-			b[i] = byte(int(c) + delta)
-		}
+func strs(ss []string) Value {
+	l := make([]Value, len(ss))
+	for i, s := range ss {
+		l[i] = vStr(s)
 	}
-	return b
+	return vList(l)
 }
 
-// clamp implements the start/count clamping shared by substr and slice.
-func clamp(start, count int64, n int) (int, int) {
-	st := start
-	if st < 0 {
-		st += int64(n)
+func clamp(start, count, n int64) (int64, int64) {
+	if start < 0 {
+		start += n
 	}
-	if st < 0 {
-		st = 0
-	}
-	if st > int64(n) {
-		st = int64(n)
-	}
-	c := count
-	if c < 0 {
-		c = 0
-	}
-	if c > int64(n)-st {
-		c = int64(n) - st
-	}
-	return int(st), int(c)
+	start = max(0, min(start, n))
+	count = max(0, min(count, n-start))
+	return start, count
 }
 
-func baseName(p string) string {
-	if i := strings.LastIndexByte(p, '/'); i >= 0 {
-		return p[i+1:]
+func isTrim(c byte) bool { return c == ' ' || c == '\t' || c == '\n' || c == '\r' }
+
+func lastSlash(s string) int { return strings.LastIndexByte(s, '/') }
+
+func baseName(p string) string { return p[lastSlash(p)+1:] }
+
+// splitExt returns the stem and extension of a path's basename.
+func splitExt(p string) (string, string) {
+	b := baseName(p)
+	for i := len(b) - 1; i > 0; i-- {
+		if b[i] == '.' {
+			return b[:i], b[i:]
+		}
 	}
-	return p
+	return b, ""
 }
 
-// extIndex returns the index of the last '.' in base that is not at index 0,
-// or -1.
-func extIndex(base string) int {
-	i := strings.LastIndexByte(base, '.')
-	if i <= 0 {
-		return -1
-	}
-	return i
-}
-
-func applyMap(pat, elem string) string {
-	if strings.IndexByte(pat, '%') < 0 {
-		return pat
-	}
-	var sb strings.Builder
-	for i := 0; i < len(pat); i++ {
-		if pat[i] != '%' {
-			sb.WriteByte(pat[i])
-			continue
-		}
-		if i+1 < len(pat) && pat[i+1] == '%' {
-			sb.WriteByte('%')
-			i++
-			continue
-		}
-		sb.WriteString(elem)
-	}
-	return sb.String()
-}
-
-func filterList(name string, a []Value, keep bool) Value {
-	p, ok := glob.Compile(a[1].S)
-	if !ok {
-		raise(kilnerr.Arg, "fn "+name+": bad pattern")
-	}
-	out := make([]Value, 0, len(a[0].L))
-	for i, e := range a[0].L {
-		if e.K != KStr {
-			typeErr("fn "+name+" element "+itoa(i), "str", e.K)
-		}
-		if p.Match(e.S) == keep {
-			out = append(out, e)
-		}
+func mapOver(a []Value, f func(Value) Value) Value {
+	out := make([]Value, len(a))
+	for i, v := range a {
+		out[i] = f(v)
 	}
 	return vList(out)
 }
 
-func indexOf(l []Value, v Value) int {
-	for i, e := range l {
-		if Equal(e, v) {
-			return i
-		}
-	}
-	return -1
+func isKind(k Kind) *builtin {
+	return fixed([]argType{tV}, func(_ *interp, a []Value) (Value, error) { return vBool(a[0].K == k), nil })
 }
 
-// BuiltinNames returns the names of all built-in functions, sorted.
-func BuiltinNames() []string {
-	names := make([]string, 0, len(builtins))
-	for n := range builtins {
-		names = append(names, n)
+// filterList implements filter (keep == true) and reject (keep == false).
+func filterList(name string, keep bool) *builtin {
+	return fixed([]argType{tL, tS}, func(_ *interp, a []Value) (Value, error) {
+		pat, err := glob.Compile(a[1].S)
+		if err != nil {
+			return Value{}, argErr(name, "bad pattern")
+		}
+		var out []Value
+		for i, e := range a[0].L {
+			if e.K != KStr {
+				return Value{}, kerr.NewType("fn "+name+" element "+strconv.Itoa(i), "str", e.K.String())
+			}
+			if pat.Match(e.S) == keep {
+				out = append(out, e)
+			}
+		}
+		return vList(out), nil
+	})
+}
+
+var builtins map[string]*builtin
+
+func init() {
+	builtins = map[string]*builtin{
+		"len": fixed([]argType{tSL}, func(_ *interp, a []Value) (Value, error) {
+			if a[0].K == KStr {
+				return vInt(int64(len(a[0].S))), nil
+			}
+			return vInt(int64(len(a[0].L))), nil
+		}),
+		"count": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			return vInt(int64(len(a[0].L))), nil
+		}),
+		"upper": fixed([]argType{tS}, func(_ *interp, a []Value) (Value, error) {
+			b := []byte(a[0].S)
+			for i, c := range b {
+				if c >= 'a' && c <= 'z' {
+					b[i] = c - 32
+				}
+			}
+			return vStr(string(b)), nil
+		}),
+		"lower": fixed([]argType{tS}, func(_ *interp, a []Value) (Value, error) {
+			b := []byte(a[0].S)
+			for i, c := range b {
+				if c >= 'A' && c <= 'Z' {
+					b[i] = c + 32
+				}
+			}
+			return vStr(string(b)), nil
+		}),
+		"trim": fixed([]argType{tS}, func(_ *interp, a []Value) (Value, error) {
+			s := a[0].S
+			i, j := 0, len(s)
+			for i < j && isTrim(s[i]) {
+				i++
+			}
+			for j > i && isTrim(s[j-1]) {
+				j--
+			}
+			return vStr(s[i:j]), nil
+		}),
+		"replace": fixed([]argType{tS, tS, tS}, func(_ *interp, a []Value) (Value, error) {
+			if a[1].S == "" {
+				return Value{}, argErr("replace", "empty pattern")
+			}
+			return vStr(strings.ReplaceAll(a[0].S, a[1].S, a[2].S)), nil
+		}),
+		"starts_with": fixed([]argType{tS, tS}, func(_ *interp, a []Value) (Value, error) {
+			return vBool(strings.HasPrefix(a[0].S, a[1].S)), nil
+		}),
+		"ends_with": fixed([]argType{tS, tS}, func(_ *interp, a []Value) (Value, error) {
+			return vBool(strings.HasSuffix(a[0].S, a[1].S)), nil
+		}),
+		"contains": fixed([]argType{tS, tS}, func(_ *interp, a []Value) (Value, error) {
+			return vBool(strings.Contains(a[0].S, a[1].S)), nil
+		}),
+		"substr": fixed([]argType{tS, tI, tI}, func(_ *interp, a []Value) (Value, error) {
+			start, count := clamp(a[1].I, a[2].I, int64(len(a[0].S)))
+			return vStr(a[0].S[start : start+count]), nil
+		}),
+		"split": fixed([]argType{tS, tS}, func(_ *interp, a []Value) (Value, error) {
+			if a[1].S == "" {
+				return Value{}, argErr("split", "empty separator")
+			}
+			return strs(strings.Split(a[0].S, a[1].S)), nil
+		}),
+		"join": fixed([]argType{tL, tS}, func(_ *interp, a []Value) (Value, error) {
+			var b strings.Builder
+			for i, e := range a[0].L {
+				if i > 0 {
+					b.WriteString(a[1].S)
+				}
+				switch e.K {
+				case KStr:
+					b.WriteString(e.S)
+				case KInt:
+					b.WriteString(strconv.FormatInt(e.I, 10))
+				default:
+					return Value{}, kerr.NewType("fn join element "+strconv.Itoa(i), "str|int", e.K.String())
+				}
+			}
+			return vStr(b.String()), nil
+		}),
+		"str": fixed([]argType{tSIB}, func(_ *interp, a []Value) (Value, error) {
+			var b strings.Builder
+			if err := writeInterp(&b, a[0]); err != nil {
+				return Value{}, err
+			}
+			return vStr(b.String()), nil
+		}),
+		"int": fixed([]argType{tSI}, func(_ *interp, a []Value) (Value, error) {
+			if a[0].K == KInt {
+				return a[0], nil
+			}
+			s := a[0].S
+			digits := strings.TrimPrefix(s, "-")
+			ok := digits != ""
+			for i := 0; i < len(digits); i++ {
+				if !isDigit(digits[i]) {
+					ok = false
+				}
+			}
+			if ok {
+				if n, err := strconv.ParseInt(s, 10, 64); err == nil {
+					return vInt(n), nil
+				}
+			}
+			return Value{}, argErr("int", "bad integer")
+		}),
+		"dirname": fixed([]argType{tS}, func(_ *interp, a []Value) (Value, error) {
+			i := lastSlash(a[0].S)
+			if i < 0 {
+				return vStr(""), nil
+			}
+			return vStr(a[0].S[:i]), nil
+		}),
+		"basename": fixed([]argType{tS}, func(_ *interp, a []Value) (Value, error) {
+			return vStr(baseName(a[0].S)), nil
+		}),
+		"stem": fixed([]argType{tS}, func(_ *interp, a []Value) (Value, error) {
+			s, _ := splitExt(a[0].S)
+			return vStr(s), nil
+		}),
+		"ext": fixed([]argType{tS}, func(_ *interp, a []Value) (Value, error) {
+			_, e := splitExt(a[0].S)
+			return vStr(e), nil
+		}),
+		"pathjoin": {min: 1, max: 8, types: []argType{tS}, run: func(_ *interp, a []Value) (Value, error) {
+			parts := make([]string, 0, len(a))
+			for _, v := range a {
+				if v.S != "" {
+					parts = append(parts, v.S)
+				}
+			}
+			return vStr(strings.Join(parts, "/")), nil
+		}},
+		"map": fixed([]argType{tL, tS}, func(_ *interp, a []Value) (Value, error) {
+			pat := a[1].S
+			out := make([]Value, len(a[0].L))
+			for i, e := range a[0].L {
+				if e.K != KStr {
+					return Value{}, kerr.NewType("fn map element "+strconv.Itoa(i), "str", e.K.String())
+				}
+				var b strings.Builder
+				for j := 0; j < len(pat); j++ {
+					if pat[j] != '%' {
+						b.WriteByte(pat[j])
+					} else if j+1 < len(pat) && pat[j+1] == '%' {
+						b.WriteByte('%')
+						j++
+					} else {
+						b.WriteString(e.S)
+					}
+				}
+				out[i] = vStr(b.String())
+			}
+			return vList(out), nil
+		}),
+		"filter": filterList("filter", true),
+		"reject": filterList("reject", false),
+		"sort": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			out := append([]Value(nil), a[0].L...)
+			sort.SliceStable(out, func(i, j int) bool { return compare(out[i], out[j]) < 0 })
+			return vList(out), nil
+		}),
+		"uniq": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			seen := make(map[string]struct{}, len(a[0].L))
+			out := make([]Value, 0, len(a[0].L))
+			var b strings.Builder
+			for _, e := range a[0].L {
+				b.Reset()
+				e.key(&b)
+				k := b.String()
+				if _, dup := seen[k]; !dup {
+					seen[k] = struct{}{}
+					out = append(out, e)
+				}
+			}
+			return vList(out), nil
+		}),
+		"reverse": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			n := len(a[0].L)
+			out := make([]Value, n)
+			for i, e := range a[0].L {
+				out[n-1-i] = e
+			}
+			return vList(out), nil
+		}),
+		"first": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			if len(a[0].L) == 0 {
+				return Value{}, argErr("first", "empty list")
+			}
+			return a[0].L[0], nil
+		}),
+		"last": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			if len(a[0].L) == 0 {
+				return Value{}, argErr("last", "empty list")
+			}
+			return a[0].L[len(a[0].L)-1], nil
+		}),
+		"slice": fixed([]argType{tL, tI, tI}, func(_ *interp, a []Value) (Value, error) {
+			start, count := clamp(a[1].I, a[2].I, int64(len(a[0].L)))
+			return vList(append([]Value(nil), a[0].L[start:start+count]...)), nil
+		}),
+		"has": fixed([]argType{tL, tV}, func(_ *interp, a []Value) (Value, error) {
+			for _, e := range a[0].L {
+				if equal(e, a[1]) {
+					return vBool(true), nil
+				}
+			}
+			return vBool(false), nil
+		}),
+		"indexof": fixed([]argType{tL, tV}, func(_ *interp, a []Value) (Value, error) {
+			for i, e := range a[0].L {
+				if equal(e, a[1]) {
+					return vInt(int64(i)), nil
+				}
+			}
+			return vInt(-1), nil
+		}),
+		"range": fixed([]argType{tI}, func(_ *interp, a []Value) (Value, error) {
+			if a[0].I < 0 {
+				return Value{}, argErr("range", "negative")
+			}
+			out := make([]Value, a[0].I)
+			for i := range out {
+				out[i] = vInt(int64(i))
+			}
+			return vList(out), nil
+		}),
+		"sum": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			var total int64
+			for i, e := range a[0].L {
+				if e.K != KInt {
+					return Value{}, kerr.NewType("fn sum element "+strconv.Itoa(i), "int", e.K.String())
+				}
+				total += e.I
+			}
+			return vInt(total), nil
+		}),
+		"flatten": fixed([]argType{tL}, func(_ *interp, a []Value) (Value, error) {
+			var out []Value
+			for _, e := range a[0].L {
+				if e.K == KList {
+					out = append(out, e.L...)
+				} else {
+					out = append(out, e)
+				}
+			}
+			return vList(out), nil
+		}),
+		"zip": fixed([]argType{tL, tL}, func(_ *interp, a []Value) (Value, error) {
+			n := min(len(a[0].L), len(a[1].L))
+			out := make([]Value, n)
+			for i := 0; i < n; i++ {
+				out[i] = vList([]Value{a[0].L[i], a[1].L[i]})
+			}
+			return vList(out), nil
+		}),
+		"is_str":  isKind(KStr),
+		"is_int":  isKind(KInt),
+		"is_bool": isKind(KBool),
+		"is_list": isKind(KList),
+		"glob": fixed([]argType{tS}, func(it *interp, a []Value) (Value, error) {
+			pat, err := glob.Compile(a[0].S)
+			if err != nil {
+				return Value{}, argErr("glob", "bad pattern")
+			}
+			var out []string
+			for _, p := range it.fs.GlobCandidates(glob.LiteralPrefix(a[0].S)) {
+				if pat.Match(p) {
+					out = append(out, p)
+				}
+			}
+			return strs(out), nil
+		}),
 	}
-	sort.Strings(names)
-	return names
 }

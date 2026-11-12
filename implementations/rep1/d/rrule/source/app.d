@@ -1,39 +1,45 @@
-/// Command-line front end: reads rules on stdin, writes occurrences on stdout.
+/// Command-line front end: reads `<DTSTART> <RRULE> <N>` lines on stdin and
+/// prints the occurrences of each rule, one line per input line.
 module app;
 
+import std.array : Appender;
 import std.stdio : File, stderr, stdin, stdout;
 
-import rrule.batch;
-import rrule.errors;
+import rrule;
+
+/// Flushes the output buffer to `f` once it grows beyond this size.
+enum size_t flushThreshold = 1 << 20;
 
 int main(string[] args)
 {
-    // Bulk-read all of standard input.
-    ubyte[] input;
-    size_t used = 0;
-    input.length = 1 << 20;
-    while (true)
+    if (args.length > 1)
     {
-        if (used == input.length)
-            input.length = input.length * 2;
-        auto got = stdin.rawRead(input[used .. $]);
-        if (got.length == 0)
-            break;
-        used += got.length;
+        stderr.writeln("usage: rrule < rules.txt > occurrences.txt");
+        return args[1] == "-h" || args[1] == "--help" ? 0 : 2;
     }
-
-    OutputBuffer output;
-    scope void delegate(const(ubyte)[]) flush = (const(ubyte)[] chunk) { stdout.rawWrite(chunk); };
+    Appender!(char[]) outBuf;
     int status = 0;
-    try
-        processInput(cast(const(char)[]) input[0 .. used], output, flush);
-    catch (RRuleException e)
+    size_t lineNo;
+    foreach (line; stdin.byLine())
     {
-        if (output.length)
-            flush(output.contents);
-        stderr.writeln("rrule: ", e.msg);
-        status = 1;
+        ++lineNo;
+        try
+        {
+            const q = parseQuery(line);
+            formatOccurrences(q, outBuf);
+        }
+        catch (ParseException e)
+        {
+            stderr.writefln("line %s: %s", lineNo, e.msg);
+            status = 1;
+        }
+        outBuf.put('\n');
+        if (outBuf[].length >= flushThreshold)
+        {
+            stdout.rawWrite(outBuf[]);
+            outBuf.clear();
+        }
     }
-    stdout.flush();
+    stdout.rawWrite(outBuf[]);
     return status;
 }

@@ -1,12 +1,14 @@
 // Command jsonschema validates JSON instances against a JSON Schema draft
 // 2020-12 schema.
 //
-// It reads one JSON document from standard input:
+// It reads one JSON document from standard input of the form
 //
-//	{"schema": <schema>, "tests": [{"description": "...", "data": <instance>}, ...],
-//	 "remotes": {"<absolute URI>": <schema document>, ...}}
+//	{"schema": ..., "tests": [{"description": "...", "data": ...}, ...],
+//	 "remotes": {"http://example.com/other.json": {...}}}
 //
-// and prints "valid" or "invalid" for each test, one per line, in order.
+// and prints "valid" or "invalid" for each element of "tests", one per line.
+// "remotes" is optional and supplies the documents that the schema refers to by
+// absolute URI. The exit status is 0 on success, 1 for malformed input.
 package main
 
 import (
@@ -19,66 +21,81 @@ import (
 )
 
 func main() {
-	if err := run(os.Stdin, os.Stdout, os.Stderr); err != nil {
-		fmt.Fprintln(os.Stderr, "jsonschema:", err)
-		os.Exit(1)
-	}
+	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
 }
 
-// run reads the request from in and writes the verdicts to out. Problems that
-// affect a single instance (such as an unresolvable reference reached while
-// validating it) are reported on warn and the instance is printed as invalid.
-func run(in io.Reader, out, warn io.Writer) error {
-	input, err := io.ReadAll(in)
+// run executes the command and returns the process exit status.
+func run(stdin io.Reader, stdout, stderr io.Writer) int {
+	out, err := process(stdin)
 	if err != nil {
-		return err
+		fmt.Fprintf(stderr, "jsonschema: %v\n", err)
+		return 1
 	}
-	req, err := jsonvalue.Parse(input)
+	if _, err := io.WriteString(stdout, out); err != nil {
+		fmt.Fprintf(stderr, "jsonschema: %v\n", err)
+		return 1
+	}
+	return 0
+}
+
+// process reads a request and returns the verdict lines.
+func process(r io.Reader) (string, error) {
+	data, err := io.ReadAll(r)
 	if err != nil {
-		return err
+		return "", err
 	}
-	if req.Kind() != jsonvalue.KindObject {
-		return fmt.Errorf("input must be a JSON object")
+	req, err := jsonvalue.Parse(data)
+	if err != nil {
+		return "", err
 	}
-	obj := req.Object()
-	schemaDoc := obj.Get("schema")
-	tests := obj.Get("tests")
-	if schemaDoc == nil {
-		return fmt.Errorf(`missing "schema" member`)
+	obj, ok := req.Object()
+	if !ok {
+		return "", fmt.Errorf("input must be a JSON object")
 	}
-	if tests == nil || tests.Kind() != jsonvalue.KindArray {
-		return fmt.Errorf(`"tests" must be an array`)
+	schemaV, ok := obj.Get("schema")
+	if !ok {
+		return "", fmt.Errorf(`missing "schema" member`)
+	}
+	testsV, ok := obj.Get("tests")
+	if !ok {
+		return "", fmt.Errorf(`missing "tests" member`)
+	}
+	tests, ok := testsV.Array()
+	if !ok {
+		return "", fmt.Errorf(`"tests" must be an array`)
 	}
 
-	compiler := jsonschema.NewCompiler()
-	if remotes := obj.Get("remotes"); remotes != nil && remotes.Kind() == jsonvalue.KindObject {
-		for _, m := range remotes.Object().Members() {
-			compiler.AddResource(m.Key, m.Value)
+	var c jsonschema.Compiler
+	if rv, ok := obj.Get("remotes"); ok {
+		remotes, ok := rv.Object()
+		if !ok {
+			return "", fmt.Errorf(`"remotes" must be an object`)
+		}
+		for i := 0; i < remotes.Len(); i++ {
+			uri, doc := remotes.At(i)
+			c.AddResource(uri, doc)
 		}
 	}
-	schema, err := compiler.Compile(*schemaDoc)
+	schema, err := c.Compile(schemaV)
 	if err != nil {
-		return err
+		return "", err
 	}
 
-	buf := make([]byte, 0, 8*len(tests.Array()))
-	for i, t := range tests.Array() {
-		valid := false
-		if t.Kind() == jsonvalue.KindObject {
-			if data := t.Object().Get("data"); data != nil {
-				var err error
-				valid, err = schema.Validate(*data)
-				if err != nil {
-					fmt.Fprintf(warn, "jsonschema: test %d: %v\n", i, err)
-				}
-			}
+	out := make([]byte, 0, len(tests)*8)
+	for i, t := range tests {
+		to, ok := t.Object()
+		if !ok {
+			return "", fmt.Errorf("tests[%d] must be an object", i)
 		}
-		if valid {
-			buf = append(buf, "valid\n"...)
+		data, ok := to.Get("data")
+		if !ok {
+			return "", fmt.Errorf(`tests[%d] has no "data" member`, i)
+		}
+		if schema.Validate(data) {
+			out = append(out, "valid\n"...)
 		} else {
-			buf = append(buf, "invalid\n"...)
+			out = append(out, "invalid\n"...)
 		}
 	}
-	_, err = out.Write(buf)
-	return err
+	return string(out), nil
 }

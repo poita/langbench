@@ -1,0 +1,15 @@
+[package]
+name = "svgraster"
+version = "0.1.0"
+edition = "2021"
+description = "A small SVG 1.1 subset rasteriser that writes binary PPM images"
+license = "MIT"
+readme = "README.md"
+
+[lib]
+name = "svgraster"
+path = "src/lib.rs"
+
+[[bin]]
+name = "svgraster"
+path = "src/main.rs"

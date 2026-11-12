@@ -5,80 +5,85 @@ import (
 	"testing"
 )
 
-func spans(text string) []string {
-	var out []string
-	b := []byte(text)
-	for pos := 0; ; {
-		s, e, ok := Next(b, pos)
-		if !ok {
-			return out
-		}
-		out = append(out, text[s:e])
-		pos = e
+func texts(toks []Token) []string {
+	out := make([]string, 0, len(toks))
+	for _, t := range toks {
+		out = append(out, t.Text)
 	}
+	return out
 }
 
 func TestTokenise(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		in   string
 		want []string
 	}{
-		{"The cat sat.", []string{"The", "cat", "sat"}},
-		{"don't stop", []string{"don't", "stop"}},
+		{"The cat sat.", []string{"the", "cat", "sat"}},
+		{"don't stop", []string{"dont", "stop"}},
 		{"'quoted'", []string{"quoted"}},
-		{"rock'n'roll", []string{"rock'n'roll"}},
+		{"rock'n'roll", []string{"rocknroll"}},
 		{"a''b", []string{"a", "b"}},
 		{"well-known", []string{"well", "known"}},
-		{"Version 1.2.3", []string{"Version", "1", "2", "3"}},
-		{"X1 XY2Z", []string{"X1", "XY2Z"}},
-		{"Don’t", []string{"Don’t"}},
-		{"a× b÷c", []string{"a", "b", "c"}},
-		{"Café ΑΒΓ Привет — x", []string{"Café", "ΑΒΓ", "Привет", "x"}},
+		{"Version 1.2.3", []string{"version", "1", "2", "3"}},
+		{"X1 XY2Z", []string{"x1", "xy2z"}},
+		{"Don’t", []string{"dont"}},
+		{"Café CAFÉ", []string{"café", "cafÉ"}},
+		{"3 × 4 ÷ 2", []string{"3", "4", "2"}},
 		{"日本語 abc", []string{"abc"}},
-		{"it’s’ ", []string{"it’s"}},
-		{"", nil},
-		{"   ", nil},
-		{"x'", []string{"x"}},
+		{"", []string{}},
 	}
-	for _, c := range cases {
-		if got := spans(c.in); !reflect.DeepEqual(got, c.want) {
-			t.Errorf("tokens(%q) = %q, want %q", c.in, got, c.want)
+	a := NewAnalyzer()
+	for _, tc := range tests {
+		if got := texts(a.Analyze(tc.in)); !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("Analyze(%q) texts = %q, want %q", tc.in, got, tc.want)
 		}
 	}
 }
 
-func TestFold(t *testing.T) {
-	cases := map[string]string{"Don’t": "dont", "don't": "dont", "CAFÉ": "cafÉ", "Café": "café", "A1B": "a1b"}
-	for in, want := range cases {
-		if got := string(Fold(nil, []byte(in))); got != want {
-			t.Errorf("Fold(%q) = %q, want %q", in, got, want)
-		}
+func TestSpans(t *testing.T) {
+	text := "  Don’t go, é!"
+	toks := NewAnalyzer().Analyze(text)
+	var got []string
+	for _, tk := range toks {
+		got = append(got, text[tk.Start:tk.End])
+	}
+	want := []string{"Don’t", "go", "é"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("spans = %q, want %q", got, want)
 	}
 }
 
 func TestTerms(t *testing.T) {
-	got := Terms("The quick brown fox jumps over the lazy dog.")
-	want := []string{"the", "quick", "brown", "fox", "jump", "over", "the", "lazi", "dog"}
+	got := NewAnalyzer().Terms("Running dogs' 2nd café")
+	want := []string{"run", "dog", "2nd", "café"}
 	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got %q", got)
-	}
-	// Tokens with digits or non-ASCII letters are never stemmed.
-	got = Terms("running2 cafés runnings")
-	want = []string{"running2", "cafés", "run"}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got %q", got)
+		t.Errorf("Terms = %q, want %q", got, want)
 	}
 }
 
 func TestStopWords(t *testing.T) {
-	for _, w := range []string{"the", "a", "with", "their"} {
+	for _, w := range []string{"the", "to", "with", "their"} {
 		if !IsStopWord(w) {
 			t.Errorf("%q should be a stop word", w)
 		}
 	}
-	for _, w := range []string{"cat", "The", "from"} {
+	for _, w := range []string{"cat", "The", "", "has"} {
 		if IsStopWord(w) {
 			t.Errorf("%q should not be a stop word", w)
 		}
+	}
+	if len(stopWords) != 33 {
+		t.Errorf("stop word count = %d, want 33", len(stopWords))
+	}
+}
+
+func TestIsSpace(t *testing.T) {
+	for _, r := range []rune{'\t', '\n', '\v', '\f', '\r', ' ', '\u00a0'} {
+		if !IsSpace(r) {
+			t.Errorf("IsSpace(%U) = false", r)
+		}
+	}
+	if IsSpace('\u2003') || IsSpace('a') {
+		t.Error("unexpected space")
 	}
 }

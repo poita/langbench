@@ -52,6 +52,26 @@ class Counts(unittest.TestCase):
             write(d, "README.md", ["# x"] * 10)
             self.assertEqual(cs.project_lines(d, "rust"), {"code": 2, "test": 2})
 
+    def test_compressed_size_covers_every_source_file_and_nothing_else(self):
+        import gzip
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            write(d, "src/a.go", ["package a"])
+            write(d, "src/a_test.go", ["package a", "// test"])
+            write(d, "build/x.go", ["ignored"])
+            write(d, "README.md", ["ignored"])
+            expected = len(gzip.compress(open(os.path.join(d, "src/a.go"), "rb").read()
+                                         + open(os.path.join(d, "src/a_test.go"), "rb").read(), 9, mtime=0))
+            self.assertEqual(cs.compressed_size(d, "go"), expected)
+
+    def test_report_gives_compressed_size_per_project_and_in_total(self):
+        data = {"go": [("x", "rep1", 10, 5, 2048), ("y", "rep1", 10, 5, 4096), ("x", "rep2", 10, 5, 1024)],
+                "d": [("x", "rep1", 20, 1, 1024), ("y", "rep1", 20, 1, 1024)]}
+        text = cs.report(data)
+        self.assertIn("Compressed source", text)
+        self.assertIn("| Go | 3 | 2.0 KB | 6 KB |", text)
+        self.assertIn("| D | 2 | 1.0 KB | 2 KB |", text)
+
     def test_d_unittest_blocks_count_as_tests(self):
         import tempfile
         with tempfile.TemporaryDirectory() as d:

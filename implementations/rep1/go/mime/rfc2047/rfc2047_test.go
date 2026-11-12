@@ -3,7 +3,7 @@ package rfc2047
 import "testing"
 
 func TestDecodeUnstructured(t *testing.T) {
-	cases := []struct{ in, want string }{
+	tests := []struct{ in, want string }{
 		{"=?utf-8?Q?caf=C3=A9?=", "café"},
 		{"=?utf-8?Q?a?=   =?utf-8?Q?b?=", "ab"},
 		{"x =?utf-8?Q?a?= y", "x a y"},
@@ -17,43 +17,34 @@ func TestDecodeUnstructured(t *testing.T) {
 		{"=?utf-8?Q?a?= \t =?utf-8?Q?b?= \t c", "ab \t c"},
 		{"=?utf-8?Q?a_b?=", "a b"},
 		{"=?utf-8?Q?a=ZZb?=", "a=ZZb"},
+		{"=?utf-8?Q?a=4?=", "a=4"},
+		{"=??Q?a?=", "=??Q?a?="},
+		{"=?utf-8?q?a?=", "a"},
 		{"=?utf-8?Q?a b?=", "=?utf-8?Q?a b?="},
-		{"=? ?Q?x?=", "=? ?Q?x?="},
-		{"=??Q?x?=", "=??Q?x?="},
-		{"=?*en?Q?x?=", "x"},
-		{"ab=?utf-8?Q?c?=", "abc"},
 		{"=?utf-8?Q??=", ""},
+		{"=?=?utf-8?Q?a?=", "=?a"},
+		{"", ""},
 	}
-	for _, c := range cases {
-		if got := DecodeUnstructured(c.in); got != c.want {
-			t.Errorf("DecodeUnstructured(%q) = %q, want %q", c.in, got, c.want)
+	for _, tc := range tests {
+		if got := DecodeUnstructured(tc.in); got != tc.want {
+			t.Errorf("DecodeUnstructured(%q) = %q, want %q", tc.in, got, tc.want)
 		}
 	}
 }
 
 func TestDecodeDisplay(t *testing.T) {
-	cases := []struct{ in, want string }{
+	tests := []struct{ in, want string }{
 		{"John Q. Public ", "John Q. Public"},
 		{`"Doe, John" `, "Doe, John"},
 		{"=?utf-8?B?SsO2cmc=?= ", "Jörg"},
 		{"John (the third) Public ", "John   Public"},
-		{`"=?utf-8?Q?x?="`, "=?utf-8?Q?x?="},
-		{`"a\"b"`, `a"b`},
-		{"(c)", ""},
+		{`"=?utf-8?Q?x?=" `, "=?utf-8?Q?x?="},
+		{"foo (c (nested)) ", "foo"},
+		{`a\ b`, `a\ b`},
 	}
-	for _, c := range cases {
-		if got := DecodeDisplay(c.in); got != c.want {
-			t.Errorf("DecodeDisplay(%q) = %q, want %q", c.in, got, c.want)
+	for _, tc := range tests {
+		if got := DecodeDisplay(tc.in); got != tc.want {
+			t.Errorf("DecodeDisplay(%q) = %q, want %q", tc.in, got, tc.want)
 		}
-	}
-}
-
-func TestMatchEnd(t *testing.T) {
-	text, end, ok := Match("x=?utf-8?Q?a?=y", 1)
-	if !ok || text != "a" || end != 14 {
-		t.Errorf("Match = %q %d %v", text, end, ok)
-	}
-	if _, _, ok := Match("=?utf-8?Q?a?", 0); ok {
-		t.Error("unterminated word matched")
 	}
 }

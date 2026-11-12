@@ -1,0 +1,14 @@
+let pair x = (x, x);;
+let id = fun x -> x;;
+let p0 = pair id;;
+let p1 = pair p0;;
+let p2 = pair p1;;
+let p3 = pair p2;;
+let p4 = pair p3;;
+p4;;
+(p0, p1);;
+let q x = (x, [x]);;
+q (q (q (q (q 1))));;
+q (q (q id));;
+let dup x = fun y -> (x, y);;
+dup (dup (dup id));;

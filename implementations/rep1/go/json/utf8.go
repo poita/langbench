@@ -1,66 +1,64 @@
 package jsoncanon
 
-import "encoding/binary"
+// ValidUTF8 reports whether data is well-formed UTF-8 as defined by RFC 3629:
+// no overlong forms, no encoded surrogates, nothing above U+10FFFF and no
+// truncated sequences.
+func ValidUTF8(data []byte) bool {
+	return invalidUTF8Offset(data) < 0
+}
 
-// validUTF8 reports whether b is well-formed UTF-8 per RFC 3629: no overlong
-// forms, no surrogates (U+D800–U+DFFF), nothing above U+10FFFF and no
-// truncated sequences. It returns the offset of the first bad byte otherwise.
-func validUTF8(b []byte) (ok bool, bad int) {
-	i, n := 0, len(b)
+// invalidUTF8Offset returns the offset of the first byte that starts an
+// invalid sequence, or -1 if data is valid.
+func invalidUTF8Offset(data []byte) int {
+	n := len(data)
+	i := 0
 	for i < n {
-		// Skip ASCII eight bytes at a time.
-		for i+8 <= n && binary.LittleEndian.Uint64(b[i:])&0x8080808080808080 == 0 {
-			i += 8
-		}
-		if i >= n {
-			break
-		}
-		c := b[i]
+		c := data[i]
 		if c < 0x80 {
 			i++
 			continue
 		}
 		switch {
-		case c >= 0xC2 && c <= 0xDF:
-			if i+1 >= n || !isCont(b[i+1]) {
-				return false, i
+		case c < 0xC2: // continuation byte, or overlong 2-byte lead (C0, C1)
+			return i
+		case c < 0xE0:
+			if i+1 >= n || data[i+1]&0xC0 != 0x80 {
+				return i
 			}
 			i += 2
-		case c >= 0xE0 && c <= 0xEF:
-			if i+2 >= n || !isCont(b[i+2]) {
-				return false, i
+		case c < 0xF0:
+			if i+2 >= n {
+				return i
 			}
-			lo, hi := byte(0x80), byte(0xBF)
-			switch c {
-			case 0xE0:
-				lo = 0xA0 // overlong
-			case 0xED:
-				hi = 0x9F // surrogates
+			c1, c2 := data[i+1], data[i+2]
+			if c1&0xC0 != 0x80 || c2&0xC0 != 0x80 {
+				return i
 			}
-			if b[i+1] < lo || b[i+1] > hi {
-				return false, i
+			if c == 0xE0 && c1 < 0xA0 { // overlong
+				return i
+			}
+			if c == 0xED && c1 > 0x9F { // surrogates
+				return i
 			}
 			i += 3
-		case c >= 0xF0 && c <= 0xF4:
-			if i+3 >= n || !isCont(b[i+2]) || !isCont(b[i+3]) {
-				return false, i
+		case c < 0xF5:
+			if i+3 >= n {
+				return i
 			}
-			lo, hi := byte(0x80), byte(0xBF)
-			switch c {
-			case 0xF0:
-				lo = 0x90 // overlong
-			case 0xF4:
-				hi = 0x8F // above U+10FFFF
+			c1, c2, c3 := data[i+1], data[i+2], data[i+3]
+			if c1&0xC0 != 0x80 || c2&0xC0 != 0x80 || c3&0xC0 != 0x80 {
+				return i
 			}
-			if b[i+1] < lo || b[i+1] > hi {
-				return false, i
+			if c == 0xF0 && c1 < 0x90 { // overlong
+				return i
+			}
+			if c == 0xF4 && c1 > 0x8F { // above U+10FFFF
+				return i
 			}
 			i += 4
 		default:
-			return false, i
+			return i
 		}
 	}
-	return true, 0
+	return -1
 }
-
-func isCont(c byte) bool { return c&0xC0 == 0x80 }

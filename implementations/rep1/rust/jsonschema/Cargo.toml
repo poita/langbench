@@ -1,0 +1,20 @@
+[package]
+name = "jsonschema"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "A from-scratch JSON Schema draft 2020-12 validator with exact decimal arithmetic"
+license = "MIT"
+readme = "README.md"
+keywords = ["json", "json-schema", "validation"]
+categories = ["parser-implementations", "command-line-utilities"]
+
+[lib]
+name = "jsonschema"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jsonschema-cli"
+path = "src/main.rs"
+
+[dependencies]

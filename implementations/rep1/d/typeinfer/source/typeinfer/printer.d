@@ -1,113 +1,114 @@
 /**
- * Rendering of types in the specified concrete syntax.
+ * Rendering types as text.
+ *
+ * Variables are named in order of first appearance, reading left to right:
+ * `'a`, `'b`, ..., `'z`, `'a1`, `'b1`, ...
  */
 module typeinfer.printer;
 
-import std.array : Appender;
+import std.array : Appender, appender;
 import typeinfer.types;
 
-/// Syntactic position of a type being printed; decides parentheses.
-private enum Ctx : ubyte
+/// Renders `t` in the concrete syntax of the specification, naming its variables from `'a`.
+string typeToString(Type t) @safe 
 {
-    top,       /// top level or right of an arrow
-    arrowLeft, /// left of an arrow
-    component, /// tuple component or list element
+    auto p = Printer();
+    p.out_ = appender!string();
+    p.put(t, Ctx.top);
+    return p.out_[];
 }
 
-/**
- * Append the rendering of type `t` to `sink`.
- *
- * Type variables are named `'a`, `'b`, ... in order of first appearance,
- * numbering restarting at every call.
- */
-void printType(TypeStore s, TypeId t, ref Appender!(char[]) sink)
+/// The name of the `i`-th (from 0) distinct type variable: `'a` .. `'z`, `'a1`, `'b1`, ...
+string varName(size_t i) @safe nothrow
 {
-    int next = 0;
-    printRec(s, t, Ctx.top, s.newStamp(), next, sink);
-}
-
-/// Render type `t` as a string (convenience wrapper around `printType`).
-string typeToString(TypeStore s, TypeId t)
-{
-    import std.array : appender;
-
-    auto sink = appender!(char[]);
-    printType(s, t, sink);
-    return sink.data.idup;
-}
-
-private void putVarName(int index, ref Appender!(char[]) sink)
-{
-    sink.put('\'');
-    sink.put(cast(char)('a' + index % 26));
-    int q = index / 26;
-    if (q != 0)
+    char[24] buf;
+    size_t n = 0;
+    buf[n++] = '\'';
+    buf[n++] = cast(char)('a' + i % 26);
+    size_t k = i / 26;
+    if (k)
     {
-        char[10] digits;
-        size_t i = digits.length;
-        while (q != 0)
+        char[20] digits;
+        size_t d = digits.length;
+        while (k) { digits[--d] = cast(char)('0' + k % 10); k /= 10; }
+        buf[n .. n + digits.length - d] = digits[d .. $];
+        n += digits.length - d;
+    }
+    return buf[0 .. n].idup;
+}
+
+private enum Ctx : ubyte { top, funLeft, tupleElem, listElem }
+
+private struct Printer
+{
+    Appender!string out_;
+    size_t[Type] names;
+
+    void put(Type t, Ctx ctx) @safe 
+    {
+        t = prune(t);
+        final switch (t.kind)
         {
-            digits[--i] = cast(char)('0' + q % 10);
-            q /= 10;
+            case Kind.int_: out_ ~= "int"; break;
+            case Kind.bool_: out_ ~= "bool"; break;
+            case Kind.unit: out_ ~= "unit"; break;
+            case Kind.var:
+            {
+                auto p = t in names;
+                size_t i;
+                if (p is null) { i = names.length; names[t] = i; }
+                else i = *p;
+                out_ ~= varName(i);
+                break;
+            }
+            case Kind.fun:
+            {
+                immutable paren = ctx != Ctx.top;
+                if (paren) out_ ~= '(';
+                put(t.args[0], Ctx.funLeft);
+                out_ ~= " -> ";
+                put(t.args[1], Ctx.top);
+                if (paren) out_ ~= ')';
+                break;
+            }
+            case Kind.tuple:
+            {
+                immutable paren = ctx == Ctx.tupleElem || ctx == Ctx.listElem;
+                if (paren) out_ ~= '(';
+                foreach (i, c; t.args)
+                {
+                    if (i) out_ ~= " * ";
+                    put(c, Ctx.tupleElem);
+                }
+                if (paren) out_ ~= ')';
+                break;
+            }
+            case Kind.list:
+                put(t.args[0], Ctx.listElem);
+                out_ ~= " list";
+                break;
         }
-        sink.put(digits[i .. $]);
     }
 }
 
-private void printRec(TypeStore s, TypeId t, Ctx ctx, ulong stamp, ref int next,
-        ref Appender!(char[]) sink)
+@safe unittest
 {
-    t = s.find(t);
-    final switch (s.nodes[t].kind)
-    {
-    case NodeKind.variable:
-        if (s.nodes[t].stamp != stamp)
-        {
-            s.nodes[t].stamp = stamp;
-            s.nodes[t].memo = next++;
-        }
-        putVarName(s.nodes[t].memo, sink);
-        return;
-    case NodeKind.int_:
-        sink.put("int");
-        return;
-    case NodeKind.bool_:
-        sink.put("bool");
-        return;
-    case NodeKind.unit:
-        sink.put("unit");
-        return;
-    case NodeKind.arrow:
-    {
-        immutable paren = ctx != Ctx.top;
-        if (paren)
-            sink.put('(');
-        printRec(s, s.nodes[t].a, Ctx.arrowLeft, stamp, next, sink);
-        sink.put(" -> ");
-        printRec(s, s.nodes[t].b, Ctx.top, stamp, next, sink);
-        if (paren)
-            sink.put(')');
-        return;
-    }
-    case NodeKind.list:
-        printRec(s, s.nodes[t].a, Ctx.component, stamp, next, sink);
-        sink.put(" list");
-        return;
-    case NodeKind.tuple:
-    {
-        immutable paren = ctx == Ctx.component;
-        if (paren)
-            sink.put('(');
-        immutable n = s.nodes[t].b;
-        foreach (i; 0 .. n)
-        {
-            if (i != 0)
-                sink.put(" * ");
-            printRec(s, s.pool[s.nodes[t].a + i], Ctx.component, stamp, next, sink);
-        }
-        if (paren)
-            sink.put(')');
-        return;
-    }
-    }
+    assert(varName(0) == "'a" && varName(25) == "'z");
+    assert(varName(26) == "'a1" && varName(27) == "'b1" && varName(52) == "'a2");
+    assert(varName(26 * 315 + 2) == "'c315");
+}
+
+@safe unittest
+{
+    auto a = Type.newVar(0), b = Type.newVar(0);
+    alias I = Type.int_;
+    assert(typeToString(Type.fun(Type.fun(a, b), Type.list(a))) == "('a -> 'b) -> 'a list");
+    assert(typeToString(Type.fun(a, Type.fun(b, a))) == "'a -> 'b -> 'a");
+    assert(typeToString(Type.tuple([Type.fun(I, I), Type.tuple([I, I]), I]))
+            == "(int -> int) * (int * int) * int");
+    assert(typeToString(Type.fun(Type.tuple([a, b]), Type.tuple([b, a]))) == "'a * 'b -> 'b * 'a");
+    assert(typeToString(Type.list(Type.list(I))) == "int list list");
+    assert(typeToString(Type.list(Type.tuple([I, Type.bool_]))) == "(int * bool) list");
+    assert(typeToString(Type.list(Type.fun(a, a))) == "('a -> 'a) list");
+    assert(typeToString(Type.tuple([Type.list(I), Type.unit])) == "int list * unit");
 }

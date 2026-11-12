@@ -1,10 +1,9 @@
-// Command commonmark reads a Markdown document from standard input and
-// writes the corresponding HTML to standard output.
-//
-//	commonmark < input.md > output.html
+// Command commonmark reads a Markdown document from standard input and writes
+// the corresponding HTML to standard output.
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -12,14 +11,16 @@ import (
 	"example.com/commonmark"
 )
 
-// run converts all of in to HTML on out.
 func run(in io.Reader, out io.Writer) error {
 	src, err := io.ReadAll(in)
 	if err != nil {
 		return err
 	}
-	_, err = commonmark.Parse(src).WriteTo(out)
-	return err
+	w := bufio.NewWriterSize(out, 1<<16)
+	if _, err := w.WriteString(commonmark.ToHTML(string(src))); err != nil {
+		return err
+	}
+	return w.Flush()
 }
 
 func main() {

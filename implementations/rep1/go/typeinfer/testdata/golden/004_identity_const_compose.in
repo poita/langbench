@@ -1,0 +1,18 @@
+let id = fun x -> x;;
+let const x y = x;;
+let compose f g x = f (g x);;
+let flip f x y = f y x;;
+let apply f x = f x;;
+let twice f x = f (f x);;
+id;;
+id 1;;
+id true;;
+id id;;
+const 1 true;;
+compose (fun x -> x + 1) (fun b -> if b then 1 else 0);;
+flip const;;
+twice (fun x -> x * 2) 3;;
+twice;;
+compose compose;;
+compose id id;;
+apply id;;

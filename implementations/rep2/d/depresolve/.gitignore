@@ -1,7 +1,7 @@
 .dub/
-bin/
-*.o
+/depresolve
 *.a
-*.lst
+*.o
 dub.selections.json
-depresolve-test-*
+__test__*
+/depresolve-test-*

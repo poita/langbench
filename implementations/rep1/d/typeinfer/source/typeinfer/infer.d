@@ -1,281 +1,285 @@
 /**
- * Hindley-Milner inference (Algorithm J) with level-based generalisation.
- *
- * The `Inferencer` owns the type graph and the top-level environment. The
- * environment keeps one binding stack per interned name, so lookup is an
- * array index and generalisation never scans it.
+ * Algorithm J: one left-to-right pass over the syntax tree that unifies as it goes.
  */
 module typeinfer.infer;
 
 import typeinfer.ast;
-import typeinfer.errors;
-import typeinfer.scheme;
+import typeinfer.builtins;
+import typeinfer.env;
+import typeinfer.printer;
+import typeinfer.solver;
 import typeinfer.types;
-import typeinfer.unify;
 
-/// A name binding in the environment.
-private struct Binding
+/// The outcome of checking one top-level declaration.
+struct DeclResult
 {
-    int name;
-    int prev;      /// index of the binding this one shadows, or -1
-    TypeId type;
-    bool poly;     /// true if `type` may contain quantified variables
+    /// Bound name, or empty for a bare expression.
+    string name;
+    /// True if the declaration type-checked.
+    bool ok;
+    /// Why it failed (meaningful when `!ok`).
+    ErrorKind error;
+    /// The rendered type (meaningful when `ok`).
+    string type;
+
+    /// The output line for this declaration, without the trailing newline.
+    string toString() const @safe nothrow
+    {
+        if (!ok)
+        {
+            final switch (error)
+            {
+                case ErrorKind.unify: return "error: unify";
+                case ErrorKind.occurs: return "error: occurs";
+                case ErrorKind.unbound: return "error: unbound";
+            }
+        }
+        return (name.length ? name : "-") ~ " : " ~ type;
+    }
 }
 
-/// Type inference over parsed programs, with a persistent top-level environment.
+/**
+ * Infers types for a sequence of declarations, keeping the top-level environment
+ * between calls to $(LREF check).
+ *
+ * Inference recurses over the syntax tree and the types, so very deep input
+ * needs a deep call stack (see the command-line tool, which runs it on a
+ * thread with a large stack).
+ */
 final class Inferencer
 {
-    /// The type graph all inferred types live in.
-    TypeStore store;
+    private Solver solver;
+    private Env env;
 
-    private Binding[] binds;     // all live bindings, innermost last
-    private int bindCount;
-    private int[] top;           // name id -> index of its innermost binding, or -1
-    private int level;
-    private const(Expr)[] exprs;
-    private const(int)[] children;
-
-    ///
-    this()
+    /// Creates an inferencer whose environment holds only the built-ins.
+    this() @safe nothrow
     {
-        store = new TypeStore;
-        binds = new Binding[256];
+        solver = new Solver;
+        env = new Env;
+        addBuiltins(env, solver);
     }
 
-    /// Select the program whose expressions subsequent `inferDecl` calls refer to.
-    void load(ref const Program program)
+    /// Checks one declaration. A successful binding is added to the environment;
+    /// a failed one leaves the environment unchanged.
+    DeclResult check(Decl d) @safe 
     {
-        exprs = program.exprs;
-        children = program.children;
-    }
-
-    /// Make room for name ids below `n`.
-    void reserveNames(size_t n)
-    {
-        immutable old = top.length;
-        if (n > old)
-        {
-            top.length = n;
-            top[old .. $] = -1;
-        }
-    }
-
-    /// Bind `name` at top level to the scheme `type` (used for built-ins).
-    void define(int name, TypeId type, bool poly = true)
-    {
-        reserveNames(name + 1);
-        push(name, type, poly);
-    }
-
-    /**
-     * Infer one top-level declaration of the loaded program.
-     *
-     * On success a `let`/`let rec` binding is added to the environment and the
-     * (generalised) type is returned through `result`. On failure the
-     * environment is left as it was.
-     *
-     * Returns: `ErrorKind.none` or the kind of the first error met.
-     */
-    ErrorKind inferDecl(in Decl d, out TypeId result)
-    {
-        immutable mark = bindCount;
-        level = 0;
+        DeclResult r;
+        r.name = d.name;
         try
         {
-            switch (d.kind)
+            assert(solver.level == 0 && env.mark == 0);
+            solver.enterLevel();
+            Type t;
+            if (d.isRec)
+                t = inferRec(d.name, d.expr);
+            else
+                t = infer(d.expr);
+            solver.leaveLevel();
+            bool poly = d.isBinding ? solver.generalize(t) : false;
+            r.type = typeToString(t);
+            r.ok = true;
+            if (d.isBinding)
             {
-            case DeclKind.let:
-            {
-                ++level;
-                immutable t = infer(d.expr);
-                --level;
-                immutable poly = generalize(store, t, level);
-                push(d.name, t, poly);
-                result = t;
-                break;
+                env.push(d.name, t, poly);
+                env.commit();
             }
-            case DeclKind.letRec:
-            {
-                result = inferLetRecBinding(d.name, d.expr);
-                push(d.name, result, generalize(store, result, level));
-                break;
-            }
-            default:
-                ++level;
-                result = infer(d.expr);
-                --level;
-                break;
-            }
-            return ErrorKind.none;
         }
         catch (TypeError e)
         {
-            unwind(mark);
-            return e.kind;
+            env.popTo(0);
+            while (solver.level > 0) solver.leaveLevel();
+            r.ok = false;
+            r.error = e.kind;
+        }
+        return r;
+    }
+
+    /// Infers the type of `e` in the current environment.
+    Type infer(Expr e) @safe 
+    {
+        final switch (e.kind)
+        {
+            case ExprKind.intLit: return Type.int_;
+            case ExprKind.boolLit: return Type.bool_;
+            case ExprKind.unitLit: return Type.unit;
+            case ExprKind.nil: return Type.list(solver.freshVar);
+            case ExprKind.var: return inferVar(cast(Var) e);
+            case ExprKind.lam: return inferLam(cast(Lam) e);
+            case ExprKind.app: return inferApp(cast(App) e);
+            case ExprKind.let: return inferLet(cast(Let) e);
+            case ExprKind.ifThenElse: return inferIf(cast(If) e);
+            case ExprKind.tuple: return inferTuple(cast(Tuple) e);
+            case ExprKind.list: return inferList(cast(ListLit) e);
+            case ExprKind.binary: return inferBinary(cast(Binary) e);
+            case ExprKind.cons: return inferCons(cast(Cons) e);
         }
     }
 
-    /**
-     * Infer the right-hand side `rhs` of `let rec name` with `name` bound
-     * monomorphically to a fresh variable; returns that variable, already
-     * unified with the right-hand side's type. The caller generalises it.
-     */
-    private TypeId inferLetRecBinding(int name, int rhs)
+private:
+
+    Type inferVar(Var v) @safe 
     {
-        ++level;
-        immutable f = store.newVar(level);
-        push(name, f, false);
-        immutable t = infer(rhs);
-        unify(store, f, t);
-        pop();
-        --level;
+        Binding b;
+        if (!env.lookup(v.name, b)) throw new TypeError(ErrorKind.unbound);
+        return b.poly ? solver.instantiate(b.type) : b.type;
+    }
+
+    Type inferLam(Lam l) @safe 
+    {
+        immutable mark = env.mark;
+        auto ps = new Type[l.params.length];
+        foreach (i, name; l.params)
+        {
+            ps[i] = solver.freshVar;
+            env.push(name, ps[i], false);
+        }
+        Type r = infer(l.body);
+        env.popTo(mark);
+        foreach_reverse (p; ps) r = Type.fun(p, r);
+        return r;
+    }
+
+    Type inferApp(App a) @safe 
+    {
+        auto tf = infer(a.fn);
+        auto ta = infer(a.arg);
+        auto r = solver.freshVar;
+        solver.unify(tf, Type.fun(ta, r));
+        return r;
+    }
+
+    /// Infers the right-hand side of a `let rec` named `name`, returning the (monomorphic) type of `name`.
+    /// The caller has already entered the right-hand side's level.
+    Type inferRec(string name, Expr rhs) @safe 
+    {
+        immutable mark = env.mark;
+        auto f = solver.freshVar;
+        env.push(name, f, false);
+        auto t = infer(rhs);
+        solver.unify(f, t);
+        env.popTo(mark);
         return f;
     }
 
-    private void push(int name, TypeId type, bool poly)
+    Type inferLet(Let l) @safe 
     {
-        if (bindCount == binds.length)
-            binds.length = binds.length * 2;
-        binds[bindCount] = Binding(name, top[name], type, poly);
-        top[name] = bindCount++;
+        solver.enterLevel();
+        auto t = l.isRec ? inferRec(l.name, l.rhs) : infer(l.rhs);
+        solver.leaveLevel();
+        immutable poly = solver.generalize(t);
+        immutable mark = env.mark;
+        env.push(l.name, t, poly);
+        auto r = infer(l.body);
+        env.popTo(mark);
+        return r;
     }
 
-    private void pop()
+    Type inferIf(If i) @safe 
     {
-        --bindCount;
-        top[binds[bindCount].name] = binds[bindCount].prev;
+        solver.unify(infer(i.cond), Type.bool_);
+        auto a = infer(i.thenBranch);
+        auto b = infer(i.elseBranch);
+        solver.unify(a, b);
+        return a;
     }
 
-    private void unwind(int mark)
+    Type inferTuple(Tuple t) @safe 
     {
-        while (bindCount > mark)
-            pop();
+        auto ts = new Type[t.elems.length];
+        foreach (i, e; t.elems) ts[i] = infer(e);
+        return Type.tuple(ts);
     }
 
-    private TypeId lookup(int name)
+    Type inferList(ListLit l) @safe 
     {
-        immutable i = top[name];
-        if (i < 0)
-            throw new TypeError(ErrorKind.unbound);
-        immutable b = binds[i];
-        return b.poly ? instantiate(store, b.type, level) : b.type;
+        auto elem = solver.freshVar;
+        foreach (e; l.elems) solver.unify(elem, infer(e));
+        return Type.list(elem);
     }
 
-    private void expect(TypeId t, TypeId want)
+    Type inferBinary(Binary b) @safe 
     {
-        unify(store, t, want);
-    }
-
-    private TypeId infer(int ei)
-    {
-        immutable Expr e = exprs[ei];
-        final switch (e.kind)
+        Type operand, result;
+        final switch (b.op)
         {
-        case ExprKind.intLit:
-            return TypeStore.intType;
-        case ExprKind.boolLit:
-            return TypeStore.boolType;
-        case ExprKind.unitLit:
-            return TypeStore.unitType;
-        case ExprKind.variable:
-            return lookup(e.a);
-        case ExprKind.app:
-        {
-            immutable tf = infer(e.a);
-            immutable ta = infer(e.b);
-            immutable f = store.find(tf);
-            if (store.nodes[f].kind == NodeKind.arrow)
-            {
-                // Same as unifying with `ta -> fresh`, without the allocation.
-                unify(store, store.nodes[f].a, ta);
-                return store.nodes[f].b;
-            }
-            immutable r = store.newVar(level);
-            unify(store, f, store.newArrow(ta, r));
-            return r;
-        }
-        case ExprKind.fun:
-        {
-            immutable p = store.newVar(level);
-            push(e.a, p, false);
-            immutable body = infer(e.b);
-            pop();
-            return store.newArrow(p, body);
-        }
-        case ExprKind.ifThenElse:
-        {
-            expect(infer(e.a), TypeStore.boolType);
-            immutable ta = infer(e.b);
-            immutable tb = infer(e.c);
-            unify(store, ta, tb);
-            return ta;
-        }
-        case ExprKind.let:
-        {
-            ++level;
-            immutable t1 = infer(e.b);
-            --level;
-            immutable poly = generalize(store, t1, level);
-            push(e.a, t1, poly);
-            immutable t2 = infer(e.c);
-            pop();
-            return t2;
-        }
-        case ExprKind.letRec:
-        {
-            immutable f = inferLetRecBinding(e.a, e.b);
-            immutable poly = generalize(store, f, level);
-            push(e.a, f, poly);
-            immutable t2 = infer(e.c);
-            pop();
-            return t2;
-        }
-        case ExprKind.tuple:
-        {
-            immutable n = e.b;
-            immutable start = store.allocPool(n);
-            foreach (i; 0 .. n)
-            {
-                immutable t = infer(children[e.a + i]);
-                store.pool[start + i] = t;
-            }
-            return store.newTupleAt(start, n);
-        }
-        case ExprKind.list:
-        {
-            immutable elem = store.newVar(level);
-            foreach (i; 0 .. e.b)
-                unify(store, elem, infer(children[e.a + i]));
-            return store.newList(elem);
-        }
-        case ExprKind.cons:
-        {
-            immutable th = infer(e.a);
-            immutable tt = infer(e.b);
-            immutable l = store.newList(th);
-            unify(store, tt, l);
-            return l;
-        }
-        case ExprKind.binary:
-        {
-            TypeId operand = TypeStore.intType;
-            TypeId result = TypeStore.intType;
-            final switch (e.op)
-            {
             case BinOp.add, BinOp.sub, BinOp.mul, BinOp.div:
+                operand = result = Type.int_;
                 break;
             case BinOp.eq, BinOp.lt, BinOp.gt, BinOp.le, BinOp.ge:
-                result = TypeStore.boolType;
+                operand = Type.int_;
+                result = Type.bool_;
                 break;
             case BinOp.and, BinOp.or:
-                operand = TypeStore.boolType;
-                result = TypeStore.boolType;
+                operand = result = Type.bool_;
                 break;
-            }
-            unify(store, infer(e.a), operand);
-            unify(store, infer(e.b), operand);
-            return result;
         }
-        }
+        solver.unify(infer(b.lhs), operand);
+        solver.unify(infer(b.rhs), operand);
+        return result;
     }
+
+    Type inferCons(Cons c) @safe 
+    {
+        auto h = infer(c.head);
+        auto t = infer(c.tail);
+        solver.unify(t, Type.list(h));
+        return t;
+    }
+}
+
+version (unittest)
+{
+    import typeinfer.parser : parseProgram;
+
+    /// Checks `src` with a fresh inferencer and returns the output lines.
+    string[] lines(string src) @safe 
+    {
+        auto inf = new Inferencer;
+        string[] r;
+        foreach (d; parseProgram(src)) r ~= inf.check(d).toString;
+        return r;
+    }
+}
+
+@safe unittest
+{
+    assert(lines("fun x -> x;;") == ["- : 'a -> 'a"]);
+    assert(lines("let k x y = x;; k;;") == ["k : 'a -> 'b -> 'a", "- : 'a -> 'b -> 'a"]);
+    assert(lines("1 + 2 * 3;; 1 < 2;; true && false;;") == ["- : int", "- : bool", "- : bool"]);
+    assert(lines("();; [];; [1; 2];; 1 :: [];;") == ["- : unit", "- : 'a list", "- : int list", "- : int list"]);
+}
+
+@safe unittest
+{
+    // let-polymorphism, no value restriction.
+    assert(lines("let id x = x;; let g = id id;; (g 1, g true);;")
+            == ["id : 'a -> 'a", "g : 'a -> 'a", "- : int * bool"]);
+    // lambda-bound variables are monomorphic.
+    assert(lines("fun f -> (f 1, f true);;") == ["error: unify"]);
+    assert(lines("let rec bad x = bad 1 + bad true;;") == ["error: unify"]);
+    assert(lines("let rec len l = if null l then 0 else 1 + len (tl l);;")
+            == ["len : 'a list -> int"]);
+}
+
+@safe unittest
+{
+    // Errors, their precedence, and recovery.
+    assert(lines("fun x -> x x;;") == ["error: occurs"]);
+    assert(lines("true + undefined;;") == ["error: unify"]);
+    assert(lines("undefined + true;;") == ["error: unbound"]);
+    assert(lines("fun x -> if true then (x, 0) else ([x], true);;") == ["error: occurs"]);
+    assert(lines("let g = id id;; let id = fun x -> x;; let g = id id;;")
+            == ["error: unbound", "id : 'a -> 'a", "g : 'a -> 'a"]);
+    // A failed declaration does not rebind, and scopes unwind properly.
+    assert(lines("let x = 1;; let x = (fun y -> let z = 1 in y z) 2;; x;;")
+            == ["x : int", "error: unify", "- : int"]);
+}
+
+@safe unittest
+{
+    // Shadowing and `let` not seeing its own name.
+    assert(lines("let map = 3;; map;;") == ["map : int", "- : int"]);
+    assert(lines("let x = 1;; let x = x + 1;; (let x = true in x);;")
+            == ["x : int", "x : int", "- : bool"]);
+    assert(lines("let x = x;;") == ["error: unbound"]);
 }

@@ -1,143 +1,146 @@
-# kvstore — Tessera
+# Tessera
 
 Tessera is an embedded, single-file transactional document store written in D
-(standard library only). It has a write-ahead log, a B+tree primary index,
-overflow pages for large documents, secondary indexes on document fields, crash
-recovery, checkpointing and a small command language. The on-disk formats are
-fully specified, so two implementations produce byte-identical database and
-log files for the same script.
+using only the standard library. It has
 
-The project has two parts:
+* a **B+tree primary index** over canonical 1 KiB pages, with overflow pages for
+  large documents (up to 64 KiB each),
+* a **write-ahead log** with CRC-32 protected records, crash recovery from a log
+  truncated at any byte, and checkpointing,
+* **explicit and implicit transactions** (`begin` / `commit` / `rollback`),
+* **secondary indexes** on (nested) document fields with a tiny query planner,
+* a **small command language** (`put`, `get`, `delete`, `update`, `unset`,
+  `scan`, `find`, `create index`, …).
 
-* **`tessera`**, a library (`source/tessera/`) with a documented public API;
-* **`kvstore`**, a thin command-line tool (`app/main.d`) that runs a command
-  script against a database directory.
+The file format is fully deterministic: the same script run on the same input
+always produces byte-identical `main.tdb` and `main.twal` files. Everything —
+the CRC-32, the page format, the log format and the B+tree — is implemented from
+scratch; there are no dependencies beyond Phobos.
+
+The format and the command language are defined in
+[`../problems/kvstore/SPEC.md`](../problems/kvstore/SPEC.md).
 
 ## Building
 
-Requires LDC 1.41 and dub 1.40.
+Requirements: LDC 1.41 and dub 1.40.
 
 ```sh
-./build.sh          # same as: dub build -b release --compiler=ldc2
+./build.sh                  # same as: dub build -b release --compiler=ldc2
 ```
 
-This produces `bin/kvstore`. `./run.sh <input dir> <output dir>` runs it from
-any working directory.
-
-Unit tests (kept in `tests/`, separate from the library source):
+This produces `bin/tessera`. To run the unit tests:
 
 ```sh
 dub test --compiler=ldc2
 ```
 
-## Command-line use
+## Command-line tool
 
-```
-kvstore <input dir> <output dir>
+```sh
+./run.sh <input dir> <output dir>      # or: bin/tessera <input dir> <output dir>
 ```
 
 The input directory holds
 
-| File          | Meaning                                                              |
-|---------------|----------------------------------------------------------------------|
-| `commands.txt`| the script, one command per line (required)                          |
-| `main.tdb`    | an existing database file (optional)                                 |
-| `main.twal`   | an existing write-ahead log, possibly truncated or damaged (optional)|
+| entry          | meaning                                                         |
+|----------------|-----------------------------------------------------------------|
+| `commands.txt` | the script, one command per line (required)                     |
+| `main.tdb`     | an existing database file (optional)                            |
+| `main.twal`    | an existing write-ahead log, possibly cut short (optional)      |
 
-The tool replays any committed transactions found in the log, runs the script,
-rolls back a transaction still open at the end, and writes three files into the
-output directory: `results.txt` (one result block per command line),
-`main.tdb` and `main.twal`. The exit status is 0 unless the arguments are wrong
-or a file cannot be read or written; command failures are reported in
-`results.txt` as `error <kind>`.
+The tool replays the log's committed transactions over the database, runs the
+script, rolls back a transaction left open at the end of the script, and writes
+three files to the output directory:
 
-### Command language
+* `results.txt`: one result block per command line (`[3] ok put created`, or
+  `[4] error not-found`, with payload lines indented by two spaces),
+* `main.tdb`: the database file,
+* `main.twal`: the write-ahead log.
+
+The exit status is `0` unless the arguments are wrong or the input cannot be read.
+
+### Commands
 
 ```
 begin | commit | rollback | checkpoint | stat | indexes
-put "key" <value>             get "key"            delete "key"
+put "key" <value>             get "key"                 delete "key"
 update "key" a.b.c <value>    unset "key" a.b.c
 scan [from "k"] [to "k"] [limit n] [reverse] [keys]
 find <predicate> [limit n]
 create index a.b              drop index a.b
 ```
 
-Values are `null`, `true`, `false`, 64-bit integers, strings with JSON escapes,
-lists `[1,2]` and objects `{name:"ada","age":36}` (at most 32 levels deep).
-Predicates combine comparisons (`age >= 30`, `name == "ada"`), `exists path`,
-`missing path`, `not(...)`, `and` and `or`.
+Values are JSON-like: `null`, `true`, `false`, 64-bit integers, strings with
+JSON escapes, lists `[1,2]` and objects `{name:"ada",age:36}` (field names may be
+bare words). Predicates combine `path op value` (`== != < <= > >=`), `exists path`,
+`missing path`, `not(...)`, `and`, `or` and parentheses.
 
-Example script and its `results.txt`:
+Example script and its output:
 
 ```
 put "u1" {name:"ada",age:36}          [1] ok put created
-create index age                      [2] ok create index age entries 1
-find age > 30                         [3] ok find 1 plan index age
+put "u2" {name:"bob",age:29}          [2] ok put created
+create index age                      [3] ok create index age entries 2
+find age > 30                         [4] ok find 1 plan index age
                                         "u1" = {"age":36,"name":"ada"}
 ```
 
-The full definition (formats, error precedence, page allocation order) is in
-`problems/kvstore/SPEC.md` of the task this project implements.
+## Using the library
 
-## Library layout
-
-| Module                | Responsibility                                                    |
-|-----------------------|-------------------------------------------------------------------|
-| `tessera.crc`         | table-driven CRC-32                                               |
-| `tessera.bytes`       | big-endian access, byte-wise comparison, growable byte buffer     |
-| `tessera.value`       | document values: serialise, compare, field paths                  |
-| `tessera.render`      | canonical text rendering of values and numbers                    |
-| `tessera.lexer`, `tessera.parser`, `tessera.ast` | command language front end              |
-| `tessera.header`      | header page and index directory                                   |
-| `tessera.wal`         | log records and recovery                                          |
-| `tessera.pager`       | page layers (dirty set, log overlay, main file), free list, commit, checkpoint |
-| `tessera.node`        | canonical B+tree page encode/decode and raw access                |
-| `tessera.btree`       | search, cursors, insert, split, delete, borrow/merge              |
-| `tessera.docstore`    | documents and overflow chains                                     |
-| `tessera.indexing`    | index key encoding, maintenance, create/drop, candidate scans     |
-| `tessera.query`       | predicate evaluation and plan selection                           |
-| `tessera.database`    | the typed `Database` API                                          |
-| `tessera.interpreter` | command lines → `results.txt` blocks                              |
-
-`import tessera;` gives the public API.
-
-### Using the library
+The package `tessera` (module `tessera`) re-exports everything; `Engine` is the
+high-level entry point.
 
 ```d
-import std.file : write;
 import std.stdio : writeln;
 import tessera;
 
 void main()
 {
-    // Start from a fresh database (or pass the bytes of main.tdb / main.twal).
-    auto db = new Database();
+    // An empty database; pass the bytes of main.tdb / main.twal to resume one.
+    auto db = new Engine;
 
-    db.put("u1", Value.object(["name", "age"], [Value.string_("ada"), Value.integer(36)]));
-    db.put("u2", Value.object(["name", "age"], [Value.string_("bob"), Value.integer(29)]));
-    db.createIndex(["age"]);
+    writeln(db.execute(`put "u1" {name:"ada",age:36}`));  // [1] ok put created
+    writeln(db.execute(`get "u1"`));                      // [2] ok get value
+                                                          //   {"age":36,"name":"ada"}
+    db.execute("checkpoint");
 
-    db.begin();
-    db.update("u2", ["age"], Value.integer(41));
-    db.commit();
+    // The two files a run leaves behind:
+    const(ubyte)[] mainTdb  = db.databaseImage;
+    const(ubyte)[] mainTwal = db.logImage;
 
-    auto found = db.find(parseCommand(`find age > 30`).pred);
-    assert(found.plan == "index age" && found.rows.length == 2);
-    foreach (row; found.rows)
-        writeln(row.key, " = ", renderToString(row.doc));
-
-    try
-        db.get("missing");
-    catch (TesseraException e)
-        assert(e.kind == ErrorKind.notFound);
-
-    // Persist: the database file and the write-ahead log.
-    write("main.tdb", db.databaseBytes);
-    write("main.twal", db.logBytes);
+    // Reopen later, replaying whatever the log committed:
+    auto again = new Engine(mainTdb, mainTwal);
+    writeln(again.execute(`scan`));
 }
 ```
 
-Every failing operation throws `TesseraException` (with an `ErrorKind`) and
-leaves the database unchanged. Operations outside `begin`/`commit` run in an
-implicit transaction. `Interpreter` runs command-language scripts against a
-`Database` and produces the text of `results.txt`.
+To use the library from another dub project:
+
+```sdl
+dependency "tessera" path="../kvstore"
+subConfiguration "tessera" "library"
+```
+
+## Layout
+
+```
+source/app.d               the command-line tool
+source/tessera/
+  package.d                public re-exports
+  crc.d, bytes.d           CRC-32, big-endian and byte-string helpers
+  value.d                  document values: serialise, render, compare, paths
+  header.d                 header page and index directory
+  node.d                   canonical B+tree pages
+  btree.d                  insert, delete, split, borrow/merge, range walks
+  overflow.d               documents and overflow chains
+  index.d                  secondary index key encoding
+  pager.d                  page cache, overlay, free list, commit/rollback
+  wal.d, recover.d         log records, recovery scan, opening a database
+  checkpoint.d             copying the log into the main file
+  lexer.d, parser.d        command language
+  query.d                  predicates and plan selection
+  engine.d, render.d       command execution and result blocks
+```
+
+Unit tests live next to the code in `unittest` blocks and include the worked
+examples of the specification.

@@ -1,40 +1,39 @@
 # sat
 
-A conflict-driven clause-learning (CDCL) SAT solver in D, packaged as a
-reusable library plus a thin DIMACS command-line tool. Standard library only.
+A CDCL SAT solver for formulas in [DIMACS CNF](https://people.sc.fsu.edu/~jburkardt/data/cnf/cnf.html),
+written in D using only the standard library. It is a reusable library
+(`sat`) with a thin command-line tool on top.
 
-The solver is MiniSat-style: two watched literals, first-UIP clause learning
-with local minimisation, VSIDS branching on an indexed heap, phase saving, Luby
-restarts, and periodic learnt-clause reduction. The search is deterministic.
+The solver is MiniSat-style:
 
-## Layout
+- two watched literals per clause (with blocking literals) for unit propagation;
+- first-UIP conflict analysis with local (non-recursive) clause minimisation;
+- VSIDS branching (double-precision activities, decay 0.95, rescaling at 1e100)
+  using a binary heap, with phase saving (initial phase: false);
+- Luby restarts (unit 100 conflicts);
+- learnt-clause deletion after restarts once `max_learnts` is reached
+  (`max(stored clauses / 3, 2000)`, growing by 1.1×): the lower-activity half is
+  dropped, binary and reason clauses are kept.
 
-| Path | Contents |
-| --- | --- |
-| `source/sat/types.d` | literal encoding helpers (`2v` / `2v+1`, DIMACS conversion) |
-| `source/sat/heap.d` | `VarHeap`, the indexed max-heap behind VSIDS |
-| `source/sat/solver.d` | `Solver`, `SolveResult`, `luby` |
-| `source/sat/dimacs.d` | DIMACS parsing (`parseDimacs`), `solveCnf`, `formatResult`, `satisfies` |
-| `source/sat/package.d` | `import sat;` re-exports everything |
-| `app/main.d` | the command-line tool |
-| `tests/` | unit tests (kept apart from the library sources) |
+Input clauses are simplified at the root (duplicates, tautologies, satisfied
+clauses, false literals, units).
 
 ## Build
 
 Requires LDC and dub.
 
 ```sh
-dub build -b release --compiler=ldc2     # produces bin/sat-cli
-./build.sh                               # same, from any directory
-dub test --compiler=ldc2                 # unit tests
+./build.sh          # = dub build -b release --compiler=ldc2
 ```
+
+This produces `bin/sat`.
 
 ## Command line
 
-`bin/sat-cli` (or `./run.sh`) reads a DIMACS CNF file on standard input and
-writes the answer to standard output; it takes no arguments and exits 0.
+`run.sh` (or `bin/sat`) reads a DIMACS CNF file on standard input and writes the
+answer to standard output:
 
-```
+```sh
 $ printf 'p cnf 3 2\n1 -2 0\n2 3 0\n' | ./run.sh
 SAT
 -1 -2 3 0
@@ -42,40 +41,53 @@ $ printf 'p cnf 1 2\n1 0\n-1 0\n' | ./run.sh
 UNSAT
 ```
 
-For a satisfiable formula the output is `SAT` followed by one line with a
-literal for every variable `1..V` (negative = false) and a final `0`.
-Comments, blank lines, and clauses spanning lines or sharing a line are
-accepted; empty clauses make the formula unsatisfiable and tautologies are
-treated as satisfied.
+On `SAT`, the second line gives every variable `1..V` as a signed literal,
+followed by `0`. The exit status is 0 for both answers (2 for unparsable input).
+Comments, blank lines, clauses spanning lines, empty clauses and tautologies
+are all handled as described in the DIMACS format.
 
 ## Library
 
-Add the package to your `dub.sdl` (`dependency "sat" path="..."`, with
-`subConfiguration "sat" "library"`), then:
+Add it as a dub dependency (configuration `library`) and `import sat;`:
 
 ```d
-import std.stdio;
 import sat;
 
 void main()
 {
-    // Build a formula directly with the solver ...
-    auto s = new Solver(3);          // variables 1..3
-    s.addClause([1, -2]);            // x1 or not x2
-    s.addClause([2, 3]);             // x2 or x3
-    s.addClause([-3]);               // not x3
-    if (s.solve() == SolveResult.sat)
-        foreach (v; 1 .. 4)
-            writeln("x", v, " = ", s.modelValue(v));
+    // From DIMACS text:
+    auto cnf = parseDimacs("p cnf 3 2\n1 -2 0\n2 3 0\n");
+    auto res = solveCnf(cnf);
+    assert(res.satisfiable && satisfies(cnf, res.model));
 
-    // ... or parse DIMACS text and solve it.
-    auto cnf = parseDimacs("p cnf 2 2\n1 2 0\n-1 0\n");
-    bool[] model;
-    if (solveCnf(cnf, model) == SolveResult.sat)
-        assert(satisfies(cnf, model));
+    // Or build a formula directly with the Solver class:
+    auto s = new Solver;
+    s.addClause([1, 2]);      // x1 or x2
+    s.addClause([-1]);        // not x1
+    if (s.solve() == SolveStatus.sat)
+        assert(!s.model[0] && s.model[1]);   // model[i] is variable i+1
 }
 ```
 
-`addClause` takes DIMACS literals and returns `false` once the formula is known
-to be unsatisfiable. A `Solver` is single-shot: add all clauses, then call
-`solve()` once.
+Modules:
+
+| module        | contents                                                        |
+|---------------|-----------------------------------------------------------------|
+| `sat.dimacs`  | `Cnf`, `parseDimacs`, `solveCnf`, `SolveResult`, `formatResult` |
+| `sat.solver`  | `Solver` (`addClause`, `solve`, `model`, `stats`), `luby`       |
+| `sat.model`   | `satisfies`: check an assignment against a `Cnf`                |
+| `sat.types`   | `Lit`, `LBool`                                                  |
+| `sat.order`   | `VarOrder`: VSIDS activities and the decision heap              |
+| `sat.clause`  | `Clause`: internal clause storage                               |
+
+## Tests
+
+```sh
+dub test --compiler=ldc2    # unittest blocks: parser, heap, Luby, solver vs.
+                            # brute force, pigeonhole, random 3-SAT, ...
+./build.sh && tests/cli.sh  # command-line smoke tests
+```
+
+## License
+
+MIT

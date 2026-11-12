@@ -1,0 +1,62 @@
+cabal-version:      3.0
+name:               datalog
+version:            0.1.0.0
+synopsis:           Datalog engine with stratified negation
+description:
+  A bottom-up (semi-naive) Datalog evaluator with stratified negation and
+  comparison built-ins, packaged as a library and a command-line tool.
+  The program is read from standard input; every query in it is answered
+  against the program's perfect model.
+category:           Database, Language
+license:            BSD-3-Clause
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+extra-source-files: test/golden/*.in
+                    test/golden/*.out
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Datalog
+                    Datalog.Syntax
+                    Datalog.Parser
+                    Datalog.Analysis
+                    Datalog.Trie
+                    Datalog.Plan
+                    Datalog.Eval
+                    Datalog.Render
+  build-depends:    base >=4.18 && <5
+                  , array
+                  , bytestring
+                  , containers
+
+executable datalog
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+  build-depends:    base >=4.18 && <5
+                  , bytestring
+                  , datalog
+
+test-suite datalog-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    Reference
+                    GoldenSpec
+  build-depends:    base >=4.18 && <5
+                  , QuickCheck
+                  , bytestring
+                  , containers
+                  , datalog
+                  , directory
+                  , filepath
+                  , hspec

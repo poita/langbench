@@ -1,0 +1,60 @@
+cabal-version:      3.0
+name:               scheme
+version:            0.1.0.0
+synopsis:           A small Scheme interpreter with hand-written bignums
+description:
+  A pre-analysing, trampolined interpreter for a small Scheme subset, with
+  arbitrary-precision integers implemented from scratch (schoolbook
+  arithmetic and Knuth's Algorithm D).  Ships as a library and a
+  command-line tool that reads a program on stdin.
+license:            NONE
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+category:           Language
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Scheme
+    Scheme.Analyze
+    Scheme.BigInt
+    Scheme.Eval
+    Scheme.Interpreter
+    Scheme.Primitives
+    Scheme.Printer
+    Scheme.Reader
+    Scheme.Types
+  build-depends:
+    base >=4.18 && <5,
+    array,
+    containers
+
+executable scheme
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    base,
+    scheme
+
+test-suite scheme-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Scheme.BigIntSpec
+    Scheme.ReaderPrinterSpec
+    Scheme.EvalSpec
+  build-depends:
+    base,
+    scheme,
+    hspec,
+    QuickCheck

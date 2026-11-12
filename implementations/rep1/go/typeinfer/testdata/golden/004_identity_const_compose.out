@@ -1,0 +1,18 @@
+id : 'a -> 'a
+const : 'a -> 'b -> 'a
+compose : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+flip : ('a -> 'b -> 'c) -> 'b -> 'a -> 'c
+apply : ('a -> 'b) -> 'a -> 'b
+twice : ('a -> 'a) -> 'a -> 'a
+- : 'a -> 'a
+- : int
+- : bool
+- : 'a -> 'a
+- : int
+- : bool -> int
+- : 'a -> 'b -> 'b
+- : int
+- : ('a -> 'a) -> 'a -> 'a
+- : ('a -> 'b -> 'c) -> 'a -> ('d -> 'b) -> 'd -> 'c
+- : 'a -> 'a
+- : 'a -> 'a

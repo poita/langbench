@@ -3,129 +3,162 @@
  */
 module linalg.eigen;
 
-import std.algorithm : sort;
 import std.math : sqrt;
+
 import linalg.errors;
 import linalg.matrix;
-import linalg.signs;
+import linalg.ops : isSymmetric, normFro;
+import linalg.ordering;
 
-/// Eigenvalues (ascending) and matching orthonormal eigenvectors.
-struct SymmetricEigen
+/// Eigendecomposition `A = V diag(w) Vᵀ`.
+struct Eigen
 {
-    /// Eigenvalues in ascending order.
+    /// Eigenvalues, ascending.
     double[] w;
-    /// Column `j` is the unit eigenvector for `w[j]`, sign-normalised.
-    Matrix V;
+    /// Orthogonal matrix whose column `j` is the unit eigenvector for `w[j]`,
+    /// sign-normalised (see `linalg.ordering.needsNegation`).
+    Matrix v;
 }
 
 /// Maximum number of Jacobi sweeps.
 enum maxSweeps = 60;
 
-/**
- * Eigendecomposition `A = V diag(w) Vᵀ` of a symmetric matrix.
- *
- * Cyclic Jacobi: sweeps visit pairs `(p, q)`, `p < q`, in row-major order and
- * zero `M[p][q]` with a plane rotation. Sweeps stop when
- * `off(M) <= 1e-14 * ‖A‖F`, when `off` stops decreasing, or after 60 sweeps.
- * The eigenvector accumulator is held transposed so every rotation touches
- * contiguous rows.
- *
- * Throws: `not_square`, `not_symmetric`.
- */
-SymmetricEigen symmetricEigen(const Matrix a)
+private double offDiagonal(const double[] m, size_t n) @safe pure nothrow @nogc
 {
-    enforceCode(a.isSquare, ErrorCode.not_square);
-    enforceCode(a.isSymmetric, ErrorCode.not_symmetric);
-    immutable n = a.rows;
-    auto mat = a.dup;
-    auto M = mat.data;
-    auto vt = Matrix.identity(n); // row j holds column j of V
-    auto VT = vt.data;
-    immutable phi = normFro(a);
+    double s = 0.0;
+    foreach (i; 0 .. n)
+        foreach (j; i + 1 .. n)
+            s += m[i * n + j] * m[i * n + j];
+    return sqrt(2.0 * s);
+}
+
+/**
+ * Cyclic Jacobi for a symmetric matrix. Sweeps run until the off-diagonal
+ * norm drops to `1e-14 * ‖A‖F`, stops decreasing, or 60 sweeps have run.
+ *
+ * Throws: `notSquare`, `notSymmetric`.
+ */
+Eigen symmetricEigen(const Matrix a) @safe pure
+{
+    enforceCode(a.isSquare, ErrorCode.notSquare);
+    enforceCode(isSymmetric(a), ErrorCode.notSymmetric);
+    const n = a.rows;
+    auto mm = a.dup;
+    auto m = mm.data;
+    // Row p of `vt` holds column p of V, so rotations touch contiguous memory.
+    auto vtm = Matrix.identity(n);
+    auto vt = vtm.data;
+    const phi = normFro(a);
     double prev = double.infinity;
 
     foreach (sweep; 0 .. maxSweeps)
     {
-        double off2 = 0.0;
-        foreach (i; 0 .. n)
-            foreach (j; i + 1 .. n)
-                off2 += M[i * n + j] * M[i * n + j];
-        immutable off = sqrt(2.0 * off2);
+        const off = offDiagonal(m, n);
         if (off <= 1e-14 * phi || off >= prev)
             break;
         prev = off;
-
-        foreach (p; 0 .. n - 1)
-        {
+        foreach (p; 0 .. n)
             foreach (q; p + 1 .. n)
             {
-                auto Mp = M[p * n .. (p + 1) * n];
-                auto Mq = M[q * n .. (q + 1) * n];
-                immutable g = Mp[q];
-                if (g == 0.0)
+                const apq = m[p * n + q];
+                if (apq == 0.0)
                     continue;
-                immutable aa = Mp[p];
-                immutable bb = Mq[q];
-                immutable theta = (bb - aa) / (2.0 * g);
-                immutable t = theta >= 0.0
+                const theta = (m[q * n + q] - m[p * n + p]) / (2.0 * apq);
+                const t = theta >= 0.0
                     ? 1.0 / (theta + sqrt(theta * theta + 1.0))
                     : -1.0 / (-theta + sqrt(theta * theta + 1.0));
-                immutable c = 1.0 / sqrt(t * t + 1.0);
-                immutable s = t * c;
+                const c = 1.0 / sqrt(t * t + 1.0);
+                const s = t * c;
 
-                // Rows p and q, and (by symmetry) columns p and q. The four
-                // entries of the 2x2 block written here are overwritten below.
-                foreach (j; 0 .. n)
-                {
-                    immutable mp = Mp[j];
-                    immutable mq = Mq[j];
-                    immutable x = c * mp - s * mq;
-                    immutable y = s * mp + c * mq;
-                    Mp[j] = x;
-                    Mq[j] = y;
-                    M[j * n + p] = x;
-                    M[j * n + q] = y;
-                }
-                immutable P = c * aa - s * g;
-                immutable Pq = s * aa + c * g;
-                immutable Qp = c * g - s * bb;
-                immutable Qq = s * g + c * bb;
-                Mp[p] = c * P - s * Qp;
-                Mq[q] = s * Pq + c * Qq;
-                Mp[q] = 0.0;
-                Mq[p] = 0.0;
-
-                auto Vp = VT[p * n .. (p + 1) * n];
-                auto Vq = VT[q * n .. (q + 1) * n];
                 foreach (i; 0 .. n)
                 {
-                    immutable x = Vp[i];
-                    immutable y = Vq[i];
-                    Vp[i] = c * x - s * y;
-                    Vq[i] = s * x + c * y;
+                    const x = m[i * n + p], y = m[i * n + q];
+                    m[i * n + p] = c * x - s * y;
+                    m[i * n + q] = s * x + c * y;
+                }
+                {
+                    auto rp = m[p * n .. (p + 1) * n];
+                    auto rq = m[q * n .. (q + 1) * n];
+                    foreach (j; 0 .. n)
+                    {
+                        const x = rp[j], y = rq[j];
+                        rp[j] = c * x - s * y;
+                        rq[j] = s * x + c * y;
+                    }
+                }
+                m[p * n + q] = 0.0;
+                m[q * n + p] = 0.0;
+                {
+                    auto vp = vt[p * n .. (p + 1) * n];
+                    auto vq = vt[q * n .. (q + 1) * n];
+                    foreach (i; 0 .. n)
+                    {
+                        const x = vp[i], y = vq[i];
+                        vp[i] = c * x - s * y;
+                        vq[i] = s * x + c * y;
+                    }
                 }
             }
-        }
     }
 
-    auto diag = new double[](n);
+    auto diag = new double[n];
     foreach (i; 0 .. n)
-        diag[i] = M[i * n + i];
-    auto idx = new size_t[](n);
-    foreach (i; 0 .. n)
-        idx[i] = i;
-    idx.sort!((x, y) => diag[x] < diag[y] || (diag[x] == diag[y] && x < y));
-
-    SymmetricEigen res;
-    res.w = new double[](n);
-    res.V = Matrix(n, n);
-    foreach (j; 0 .. n)
+        diag[i] = m[i * n + i];
+    const order = sortedOrder(diag);
+    Eigen e;
+    e.w = new double[n];
+    e.v = Matrix(n, n);
+    foreach (j, src; order)
     {
-        res.w[j] = diag[idx[j]];
-        auto col = VT[idx[j] * n .. (idx[j] + 1) * n];
-        normaliseSign(col);
+        e.w[j] = diag[src];
+        const col = vt[src * n .. (src + 1) * n];
+        const flip = needsNegation(col);
         foreach (i; 0 .. n)
-            res.V.data[i * n + j] = col[i];
+            e.v.data[i * n + j] = flip ? -col[i] : col[i];
     }
-    return res;
+    return e;
+}
+
+unittest
+{
+    import std.math : abs;
+
+    auto a = Matrix.fromRows([[2.0, 1.0], [1.0, 3.0]]);
+    const e = symmetricEigen(a);
+    assert(abs(e.w[0] - (5.0 - sqrt(5.0)) / 2) < 1e-14);
+    assert(abs(e.w[1] - (5.0 + sqrt(5.0)) / 2) < 1e-14);
+    assert(abs(e.v[0, 0] - 0.8506508083520399) < 1e-14);
+    assert(abs(e.v[1, 0] + 0.5257311121191336) < 1e-14);
+    assert(abs(e.v[0, 1] - 0.5257311121191336) < 1e-14);
+    assert(abs(e.v[1, 1] - 0.8506508083520399) < 1e-14);
+}
+
+unittest
+{
+    import linalg.ops : mul, transpose;
+    import std.math : abs;
+
+    auto a = Matrix.fromRows([[4.0, 1.0, 0.5], [1.0, 3.0, -1.0], [0.5, -1.0, 1.0]]);
+    const e = symmetricEigen(a);
+    assert(e.w[0] < e.w[1] && e.w[1] < e.w[2]);
+    auto d = Matrix(3, 3);
+    foreach (i; 0 .. 3)
+        d[i, i] = e.w[i];
+    const r = mul(mul(e.v, d), transpose(e.v));
+    foreach (i; 0 .. 9)
+        assert(abs(r.data[i] - a.data[i]) < 1e-13);
+}
+
+unittest
+{
+    import std.exception : collectException;
+
+    assert(collectException!LinAlgException(symmetricEigen(Matrix(2, 3))).code
+            == ErrorCode.notSquare);
+    assert(collectException!LinAlgException(
+            symmetricEigen(Matrix.fromRows([[1.0, 2.0], [0.0, 1.0]]))).code
+            == ErrorCode.notSymmetric);
+    // A diagonal matrix needs no rotation; eigenvalues come out sorted.
+    const e = symmetricEigen(Matrix.fromRows([[3.0, 0.0], [0.0, 1.0]]));
+    assert(e.w == [1.0, 3.0]);
 }

@@ -1,0 +1,5 @@
+{
+  "tests/test_filters.py::test_filter[\"<a href='x'>&\"</a>\"|escape-&lt;a href=&#39;x&#39;&gt;&amp;&#34;&lt;/a&gt;]": true,
+  "tests/test_interpreter.py::test_expressions[1 + 2 ~ 3-6]": true,
+  "tests/test_interpreter.py::test_errors[{{ x(nope) }}-undefined]": true
+}

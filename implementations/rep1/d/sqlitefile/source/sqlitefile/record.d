@@ -1,4 +1,4 @@
-/// Decoding of SQLite records (table rows and index entries).
+/// Decoding of SQLite records (table rows and index entries), SPEC §1.8.
 module sqlitefile.record;
 
 import sqlitefile.bytes;
@@ -7,119 +7,134 @@ import sqlitefile.value;
 
 @safe:
 
-/// Size in bytes of the body of a value with serial type `t`.
-size_t serialSize(ulong t) pure
+/// Size in bytes of the body of a value with the given serial type.
+size_t serialTypeSize(ulong t) pure nothrow @nogc
 {
-    switch (t)
+    static immutable ubyte[10] fixed = [0, 1, 2, 3, 4, 6, 8, 8, 0, 0];
+    if (t < 10)
+        return fixed[cast(size_t) t];
+    if (t < 12)
+        return 0; // reserved
+    return cast(size_t)((t - 12) / 2);
+}
+
+/// Decodes the first `dst.length` columns of `payload` into `dst`; columns the
+/// record does not have are set to NULL. Returns the number of columns the
+/// record actually contains.
+///
+/// TEXT and BLOB values alias `payload`.
+size_t decodeRecord(const(ubyte)[] payload, Value[] dst)
+{
+    long headerSize;
+    size_t hpos = readVarint(payload, 0, headerSize);
+    if (headerSize < hpos || cast(ulong) headerSize > payload.length)
+        throw new FormatException("bad record header size");
+    const hend = cast(size_t) headerSize;
+    size_t bpos = hend;
+    size_t col = 0;
+    while (hpos < hend)
     {
-    case 0, 8, 9:
-        return 0;
-    case 1, 2, 3, 4:
-        return cast(size_t) t;
-    case 5:
-        return 6;
-    case 6, 7:
-        return 8;
+        long st;
+        hpos += readVarint(payload, hpos, st);
+        if (st < 0)
+            throw new FormatException("bad serial type");
+        if (col < dst.length)
+        {
+            dst[col] = decodeValue(payload, bpos, cast(ulong) st);
+            bpos += serialTypeSize(cast(ulong) st);
+        }
+        col++;
+    }
+    foreach (k; col .. dst.length)
+        dst[k] = Value.makeNull();
+    return col;
+}
+
+/// Decodes every column of `payload`.
+Value[] decodeAll(const(ubyte)[] payload)
+{
+    long headerSize;
+    size_t hpos = readVarint(payload, 0, headerSize);
+    if (headerSize < hpos || cast(ulong) headerSize > payload.length)
+        throw new FormatException("bad record header size");
+    // The number of columns is at most the number of header bytes.
+    auto vals = new Value[cast(size_t) headerSize - hpos];
+    const n = decodeRecord(payload, vals);
+    return vals[0 .. n];
+}
+
+private Value decodeValue(const(ubyte)[] p, size_t pos, ulong st)
+{
+    switch (st)
+    {
+    case 0:
+        return Value.makeNull();
+    case 1: .. case 6:
+        return Value.fromInt(readSigned(p, pos, serialTypeSize(st)));
+    case 7:
+        {
+            union Bits
+            {
+                ulong u;
+                double d;
+            }
+
+            Bits b;
+            b.u = cast(ulong) readSigned(p, pos, 8);
+            return Value.fromReal(b.d);
+        }
+    case 8:
+        return Value.fromInt(0);
+    case 9:
+        return Value.fromInt(1);
     case 10, 11:
         throw new FormatException("reserved serial type");
     default:
-        return cast(size_t)((t - 12) / 2);
+        const n = serialTypeSize(st);
+        checkRange(p, pos, n);
+        return (st & 1) ? Value.fromText(p[pos .. pos + n]) : Value.fromBlob(p[pos .. pos + n]);
     }
 }
 
-/// Lazily decodes one record.
-///
-/// `parse` reads only the header (serial types and body offsets) into
-/// internal arrays that are reused from record to record; `value` then
-/// decodes a single column on demand. TEXT and BLOB values are views into the
-/// record bytes.
-struct RecordReader
+unittest
 {
-    private const(ubyte)[] rec;
-    private ulong[] types;
-    private size_t[] offsets;
-    private size_t n;
-
-    /// Number of columns the record actually stores.
-    size_t length() const pure nothrow @nogc
-    {
-        return n;
-    }
-
-    /// Reads the header of `record`.
-    void parse(const(ubyte)[] record) pure
-    {
-        rec = record;
-        n = 0;
-        if (record.length == 0)
-            return;
-        size_t pos = 0;
-        immutable hs = readVarint(record, pos);
-        if (hs < 1 || hs > record.length)
-            throw new FormatException("bad record header size");
-        size_t off = cast(size_t) hs;
-        while (pos < hs)
-        {
-            immutable t = cast(ulong) readVarint(record, pos);
-            if (n == types.length)
-            {
-                immutable cap = n < 8 ? 8 : n * 2;
-                types.length = cap;
-                offsets.length = cap;
-            }
-            types[n] = t;
-            offsets[n] = off;
-            off += serialSize(t);
-            n++;
-        }
-        if (off > record.length)
-            throw new FormatException("record body is truncated");
-    }
-
-    /// The serial type of column `i`.
-    ulong serialType(size_t i) const pure nothrow @nogc
-    {
-        return types[i];
-    }
-
-    /// Decodes column `i`; columns past the end of the record read as NULL.
-    Value value(size_t i) const pure
-    {
-        if (i >= n)
-            return Value.makeNull();
-        immutable t = types[i];
-        immutable off = offsets[i];
-        switch (t)
-        {
-        case 0:
-            return Value.makeNull();
-        case 8:
-            return Value.makeInt(0);
-        case 9:
-            return Value.makeInt(1);
-        case 1, 2, 3, 4, 6:
-            return Value.makeInt(readSignedBE(rec, off, serialSize(t)));
-        case 5:
-            return Value.makeInt(readSignedBE(rec, off, 6));
-        case 7:
-            return Value.makeReal(bitsToDouble(readBE64(rec, off)));
-        default:
-            immutable size = serialSize(t);
-            auto bytes = rec[off .. off + size];
-            return (t & 1) ? Value.makeText(bytes) : Value.makeBlob(bytes);
-        }
-    }
+    // header: size 7, types: 1(int8) 9(one) 0(null) 7(real) 17 (text len 2)... build by hand
+    ubyte[] rec = [
+        6, // header size (1 + 5 serial types)
+        1, 9, 0, 19, 12, // int8, const-1, null, text(3), blob(0)
+        0xfe, // -2
+        'a', 'b', 'c',
+    ];
+    Value[5] v;
+    assert(decodeRecord(rec, v[]) == 5);
+    assert(v[0].type == ValueType.integer && v[0].i == -2);
+    assert(v[1].type == ValueType.integer && v[1].i == 1);
+    assert(v[2].isNull);
+    assert(v[3].type == ValueType.text && v[3].bytes == cast(const(ubyte)[]) "abc");
+    assert(v[4].type == ValueType.blob && v[4].bytes.length == 0);
 }
 
-private double bitsToDouble(ulong bits) pure nothrow @nogc
+unittest
 {
-    union U
-    {
-        ulong u;
-        double d;
-    }
+    // Fewer values than requested columns: the rest read as NULL.
+    ubyte[] rec = [2, 8];
+    Value[3] v;
+    assert(decodeRecord(rec, v[]) == 1);
+    assert(v[0].i == 0 && v[1].isNull && v[2].isNull);
+    // All columns, with a REAL (3.5 = 0x400C000000000000) and a 6-byte int.
+    ubyte[] rec2 = [3, 7, 5, 0x40, 0x0c, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0];
+    auto all = decodeAll(rec2);
+    assert(all.length == 2);
+    assert(all[0].r == 3.5);
+    assert(all[1].i == 256);
+}
 
-    U x;
-    x.u = bits;
-    return x.d;
+unittest
+{
+    import std.exception : assertThrown;
+
+    Value[1] v;
+    assertThrown!FormatException(decodeRecord([cast(ubyte) 9, 1], v[]));
+    assertThrown!FormatException(decodeRecord([cast(ubyte) 2, 10], v[]));
+    assertThrown!FormatException(decodeRecord([cast(ubyte) 2, 15], v[])); // body missing
 }

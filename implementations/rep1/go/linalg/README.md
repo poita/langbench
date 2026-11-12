@@ -1,66 +1,57 @@
 # linalg
 
-A dense real linear algebra library in Go, written from scratch on the
-standard library only (no BLAS/LAPACK-style routines), plus a command-line
-driver that runs a script of matrix operations over Matrix Market files.
+A dense real linear algebra library for Go, written from scratch on the
+standard library only (no BLAS/LAPACK), plus a small command-line driver that
+runs a script of matrix operations over Matrix Market files.
 
-Supported operations: `add`, `mul`, `transpose`, LU with partial pivoting,
-`det`, `inv`, `solve`, Householder QR, `lstsq`, Cholesky, symmetric
-eigendecomposition (cyclic Jacobi), thin SVD (one-sided Jacobi), `cond`, and
-the 1, ∞ and Frobenius norms. Every algorithm uses a fixed, documented
-operation order, so results are reproducible.
+The library provides: `Add`, `Mul`, `Transpose`, the 1/∞/Frobenius norms, LU
+with partial pivoting (`LU`, `Det`, `Solve`, `Inverse`), Householder QR and
+least squares (`QR`, `LeastSquares`), `Cholesky`, the cyclic Jacobi symmetric
+eigensolver (`SymEigen`), and the one-sided Jacobi `SVD` with `Cond`. All
+algorithms are the classical O(n³) ones with every sum accumulated in a fixed,
+documented order, and multiplications are never fused with additions, so
+results are reproducible bit for bit across platforms.
 
 ## Layout
 
-| path | responsibility |
+| path | contents |
 |---|---|
-| `matrix.go`, `ops.go` | `Matrix` (flat row-major), add/mul/transpose, norms |
-| `lu.go` | LU, `Det`, `Solve`, `Inverse` |
-| `qr.go` | Householder QR, `LeastSquares` |
-| `chol.go` | Cholesky |
-| `eig.go` | symmetric Jacobi eigensolver, `SignNormalize` |
-| `svd.go` | one-sided Jacobi SVD, `SingularValues`, `Cond` |
-| `errors.go` | sentinel errors (`ErrSingular`, …) |
-| `mmio/` | Matrix Market reader / writer |
-| `internal/driver/` | script parsing and command dispatch |
-| `cmd/linalg/` | the command-line tool |
+| `*.go` (package `linalg`) | `Matrix` type, operations, factorisations, error values |
+| `mmio/` | Matrix Market reader (coordinate/array, real/integer/pattern, general/symmetric/skew-symmetric) and writer |
+| `internal/driver/` | script parsing, command dispatch, result file naming |
+| `cmd/linalg/` | the command-line entry point |
 
 ## Build
 
-Requires Go 1.27.1.
+Requires Go 1.27 or later.
 
 ```sh
-./build.sh          # produces bin/linalg
-go test ./...       # unit tests
+./build.sh            # builds bin/linalg (go build -o bin/linalg ./cmd/linalg)
+go test ./...         # run the tests
 ```
 
-## Command line
+## Command-line use
 
 ```sh
 ./run.sh <input directory> <output directory>
-# or: bin/linalg <input directory> <output directory>
 ```
 
-The input directory holds `commands.txt` (one command per line; blank lines
-and `#` comments are skipped and not counted) and the Matrix Market files it
-names, e.g.
+The input directory holds `commands.txt` and the matrix files it names. Each
+non-blank, non-`#` line is one command: an operation (`add mul transpose lu
+det inv solve qr chol eig svd lstsq norm1 norminf normfro cond`) followed by
+its matrix file names. For command number `N` (counting only command lines),
+results are written to the output directory as `NNN_<suffix>.mtx` in Matrix
+Market `array real general` form with `%.10e` values (for example
+`001_lu_P.mtx`, `001_lu_L.mtx`, `001_lu_U.mtx`). A command that cannot be
+carried out writes `NNN_error.txt` containing one of `dimension_mismatch`,
+`not_square`, `not_symmetric`, `not_positive_definite` or `singular`, and the
+run continues. The exit status is 0.
 
 ```
-add a.mtx b.mtx
+# commands.txt
 det a.mtx
-svd m.mtx
+solve a.mtx b.mtx
 ```
-
-Result `k` is written to `NNN_<suffix>.mtx` (`NNN` = zero-padded command
-number, e.g. `001_add.mtx`, `003_lu_P.mtx`, `003_lu_L.mtx`, `003_lu_U.mtx`) in
-`array real general` form with values printed as `%.10e`. A command that
-cannot be carried out writes `NNN_error.txt` containing one of
-`dimension_mismatch`, `not_square`, `not_symmetric`, `not_positive_definite`
-or `singular`, and the program still exits 0. (Unreadable matrices or unknown
-operations, which the format does not define, write `invalid_input` and a note
-on stderr.) Nothing is read from stdin or printed to stdout.
-
-The full format is specified in `problems/linalg/SPEC.md`.
 
 ## Library example
 
@@ -68,36 +59,33 @@ The full format is specified in `problems/linalg/SPEC.md`.
 package main
 
 import (
-	"errors"
 	"fmt"
+	"log"
 
-	"linalg"
-	"linalg/mmio"
+	"example.com/linalg"
+	"example.com/linalg/mmio"
 )
 
 func main() {
-	a, _ := linalg.FromRows([][]float64{{4, 2}, {2, 5}})
-	b, _ := linalg.FromRows([][]float64{{1}, {2}})
+	a := linalg.FromRows([][]float64{{4, 2}, {2, 5}})
 
-	x, err := linalg.Solve(a, b)
+	l, err := linalg.Cholesky(a) // A = L Lᵀ
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
-	fmt.Println(x.Data) // [0.0625 0.375]
+	fmt.Println(l.Data) // [2 0 1 2]
 
-	if _, err := linalg.Cholesky(linalg.New(2, 3)); errors.Is(err, linalg.ErrNotSquare) {
-		fmt.Println("not square:", err)
+	w, v, _ := linalg.SymEigen(a) // ascending eigenvalues, sign-normalised vectors
+	fmt.Println(w, v.Rows)
+
+	if _, err := linalg.Inverse(linalg.New(2, 3)); err != nil {
+		code, _ := linalg.ErrorCode(err)
+		fmt.Println(code) // not_square
 	}
 
-	e, _ := linalg.EigSym(a)
-	fmt.Println(e.Values)
-
-	fmt.Print(string(mmio.Format(x))) // Matrix Market text
+	m, _ := mmio.ReadFile("a.mtx") // Matrix Market input
+	_ = mmio.WriteFile("out.mtx", m)
 }
 ```
 
-## Notes
-
-- Go may fuse `x*y + z` into a single fused multiply-add on some
-  architectures (e.g. arm64); this changes results only in the last bit.
-- Jacobi methods run at most 60 sweeps, per the specification.
+See the package documentation (`go doc ./...`) for the full API.

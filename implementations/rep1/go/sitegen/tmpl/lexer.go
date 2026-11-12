@@ -17,229 +17,221 @@ const (
 
 type token struct {
 	kind tokKind
-	s    string // name, string contents or operator text
+	s    string // name, operator or decoded string
 	i    int64
 	f    float64
 }
 
-type rawKind uint8
+type itemKind uint8
 
 const (
-	rawText rawKind = iota
-	rawVar          // {{ ... }}
-	rawStmt         // {% ... %}
+	itText itemKind = iota
+	itVar
+	itStmt
 )
 
-// rawItem is a lexed chunk of a template: text or the tokens of one tag.
-type rawItem struct {
-	kind rawKind
+// An item is a piece of a template: literal text, or the tokens of a {{ }}
+// or {% %} tag.
+type item struct {
+	kind itemKind
 	text string
 	toks []token
 }
+
+const wsChars = " \t\n\r\f\v"
 
 func isWS(c byte) bool {
 	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v'
 }
 
-func trimLeftWS(s string) string {
-	i := 0
-	for i < len(s) && isWS(s[i]) {
-		i++
-	}
-	return s[i:]
+func isNameStart(c byte) bool {
+	return c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z'
 }
 
-func trimRightWS(s string) string {
-	j := len(s)
-	for j > 0 && isWS(s[j-1]) {
-		j--
-	}
-	return s[:j]
-}
+func isDigit(c byte) bool { return c >= '0' && c <= '9' }
 
-// nextTag finds the first "{{", "{%" or "{#" at or after pos.
-func nextTag(src string, pos int) int {
+// findOpener returns the index of the next "{{", "{%" or "{#" at or after i.
+func findOpener(src string, i int) int {
 	for {
-		i := strings.IndexByte(src[pos:], '{')
-		if i < 0 {
+		j := strings.IndexByte(src[i:], '{')
+		if j < 0 {
 			return -1
 		}
-		i += pos
+		i += j
 		if i+1 < len(src) {
 			if c := src[i+1]; c == '{' || c == '%' || c == '#' {
 				return i
 			}
 		}
-		pos = i + 1
+		i++
 	}
 }
 
-// lex splits a template source into text and tag items, applying whitespace
-// control. Problems raise a syntax error.
-func lex(src string) []rawItem {
-	var items []rawItem
+// lex splits a template source into items, applying whitespace control.
+func lex(src string) []item {
+	var items []item
 	pos := 0
-	stripNext := false // the previous tag ended with "-"
-	for {
-		i := nextTag(src, pos)
+	trimNext := false
+	for pos <= len(src) {
+		i := findOpener(src, pos)
 		end := i
 		if i < 0 {
 			end = len(src)
 		}
 		text := src[pos:end]
-		if stripNext {
-			text = trimLeftWS(text)
+		if trimNext {
+			text = strings.TrimLeft(text, wsChars)
+			trimNext = false
 		}
 		if i < 0 {
 			if text != "" {
-				items = append(items, rawItem{kind: rawText, text: text})
+				items = append(items, item{kind: itText, text: text})
 			}
-			return items
+			break
 		}
-		kindCh := src[i+1]
-		contentStart := i + 2
-		trimLeft := contentStart < len(src) && src[contentStart] == '-'
-		if trimLeft {
-			contentStart++
-			text = trimRightWS(text)
+		kind := src[i+1]
+		j := i + 2
+		if j < len(src) && src[j] == '-' {
+			text = strings.TrimRight(text, wsChars)
+			j++
 		}
 		if text != "" {
-			items = append(items, rawItem{kind: rawText, text: text})
+			items = append(items, item{kind: itText, text: text})
 		}
-		switch kindCh {
-		case '#':
-			j := strings.Index(src[contentStart:], "#}")
-			if j < 0 {
-				fail(SyntaxError, "unterminated comment")
+		if kind == '#' {
+			k := strings.Index(src[j:], "#}")
+			if k < 0 {
+				throw(KindSyntax, "unclosed comment")
 			}
-			j += contentStart
-			stripNext = j > contentStart && src[j-1] == '-'
-			pos = j + 2
-		case '{':
-			toks, next, trim := lexTag(src, contentStart, '}')
-			items = append(items, rawItem{kind: rawVar, toks: toks})
-			pos, stripNext = next, trim
-		default:
-			toks, next, trim := lexTag(src, contentStart, '%')
-			items = append(items, rawItem{kind: rawStmt, toks: toks})
-			pos, stripNext = next, trim
+			e := j + k
+			trimNext = e > j && src[e-1] == '-'
+			pos = e + 2
+			continue
+		}
+		toks, rstrip, next := lexTag(src, j, kind == '{')
+		trimNext = rstrip
+		pos = next
+		if kind == '{' {
+			items = append(items, item{kind: itVar, toks: toks})
+		} else {
+			items = append(items, item{kind: itStmt, toks: toks})
 		}
 	}
+	return items
 }
 
-func isNameStart(c byte) bool { return c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' }
-func isNameChar(c byte) bool  { return isNameStart(c) || c >= '0' && c <= '9' }
-func isDigitByte(c byte) bool { return c >= '0' && c <= '9' }
-
-// lexTag tokenizes tag content from pos up to the closer ("}}" or "%}",
-// optionally preceded by '-'). close is '}' or '%'.
-func lexTag(src string, pos int, close byte) (toks []token, next int, trim bool) {
+// lexTag tokenizes tag content starting at i up to the closing "}}" (when
+// variable is true) or "%}". It returns the tokens, whether the closer had a
+// leading '-', and the index after the closer.
+func lexTag(src string, i int, variable bool) (toks []token, rstrip bool, next int) {
+	closer := "%}"
+	if variable {
+		closer = "}}"
+	}
 	for {
-		for pos < len(src) && isWS(src[pos]) {
-			pos++
+		for i < len(src) && isWS(src[i]) {
+			i++
 		}
-		if pos >= len(src) {
-			fail(SyntaxError, "unterminated tag")
+		if i >= len(src) {
+			throw(KindSyntax, "unclosed tag")
 		}
-		c := src[pos]
-		if c == '-' && pos+2 < len(src) && src[pos+1] == close && src[pos+2] == '}' {
-			return toks, pos + 3, true
+		if strings.HasPrefix(src[i:], closer) {
+			return toks, false, i + 2
 		}
-		if c == close && pos+1 < len(src) && src[pos+1] == '}' {
-			return toks, pos + 2, false
+		if src[i] == '-' && strings.HasPrefix(src[i+1:], closer) {
+			return toks, true, i + 3
 		}
+		c := src[i]
 		switch {
 		case isNameStart(c):
-			j := pos + 1
-			for j < len(src) && isNameChar(src[j]) {
+			j := i + 1
+			for j < len(src) && (isNameStart(src[j]) || isDigit(src[j])) {
 				j++
 			}
-			toks = append(toks, token{kind: tName, s: src[pos:j]})
-			pos = j
-		case isDigitByte(c):
-			j := pos
-			for j < len(src) && isDigitByte(src[j]) {
+			toks = append(toks, token{kind: tName, s: src[i:j]})
+			i = j
+		case isDigit(c):
+			j := i
+			for j < len(src) && isDigit(src[j]) {
 				j++
 			}
-			if j+1 < len(src) && src[j] == '.' && isDigitByte(src[j+1]) {
+			if j+1 < len(src) && src[j] == '.' && isDigit(src[j+1]) {
 				k := j + 1
-				for k < len(src) && isDigitByte(src[k]) {
+				for k < len(src) && isDigit(src[k]) {
 					k++
 				}
-				f, err := strconv.ParseFloat(src[pos:k], 64)
-				if err != nil {
-					fail(SyntaxError, "invalid number %q", src[pos:k])
-				}
+				f, _ := strconv.ParseFloat(src[i:k], 64)
 				toks = append(toks, token{kind: tFloat, f: f})
-				pos = k
+				i = k
 			} else {
-				n, err := strconv.ParseInt(src[pos:j], 10, 64)
+				n, err := strconv.ParseInt(src[i:j], 10, 64)
 				if err != nil {
-					fail(SyntaxError, "integer literal out of range")
+					throw(KindSyntax, "integer literal out of range")
 				}
 				toks = append(toks, token{kind: tInt, i: n})
-				pos = j
+				i = j
 			}
 		case c == '"' || c == '\'':
-			s, j := lexString(src, pos)
+			s, j := lexString(src, i)
 			toks = append(toks, token{kind: tString, s: s})
-			pos = j
+			i = j
 		default:
-			op := lexOperator(src, pos)
+			op := ""
+			if i+1 < len(src) {
+				switch two := src[i : i+2]; two {
+				case "**", "//", "==", "!=", "<=", ">=":
+					op = two
+				}
+			}
+			if op == "" && strings.IndexByte("~+-*/%<>()[],|.=", c) >= 0 {
+				op = src[i : i+1]
+			}
 			if op == "" {
-				fail(SyntaxError, "unexpected character %q in tag", c)
+				throw(KindSyntax, "unexpected character %q in tag", c)
 			}
 			toks = append(toks, token{kind: tOp, s: op})
-			pos += len(op)
+			i += len(op)
 		}
 	}
 }
 
-func lexString(src string, pos int) (string, int) {
-	quote := src[pos]
-	var sb strings.Builder
-	for i := pos + 1; i < len(src); i++ {
-		c := src[i]
+// lexString decodes the string literal whose opening quote is at src[i].
+func lexString(src string, i int) (string, int) {
+	q := src[i]
+	j := i + 1
+	for j < len(src) && src[j] != q && src[j] != '\\' {
+		j++
+	}
+	if j < len(src) && src[j] == q {
+		return src[i+1 : j], j + 1
+	}
+	var b strings.Builder
+	b.WriteString(src[i+1 : j])
+	for j < len(src) {
+		c := src[j]
 		switch c {
-		case quote:
-			return sb.String(), i + 1
+		case q:
+			return b.String(), j + 1
 		case '\\':
-			i++
-			if i >= len(src) {
-				fail(SyntaxError, "unterminated string")
+			if j+1 >= len(src) {
+				throw(KindSyntax, "unterminated string")
 			}
-			switch src[i] {
-			case '\\':
-				sb.WriteByte('\\')
-			case '"':
-				sb.WriteByte('"')
-			case '\'':
-				sb.WriteByte('\'')
+			switch e := src[j+1]; e {
+			case '\\', '"', '\'':
+				b.WriteByte(e)
 			case 'n':
-				sb.WriteByte('\n')
+				b.WriteByte('\n')
 			case 't':
-				sb.WriteByte('\t')
+				b.WriteByte('\t')
 			default:
-				fail(SyntaxError, "invalid escape in string")
+				throw(KindSyntax, "invalid escape \\%c in string", e)
 			}
+			j += 2
 		default:
-			sb.WriteByte(c)
+			b.WriteByte(c)
+			j++
 		}
 	}
-	fail(SyntaxError, "unterminated string")
+	throw(KindSyntax, "unterminated string")
 	return "", 0
-}
-
-func lexOperator(src string, pos int) string {
-	if pos+1 < len(src) {
-		switch two := src[pos : pos+2]; two {
-		case "**", "//", "==", "!=", "<=", ">=":
-			return two
-		}
-	}
-	switch src[pos] {
-	case '~', '+', '-', '*', '/', '%', '<', '>', '(', ')', '[', ']', ',', '|', '.', '=':
-		return src[pos : pos+1]
-	}
-	return ""
 }

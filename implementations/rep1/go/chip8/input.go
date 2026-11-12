@@ -1,61 +1,47 @@
 package chip8
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
+	"strconv"
 	"strings"
 )
 
-// MaxCycles is the largest cycle budget accepted by ParseInput.
-const MaxCycles = 4000000000
-
-// Program is a parsed problem input: a ROM, a cycle budget and a key schedule.
+// Program is a parsed run request: a ROM, a cycle budget and a key schedule.
 type Program struct {
-	ROM    []byte
-	Cycles uint64
-	Events []KeyEvent
+	ROM      []byte
+	Cycles   uint64
+	Schedule KeySchedule
 }
 
-// ParseInput parses the textual input format: a lowercase-hex ROM line, a
+// ParseProgram parses the textual input format: a lowercase-hex ROM line, a
 // decimal cycle count line and an optional key schedule line of
-// space-separated "<cycle>:<mask>" events with a four-digit hex mask.
-func ParseInput(data []byte) (*Program, error) {
-	text := strings.TrimRight(string(data), "\r\n")
-	lines := strings.Split(text, "\n")
-	if len(lines) < 2 || len(lines) > 3 {
-		return nil, fmt.Errorf("chip8: expected 2 or 3 input lines, got %d", len(lines))
+// space-separated "<cycle>:<mask>" events.
+func ParseProgram(r io.Reader) (*Program, error) {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return nil, err
 	}
-	p := &Program{}
-
-	hexLine := strings.TrimSpace(lines[0])
-	if len(hexLine) == 0 || len(hexLine)%2 != 0 {
-		return nil, errors.New("chip8: ROM must have an even, non-zero number of hex digits")
+	lines := strings.Split(strings.TrimRight(string(data), "\r\n"), "\n")
+	if len(lines) < 2 {
+		return nil, errors.New("chip8: input needs a ROM line and a cycle count line")
 	}
-	if len(hexLine)/2 > MaxROMSize {
-		return nil, fmt.Errorf("chip8: ROM exceeds %d bytes", MaxROMSize)
+	rom, err := hex.DecodeString(strings.TrimSpace(lines[0]))
+	if err != nil {
+		return nil, fmt.Errorf("chip8: bad ROM: %w", err)
 	}
-	p.ROM = make([]byte, len(hexLine)/2)
-	for i := range p.ROM {
-		hi, ok1 := hexVal(hexLine[2*i])
-		lo, ok2 := hexVal(hexLine[2*i+1])
-		if !ok1 || !ok2 {
-			return nil, fmt.Errorf("chip8: invalid hex digit in ROM near offset %d", 2*i)
-		}
-		p.ROM[i] = hi<<4 | lo
+	if len(rom) == 0 {
+		return nil, errors.New("chip8: empty ROM")
 	}
-
-	n, rest, err := parseDecimal(strings.TrimSpace(lines[1]))
-	if err != nil || rest != "" {
-		return nil, fmt.Errorf("chip8: invalid cycle count %q", lines[1])
+	cycles, err := strconv.ParseUint(strings.TrimSpace(lines[1]), 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("chip8: bad cycle count: %w", err)
 	}
-	if n > MaxCycles {
-		return nil, fmt.Errorf("chip8: cycle count %d exceeds %d", n, uint64(MaxCycles))
-	}
-	p.Cycles = n
-
-	if len(lines) == 3 {
-		p.Events, err = ParseSchedule(strings.TrimSpace(lines[2]))
-		if err != nil {
+	p := &Program{ROM: rom, Cycles: cycles}
+	if len(lines) > 2 {
+		if p.Schedule, err = ParseSchedule(lines[2]); err != nil {
 			return nil, err
 		}
 	}
@@ -63,69 +49,36 @@ func ParseInput(data []byte) (*Program, error) {
 }
 
 // ParseSchedule parses a key schedule line such as "9:0300 20:0000".
-// An empty string yields no events. Cycles must be strictly increasing.
-func ParseSchedule(s string) ([]KeyEvent, error) {
-	if s == "" {
-		return nil, nil
-	}
-	var events []KeyEvent
+// An empty line yields an empty schedule.
+func ParseSchedule(s string) (KeySchedule, error) {
+	var sched KeySchedule
 	for _, f := range strings.Fields(s) {
-		c, rest, err := parseDecimal(f)
-		if err != nil || len(rest) != 5 || rest[0] != ':' {
-			return nil, fmt.Errorf("chip8: invalid key event %q", f)
+		c, m, ok := strings.Cut(f, ":")
+		if !ok {
+			return nil, fmt.Errorf("chip8: bad key event %q", f)
 		}
-		var mask uint16
-		for i := 1; i < 5; i++ {
-			d, ok := hexVal(rest[i])
-			if !ok {
-				return nil, fmt.Errorf("chip8: invalid key mask in event %q", f)
-			}
-			mask = mask<<4 | uint16(d)
+		cycle, err := strconv.ParseUint(c, 10, 64)
+		if err != nil {
+			return nil, fmt.Errorf("chip8: bad key event cycle %q: %w", f, err)
 		}
-		if len(events) > 0 && c <= events[len(events)-1].Cycle {
-			return nil, fmt.Errorf("chip8: key event cycles must be strictly increasing (at %q)", f)
+		mask, err := strconv.ParseUint(m, 16, 16)
+		if err != nil {
+			return nil, fmt.Errorf("chip8: bad key event mask %q: %w", f, err)
 		}
-		events = append(events, KeyEvent{Cycle: c, Mask: mask})
+		sched = append(sched, KeyEvent{Cycle: cycle, Mask: uint16(mask)})
 	}
-	return events, nil
+	if !sched.Valid() {
+		return nil, errors.New("chip8: key events must be in strictly increasing cycle order")
+	}
+	return sched, nil
 }
 
-// parseDecimal reads a leading run of decimal digits from s and returns its
-// value and the remainder of s.
-func parseDecimal(s string) (uint64, string, error) {
-	i := 0
-	var n uint64
-	for ; i < len(s) && s[i] >= '0' && s[i] <= '9'; i++ {
-		if n > (1<<63)/10 {
-			return 0, "", errors.New("chip8: number too large")
-		}
-		n = n*10 + uint64(s[i]-'0')
-	}
-	if i == 0 {
-		return 0, "", errors.New("chip8: expected a decimal number")
-	}
-	return n, s[i:], nil
-}
-
-func hexVal(c byte) (byte, bool) {
-	switch {
-	case c >= '0' && c <= '9':
-		return c - '0', true
-	case c >= 'a' && c <= 'f':
-		return c - 'a' + 10, true
-	case c >= 'A' && c <= 'F':
-		return c - 'A' + 10, true
-	}
-	return 0, false
-}
-
-// Run builds a machine with the program's ROM loaded and runs it for the
-// program's cycle budget under its key schedule.
-func (p *Program) Run() (*Machine, error) {
-	m := New()
-	if err := m.LoadROM(p.ROM); err != nil {
+// Execute builds a machine for p, runs it to completion and returns it.
+func (p *Program) Execute() (*Machine, error) {
+	m, err := New(p.ROM)
+	if err != nil {
 		return nil, err
 	}
-	m.RunSchedule(p.Cycles, p.Events)
+	m.Run(p.Cycles, p.Schedule)
 	return m, nil
 }

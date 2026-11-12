@@ -3,4 +3,6 @@ bin/
 *.o
 *.a
 dub.selections.json
-mdiff-test-*
+docs.json
+__dummy.html
+*-test-library

@@ -1,7 +1,6 @@
 #!/bin/sh
-# Builds the spreadsheet CLI into ./bin/spreadsheet.
+# Build the spreadsheet CLI into ./bin/sheet.
 set -e
 dir=$(cd "$(dirname "$0")" && pwd)
 cd "$dir"
-mkdir -p bin
-go build -o bin/spreadsheet ./cmd/spreadsheet
+go build -o bin/sheet ./cmd/sheet

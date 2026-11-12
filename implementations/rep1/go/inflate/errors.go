@@ -2,34 +2,32 @@ package inflate
 
 import "errors"
 
-// Errors returned for malformed streams. They are sentinel values and can be
-// matched with errors.Is.
+// Errors returned by the decoder. They are sentinel values and can be
+// compared with errors.Is.
 var (
-	// ErrTruncated: the stream ended before the final block was complete.
+	// ErrTruncated means the stream ended before the final block was complete.
 	ErrTruncated = errors.New("inflate: unexpected end of stream")
-	// ErrBlockType: a block header used the reserved BTYPE value 3.
+	// ErrBlockType means a block header had the reserved type 3.
 	ErrBlockType = errors.New("inflate: invalid block type")
-	// ErrStoredLength: a stored block's NLEN is not the complement of LEN.
+	// ErrStoredLength means a stored block's LEN and NLEN are not complements.
 	ErrStoredLength = errors.New("inflate: stored block length check failed")
-	// ErrTooManyCodes: HLIT or HDIST exceeds the permitted alphabet size.
-	ErrTooManyCodes = errors.New("inflate: too many length or distance codes")
-	// ErrOverSubscribed: a set of code lengths over-subscribes the code space.
-	ErrOverSubscribed = errors.New("inflate: over-subscribed Huffman code")
-	// ErrIncompleteCode: a set of code lengths leaves code space unused where
-	// that is not permitted.
-	ErrIncompleteCode = errors.New("inflate: incomplete Huffman code")
-	// ErrMissingEndOfBlock: the literal/length code has no end-of-block symbol.
-	ErrMissingEndOfBlock = errors.New("inflate: no end-of-block code")
-	// ErrBadRepeat: a code-length repeat has no previous length or overflows
-	// the number of lengths.
-	ErrBadRepeat = errors.New("inflate: invalid code length repeat")
-	// ErrInvalidCode: a bit pattern matched no code in an incomplete table.
+	// ErrHeaderCounts means HLIT or HDIST of a dynamic block is out of range.
+	ErrHeaderCounts = errors.New("inflate: too many literal/length or distance codes")
+	// ErrCodeLengths means a set of Huffman code lengths is not acceptable:
+	// over-subscribed, incomplete, or missing the end-of-block code.
+	ErrCodeLengths = errors.New("inflate: invalid Huffman code lengths")
+	// ErrRepeat means a code-length repeat had no previous length to copy or
+	// overflowed the number of lengths being read.
+	ErrRepeat = errors.New("inflate: invalid code length repeat")
+	// ErrInvalidCode means the input bits do not match any code of an
+	// incomplete Huffman table.
 	ErrInvalidCode = errors.New("inflate: invalid Huffman code")
-	// ErrInvalidSymbol: a reserved symbol (literal/length 286, 287 or
-	// distance 30, 31) was decoded.
+	// ErrInvalidSymbol means a symbol that must not occur was decoded: a
+	// literal/length symbol 286 or 287, a distance symbol 30 or 31.
 	ErrInvalidSymbol = errors.New("inflate: invalid symbol")
-	// ErrDistance: a back-reference reaches before the start of the output.
+	// ErrDistance means a back-reference reaches before the start of the
+	// output.
 	ErrDistance = errors.New("inflate: distance too far back")
-	// ErrTrailingData: whole bytes remain after the final block.
+	// ErrTrailingData means whole bytes remain after the final block.
 	ErrTrailingData = errors.New("inflate: trailing data after final block")
 )

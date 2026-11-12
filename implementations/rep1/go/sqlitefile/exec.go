@@ -1,413 +1,303 @@
 package sqlitefile
 
 import (
+	"errors"
 	"fmt"
-	"slices"
-	"strings"
+	"sort"
+	"strconv"
+
+	"sqlitefile/query"
+	"sqlitefile/record"
+	"sqlitefile/schema"
+	"sqlitefile/value"
 )
 
-// Result is a materialised set of rows. TEXT and BLOB values may alias the
-// database image and must not be modified.
-type Result struct {
-	Columns []string
-	Rows    [][]Value
-}
-
-// colRef is a resolved column: an index into Table.Columns, or rowidRef.
-const rowidRef = -1
-
-type planCond struct {
-	ref int
-	op  Op
-	lit Value // affinity already applied
-}
-
-// matches reports whether column value v satisfies the condition.
-func (c *planCond) matches(v Value) bool {
-	switch c.op {
-	case OpIs:
-		return v.Kind == KindNull && c.lit.Kind == KindNull || v.Kind != KindNull && c.lit.Kind != KindNull && Compare(v, c.lit) == 0
-	case OpIsNot:
-		return !(v.Kind == KindNull && c.lit.Kind == KindNull || v.Kind != KindNull && c.lit.Kind != KindNull && Compare(v, c.lit) == 0)
+// Exec parses and runs one query line and returns the output lines (without
+// line terminators). Errors cover both malformed queries and references to
+// objects that do not exist.
+func (db *DB) Exec(line string) (lines []string, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			lines, err = nil, fmt.Errorf("sqlitefile: internal error: %v", r)
+		}
+	}()
+	q, err := query.Parse(line)
+	if err != nil {
+		return nil, err
 	}
-	if v.Kind == KindNull || c.lit.Kind == KindNull {
+	switch q := q.(type) {
+	case *query.Tables:
+		return db.catalog.TableNames(), nil
+	case *query.Schema:
+		stmts := db.catalog.Schema(q.Table)
+		for i := range stmts {
+			stmts[i] += ";"
+		}
+		return stmts, nil
+	case *query.Count:
+		return db.count(q)
+	case *query.Select:
+		return db.selectRows(q)
+	case *query.Index:
+		return db.indexLookup(q)
+	}
+	return nil, errors.New("sqlitefile: unknown query type")
+}
+
+func (db *DB) count(q *query.Count) ([]string, error) {
+	t, ok := db.catalog.Table(q.Table)
+	if !ok {
+		return nil, fmt.Errorf("no such table: %s", q.Table)
+	}
+	n, err := db.pager.CountTable(t.RootPage)
+	if err != nil {
+		return nil, err
+	}
+	return []string{strconv.FormatInt(n, 10)}, nil
+}
+
+// colRef is a resolved column: a position in the record, or the rowid.
+type colRef struct {
+	pos      int // record position; ignored when rowid
+	rowid    bool
+	affinity value.Affinity
+}
+
+// resolve finds a column by name; a real column wins over the "rowid"
+// pseudo-column. A rowid-alias column reads from the rowid.
+func resolve(t *schema.Table, name string) (colRef, bool) {
+	if i := t.ColumnIndex(name); i >= 0 {
+		c := t.Columns[i]
+		return colRef{pos: i, rowid: c.RowidPK, affinity: c.Affinity}, true
+	}
+	if schema.EqualFold(name, "rowid") {
+		return colRef{rowid: true, affinity: value.AffinityInteger}, true
+	}
+	return colRef{}, false
+}
+
+// rowReader decodes table rows into column values.
+type rowReader struct {
+	t   *schema.Table
+	rec record.Record
+	rid int64
+}
+
+func (r *rowReader) load(rowid int64, payload []byte) error {
+	r.rid = rowid
+	return r.rec.Reset(payload)
+}
+
+func (r *rowReader) get(c colRef) value.Value {
+	if c.rowid {
+		return value.NewInt(r.rid)
+	}
+	v := r.rec.Value(c.pos)
+	if v.Kind == value.Integer && c.affinity == value.AffinityReal {
+		return value.NewReal(float64(v.Int))
+	}
+	return v
+}
+
+type cond struct {
+	col colRef
+	op  query.Op
+	lit value.Value
+}
+
+func (c cond) matches(v value.Value) bool {
+	switch c.op {
+	case query.OpIs:
+		return value.Compare(v, c.lit) == 0
+	case query.OpIsNot:
+		return value.Compare(v, c.lit) != 0
+	}
+	if v.IsNull() || c.lit.IsNull() {
 		return false
 	}
-	r := Compare(v, c.lit)
+	r := value.Compare(v, c.lit)
 	switch c.op {
-	case OpEq:
+	case query.OpEq:
 		return r == 0
-	case OpNe:
+	case query.OpNe:
 		return r != 0
-	case OpLt:
+	case query.OpLt:
 		return r < 0
-	case OpLe:
+	case query.OpLe:
 		return r <= 0
-	case OpGt:
+	case query.OpGt:
 		return r > 0
 	}
-	return r >= 0
+	return r >= 0 // OpGe
 }
 
-// selectPlan is a SELECT resolved against the catalog: names are column
-// positions and literals have affinity applied.
-type selectPlan struct {
-	table    *Table
-	names    []string
-	cols     []int
-	conds    []planCond
-	orderRef int
-	hasOrder bool
-	desc     bool
-	limit    int64 // -1: unlimited
-}
-
-func (t *Table) resolve(name string) (int, error) {
-	if i := t.ColumnIndex(name); i >= 0 {
-		return i, nil
-	}
-	if strings.EqualFold(name, "rowid") {
-		return rowidRef, nil
-	}
-	return 0, fmt.Errorf("%w: %s", ErrNoSuchColumn, name)
-}
-
-func (t *Table) affinity(ref int) Affinity {
-	if ref == rowidRef {
-		return AffinityInteger
-	}
-	return t.Columns[ref].Affinity
-}
-
-// value reads column ref of the current row: it substitutes the rowid for the
-// alias column and widens integers stored in REAL-affinity columns.
-func (t *Table) value(rec *record, rowid int64, ref int) Value {
-	if ref == rowidRef || ref == t.RowidAlias {
-		return Value{Kind: KindInteger, I: rowid}
-	}
-	v := rec.value(ref)
-	if v.Kind == KindInteger && t.Columns[ref].Affinity == AffinityReal {
-		return Value{Kind: KindReal, F: float64(v.I)}
-	}
-	return v
-}
-
-func (db *DB) planSelect(q *Query) (*selectPlan, error) {
-	t, err := db.Table(q.Table)
-	if err != nil {
-		return nil, err
-	}
-	p := &selectPlan{table: t, limit: q.Limit}
-	if q.Star {
-		for i, c := range t.Columns {
-			p.cols = append(p.cols, i)
-			p.names = append(p.names, c.Name)
-		}
-	} else {
-		for _, name := range q.Columns {
-			ref, err := t.resolve(name)
-			if err != nil {
-				return nil, err
-			}
-			p.cols = append(p.cols, ref)
-			p.names = append(p.names, name)
-		}
-	}
-	for _, c := range q.Where {
-		ref, err := t.resolve(c.Column)
-		if err != nil {
-			return nil, err
-		}
-		p.conds = append(p.conds, planCond{ref: ref, op: c.Op, lit: ApplyAffinity(c.Value, t.affinity(ref))})
-	}
-	if q.OrderBy != "" {
-		ref, err := t.resolve(q.OrderBy)
-		if err != nil {
-			return nil, err
-		}
-		p.orderRef, p.hasOrder, p.desc = ref, true, q.Desc
-	}
-	return p, nil
-}
-
-// scan walks the table in rowid order, calls fn for rows passing every WHERE
-// condition, and stops early when fn returns true.
-func (db *DB) scan(p *selectPlan, fn func(rowid int64, rec *record, volatile bool) bool) error {
-	if p.limit == 0 {
-		return nil
-	}
-	r := &reader{pg: db.pager}
-	var rec record
-	t := p.table
-	return r.walkTable(t.Root, func(rowid int64, payload []byte, vol bool) (bool, error) {
-		if err := rec.parse(payload); err != nil {
-			return false, err
-		}
-		for i := range p.conds {
-			c := &p.conds[i]
-			if !c.matches(t.value(&rec, rowid, c.ref)) {
-				return false, nil
-			}
-		}
-		return fn(rowid, &rec, vol), nil
-	})
-}
-
-// appendRow formats the selected columns of one row, TAB separated, plus LF.
-func appendRow(dst []byte, t *Table, cols []int, rec *record, rowid int64) []byte {
-	for i, ref := range cols {
+func formatRow(r *rowReader, cols []colRef, buf []byte) []byte {
+	for i, c := range cols {
 		if i > 0 {
-			dst = append(dst, '\t')
+			buf = append(buf, '\t')
 		}
-		dst = AppendValue(dst, t.value(rec, rowid, ref))
+		buf = append(buf, r.get(c).String()...)
 	}
-	return append(dst, '\n')
+	return buf
 }
 
-type matchedRow struct {
-	rowid int64
-	key   Value
-	vals  []Value
-}
-
-// selectRows runs a plan and returns the surviving rows, ordered and limited.
-func (db *DB) selectRows(p *selectPlan) ([]matchedRow, error) {
-	var rows []matchedRow
-	t := p.table
-	err := db.scan(p, func(rowid int64, rec *record, vol bool) bool {
-		m := matchedRow{rowid: rowid, vals: make([]Value, len(p.cols))}
-		for i, ref := range p.cols {
-			m.vals[i] = keep(t.value(rec, rowid, ref), vol)
-		}
-		if p.hasOrder {
-			m.key = keep(t.value(rec, rowid, p.orderRef), vol)
-		}
-		rows = append(rows, m)
-		return !p.hasOrder && p.limit >= 0 && int64(len(rows)) >= p.limit
-	})
-	if err != nil {
-		return nil, err
-	}
-	if p.hasOrder {
-		slices.SortFunc(rows, func(a, b matchedRow) int {
-			c := Compare(a.key, b.key)
-			if p.desc {
-				c = -c
-			}
-			if c != 0 {
-				return c
-			}
-			switch {
-			case a.rowid < b.rowid:
-				return -1
-			case a.rowid > b.rowid:
-				return 1
-			}
-			return 0
-		})
-	}
-	if p.limit >= 0 && int64(len(rows)) > p.limit {
-		rows = rows[:p.limit]
-	}
-	return rows, nil
-}
-
-// keep copies TEXT/BLOB bytes that live in the reader's scratch buffer.
-func keep(v Value, volatile bool) Value {
-	if volatile && v.B != nil {
-		v.B = append([]byte{}, v.B...)
-	}
-	return v
-}
-
-// Select runs a SELECT query and returns its rows. q.Command must be
-// CmdSelect.
-func (db *DB) Select(q *Query) (res *Result, err error) {
-	defer recoverCorrupt(&err)
-	if q.Command != CmdSelect {
-		return nil, fmt.Errorf("%w: not a SELECT", ErrQuery)
-	}
-	p, err := db.planSelect(q)
-	if err != nil {
-		return nil, err
-	}
-	rows, err := db.selectRows(p)
-	if err != nil {
-		return nil, err
-	}
-	res = &Result{Columns: p.names, Rows: make([][]Value, len(rows))}
-	for i := range rows {
-		res.Rows[i] = rows[i].vals
-	}
-	return res, nil
-}
-
-// indexPlan is a resolved INDEX command.
-type indexPlan struct {
-	ix  *Index
-	t   *Table
-	key Value
-}
-
-func (db *DB) planIndex(name string, key Value) (*indexPlan, error) {
-	ix, ok := db.Index(name)
-	if !ok || len(ix.Columns) != 1 {
-		return nil, fmt.Errorf("%w: %s", ErrNoSuchIndex, name)
-	}
-	t, err := db.Table(ix.Table)
-	if err != nil {
-		return nil, err
-	}
-	ref, err := t.resolve(ix.Columns[0])
-	if err != nil {
-		return nil, err
-	}
-	return &indexPlan{ix: ix, t: t, key: ApplyAffinity(key, t.affinity(ref))}, nil
-}
-
-// lookup finds the matching table rows (ascending rowid) via the index B-tree
-// and calls fn for each.
-func (db *DB) lookup(p *indexPlan, fn func(rowid int64, rec *record)) error {
-	if p.key.Kind == KindNull {
-		return nil
-	}
-	r := &reader{pg: db.pager}
-	ids, err := r.indexEq(p.ix.Root, p.key)
-	if err != nil {
-		return err
-	}
-	slices.Sort(ids)
-	ids = slices.Compact(ids)
-	var rec record
-	for _, id := range ids {
-		payload, _, found, err := r.seekTable(p.t.Root, id)
-		if err != nil {
-			return err
-		}
-		if !found {
-			continue
-		}
-		if err := rec.parse(payload); err != nil {
-			return err
-		}
-		fn(id, &rec)
-	}
-	return nil
-}
-
-func (t *Table) allColumns() []int {
-	cols := make([]int, len(t.Columns))
-	for i := range cols {
-		cols[i] = i
+func (db *DB) allColumns(t *schema.Table) []colRef {
+	cols := make([]colRef, len(t.Columns))
+	for i, c := range t.Columns {
+		cols[i] = colRef{pos: i, rowid: c.RowidPK, affinity: c.Affinity}
 	}
 	return cols
 }
 
-// LookupIndex returns every row whose indexed column equals key, found by a
-// key-directed descent of the named single-column index, in rowid order. The
-// rows hold all table columns, as SELECT * would.
-func (db *DB) LookupIndex(name string, key Value) (res *Result, err error) {
-	defer recoverCorrupt(&err)
-	p, err := db.planIndex(name, key)
-	if err != nil {
-		return nil, err
+func (db *DB) selectRows(q *query.Select) ([]string, error) {
+	t, ok := db.catalog.Table(q.Table)
+	if !ok {
+		return nil, fmt.Errorf("no such table: %s", q.Table)
 	}
-	res = &Result{}
-	for _, c := range p.t.Columns {
-		res.Columns = append(res.Columns, c.Name)
-	}
-	cols := p.t.allColumns()
-	err = db.lookup(p, func(rowid int64, rec *record) {
-		vals := make([]Value, len(cols))
-		for i, ref := range cols {
-			vals[i] = p.t.value(rec, rowid, ref)
+	var cols []colRef
+	if q.Star {
+		cols = db.allColumns(t)
+	} else {
+		for _, name := range q.Columns {
+			c, ok := resolve(t, name)
+			if !ok {
+				return nil, fmt.Errorf("no such column: %s", name)
+			}
+			cols = append(cols, c)
 		}
-		res.Rows = append(res.Rows, vals)
+	}
+	conds := make([]cond, len(q.Where))
+	for i, w := range q.Where {
+		c, ok := resolve(t, w.Column)
+		if !ok {
+			return nil, fmt.Errorf("no such column: %s", w.Column)
+		}
+		conds[i] = cond{col: c, op: w.Op, lit: c.affinity.ApplyToLiteral(w.Literal)}
+	}
+	var order colRef
+	if q.OrderBy != "" {
+		var ok bool
+		if order, ok = resolve(t, q.OrderBy); !ok {
+			return nil, fmt.Errorf("no such column: %s", q.OrderBy)
+		}
+	}
+	if q.HasLimit && q.Limit == 0 {
+		return nil, nil
+	}
+
+	type sortRow struct {
+		key  value.Value
+		line string
+	}
+	var out []string
+	var sortRows []sortRow
+	sorting := q.OrderBy != ""
+	rr := &rowReader{t: t}
+	var buf []byte
+	err := db.pager.ScanTable(t.RootPage, func(rowid int64, payload []byte) (bool, error) {
+		if err := rr.load(rowid, payload); err != nil {
+			return false, err
+		}
+		for _, c := range conds {
+			if !c.matches(rr.get(c.col)) {
+				return true, nil
+			}
+		}
+		buf = formatRow(rr, cols, buf[:0])
+		if sorting {
+			sortRows = append(sortRows, sortRow{rr.get(order), string(buf)})
+			return true, nil
+		}
+		out = append(out, string(buf))
+		return !(q.HasLimit && int64(len(out)) >= q.Limit), nil
 	})
 	if err != nil {
 		return nil, err
 	}
-	return res, nil
+	if sorting {
+		// Rows arrive in ascending rowid order and the sort is stable, so
+		// ties stay in ascending rowid order for both directions.
+		sort.SliceStable(sortRows, func(i, j int) bool {
+			c := value.Compare(sortRows[i].key, sortRows[j].key)
+			if q.Desc {
+				return c > 0
+			}
+			return c < 0
+		})
+		if q.HasLimit && int64(len(sortRows)) > q.Limit {
+			sortRows = sortRows[:q.Limit]
+		}
+		out = make([]string, len(sortRows))
+		for i, r := range sortRows {
+			out[i] = r.line
+		}
+	}
+	return out, nil
 }
 
-// Exec runs one query line and appends its output, exactly as the command-line
-// tool would write it, to dst. On error dst is returned unchanged.
-func (db *DB) Exec(line string, dst []byte) ([]byte, error) {
-	q, err := ParseQuery(line)
+func (db *DB) indexLookup(q *query.Index) ([]string, error) {
+	idx, ok := db.catalog.Index(q.Name)
+	if !ok || len(idx.Columns) != 1 {
+		return nil, fmt.Errorf("no such single-column index: %s", q.Name)
+	}
+	t, ok := db.catalog.Table(idx.Table)
+	if !ok {
+		return nil, fmt.Errorf("index %s: no such table: %s", q.Name, idx.Table)
+	}
+	col, ok := resolve(t, idx.Columns[0])
+	if !ok {
+		return nil, fmt.Errorf("index %s: no such column: %s", q.Name, idx.Columns[0])
+	}
+	key := col.affinity.ApplyToLiteral(q.Literal)
+	if key.IsNull() {
+		return nil, nil
+	}
+
+	var rec record.Record
+	cmp := func(entry []byte) (int, error) {
+		if err := rec.Reset(entry); err != nil {
+			return 0, err
+		}
+		return value.Compare(rec.Value(0), key), nil
+	}
+	var rowids []int64
+	err := db.pager.SearchIndex(idx.RootPage, cmp, func(entry []byte) error {
+		if err := rec.Reset(entry); err != nil {
+			return err
+		}
+		n := rec.Len()
+		if n < 2 {
+			return errors.New("index entry has no rowid")
+		}
+		id := rec.Value(n - 1)
+		if id.Kind != value.Integer {
+			return errors.New("index entry has a non-integer rowid")
+		}
+		rowids = append(rowids, id.Int)
+		return nil
+	})
 	if err != nil {
-		return dst, err
+		return nil, err
 	}
-	return db.ExecQuery(q, dst)
-}
+	sort.Slice(rowids, func(i, j int) bool { return rowids[i] < rowids[j] })
 
-// ExecQuery is Exec for an already parsed query.
-func (db *DB) ExecQuery(q *Query, dst []byte) (out []byte, err error) {
-	start := len(dst)
-	defer func() {
+	cols := db.allColumns(t)
+	rr := &rowReader{t: t}
+	var out []string
+	var buf []byte
+	for _, id := range rowids {
+		payload, found, err := db.pager.SeekTable(t.RootPage, id)
 		if err != nil {
-			out = dst[:start]
+			return nil, err
 		}
-	}()
-	defer recoverCorrupt(&err)
-	switch q.Command {
-	case CmdTables:
-		for _, name := range db.Tables() {
-			dst = append(append(dst, name...), '\n')
+		if !found {
+			continue
 		}
-	case CmdSchema:
-		for _, sql := range db.Schema(q.Table) {
-			dst = append(append(dst, sql...), ';', '\n')
+		if err := rr.load(id, payload); err != nil {
+			return nil, err
 		}
-	case CmdCount:
-		n, err := db.Count(q.Table)
-		if err != nil {
-			return dst[:start], err
-		}
-		dst = append(AppendValue(dst, Int(n)), '\n')
-	case CmdSelect:
-		p, err := db.planSelect(q)
-		if err != nil {
-			return dst[:start], err
-		}
-		if p.hasOrder {
-			rows, err := db.selectRows(p)
-			if err != nil {
-				return dst[:start], err
-			}
-			for _, m := range rows {
-				for i, v := range m.vals {
-					if i > 0 {
-						dst = append(dst, '\t')
-					}
-					dst = AppendValue(dst, v)
-				}
-				dst = append(dst, '\n')
-			}
-			break
-		}
-		var n int64
-		err = db.scan(p, func(rowid int64, rec *record, _ bool) bool {
-			dst = appendRow(dst, p.table, p.cols, rec, rowid)
-			n++
-			return p.limit >= 0 && n >= p.limit
-		})
-		if err != nil {
-			return dst[:start], err
-		}
-	case CmdIndex:
-		p, err := db.planIndex(q.IndexName, q.Key)
-		if err != nil {
-			return dst[:start], err
-		}
-		cols := p.t.allColumns()
-		err = db.lookup(p, func(rowid int64, rec *record) {
-			dst = appendRow(dst, p.t, cols, rec, rowid)
-		})
-		if err != nil {
-			return dst[:start], err
-		}
-	default:
-		return dst, fmt.Errorf("%w: unknown command", ErrQuery)
+		buf = formatRow(rr, cols, buf[:0])
+		out = append(out, string(buf))
 	}
-	return dst, nil
+	return out, nil
 }

@@ -1,48 +1,49 @@
 # softfloat
 
-A software implementation of IEEE-754 binary32 (single-precision) arithmetic in
-Go: add, subtract, multiply, divide and square root, with round-to-nearest-even
-and full gradual underflow (denormals). Everything is computed with integer
-operations on a single 64-bit word plus a sticky bit — no hardware floating
-point, no `math.Sqrt`, standard library only (`math/bits` for bit-length).
-
-Values are exchanged as raw 32-bit patterns (`uint32`), so every bit of every
-result is well defined. Any NaN operand and every invalid operation yields the
-canonical quiet NaN `0x7fc00000`. Exceptions and flags are not modelled.
+IEEE-754 binary32 (single precision) arithmetic in pure integer Go: add,
+subtract, multiply, divide and square root, with round-to-nearest-even and full
+gradual underflow. Values are raw 32-bit patterns, so every output bit is
+exact. No host floating point is used; only the standard library is required.
 
 ## Layout
 
-| Path | Responsibility |
-| --- | --- |
-| `doc.go`, `bits.go` | package docs, constants, classification, operand unpacking |
-| `round.go` | `roundPack`: the one shared single-rounding routine (normal + denormal) |
-| `add.go`, `mul.go`, `div.go`, `sqrt.go` | the arithmetic operations |
-| `op.go` | `Op` enum, `ParseOp`, `Eval` dispatch |
-| `internal/batch` | text protocol: parsing lines, hex formatting |
-| `cmd/softfloat` | the command-line tool |
+| Path                | Purpose                                                   |
+|---------------------|-----------------------------------------------------------|
+| `float32.go`        | bit-field constants, classification, unpacking            |
+| `round.go`          | the single shared round-and-pack step, sticky-shift helper |
+| `add.go` `mul.go` `div.go` `sqrt.go` | the operations                           |
+| `op.go`             | `Op` enum and `Apply` dispatcher                          |
+| `batch/`            | line-oriented script evaluation (parsing/formatting)      |
+| `cmd/softfloat/`    | the command-line tool                                     |
 
-## Build
+Each operation produces a truncated integer result plus a sticky bit (all
+intermediates fit in 64 bits); `roundPack` rounds once, directly onto the
+normal or denormal grid. Division is one integer divide; square root is the
+restoring digit-by-digit method.
 
-Requires Go 1.27.1.
+## Build and test
 
     ./build.sh          # produces bin/softfloat
-    go test ./...       # unit tests (add -short for a quicker run)
+    go test ./...       # add -short for a quicker run
 
-## Command-line usage
+Requires Go 1.27.1. The tests compare against the hardware `float32` type as an
+oracle (tests only; the library never uses it).
 
-The tool reads operations from standard input, one per line, and prints one
-8-digit lowercase hex result per line:
+## CLI
 
-    $ printf 'add 3f800000 3f800000\ndiv 3f800000 40400000\nsqrt 40000000\n' | ./run.sh
-    40000000
+    ./run.sh < input.txt
+
+Input: one operation per line, `add|sub|mul|div <a> <b>` or `sqrt <a>`, with
+operands as 8 lowercase hex digits (the binary32 bit pattern). Output: one
+8-digit lowercase hex result per line. Any NaN operand or invalid operation
+gives the canonical quiet NaN `7fc00000`. A malformed line prints an error to
+stderr and exits nonzero.
+
+    $ printf 'div 3f800000 40400000\nsqrt 40000000\n' | ./run.sh
     3eaaaaab
     3fb504f3
 
-Line format: `<op> <a> <b>` for `add sub mul div`, `sqrt <a>` for square root;
-operands are 8 hex digits (the binary32 bit pattern). The program exits
-non-zero (after printing results for the preceding lines) on a malformed line.
-
-## Library usage
+## Library
 
 ```go
 package main
@@ -55,33 +56,12 @@ import (
 
 func main() {
 	one, three := uint32(0x3f800000), uint32(0x40400000)
-	fmt.Printf("%08x\n", softfloat.Div(one, three))       // 3eaaaaab
-	fmt.Printf("%08x\n", softfloat.Sqrt(0x40000000))      // 3fb504f3
-	fmt.Printf("%08x\n", softfloat.Add(0x7f800000, 0xff800000)) // 7fc00000 (inf - inf)
-
-	op, _ := softfloat.ParseOp("mul")
-	fmt.Printf("%08x\n", softfloat.Eval(op, three, 0xc0400000)) // c1100000 (3 * -3)
+	fmt.Printf("%08x\n", softfloat.Div(one, three))   // 3eaaaaab
+	fmt.Printf("%08x\n", softfloat.Sqrt(0x40000000))  // 3fb504f3
+	fmt.Printf("%08x\n", softfloat.Apply(softfloat.OpAdd, one, one)) // 40000000
 }
 ```
 
-The public API: `Add`, `Sub`, `Mul`, `Div`, `Sqrt`, `Neg`, `IsNaN`, `IsInf`,
-`IsZero`, the constants `QNaN`, `PosInf`, `NegInf`, and `Op`/`ParseOp`/`Eval`.
-
-## Design notes
-
-* Special values (NaN, infinity, zero) are resolved from the bit fields first;
-  only finite nonzero operands reach the arithmetic.
-* Operands unpack to `(m, e)` with value `m·2^e` on the 2^-149 grid.
-* `add` aligns with 32 guard bits and folds shifted-out bits into a sticky flag;
-  `mul` is an exact 24×24→48-bit product; `div` is one 64-bit divide of the
-  normalised significands shifted left by 32; `sqrt` is a digit-by-digit
-  integer root of the scaled significand.
-* `roundPack` rounds exactly once onto the destination grid (normal or
-  denormal), so there is no double rounding; a carry out of the significand
-  ripples naturally into the exponent field (including denormal → smallest
-  normal and overflow → infinity).
-
-## Testing note
-
-The unit tests use the host's `float32` arithmetic as an independent oracle
-for randomised comparison; the library itself never does.
+Functions: `Add`, `Sub`, `Mul`, `Div`, `Sqrt`, `Neg`, `IsNaN`, `IsInf`,
+`IsZero`, `Apply`, `ParseOp`. The module path is `softfloat`; use it from
+another module with a `replace` directive or `go.work`.

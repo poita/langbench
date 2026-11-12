@@ -1,19 +1,21 @@
 // Package sexpr reads and prints the small s-expression dialect used by
 // Spiremark card databases.
 //
-// The dialect has four kinds of value: lists, symbols, integers and strings.
-// Comments start with ';' and run to the end of the line. Strings are
-// delimited by double quotes, may not contain a newline and have no escapes.
+// The lexical rules are deliberately tiny: whitespace separates tokens, ';'
+// starts a comment that runs to the end of the line, strings are delimited by
+// double quotes and have no escapes (and may not contain a newline), and every
+// other maximal run of characters is an atom. Atoms matching -?[0-9]+ are
+// integers; everything else is a symbol.
 package sexpr
 
 import (
-	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
 
-// Kind is the type of a Node.
-type Kind uint8
+// Kind discriminates the four node shapes.
+type Kind int
 
 // Node kinds.
 const (
@@ -23,36 +25,74 @@ const (
 	String
 )
 
-// Node is one parsed s-expression value.
+// Node is one parsed s-expression.
 type Node struct {
-	Kind  Kind
-	Text  string  // symbol name or string contents
-	Int   int64   // value of an Int node
-	Items []*Node // elements of a List node
+	Kind Kind
+	Text string // symbol name or string contents
+	Num  int64  // value of an Int node
+	Kids []Node // elements of a List node
 }
 
-// Errors returned by Parse.
-var (
-	ErrUnbalanced   = errors.New("sexpr: unbalanced parentheses")
-	ErrUnterminated = errors.New("sexpr: unterminated string")
-	ErrBadInteger   = errors.New("sexpr: integer out of range")
-)
+// IsSym reports whether n is the symbol s.
+func (n Node) IsSym(s string) bool { return n.Kind == Symbol && n.Text == s }
+
+// Head returns the leading symbol of a list and the remaining elements. ok is
+// false when n is not a non-empty list starting with a symbol.
+func (n Node) Head() (name string, args []Node, ok bool) {
+	if n.Kind != List || len(n.Kids) == 0 || n.Kids[0].Kind != Symbol {
+		return "", nil, false
+	}
+	return n.Kids[0].Text, n.Kids[1:], true
+}
+
+// String prints n in canonical form: lists as "(a b c)", symbols verbatim,
+// integers in minimal decimal and strings in double quotes.
+func (n Node) String() string {
+	var sb strings.Builder
+	n.write(&sb)
+	return sb.String()
+}
+
+func (n Node) write(sb *strings.Builder) {
+	switch n.Kind {
+	case List:
+		sb.WriteByte('(')
+		for i, k := range n.Kids {
+			if i > 0 {
+				sb.WriteByte(' ')
+			}
+			k.write(sb)
+		}
+		sb.WriteByte(')')
+	case Symbol:
+		sb.WriteString(n.Text)
+	case Int:
+		sb.WriteString(strconv.FormatInt(n.Num, 10))
+	case String:
+		sb.WriteByte('"')
+		sb.WriteString(n.Text)
+		sb.WriteByte('"')
+	}
+}
+
+// SyntaxError describes a lexical or structural problem.
+type SyntaxError struct {
+	Line int
+	Msg  string
+}
+
+func (e *SyntaxError) Error() string { return fmt.Sprintf("line %d: %s", e.Line, e.Msg) }
 
 func isSpace(c byte) bool {
-	switch c {
-	case ' ', '\t', '\r', '\n', '\f', '\v':
-		return true
-	}
-	return false
+	return c == ' ' || c == '\t' || c == '\r' || c == '\n' || c == '\f' || c == '\v'
 }
 
-func isDelim(c byte) bool {
-	return isSpace(c) || c == '(' || c == ')' || c == ';' || c == '"'
+func isAtomByte(c byte) bool {
+	return !isSpace(c) && c != '(' && c != ')' && c != ';' && c != '"'
 }
 
-// isIntAtom reports whether s matches -?[0-9]+.
 func isIntAtom(s string) bool {
-	if s != "" && s[0] == '-' {
+	if strings.HasPrefix(s, "-") {
 		s = s[1:]
 	}
 	if s == "" {
@@ -66,14 +106,19 @@ func isIntAtom(s string) bool {
 	return true
 }
 
-// Parse reads every top-level value of src.
-func Parse(src []byte) ([]*Node, error) {
-	var stack [][]*Node
-	var top []*Node
+// ParseAll parses src into its sequence of top-level nodes. Any top-level
+// element is accepted here (callers decide whether atoms are allowed).
+func ParseAll(src string) ([]Node, error) {
+	var stack [][]Node
+	var cur []Node
+	line := 1
 	i := 0
 	for i < len(src) {
 		c := src[i]
 		switch {
+		case c == '\n':
+			line++
+			i++
 		case isSpace(c):
 			i++
 		case c == ';':
@@ -81,15 +126,15 @@ func Parse(src []byte) ([]*Node, error) {
 				i++
 			}
 		case c == '(':
-			stack = append(stack, top)
-			top = nil
+			stack = append(stack, cur)
+			cur = nil
 			i++
 		case c == ')':
 			if len(stack) == 0 {
-				return nil, ErrUnbalanced
+				return nil, &SyntaxError{line, "unbalanced ')'"}
 			}
-			n := &Node{Kind: List, Items: top}
-			top = append(stack[len(stack)-1], n)
+			list := Node{Kind: List, Kids: cur}
+			cur = append(stack[len(stack)-1], list)
 			stack = stack[:len(stack)-1]
 			i++
 		case c == '"':
@@ -98,71 +143,30 @@ func Parse(src []byte) ([]*Node, error) {
 				j++
 			}
 			if j >= len(src) || src[j] != '"' {
-				return nil, ErrUnterminated
+				return nil, &SyntaxError{line, "unterminated string"}
 			}
-			top = append(top, &Node{Kind: String, Text: string(src[i+1 : j])})
+			cur = append(cur, Node{Kind: String, Text: src[i+1 : j]})
 			i = j + 1
 		default:
 			j := i
-			for j < len(src) && !isDelim(src[j]) {
+			for j < len(src) && isAtomByte(src[j]) {
 				j++
 			}
-			atom := string(src[i:j])
-			i = j
+			atom := src[i:j]
 			if isIntAtom(atom) {
 				v, err := strconv.ParseInt(atom, 10, 64)
 				if err != nil {
-					return nil, ErrBadInteger
+					return nil, &SyntaxError{line, "integer out of range: " + atom}
 				}
-				top = append(top, &Node{Kind: Int, Int: v, Text: atom})
+				cur = append(cur, Node{Kind: Int, Num: v})
 			} else {
-				top = append(top, &Node{Kind: Symbol, Text: atom})
+				cur = append(cur, Node{Kind: Symbol, Text: atom})
 			}
+			i = j
 		}
 	}
 	if len(stack) != 0 {
-		return nil, ErrUnbalanced
+		return nil, &SyntaxError{line, "unbalanced '('"}
 	}
-	return top, nil
+	return cur, nil
 }
-
-// String returns the canonical printing of n: lists as "(a b c)" with single
-// spaces, strings in double quotes and integers in minimal decimal.
-func (n *Node) String() string {
-	var sb strings.Builder
-	n.write(&sb)
-	return sb.String()
-}
-
-func (n *Node) write(sb *strings.Builder) {
-	switch n.Kind {
-	case List:
-		sb.WriteByte('(')
-		for i, it := range n.Items {
-			if i > 0 {
-				sb.WriteByte(' ')
-			}
-			it.write(sb)
-		}
-		sb.WriteByte(')')
-	case Symbol:
-		sb.WriteString(n.Text)
-	case Int:
-		sb.WriteString(strconv.FormatInt(n.Int, 10))
-	case String:
-		sb.WriteByte('"')
-		sb.WriteString(n.Text)
-		sb.WriteByte('"')
-	}
-}
-
-// Head returns the symbol at the head of a non-empty list, or "".
-func (n *Node) Head() string {
-	if n.Kind == List && len(n.Items) > 0 && n.Items[0].Kind == Symbol {
-		return n.Items[0].Text
-	}
-	return ""
-}
-
-// IsSym reports whether n is the symbol s.
-func (n *Node) IsSym(s string) bool { return n.Kind == Symbol && n.Text == s }

@@ -1,0 +1,19 @@
+name "sitegen"
+description "A static site generator: Markdown, a Jinja-style template engine and a TOML-subset reader, written from scratch."
+authors "sitegen contributors"
+copyright "Copyright © sitegen contributors"
+license "MIT"
+
+# The default configuration builds the command-line tool.  The "library"
+# configuration builds only the reusable library (everything under
+# source/sitegen), for use as a dub dependency.
+configuration "executable" {
+    targetType "executable"
+    targetName "sitegen"
+    mainSourceFile "source/app.d"
+}
+
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}

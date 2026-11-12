@@ -1,0 +1,9 @@
+@module main
+fn f(p: (Bool, Bool)) -> Int {
+    match p {
+        (true, _) -> 1,
+        (_, true) -> 2,
+        (false, false) -> 3,
+    }
+}
+fn main() { print("ok"); }

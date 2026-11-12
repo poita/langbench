@@ -1,25 +1,23 @@
-// Package rfc2047 recognises and decodes RFC 2047 encoded words and builds
-// the two header-text renderings used by the dump format: DecodeUnstructured
-// (for unstructured fields and plain parameter values) and DecodeDisplay (for
-// address phrases).
+// Package rfc2047 recognises and decodes RFC 2047 encoded words and builds the
+// "unstructured" and "display" renderings of header text.
 package rfc2047
 
 import (
 	"strings"
 
-	"mimedump/charset"
-	"mimedump/internal/scan"
-	"mimedump/transfer"
+	"example.com/mime/charset"
+	"example.com/mime/internal/lex"
+	"example.com/mime/transfer"
 )
 
 // Match reports whether an encoded word starts at v[i]. If so it returns the
-// decoded text and the index just after the word.
+// decoded text and the index just past the word.
 //
-// The word is "=?" charset "?" (Q|q|B|b) "?" text "?=" where the charset is
-// non-empty, neither charset nor text contains SPACE or TAB, and the first
-// "?" after the charset and the first "?" after the encoding letter delimit
-// the fields.
-func Match(v string, i int) (text string, end int, ok bool) {
+// An encoded word is "=?" charset "?" ("Q"|"B") "?" text "?=" where the
+// charset is non-empty, and neither it nor the text contains SPACE or TAB. The
+// first "?" after the charset and the first "?" after the encoding letter end
+// their fields.
+func Match(v string, i int) (text string, next int, ok bool) {
 	if i+1 >= len(v) || v[i] != '=' || v[i+1] != '?' {
 		return "", 0, false
 	}
@@ -28,8 +26,8 @@ func Match(v string, i int) (text string, end int, ok bool) {
 		return "", 0, false
 	}
 	j += i + 2
-	csField := v[i+2 : j]
-	if csField == "" || strings.ContainsAny(csField, " \t") {
+	cs := v[i+2 : j]
+	if cs == "" || strings.ContainsAny(cs, " \t") {
 		return "", 0, false
 	}
 	if j+2 >= len(v) || v[j+2] != '?' {
@@ -45,11 +43,12 @@ func Match(v string, i int) (text string, end int, ok bool) {
 	}
 	m += j + 3
 	body := v[j+3 : m]
-	if strings.ContainsAny(body, " \t") || m+1 >= len(v) || v[m+1] != '=' {
+	if strings.ContainsAny(body, " \t") {
 		return "", 0, false
 	}
-
-	cs := csField
+	if m+1 >= len(v) || v[m+1] != '=' {
+		return "", 0, false
+	}
 	if k := strings.IndexByte(cs, '*'); k >= 0 {
 		cs = cs[:k]
 	}
@@ -61,21 +60,22 @@ func Match(v string, i int) (text string, end int, ok bool) {
 	if enc == 'Q' || enc == 'q' {
 		raw = decodeQ(body)
 	} else {
-		raw = transfer.Base64(body)
+		raw = transfer.DecodeBase64([]byte(body))
 	}
 	return charset.Decode(raw, cs), m + 2, true
 }
 
-// decodeQ decodes the Q encoding: "_" is a space, "=HH" is a byte, and any
-// other character stands for its own UTF-8 bytes.
+// decodeQ decodes the Q encoding: "_" is a space, "=XX" is a byte, and any
+// other character stands for itself.
 func decodeQ(s string) []byte {
 	out := make([]byte, 0, len(s))
 	for i := 0; i < len(s); i++ {
-		switch c := s[i]; {
+		c := s[i]
+		switch {
 		case c == '_':
 			out = append(out, ' ')
-		case c == '=' && i+2 < len(s) && scan.HexVal(s[i+1]) >= 0 && scan.HexVal(s[i+2]) >= 0:
-			out = append(out, byte(scan.HexVal(s[i+1])<<4|scan.HexVal(s[i+2])))
+		case c == '=' && i+2 < len(s) && transfer.HexValue(s[i+1]) >= 0 && transfer.HexValue(s[i+2]) >= 0:
+			out = append(out, byte(transfer.HexValue(s[i+1])<<4|transfer.HexValue(s[i+2])))
 			i += 2
 		default:
 			out = append(out, c)
@@ -84,75 +84,108 @@ func decodeQ(s string) []byte {
 	return out
 }
 
-type kind uint8
+type itemKind uint8
 
 const (
-	kLiteral kind = iota
-	kSpace
-	kEncoded
+	kindLiteral itemKind = iota
+	kindSpace
+	kindEncoded
 )
 
 type item struct {
-	kind kind
+	kind itemKind
 	text string
 }
 
-// DecodeUnstructured decodes encoded words in v. Blanks between two adjacent
-// encoded words are dropped; all other text is kept, and the result is
-// stripped of leading and trailing SPACE and TAB.
-func DecodeUnstructured(v string) string { return decode(v, false) }
+// join concatenates items: a SPACE item between two ENCODED items vanishes.
+func join(items []item) string {
+	var b strings.Builder
+	for i, it := range items {
+		if it.kind == kindSpace && i > 0 && i+1 < len(items) &&
+			items[i-1].kind == kindEncoded && items[i+1].kind == kindEncoded {
+			continue
+		}
+		b.WriteString(it.text)
+	}
+	return lex.Strip(b.String())
+}
 
-// DecodeDisplay is DecodeUnstructured with two extra rules for address
-// phrases: a comment becomes a single space, and a quoted string becomes a
-// literal holding its unescaped contents (encoded words inside it are not
-// decoded).
-func DecodeDisplay(v string) string { return decode(v, true) }
-
-func decode(v string, display bool) string {
+// scan builds the item list of v. With display set, comments and quoted
+// strings are handled as in a display name.
+func scan(v string, display bool) []item {
 	var items []item
+	litStart, spStart := -1, -1
+	flush := func(end int) {
+		if litStart >= 0 {
+			items = append(items, item{kindLiteral, v[litStart:end]})
+			litStart = -1
+		}
+		if spStart >= 0 {
+			items = append(items, item{kindSpace, v[spStart:end]})
+			spStart = -1
+		}
+	}
 	for i := 0; i < len(v); {
 		c := v[i]
 		if c == '=' {
-			if text, end, ok := Match(v, i); ok {
-				items = append(items, item{kEncoded, text})
-				i = end
+			if text, next, ok := Match(v, i); ok {
+				flush(i)
+				items = append(items, item{kindEncoded, text})
+				i = next
 				continue
 			}
 		}
-		if display && c == '(' {
-			items = append(items, item{kSpace, " "})
-			i = scan.Comment(v, i)
-			continue
-		}
-		if display && c == '"' {
-			text, end := scan.Quoted(v, i)
-			items = append(items, item{kLiteral, text})
-			i = end
-			continue
-		}
-		j := i + 1
-		if scan.IsBlank(c) {
-			for j < len(v) && scan.IsBlank(v[j]) {
-				j++
+		if display {
+			if c == '(' {
+				flush(i)
+				items = append(items, item{kindSpace, " "})
+				i = lex.SkipComment(v, i)
+				continue
 			}
-			items = append(items, item{kSpace, v[i:j]})
+			if c == '"' {
+				flush(i)
+				text, next := lex.QuotedString(v, i)
+				items = append(items, item{kindLiteral, text})
+				i = next
+				continue
+			}
+		}
+		if lex.IsBlank(c) {
+			if litStart >= 0 {
+				items = append(items, item{kindLiteral, v[litStart:i]})
+				litStart = -1
+			}
+			if spStart < 0 {
+				spStart = i
+			}
 		} else {
-			for j < len(v) && !scan.IsBlank(v[j]) && v[j] != '=' && !(display && (v[j] == '(' || v[j] == '"')) {
-				j++
+			if spStart >= 0 {
+				items = append(items, item{kindSpace, v[spStart:i]})
+				spStart = -1
 			}
-			items = append(items, item{kLiteral, v[i:j]})
+			if litStart < 0 {
+				litStart = i
+			}
 		}
-		i = j
+		i++
 	}
+	flush(len(v))
+	return items
+}
 
-	var sb strings.Builder
-	sb.Grow(len(v))
-	for k, it := range items {
-		if it.kind == kSpace && k > 0 && k+1 < len(items) &&
-			items[k-1].kind == kEncoded && items[k+1].kind == kEncoded {
-			continue
-		}
-		sb.WriteString(it.text)
+// DecodeUnstructured decodes the encoded words in v. Blanks between two
+// encoded words are dropped; all other text is kept, and leading and trailing
+// SPACE and TAB are stripped from the result.
+func DecodeUnstructured(v string) string {
+	if !strings.Contains(v, "=?") {
+		return lex.Strip(v)
 	}
-	return scan.Trim(sb.String())
+	return join(scan(v, false))
+}
+
+// DecodeDisplay is like DecodeUnstructured for the phrase of an address: each
+// comment contributes one SPACE and quoted strings are taken literally (their
+// encoded words are not decoded).
+func DecodeDisplay(v string) string {
+	return join(scan(v, true))
 }

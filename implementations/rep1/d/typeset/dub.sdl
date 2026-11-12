@@ -1,21 +1,22 @@
 name "typeset"
-description "Codexa typesetting engine: total-fit line breaking, Liang hyphenation, footnotes, floats and tables of contents."
+description "Codexa typesetting engine: total-fit line breaking, Liang hyphenation, footnotes, floats and a table of contents"
 authors "typeset contributors"
+copyright "Copyright © typeset contributors"
 license "MIT"
-copyright "Copyright (c) typeset contributors"
-
-targetType "library"
 sourcePaths "source"
 importPaths "source"
 
+# The default configuration builds the command-line tool (build/typeset).
+configuration "application" {
+    targetType "executable"
+    targetName "typeset"
+    targetPath "build"
+    sourcePaths "source" "app"
+    mainSourceFile "app/main.d"
+}
+
+# Use this configuration (or the dub package as a dependency) for the library only.
 configuration "library" {
     targetType "library"
+    targetName "typeset"
 }
-
-configuration "unittest" {
-    targetType "library"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-}
-
-subPackage "./cli"

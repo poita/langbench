@@ -1,72 +1,63 @@
 package solver
 
 import (
+	"errors"
 	"fmt"
-	"sync"
 
-	"rubiks/cube"
+	"example.com/rubiks/cube"
 )
 
-// MaxMoves is the longest solution Solve can return.
-const MaxMoves = 7 + 10 + 13 + 15
+// MaxSolutionLength is the longest solution Solve can return: the phases of
+// Thistlethwaite's algorithm need at most 7, 10, 13 and 15 moves.
+const MaxSolutionLength = 7 + 10 + 13 + 15
 
-// Solver solves cubes with Thistlethwaite's algorithm. The zero value is
-// ready to use; the distance tables are built on first use. A Solver may be
-// shared by multiple goroutines.
+// Solver holds the distance tables of the four phases. Building one takes a
+// fraction of a second; a Solver is immutable afterwards and safe for
+// concurrent use.
 type Solver struct {
-	once sync.Once
-	t    *tables
+	phases [4]*phase
 }
 
-// New returns a Solver. Equivalent to new(Solver), provided for clarity.
-func New() *Solver { return new(Solver) }
-
-var defaultSolver Solver
-
-// Prepare builds the distance tables now instead of on first use. Calling it
-// is optional.
-func (s *Solver) Prepare() {
-	s.once.Do(func() { s.t = newTables() })
+// New builds the distance tables and returns a ready Solver.
+func New() *Solver {
+	g := newCornerGroup()
+	return &Solver{phases: [4]*phase{newPhase1(), newPhase2(), newPhase3(g), newPhase4(g)}}
 }
 
-// Solve returns a sequence of at most [MaxMoves] moves that takes c to the
-// solved cube. It returns an error if c is not a reachable cube state.
-// Consecutive turns of the same face across phase boundaries are merged.
+// Solve returns a sequence of moves that takes c to the solved cube. The
+// sequence has at most [MaxSolutionLength] moves and is the concatenation of
+// four optimal phase solutions. It returns an error if c is not a valid,
+// solvable cube state.
 func (s *Solver) Solve(c cube.Cube) ([]cube.Move, error) {
-	if err := c.Verify(); err != nil {
+	if err := c.Validate(); err != nil {
 		return nil, err
 	}
-	if c.IsSolved() {
-		return nil, nil
-	}
-	s.Prepare()
-	t := s.t
-	var out []cube.Move
-
-	// Each phase: compute the coordinate, descend, and apply the moves to the
-	// cube so the next phase starts from the right state.
-	type coords func(c *cube.Cube) (int, int)
-	starts := [4]coords{
-		func(c *cube.Cube) (int, int) { return coordFlip(c), 0 },
-		func(c *cube.Cube) (int, int) { return coordTwist(c), t.coordSlice(c) },
-		func(c *cube.Cube) (int, int) { return t.coordClass(c), t.coordMask8(c) },
-		func(c *cube.Cube) (int, int) { return t.coordCorner96(c), coordEdgePerm(c) },
-	}
-	for i := range t.phases {
-		a, b := starts[i](&c)
-		start := len(out)
+	sol := make([]cube.Move, 0, MaxSolutionLength)
+	for i, p := range s.phases {
+		start := len(sol)
 		var ok bool
-		out, ok = t.phases[i].descend(a, b, out)
+		sol, ok = p.descend(p.coord(&c), sol)
 		if !ok {
-			return nil, fmt.Errorf("solver: phase %d failed (internal error)", i+1)
+			return nil, fmt.Errorf("solver: phase %d failed to reach its goal", i+1)
 		}
-		c.ApplyAll(out[start:])
+		c.ApplyAll(sol[start:])
 	}
 	if !c.IsSolved() {
-		return nil, fmt.Errorf("solver: cube not solved after four phases (internal error)")
+		return nil, errors.New("solver: internal error: cube not solved")
 	}
-	return cube.Simplify(out), nil
+	return sol, nil
 }
 
-// Solve solves c using a shared default Solver.
-func Solve(c cube.Cube) ([]cube.Move, error) { return defaultSolver.Solve(c) }
+// PhaseDepths returns, for each of the four phases, the largest distance in
+// that phase's table, i.e. the most moves the phase can ever need.
+func (s *Solver) PhaseDepths() [4]int {
+	var out [4]int
+	for i, p := range s.phases {
+		for _, d := range p.dist {
+			if int(d) > out[i] {
+				out[i] = int(d)
+			}
+		}
+	}
+	return out
+}

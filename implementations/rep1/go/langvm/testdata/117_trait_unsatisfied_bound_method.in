@@ -1,0 +1,3 @@
+@module main
+trait T { fn m(self) -> Int; }
+fn main() { print(showInt(3.m())); }

@@ -1,0 +1,14 @@
+pair : 'a -> 'a * 'a
+id : 'a -> 'a
+p0 : ('a -> 'a) * ('a -> 'a)
+p1 : (('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))
+p2 : ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))
+p3 : (((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))) * (((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))))
+p4 : ((((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))) * (((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))))) * ((((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))) * (((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))))
+- : ((((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))) * (((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))))) * ((((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))) * (((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a))) * ((('a -> 'a) * ('a -> 'a)) * (('a -> 'a) * ('a -> 'a)))))
+- : (('a -> 'a) * ('a -> 'a)) * ((('b -> 'b) * ('b -> 'b)) * (('b -> 'b) * ('b -> 'b)))
+q : 'a -> 'a * 'a list
+- : ((((int * int list) * (int * int list) list) * ((int * int list) * (int * int list) list) list) * (((int * int list) * (int * int list) list) * ((int * int list) * (int * int list) list) list) list) * ((((int * int list) * (int * int list) list) * ((int * int list) * (int * int list) list) list) * (((int * int list) * (int * int list) list) * ((int * int list) * (int * int list) list) list) list) list
+- : ((('a -> 'a) * ('a -> 'a) list) * (('a -> 'a) * ('a -> 'a) list) list) * ((('a -> 'a) * ('a -> 'a) list) * (('a -> 'a) * ('a -> 'a) list) list) list
+dup : 'a -> 'b -> 'a * 'b
+- : 'a -> ('b -> ('c -> ('d -> 'd) * 'c) * 'b) * 'a

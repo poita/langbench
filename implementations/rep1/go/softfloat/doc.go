@@ -1,17 +1,13 @@
-// Package softfloat implements IEEE-754 binary32 (single-precision) addition,
-// subtraction, multiplication, division and square root in software, using
-// only integer arithmetic.
+// Package softfloat implements IEEE-754 binary32 (single precision)
+// arithmetic in software, using only integer operations.
 //
-// Values are exchanged as raw 32-bit patterns (uint32). Every operation rounds
-// the exact mathematical result once, to nearest with ties to even, and
-// supports gradual underflow (denormals) and overflow to infinity. Floating
-// point exceptions and flags are not modelled.
+// Values are exchanged as raw 32-bit patterns (uint32). Addition,
+// subtraction, multiplication, division and square root are provided, all
+// with round-to-nearest-even and full gradual underflow (denormals). Any NaN
+// input, and every invalid operation, yields the canonical quiet NaN
+// (QNaN, 0x7fc00000). Exception flags are not modelled.
 //
-// NaN handling is deliberately simple: any NaN operand, and every invalid
-// operation, yields the canonical quiet NaN [QNaN] (0x7fc00000); payloads and
-// signs of NaNs are never propagated.
-//
-// No hardware floating point, math.Sqrt, or conversions are used anywhere in
-// the package; all significand work happens in a single unsigned 64-bit word
-// plus a sticky flag.
+// The implementation never uses host floating point. Each operation computes
+// a truncated integer result plus a sticky bit that fits in 64 bits, and a
+// single shared step (roundPack) rounds it onto the binary32 grid.
 package softfloat

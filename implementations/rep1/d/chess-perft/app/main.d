@@ -1,24 +1,16 @@
-/// Command-line front end: reads queries from stdin, writes answers to stdout.
-module main;
+/// Command-line front end: reads perft/divide queries on stdin, prints answers.
+module app.main;
 
-import std.array : appender;
-import std.stdio : stderr, stdin, stdout;
-
-import chessperft.query : answerAll;
+import std.stdio : stdin, stdout;
+import chessperft.query : answerLine;
 
 int main()
 {
-    auto input = appender!(char[]);
-    foreach (chunk; stdin.byChunk(1 << 16))
-        input.put(cast(const(char)[]) chunk);
-    try
+    foreach (line; stdin.byLine)
     {
-        stdout.rawWrite(answerAll(input.data));
-    }
-    catch (Exception e)
-    {
-        stderr.writeln("chess-perft: ", e.msg);
-        return 1;
+        if (line.length == 0)
+            continue;
+        stdout.write(answerLine(line));
     }
     return 0;
 }

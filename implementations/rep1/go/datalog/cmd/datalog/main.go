@@ -1,36 +1,50 @@
-// Command datalog reads a Datalog program from standard input and prints the
-// answers to its queries.
+// Command datalog reads a Datalog program on standard input, computes its
+// stratified model and prints the answers to the program's queries.
 //
-// If the program is unsafe or not stratifiable it prints "error" and exits 0.
-// Malformed input prints a diagnostic on standard error and exits with
-// status 2.
+// For each query it prints the matching tuples, one per line in ascending
+// order, then a line "-- N". If the program is unsafe or not stratifiable it
+// prints "error" instead. The exit status is 0 in both cases; a syntax error
+// is reported on standard error with exit status 1.
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/example/datalog"
+	"example.com/datalog"
 )
 
 func main() {
-	src, err := io.ReadAll(os.Stdin)
+	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
+}
+
+func run(stdin io.Reader, stdout, stderr io.Writer) int {
+	src, err := io.ReadAll(stdin)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "datalog:", err)
-		os.Exit(1)
+		fmt.Fprintln(stderr, "datalog:", err)
+		return 1
 	}
-	var out bytes.Buffer
-	switch err := datalog.Solve(src, &out); {
-	case err == nil:
-		os.Stdout.Write(out.Bytes())
-	case errors.Is(err, datalog.ErrUnsafe), errors.Is(err, datalog.ErrNotStratifiable):
-		fmt.Fprintln(os.Stderr, err)
-		fmt.Println("error")
-	default:
-		fmt.Fprintln(os.Stderr, err)
-		os.Exit(2)
+	results, err := datalog.Run(string(src))
+	if err != nil {
+		var syn *datalog.SyntaxError
+		if errors.As(err, &syn) {
+			fmt.Fprintln(stderr, "datalog:", err)
+			return 1
+		}
+		fmt.Fprintln(stderr, "datalog:", err)
+		fmt.Fprintln(stdout, "error")
+		return 0
 	}
+	w := bufio.NewWriter(stdout)
+	if err := datalog.WriteResults(w, results); err == nil {
+		err = w.Flush()
+	}
+	if err != nil {
+		fmt.Fprintln(stderr, "datalog:", err)
+		return 1
+	}
+	return 0
 }

@@ -1,92 +1,106 @@
 # bigint
 
-Signed arbitrary-precision integer arithmetic in D, written from scratch on the
-standard library only. Values are sign + magnitude; magnitudes are little-endian
-arrays of base-10⁹ limbs (`uint`), so decimal parsing and printing are linear.
-It supports `+ - * / % ^` and three-way comparison, with C-style truncating
-division, and ships with a small line-oriented calculator CLI.
+Signed arbitrary-precision integer arithmetic in D, with a small command-line
+tool that evaluates one query per line. Only the D standard library is used;
+the big-number arithmetic is implemented from scratch.
 
-Algorithms are the classical quadratic ones: schoolbook multiplication, short
-division and Knuth's Algorithm D for long division, and left-to-right binary
-exponentiation.
+## Design
+
+* A number is a sign plus a magnitude: little-endian `uint` limbs in base 10^9.
+  Because the base is a power of ten, parsing and printing decimal text is
+  linear (a binary base would make it quadratic).
+* Add / subtract / compare: linear.
+* Multiply: schoolbook, O(n·m).
+* Divide / remainder: Knuth's Algorithm D (quotient and remainder together),
+  O((n − m + 1)·m), one constant-time quotient-digit estimate per limb.
+* Power: binary exponentiation (repeated squaring).
+* Division truncates toward zero; the remainder has the sign of the dividend.
+  Zero is never negative.
 
 ## Layout
 
-```
-dub.json                  package manifest (configurations: cli, library, unittest)
-source/bigint/
-  package.d               re-exports the public API
-  magnitude.d             unsigned limb-array kernels: compare, add, sub, mul, divMod, pow
-  decimal.d               linear-time parse / format of decimal text
-  integer.d               the signed BigInt type with operators
-  queries.d               evaluator for the "<a> <op> <b>" query language
-cli/app.d                 thin CLI: stdin -> evaluateQueries -> stdout
-tests/                    unit tests (separate from the library source)
-build.sh, run.sh          build / run helpers
-```
+| Path                         | Contents                                           |
+|------------------------------|----------------------------------------------------|
+| `source/bigint/bigint.d`     | `BigInt`, the public signed integer type           |
+| `source/bigint/magnitude.d`  | unsigned limb-vector arithmetic (add, mul, divmod) |
+| `source/bigint/decimal.d`    | decimal text <-> limbs                             |
+| `source/bigint/exceptions.d` | exception types                                    |
+| `source/bigint/query.d`      | evaluator for the `<a> <op> <b>` line protocol     |
+| `source/bigint/package.d`    | `import bigint;` re-exports the public API         |
+| `source/app.d`               | the command-line tool (thin wrapper over `query`)  |
 
-## Build and test
+## Build
 
-Requires LDC 1.41 and dub 1.40.
+Requires LDC and dub (developed with LDC 1.41.0 and dub 1.40.0).
 
-```
-./build.sh                          # dub build -b release --compiler=ldc2 --config=cli -> bin/bigint
-dub test --compiler=ldc2            # unit tests
+```sh
+./build.sh                                   # or: dub build -b release --compiler=ldc2
+dub test --compiler=ldc2                     # run the unit tests
 ```
 
-## CLI
+The executable is written to `bin/bigint`.
 
-`./run.sh` reads queries from standard input, one per line, and writes one
-result line per query.
+## Command-line usage
+
+`bigint` (or `./run.sh`) reads queries from standard input, one per line, and
+prints one result line per query:
 
 ```
 <a> <op> <b>        op is one of  +  -  *  /  %  ^  cmp
 ```
 
-Operands match `-?[0-9]+` (leading zeros and `-0` allowed). Results are in
-canonical decimal form (never `-0`); `cmp` prints `-1`, `0` or `1`. Division or
-remainder by zero, and a negative exponent, print `error`. `/` truncates toward
-zero and `%` takes the sign of the dividend. `0 ^ 0 = 1`.
+Operands match `-?[0-9]+` (leading zeros and `-0` are accepted). Results are
+canonical decimal (no leading zeros, never `-0`); `cmp` prints `-1`, `0` or `1`.
+Division or remainder by zero and a negative exponent print `error`.
 
-```
-$ printf '12 + 30\n-7 / 2\n-7 %% 2\n2 ^ 100\n1 / 0\n' | ./run.sh
+```console
+$ printf '12 + 30\n-7 / 2\n-7 %% 2\n2 ^ 100\n1 / 0\n007 cmp 7\n' | ./run.sh
 42
 -3
 -1
 1267650600228229401496703205376
 error
+0
 ```
 
-## Library example
+A malformed line makes the tool print a message to stderr and exit with status 1.
+
+## Library usage
+
+Add it as a dependency (`dependency "bigint" path="../bigint"`; dub picks the
+`library` configuration automatically) and:
 
 ```d
-import std.stdio : writeln;
 import bigint;
+import std.stdio;
 
 void main()
 {
-    auto a = BigInt("123456789012345678901234567890");
-    auto b = BigInt("-987654321098765432109876543210");
+    auto a = BigInt("-123456789012345678901234567890");
+    auto b = BigInt(987654321);
 
-    writeln(a + b);              // -864197532086419753208641975320
-    writeln(a * b);
-    writeln(b / a, " ", b % a);  // truncating division, remainder has b's sign
-    writeln(pow(BigInt(2), BigInt(100)));
-    writeln(a < b);              // false
+    writeln(a * b);                 // -121932631124828532112482853211126352690
+    writeln(a / b, " ", a % b);     // truncating division, remainder has a's sign
+    writeln(BigInt(2) ^^ BigInt(100));
+    writeln(a < b);                 // true
 
-    auto q = divMod(b, a);       // [quotient, remainder] in one call
+    BigInt q, r;
+    BigInt.divMod(a, b, q, r);      // quotient and remainder in one pass
+    assert(q * b + r == a);
+
+    try
+        BigInt(1) / BigInt(0);
+    catch (DivisionByZeroException e)
+        writeln("error: ", e.msg);
 }
 ```
 
-Use it from another dub project with `"dependencies": { "bigint": { "path": "../bigint" } }`
-and `"subConfigurations": { "bigint": "library" }`.
+Operations: `+ - * / % ^^`, unary `-`, comparison, `BigInt.pow`, `BigInt.divMod`,
+`abs`, `sign`, `isZero`, `isNegative`, `toString`, and construction from
+`long` or decimal text (`ParseException` on invalid text).
 
-Errors in the `BigInt` API (division by zero, negative exponent, malformed
-text) throw `Exception`. The bulk query evaluator `evaluateQueries` instead
-reports them as `error` lines.
+## Tests
 
-## Notes
-
-`evaluateQueries` interprets exponents modulo 2⁶⁴ when folding to a machine
-integer; the specification limits valid exponents to 5000, so this only matters
-for inputs outside the contract.
+The tests are D `unittest` blocks next to the code (edge cases, the examples
+from the specification, and randomised identity checks such as
+`q*b + r == a`), run with `dub test --compiler=ldc2`.

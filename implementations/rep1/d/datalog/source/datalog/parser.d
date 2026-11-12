@@ -1,193 +1,190 @@
-/// Recursive-descent parser producing a canonicalised `Program`.
+/// Recursive-descent parser producing a `Program`.
 module datalog.parser;
 
 import datalog.ast;
-import datalog.errors : ParseException;
+import datalog.errors;
 import datalog.lexer;
+import datalog.symbols;
 
-/// Parse Datalog source text.
-///
-/// Constants and predicates are interned while parsing, then constant ids are
-/// renumbered into the total order of constants (see `Program.canonicalize`).
-/// Throws `ParseException` on malformed input.
-Program parseProgram(string source) @safe
+/// Parses a whole program. Throws `ParseException` if the text is malformed.
+Program parseProgram(string source) @safe pure
 {
-    auto parser = Parser(source);
-    return parser.parse();
-}
-
-private struct VarScope
-{
-    string[] names;
-    uint count;
-
-    uint slot(string name) pure nothrow @safe
-    {
-        foreach (i, n; names)
-            if (n == name)
-                return cast(uint) i;
-        // names[] only holds named variables; anonymous ones just consume a slot.
-        names ~= name;
-        return count++;
-    }
-
-    uint fresh() pure nothrow @safe
-    {
-        names ~= null; // never equals a real name
-        return count++;
-    }
+    auto p = Parser(tokenize(source), new Program);
+    p.parseAll();
+    return p.program;
 }
 
 private struct Parser
 {
-    Lexer lexer;
-    Token[2] window;
-    size_t filled;
+    Token[] tokens;
     Program program;
+    size_t pos;
+    uint[string] varSlots;
+    uint numVars;
 
-    this(string source) @safe
+    ref const(Token) peek(size_t ahead = 0) const @safe pure nothrow @nogc
     {
-        lexer = Lexer(source);
-        program = new Program;
+        immutable i = pos + ahead;
+        return tokens[i < tokens.length ? i : tokens.length - 1];
     }
 
-    Program parse() @safe
+    Token take() @safe pure nothrow @nogc
     {
-        while (peek().kind != TokenKind.eof)
-            parseClause();
-        program.canonicalize();
-        return program;
-    }
-
-private:
-    ref const(Token) peek(size_t ahead = 0) return @safe
-    {
-        while (filled <= ahead)
-            window[filled++] = lexer.next();
-        return window[ahead];
-    }
-
-    Token advance() @safe
-    {
-        peek();
-        auto t = window[0];
-        window[0] = window[1];
-        --filled;
+        auto t = tokens[pos];
+        if (pos + 1 < tokens.length)
+            ++pos;
         return t;
     }
 
-    Token expect(TokenKind kind, string what) @safe
+    Token expect(TokenKind k, string what) @safe pure
     {
-        if (peek().kind != kind)
-            throw new ParseException("expected " ~ what ~ " but found '" ~ peek().text ~ "'", peek().line);
-        return advance();
+        if (peek.kind != k)
+            throw new ParseException("expected " ~ what, peek.line);
+        return take();
     }
 
-    void parseClause() @safe
+    void parseAll() @safe pure
     {
-        VarScope scp;
-        if (peek().kind == TokenKind.queryMark)
+        while (peek.kind != TokenKind.eof)
+            parseClause();
+    }
+
+    void startClause() @safe pure nothrow
+    {
+        varSlots = null;
+        numVars = 0;
+    }
+
+    void parseClause() @safe pure
+    {
+        startClause();
+        if (peek.kind == TokenKind.queryMark)
         {
-            advance();
-            auto atom = parseAtom(scp);
+            take();
+            auto atom = parseAtom();
             expect(TokenKind.dot, "'.'");
-            program.queries ~= Query(atom, scp.count);
+            program.queries ~= Query(atom, numVars);
             return;
         }
-        auto head = parseAtom(scp);
+        auto head = parseAtom();
         Literal[] body;
-        if (peek().kind == TokenKind.neck)
+        if (peek.kind == TokenKind.implies)
         {
-            advance();
-            body ~= parseLiteral(scp);
-            while (peek().kind == TokenKind.comma)
+            take();
+            body ~= parseLiteral();
+            while (peek.kind == TokenKind.comma)
             {
-                advance();
-                body ~= parseLiteral(scp);
+                take();
+                body ~= parseLiteral();
             }
         }
-        expect(TokenKind.dot, "'.'");
-        program.rules ~= Rule(head, body, scp.count);
+        expect(TokenKind.dot, "'.' at end of clause");
+        program.rules ~= Rule(head, body, numVars);
     }
 
-    Atom parseAtom(ref VarScope scp) @safe
+    Atom parseAtom() @safe pure
     {
-        auto name = expect(TokenKind.identifier, "a predicate name");
+        auto name = expect(TokenKind.identifier, "predicate name");
         expect(TokenKind.lparen, "'('");
         Term[] args;
-        args ~= parseTerm(scp);
-        while (peek().kind == TokenKind.comma)
+        args ~= parseTerm();
+        while (peek.kind == TokenKind.comma)
         {
-            advance();
-            args ~= parseTerm(scp);
+            take();
+            args ~= parseTerm();
         }
         expect(TokenKind.rparen, "')'");
-        return Atom(program.internPredicate(name.text, cast(uint) args.length), args);
+        return Atom(program.predicateId(name.text, cast(uint) args.length), args);
     }
 
-    Term parseTerm(ref VarScope scp) @safe
+    Term parseTerm() @safe pure
     {
-        auto t = advance();
+        auto t = take();
         switch (t.kind)
         {
         case TokenKind.identifier:
-            return Term.constant(program.internIdentifier(t.text));
+            return Term(TermKind.constant, program.symbols.intern(Constant.symbol(t.text)));
         case TokenKind.integer:
-            return Term.constant(program.internInteger(t.value));
-        case TokenKind.variable:
-            return Term.variable(scp.slot(t.text));
+            return Term(TermKind.constant, program.symbols.intern(Constant.integer(t.value)));
         case TokenKind.anonymous:
-            return Term.variable(scp.fresh());
+            return Term(TermKind.variable, numVars++);
+        case TokenKind.variable:
+            if (auto s = t.text in varSlots)
+                return Term(TermKind.variable, *s);
+            varSlots[t.text] = numVars;
+            return Term(TermKind.variable, numVars++);
         default:
-            throw new ParseException("expected a term but found '" ~ t.text ~ "'", t.line);
+            throw new ParseException("expected a term", t.line);
         }
     }
 
-    Literal parseLiteral(ref VarScope scp) @safe
+    Literal parseLiteral() @safe pure
     {
         Literal lit;
-        if (peek().kind == TokenKind.not)
+        if (peek.kind == TokenKind.not)
         {
-            advance();
-            lit.kind = LiteralKind.negative;
-            lit.atom = parseAtom(scp);
+            take();
+            lit.kind = LiteralKind.negated;
+            lit.atom = parseAtom();
+            return lit;
         }
-        else if (peek().kind == TokenKind.identifier && peek(1).kind == TokenKind.lparen)
+        if (peek.kind == TokenKind.identifier && peek(1).kind == TokenKind.lparen)
         {
             lit.kind = LiteralKind.positive;
-            lit.atom = parseAtom(scp);
+            lit.atom = parseAtom();
+            return lit;
         }
-        else
+        lit.kind = LiteralKind.comparison;
+        lit.lhs = parseTerm();
+        auto op = take();
+        switch (op.kind)
         {
-            lit.kind = LiteralKind.comparison;
-            lit.lhs = parseTerm(scp);
-            auto opTok = advance();
-            switch (opTok.kind)
-            {
-            case TokenKind.lt:
-                lit.op = CmpOp.lt;
-                break;
-            case TokenKind.le:
-                lit.op = CmpOp.le;
-                break;
-            case TokenKind.gt:
-                lit.op = CmpOp.gt;
-                break;
-            case TokenKind.ge:
-                lit.op = CmpOp.ge;
-                break;
-            case TokenKind.eq:
-                lit.op = CmpOp.eq;
-                break;
-            case TokenKind.ne:
-                lit.op = CmpOp.ne;
-                break;
-            default:
-                throw new ParseException("expected a comparison operator but found '"
-                        ~ opTok.text ~ "'", opTok.line);
-            }
-            lit.rhs = parseTerm(scp);
+        case TokenKind.lt: lit.op = CmpOp.lt; break;
+        case TokenKind.le: lit.op = CmpOp.le; break;
+        case TokenKind.gt: lit.op = CmpOp.gt; break;
+        case TokenKind.ge: lit.op = CmpOp.ge; break;
+        case TokenKind.eq: lit.op = CmpOp.eq; break;
+        case TokenKind.ne: lit.op = CmpOp.ne; break;
+        default:
+            throw new ParseException("expected a comparison operator", op.line);
         }
+        lit.rhs = parseTerm();
         return lit;
     }
+}
+
+@safe pure unittest
+{
+    auto p = parseProgram("edge(1, 2). path(X, Z) :- edge(X, Y), not path(Y, _), X < Z. ?- path(1, X).");
+    assert(p.rules.length == 2);
+    assert(p.queries.length == 1);
+    assert(p.rules[0].body.length == 0);
+    auto r = p.rules[1];
+    assert(r.body.length == 3);
+    assert(r.body[0].kind == LiteralKind.positive);
+    assert(r.body[1].kind == LiteralKind.negated);
+    assert(r.body[2].kind == LiteralKind.comparison && r.body[2].op == CmpOp.lt);
+    assert(r.numVars == 4); // X, Z, Y, and the anonymous variable
+    assert(r.body[1].atom.args[1].id == 3);
+    // edge/2 and path/2 and nothing else
+    assert(p.predicates.length == 2);
+}
+
+@safe pure unittest
+{
+    // One name, two arities: two predicates.
+    auto p = parseProgram("r(1). r(1, 2). ?- r(X).");
+    assert(p.predicates.length == 2);
+    assert(p.predicates[0] == Predicate("r", 1));
+    assert(p.predicates[1] == Predicate("r", 2));
+}
+
+@safe pure unittest
+{
+    import std.exception : assertThrown;
+
+    assertThrown!ParseException(parseProgram("p(a)"));
+    assertThrown!ParseException(parseProgram("p(a) :- ."));
+    assertThrown!ParseException(parseProgram("p() ."));
+    assertThrown!ParseException(parseProgram("p(X) :- X ~ 3."));
 }

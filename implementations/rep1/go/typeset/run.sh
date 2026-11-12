@@ -1,4 +1,4 @@
 #!/bin/sh
-# Run the typeset tool: run.sh <input directory> <output directory>.
-# The current directory is left alone (the tool reads ./data from it).
-exec "$(dirname "$0")/bin/typeset" "$@"
+# Run the typeset command: run.sh <input directory> <output directory>
+dir=$(cd "$(dirname "$0")" && pwd)
+exec "$dir/bin/typeset" "$@"

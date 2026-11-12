@@ -1,0 +1,50 @@
+cabal-version:      3.0
+name:               commonmark-lite
+version:            0.1.0.0
+synopsis:           A from-scratch CommonMark (subset) to HTML converter
+description:
+  A cmark-style two-phase CommonMark converter: a line-by-line block parser
+  builds the block tree, an inline parser (delimiter stack, bracket stack,
+  process-emphasis) handles paragraph and heading content, and a renderer
+  writes HTML.  It implements the subset of CommonMark 0.31.2 described in
+  @SPEC.md@ (no raw HTML, no reference links, no extensions) and reproduces
+  the output of the @cmark@ reference implementation on it.
+license:            MIT
+author:             commonmark-lite contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Text
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Commonmark
+                    Commonmark.Types
+                    Commonmark.Block
+                    Commonmark.Inline
+                    Commonmark.Html
+                    Commonmark.Internal.Text
+  build-depends:    base >=4.18 && <5,
+                    array >=0.5 && <0.6,
+                    bytestring >=0.11 && <0.13
+
+executable commonmark
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base, bytestring, commonmark-lite
+
+test-suite spec
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    Examples
+  build-depends:    base, bytestring, commonmark-lite,
+                    hspec >=2.10, QuickCheck >=2.14

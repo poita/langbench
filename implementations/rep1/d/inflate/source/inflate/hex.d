@@ -1,77 +1,55 @@
-/// Bulk hexadecimal conversion helpers.
+/// Lowercase hexadecimal encoding and decoding.
 module inflate.hex;
 
-import std.exception : basicExceptionCtors;
+import inflate.error;
 
-/// Thrown by `hexDecode` on a malformed hex string.
-class HexException : Exception
+private static immutable char[16] digits = "0123456789abcdef";
+
+/// Encode `data` as lowercase hex, two digits per byte.
+string toHex(scope const(ubyte)[] data) @trusted pure nothrow
 {
-    mixin basicExceptionCtors;
-}
-
-private immutable ubyte[256] hexValue = () {
-    ubyte[256] t;
-    t[] = 0xFF;
-    foreach (i; 0 .. 10) t['0' + i] = cast(ubyte) i;
-    foreach (i; 0 .. 6)
-    {
-        t['a' + i] = cast(ubyte)(10 + i);
-        t['A' + i] = cast(ubyte)(10 + i);
-    }
-    return t;
-}();
-
-private immutable char[16] hexDigits = "0123456789abcdef";
-
-/// 256 two-character entries, one per byte value.
-private immutable char[512] hexPairs = () {
-    char[512] t;
-    foreach (i; 0 .. 256)
-    {
-        t[2 * i] = hexDigits[i >> 4];
-        t[2 * i + 1] = hexDigits[i & 15];
-    }
-    return t;
-}();
-
-/**
- * Decodes hexadecimal text (either case, two digits per byte) into bytes.
- *
- * Throws: `HexException` if the length is odd or a non-hex character occurs.
- */
-ubyte[] hexDecode(const(char)[] text) pure @safe
-{
-    import std.array : uninitializedArray;
-
-    if (text.length & 1)
-        throw new HexException("odd number of hex digits");
-    auto result = uninitializedArray!(ubyte[])(text.length / 2);
-    uint bad = 0;
-    foreach (i, ref b; result)
-    {
-        immutable hi = hexValue[text[2 * i]];
-        immutable lo = hexValue[text[2 * i + 1]];
-        bad |= hi | lo;
-        b = cast(ubyte)((hi << 4) | (lo & 15));
-    }
-    if (bad & 0xF0)
-        throw new HexException("invalid hex digit");
-    return result;
-}
-
-/**
- * Encodes `data` as lowercase hexadecimal, followed by `suffix` (default none),
- * into a single freshly allocated buffer.
- */
-char[] hexEncode(const(ubyte)[] data, string suffix = "") pure nothrow @safe
-{
-    import std.array : uninitializedArray;
-
-    auto result = uninitializedArray!(char[])(data.length * 2 + suffix.length);
+    auto r = new char[data.length * 2];
     foreach (i, b; data)
     {
-        result[2 * i .. 2 * i + 2] = hexPairs[2 * b .. 2 * b + 2];
+        r[2 * i] = digits[b >> 4];
+        r[2 * i + 1] = digits[b & 15];
     }
-    result[data.length * 2 .. $] = suffix[];
-    return result;
+    return cast(string) r;
+}
+
+/**
+ * Decode a hex string (either case) to bytes. Throws `InflateException`
+ * (`InflateError.invalidHex`) on an odd length or a non-hex character.
+ */
+ubyte[] fromHex(scope const(char)[] text) @safe pure
+{
+    if (text.length & 1)
+        fail(InflateError.invalidHex, "hex string has odd length");
+    auto r = new ubyte[text.length / 2];
+    foreach (i; 0 .. r.length)
+        r[i] = cast(ubyte)((nibble(text[2 * i]) << 4) | nibble(text[2 * i + 1]));
+    return r;
+}
+
+private uint nibble(char c) @safe pure
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    fail(InflateError.invalidHex, "invalid hex digit");
+}
+
+@safe pure unittest
+{
+    import std.exception : assertThrown;
+
+    assert(toHex([]) == "");
+    assert(toHex([0x00, 0xab, 0x7f, 0xff]) == "00ab7fff");
+    assert(fromHex("") == []);
+    assert(fromHex("00aBfF") == [0x00, 0xab, 0xff]);
+    assertThrown!InflateException(fromHex("abc"));
+    assertThrown!InflateException(fromHex("zz"));
 }

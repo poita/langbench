@@ -1,35 +1,36 @@
 /// Exception types thrown by the library.
 module datalog.errors;
 
-/// Base class of every exception thrown by this library.
+/// Base class of every error the library reports about a Datalog program.
 class DatalogException : Exception
 {
-    ///
     this(string msg, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
     {
         super(msg, file, line);
     }
 }
 
-/// The program text is not syntactically well-formed.
-class ParseException : DatalogException
+/// The program text is not well-formed.
+class SyntaxException : DatalogException
 {
-    /// Byte offset in the source at which the problem was detected.
-    size_t offset;
-
-    ///
-    this(string msg, size_t offset, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
+    this(string msg, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
     {
         super(msg, file, line);
-        this.offset = offset;
     }
 }
 
-/// The program is well-formed but is either unsafe or not stratifiable, so it has no
-/// stratified model.
-class ProgramError : DatalogException
+/// A rule violates the safety condition (see `datalog.analysis.checkSafety`).
+class UnsafeRuleException : DatalogException
 {
-    ///
+    this(string msg, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
+    {
+        super(msg, file, line);
+    }
+}
+
+/// The program has a dependency cycle through negation.
+class StratificationException : DatalogException
+{
     this(string msg, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
     {
         super(msg, file, line);

@@ -1,56 +1,68 @@
 # rubiks
 
-A Rubik's cube solver written in D. It implements Thistlethwaite's four-phase
-algorithm: each phase has a small integer coordinate and an exact distance table
-built by breadth-first search at start-up, and solving a cube is greedy descent
-on those tables. Solutions are never longer than 7 + 10 + 13 + 15 = 45 moves (adjacent
-moves of the same face at phase boundaries are merged),
-and building the tables takes well under a second.
+A Rubik's cube solver written in D, as a reusable library plus a thin
+command-line tool. It implements Thistlethwaite's four-phase algorithm with an
+exact distance table per phase, so every solution has at most
+7 + 10 + 13 + 15 = **45 moves** (half-turn metric) and solving a scramble is a
+short greedy descent with no search.
 
-The project has two parts:
+## How it works
 
-* **`rubiks` library** (`source/rubiks/`): move notation, the facelet and cubie
-  models of the cube, the phase coordinates, and the `Solver`.
-* **`rubiks` command-line tool** (`source/app.d`): reads one scramble per line
-  on standard input, writes one solution per line on standard output.
+The cube group is descended through the chain
+`G0 = <U,D,L,R,F,B> > G1 = <U,D,L,R,F2,B2> > G2 = <U,D,L2,R2,F2,B2> >
+G3 = <U2,D2,L2,R2,F2,B2> > {1}`. Each phase has a coordinate that identifies
+the cube's coset of the next subgroup; a breadth-first search from the goal
+(run once at start-up, about half a second in total) gives the exact distance
+of every coordinate value:
 
-Only the D standard library is used.
+| phase | moves | coordinate | values |
+|-------|-------|------------|--------|
+| 1 | all 18 | orientation of 11 edges | 2,048 |
+| 2 | no F/B quarter turns (14) | orientation of 7 corners x E-slice edge positions | 2,187 x 495 |
+| 3 | U/D turns + L2 R2 F2 B2 (10) | corner permutation class mod the 96 half-turn permutations x M-slice edges among the 8 U/D-layer positions | 420 x 70 |
+| 4 | the six half turns | half-turn corner permutation x permutation of each edge slice | 96 x 24^3 |
+
+Cubie-level moves are derived at compile time from the facelet cycles that
+define the cube (`source/rubiks/facelets.d`), so there are no hand-written
+move tables to get wrong.
 
 ## Building
 
-Requires LDC (tested with 1.41.0) and dub (1.40.0).
+Requires LDC 1.41 and dub 1.40.
 
 ```sh
-./build.sh      # same as: dub build -b release --compiler=ldc2
+./build.sh          # same as: dub build -b release --compiler=ldc2
+dub test --compiler=ldc2
 ```
 
-This produces `bin/rubiks`. `./run.sh` runs it from any directory.
+The build produces the `rubiks` executable in the project root.
 
-## Command-line use
+## Command-line usage
 
-Each input line is a scramble applied to a solved cube: zero or more move
-tokens separated by single spaces. The tokens are `U D L R F B`, each with an
-optional `'` (counter-clockwise) or `2` (half turn). Faces and stickers follow
-the unfolded-net layout in the problem statement. An empty line is a cube that
-is already solved. For each line the tool prints a move sequence that returns
-the cube to the solved state, using at most 45 moves; an already-solved cube
-gets an empty line.
+`rubiks` reads scrambles from standard input, one per line, and prints one
+solution per line on standard output. Tokens are `U D L R F B`, optionally
+followed by `'` (counter-clockwise) or `2` (half turn). An empty line is an
+already-solved cube and yields an empty solution line.
 
 ```console
-$ printf "F R U'\n\nU R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2\n" | ./run.sh
-U R' F'
+$ printf "F R U'\n\nR U R' U'\n" | ./run.sh
+U R' F F2
 
-F U R D B L' F U' R U' R F2 L2 D' R' U F2 U' L2 U' R2 U2 B2 D2 F2 R2 D2 L2 U2
+U R U' R R2
 ```
 
-(Any valid solution is acceptable, so the exact moves you see may differ.) An
-invalid token makes the tool print a message on standard error and exit with
-status 1.
+(The exact solution printed may differ; any sequence that returns the cube to
+the solved state within 52 moves is valid.) A malformed token makes the tool
+print the offending line number to standard error and exit with status 1.
 
-## Library use
+Faces are numbered as in the unfolded-cube net of the problem statement
+(`U` above `F`, `L F R B` in a strip, `D` below); moves turn a face clockwise
+as seen from outside the cube.
 
-Add the package as a dub dependency (use the `library` configuration if you do
-not want the CLI built) and import `rubiks`:
+## Library usage
+
+Add the package as a dependency (`dependency "rubiks" path="../rubiks"`) and
+`import rubiks;`.
 
 ```d
 import std.stdio : writeln;
@@ -58,63 +70,37 @@ import rubiks;
 
 void main()
 {
-    auto solver = new Solver;                         // builds the tables once
+    auto solver = new Solver;                  // builds the tables once
+    auto scramble = parseMoves("R U2 F' D L B2");
+    auto solution = solver.solve(scramble);
 
-    // From a scramble given as text...
-    Move[] solution = solver.solve("R U R' U' F2 D L'");
     writeln(formatMoves(solution));
-
-    // ...or from a cube state built by hand.
-    CubieCube cube;
-    cube.apply(parseMoves("B2 L F'"));
-    cube.apply(solver.solve(cube));
-    assert(cube.isSolved);
-
-    // The sticker view of the same cube.
-    writeln(cube.toFacelets);       // 54 letters, faces in the order U R F D L B
+    assert(CubieCube.fromMoves(scramble ~ solution).isSolved);
 }
 ```
 
-### Modules
+Modules (all re-exported by `import rubiks;`):
 
-| Module | Purpose |
-| --- | --- |
-| `rubiks.moves` | `Face`, `Move`, token parsing (`parseMove`, `parseMoves`, `MoveRange`) and formatting |
-| `rubiks.facelet` | `FaceletCube`, the 54-sticker model defined by the 4-cycles of each move |
-| `rubiks.cubie` | `CubieCube` (corner/edge permutation and orientation), conversions, solvability test |
-| `rubiks.coord` | Phase coordinates, Lehmer and subset ranking, the half-turn corner group |
-| `rubiks.movetables` | Per-component move tables (`value x move -> value`) |
-| `rubiks.phases` | The four phase spaces and the BFS that fills their distance tables |
-| `rubiks.solver` | `Solver` and `UnsolvableException` |
-
-`import rubiks;` re-exports the moves, facelet, cubie and solver modules.
-
-## Design
-
-| Phase | Moves | Coordinate | Values |
-| --- | --- | --- | --- |
-| 1 | all 18 | orientation of 11 edges | 2,048 |
-| 2 | no `F`/`B` quarter turns (14) | orientation of 7 corners x positions of the 4 E-slice edges | 1,082,565 |
-| 3 | `U`, `D` and half turns of `L R F B` (10) | corner permutation modulo the 96 half-turn permutations (420 classes) x positions of the M-slice edges (70) | 29,400 |
-| 4 | the six half turns | index of the corner permutation among the 96 x permutation of each slice (24^3) | 1,327,104 |
-
-The cubie-level moves are not hard-coded: they are derived at compile time
-from the facelet cycles. Edge orientation is defined so that only `F`/`B`
-quarter turns flip edges, and corner orientation by the position of the U/D
-sticker. The distance tables are flat byte arrays; BFS transitions are lookups in
-per-component move tables, so no cube is built or ranked per edge. Solving
-applies the scramble with one 20-element composition per move, then descends
-phase by phase.
+| module | responsibility |
+|--------|----------------|
+| `rubiks.move` | `Move`, `Face`, parsing and formatting of move notation |
+| `rubiks.facelets` | the sticker model: indexing, move cycles, corner and edge facelets |
+| `rubiks.cubie` | `CubieCube`: cubie permutation/orientation model, move application, legality check |
+| `rubiks.coords` | coordinates with move tables (orientations, slice positions, permutation classes) |
+| `rubiks.phase` | one phase: composite coordinate, BFS distance table, greedy descent |
+| `rubiks.solver` | `Solver`: the four phases chained together |
+| `rubiks.io` | line splitting and the scramble-per-line text format used by the CLI |
 
 ## Tests
 
-```sh
-dub test --compiler=ldc2
-```
+Tests are D `unittest` blocks next to the code, run with
+`dub test --compiler=ldc2`. They check, among other things, that the cubie
+model agrees with an independent facelet simulation, the group-theory sanity
+checks from the specification (order of `R U` is 105, superflip, ...), the
+exact table sizes, reachable-state counts and maximum depths of each phase
+(7, 10, 13, 15), and that thousands of random scrambles are solved in at most
+45 moves.
 
-The unit tests live in `tests/`, separate from the library source. They check
-the move model against the sanity checks of the specification (move orders,
-superflip), compare the cubie model with the facelet model on random
-sequences, verify every move table against "apply the move, then re-encode",
-and check that the solver solves random, long and special scrambles within 45
-moves.
+## License
+
+MIT, see `LICENSE`.

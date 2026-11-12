@@ -1,29 +1,45 @@
-// Package charset converts bytes to UTF-8 text for the small set of character
-// sets the dump format knows about: ASCII, UTF-8, Latin-1 and windows-1252.
-// Any other name is treated as windows-1252.
+// Package charset converts bytes in a named character set to a Go string.
+//
+// Only the character sets the mime tool knows about are supported: US-ASCII,
+// UTF-8, ISO-8859-1 and windows-1252. Every other name falls back to
+// windows-1252. The UTF-8 decoder is hand written and replaces invalid input
+// using the "maximal subpart" rule.
 package charset
 
-import "mimedump/internal/scan"
+import "strings"
 
-// Table identifies one of the supported decoding tables.
-type Table int
+// Normalize strips leading and trailing SPACE and TAB from name and lower-cases
+// its ASCII letters.
+func Normalize(name string) string {
+	name = strings.Trim(name, " \t")
+	for i := 0; i < len(name); i++ {
+		if c := name[i]; c >= 'A' && c <= 'Z' {
+			b := []byte(name)
+			for j := i; j < len(b); j++ {
+				if b[j] >= 'A' && b[j] <= 'Z' {
+					b[j] += 'a' - 'A'
+				}
+			}
+			return string(b)
+		}
+	}
+	return name
+}
+
+// Kind identifies one of the decoding tables.
+type Kind int
 
 // The supported tables.
 const (
-	CP1252 Table = iota // the fallback for unknown and empty names
-	ASCII
+	ASCII Kind = iota
 	UTF8
 	Latin1
+	CP1252
 )
 
-// Normalize strips leading and trailing spaces and tabs from name and
-// lower-cases its ASCII letters.
-func Normalize(name string) string {
-	return scan.LowerASCII(scan.Trim(name))
-}
-
-// Lookup returns the table for a charset name (normalising it first).
-func Lookup(name string) Table {
+// Lookup maps a charset name (in any case, with optional surrounding blanks)
+// to a decoding table. Unknown and empty names map to CP1252.
+func Lookup(name string) Kind {
 	switch Normalize(name) {
 	case "us-ascii", "ascii", "iso-ir-6", "ansi_x3.4-1968", "iso646-us":
 		return ASCII
@@ -35,7 +51,7 @@ func Lookup(name string) Table {
 	return CP1252
 }
 
-// Decode converts b to a UTF-8 string using the charset called name.
+// Decode converts b to a string using the character set called name.
 func Decode(b []byte, name string) string {
 	switch Lookup(name) {
 	case ASCII:
@@ -48,35 +64,41 @@ func Decode(b []byte, name string) string {
 	return decodeCP1252(b)
 }
 
-const replacement = "\xef\xbf\xbd"
+const replacement = '�'
 
 func decodeASCII(b []byte) string {
-	out := make([]byte, 0, len(b)+8)
-	start := 0
-	for i, c := range b {
+	clean := true
+	for _, c := range b {
 		if c >= 0x80 {
-			out = append(out, b[start:i]...)
-			out = append(out, replacement...)
-			start = i + 1
+			clean = false
+			break
 		}
 	}
-	return string(append(out, b[start:]...))
+	if clean {
+		return string(b)
+	}
+	var sb strings.Builder
+	sb.Grow(len(b))
+	for _, c := range b {
+		if c < 0x80 {
+			sb.WriteByte(c)
+		} else {
+			sb.WriteRune(replacement)
+		}
+	}
+	return sb.String()
 }
 
 func decodeLatin1(b []byte) string {
-	out := make([]byte, 0, len(b)*2)
-	start := 0
-	for i, c := range b {
-		if c >= 0x80 {
-			out = append(out, b[start:i]...)
-			out = append(out, 0xC0|c>>6, 0x80|c&0x3F)
-			start = i + 1
-		}
+	var sb strings.Builder
+	sb.Grow(len(b))
+	for _, c := range b {
+		sb.WriteRune(rune(c))
 	}
-	return string(append(out, b[start:]...))
+	return sb.String()
 }
 
-// cp1252High maps the bytes 0x80-0x9F to code points.
+// cp1252High maps bytes 0x80-0x9F to code points.
 var cp1252High = [32]rune{
 	0x20AC, 0x0081, 0x201A, 0x0192, 0x201E, 0x2026, 0x2020, 0x2021,
 	0x02C6, 0x2030, 0x0160, 0x2039, 0x0152, 0x008D, 0x017D, 0x008F,
@@ -85,111 +107,89 @@ var cp1252High = [32]rune{
 }
 
 func decodeCP1252(b []byte) string {
-	out := make([]byte, 0, len(b)*3)
-	start := 0
-	for i, c := range b {
-		if c < 0x80 {
-			continue
+	var sb strings.Builder
+	sb.Grow(len(b))
+	for _, c := range b {
+		if c >= 0x80 && c <= 0x9F {
+			sb.WriteRune(cp1252High[c-0x80])
+		} else {
+			sb.WriteRune(rune(c))
 		}
-		out = append(out, b[start:i]...)
-		start = i + 1
-		r := rune(c)
-		if c < 0xA0 {
-			r = cp1252High[c-0x80]
-		}
-		out = appendRune(out, r)
 	}
-	return string(append(out, b[start:]...))
+	return sb.String()
 }
 
-// appendRune appends the UTF-8 encoding of r (never a surrogate here).
-func appendRune(out []byte, r rune) []byte {
-	switch {
-	case r < 0x80:
-		return append(out, byte(r))
-	case r < 0x800:
-		return append(out, 0xC0|byte(r>>6), 0x80|byte(r)&0x3F)
-	case r < 0x10000:
-		return append(out, 0xE0|byte(r>>12), 0x80|byte(r>>6)&0x3F, 0x80|byte(r)&0x3F)
-	}
-	return append(out, 0xF0|byte(r>>18), 0x80|byte(r>>12)&0x3F, 0x80|byte(r>>6)&0x3F, 0x80|byte(r)&0x3F)
-}
-
-// DecodeUTF8 decodes b as UTF-8, replacing each maximal invalid subpart with
-// U+FFFD (see utf8Seq).
+// DecodeUTF8 decodes b as UTF-8. Invalid input is replaced by U+FFFD using the
+// maximal-subpart rule: an ill-formed sequence yields one U+FFFD for the lead
+// byte and the valid continuation bytes that followed it; the byte that broke
+// the sequence is decoded afresh.
 func DecodeUTF8(b []byte) string {
-	var out []byte // allocated lazily; nil while b is entirely valid
-	start := 0
-	for i := 0; i < len(b); {
-		if b[i] < 0x80 {
+	n := len(b)
+	i := 0
+	for i < n && b[i] < 0x80 {
+		i++
+	}
+	if i == n {
+		return string(b)
+	}
+	var sb strings.Builder
+	sb.Grow(n + 8)
+	sb.Write(b[:i])
+	for i < n {
+		b0 := b[i]
+		if b0 < 0x80 {
+			sb.WriteByte(b0)
 			i++
 			continue
 		}
-		n, ok := utf8Seq(b, i)
-		if !ok {
-			if out == nil {
-				out = make([]byte, 0, len(b)+16)
+		var need int
+		var cp rune
+		lo, hi := byte(0x80), byte(0xBF)
+		switch {
+		case b0 >= 0xC2 && b0 <= 0xDF:
+			need, cp = 1, rune(b0&0x1F)
+		case b0 == 0xE0:
+			need, cp, lo = 2, rune(b0&0x0F), 0xA0
+		case b0 >= 0xE1 && b0 <= 0xEC, b0 == 0xEE, b0 == 0xEF:
+			need, cp = 2, rune(b0&0x0F)
+		case b0 == 0xED:
+			need, cp, hi = 2, rune(b0&0x0F), 0x9F
+		case b0 == 0xF0:
+			need, cp, lo = 3, rune(b0&0x07), 0x90
+		case b0 >= 0xF1 && b0 <= 0xF3:
+			need, cp = 3, rune(b0&0x07)
+		case b0 == 0xF4:
+			need, cp, hi = 3, rune(b0&0x07), 0x8F
+		default:
+			sb.WriteRune(replacement)
+			i++
+			continue
+		}
+		j := i + 1
+		ok := true
+		for k := 0; k < need; k++ {
+			if j >= n {
+				ok = false
+				break
 			}
-			out = append(out, b[start:i]...)
-			out = append(out, replacement...)
-			start = i + n
-		}
-		i += n
-	}
-	if out == nil {
-		return string(b)
-	}
-	return string(append(out, b[start:]...))
-}
-
-// utf8Seq examines the non-ASCII lead byte at b[i]. It returns the number of
-// bytes of the sequence and true if it is a complete valid sequence, or the
-// number of bytes forming the maximal invalid subpart and false.
-func utf8Seq(b []byte, i int) (int, bool) {
-	b0 := b[i]
-	n := 0
-	lo, hi := byte(0x80), byte(0xBF)
-	switch {
-	case b0 >= 0xC2 && b0 <= 0xDF:
-		n = 2
-	case b0 == 0xE0:
-		n, lo = 3, 0xA0
-	case b0 == 0xED:
-		n, hi = 3, 0x9F
-	case b0 >= 0xE1 && b0 <= 0xEF:
-		n = 3
-	case b0 == 0xF0:
-		n, lo = 4, 0x90
-	case b0 >= 0xF1 && b0 <= 0xF3:
-		n = 4
-	case b0 == 0xF4:
-		n, hi = 4, 0x8F
-	default:
-		return 1, false
-	}
-	for k := 1; k < n; k++ {
-		if i+k >= len(b) {
-			return k, false
-		}
-		c := b[i+k]
-		if k == 1 {
-			if c < lo || c > hi {
-				return k, false
+			c := b[j]
+			l, h := byte(0x80), byte(0xBF)
+			if k == 0 {
+				l, h = lo, hi
 			}
-		} else if c < 0x80 || c > 0xBF {
-			return k, false
+			if c < l || c > h {
+				ok = false
+				break
+			}
+			cp = cp<<6 | rune(c&0x3F)
+			j++
 		}
-	}
-	return n, true
-}
-
-// RuneCount returns the number of code points in the valid UTF-8 string s.
-func RuneCount(s string) int {
-	n := 0
-	for i := 0; i < len(s); i++ {
-		if s[i]&0xC0 != 0x80 {
-			n++
+		if ok {
+			sb.WriteRune(cp)
+		} else {
+			sb.WriteRune(replacement)
 		}
+		i = j
 	}
-	return n
+	return sb.String()
 }

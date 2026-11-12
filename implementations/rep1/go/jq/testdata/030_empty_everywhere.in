@@ -1,0 +1,2 @@
+[1 + empty], [empty], ({a: empty} | 1), [if empty then 1 else 2 end], [select(empty)], [.[] | empty], [empty, 1, empty, 2], [error(empty)], [(empty)?], [.[] | select(. > 1) | empty], 9
+[1,2,3]

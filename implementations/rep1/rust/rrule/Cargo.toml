@@ -1,0 +1,18 @@
+[package]
+name = "rrule"
+version = "0.1.0"
+edition = "2021"
+description = "Expansion of RFC 5545 recurrence rules (a dateutil-compatible subset) with its own calendar arithmetic"
+license = "MIT"
+readme = "README.md"
+keywords = ["rrule", "recurrence", "calendar", "icalendar"]
+categories = ["date-and-time"]
+
+[lib]
+name = "rrule"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rrule"
+path = "src/main.rs"
+doc = false

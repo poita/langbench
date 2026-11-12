@@ -1,53 +1,63 @@
-/// Error type of the template engine.
+/**
+ * Error reporting for the template engine.
+ */
 module sitegen.templating.errors;
 
-/// The five failure classes of the template language.
-enum ErrorKind
+/// The kinds of template error.
+enum ErrorKind : ubyte
 {
-    syntax, /// unlexable or unparsable template
-    filter, /// unknown filter name
-    undefined, /// forbidden use of the undefined value
-    template_, /// include/extends of a template that does not exist
-    type, /// operand or argument of the wrong kind
+    /// The template cannot be lexed or parsed.
+    syntax,
+    /// A loaded template uses an unknown filter.
+    filter,
+    /// The undefined value was used in a way that is not allowed.
+    undefined,
+    /// An `include` or `extends` names a template that does not exist.
+    template_,
+    /// An operand or argument has the wrong kind, or an operation is invalid.
+    type,
 }
 
-/// Thrown for any template failure.
-class TemplateError : Exception
+/// The exception thrown for every template error.
+class TemplateException : Exception
 {
     /// What went wrong.
     ErrorKind kind;
 
-    this(ErrorKind kind, string detail = null, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
+    ///
+    this(ErrorKind kind, string message, string file = __FILE__, size_t line = __LINE__)
     {
+        super(message, file, line);
         this.kind = kind;
-        super(detail.length ? detail : kindName(kind), file, line);
-    }
-
-    /// The short name of the error kind (`syntax`, `filter`, ...).
-    static string kindName(ErrorKind k) pure nothrow @safe @nogc
-    {
-        final switch (k)
-        {
-        case ErrorKind.syntax: return "syntax";
-        case ErrorKind.filter: return "filter";
-        case ErrorKind.undefined: return "undefined";
-        case ErrorKind.template_: return "template";
-        case ErrorKind.type: return "type";
-        }
     }
 }
 
-package TemplateError syntaxError(string detail = null, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
+/// Throws a `syntax` error.
+noreturn syntaxError(string message, string file = __FILE__, size_t line = __LINE__)
 {
-    return new TemplateError(ErrorKind.syntax, detail, file, line);
+    throw new TemplateException(ErrorKind.syntax, message, file, line);
 }
 
-package TemplateError typeError(string detail = null, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
+/// Throws a `filter` error.
+noreturn filterError(string message, string file = __FILE__, size_t line = __LINE__)
 {
-    return new TemplateError(ErrorKind.type, detail, file, line);
+    throw new TemplateException(ErrorKind.filter, message, file, line);
 }
 
-package TemplateError undefinedError(string detail = null, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
+/// Throws an `undefined` error.
+noreturn undefinedError(string message, string file = __FILE__, size_t line = __LINE__)
 {
-    return new TemplateError(ErrorKind.undefined, detail, file, line);
+    throw new TemplateException(ErrorKind.undefined, message, file, line);
+}
+
+/// Throws a `template` error.
+noreturn templateError(string message, string file = __FILE__, size_t line = __LINE__)
+{
+    throw new TemplateException(ErrorKind.template_, message, file, line);
+}
+
+/// Throws a `type` error.
+noreturn typeError(string message, string file = __FILE__, size_t line = __LINE__)
+{
+    throw new TemplateException(ErrorKind.type, message, file, line);
 }

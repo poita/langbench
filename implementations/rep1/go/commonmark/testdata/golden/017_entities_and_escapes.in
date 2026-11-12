@@ -1,0 +1,46 @@
+&nbsp &x; &#; &#x;
+&#87654321;
+&#abcdef0;
+&ThisIsNotDefined; &hi?;
+&#35; &#1234; &#992; &#0; &#X22; &#XD06; &#xcab; &#x110000; &#xDFFF; &#x10FFFF; &#1114111; &#1114112;
+&copy
+&MadeUpEntity;
+[foo](/f&#246;&#246; "f&#246;&#246;")
+``` f&#246;&#246;
+foo
+```
+`f&#246;&#246;`
+    f&#246;f&#246;
+&#42;foo&#42;
+*foo*
+&#42; foo
+
+* foo
+
+foo&#10;&#10;bar
+&#9;foo
+[a](url &quot;tit&quot;)
+\!\"\#\$\%\&\'\(\)\*\+\,\-\.\/\:\;\<\=\>\?\@\[\\\]\^\_\`\{\|\}\~
+\	\A\a\ \3\φ\«
+\*not emphasized*
+\<br/> not a tag
+\[not a link](/foo)
+\`not code`
+1\. not a list
+\* not a list
+\# not a heading
+\[foo]: /url "not a reference"
+\&amp; not a character entity
+\\*emphasis*
+foo\
+bar
+`` \[\` ``
+    \[\]
+~~~
+\[\]
+~~~
+<http://example.com?find=\*>
+[foo](/bar\* "ti\*tle")
+``` foo\+bar
+foo
+```

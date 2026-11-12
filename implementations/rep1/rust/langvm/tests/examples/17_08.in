@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    for c in 'a' { print(showChar(c)); }
+}

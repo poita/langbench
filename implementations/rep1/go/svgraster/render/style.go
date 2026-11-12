@@ -1,191 +1,180 @@
 package render
 
 import (
+	"strings"
+
 	"svgraster/raster"
 	"svgraster/stroke"
 	"svgraster/svgparse"
 	"svgraster/xmlmini"
 )
 
-// Style is the typed set of inherited painting properties of an element.
-type Style struct {
-	Fill, Stroke               svgparse.Paint
-	FillOpacity, StrokeOpacity float64
-	FillRule                   raster.Rule
-	StrokeWidth                float64
-	Cap                        stroke.Cap
-	Join                       stroke.Join
-	MiterLimit                 float64
-	Color                      svgparse.RGB
+// style holds the computed values of the inherited painting properties.
+type style struct {
+	fill          svgparse.Paint
+	stroke        svgparse.Paint
+	fillOpacity   float64
+	strokeOpacity float64
+	fillRule      raster.FillRule
+	strokeWidth   float64
+	cap           stroke.Cap
+	join          stroke.Join
+	miterLimit    float64
+	color         svgparse.Color
 }
 
-// InitialStyle holds the initial values of the inherited properties.
-func InitialStyle() Style {
-	return Style{
-		Fill:          svgparse.Paint{Kind: svgparse.PaintRGB},
-		Stroke:        svgparse.Paint{Kind: svgparse.PaintNone},
-		FillOpacity:   1,
-		StrokeOpacity: 1,
-		FillRule:      raster.NonZero,
-		StrokeWidth:   1,
-		MiterLimit:    4,
+// initialStyle holds the initial values at the document element.
+func initialStyle() style {
+	return style{
+		fill:          svgparse.Paint{Color: svgparse.Color{}},
+		stroke:        svgparse.Paint{None: true},
+		fillOpacity:   1,
+		strokeOpacity: 1,
+		fillRule:      raster.NonZero,
+		strokeWidth:   1,
+		cap:           stroke.ButtCap,
+		join:          stroke.MiterJoin,
+		miterLimit:    4,
 	}
 }
 
-type prop uint8
-
-const (
-	pFill prop = iota
-	pFillOpacity
-	pFillRule
-	pStroke
-	pStrokeWidth
-	pLinecap
-	pLinejoin
-	pMiterLimit
-	pStrokeOpacity
-	pColor
-	pOpacity
-	pDisplay
-	numProps
-)
-
-var propNames = [numProps]string{
-	"fill", "fill-opacity", "fill-rule", "stroke", "stroke-width",
-	"stroke-linecap", "stroke-linejoin", "stroke-miterlimit", "stroke-opacity",
-	"color", "opacity", "display",
+// props gives access to an element's declared properties: the style attribute
+// takes precedence over presentation attributes.
+type props struct {
+	n     *xmlmini.Node
+	decls svgparse.Declarations
 }
 
-var propIndex = func() map[string]prop {
-	m := make(map[string]prop, numProps)
-	for i, n := range propNames {
-		m[n] = prop(i)
+func newProps(n *xmlmini.Node) props {
+	p := props{n: n}
+	if s, ok := n.Attr("style"); ok {
+		p.decls = svgparse.ParseStyle(s)
 	}
-	return m
-}()
-
-// declared holds the raw value of each property as written on one element.
-type declared [numProps]struct {
-	val string
-	set bool
+	return p
 }
 
-// collect gathers the raw property values of el: the style attribute first,
-// then the presentation attributes for properties the style does not set.
-func collect(el *xmlmini.Element) declared {
-	var d declared
-	if s, ok := el.Attr("style"); ok {
-		svgparse.Style(s, func(name, value string) {
-			if p, ok := propIndex[name]; ok {
-				d[p].val, d[p].set = value, true
-			}
-		})
+// get returns the declared value of a property, preferring the style
+// attribute, and whether there is one.
+func (p props) get(name string) (string, bool) {
+	if v, ok := p.decls[name]; ok {
+		return v, true
 	}
-	for p := prop(0); p < numProps; p++ {
-		if !d[p].set {
-			if v, ok := el.Attr(propNames[p]); ok {
-				d[p].val, d[p].set = v, true
+	if v, ok := p.n.Attr(name); ok {
+		return strings.TrimSpace(v), true
+	}
+	return "", false
+}
+
+// computeStyle derives the element's computed style from its parent's.
+func computeStyle(parent style, p props) style {
+	s := parent
+	init := initialStyle()
+	if v, ok := p.get("color"); ok {
+		if pt, ok := svgparse.ParsePaint(v); ok && !pt.None && !pt.Current {
+			s.color = pt.Color
+		} else if ok && pt.Current {
+			// currentColor on color inherits the parent's value.
+		} else {
+			s.color = init.color
+		}
+	}
+	paint := func(name string, cur *svgparse.Paint, initial svgparse.Paint) {
+		if v, ok := p.get(name); ok {
+			if pt, ok := svgparse.ParsePaint(v); ok {
+				*cur = pt
+			} else {
+				*cur = initial
 			}
 		}
 	}
-	return d
-}
-
-// apply computes the element's style from its parent's: each property that
-// is set on the element and parses replaces the inherited value; one that is
-// set but does not parse reverts to the initial value.
-func (d *declared) apply(s Style) Style {
-	init := InitialStyle()
-	if d[pColor].set {
-		if p, ok := svgparse.ParseColor(d[pColor].val); ok && p.Kind == svgparse.PaintRGB {
-			s.Color = p.RGB
-		} else if !ok || p.Kind == svgparse.PaintNone {
-			s.Color = init.Color
+	paint("fill", &s.fill, init.fill)
+	paint("stroke", &s.stroke, init.stroke)
+	opacity := func(name string, cur *float64) {
+		if v, ok := p.get(name); ok {
+			if o, ok := svgparse.ParseOpacity(v); ok {
+				*cur = o
+			} else {
+				*cur = 1
+			}
 		}
 	}
-	if d[pFill].set {
-		if p, ok := svgparse.ParseColor(d[pFill].val); ok {
-			s.Fill = p
-		} else {
-			s.Fill = init.Fill
-		}
-	}
-	if d[pStroke].set {
-		if p, ok := svgparse.ParseColor(d[pStroke].val); ok {
-			s.Stroke = p
-		} else {
-			s.Stroke = init.Stroke
-		}
-	}
-	if d[pFillOpacity].set {
-		if v, ok := svgparse.Opacity(d[pFillOpacity].val); ok {
-			s.FillOpacity = v
-		} else {
-			s.FillOpacity = init.FillOpacity
-		}
-	}
-	if d[pStrokeOpacity].set {
-		if v, ok := svgparse.Opacity(d[pStrokeOpacity].val); ok {
-			s.StrokeOpacity = v
-		} else {
-			s.StrokeOpacity = init.StrokeOpacity
-		}
-	}
-	if d[pFillRule].set {
-		switch d[pFillRule].val {
+	opacity("fill-opacity", &s.fillOpacity)
+	opacity("stroke-opacity", &s.strokeOpacity)
+	if v, ok := p.get("fill-rule"); ok {
+		switch v {
 		case "nonzero":
-			s.FillRule = raster.NonZero
+			s.fillRule = raster.NonZero
 		case "evenodd":
-			s.FillRule = raster.EvenOdd
+			s.fillRule = raster.EvenOdd
 		default:
-			s.FillRule = init.FillRule
+			s.fillRule = init.fillRule
 		}
 	}
-	if d[pStrokeWidth].set {
-		if v, ok := svgparse.Length(d[pStrokeWidth].val); ok {
-			s.StrokeWidth = v
-		} else {
-			s.StrokeWidth = init.StrokeWidth
-		}
-	}
-	if d[pMiterLimit].set {
-		if v, _, ok := svgparse.ScanNumber(trimLeft(d[pMiterLimit].val), 0); ok {
-			s.MiterLimit = v
-		} else {
-			s.MiterLimit = init.MiterLimit
-		}
-	}
-	if d[pLinecap].set {
-		switch d[pLinecap].val {
+	if v, ok := p.get("stroke-linecap"); ok {
+		switch v {
 		case "butt":
-			s.Cap = stroke.CapButt
+			s.cap = stroke.ButtCap
 		case "round":
-			s.Cap = stroke.CapRound
+			s.cap = stroke.RoundCap
 		case "square":
-			s.Cap = stroke.CapSquare
+			s.cap = stroke.SquareCap
 		default:
-			s.Cap = init.Cap
+			s.cap = init.cap
 		}
 	}
-	if d[pLinejoin].set {
-		switch d[pLinejoin].val {
+	if v, ok := p.get("stroke-linejoin"); ok {
+		switch v {
 		case "miter":
-			s.Join = stroke.JoinMiter
+			s.join = stroke.MiterJoin
 		case "round":
-			s.Join = stroke.JoinRound
+			s.join = stroke.RoundJoin
 		case "bevel":
-			s.Join = stroke.JoinBevel
+			s.join = stroke.BevelJoin
 		default:
-			s.Join = init.Join
+			s.join = init.join
+		}
+	}
+	if v, ok := p.get("stroke-width"); ok {
+		if w, ok := svgparse.ParseLength(v); ok {
+			s.strokeWidth = w
+		} else {
+			s.strokeWidth = init.strokeWidth
+		}
+	}
+	if v, ok := p.get("stroke-miterlimit"); ok {
+		if m, ok := svgparse.ParseLength(v); ok {
+			s.miterLimit = m
+		} else {
+			s.miterLimit = init.miterLimit
 		}
 	}
 	return s
 }
 
-func trimLeft(s string) string {
-	i := 0
-	for i < len(s) && svgparse.IsSpace(s[i]) {
-		i++
+// resolve turns a paint into an RGB triple in [0,1]; ok is false for none.
+func (s style) resolve(p svgparse.Paint) (rgb [3]float64, ok bool) {
+	if p.None {
+		return rgb, false
 	}
-	return s[i:]
+	c := p.Color
+	if p.Current {
+		c = s.color
+	}
+	return [3]float64{float64(c.R) / 255, float64(c.G) / 255, float64(c.B) / 255}, true
+}
+
+// opacityOf returns the element's own (non-inherited) opacity property.
+func opacityOf(p props) float64 {
+	if v, ok := p.get("opacity"); ok {
+		if o, ok := svgparse.ParseOpacity(v); ok {
+			return o
+		}
+	}
+	return 1
+}
+
+// hidden reports whether the element's computed display is "none".
+func hidden(p props) bool {
+	v, ok := p.get("display")
+	return ok && v == "none"
 }

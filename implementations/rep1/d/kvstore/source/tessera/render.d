@@ -1,112 +1,57 @@
-/// Text rendering of values, keys and numbers for `results.txt`.
+/// Formatting of result blocks for `results.txt` (SPEC §19).
 module tessera.render;
 
-import tessera.bytes;
+import std.array : Appender;
+import std.conv : to;
+
+import tessera.errors;
 import tessera.value;
 
-private static immutable hexDigits = "0123456789abcdef";
-
-/// Append the decimal form of a signed integer.
-void putDecimal(ref ByteBuffer o, long n) pure nothrow @safe
+/// Start a block: `[k] <status>` and a line feed.
+void statusLine(ref Appender!string o, size_t lineNo, const(char)[] status) @safe pure nothrow
 {
-    if (n < 0)
-    {
-        o.put('-');
-        putUnsigned(o, 0UL - cast(ulong) n);
-    }
-    else
-        putUnsigned(o, cast(ulong) n);
+    o.put('[');
+    o.put(lineNo.to!string);
+    o.put("] ");
+    o.put(status);
+    o.put('\n');
 }
 
-/// Append the decimal form of an unsigned integer.
-void putUnsigned(ref ByteBuffer o, ulong n) pure nothrow @safe
+/// A whole block for a failed command.
+void errorBlock(ref Appender!string o, size_t lineNo, ErrorKind kind) @safe pure nothrow
 {
-    char[20] tmp;
-    size_t i = tmp.length;
-    do
-    {
-        tmp[--i] = cast(char)('0' + n % 10);
-        n /= 10;
-    }
-    while (n);
-    o.putText(tmp[i .. $]);
+    statusLine(o, lineNo, "error " ~ errorName(kind));
 }
 
-/// Append a string in quoted, escaped form.
-void renderString(ref ByteBuffer o, const(char)[] s) pure nothrow @safe
+/// A payload line: two spaces then `text`.
+void payloadLine(ref Appender!string o, const(char)[] text) @safe pure nothrow
 {
-    o.put('"');
-    foreach (char c; s)
-    {
-        switch (c)
-        {
-        case '"': o.putText("\\\""); break;
-        case '\\': o.putText("\\\\"); break;
-        case '\b': o.putText("\\b"); break;
-        case '\t': o.putText("\\t"); break;
-        case '\n': o.putText("\\n"); break;
-        case '\f': o.putText("\\f"); break;
-        case '\r': o.putText("\\r"); break;
-        default:
-            if (c < 0x20 || c == 0x7f)
-            {
-                o.putText("\\u00");
-                o.put(hexDigits[(c >> 4) & 0xF]);
-                o.put(hexDigits[c & 0xF]);
-            }
-            else
-                o.put(cast(ubyte) c);
-        }
-    }
-    o.put('"');
+    o.put("  ");
+    o.put(text);
+    o.put('\n');
 }
 
-/// Append the canonical one-line rendering of a value.
-void renderValue(ref ByteBuffer o, Value v) pure nothrow @safe
+/// A `"key" = document` line (or just `"key"` when `doc` is `null`).
+void keyLine(ref Appender!string o, const(char)[] key, const(Value)* doc) @safe pure nothrow
 {
-    final switch (v.kind)
+    o.put("  ");
+    renderString(key, o);
+    if (doc !is null)
     {
-    case Kind.null_:
-        o.putText("null");
-        break;
-    case Kind.boolean:
-        o.putText(v.num ? "true" : "false");
-        break;
-    case Kind.integer:
-        putDecimal(o, v.num);
-        break;
-    case Kind.string_:
-        renderString(o, v.str);
-        break;
-    case Kind.list:
-        o.put('[');
-        foreach (i, ref e; v.items)
-        {
-            if (i)
-                o.put(',');
-            renderValue(o, e);
-        }
-        o.put(']');
-        break;
-    case Kind.object:
-        o.put('{');
-        foreach (i, ref e; v.items)
-        {
-            if (i)
-                o.put(',');
-            renderString(o, v.names[i]);
-            o.put(':');
-            renderValue(o, e);
-        }
-        o.put('}');
-        break;
+        o.put(" = ");
+        render(*doc, o);
     }
+    o.put('\n');
 }
 
-/// The canonical rendering of a value as a string.
-string renderToString(Value v) pure nothrow @safe
+@system pure nothrow unittest
 {
-    ByteBuffer b;
-    renderValue(b, v);
-    return toStr(b.data);
+    Appender!string o;
+    statusLine(o, 12, "ok begin");
+    payloadLine(o, "pages 2");
+    errorBlock(o, 3, ErrorKind.noTxn);
+    auto v = Value.integer(2);
+    keyLine(o, "b", &v);
+    keyLine(o, "c\n", null);
+    assert(o[] == "[12] ok begin\n  pages 2\n[3] error no-txn\n  \"b\" = 2\n  \"c\\n\"\n");
 }

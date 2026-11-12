@@ -1,3 +1,4 @@
 #!/bin/sh
-# Run the inflate command (stdin -> stdout). Works from any directory.
-exec "$(dirname "$0")/bin/inflate" "$@"
+# Run the inflate command: hex on stdin, hex (or "error") on stdout.
+dir=$(cd "$(dirname "$0")" && pwd)
+exec "$dir/bin/inflate" "$@"

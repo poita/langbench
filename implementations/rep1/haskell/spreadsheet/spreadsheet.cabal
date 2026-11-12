@@ -1,0 +1,74 @@
+cabal-version:      3.0
+name:               spreadsheet
+version:            0.1.0.0
+synopsis:           In-memory spreadsheet engine with incremental recalculation
+description:
+  A small spreadsheet engine.  Cells hold numbers, strings or formulas;
+  formulas may reference other cells and ranges, and the sheet is kept
+  consistent after every edit by recalculating only the cells that
+  transitively depend on the edited one.  Reference cycles are detected with
+  Tarjan's strongly-connected-components algorithm and reported as @#CYCLE!@.
+  .
+  The package ships a reusable library and a command-line tool that reads a
+  script of @set@ / @get@ / @clear@ / @dump@ commands from standard input.
+category:           Data
+license:            BSD-3-Clause
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Spreadsheet
+    Spreadsheet.Command
+    Spreadsheet.Eval
+    Spreadsheet.Format
+    Spreadsheet.Graph
+    Spreadsheet.Parser
+    Spreadsheet.Sheet
+    Spreadsheet.Types
+  build-depends:
+    , base        >=4.20 && <5
+    , containers  >=0.6  && <0.9
+    , text        >=2.0  && <2.2
+
+executable spreadsheet
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+  build-depends:
+    , base
+    , bytestring  >=0.11 && <0.13
+    , spreadsheet
+    , text
+
+test-suite spreadsheet-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  other-modules:
+    Spreadsheet.EvalSpec
+    Spreadsheet.FormatSpec
+    Spreadsheet.GraphSpec
+    Spreadsheet.ParserSpec
+    Spreadsheet.PropertySpec
+    Spreadsheet.ScriptSpec
+    Spreadsheet.SheetSpec
+    Spreadsheet.TypesSpec
+  build-depends:
+    , base
+    , containers
+    , hspec        >=2.10
+    , QuickCheck   >=2.14
+    , spreadsheet
+    , text

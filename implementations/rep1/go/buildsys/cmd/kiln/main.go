@@ -1,10 +1,12 @@
-// Command kiln runs a Kiln session: it loads a workspace and session script
-// from an input directory, runs the session, and writes the log and the final
-// workspace to an output directory.
+// Command kiln runs a Kiln session.
 //
 // Usage:
 //
 //	kiln <input directory> <output directory>
+//
+// The input directory holds session.txt, main.kiln and the initial workspace.
+// The output directory receives log.txt and workspace/, a copy of the final
+// workspace.
 package main
 
 import (
@@ -32,20 +34,19 @@ func run(in, out string) error {
 	if err != nil {
 		return err
 	}
-	steps, err := session.Parse(script)
+	ws, err := vfs.LoadDir(in, "session.txt")
 	if err != nil {
 		return err
 	}
-	fs := vfs.New()
-	if err := fs.LoadDir(in, func(rel string) bool { return rel == "session.txt" }); err != nil {
+	log, err := session.RunScript(ws, string(script))
+	if err != nil {
 		return err
 	}
-	log := session.Run(fs, steps)
 	if err := os.MkdirAll(out, 0o755); err != nil {
 		return err
 	}
-	if err := os.WriteFile(filepath.Join(out, "log.txt"), log, 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(out, "log.txt"), []byte(log), 0o644); err != nil {
 		return err
 	}
-	return fs.WriteDir(filepath.Join(out, "workspace"))
+	return ws.WriteDir(filepath.Join(out, "workspace"))
 }

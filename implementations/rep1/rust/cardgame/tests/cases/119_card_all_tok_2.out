@@ -1,0 +1,40 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN TOK-005
+name Grave Hound
+type unit
+cost 0
+body 1/1
+tags neutral,undead
+keywords venom
+CARD END
+CARD BEGIN TOK-006
+name Loam Seedling
+type unit
+cost 0
+body 0/2
+tags neutral,plant
+keywords -
+CARD END
+CARD BEGIN TOK-007
+name Spire Drone
+type unit
+cost 0
+body 1/2
+tags neutral,construct
+keywords skyhook
+CARD END
+CARD BEGIN TOK-008
+name Husk
+type unit
+cost 0
+body 2/2
+tags neutral,undead
+keywords shackled
+CARD END
+8 RESULT pending none

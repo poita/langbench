@@ -1,0 +1,36 @@
+<p>&amp;nbsp &amp;x; &amp;#; &amp;#x;
+&amp;#87654321;
+&amp;#abcdef0;
+&amp;ThisIsNotDefined; &amp;hi?;
+# Ӓ Ϡ � &quot; ആ ಫ � � 􏿿 􏿿 �
+&amp;copy
+&amp;MadeUpEntity;
+<a href="/f%C3%B6%C3%B6" title="föö">foo</a></p>
+<pre><code class="language-föö">foo
+</code></pre>
+<p><code>f&amp;#246;&amp;#246;</code>
+föfö
+*foo*
+<em>foo</em>
+* foo</p>
+<ul>
+<li>foo</li>
+</ul>
+<p>foo
+
+bar
+	foo
+[a](url &quot;tit&quot;)
+!&quot;#$%&amp;'()*+,-./:;&lt;=&gt;?@[\]^_`{|}~
+\	\A\a\ \3\φ\«
+*not emphasized*
+&lt;br/&gt; not a tag
+[not a link](/foo)
+`not code<code> 1\. not a list \* not a list \# not a heading \[foo]: /url &quot;not a reference&quot; \&amp;amp; not a character entity \\*emphasis* foo\ bar `` \[\</code> ``
+[]</p>
+<pre><code>\[\]
+</code></pre>
+<p><a href="http://example.com?find=%5C*">http://example.com?find=\*</a>
+<a href="/bar*" title="ti*tle">foo</a></p>
+<pre><code class="language-foo+bar">foo
+</code></pre>

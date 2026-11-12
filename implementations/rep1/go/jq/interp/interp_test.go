@@ -1,69 +1,78 @@
-package interp_test
+package interp
 
 import (
+	"errors"
 	"testing"
 
-	"github.com/peter/jq/interp"
-	"github.com/peter/jq/syntax"
-	"github.com/peter/jq/value"
+	"example.com/jq/syntax"
+	"example.com/jq/value"
 )
 
-func compile(t *testing.T, src string) *interp.Program {
+func compile(t *testing.T, src string) *Program {
 	t.Helper()
 	ast, err := syntax.Parse(src)
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := interp.Compile(ast)
+	p, err := Compile(ast)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return p
 }
 
-func TestVariableScoping(t *testing.T) {
-	// $x inside reduce's update refers to the reduce variable, and the outer
-	// binding is visible again afterwards.
-	p := compile(t, `1 as $x | (reduce (10,20) as $x (0; . + $x)), $x`)
-	var got []string
-	if err := p.Run(value.Null, func(v value.Value) error {
-		got = append(got, value.JSON(v))
-		return nil
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if len(got) != 2 || got[0] != "30" || got[1] != "1" {
-		t.Errorf("got %v", got)
-	}
-}
-
-func TestCompileUndefined(t *testing.T) {
-	ast, _ := syntax.Parse(`$nope`)
-	if _, err := interp.Compile(ast); err == nil {
-		t.Error("expected undefined variable error")
-	}
-	ast, _ = syntax.Parse(`frobnicate(1)`)
-	if _, err := interp.Compile(ast); err == nil {
-		t.Error("expected undefined builtin error")
-	}
-}
-
-func TestErrorPayload(t *testing.T) {
-	p := compile(t, `error({"a":1})`)
-	err := p.Run(value.Null, func(value.Value) error { return nil })
-	re, ok := err.(*interp.Error)
-	if !ok || value.JSON(re.Value) != `{"a":1}` {
-		t.Errorf("got %#v", err)
-	}
-}
-
-func TestProgramIsReusable(t *testing.T) {
-	p := compile(t, `{a: (1,2)}`)
-	for i := 0; i < 3; i++ {
-		n := 0
-		_ = p.Run(value.Null, func(value.Value) error { n++; return nil })
-		if n != 2 {
-			t.Fatalf("run %d produced %d outputs", i, n)
+func TestCompileErrors(t *testing.T) {
+	for _, src := range []string{`nosuch`, `map`, `$undefined`, `length(1)`, `. as $x | $y`} {
+		ast, err := syntax.Parse(src)
+		if err != nil {
+			t.Fatalf("Parse(%q): %v", src, err)
 		}
+		if _, err := Compile(ast); err == nil {
+			t.Errorf("Compile(%q) succeeded, want error", src)
+		}
+	}
+}
+
+func TestYieldErrorStopsAndPropagates(t *testing.T) {
+	stop := errors.New("stop")
+	p := compile(t, `(1,2,3)?`)
+	n := 0
+	err := p.Run(nil, func(Value) error {
+		n++
+		return stop
+	})
+	if err != stop || n != 1 {
+		t.Errorf("err = %v after %d outputs, want stop after 1", err, n)
+	}
+}
+
+func TestLazyEvaluation(t *testing.T) {
+	// The error after the first output must not be raised if the consumer stops.
+	p := compile(t, `1, error`)
+	stop := errors.New("stop")
+	if err := p.Run(nil, func(Value) error { return stop }); err != stop {
+		t.Errorf("err = %v", err)
+	}
+}
+
+func TestRuntimeErrorType(t *testing.T) {
+	p := compile(t, `.a`)
+	err := p.Run(1.0, func(Value) error { return nil })
+	var re *Error
+	if !errors.As(err, &re) {
+		t.Fatalf("err = %v, want *Error", err)
+	}
+}
+
+func TestSharedValuesAreNotMutated(t *testing.T) {
+	doc, _ := value.ParseString(`{"a":[3,1,2],"b":{"x":1}}`)
+	before := value.String(doc)
+	for _, src := range []string{`.a | sort`, `.b + {"y":2}`, `.a | reverse`, `.b * {"x":{"z":1}}`, `.a + [4]`, `.a | unique`} {
+		if err := compile(t, src).Run(doc, func(Value) error { return nil }); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if after := value.String(doc); after != before {
+		t.Errorf("input mutated: %s -> %s", before, after)
 	}
 }

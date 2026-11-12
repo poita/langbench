@@ -1,0 +1,19 @@
+[
+  "tests/test_cli.py::test_extreme_keys",
+  "tests/test_cli.py::test_process_example",
+  "tests/test_cli.py::test_subprocess_run_sh",
+  "tests/test_cli.py::test_values_are_opaque",
+  "tests/test_cli.py::test_zero_commands_is_empty_output",
+  "tests/test_ordered_map.py::test_empty",
+  "tests/test_ordered_map.py::test_insert_update_delete",
+  "tests/test_ordered_map.py::test_items_and_repr",
+  "tests/test_ordered_map.py::test_mapping_sugar",
+  "tests/test_ordered_map.py::test_neighbours_and_extremes",
+  "tests/test_ordered_map.py::test_random_against_reference[0]",
+  "tests/test_ordered_map.py::test_random_against_reference[1]",
+  "tests/test_ordered_map.py::test_random_against_reference[2]",
+  "tests/test_ordered_map.py::test_random_against_reference[3]",
+  "tests/test_ordered_map.py::test_random_against_reference[4]",
+  "tests/test_ordered_map.py::test_range_bounds",
+  "tests/test_ordered_map.py::test_sorted_insert_stays_balanced"
+]

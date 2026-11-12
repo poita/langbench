@@ -1,0 +1,42 @@
+<p><code>foo</code></p>
+<hr />
+<p><code>foo ` bar</code></p>
+<hr />
+<p><code>``</code></p>
+<hr />
+<p><code> `` </code></p>
+<hr />
+<p><code> a</code></p>
+<hr />
+<p><code> b </code></p>
+<hr />
+<p><code> </code>
+<code>  </code></p>
+<hr />
+<p><code>foo bar   baz</code></p>
+<hr />
+<p><code>foo </code></p>
+<hr />
+<p><code>foo   bar  baz</code></p>
+<hr />
+<p><code>foo\</code>bar`</p>
+<hr />
+<p><code>foo`bar</code></p>
+<hr />
+<p><code>foo `` bar</code></p>
+<hr />
+<p>*foo<code>*</code></p>
+<hr />
+<p>[not a <code>link](/foo</code>)</p>
+<hr />
+<p><code>&lt;a href=&quot;</code>&quot;&gt;`</p>
+<hr />
+<p><code>&lt;https://foo.bar.</code>baz&gt;`</p>
+<hr />
+<p><a href="https://foo.bar.%60baz">https://foo.bar.`baz</a>`</p>
+<hr />
+<p>```foo``</p>
+<hr />
+<p>`foo</p>
+<hr />
+<p>`foo<code>bar</code></p>

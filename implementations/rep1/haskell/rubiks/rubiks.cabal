@@ -1,0 +1,68 @@
+cabal-version:      3.0
+name:               rubiks
+version:            0.1.0.0
+synopsis:           Thistlethwaite four-phase Rubik's cube solver
+description:
+  A library and command-line tool that solves a 3x3x3 Rubik's cube with
+  Thistlethwaite's four-phase algorithm.  Each phase has an exact distance
+  table over a small coordinate space (built once by breadth-first search),
+  and a scramble is solved by greedy descent through the four tables, giving
+  solutions of at most 45 half-turn-metric moves.
+category:           Algorithms
+license:            BSD-3-Clause
+author:             rubiks contributors
+maintainer:         rubiks contributors
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC ==9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Rubiks
+    Rubiks.Move
+    Rubiks.Facelet
+    Rubiks.Cube
+    Rubiks.Solver
+    Rubiks.Internal.Combinatorics
+    Rubiks.Internal.Coordinates
+    Rubiks.Internal.Phase
+    Rubiks.Internal.Table
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.18 && <5
+    , containers  >=0.6 && <0.9
+
+executable rubiks
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts
+  build-depends:
+    , base
+    , bytestring  >=0.11 && <0.13
+    , rubiks
+
+test-suite rubiks-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  other-modules:
+    Rubiks.CombinatoricsSpec
+    Rubiks.CoordinatesSpec
+    Rubiks.CubeSpec
+    Rubiks.MoveSpec
+    Rubiks.SolverSpec
+    Rubiks.Generators
+  build-depends:
+    , array
+    , base
+    , hspec       >=2.10
+    , QuickCheck  >=2.17
+    , rubiks

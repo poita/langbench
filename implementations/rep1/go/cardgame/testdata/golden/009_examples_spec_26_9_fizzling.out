@@ -1,0 +1,31 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 2 2
+5 EMBER B 1 1
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #2 CIN-005 #5
+9 PAY A ember 2
+10 PASS A
+11 PLAY B ~2 #4 TID-003 #5
+12 PAY B ember 1
+13 PASS B
+14 PASS A
+15 RESOLVE ~2
+16 BOUNCE #5 TOK-001
+17 SPENT #4 TID-003
+18 PASS A
+19 PASS B
+20 RESOLVE ~1
+21 FIZZLE ~1
+22 SPENT #2 CIN-005
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 10 ember 0 cap 2 vault 1 hand 0 ash 1 rift 0
+player B spire 10 ember 0 cap 1 vault 1 hand 1 ash 1 rift 0
+hand B 1 #5 TOK-001
+ash A 1 #2 CIN-005
+ash B 1 #4 TID-003
+STATE END
+23 RESULT pending none

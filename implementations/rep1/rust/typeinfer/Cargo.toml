@@ -1,0 +1,17 @@
+[package]
+name = "typeinfer"
+version = "0.1.0"
+edition = "2021"
+description = "Hindley-Milner type inference for a small ML-like language"
+license = "MIT"
+readme = "README.md"
+keywords = ["type-inference", "hindley-milner", "ml"]
+categories = ["compilers"]
+
+[lib]
+name = "typeinfer"
+path = "src/lib.rs"
+
+[[bin]]
+name = "typeinfer"
+path = "src/main.rs"

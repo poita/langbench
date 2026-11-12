@@ -1,68 +1,75 @@
-/// The 64×32 monochrome display, stored as one 64-bit word per row.
+/// The 64x32 monochrome framebuffer.
 module chip8.display;
 
-import core.bitop : ror;
-import chip8.constants;
+/// Display width in pixels.
+enum size_t width = 64;
+/// Display height in pixels.
+enum size_t height = 32;
 
-/++
-    Display state. Row `y` is one `ulong`; column 0 is the most significant bit
-    and column 63 the least significant bit.
-+/
+/// A 64x32 one-bit-per-pixel display; sprites XOR and wrap around both edges.
 struct Display
 {
-    /// One word per row.
-    ulong[displayHeight] rows;
+    /// Pixel state, row-major; each element is 0 or 1.
+    ubyte[width * height] pixels;
 
-    /// Turn every pixel off.
-    void clear() pure nothrow @safe @nogc
+    /// Turn all pixels off.
+    void clear() @safe pure nothrow @nogc
     {
-        rows[] = 0;
+        pixels[] = 0;
     }
 
-    /// Whether the pixel at column `x`, row `y` is lit (coordinates are wrapped).
-    bool opIndex(size_t x, size_t y) const pure nothrow @safe @nogc
+    /// Is the pixel at (`x`, `y`) lit?  Coordinates are wrapped.
+    bool opIndex(size_t x, size_t y) const @safe pure nothrow @nogc
     {
-        return ((rows[y & (displayHeight - 1)] >> (63 - (x & (displayWidth - 1)))) & 1) != 0;
+        return pixels[(y & (height - 1)) * width + (x & (width - 1))] != 0;
     }
 
-    /++
-        XOR one 8-pixel sprite row at origin `(sx, sy)`, wrapping at the edges.
-
-        Params:
-            sx   = column of the sprite's leftmost bit (0..63)
-            row  = destination row, wrapped to 0..31
-            bits = the sprite byte, most significant bit leftmost
-
-        Returns: `true` if any lit pixel was turned off (collision).
-    +/
-    pragma(inline, true)
-    bool xorByte(uint sx, uint row, ubyte bits) pure nothrow @safe @nogc
+    /**
+     * XOR one sprite row (8 pixels, MSB leftmost) at column `sx`, row `py`,
+     * wrapping horizontally and vertically.
+     * Returns: true if any lit pixel was turned off.
+     */
+    bool xorRow(uint sx, uint py, ubyte bits) @safe pure nothrow @nogc
     {
-        immutable ulong mask = ror(cast(ulong) bits << 56, sx & 63);
-        ulong* r = &rows[row & (displayHeight - 1)];
-        immutable hit = (*r & mask) != 0;
-        *r ^= mask;
-        return hit;
-    }
-
-    /// Render as 32 lines of 64 characters (`#` lit, `.` unlit), each ending in `\n`.
-    char[] render() const pure nothrow @safe
-    {
-        auto buf = new char[displayHeight * (displayWidth + 1)];
-        renderInto(buf);
-        return buf;
-    }
-
-    /// ditto; writes into `buf`, which must hold at least 32 * 65 chars.
-    void renderInto(char[] buf) const pure nothrow @safe @nogc
-    in (buf.length >= displayHeight * (displayWidth + 1))
-    {
-        size_t o = 0;
-        foreach (w; rows)
+        bool collided = false;
+        immutable rowBase = (py & (height - 1)) * width;
+        foreach (bit; 0 .. 8)
         {
-            foreach (x; 0 .. displayWidth)
-                buf[o++] = ((w >> (63 - x)) & 1) ? '#' : '.';
+            if ((bits >> (7 - bit)) & 1)
+            {
+                auto p = &pixels[rowBase + ((sx + bit) & (width - 1))];
+                collided |= *p != 0;
+                *p ^= 1;
+            }
+        }
+        return collided;
+    }
+
+    /// Render as 32 lines of 64 `#`/`.` characters, each ending in `\n`.
+    string render() const @safe pure nothrow
+    {
+        auto buf = new char[(width + 1) * height];
+        size_t o;
+        foreach (y; 0 .. height)
+        {
+            foreach (x; 0 .. width)
+                buf[o++] = pixels[y * width + x] ? '#' : '.';
             buf[o++] = '\n';
         }
+        return (() @trusted => cast(string) buf)();
     }
+}
+
+@safe pure nothrow unittest
+{
+    Display d;
+    assert(!d.xorRow(62, 31, 0xF0));
+    assert(d[62, 31] && d[63, 31] && d[0, 31] && d[1, 31] && !d[2, 31]);
+    assert(d.xorRow(62, 31, 0xF0));
+    foreach (p; d.pixels)
+        assert(p == 0);
+    d.xorRow(0, 0, 0x80);
+    d.clear();
+    assert(!d[0, 0]);
+    assert(d.render().length == 65 * 32);
 }

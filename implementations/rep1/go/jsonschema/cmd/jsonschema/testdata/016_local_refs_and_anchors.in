@@ -1,0 +1,47 @@
+{
+  "schema": {
+    "$id": "https://example.test/root",
+    "$defs": {
+      "pos": {
+        "$anchor": "positive",
+        "type": "integer",
+        "minimum": 1
+      },
+      "pair": {
+        "type": "array",
+        "prefixItems": [
+          {
+            "$ref": "#positive"
+          },
+          {
+            "$ref": "#/$defs/pos"
+          }
+        ],
+        "minItems": 2
+      }
+    },
+    "$ref": "#/$defs/pair"
+  },
+  "tests": [
+    {
+      "description": "two positive integers",
+      "data": [
+        1,
+        2
+      ]
+    },
+    {
+      "description": "second is zero",
+      "data": [
+        1,
+        0
+      ]
+    },
+    {
+      "description": "too short",
+      "data": [
+        1
+      ]
+    }
+  ]
+}

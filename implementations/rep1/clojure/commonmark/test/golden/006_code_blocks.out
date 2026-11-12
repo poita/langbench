@@ -1,0 +1,23 @@
+<pre><code>indented
+  more
+
+after blank
+
+tab
+</code></pre>
+<pre><code>fenced
+</code></pre>
+<pre><code class="language-python">def f():
+    return 1
+</code></pre>
+<pre><code class="language-md">```
+inner
+```
+</code></pre>
+<pre><code class="language-x">no double prefix
+</code></pre>
+<pre><code class="language-c++">code
+ more
+</code></pre>
+<pre><code>unclosed
+</code></pre>

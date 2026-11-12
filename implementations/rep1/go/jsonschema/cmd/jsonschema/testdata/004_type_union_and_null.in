@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "type": [
+      "string",
+      "null"
+    ]
+  },
+  "tests": [
+    {
+      "description": "string",
+      "data": "x"
+    },
+    {
+      "description": "null",
+      "data": null
+    },
+    {
+      "description": "false is not null",
+      "data": false
+    }
+  ]
+}

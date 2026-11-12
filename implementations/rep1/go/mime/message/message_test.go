@@ -5,127 +5,147 @@ import (
 	"testing"
 )
 
-func crlf(s string) []byte { return []byte(strings.ReplaceAll(s, "\n", "\r\n")) }
+func parse(s string) *Message { return Parse([]byte(strings.ReplaceAll(s, "⏎", "\n"))) }
 
-const worked = "Subject: x\n" +
-	"Content-Type: multipart/mixed; boundary=\"X\"\n" +
-	"\n" +
-	"ignore me\n" +
-	"--X\n" +
-	"Content-Type: text/plain; charset=iso-8859-1\n" +
-	"\n" +
-	"caf\xe9\n" +
-	"--X\n" +
-	"Content-Type: application/octet-stream\n" +
-	"Content-Disposition: attachment; filename=\"a.bin\"\n" +
-	"Content-Transfer-Encoding: base64\n" +
-	"\n" +
-	"AAECAw==\n" +
-	"--X--\n"
-
-func TestMultipart(t *testing.T) {
-	m := Parse([]byte(worked))
+func TestMultipartStructure(t *testing.T) {
+	m := parse("Content-Type: multipart/mixed; boundary=X⏎⏎pre⏎--X⏎Content-Type: text/plain⏎⏎hello⏎--X⏎" +
+		"Content-Type: application/octet-stream⏎Content-Disposition: attachment; filename=a.bin⏎" +
+		"Content-Transfer-Encoding: base64⏎⏎AAECAw==⏎--X--⏎tail⏎")
 	if len(m.Parts) != 3 {
 		t.Fatalf("parts = %d", len(m.Parts))
 	}
-	root := m.Parts[0]
-	if root.Kind != Multipart || root.Boundary != "X" || root.Preamble != 9 || root.Epilogue != 0 || len(root.Children) != 2 {
+	root := m.Root
+	if root.Kind != Multipart || root.Preamble != 3 || root.Epilogue != 5 || len(root.Children) != 2 {
 		t.Errorf("root = %+v", root)
 	}
-	text := m.Parts[1]
-	if text.Text != "café" || text.Chars != 4 || text.Adler32 != 0x04680214 || text.Role != RoleText {
-		t.Errorf("text part = %+v", text)
+	if m.TextBody == nil || m.TextBody.Index != 1 || string(m.TextBody.Content) != "hello" {
+		t.Errorf("text body = %+v", m.TextBody)
 	}
-	att := m.Parts[2]
-	if string(att.Content) != "\x00\x01\x02\x03" || att.Filename != "a.bin" || att.Role != RoleAttachment {
-		t.Errorf("attachment = %+v", att)
-	}
-	if m.Text != text || m.HTML != nil || len(m.Attachments) != 1 || m.Attachments[0] != att {
-		t.Error("body selection")
+	if len(m.Attachments) != 1 || m.Attachments[0].Filename != "a.bin" ||
+		string(m.Attachments[0].Content) != "\x00\x01\x02\x03" {
+		t.Errorf("attachments = %+v", m.Attachments)
 	}
 }
 
-func TestCRLFEquivalent(t *testing.T) {
-	a, b := Parse([]byte(worked)), Parse(crlf(worked))
-	if len(a.Parts) != len(b.Parts) || a.Parts[1].Adler32 != b.Parts[1].Adler32 {
-		t.Error("CRLF input must parse like LF input")
+func TestBoundaryEdgeCases(t *testing.T) {
+	// No delimiter: the whole body is the preamble and there is no epilogue.
+	m := parse("Content-Type: multipart/mixed; boundary=X⏎⏎just text⏎")
+	if r := m.Root; len(r.Children) != 0 || r.Preamble != 10 || r.Epilogue != -1 {
+		t.Errorf("no delimiter: %+v", r)
+	}
+	// Close delimiter first.
+	m = parse("Content-Type: multipart/mixed; boundary=X⏎⏎--X--⏎epi")
+	if r := m.Root; len(r.Children) != 0 || r.Preamble != 0 || r.Epilogue != 3 {
+		t.Errorf("close first: %+v", r)
+	}
+	// Two delimiters in a row bound an empty part; trailing blanks are allowed;
+	// an unclosed multipart runs to the end.
+	m = parse("Content-Type: multipart/mixed; boundary=X⏎⏎--X ⏎--X⏎--Xjunk⏎x⏎")
+	if r := m.Root; len(r.Children) != 2 || r.Epilogue != -1 {
+		t.Fatalf("empty part: %+v", r)
+	}
+	if c := m.Root.Children[1]; string(c.Content) != "--Xjunk\nx" {
+		t.Errorf("unclosed child content = %q", c.Content)
+	}
+	// Without a boundary a multipart is a leaf.
+	m = parse("Content-Type: multipart/mixed⏎⏎body")
+	if m.Root.Kind != Leaf || string(m.Root.Content) != "body" {
+		t.Errorf("no boundary: %+v", m.Root)
 	}
 }
 
-func TestDefaultsAndDigest(t *testing.T) {
-	m := Parse([]byte("Content-Type: multipart/digest; boundary=b\n\n--b\n\nSubject: inner\n\nhi\n--b\nContent-Type: bogus\n\nx\n--b--\n"))
-	if m.Parts[1].Type != "message" || m.Parts[1].Subtype != "rfc822" || m.Parts[1].Kind != MessageEnv {
-		t.Errorf("digest child = %+v", m.Parts[1])
+func TestDigestDefaultsToMessage(t *testing.T) {
+	m := parse("Content-Type: multipart/digest; boundary=D⏎⏎--D⏎⏎Subject: inner⏎⏎inner body⏎--D--⏎")
+	if len(m.Parts) != 3 {
+		t.Fatalf("parts = %d", len(m.Parts))
 	}
-	if m.Parts[2].Type != "text" || m.Parts[2].Subtype != "plain" || m.Parts[2].Charset != "us-ascii" {
-		t.Errorf("inner = %+v", m.Parts[2])
+	c := m.Parts[1]
+	if c.MediaType() != "message/rfc822" || c.Kind != MessageContainer || len(c.Children) != 1 {
+		t.Errorf("digest child = %+v", c)
 	}
-	if m.Parts[3].Type != "message" {
-		t.Errorf("bogus type in a digest falls back to message/rfc822, got %s/%s", m.Parts[3].Type, m.Parts[3].Subtype)
-	}
-}
-
-func TestDegenerateMultipart(t *testing.T) {
-	// no delimiter at all
-	m := Parse([]byte("Content-Type: multipart/mixed; boundary=b\n\nplain body\n"))
-	p := m.Parts[0]
-	if len(m.Parts) != 1 || p.Preamble != 11 || p.Epilogue != -1 || len(p.Children) != 0 {
-		t.Errorf("no delimiter: %+v", p)
-	}
-	// close delimiter first
-	m = Parse([]byte("Content-Type: multipart/mixed; boundary=b\n\n--b--\nrest\n"))
-	if p = m.Parts[0]; p.Preamble != 0 || p.Epilogue != 5 || len(p.Children) != 0 {
-		t.Errorf("close first: %+v", p)
-	}
-	// adjacent delimiters give an empty child; no close delimiter keeps the rest
-	m = Parse([]byte("Content-Type: multipart/mixed; boundary=b\n\n--b\n--b  \t\nlast\n"))
-	if len(m.Parts) != 3 || len(m.Parts[1].Content) != 0 || string(m.Parts[2].Content) != "last" || m.Parts[0].Epilogue != -1 {
-		t.Errorf("adjacent: %d parts", len(m.Parts))
-	}
-	// multipart without boundary is a leaf
-	m = Parse([]byte("Content-Type: multipart/mixed\n\nbody"))
-	if m.Parts[0].Kind != Leaf || m.Parts[0].Role != RoleAttachment {
-		t.Errorf("multipart without boundary: %+v", m.Parts[0])
+	inner := m.Parts[2]
+	if inner.MediaType() != "text/plain" || inner.Role != RoleAttachment || m.TextBody != nil {
+		t.Errorf("inner = %+v, text = %v", inner, m.TextBody)
 	}
 }
 
-func TestRFC822AndSelection(t *testing.T) {
-	src := "Content-Type: message/rfc822\n\nSubject: in\nContent-Type: text/plain\n\ninner body\n"
-	m := Parse([]byte(src))
-	if m.Parts[0].Kind != MessageEnv || len(m.Parts[0].Children) != 1 || len(m.Parts) != 2 {
-		t.Fatalf("structure: %+v", m.Parts[0])
+func TestBodySelection(t *testing.T) {
+	m := parse("Content-Type: multipart/alternative; boundary=B⏎⏎" +
+		"--B⏎Content-Type: text/plain⏎Content-Disposition: attachment⏎⏎first⏎" +
+		"--B⏎Content-Type: text/plain⏎⏎second⏎" +
+		"--B⏎Content-Type: text/html⏎Content-Disposition: inline⏎⏎<p>⏎" +
+		"--B⏎Content-Type: text/html⏎⏎<b>⏎--B--⏎")
+	if m.TextBody == nil || m.TextBody.Index != 2 || m.HTMLBody == nil || m.HTMLBody.Index != 3 {
+		t.Fatalf("bodies: %+v %+v", m.TextBody, m.HTMLBody)
 	}
-	// The inner text part is not a body candidate: it is an attachment.
-	if m.Text != nil || len(m.Attachments) != 1 || m.Attachments[0].Index != 1 {
-		t.Errorf("selection: text=%v attachments=%d", m.Text, len(m.Attachments))
-	}
-}
-
-func TestAttachmentDispositionSkipsBody(t *testing.T) {
-	src := "Content-Type: multipart/mixed; boundary=b\n\n--b\nContent-Type: text/plain\nContent-Disposition: attachment\n\none\n--b\nContent-Type: text/plain\nContent-Disposition: inline\n\ntwo\n--b\nContent-Type: text/html\n\n<p>\n--b--\n"
-	m := Parse([]byte(src))
-	if m.Text == nil || m.Text.Index != 2 || m.HTML == nil || m.HTML.Index != 3 || len(m.Attachments) != 1 || m.Attachments[0].Index != 1 {
-		t.Errorf("selection wrong: %+v", m)
+	if len(m.Attachments) != 2 || m.Attachments[0].Index != 1 || m.Attachments[1].Index != 4 {
+		t.Errorf("attachments: %+v", m.Attachments)
 	}
 }
 
-func TestFilenameFallbackAndCharsetNormalisation(t *testing.T) {
-	m := Parse([]byte("Content-Type: text/plain; name=\"n.txt\"; charset= UTF-8 \n\nx"))
-	p := m.Parts[0]
-	if !p.HasFilename || p.Filename != "n.txt" || p.Charset != "utf-8" {
-		t.Errorf("part = %+v", p)
-	}
-	m = Parse([]byte("Content-Type: text/plain; name=\"n.txt\"\nContent-Disposition: attachment; filename=\"d.txt\"\n\nx"))
-	if m.Parts[0].Filename != "d.txt" {
-		t.Errorf("disposition filename must win, got %q", m.Parts[0].Filename)
-	}
-}
-
-func TestInvalidContentTypeFallsBack(t *testing.T) {
-	for _, ct := range []string{"nonsense", "a/", "/b", "a b/c", "a/b/c", ""} {
-		m := Parse([]byte("Content-Type: " + ct + "; charset=x\n\nbody"))
-		if p := m.Parts[0]; p.Type != "text" || p.Subtype != "plain" || p.Charset != "x" {
-			t.Errorf("%q: %s/%s charset=%q", ct, p.Type, p.Subtype, p.Charset)
+func TestContentTypeFallbacks(t *testing.T) {
+	for in, want := range map[string]string{
+		"":                         "text/plain",
+		"Content-Type: garbage⏎":   "text/plain",
+		"Content-Type: a/b/c⏎":     "text/plain",
+		"Content-Type: /plain⏎":    "text/plain",
+		"Content-Type: Image/PNG⏎": "image/png",
+		"Content-Type: text/x y⏎":  "text/plain",
+	} {
+		if got := parse(in + "⏎x").Root.MediaType(); got != want {
+			t.Errorf("%q: %s, want %s", in, got, want)
 		}
+	}
+}
+
+func TestMessageRFC822AndTextCharset(t *testing.T) {
+	m := parse("Content-Type: message/rfc822⏎⏎Content-Type: text/plain; charset=iso-8859-1⏎⏎caf\xe9")
+	if m.Root.Kind != MessageContainer || len(m.Parts) != 2 {
+		t.Fatalf("root = %+v", m.Root)
+	}
+	if got := m.Parts[1].Text(); got != "café" {
+		t.Errorf("text = %q", got)
+	}
+	if m.TextBody != nil || len(m.Attachments) != 1 {
+		t.Errorf("rfc822 child must not be a body: %+v", m.TextBody)
+	}
+	if m.Parts[1].Charset != "iso-8859-1" {
+		t.Errorf("charset = %q", m.Parts[1].Charset)
+	}
+}
+
+func TestCRLFAndSize(t *testing.T) {
+	raw := "Subject: x\r\n\r\nline1\r\nline2\r\n"
+	m := Parse([]byte(raw))
+	if m.Size != len(raw) {
+		t.Errorf("size = %d, want %d", m.Size, len(raw))
+	}
+	if got := string(m.Root.Content); got != "line1\nline2\n" {
+		t.Errorf("content = %q", got)
+	}
+}
+
+func TestFilenameSources(t *testing.T) {
+	m := parse("Content-Type: application/x; name=ct.bin⏎⏎x")
+	if !m.Root.HasFilename || m.Root.Filename != "ct.bin" {
+		t.Errorf("name param: %+v", m.Root)
+	}
+	m = parse("Content-Type: application/x; name=ct.bin⏎Content-Disposition: attachment; filename=cd.bin⏎⏎x")
+	if m.Root.Filename != "cd.bin" {
+		t.Errorf("filename should win: %q", m.Root.Filename)
+	}
+}
+
+func TestAddressesAndDate(t *testing.T) {
+	m := parse("To: a@b, c <d@e>⏎To: f@g⏎Date: 1 Jan 2000 00:00 GMT⏎⏎")
+	if got := m.Addresses("to"); len(got) != 3 || got[2].Spec != "f@g" {
+		t.Errorf("addresses = %+v", got)
+	}
+	raw, present, d, valid := m.Date()
+	if !present || !valid || raw != " 1 Jan 2000 00:00 GMT" || d.Epoch != 946684800 {
+		t.Errorf("date = %q %v %+v %v", raw, present, d, valid)
+	}
+	if _, present, _, _ := parse("X: 1⏎⏎").Date(); present {
+		t.Error("date should be absent")
 	}
 }

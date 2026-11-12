@@ -1,6 +1,5 @@
 #!/bin/sh
-# Build the sat command-line tool into ./bin/sat (relative to this script).
+# Build the sat command into bin/sat.
 set -e
 cd "$(dirname "$0")"
-mkdir -p bin
 go build -o bin/sat ./cmd/sat

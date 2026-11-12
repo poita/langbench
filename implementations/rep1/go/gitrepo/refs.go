@@ -2,21 +2,58 @@ package gitrepo
 
 import (
 	"bytes"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"gitrepo/object"
 )
 
-// maxSymrefDepth is the number of symbolic refs followed before giving up.
+// ErrRefNotFound means a name does not resolve to a ref.
+var ErrRefNotFound = errors.New("ref not found")
+
+// maxSymrefDepth is how many symbolic refs are followed before giving up.
 const maxSymrefDepth = 5
 
-type refResult struct {
-	id ID
-	ok bool
+func (r *Repo) loadPackedRefs() {
+	r.packed = map[string]object.ID{}
+	data, err := os.ReadFile(filepath.Join(r.dir, "packed-refs"))
+	if err != nil {
+		return
+	}
+	for _, line := range bytes.Split(data, []byte("\n")) {
+		if len(line) == 0 || line[0] == '#' || line[0] == '^' {
+			continue
+		}
+		if len(line) < 42 || line[40] != ' ' {
+			continue
+		}
+		id, ok := parseRefID(line[:40])
+		if !ok {
+			continue
+		}
+		r.packed[string(line[41:])] = id
+	}
 }
 
-// validRefName reports whether name may be looked up on disk: it must be
-// HEAD or begin with refs/, and have no empty, "." or ".." component.
+// parseRefID accepts exactly 40 lowercase hexadecimal digits.
+func parseRefID(b []byte) (object.ID, bool) {
+	var id object.ID
+	if len(b) != 40 {
+		return id, false
+	}
+	for _, c := range b {
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return id, false
+		}
+	}
+	id, err := object.ParseID(string(b))
+	return id, err == nil
+}
+
+// validRefName reports whether name may be looked up as a ref: HEAD or a name
+// under refs/, with no empty, "." or ".." component.
 func validRefName(name string) bool {
 	if name != "HEAD" && !strings.HasPrefix(name, "refs/") {
 		return false
@@ -29,76 +66,36 @@ func validRefName(name string) bool {
 	return true
 }
 
-// loadPackedRefs parses packed-refs on first use.
-func (r *Repository) loadPackedRefs() {
-	if r.packedRefs != nil {
-		return
+// ReadRef resolves the ref called name (for example "HEAD" or
+// "refs/heads/main") to the object id it holds. The loose file repo/<name>
+// wins over a packed-refs entry; symbolic refs ("ref: <name>") are followed at
+// most five times. The id is taken at face value: the object need not exist.
+// A name that is not a ref yields an error wrapping ErrRefNotFound.
+func (r *Repo) ReadRef(name string) (object.ID, error) {
+	return r.readRef(name, 0)
+}
+
+func (r *Repo) readRef(name string, depth int) (object.ID, error) {
+	var zero object.ID
+	if !validRefName(name) {
+		return zero, ErrRefNotFound
 	}
-	r.packedRefs = make(map[string]ID)
-	data, err := os.ReadFile(filepath.Join(r.dir, "packed-refs"))
+	data, err := os.ReadFile(filepath.Join(r.dir, filepath.FromSlash(name)))
 	if err != nil {
-		return
+		if id, ok := r.packed[name]; ok {
+			return id, nil
+		}
+		return zero, ErrRefNotFound
 	}
-	for _, line := range bytes.Split(data, []byte{'\n'}) {
-		if len(line) == 0 || line[0] == '#' || line[0] == '^' {
-			continue
+	data = bytes.TrimRight(data, " \t\r\n\v\f")
+	if target, ok := bytes.CutPrefix(data, []byte("ref: ")); ok {
+		if depth >= maxSymrefDepth {
+			return zero, ErrRefNotFound
 		}
-		if len(line) < 42 || line[40] != ' ' {
-			continue
-		}
-		id, ok := parseIDBytes(line[:40])
-		if !ok {
-			continue
-		}
-		r.packedRefs[string(line[41:])] = id
+		return r.readRef(string(target), depth+1)
 	}
-}
-
-// ResolveRef resolves a full ref name (HEAD or refs/...) to the object id it
-// holds. A loose ref file wins over packed-refs; symbolic refs are followed
-// up to five times. The object the id names need not exist.
-func (r *Repository) ResolveRef(name string) (ID, bool) {
-	return r.resolveRef(name, 0)
-}
-
-func (r *Repository) resolveRef(name string, depth int) (ID, bool) {
-	if depth > maxSymrefDepth || !validRefName(name) {
-		return ID{}, false
+	if id, ok := parseRefID(data); ok {
+		return id, nil
 	}
-	if depth == 0 {
-		if res, ok := r.refCache[name]; ok {
-			return res.id, res.ok
-		}
-	}
-	id, ok := r.lookupRef(name, depth)
-	if depth == 0 {
-		r.refCache[name] = refResult{id, ok}
-	}
-	return id, ok
-}
-
-func (r *Repository) lookupRef(name string, depth int) (ID, bool) {
-	path := filepath.Join(r.dir, filepath.FromSlash(name))
-	if st, err := os.Stat(path); err == nil && st.Mode().IsRegular() {
-		data, err := os.ReadFile(path)
-		if err != nil {
-			return ID{}, false
-		}
-		data = bytes.TrimRight(data, " \t\r\n\v\f")
-		if rest, ok := bytes.CutPrefix(data, []byte("ref:")); ok {
-			return r.resolveRef(string(bytes.TrimSpace(rest)), depth+1)
-		}
-		if len(data) == 40 {
-			for _, c := range data {
-				if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
-					return ID{}, false
-				}
-			}
-			return parseIDBytes(data)
-		}
-		return ID{}, false
-	}
-	r.loadPackedRefs()
-	id, ok := r.packedRefs[name]
-	return id, ok
+	return zero, ErrRefNotFound
 }

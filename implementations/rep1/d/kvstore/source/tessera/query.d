@@ -1,23 +1,61 @@
-/// Predicate evaluation and plan selection.
+/// Predicates: the syntax tree, evaluation and plan selection (SPEC §17).
 module tessera.query;
 
-import tessera.ast;
 import tessera.bytes;
-import tessera.header;
-import tessera.lexer : CmpOp;
 import tessera.value;
 
-/// Does `doc` satisfy the predicate?
-bool matches(Pred p, Value doc) pure nothrow @safe
+/// Comparison operators of the predicate grammar.
+enum CmpOp
+{
+    eq,
+    ne,
+    lt,
+    le,
+    gt,
+    ge,
+}
+
+/// Node kinds of a predicate tree.
+enum PredKind
+{
+    and,
+    or,
+    not,
+    exists,
+    missing,
+    compare,
+}
+
+/// A node of a predicate tree. `and`/`or` use `lhs` and `rhs`, `not` uses
+/// `lhs`; `exists`, `missing` and `compare` use the path; `compare` also uses
+/// `op` and `value`.
+final class Pred
+{
+    ///
+    PredKind kind;
+    ///
+    Pred lhs, rhs;
+    /// Path segments.
+    string[] path;
+    /// Path text: the segments joined by `.`.
+    string pathText;
+    ///
+    CmpOp op;
+    /// Right-hand side of a comparison.
+    Value value;
+}
+
+/// Evaluate a predicate against a document (SPEC §17.2).
+bool evaluate(const Pred p, const Value doc)
 {
     final switch (p.kind)
     {
     case PredKind.and:
-        return matches(p.kids[0], doc) && matches(p.kids[1], doc);
+        return evaluate(p.lhs, doc) && evaluate(p.rhs, doc);
     case PredKind.or:
-        return matches(p.kids[0], doc) || matches(p.kids[1], doc);
+        return evaluate(p.lhs, doc) || evaluate(p.rhs, doc);
     case PredKind.not:
-        return !matches(p.kids[0], doc);
+        return !evaluate(p.lhs, doc);
     case PredKind.exists:
         return resolvePath(doc, p.path) !is null;
     case PredKind.missing:
@@ -26,87 +64,99 @@ bool matches(Pred p, Value doc) pure nothrow @safe
         auto x = resolvePath(doc, p.path);
         if (x is null)
             return false;
-        return compareHolds(*x, p.op, p.rhs);
+        return compareHolds(*x, p.op, p.value);
     }
 }
 
-/// Evaluate `x op rhs` for a present left-hand side.
-bool compareHolds(Value x, CmpOp op, Value rhs) pure nothrow @safe
+/// `x op rhs` for a present `x`.
+bool compareHolds(const Value x, CmpOp op, const Value rhs) @safe pure nothrow
 {
     if (op == CmpOp.eq)
-        return valuesEqual(x, rhs);
+        return deepEqual(x, rhs);
     if (op == CmpOp.ne)
-        return !valuesEqual(x, rhs);
+        return !deepEqual(x, rhs);
     if (x.kind != rhs.kind || x.kind == Kind.list || x.kind == Kind.object)
         return false;
     immutable c = compareScalars(x, rhs);
     final switch (op)
     {
-    case CmpOp.lt: return c < 0;
-    case CmpOp.le: return c <= 0;
-    case CmpOp.gt: return c > 0;
-    case CmpOp.ge: return c >= 0;
-    case CmpOp.eq:
-    case CmpOp.ne:
-        return false;
+    case CmpOp.lt:
+        return c < 0;
+    case CmpOp.le:
+        return c <= 0;
+    case CmpOp.gt:
+        return c > 0;
+    case CmpOp.ge:
+        return c >= 0;
+    case CmpOp.eq, CmpOp.ne:
+        assert(0);
     }
 }
 
-/// The access path chosen for a `find`.
-struct Plan
-{
-    /// True for an index plan.
-    bool useIndex;
-    /// Slot of the chosen index.
-    size_t slot;
-    /// Path text of the chosen index.
-    string path;
-    /// The comparison that selected it.
-    Pred leaf;
-}
-
-private void flatten(Pred p, ref Pred[] leaves) pure nothrow @safe
-{
-    if (p.kind == PredKind.and)
-    {
-        flatten(p.kids[0], leaves);
-        flatten(p.kids[1], leaves);
-    }
-    else
-        leaves ~= p;
-}
-
-/// Choose the plan for a predicate against the live indexes (§17.3).
-Plan choosePlan(Pred root, const ref Header h) pure nothrow @safe
+/// Flatten the top-level `and` nodes of a predicate into its leaves, left to
+/// right (SPEC §17.3 step 1).
+Pred[] flattenAnd(Pred root)
 {
     Pred[] leaves;
-    flatten(root, leaves);
-    Plan best;
-    foreach (leaf; leaves)
+    void visit(Pred p)
+    {
+        if (p.kind == PredKind.and)
+        {
+            visit(p.lhs);
+            visit(p.rhs);
+        }
+        else
+            leaves ~= p;
+    }
+
+    visit(root);
+    return leaves;
+}
+
+/// The leaf `find` drives an index with, or `null` for a scan plan
+/// (SPEC §17.3). `hasIndex` says whether a live index exists on a path text.
+Pred chooseIndexLeaf(Pred root, scope bool delegate(string) hasIndex)
+{
+    Pred chosen = null;
+    foreach (leaf; flattenAnd(root))
     {
         if (leaf.kind != PredKind.compare || leaf.op == CmpOp.ne)
             continue;
-        if (leaf.rhs.kind == Kind.list || leaf.rhs.kind == Kind.object)
+        if (leaf.value.kind == Kind.list || leaf.value.kind == Kind.object)
             continue;
-        immutable text = leaf.pathText;
-        size_t slot = size_t.max;
-        foreach (s, ref sl; h.slots)
-            if (sl.live && sl.path == text)
-                slot = s;
-        if (slot == size_t.max)
+        if (!hasIndex(leaf.pathText))
             continue;
-        bool better = !best.useIndex;
-        if (best.useIndex)
+        if (chosen is null)
         {
-            immutable bestEq = best.leaf.op == CmpOp.eq;
-            immutable thisEq = leaf.op == CmpOp.eq;
-            if (thisEq != bestEq)
-                better = thisEq;
-            else
-                better = compareBytes(asBytes(text), asBytes(best.path)) < 0;
+            chosen = leaf;
+            continue;
         }
-        if (better)
-            best = Plan(true, slot, text, leaf);
+        immutable leafEq = leaf.op == CmpOp.eq;
+        immutable chosenEq = chosen.op == CmpOp.eq;
+        if (leafEq != chosenEq)
+        {
+            if (leafEq)
+                chosen = leaf;
+            continue;
+        }
+        if (compareBytes(asBytes(leaf.pathText), asBytes(chosen.pathText)) < 0)
+            chosen = leaf;
     }
-    return best;
+    return chosen;
+}
+
+@safe pure nothrow unittest
+{
+    auto n = Value.nul();
+    auto one = Value.integer(1);
+    assert(!compareHolds(n, CmpOp.lt, n));
+    assert(compareHolds(n, CmpOp.le, n));
+    assert(compareHolds(n, CmpOp.ge, n));
+    assert(!compareHolds(n, CmpOp.eq, one));
+    assert(compareHolds(n, CmpOp.ne, one));
+    assert(!compareHolds(n, CmpOp.lt, one));
+    assert(compareHolds(Value.boolean(false), CmpOp.lt, Value.boolean(true)));
+    assert(compareHolds(Value.text("b"), CmpOp.gt, Value.text("a")));
+    assert(!compareHolds(Value.list(null), CmpOp.le, Value.list(null)));
+    assert(compareHolds(Value.list(null), CmpOp.eq, Value.list(null)));
 }

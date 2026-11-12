@@ -1,62 +1,68 @@
-# jq
+# jq (subset) in Go
 
-A dependency-free Go implementation of a subset of the [jq](https://jqlang.github.io/jq/)
-query language (jq 1.7 semantics, `jq -c` output). It has a reusable library and a thin
-command-line tool. The JSON parser, JSON serialiser and filter interpreter are all written
-from scratch using only the Go standard library.
+A from-scratch interpreter for a subset of the [jq](https://jqlang.github.io/jq/)
+query language (semantics of jq 1.7 with `-c`), packaged as a reusable Go
+library and a small command-line tool. It uses only the Go standard library:
+the JSON parser, the JSON serializer and the filter interpreter are all
+implemented here.
 
 ## Layout
 
-| Package | Responsibility |
+| Path | Responsibility |
 |---|---|
-| `github.com/peter/jq` | Public facade: `Compile`, `Query.Run`, `ParseJSON`, `Marshal` |
-| `value` | Immutable value model, total ordering, insertion-ordered objects, JSON parser and serialiser |
-| `syntax` | Filter lexer, recursive-descent parser and AST |
-| `interp` | Compiler (variable and builtin resolution) and push-style tree-walking evaluator |
-| `cmd/jq` | The command-line tool |
+| `jq.go` | Public facade: `Compile`, `Query.Run/All/Iter`, `ParseJSON`, `Marshal` |
+| `value/` | Data model (`Value`, insertion-ordered immutable `Object`), jq ordering, stable sort, JSON decoder and encoder |
+| `syntax/` | Lexer, recursive-descent parser and AST for filters |
+| `interp/` | Compiles the AST to closures and evaluates them lazily, plus the builtins |
+| `cmd/jq/` | The command-line tool |
+| `testdata/` | Golden filter/document/output cases used by the CLI tests |
 
-Design notes: values are a small tagged struct (numbers, booleans and null are stored inline;
-strings, arrays and objects are shared immutable references). Objects are insertion-ordered
-entry vectors with a hash index above 16 keys, interned keys from the JSON parser and a
-memoised sorted-key permutation. Evaluation calls a sink function per output, so generators
-are nested callbacks; `sort_by`/`group_by` compute each key once and sort an index permutation.
+Design notes: values are immutable and shared, never deep-copied; objects keep
+insertion order with O(1) expected lookup (a hash index is built lazily for
+larger objects) and cache their sorted key order; sorting is a stable merge
+sort that evaluates each sort key once; evaluation is push-based, so outputs
+are produced one at a time, in order, and an error stops the stream at the
+point it occurs.
 
 ## Build
 
 Requires Go 1.27 or newer.
 
 ```sh
-./build.sh          # builds bin/jq
-go test ./...       # unit tests
+./build.sh          # builds ./bin/jq  (same as: go build -o bin/jq ./cmd/jq)
+go test ./...       # runs the unit and golden tests
 ```
-
-`build.sh` and `run.sh` work from any directory.
 
 ## Command-line use
 
-The program reads all of stdin. The first line is the filter; the rest is one JSON document.
-Every result is printed as one line of compact JSON. If evaluation raises an uncaught error,
-the results produced before it are printed, followed by a line `error`, and evaluation stops.
-The exit status is 0 (non-zero only for a malformed filter or document, or an I/O failure).
+The tool reads standard input: the **first line is the filter**, everything
+after it is **one JSON document**. Each result is printed as compact JSON, one
+per line. If evaluation raises an error that is not caught with `?`, the
+results produced before it are printed, then a line `error`, and nothing more.
+The exit status is 0 (non-zero only if stdin/stdout themselves fail).
 
 ```sh
-$ printf '.users | map(select(.age >= 30)) | map(.name)\n{"users":[{"name":"ann","age":31},{"name":"bob","age":20}]}' | ./run.sh
-["ann"]
-
-$ printf '[(1,2) + (10,20)], {a:(1,2)}\nnull' | ./run.sh
-[11,12,21,22]
-{"a":1}
-{"a":2}
+$ printf '%s\n%s\n' '.users | map(select(.age >= 30)) | map(.name)' \
+    '{"users":[{"name":"al","age":31},{"name":"bo","age":20}]}' | ./run.sh
+["al"]
 ```
+
+`run.sh` runs the built binary from any directory.
 
 ## Supported language
 
-Identity, field/index/iterate/slice (with `?`), `try`-style `?`, literals, variables with
-`as`, `reduce`, `if/elif/else`, `,` and `|`, arithmetic (`+ - * / %`), comparisons,
-`and`/`or`, unary minus, array and object construction, and the builtins `empty`, `error`,
-`not`, `length`, `keys`, `has`, `type`, `add`, `select`, `map`, `sort`, `sort_by`,
-`group_by`, `unique`, `reverse`, `min`, `max`, `tostring`, `tonumber`. The full semantics
-(ordering, evaluation order of generators, object key order) are those of jq 1.7.
+* Paths: `.`, `.a`, `."a b"`, `.[e]`, `.[]`, `.[a:b]`, `.[:b]`, `.[a:]`, chained;
+  `?` after a path operation tolerates errors of just that operation, after
+  anything else it acts as `try`.
+* Operators: `|`, `,`, `or`, `and`, `== != < <= > >=`, `+ - * / %`, unary `-`.
+* `if/elif/else/end`, `E as $x | body`, `reduce SRC as $x (INIT; UPDATE)`.
+* Construction: `[...]`, `{a, "b", $x, k: v, (expr): v}`.
+* Builtins: `empty error error(f) not length keys has(k) type add select(f)
+  map(f) sort sort_by(f) group_by(f) unique reverse min max tostring tonumber`.
+
+Numbers are IEEE-754 doubles; integral values print without a decimal point.
+Comparison follows jq's order `null < false < true < numbers < strings <
+arrays < objects`.
 
 ## Library use
 
@@ -65,30 +71,38 @@ package main
 
 import (
 	"fmt"
-	"log"
 
-	"github.com/peter/jq"
+	"example.com/jq"
 )
 
 func main() {
-	q, err := jq.Compile(`.users | map(select(.age >= 30) | .name)`)
+	q, err := jq.Compile(`.users | map(select(.age >= 30)) | sort_by(.age) | map(.name)`)
 	if err != nil {
-		log.Fatal(err)
+		panic(err) // *jq.SyntaxError for malformed filters
 	}
-	doc, err := jq.ParseJSON(`{"users":[{"name":"ann","age":31},{"name":"bob","age":20}]}`)
+	doc, err := jq.ParseJSON([]byte(`{"users":[
+		{"name":"bo","age":45},{"name":"al","age":31},{"name":"cy","age":20}]}`))
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
+
+	// Streaming: yield is called once per output, in order. Returning an error
+	// from yield stops evaluation and is returned by Run.
 	err = q.Run(doc, func(v jq.Value) error {
-		fmt.Println(jq.Marshal(v)) // ["ann"]
+		fmt.Println(string(jq.Marshal(v))) // ["al","bo"]
 		return nil
 	})
-	if err != nil {
-		log.Fatal(err) // a *jq.RuntimeError if the filter raised an error
+
+	// Or collect everything, or range over the outputs:
+	outs, err := q.All(doc)
+	_ = outs
+	for v, err := range q.Iter(doc) {
+		_, _ = v, err // a runtime error arrives as the last (nil, err) pair
 	}
 }
 ```
 
-`Query.All` collects the outputs into a slice. A compiled `Query` is immutable and safe for
-concurrent use. Values can also be built and inspected through package `value`
-(`value.Number`, `value.String`, `value.Array`, `value.ObjectBuilder`, `Value.Kind`, ...).
+A `jq.Value` is `nil`, `bool`, `float64`, `string`, `[]jq.Value` or
+`*jq.Object`; build your own input with `value.NewBuilder` for objects.
+Runtime failures are returned as `*jq.RuntimeError`; compiled queries are
+immutable and safe for concurrent use.

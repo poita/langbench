@@ -1,0 +1,177 @@
+[link](/uri "title")
+
+* * * * *
+
+[link](/uri)
+
+* * * * *
+
+[](./target.md)
+
+* * * * *
+
+[link]()
+
+* * * * *
+
+[link](<>)
+
+* * * * *
+
+[]()
+
+* * * * *
+
+[link](/my uri)
+
+* * * * *
+
+[link](</my uri>)
+
+* * * * *
+
+[link](foo
+bar)
+
+* * * * *
+
+[a](<b)c>)
+
+* * * * *
+
+[link](\(foo\))
+
+* * * * *
+
+[link](foo(and(bar)))
+
+* * * * *
+
+[link](foo(and(bar))
+
+* * * * *
+
+[link](foo\(and\(bar\))
+
+* * * * *
+
+[link](<foo(and(bar)>)
+
+* * * * *
+
+[link](foo\)\:)
+
+* * * * *
+
+[link](#fragment)
+
+[link](https://example.com#fragment)
+
+[link](https://example.com?foo=3#frag)
+
+* * * * *
+
+[link](foo\bar)
+
+* * * * *
+
+[link]("title")
+
+* * * * *
+
+[link](/url "title")
+[link](/url 'title')
+[link](/url (title))
+
+* * * * *
+
+[link](/url "title \"&quot;")
+
+* * * * *
+
+[link](/url "title")
+
+* * * * *
+
+[link](/url "title "and" title")
+
+* * * * *
+
+[link](/url 'title "and" title')
+
+* * * * *
+
+[link](   /uri
+  "title"  )
+
+* * * * *
+
+[link] (/uri)
+
+* * * * *
+
+[link [foo [bar]]](/uri)
+
+* * * * *
+
+[link] bar](/uri)
+
+* * * * *
+
+[link [bar](/uri)
+
+* * * * *
+
+[link \[bar](/uri)
+
+* * * * *
+
+[link *foo **bar** `#`*](/uri)
+
+* * * * *
+
+[![moon](moon.jpg)](/uri)
+
+* * * * *
+
+[foo [bar](/uri)](/uri)
+
+* * * * *
+
+[foo *[bar [baz](/uri)](/uri)*](/uri)
+
+* * * * *
+
+![[[foo](uri1)](uri2)](uri3)
+
+* * * * *
+
+*[foo*](/uri)
+
+* * * * *
+
+[foo *bar](baz*)
+
+* * * * *
+
+*foo [bar* baz]
+
+* * * * *
+
+[foo`](/uri)`
+
+* * * * *
+
+[foo<https://example.com/?search=](uri)>
+
+* * * * *
+
+[foo][ref[bar]]
+
+[ref[bar]]: /uri
+
+* * * * *
+
+[[[foo]]]
+
+[[[foo]]]: /url

@@ -1,21 +1,21 @@
-// Package lexer turns the body of one Vellum module into a token array
-// (SPEC section 3).
+// Package lexer turns the body of one Vellum module into tokens
+// (SPEC.md section 3).
 package lexer
 
 import "langvm/diag"
 
-// Kind is a token kind.
+// Kind is the class of a token.
 type Kind uint8
 
 // Token kinds. Keywords and punctuation each have their own kind.
 const (
 	EOF Kind = iota
 	Ident
-	IntLit
-	FloatLit
-	StrLit
-	CharLit
-	Underscore
+	Int
+	Float
+	Str
+	Char
+	Underscore // the lone `_` wildcard
 
 	// keywords
 	KwAs
@@ -42,15 +42,15 @@ const (
 	KwWhen
 	KwWhile
 
-	// punctuation
+	// punctuation and operators
 	HashBracket // #[
 	ColonColon  // ::
 	DotDot      // ..
 	Arrow       // ->
 	EqEq        // ==
 	NotEq       // !=
-	Le          // <=
-	Ge          // >=
+	LessEq      // <=
+	GreaterEq   // >=
 	AndAnd      // &&
 	OrOr        // ||
 	Shl         // <<
@@ -76,12 +76,32 @@ const (
 	Tilde
 	Amp
 	Caret
-	Lt
-	Gt
+	Less
+	Greater
 	Assign
 )
 
-var keywords = map[string]Kind{
+var kindNames = map[Kind]string{
+	EOF: "end of input", Ident: "identifier", Int: "integer", Float: "float",
+	Str: "string", Char: "character", Underscore: "_",
+	KwAs: "as", KwBreak: "break", KwContinue: "continue", KwElse: "else",
+	KwEnum: "enum", KwFalse: "false", KwFn: "fn", KwFor: "for", KwIf: "if",
+	KwImpl: "impl", KwIn: "in", KwLet: "let", KwMatch: "match", KwPub: "pub",
+	KwReturn: "return", KwSelf: "self", KwStruct: "struct", KwTrait: "trait",
+	KwTrue: "true", KwUse: "use", KwVar: "var", KwWhen: "when", KwWhile: "while",
+	HashBracket: "#[", ColonColon: "::", DotDot: "..", Arrow: "->", EqEq: "==",
+	NotEq: "!=", LessEq: "<=", GreaterEq: ">=", AndAnd: "&&", OrOr: "||",
+	Shl: "<<", Shr: ">>", PlusPlus: "++", LParen: "(", RParen: ")",
+	LBracket: "[", RBracket: "]", LBrace: "{", RBrace: "}", Comma: ",",
+	Semi: ";", Colon: ":", Dot: ".", Pipe: "|", Plus: "+", Minus: "-",
+	Star: "*", Slash: "/", Percent: "%", Bang: "!", Tilde: "~", Amp: "&",
+	Caret: "^", Less: "<", Greater: ">", Assign: "=",
+}
+
+// String returns a human-readable name for the kind.
+func (k Kind) String() string { return kindNames[k] }
+
+var keywordKinds = map[string]Kind{
 	"as": KwAs, "break": KwBreak, "continue": KwContinue, "else": KwElse,
 	"enum": KwEnum, "false": KwFalse, "fn": KwFn, "for": KwFor, "if": KwIf,
 	"impl": KwImpl, "in": KwIn, "let": KwLet, "match": KwMatch, "pub": KwPub,
@@ -89,17 +109,12 @@ var keywords = map[string]Kind{
 	"true": KwTrue, "use": KwUse, "var": KwVar, "when": KwWhen, "while": KwWhile,
 }
 
-// IsKeyword reports whether s is a reserved word.
-func IsKeyword(s string) bool { _, ok := keywords[s]; return ok }
-
-// Token is one lexical token. Text holds identifier names; Int holds an
-// integer literal's value or a character literal's scalar; Float holds a float
-// literal's value; Str holds a string literal's scalars.
+// Token is one lexical token with its position.
 type Token struct {
 	Kind  Kind
 	Pos   diag.Pos
-	Text  string
-	Int   int64
-	Float float64
-	Str   []rune
+	Text  string  // Ident: the name
+	Int   int64   // Int: the value; Char: the scalar value
+	Float float64 // Float: the value
+	Str   []rune  // Str: the decoded scalar values
 }

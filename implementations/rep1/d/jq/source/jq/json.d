@@ -1,389 +1,297 @@
-/**
- * JSON text <-> `Value`: a single-pass recursive-descent parser and a compact
- * serialiser, both written from scratch.
- */
+/// A from-scratch JSON parser and compact serializer.
 module jq.json;
 
-import core.stdc.math : signbit;
 import core.stdc.stdio : snprintf;
 import core.stdc.stdlib : strtod;
-import core.stdc.string : memcpy;
+import std.array : Appender, appender;
+import std.exception : assumeUnique;
 
+import jq.error;
 import jq.value;
 
-/// Thrown by `parseJson` on malformed input.
-class JsonException : Exception
+/// Maximum nesting depth accepted by `parseJson`.
+enum maxJsonDepth = 10_000;
+
+// ---------------------------------------------------------------------------
+// Numbers
+// ---------------------------------------------------------------------------
+
+private static immutable double[16] pow10tab = [
+    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12, 1e13,
+    1e14, 1e15
+];
+
+/// Scans a JSON number starting at `s[pos]`. On success returns true, stores
+/// the value in `result` and advances `pos` past the number. The value is the
+/// double nearest to the decimal text.
+bool scanNumber(const(char)[] s, ref size_t pos, out double result) @trusted
 {
-    /// Byte offset of the problem.
-    size_t offset;
-    this(string msg, size_t offset, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
+    size_t p = pos;
+    immutable n = s.length;
+    immutable start = p;
+    bool neg = false;
+    if (p < n && s[p] == '-')
     {
-        super(msg, file, line);
-        this.offset = offset;
+        neg = true;
+        ++p;
     }
-}
-
-// ---------------------------------------------------------------------------
-// Output buffer
-// ---------------------------------------------------------------------------
-
-/// A growable byte buffer used for serialisation.
-struct Buffer
-{
-    ubyte[] data;
-    size_t len;
-
-    /// Ensure room for `n` more bytes.
-    void reserve(size_t n) nothrow
+    if (p >= n)
+        return false;
+    ulong mant = 0;
+    int digits = 0;
+    int frac = 0;
+    if (s[p] == '0')
     {
-        if (len + n > data.length)
+        ++p;
+        digits = 1;
+    }
+    else if (s[p] >= '1' && s[p] <= '9')
+    {
+        while (p < n && s[p] >= '0' && s[p] <= '9')
         {
-            size_t cap = data.length < 256 ? 256 : data.length * 2;
-            while (cap < len + n)
-                cap *= 2;
-            data.length = cap;
+            if (digits < 19)
+                mant = mant * 10 + (s[p] - '0');
+            ++digits;
+            ++p;
         }
     }
-
-    /// Append one byte.
-    void put(char c) nothrow
+    else
+        return false;
+    if (p < n && s[p] == '.')
     {
-        if (len == data.length)
-            reserve(1);
-        data[len++] = cast(ubyte) c;
+        ++p;
+        if (p >= n || s[p] < '0' || s[p] > '9')
+            return false;
+        while (p < n && s[p] >= '0' && s[p] <= '9')
+        {
+            if (digits < 19)
+                mant = mant * 10 + (s[p] - '0');
+            ++digits;
+            ++frac;
+            ++p;
+        }
     }
-
-    /// Append a run of bytes.
-    void put(const(char)[] s) nothrow @trusted
+    bool hasExp = false;
+    if (p < n && (s[p] == 'e' || s[p] == 'E'))
     {
-        if (s.length == 0)
-            return;
-        reserve(s.length);
-        memcpy(data.ptr + len, s.ptr, s.length);
-        len += s.length;
+        hasExp = true;
+        ++p;
+        if (p < n && (s[p] == '+' || s[p] == '-'))
+            ++p;
+        if (p >= n || s[p] < '0' || s[p] > '9')
+            return false;
+        while (p < n && s[p] >= '0' && s[p] <= '9')
+            ++p;
     }
-
-    /// Discard the contents (keeps capacity).
-    void clear() pure nothrow @safe @nogc { len = 0; }
-
-    /// The bytes written so far.
-    const(char)[] text() const pure nothrow @trusted @nogc
+    pos = p;
+    if (!hasExp && digits <= 15)
     {
-        return cast(const(char)[]) data[0 .. len];
+        // Both operands are exactly representable, so the single division is
+        // correctly rounded (Clinger's fast path).
+        double v = cast(double) mant;
+        if (frac > 0)
+            v /= pow10tab[frac];
+        result = neg ? -v : v;
+        return true;
+    }
+    immutable len = p - start;
+    char[64] stack = void;
+    char[] tmp = len < stack.length ? stack[0 .. len + 1] : new char[len + 1];
+    tmp[0 .. len] = s[start .. p];
+    tmp[len] = 0;
+    result = strtod(tmp.ptr, null);
+    return true;
+}
+
+/// Parses `text` entirely as a JSON number (no surrounding whitespace).
+/// Returns false if it is not one.
+bool parseNumberText(const(char)[] text, out double result)
+{
+    size_t pos = 0;
+    return scanNumber(text, pos, result) && pos == text.length;
+}
+
+// ---------------------------------------------------------------------------
+// Strings
+// ---------------------------------------------------------------------------
+
+private int hexVal(char c) pure nothrow @nogc @safe
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    return -1;
+}
+
+private void putUtf8(ref char[] buf, ref size_t n, uint cp) pure nothrow @nogc @safe
+{
+    if (cp < 0x80)
+        buf[n++] = cast(char) cp;
+    else if (cp < 0x800)
+    {
+        buf[n++] = cast(char)(0xC0 | (cp >> 6));
+        buf[n++] = cast(char)(0x80 | (cp & 0x3F));
+    }
+    else if (cp < 0x10000)
+    {
+        buf[n++] = cast(char)(0xE0 | (cp >> 12));
+        buf[n++] = cast(char)(0x80 | ((cp >> 6) & 0x3F));
+        buf[n++] = cast(char)(0x80 | (cp & 0x3F));
+    }
+    else
+    {
+        buf[n++] = cast(char)(0xF0 | (cp >> 18));
+        buf[n++] = cast(char)(0x80 | ((cp >> 12) & 0x3F));
+        buf[n++] = cast(char)(0x80 | ((cp >> 6) & 0x3F));
+        buf[n++] = cast(char)(0x80 | (cp & 0x3F));
     }
 }
 
-private static immutable char[16] hexDigits = "0123456789abcdef";
-
-private static immutable bool[256] needsEscape = () {
-    bool[256] t;
-    foreach (i; 0 .. 0x20)
-        t[i] = true;
-    t['"'] = true;
-    t['\\'] = true;
-    t[0x7f] = true;
-    return t;
-}();
-
-/// Append `s` as a JSON string literal (with quotes).
-void putString(ref Buffer b, string s) nothrow @trusted
+/// Decodes the JSON escapes in the body of a string literal (the text between
+/// the quotes). Returns the input itself when it holds no escapes.
+/// Throws `JsonParseError` on a malformed escape.
+string unescape(string body_) @trusted
 {
-    b.reserve(s.length + 2);
-    b.put('"');
-    size_t runStart = 0;
-    foreach (i; 0 .. s.length)
+    size_t i = 0;
+    immutable n = body_.length;
+    while (i < n && body_[i] != '\\')
+        ++i;
+    if (i == n)
+        return body_;
+    // Decoded text is never longer than the escaped text.
+    auto buf = new char[n];
+    size_t o = i;
+    buf[0 .. i] = body_[0 .. i];
+    while (i < n)
     {
-        const c = cast(ubyte) s[i];
-        if (!needsEscape[c])
+        immutable c = body_[i];
+        if (c != '\\')
+        {
+            buf[o++] = c;
+            ++i;
             continue;
-        if (i > runStart)
-            b.put(s[runStart .. i]);
-        runStart = i + 1;
-        switch (c)
+        }
+        ++i;
+        if (i >= n)
+            throw new JsonParseError("truncated escape sequence");
+        immutable e = body_[i++];
+        switch (e)
         {
-        case '"': b.put(`\"`); break;
-        case '\\': b.put(`\\`); break;
-        case '\b': b.put(`\b`); break;
-        case '\f': b.put(`\f`); break;
-        case '\n': b.put(`\n`); break;
-        case '\r': b.put(`\r`); break;
-        case '\t': b.put(`\t`); break;
+        case '"':
+            buf[o++] = '"';
+            break;
+        case '\\':
+            buf[o++] = '\\';
+            break;
+        case '/':
+            buf[o++] = '/';
+            break;
+        case 'b':
+            buf[o++] = '\b';
+            break;
+        case 'f':
+            buf[o++] = '\f';
+            break;
+        case 'n':
+            buf[o++] = '\n';
+            break;
+        case 'r':
+            buf[o++] = '\r';
+            break;
+        case 't':
+            buf[o++] = '\t';
+            break;
+        case 'u':
+            {
+                uint readHex4()
+                {
+                    if (i + 4 > n)
+                        throw new JsonParseError("truncated \\u escape");
+                    uint v = 0;
+                    foreach (k; 0 .. 4)
+                    {
+                        immutable h = hexVal(body_[i + k]);
+                        if (h < 0)
+                            throw new JsonParseError("invalid \\u escape");
+                        v = v * 16 + h;
+                    }
+                    i += 4;
+                    return v;
+                }
+
+                uint cp = readHex4();
+                if (cp >= 0xD800 && cp < 0xDC00)
+                {
+                    if (i + 6 <= n && body_[i] == '\\' && body_[i + 1] == 'u')
+                    {
+                        immutable save = i;
+                        i += 2;
+                        immutable lo = readHex4();
+                        if (lo >= 0xDC00 && lo < 0xE000)
+                            cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
+                        else
+                        {
+                            i = save;
+                            cp = 0xFFFD;
+                        }
+                    }
+                    else
+                        cp = 0xFFFD;
+                }
+                else if (cp >= 0xDC00 && cp < 0xE000)
+                    cp = 0xFFFD;
+                putUtf8(buf, o, cp);
+                break;
+            }
         default:
-            b.put(`\u00`);
-            b.put(hexDigits[c >> 4]);
-            b.put(hexDigits[c & 15]);
+            throw new JsonParseError("invalid escape sequence");
         }
     }
-    if (s.length > runStart)
-        b.put(s[runStart .. $]);
-    b.put('"');
-}
-
-/// Append a number in jq's output form.
-void putNumber(ref Buffer b, double d) nothrow @trusted
-{
-    if (d != d)
-    {
-        b.put("null");
-        return;
-    }
-    if (d == double.infinity || d == -double.infinity)
-    {
-        b.put(d < 0 ? "-1.7976931348623157e+308" : "1.7976931348623157e+308");
-        return;
-    }
-    if (d > -9007199254740992.0 && d < 9007199254740992.0 && d == cast(double)(cast(long) d))
-    {
-        long n = cast(long) d;
-        if (n == 0)
-        {
-            b.put(signbit(d) ? "-0" : "0");
-            return;
-        }
-        char[24] tmp = void;
-        size_t p = tmp.length;
-        const neg = n < 0;
-        ulong u = neg ? -cast(ulong) n : cast(ulong) n;
-        while (u != 0)
-        {
-            tmp[--p] = cast(char)('0' + u % 10);
-            u /= 10;
-        }
-        if (neg)
-            tmp[--p] = '-';
-        b.put(tmp[p .. $]);
-        return;
-    }
-    char[40] buf = void;
-    int n;
-    foreach (prec; 15 .. 18)
-    {
-        n = snprintf(buf.ptr, buf.length, "%.*g", prec, d);
-        if (prec == 17 || strtod(buf.ptr, null) == d)
-            break;
-    }
-    // strip trailing zeros of the mantissa
-    size_t end = n;
-    size_t ePos = n;
-    foreach (i; 0 .. n)
-        if (buf[i] == 'e')
-        {
-            ePos = i;
-            break;
-        }
-    size_t mEnd = ePos;
-    bool hasDot = false;
-    foreach (i; 0 .. ePos)
-        if (buf[i] == '.')
-            hasDot = true;
-    if (hasDot)
-    {
-        while (mEnd > 0 && buf[mEnd - 1] == '0')
-            --mEnd;
-        if (mEnd > 0 && buf[mEnd - 1] == '.')
-            --mEnd;
-    }
-    b.put(buf[0 .. mEnd]);
-    if (ePos < end)
-        b.put(buf[ePos .. end]);
-}
-
-/// Append the compact JSON text of `v`.
-void writeValue(ref Buffer b, Value v) nothrow
-{
-    final switch (v.type)
-    {
-    case Type.null_: b.put("null"); break;
-    case Type.false_: b.put("false"); break;
-    case Type.true_: b.put("true"); break;
-    case Type.number: putNumber(b, v.num); break;
-    case Type.string: putString(b, v.str.s); break;
-    case Type.error: b.put("null"); break;
-    case Type.array:
-        b.put('[');
-        foreach (i, e; v.arr.items)
-        {
-            if (i)
-                b.put(',');
-            writeValue(b, e);
-        }
-        b.put(']');
-        break;
-    case Type.object:
-        b.put('{');
-        auto o = v.obj;
-        foreach (i; 0 .. o.keys.length)
-        {
-            if (i)
-                b.put(',');
-            putString(b, o.keys[i].s);
-            b.put(':');
-            writeValue(b, o.vals[i]);
-        }
-        b.put('}');
-        break;
-    }
-}
-
-/// Compact JSON text of a value.
-string toJson(Value v) nothrow
-{
-    Buffer b;
-    writeValue(b, v);
-    return b.text.idup;
+    return assumeUnique(buf[0 .. o]);
 }
 
 // ---------------------------------------------------------------------------
 // Parser
 // ---------------------------------------------------------------------------
 
-private static immutable double[23] pow10tab = [
-    1e0, 1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, 1e11, 1e12,
-    1e13, 1e14, 1e15, 1e16, 1e17, 1e18, 1e19, 1e20, 1e21, 1e22
-];
-
-/**
- * Parse the numeric literal in `s[pos .. $]` following JSON number syntax.
- * Returns the end offset, or `size_t.max` if there is no valid number there.
- */
-size_t scanNumber(string s, size_t pos, out double result) nothrow @trusted
+/// Parses one JSON value (surrounded by optional whitespace) from `text`.
+///
+/// Strings without escapes are slices of `text`, not copies, so the result
+/// keeps `text` alive. Throws `JsonParseError` on malformed input.
+Value parseJson(string text)
 {
-    const start = pos;
-    const n = s.length;
-    bool neg = false;
-    if (pos < n && s[pos] == '-')
-    {
-        neg = true;
-        ++pos;
-    }
-    if (pos >= n)
-        return size_t.max;
-    ulong mant = 0;
-    int digits = 0; // significant digits accumulated into mant
-    int fracDigits = 0;
-    bool exact = true;
-    if (s[pos] == '0')
-    {
-        ++pos;
-    }
-    else if (s[pos] >= '1' && s[pos] <= '9')
-    {
-        while (pos < n && s[pos] >= '0' && s[pos] <= '9')
-        {
-            if (digits < 18)
-                mant = mant * 10 + (s[pos] - '0');
-            else
-                exact = false;
-            ++digits;
-            ++pos;
-        }
-    }
-    else
-        return size_t.max;
-    bool simple = true;
-    if (pos < n && s[pos] == '.')
-    {
-        ++pos;
-        const fs = pos;
-        while (pos < n && s[pos] >= '0' && s[pos] <= '9')
-        {
-            if (digits < 18)
-            {
-                mant = mant * 10 + (s[pos] - '0');
-                if (mant != 0)
-                    ++digits;
-                ++fracDigits;
-            }
-            else
-                exact = false;
-            ++pos;
-        }
-        if (pos == fs)
-            return size_t.max;
-    }
-    if (pos < n && (s[pos] == 'e' || s[pos] == 'E'))
-    {
-        simple = false;
-        ++pos;
-        if (pos < n && (s[pos] == '+' || s[pos] == '-'))
-            ++pos;
-        const es = pos;
-        while (pos < n && s[pos] >= '0' && s[pos] <= '9')
-            ++pos;
-        if (pos == es)
-            return size_t.max;
-    }
-    if (simple && exact && mant < (1UL << 53) && fracDigits <= 22)
-    {
-        double d = cast(double) mant;
-        if (fracDigits)
-            d /= pow10tab[fracDigits];
-        result = neg ? -d : d;
-        return pos;
-    }
-    char[64] stack = void;
-    const len = pos - start;
-    if (len < stack.length)
-    {
-        memcpy(stack.ptr, s.ptr + start, len);
-        stack[len] = 0;
-        result = strtod(stack.ptr, null);
-    }
-    else
-    {
-        auto heap = new char[len + 1];
-        memcpy(heap.ptr, s.ptr + start, len);
-        heap[len] = 0;
-        result = strtod(heap.ptr, null);
-    }
-    return pos;
-}
-
-/// Append the UTF-8 encoding of code point `cp` to `dst`.
-void encodeUtf8(ref char[] dst, uint cp) nothrow
-{
-    if (cp < 0x80)
-        dst ~= cast(char) cp;
-    else if (cp < 0x800)
-    {
-        dst ~= cast(char)(0xC0 | (cp >> 6));
-        dst ~= cast(char)(0x80 | (cp & 0x3F));
-    }
-    else if (cp < 0x10000)
-    {
-        dst ~= cast(char)(0xE0 | (cp >> 12));
-        dst ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
-        dst ~= cast(char)(0x80 | (cp & 0x3F));
-    }
-    else
-    {
-        dst ~= cast(char)(0xF0 | (cp >> 18));
-        dst ~= cast(char)(0x80 | ((cp >> 12) & 0x3F));
-        dst ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
-        dst ~= cast(char)(0x80 | (cp & 0x3F));
-    }
+    auto p = Parser(text);
+    p.skipWs();
+    auto v = p.parseValue(0);
+    p.skipWs();
+    if (p.pos != text.length)
+        throw new JsonParseError("trailing characters after JSON value");
+    return v;
 }
 
 private struct Parser
 {
     string src;
     size_t pos;
-    JStr[string] keyCache;
+    // Scratch stacks shared by all nesting levels.
     Value[] vstack;
-    JStr[] kstack;
-    size_t vtop, ktop;
+    size_t vtop;
+    string[] kstack;
+    size_t ktop;
 
-    JsonException fail(string msg) const pure nothrow @safe
+    this(string s)
     {
-        return new JsonException(msg, pos);
+        src = s;
     }
 
-    void skipWs() nothrow @trusted
+    void skipWs() @trusted
     {
-        const n = src.length;
-        while (pos < n)
+        while (pos < src.length)
         {
-            const c = src[pos];
+            immutable c = src[pos];
             if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
                 ++pos;
             else
@@ -391,19 +299,64 @@ private struct Parser
         }
     }
 
+    void pushV(Value v)
+    {
+        if (vtop == vstack.length)
+            vstack.length = vstack.length ? vstack.length * 2 : 64;
+        vstack[vtop++] = v;
+    }
+
+    void pushK(string k)
+    {
+        if (ktop == kstack.length)
+            kstack.length = kstack.length ? kstack.length * 2 : 64;
+        kstack[ktop++] = k;
+    }
+
+    string parseString() @trusted
+    {
+        // src[pos] == '"'
+        immutable start = ++pos;
+        bool esc = false;
+        immutable n = src.length;
+        while (pos < n)
+        {
+            immutable c = src[pos];
+            if (c == '"')
+                break;
+            if (c == '\\')
+            {
+                esc = true;
+                ++pos;
+                if (pos >= n)
+                    break;
+            }
+            else if (c < 0x20)
+                throw new JsonParseError("control character in string");
+            ++pos;
+        }
+        if (pos >= n)
+            throw new JsonParseError("unterminated string");
+        auto body_ = src[start .. pos];
+        ++pos;
+        return esc ? unescape(body_) : body_;
+    }
+
     Value parseValue(int depth)
     {
-        skipWs();
+        if (depth > maxJsonDepth)
+            throw new JsonParseError("nesting too deep");
         if (pos >= src.length)
-            throw fail("unexpected end of input");
-        if (depth > 10_000)
-            throw fail("nesting too deep");
-        const c = src[pos];
+            throw new JsonParseError("unexpected end of input");
+        immutable c = src[pos];
         switch (c)
         {
-        case '{': return parseObject(depth);
-        case '[': return parseArray(depth);
-        case '"': return Value.makeString(parseString());
+        case '{':
+            return parseObject(depth);
+        case '[':
+            return parseArray(depth);
+        case '"':
+            return Value.makeString(parseString());
         case 't':
             expectWord("true");
             return Value.makeBool(true);
@@ -412,13 +365,11 @@ private struct Parser
             return Value.makeBool(false);
         case 'n':
             expectWord("null");
-            return Value.makeNull;
+            return Value.makeNull();
         default:
             double d;
-            const e = scanNumber(src, pos, d);
-            if (e == size_t.max)
-                throw fail("invalid value");
-            pos = e;
+            if (!scanNumber(src, pos, d))
+                throw new JsonParseError("invalid JSON value");
             return Value.makeNumber(d);
         }
     }
@@ -426,255 +377,294 @@ private struct Parser
     void expectWord(string w)
     {
         if (pos + w.length > src.length || src[pos .. pos + w.length] != w)
-            throw fail("invalid literal");
+            throw new JsonParseError("invalid literal");
         pos += w.length;
     }
 
     Value parseArray(int depth)
     {
-        ++pos; // [
-        const base = vtop;
+        ++pos;
+        immutable base = vtop;
         skipWs();
         if (pos < src.length && src[pos] == ']')
         {
             ++pos;
-            return Value.makeArray(null);
+            return Value.makeArray([]);
         }
         while (true)
         {
-            auto v = parseValue(depth + 1);
-            if (vtop == vstack.length)
-                vstack.length = vstack.length ? vstack.length * 2 : 256;
-            vstack[vtop++] = v;
+            skipWs();
+            pushV(parseValue(depth + 1));
             skipWs();
             if (pos >= src.length)
-                throw fail("unterminated array");
-            const c = src[pos++];
+                throw new JsonParseError("unterminated array");
+            immutable c = src[pos++];
             if (c == ',')
                 continue;
             if (c == ']')
                 break;
-            --pos;
-            throw fail("expected ',' or ']'");
+            throw new JsonParseError("expected ',' or ']' in array");
         }
-        auto items = vstack[base .. vtop].dup;
+        auto arr = vstack[base .. vtop].dup;
         vtop = base;
-        return Value.makeArray(items);
-    }
-
-    JStr internKey(string s)
-    {
-        if (auto p = s in keyCache)
-            return *p;
-        auto k = new JStr(s);
-        keyCache[s] = k;
-        return k;
+        return Value.makeArray(arr);
     }
 
     Value parseObject(int depth)
     {
-        ++pos; // {
-        const vbase = vtop;
-        const kbase = ktop;
+        ++pos;
+        immutable base = vtop;
+        immutable kbase = ktop;
         skipWs();
         if (pos < src.length && src[pos] == '}')
         {
             ++pos;
-            return Value.makeObject(new JObj());
+            return Value.makeObject(new JObject([], []));
         }
         while (true)
         {
             skipWs();
             if (pos >= src.length || src[pos] != '"')
-                throw fail("expected object key");
-            auto key = internKey(parseString());
+                throw new JsonParseError("expected string key in object");
+            pushK(parseString());
             skipWs();
             if (pos >= src.length || src[pos] != ':')
-                throw fail("expected ':'");
+                throw new JsonParseError("expected ':' in object");
             ++pos;
-            auto v = parseValue(depth + 1);
-            if (vtop == vstack.length)
-                vstack.length = vstack.length ? vstack.length * 2 : 256;
-            if (ktop == kstack.length)
-                kstack.length = kstack.length ? kstack.length * 2 : 256;
-            vstack[vtop++] = v;
-            kstack[ktop++] = key;
+            skipWs();
+            pushV(parseValue(depth + 1));
             skipWs();
             if (pos >= src.length)
-                throw fail("unterminated object");
-            const c = src[pos++];
+                throw new JsonParseError("unterminated object");
+            immutable c = src[pos++];
             if (c == ',')
                 continue;
             if (c == '}')
                 break;
-            --pos;
-            throw fail("expected ',' or '}'");
+            throw new JsonParseError("expected ',' or '}' in object");
         }
+        immutable cnt = vtop - base;
         auto keys = kstack[kbase .. ktop].dup;
-        auto vals = vstack[vbase .. vtop].dup;
-        vtop = vbase;
+        auto vals = vstack[base .. vtop].dup;
+        vtop = base;
         ktop = kbase;
-        return Value.makeObject(buildObject(keys, vals));
-    }
-
-    /// Build an object, resolving (never expected) duplicate keys: first position, last value.
-    static JObj buildObject(JStr[] keys, Value[] vals)
-    {
-        bool dup = false;
-        if (keys.length <= JObj.linearLimit)
+        if (hasDuplicates(keys))
         {
-            foreach (i; 1 .. keys.length)
-                foreach (j; 0 .. i)
-                    if (keys[i] is keys[j])
-                        dup = true;
+            // Repeated keys: first position, last value.
+            auto b = ObjectBuilder(cnt);
+            foreach (i; 0 .. cnt)
+                b.set(keys[i], vals[i]);
+            return Value.makeObject(b.build());
         }
-        else
-        {
-            bool[string] seen;
-            foreach (k; keys)
-            {
-                if (k.s in seen)
-                {
-                    dup = true;
-                    break;
-                }
-                seen[k.s] = true;
-            }
-        }
-        if (!dup)
-            return new JObj(keys, vals);
-        auto o = new JObj();
-        foreach (i, k; keys)
-            o.set(k, vals[i]);
-        return o;
-    }
-
-    /// Parse a string literal starting at the opening quote; returns decoded text.
-    string parseString() @trusted
-    {
-        ++pos; // opening quote
-        const start = pos;
-        const n = src.length;
-        while (pos < n)
-        {
-            const c = cast(ubyte) src[pos];
-            if (c == '"')
-            {
-                auto r = src[start .. pos];
-                ++pos;
-                return r;
-            }
-            if (c == '\\')
-                break;
-            if (c < 0x20)
-                throw fail("control character in string");
-            ++pos;
-        }
-        if (pos >= n)
-            throw fail("unterminated string");
-        // slow path with escapes
-        char[] buf;
-        buf.reserve(pos - start + 16);
-        buf ~= src[start .. pos];
-        while (pos < n)
-        {
-            const c = src[pos];
-            if (c == '"')
-            {
-                ++pos;
-                return cast(string) buf;
-            }
-            if (c == '\\')
-            {
-                ++pos;
-                if (pos >= n)
-                    break;
-                const e = src[pos++];
-                switch (e)
-                {
-                case '"': buf ~= '"'; break;
-                case '\\': buf ~= '\\'; break;
-                case '/': buf ~= '/'; break;
-                case 'b': buf ~= '\b'; break;
-                case 'f': buf ~= '\f'; break;
-                case 'n': buf ~= '\n'; break;
-                case 'r': buf ~= '\r'; break;
-                case 't': buf ~= '\t'; break;
-                case 'u':
-                    {
-                        uint cp = parseHex4();
-                        if (cp >= 0xD800 && cp < 0xDC00)
-                        {
-                            if (pos + 1 < n && src[pos] == '\\' && src[pos + 1] == 'u')
-                            {
-                                const save = pos;
-                                pos += 2;
-                                const lo = parseHex4();
-                                if (lo >= 0xDC00 && lo < 0xE000)
-                                    cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
-                                else
-                                {
-                                    pos = save;
-                                    cp = 0xFFFD;
-                                }
-                            }
-                            else
-                                cp = 0xFFFD;
-                        }
-                        else if (cp >= 0xDC00 && cp < 0xE000)
-                            cp = 0xFFFD;
-                        encodeUtf8(buf, cp);
-                        break;
-                    }
-                default:
-                    --pos;
-                    throw fail("invalid escape");
-                }
-                continue;
-            }
-            if (cast(ubyte) c < 0x20)
-                throw fail("control character in string");
-            buf ~= c;
-            ++pos;
-        }
-        throw fail("unterminated string");
-    }
-
-    uint parseHex4() @trusted
-    {
-        uint v = 0;
-        foreach (_; 0 .. 4)
-        {
-            if (pos >= src.length)
-                throw fail("bad \\u escape");
-            const c = src[pos++];
-            uint d;
-            if (c >= '0' && c <= '9')
-                d = c - '0';
-            else if (c >= 'a' && c <= 'f')
-                d = c - 'a' + 10;
-            else if (c >= 'A' && c <= 'F')
-                d = c - 'A' + 10;
-            else
-                throw fail("bad \\u escape");
-            v = v * 16 + d;
-        }
-        return v;
+        return Value.makeObject(new JObject(keys, vals));
     }
 }
 
-/**
- * Parse exactly one JSON value from `text` (surrounding whitespace allowed).
- *
- * Throws: `JsonException` if the text is not valid JSON.
- */
-Value parseJson(string text)
+private bool hasDuplicates(const(string)[] keys)
 {
-    Parser p;
-    p.src = text;
-    auto v = p.parseValue(0);
-    p.skipWs();
-    if (p.pos != text.length)
-        throw p.fail("trailing characters after value");
-    return v;
+    if (keys.length < 2)
+        return false;
+    if (keys.length <= 8)
+    {
+        foreach (i; 1 .. keys.length)
+            foreach (j; 0 .. i)
+                if (keys[i] == keys[j])
+                    return true;
+        return false;
+    }
+    bool[string] seen;
+    foreach (k; keys)
+    {
+        if (k in seen)
+            return true;
+        seen[k] = true;
+    }
+    return false;
+}
+
+// ---------------------------------------------------------------------------
+// Serializer
+// ---------------------------------------------------------------------------
+
+/// Output sink used by the serializer.
+alias JsonBuffer = Appender!(char[]);
+
+/// Appends the compact JSON text of `v` to `buf`.
+void writeJson(ref JsonBuffer buf, Value v)
+{
+    final switch (v.kind)
+    {
+    case Kind.Null:
+        buf.put("null");
+        break;
+    case Kind.False:
+        buf.put("false");
+        break;
+    case Kind.True:
+        buf.put("true");
+        break;
+    case Kind.Number:
+        writeNumber(buf, v.num);
+        break;
+    case Kind.String:
+        writeString(buf, v.str);
+        break;
+    case Kind.Array:
+        buf.put('[');
+        foreach (i, e; v.arr)
+        {
+            if (i)
+                buf.put(',');
+            writeJson(buf, e);
+        }
+        buf.put(']');
+        break;
+    case Kind.Object:
+        {
+            buf.put('{');
+            auto o = v.obj;
+            foreach (i; 0 .. o.length)
+            {
+                if (i)
+                    buf.put(',');
+                writeString(buf, o.keys[i]);
+                buf.put(':');
+                writeJson(buf, o.vals[i]);
+            }
+            buf.put('}');
+            break;
+        }
+    }
+}
+
+/// The compact JSON text of `v`.
+string toJson(Value v)
+{
+    auto buf = appender!(char[])();
+    writeJson(buf, v);
+    return assumeUnique(buf.data);
+}
+
+/// Appends `s` as a JSON string literal. Only `"`, `\` and control
+/// characters (and U+007F) are escaped; everything else is emitted raw.
+void writeString(ref JsonBuffer buf, const(char)[] s) @trusted
+{
+    static immutable hexd = "0123456789abcdef";
+    buf.put('"');
+    size_t runStart = 0;
+    foreach (i; 0 .. s.length)
+    {
+        immutable c = cast(ubyte) s[i];
+        if (c >= 0x20 && c != '"' && c != '\\' && c != 0x7f)
+            continue;
+        if (i > runStart)
+            buf.put(s[runStart .. i]);
+        runStart = i + 1;
+        switch (c)
+        {
+        case '"':
+            buf.put(`\"`);
+            break;
+        case '\\':
+            buf.put(`\\`);
+            break;
+        case '\b':
+            buf.put(`\b`);
+            break;
+        case '\f':
+            buf.put(`\f`);
+            break;
+        case '\n':
+            buf.put(`\n`);
+            break;
+        case '\r':
+            buf.put(`\r`);
+            break;
+        case '\t':
+            buf.put(`\t`);
+            break;
+        default:
+            {
+                char[6] e = ['\\', 'u', '0', '0', hexd[c >> 4], hexd[c & 15]];
+                buf.put(e[]);
+            }
+        }
+    }
+    if (s.length > runStart)
+        buf.put(s[runStart .. $]);
+    buf.put('"');
+}
+
+/// Appends a number: integral values as integers, others in the shortest
+/// `%.15g`/`%.16g`/`%.17g` form that round-trips.
+void writeNumber(ref JsonBuffer buf, double d) @trusted
+{
+    if (d != d)
+    {
+        buf.put("null");
+        return;
+    }
+    if (d == cast(long) d && d > -1e17 && d < 1e17)
+    {
+        long l = cast(long) d;
+        if (l == 0)
+        {
+            buf.put(d is -0.0 ? "-0" : "0");
+            return;
+        }
+        char[24] tmp = void;
+        size_t i = tmp.length;
+        immutable neg = l < 0;
+        ulong u = neg ? -cast(ulong) l : cast(ulong) l;
+        while (u != 0)
+        {
+            tmp[--i] = cast(char)('0' + u % 10);
+            u /= 10;
+        }
+        if (neg)
+            tmp[--i] = '-';
+        buf.put(tmp[i .. $]);
+        return;
+    }
+    char[40] tmp = void;
+    foreach (prec; 15 .. 18)
+    {
+        immutable len = snprintf(tmp.ptr, tmp.length, "%.*g", prec, d);
+        if (prec == 17 || strtod(tmp.ptr, null) == d)
+        {
+            buf.put(tmp[0 .. len]);
+            return;
+        }
+    }
+}
+
+unittest
+{
+    assert(toJson(parseJson(` { "a" : [1, 2.5, -3, "x\ny", null, true, false], "b": {} } `))
+            == `{"a":[1,2.5,-3,"x\ny",null,true,false],"b":{}}`);
+    assert(toJson(parseJson(`"😀 é \u007f \u001f /"`)) == "\"😀 é \\u007f \\u001f /\"");
+    assert(toJson(parseJson("3086419725308.5")) == "3086419725308.5");
+    assert(toJson(parseJson("0.125")) == "0.125");
+    assert(toJson(parseJson("0.001")) == "0.001");
+    assert(toJson(parseJson("1000000000000")) == "1000000000000");
+    assert(toJson(parseJson("0.1")) == "0.1");
+    assert(toJson(parseJson("4975.77")) == "4975.77");
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+
+    foreach (bad; ["", "{", "[1,", "[1 2]", `{"a" 1}`, `"abc`, "tru", "01", "1.", "-", "[1]x", `"\x"`])
+        assertThrown!JsonParseError(parseJson(bad));
+}
+
+unittest
+{
+    // repeated keys: first position, last value
+    assert(toJson(parseJson(`{"a":1,"b":2,"a":3}`)) == `{"a":3,"b":2}`);
+    double d;
+    assert(parseNumberText("-2.5", d) && d == -2.5);
+    assert(!parseNumberText("1.0x", d) && !parseNumberText("", d));
+    assert(parseNumberText("12345678901234567890123", d) && d == 12345678901234567890123.0);
 }

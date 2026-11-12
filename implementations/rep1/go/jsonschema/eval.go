@@ -1,416 +1,484 @@
 package jsonschema
 
 import (
-	"errors"
+	"unicode/utf8"
 
 	"example.com/jsonschema/jsonvalue"
 )
 
-// maxDepth bounds evaluation recursion so that a schema that refers to itself
-// without consuming any of the instance fails cleanly instead of overflowing
-// the stack.
-const maxDepth = 100000
-
-var errTooDeep = errors.New("jsonschema: recursion limit exceeded (reference cycle?)")
-
-// state is the per-Validate-call evaluation state.
-type state struct {
-	schema *Schema
-	scope  []int // dynamic scope: base URI ids, outermost first
-	depth  int
-	err    error
+// evaluator holds the per-validation state: the dynamic scope, the stack of
+// base URIs entered while validating, outermost first.
+type evaluator struct {
+	s     *Schema
+	scope []int32
 }
 
-func (s *state) fail(err error) bool {
-	if s.err == nil {
-		s.err = err
-	}
-	return false
-}
-
-// eval evaluates node n against v. When collect is true the returned
-// annotation sets (non-nil only if n accepts) describe what n evaluated.
-func (s *state) eval(n *node, v *jsonvalue.Value, collect bool) (bool, *annot) {
+// eval reports whether v satisfies n. When ann is non-nil and v is accepted,
+// the evaluated items/properties of n are added to ann; when v is rejected
+// ann may hold partial garbage, which every caller discards (callers that
+// continue after a rejection pass a fresh annots).
+func (e *evaluator) eval(n *node, v *jsonvalue.Value, ann *annots) bool {
 	if n.isBool {
-		return n.boolVal, nil
+		return n.boolVal
 	}
-	if s.err != nil {
-		return false, nil
-	}
-	if s.depth >= maxDepth {
-		return s.fail(errTooDeep), nil
-	}
-	s.depth++
-	pushed := len(s.scope) == 0 || s.scope[len(s.scope)-1] != n.base
+	pushed := len(e.scope) == 0 || e.scope[len(e.scope)-1] != n.base
 	if pushed {
-		s.scope = append(s.scope, n.base)
+		e.scope = append(e.scope, n.base)
 	}
-	ok, a := s.evalObject(n, v, collect)
+	ok := e.evalObject(n, v, ann)
 	if pushed {
-		s.scope = s.scope[:len(s.scope)-1]
+		e.scope = e.scope[:len(e.scope)-1]
 	}
-	s.depth--
-	if !ok {
-		return false, nil
-	}
-	return true, a
+	return ok
 }
 
-func kindBit(v *jsonvalue.Value) uint8 {
+func (e *evaluator) evalObject(n *node, v *jsonvalue.Value, ann *annots) bool {
+	// Within a schema object, unevaluated* see the annotations of everything
+	// else, so collect them locally.
+	target := ann
+	var local annots
+	hasUneval := n.unevalItems != nil || n.unevalProps != nil
+	if hasUneval {
+		target = &local
+	}
+
+	if !e.evalAnyType(n, v) {
+		return false
+	}
 	switch v.Kind() {
-	case jsonvalue.KindNull:
-		return tNull
-	case jsonvalue.KindBool:
-		return tBoolean
-	case jsonvalue.KindObject:
-		return tObject
-	case jsonvalue.KindArray:
-		return tArray
-	case jsonvalue.KindString:
-		return tString
+	case jsonvalue.NumberKind:
+		if !evalNumber(n, v) {
+			return false
+		}
+	case jsonvalue.String:
+		if !evalString(n, v) {
+			return false
+		}
+	case jsonvalue.Array:
+		if !e.evalArray(n, v, target) {
+			return false
+		}
+	case jsonvalue.ObjectKind:
+		if !e.evalProperties(n, v, target) {
+			return false
+		}
 	}
-	if v.Number().IsInteger() {
-		return tNumber | tInteger
+	if !e.evalApplicators(n, v, target) {
+		return false
 	}
-	return tNumber
+
+	if hasUneval {
+		switch v.Kind() {
+		case jsonvalue.Array:
+			if n.unevalItems != nil && !e.evalUnevaluatedItems(n, v, &local) {
+				return false
+			}
+		case jsonvalue.ObjectKind:
+			if n.unevalProps != nil && !e.evalUnevaluatedProperties(n, v, &local) {
+				return false
+			}
+		}
+		if ann != nil {
+			ann.merge(&local)
+		}
+	}
+	return true
 }
 
-func (c count) lt(n int) bool { return c.set && int64(n) < c.v }
-func (c count) gt(n int) bool { return c.set && int64(n) > c.v }
-
-func (s *state) evalObject(n *node, v *jsonvalue.Value, collect bool) (bool, *annot) {
-	collecting := collect || n.hasUneval
-	var a *annot
-	if collecting {
-		a = new(annot)
+func (e *evaluator) evalAnyType(n *node, v *jsonvalue.Value) bool {
+	if n.types != 0 {
+		var m uint8
+		switch v.Kind() {
+		case jsonvalue.Null:
+			m = tNull
+		case jsonvalue.Bool:
+			m = tBoolean
+		case jsonvalue.ObjectKind:
+			m = tObject
+		case jsonvalue.Array:
+			m = tArray
+		case jsonvalue.String:
+			m = tString
+		case jsonvalue.NumberKind:
+			m = tNumber
+			if num, _ := v.Number(); num.IsInteger() {
+				m |= tInteger
+			}
+		}
+		if n.types&m == 0 {
+			return false
+		}
 	}
-
-	if n.typeMask != 0 && n.typeMask&kindBit(v) == 0 {
-		return false, nil
-	}
-	if n.constVal != nil && !jsonvalue.Equal(*n.constVal, *v) {
-		return false, nil
+	if n.hasConst && !jsonvalue.Equal(*v, n.constVal) {
+		return false
 	}
 	if n.hasEnum {
 		found := false
-		for _, e := range n.enum {
-			if jsonvalue.Equal(e, *v) {
+		for _, c := range n.enum {
+			if jsonvalue.Equal(*v, c) {
 				found = true
 				break
 			}
 		}
 		if !found {
-			return false, nil
-		}
-	}
-
-	switch v.Kind() {
-	case jsonvalue.KindNumber:
-		if !checkNumber(n, v.Number()) {
-			return false, nil
-		}
-	case jsonvalue.KindString:
-		if !s.checkString(n, v.Str()) {
-			return false, nil
-		}
-	case jsonvalue.KindArray:
-		if !s.evalArray(n, v, collecting, a) {
-			return false, nil
-		}
-	case jsonvalue.KindObject:
-		if !s.evalMembers(n, v, collecting, a) {
-			return false, nil
-		}
-	}
-
-	// In-place applicators.
-	if n.hasRef {
-		if n.ref == nil {
-			return s.fail(n.refErr), nil
-		}
-		if !s.apply(n.ref, v, collecting, a) {
-			return false, nil
-		}
-	}
-	if n.hasDynRef {
-		target := n.dynRef
-		if n.dynName >= 0 {
-			for _, base := range s.scope {
-				if t, ok := s.schema.dynTargets[anchorKey{base, n.dynName}]; ok {
-					target = t
-					break
-				}
-			}
-		}
-		if target == nil {
-			return s.fail(n.dynRefErr), nil
-		}
-		if !s.apply(target, v, collecting, a) {
-			return false, nil
-		}
-	}
-	for _, c := range n.allOf {
-		if !s.apply(c, v, collecting, a) {
-			return false, nil
-		}
-	}
-	if len(n.anyOf) > 0 {
-		matched := false
-		for _, c := range n.anyOf {
-			ok, ca := s.eval(c, v, collecting)
-			if ok {
-				matched = true
-				a.merge(ca)
-				if !collecting {
-					break
-				}
-			}
-		}
-		if !matched {
-			return false, nil
-		}
-	}
-	if len(n.oneOf) > 0 {
-		var winner *annot
-		matches := 0
-		for _, c := range n.oneOf {
-			ok, ca := s.eval(c, v, collecting)
-			if ok {
-				matches++
-				winner = ca
-				if matches > 1 {
-					return false, nil
-				}
-			}
-		}
-		if matches != 1 {
-			return false, nil
-		}
-		a.merge(winner)
-	}
-	if n.not != nil {
-		if ok, _ := s.eval(n.not, v, false); ok {
-			return false, nil
-		}
-	}
-	if n.ifNode != nil && (collecting || n.thenNode != nil || n.elseNode != nil) {
-		if ok, ia := s.eval(n.ifNode, v, collecting); ok {
-			a.merge(ia)
-			if n.thenNode != nil && !s.apply(n.thenNode, v, collecting, a) {
-				return false, nil
-			}
-		} else if n.elseNode != nil && !s.apply(n.elseNode, v, collecting, a) {
-			return false, nil
-		}
-	}
-	if len(n.dependentSchemas) > 0 && v.Kind() == jsonvalue.KindObject {
-		for _, d := range n.dependentSchemas {
-			if v.Object().Has(d.name) && !s.apply(d.child, v, collecting, a) {
-				return false, nil
-			}
-		}
-	}
-	if s.err != nil {
-		return false, nil
-	}
-
-	// unevaluated*: see everything collected above.
-	if n.unevaluatedItems != nil && v.Kind() == jsonvalue.KindArray {
-		arr := v.Array()
-		for i := range arr {
-			if a.items.has(i) {
-				continue
-			}
-			if ok, _ := s.eval(n.unevaluatedItems, &arr[i], false); !ok {
-				return false, nil
-			}
-			a.items.set(i)
-		}
-	}
-	if n.unevaluatedProperties != nil && v.Kind() == jsonvalue.KindObject {
-		ms := v.Object().Members()
-		for i := range ms {
-			if a.props.has(i) {
-				continue
-			}
-			if ok, _ := s.eval(n.unevaluatedProperties, &ms[i].Value, false); !ok {
-				return false, nil
-			}
-			a.props.set(i)
-		}
-	}
-	return true, a
-}
-
-// apply evaluates an in-place child against the same instance and merges its
-// annotations into a on success.
-func (s *state) apply(c *node, v *jsonvalue.Value, collecting bool, a *annot) bool {
-	ok, ca := s.eval(c, v, collecting)
-	if ok {
-		a.merge(ca)
-	}
-	return ok
-}
-
-func checkNumber(n *node, x jsonvalue.Number) bool {
-	if n.multipleOf != nil && n.multipleOf.Sign() > 0 && !x.MultipleOf(*n.multipleOf) {
-		return false
-	}
-	if n.maximum != nil && x.Cmp(*n.maximum) > 0 {
-		return false
-	}
-	if n.minimum != nil && x.Cmp(*n.minimum) < 0 {
-		return false
-	}
-	if n.exclusiveMax != nil && x.Cmp(*n.exclusiveMax) >= 0 {
-		return false
-	}
-	if n.exclusiveMin != nil && x.Cmp(*n.exclusiveMin) <= 0 {
-		return false
-	}
-	return true
-}
-
-// codePoints counts the code points of a UTF-8 string by counting bytes that
-// are not continuation bytes.
-func codePoints(s string) int {
-	n := 0
-	for i := 0; i < len(s); i++ {
-		if s[i]&0xC0 != 0x80 {
-			n++
-		}
-	}
-	return n
-}
-
-func (s *state) checkString(n *node, str string) bool {
-	if n.maxLength.set || n.minLength.set {
-		l := codePoints(str)
-		if n.maxLength.gt(l) || n.minLength.lt(l) {
-			return false
-		}
-	}
-	if n.pattern != nil {
-		if n.pattern.err != nil {
-			return s.fail(n.pattern.err)
-		}
-		if !n.pattern.re.MatchString(str) {
 			return false
 		}
 	}
 	return true
 }
 
-func (s *state) evalArray(n *node, v *jsonvalue.Value, collecting bool, a *annot) bool {
-	arr := v.Array()
-	l := len(arr)
-	if n.maxItems.gt(l) || n.minItems.lt(l) {
+func evalNumber(n *node, v *jsonvalue.Value) bool {
+	num, _ := v.Number()
+	if n.multipleOf != nil && !num.IsMultipleOf(*n.multipleOf) {
 		return false
 	}
-	if n.uniqueItems && !allUnique(arr) {
+	if n.maximum != nil && num.Cmp(*n.maximum) > 0 {
 		return false
 	}
-	for i := 0; i < len(n.prefixItems) && i < l; i++ {
-		if ok, _ := s.eval(n.prefixItems[i], &arr[i], false); !ok {
+	if n.minimum != nil && num.Cmp(*n.minimum) < 0 {
+		return false
+	}
+	if n.exMaximum != nil && num.Cmp(*n.exMaximum) >= 0 {
+		return false
+	}
+	if n.exMinimum != nil && num.Cmp(*n.exMinimum) <= 0 {
+		return false
+	}
+	return true
+}
+
+func evalString(n *node, v *jsonvalue.Value) bool {
+	s, _ := v.Str()
+	if n.maxLength >= 0 || n.minLength >= 0 {
+		l := utf8.RuneCountInString(s)
+		if n.maxLength >= 0 && l > n.maxLength {
 			return false
 		}
-		if collecting {
-			a.items.set(i)
+		if n.minLength >= 0 && l < n.minLength {
+			return false
 		}
+	}
+	if n.pattern != nil && !n.pattern.MatchString(s) {
+		return false
+	}
+	return true
+}
+
+func (e *evaluator) evalArray(n *node, v *jsonvalue.Value, target *annots) bool {
+	arr, _ := v.Array()
+	if n.maxItems >= 0 && len(arr) > n.maxItems {
+		return false
+	}
+	if n.minItems >= 0 && len(arr) < n.minItems {
+		return false
+	}
+	if n.uniqueItems && !uniqueItems(arr) {
+		return false
+	}
+	prefix := len(n.prefixItems)
+	if prefix > len(arr) {
+		prefix = len(arr)
+	}
+	for i := 0; i < prefix; i++ {
+		if !e.eval(n.prefixItems[i], &arr[i], nil) {
+			return false
+		}
+	}
+	if target != nil && prefix > 0 {
+		target.markPrefix(prefix)
 	}
 	if n.items != nil {
-		for i := len(n.prefixItems); i < l; i++ {
-			if ok, _ := s.eval(n.items, &arr[i], false); !ok {
+		start := len(n.prefixItems)
+		for i := start; i < len(arr); i++ {
+			if !e.eval(n.items, &arr[i], nil) {
 				return false
 			}
-			if collecting {
-				a.items.set(i)
-			}
+		}
+		if target != nil && start < len(arr) {
+			target.markFrom(start)
 		}
 	}
-	if n.contains != nil {
-		minC := int64(1)
-		if n.minContains.set {
-			minC = n.minContains.v
+	if n.contains != nil && !e.evalContains(n, arr, target) {
+		return false
+	}
+	return true
+}
+
+func (e *evaluator) evalContains(n *node, arr []jsonvalue.Value, target *annots) bool {
+	min, max := n.minContains, n.maxContains
+	if min == 0 && target == nil {
+		// Always satisfied, except that maxContains still bounds the count.
+		if max < 0 {
+			return true
 		}
-		matches := int64(0)
-		for i := range arr {
-			if ok, _ := s.eval(n.contains, &arr[i], false); ok {
-				matches++
-				if collecting {
-					a.items.set(i)
-				} else if !n.maxContains.set && matches >= minC {
-					break
+	}
+	matches := 0
+	for i := range arr {
+		if e.eval(n.contains, &arr[i], nil) {
+			matches++
+			if target != nil {
+				target.markIndex(i, len(arr))
+			}
+			if target == nil {
+				if max >= 0 && matches > max {
+					return false
+				}
+				if max < 0 && matches >= min {
+					return true
 				}
 			}
 		}
-		if matches < minC || (n.maxContains.set && matches > n.maxContains.v) {
-			return false
-		}
 	}
-	return s.err == nil
+	return matches >= min && (max < 0 || matches <= max)
 }
 
-func (s *state) evalMembers(n *node, v *jsonvalue.Value, collecting bool, a *annot) bool {
-	obj := v.Object()
-	ms := obj.Members()
-	l := len(ms)
-	if n.maxProperties.gt(l) || n.minProperties.lt(l) {
+// uniqueItems reports whether no two elements of arr are JSON-equal.
+func uniqueItems(arr []jsonvalue.Value) bool {
+	if len(arr) <= 8 {
+		for i := 1; i < len(arr); i++ {
+			for j := 0; j < i; j++ {
+				if jsonvalue.Equal(arr[i], arr[j]) {
+					return false
+				}
+			}
+		}
+		return true
+	}
+	seen := make(map[uint64][]int, len(arr))
+	for i := range arr {
+		h := arr[i].Hash()
+		for _, j := range seen[h] {
+			if jsonvalue.Equal(arr[i], arr[j]) {
+				return false
+			}
+		}
+		seen[h] = append(seen[h], i)
+	}
+	return true
+}
+
+func (e *evaluator) evalProperties(n *node, v *jsonvalue.Value, target *annots) bool {
+	o, _ := v.Object()
+	if n.maxProperties >= 0 && o.Len() > n.maxProperties {
+		return false
+	}
+	if n.minProperties >= 0 && o.Len() < n.minProperties {
 		return false
 	}
 	for _, name := range n.required {
-		if !obj.Has(name) {
+		if !o.Has(name) {
 			return false
 		}
 	}
-	for _, d := range n.dependentRequired {
-		if obj.Has(d.name) {
+	for _, d := range n.depRequired {
+		if o.Has(d.name) {
 			for _, name := range d.names {
-				if !obj.Has(name) {
+				if !o.Has(name) {
 					return false
 				}
 			}
 		}
 	}
-	if n.properties != nil || n.patternProperties != nil || n.additionalProperties != nil {
-		for i := range ms {
-			m := &ms[i]
+
+	if len(n.patProps) == 0 && n.additional == nil {
+		// Only "properties": look each declared property up directly.
+		for _, p := range n.propList {
+			val, ok := o.Get(p.name)
+			if !ok {
+				continue
+			}
+			if !e.eval(p.node, &val, nil) {
+				return false
+			}
+			if target != nil {
+				target.markProp(p.name)
+			}
+		}
+	} else if len(n.propList) > 0 || len(n.patProps) > 0 || n.additional != nil {
+		for i := 0; i < o.Len(); i++ {
+			name, val := o.At(i)
 			matched := false
-			if child, ok := n.properties[m.Key]; ok {
+			if p, ok := n.props[name]; ok {
 				matched = true
-				if ok, _ := s.eval(child, &m.Value, false); !ok {
+				if !e.eval(p, &val, nil) {
 					return false
 				}
 			}
-			for _, pp := range n.patternProperties {
-				if pp.pat.err != nil {
-					return s.fail(pp.pat.err)
-				}
-				if pp.pat.re.MatchString(m.Key) {
+			for _, pp := range n.patProps {
+				if pp.re.MatchString(name) {
 					matched = true
-					if ok, _ := s.eval(pp.child, &m.Value, false); !ok {
+					if !e.eval(pp.node, &val, nil) {
 						return false
 					}
 				}
 			}
-			if !matched && n.additionalProperties != nil {
+			if !matched && n.additional != nil {
 				matched = true
-				if ok, _ := s.eval(n.additionalProperties, &m.Value, false); !ok {
+				if !e.eval(n.additional, &val, nil) {
 					return false
 				}
 			}
-			if matched && collecting {
-				a.props.set(i)
+			if matched && target != nil {
+				target.markProp(name)
 			}
 		}
 	}
+
 	if n.propertyNames != nil {
-		for i := range ms {
-			name := jsonvalue.NewString(ms[i].Key)
-			if ok, _ := s.eval(n.propertyNames, &name, false); !ok {
+		for _, name := range o.Keys() {
+			nv := jsonvalue.StringValue(name)
+			if !e.eval(n.propertyNames, &nv, nil) {
 				return false
 			}
 		}
 	}
-	return s.err == nil
+	for _, d := range n.depSchemas {
+		if o.Has(d.name) && !e.eval(d.node, v, target) {
+			return false
+		}
+	}
+	return true
+}
+
+func (e *evaluator) evalApplicators(n *node, v *jsonvalue.Value, target *annots) bool {
+	if n.ref != nil {
+		if !e.evalRef(n.ref, v, target) {
+			return false
+		}
+	}
+	if n.dynRef != nil {
+		if !e.evalRef(n.dynRef, v, target) {
+			return false
+		}
+	}
+	for _, s := range n.allOf {
+		if !e.eval(s, v, target) {
+			return false
+		}
+	}
+	if len(n.anyOf) > 0 && !e.evalAnyOf(n, v, target) {
+		return false
+	}
+	if len(n.oneOf) > 0 && !e.evalOneOf(n, v, target) {
+		return false
+	}
+	if n.not != nil && e.eval(n.not, v, nil) {
+		return false
+	}
+	if n.ifNode != nil {
+		var t annots
+		var tp *annots
+		if target != nil {
+			tp = &t
+		}
+		if e.eval(n.ifNode, v, tp) {
+			if target != nil {
+				target.merge(&t)
+			}
+			if n.thenNode != nil && !e.eval(n.thenNode, v, target) {
+				return false
+			}
+		} else if n.elseNode != nil && !e.eval(n.elseNode, v, target) {
+			return false
+		}
+	}
+	return true
+}
+
+func (e *evaluator) evalAnyOf(n *node, v *jsonvalue.Value, target *annots) bool {
+	any := false
+	for _, s := range n.anyOf {
+		if target == nil {
+			if e.eval(s, v, nil) {
+				return true
+			}
+			continue
+		}
+		var t annots
+		if e.eval(s, v, &t) {
+			any = true
+			target.merge(&t)
+		}
+	}
+	return any
+}
+
+func (e *evaluator) evalOneOf(n *node, v *jsonvalue.Value, target *annots) bool {
+	matched := -1
+	var kept annots
+	for i, s := range n.oneOf {
+		var t annots
+		var tp *annots
+		if target != nil {
+			tp = &t
+		}
+		if e.eval(s, v, tp) {
+			if matched >= 0 {
+				return false
+			}
+			matched = i
+			kept = t
+		}
+	}
+	if matched < 0 {
+		return false
+	}
+	if target != nil {
+		target.merge(&kept)
+	}
+	return true
+}
+
+func (e *evaluator) evalRef(r *ref, v *jsonvalue.Value, target *annots) bool {
+	t := r.target
+	if t == nil {
+		return false // unresolvable reference: nothing can satisfy it
+	}
+	if r.dynamic {
+		// The outermost dynamic scope entry that declares this dynamic anchor wins.
+		for _, b := range e.scope {
+			if dt, ok := e.s.dynamic[anchorKey{b, r.name}]; ok {
+				t = dt
+				break
+			}
+		}
+	}
+	return e.eval(t, v, target)
+}
+
+func (e *evaluator) evalUnevaluatedItems(n *node, v *jsonvalue.Value, local *annots) bool {
+	arr, _ := v.Array()
+	applied := false
+	for i := range arr {
+		if local.itemEvaluated(i) {
+			continue
+		}
+		applied = true
+		if !e.eval(n.unevalItems, &arr[i], nil) {
+			return false
+		}
+	}
+	if applied {
+		local.markFrom(0)
+	}
+	return true
+}
+
+func (e *evaluator) evalUnevaluatedProperties(n *node, v *jsonvalue.Value, local *annots) bool {
+	o, _ := v.Object()
+	var applied []string
+	for i := 0; i < o.Len(); i++ {
+		name, val := o.At(i)
+		if local.propEvaluated(name) {
+			continue
+		}
+		if !e.eval(n.unevalProps, &val, nil) {
+			return false
+		}
+		applied = append(applied, name)
+	}
+	for _, name := range applied {
+		local.markProp(name)
+	}
+	return true
 }

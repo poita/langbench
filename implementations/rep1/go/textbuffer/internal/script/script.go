@@ -1,199 +1,234 @@
-// Package script interprets the line-oriented command language of the
-// textbuffer command-line tool: an initial document followed by editing
-// commands, with one dump of the document and cursors per print command.
+// Package script interprets the textbuffer command language: a document
+// followed by a sequence of editing commands, with "print" commands producing
+// output. It is the I/O layer behind the command-line tool.
+//
+// The input is: a line holding the number N of document lines, N document
+// lines taken verbatim, then one command per line until end of input.
 package script
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 
 	"textbuffer"
 )
 
-// Run executes the script in input and writes the output of every print
-// command to w. On a malformed script it stops, flushes what was produced so
-// far and returns an error naming the offending line.
-func Run(input []byte, w io.Writer) error {
-	out := bufio.NewWriterSize(w, 1<<20)
-	err := run(input, out)
-	if ferr := out.Flush(); err == nil {
-		err = ferr
+// Run reads a complete script from r, executes it, and writes the output of
+// its print commands to w. Output produced before an error is still written.
+func Run(r io.Reader, w io.Writer) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
 	}
-	return err
+	out := bufio.NewWriterSize(w, 1<<16)
+	runErr := RunString(string(data), out)
+	if err := out.Flush(); err != nil && runErr == nil {
+		runErr = err
+	}
+	return runErr
 }
 
-// lineReader walks a byte buffer line by line without copying.
-type lineReader struct {
-	data []byte
-	pos  int
-	num  int
-}
-
-func (r *lineReader) next() ([]byte, bool) {
-	if r.pos >= len(r.data) {
-		return nil, false
+// RunString is like Run but takes the script as a string and writes to w
+// without flushing it.
+func RunString(input string, w io.Writer) error {
+	lines := &lineReader{s: input}
+	header, ok := lines.next()
+	if !ok {
+		return fmt.Errorf("line 1: missing document line count")
 	}
-	rest := r.data[r.pos:]
-	i := bytes.IndexByte(rest, '\n')
-	if i < 0 {
-		i = len(rest)
-		r.pos = len(r.data)
-	} else {
-		r.pos += i + 1
+	n, err := strconv.Atoi(strings.TrimSpace(header))
+	if err != nil || n < 0 {
+		return fmt.Errorf("line 1: invalid document line count %q", header)
 	}
-	r.num++
-	return rest[:i], true
-}
-
-func run(input []byte, out *bufio.Writer) error {
-	r := &lineReader{data: input}
-	header, ok := r.next()
-	n := 0
-	if ok {
-		v, err := parseUint(bytes.TrimSpace(header))
-		if err != nil {
-			return fmt.Errorf("line 1: bad line count: %w", err)
-		}
-		n = v
-	}
-	lines := make([][]byte, 0, n)
+	doc := make([]string, 0, n)
 	for i := 0; i < n; i++ {
-		l, ok := r.next()
-		if !ok {
-			break
-		}
-		lines = append(lines, l)
+		l, _ := lines.next() // a missing line counts as empty
+		doc = append(doc, l)
 	}
-	buf := textbuffer.NewFromLines(lines)
-
-	var decoded, num []byte
+	in := New(textbuffer.NewFromLines(doc), w)
 	for {
-		line, ok := r.next()
+		cmd, ok := lines.next()
 		if !ok {
 			return nil
 		}
-		word, arg := line, []byte(nil)
-		hasArg := false
-		if i := bytes.IndexByte(line, ' '); i >= 0 {
-			word, arg, hasArg = line[:i], line[i+1:], true
+		if err := in.Exec(cmd); err != nil {
+			return fmt.Errorf("line %d: %w", lines.n, err)
 		}
-		bad := func(msg string) error {
-			return fmt.Errorf("line %d: %s: %q", r.num, msg, line)
+	}
+}
+
+// lineReader splits a string at '\n' without copying; a final newline does
+// not start another line.
+type lineReader struct {
+	s string
+	n int // number of lines returned so far
+}
+
+func (r *lineReader) next() (string, bool) {
+	if r.s == "" {
+		return "", false
+	}
+	r.n++
+	i := strings.IndexByte(r.s, '\n')
+	if i < 0 {
+		l := r.s
+		r.s = ""
+		return l, true
+	}
+	l := r.s[:i]
+	r.s = r.s[i+1:]
+	return l, true
+}
+
+// Interpreter executes commands against a buffer.
+type Interpreter struct {
+	buf *textbuffer.Buffer
+	out io.Writer
+}
+
+// New returns an interpreter that edits buf and writes print output to w.
+func New(buf *textbuffer.Buffer, w io.Writer) *Interpreter {
+	return &Interpreter{buf: buf, out: w}
+}
+
+// Buffer returns the buffer being edited.
+func (in *Interpreter) Buffer() *textbuffer.Buffer { return in.buf }
+
+// Exec executes one command line. Blank lines are ignored.
+func (in *Interpreter) Exec(line string) error {
+	if line == "" {
+		return nil
+	}
+	word, rest, hasArgs := strings.Cut(line, " ")
+	b := in.buf
+	switch word {
+	case "insert":
+		if !hasArgs || rest == "" {
+			return fmt.Errorf("insert: missing text")
 		}
-		switch string(word) {
-		case "insert":
-			if !hasArg || len(arg) == 0 {
-				return bad("insert needs text")
-			}
-			text := arg
-			if bytes.IndexByte(arg, '\\') >= 0 {
-				decoded = decodeEscapes(decoded[:0], arg)
-				text = decoded
-			}
-			buf.Insert(text)
-		case "delete":
-			buf.Delete()
-		case "delete-forward":
-			buf.DeleteForward()
-		case "move":
-			dirWord, selWord, _ := bytes.Cut(arg, []byte(" "))
-			dir, ok := textbuffer.ParseDirection(string(dirWord))
-			if !hasArg || !ok {
-				return bad("bad move direction")
-			}
-			extend := false
-			switch string(selWord) {
-			case "":
-			case "select":
-				extend = true
-			default:
-				return bad("bad move modifier")
-			}
-			buf.Move(dir, extend)
-		case "goto", "add-cursor":
-			a, b, ok := bytes.Cut(arg, []byte(" "))
-			if !hasArg || !ok {
-				return bad("expected <line> <col>")
-			}
-			l, err1 := parseUint(a)
-			c, err2 := parseUint(b)
-			if err1 != nil || err2 != nil {
-				return bad("bad number")
-			}
-			if word[0] == 'g' {
-				buf.Goto(l, c)
-			} else {
-				buf.AddCursor(l, c)
-			}
-		case "clear-cursors":
-			buf.ClearCursors()
-		case "undo":
-			buf.Undo()
-		case "redo":
-			buf.Redo()
-		case "print":
-			num = printBuffer(out, buf, num)
+		text, err := DecodeInsert(rest)
+		if err != nil {
+			return fmt.Errorf("insert: %w", err)
+		}
+		b.Insert(text)
+	case "delete":
+		return noArgs(word, hasArgs, func() { b.Delete() })
+	case "delete-forward":
+		return noArgs(word, hasArgs, func() { b.DeleteForward() })
+	case "undo":
+		return noArgs(word, hasArgs, func() { b.Undo() })
+	case "redo":
+		return noArgs(word, hasArgs, func() { b.Redo() })
+	case "clear-cursors":
+		return noArgs(word, hasArgs, b.ClearCursors)
+	case "print":
+		if hasArgs {
+			return fmt.Errorf("print: unexpected arguments")
+		}
+		return in.print()
+	case "move":
+		dirName, flag, hasFlag := strings.Cut(rest, " ")
+		dir, err := textbuffer.ParseDirection(dirName)
+		if err != nil || !hasArgs {
+			return fmt.Errorf("move: invalid direction %q", dirName)
+		}
+		if hasFlag && flag != "select" {
+			return fmt.Errorf("move: unexpected argument %q", flag)
+		}
+		b.Move(dir, hasFlag)
+	case "goto", "add-cursor":
+		l, c, err := parsePair(rest)
+		if err != nil || !hasArgs {
+			return fmt.Errorf("%s: expected <line> <col>", word)
+		}
+		if word == "goto" {
+			b.GoTo(l, c)
+		} else {
+			b.AddCursor(l, c)
+		}
+	default:
+		return fmt.Errorf("unknown command %q", word)
+	}
+	return nil
+}
+
+func noArgs(name string, hasArgs bool, f func()) error {
+	if hasArgs {
+		return fmt.Errorf("%s: unexpected arguments", name)
+	}
+	f()
+	return nil
+}
+
+func parsePair(s string) (int, int, error) {
+	a, b, ok := strings.Cut(s, " ")
+	if !ok {
+		return 0, 0, fmt.Errorf("want two integers")
+	}
+	x, err := strconv.Atoi(a)
+	if err != nil {
+		return 0, 0, err
+	}
+	y, err := strconv.Atoi(b)
+	if err != nil {
+		return 0, 0, err
+	}
+	return x, y, nil
+}
+
+// print writes every document line followed by '\n', then one
+// "cursor <line> <col>" line per cursor, then "--".
+func (in *Interpreter) print() error {
+	if _, err := in.buf.WriteTo(in.out); err != nil {
+		return err
+	}
+	if _, err := io.WriteString(in.out, "\n"); err != nil {
+		return err
+	}
+	var num [48]byte
+	for _, c := range in.buf.Cursors() {
+		p := append(num[:0], "cursor "...)
+		p = strconv.AppendInt(p, int64(c.Head.Line), 10)
+		p = append(p, ' ')
+		p = strconv.AppendInt(p, int64(c.Head.Col), 10)
+		p = append(p, '\n')
+		if _, err := in.out.Write(p); err != nil {
+			return err
+		}
+	}
+	_, err := io.WriteString(in.out, "--\n")
+	return err
+}
+
+// DecodeInsert decodes the argument of an insert command: "\n" becomes a
+// newline and "\\" a single backslash. Any other use of a backslash is an
+// error.
+func DecodeInsert(s string) (string, error) {
+	if !strings.Contains(s, "\\") {
+		return s, nil
+	}
+	var sb strings.Builder
+	sb.Grow(len(s))
+	for i := 0; i < len(s); i++ {
+		if s[i] != '\\' {
+			sb.WriteByte(s[i])
+			continue
+		}
+		i++
+		if i == len(s) {
+			return "", fmt.Errorf("dangling backslash")
+		}
+		switch s[i] {
+		case 'n':
+			sb.WriteByte('\n')
+		case '\\':
+			sb.WriteByte('\\')
 		default:
-			return bad("unknown command")
+			return "", fmt.Errorf("invalid escape \\%c", s[i])
 		}
 	}
-}
-
-// printBuffer writes the document lines, the cursor heads and a "--" line.
-func printBuffer(out *bufio.Writer, buf *textbuffer.Buffer, num []byte) []byte {
-	for i, n := 0, buf.LineCount(); i < n; i++ {
-		out.Write(buf.Line(i))
-		out.WriteByte('\n')
-	}
-	for i, n := 0, buf.NumCursors(); i < n; i++ {
-		h := buf.Cursor(i).Head
-		out.WriteString("cursor ")
-		num = strconv.AppendInt(num[:0], int64(h.Line), 10)
-		num = append(num, ' ')
-		num = strconv.AppendInt(num, int64(h.Col), 10)
-		num = append(num, '\n')
-		out.Write(num)
-	}
-	out.WriteString("--\n")
-	return num
-}
-
-// decodeEscapes appends src to dst, turning \n into a newline and \\ into a
-// backslash. A backslash followed by anything else is kept as is.
-func decodeEscapes(dst, src []byte) []byte {
-	for i := 0; i < len(src); i++ {
-		c := src[i]
-		if c == '\\' && i+1 < len(src) {
-			switch src[i+1] {
-			case 'n':
-				c = '\n'
-				i++
-			case '\\':
-				i++
-			}
-		}
-		dst = append(dst, c)
-	}
-	return dst
-}
-
-// parseUint parses a non-negative decimal integer, saturating at 1<<30 (far
-// beyond any document, so the value clamps the same way).
-func parseUint(b []byte) (int, error) {
-	if len(b) == 0 {
-		return 0, fmt.Errorf("empty number")
-	}
-	v := 0
-	for _, c := range b {
-		if c < '0' || c > '9' {
-			return 0, fmt.Errorf("invalid number %q", b)
-		}
-		if v < 1<<30 {
-			v = v*10 + int(c-'0')
-		}
-	}
-	return v, nil
+	return sb.String(), nil
 }

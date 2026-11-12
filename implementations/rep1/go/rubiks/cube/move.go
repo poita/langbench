@@ -8,7 +8,7 @@ import (
 // Face identifies one of the six faces of the cube.
 type Face uint8
 
-// The faces, in the order used throughout the library.
+// The six faces, in the order used throughout the package.
 const (
 	U Face = iota
 	R
@@ -16,35 +16,56 @@ const (
 	D
 	L
 	B
-	NumFaces = 6
 )
 
-// String returns the single-letter name of the face.
+const faceLetters = "URFDLB"
+
+// String returns the one-letter name of the face.
 func (f Face) String() string {
-	if f >= NumFaces {
+	if f > B {
 		return "?"
 	}
-	return "URFDLB"[f : f+1]
+	return faceLetters[f : f+1]
 }
 
-// Opposite returns the face on the other side of the cube.
-func (f Face) Opposite() Face { return (f + 3) % NumFaces }
-
-// Move is one of the eighteen face turns. A Move is Face*3 + (turns-1),
-// where turns is 1 (clockwise quarter turn), 2 (half turn) or 3
-// (counter-clockwise quarter turn).
+// Move is one of the eighteen face turns. Its value is 3*face + turn, where
+// turn 0 is a clockwise quarter turn, 1 a half turn and 2 an anticlockwise
+// quarter turn.
 type Move uint8
 
 // NumMoves is the number of distinct moves.
 const NumMoves = 18
 
-// NewMove builds the move that turns face f clockwise by the given number of
-// quarter turns, which must be 1, 2 or 3.
-func NewMove(f Face, quarterTurns int) Move {
-	if f >= NumFaces || quarterTurns < 1 || quarterTurns > 3 {
+// Move constructors for the eighteen turns.
+const (
+	MoveU Move = iota
+	MoveU2
+	MoveUPrime
+	MoveR
+	MoveR2
+	MoveRPrime
+	MoveF
+	MoveF2
+	MoveFPrime
+	MoveD
+	MoveD2
+	MoveDPrime
+	MoveL
+	MoveL2
+	MoveLPrime
+	MoveB
+	MoveB2
+	MoveBPrime
+)
+
+// NewMove returns the move that turns face f by turns quarter turns
+// clockwise; turns is taken modulo 4 and must not be a multiple of 4.
+func NewMove(f Face, turns int) Move {
+	t := ((turns % 4) + 4) % 4
+	if t == 0 || f > B {
 		panic("cube: invalid move")
 	}
-	return Move(int(f)*3 + quarterTurns - 1)
+	return Move(3*int(f) + t - 1)
 }
 
 // Face returns the face the move turns.
@@ -54,50 +75,47 @@ func (m Move) Face() Face { return Face(m / 3) }
 func (m Move) Turns() int { return int(m%3) + 1 }
 
 // Inverse returns the move that undoes m.
-func (m Move) Inverse() Move { return NewMove(m.Face(), 4-m.Turns()) }
+func (m Move) Inverse() Move {
+	return Move(m/3*3) + (2 - m%3)
+}
 
-// IsHalfTurn reports whether m is a half turn (X2).
-func (m Move) IsHalfTurn() bool { return m%3 == 1 }
-
-// String returns the move in standard notation: "R", "R2" or "R'".
+// String returns the notation of the move: "R", "R2" or "R'".
 func (m Move) String() string {
 	if m >= NumMoves {
 		return "?"
 	}
-	return moveNames[m]
+	switch m % 3 {
+	case 0:
+		return faceLetters[m/3 : m/3+1]
+	case 1:
+		return faceLetters[m/3:m/3+1] + "2"
+	}
+	return faceLetters[m/3:m/3+1] + "'"
 }
 
-var moveNames = func() (names [NumMoves]string) {
-	suffix := [3]string{"", "2", "'"}
-	for m := range names {
-		names[m] = Face(m/3).String() + suffix[m%3]
-	}
-	return
-}()
-
-// ParseMove parses a single move token such as "U", "D'" or "F2".
+// ParseMove parses a single move token such as "U", "R'" or "F2".
 func ParseMove(tok string) (Move, error) {
 	if len(tok) < 1 || len(tok) > 2 {
 		return 0, fmt.Errorf("cube: invalid move %q", tok)
 	}
-	f := strings.IndexByte("URFDLB", tok[0])
+	f := strings.IndexByte(faceLetters, tok[0])
 	if f < 0 {
 		return 0, fmt.Errorf("cube: invalid move %q", tok)
 	}
 	if len(tok) == 1 {
-		return NewMove(Face(f), 1), nil
+		return Move(3 * f), nil
 	}
 	switch tok[1] {
 	case '2':
-		return NewMove(Face(f), 2), nil
+		return Move(3*f + 1), nil
 	case '\'':
-		return NewMove(Face(f), 3), nil
+		return Move(3*f + 2), nil
 	}
 	return 0, fmt.Errorf("cube: invalid move %q", tok)
 }
 
-// ParseMoves parses a whitespace-separated sequence of move tokens. The
-// empty string yields an empty sequence.
+// ParseMoves parses a sequence of move tokens separated by whitespace.
+// An empty or blank string yields an empty sequence.
 func ParseMoves(s string) ([]Move, error) {
 	fields := strings.Fields(s)
 	moves := make([]Move, 0, len(fields))
@@ -111,47 +129,33 @@ func ParseMoves(s string) ([]Move, error) {
 	return moves, nil
 }
 
-// FormatMoves renders moves in standard notation separated by single spaces.
+// FormatMoves renders a move sequence as space-separated tokens.
 func FormatMoves(moves []Move) string {
 	return string(AppendMoves(nil, moves))
 }
 
-// AppendMoves appends the notation for moves, separated by single spaces, to
-// dst and returns the extended slice.
+// AppendMoves appends the space-separated notation of moves to dst.
 func AppendMoves(dst []byte, moves []Move) []byte {
 	for i, m := range moves {
 		if i > 0 {
 			dst = append(dst, ' ')
 		}
-		dst = append(dst, m.String()...)
+		dst = append(dst, faceLetters[m/3])
+		switch m % 3 {
+		case 1:
+			dst = append(dst, '2')
+		case 2:
+			dst = append(dst, '\'')
+		}
 	}
 	return dst
 }
 
-// InverseMoves returns the sequence that undoes moves.
-func InverseMoves(moves []Move) []Move {
+// InvertMoves returns the sequence that undoes moves.
+func InvertMoves(moves []Move) []Move {
 	inv := make([]Move, len(moves))
 	for i, m := range moves {
 		inv[len(moves)-1-i] = m.Inverse()
 	}
 	return inv
-}
-
-// Simplify merges consecutive turns of the same face (for example "R R" into
-// "R2" and "R R'" into nothing) and returns the shortened sequence. The
-// input is not modified.
-func Simplify(moves []Move) []Move {
-	out := make([]Move, 0, len(moves))
-	for _, m := range moves {
-		if n := len(out); n > 0 && out[n-1].Face() == m.Face() {
-			total := (out[n-1].Turns() + m.Turns()) % 4
-			out = out[:n-1]
-			if total != 0 {
-				out = append(out, NewMove(m.Face(), total))
-			}
-			continue
-		}
-		out = append(out, m)
-	}
-	return out
 }

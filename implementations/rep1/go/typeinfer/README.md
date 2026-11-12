@@ -1,85 +1,79 @@
 # typeinfer
 
-Hindley-Milner type inference with let-polymorphism for a small ML-like
-language, as a Go library and a command-line tool. Standard library only.
+Hindley-Milner type inference for a small ML-like language, as a Go library
+and a command-line tool. It reads a program (a sequence of declarations ending
+in `;;`) and reports the principal type of every declaration, or the kind of
+type error it contains.
 
-It reads a program (a sequence of `;;`-terminated declarations) and reports
-the principal type of each declaration, or the kind of error that made it
-fail: `unbound`, `occurs` (infinite type) or `unify`. Every `let` is
-generalised (no value restriction); lambda-bound variables and the name of a
-`let rec` inside its own body are monomorphic.
-
-The implementation is Algorithm J with destructive union-find unification over
-a shared type graph, Rémy-style level-based generalisation, per-name binding
-stacks for the environment, and memoised DAG-sharing instantiation, so
-generalisation never scans the environment and shared types are never expanded
-into trees except when printed.
+It is classic Damas-Milner inference with let-polymorphism and no value
+restriction: Algorithm J over a shared type graph, union-find unification with
+an occurs check, and level-based (Rémy) generalisation. Generalisation never
+scans the environment, and every walk over a type visits each distinct node
+once, so large and heavily shared types are cheap. Deep nesting (thousands of
+levels) is fine. Only the Go standard library is used.
 
 ## Build
 
-```
-./build.sh          # go build -o bin/typeinfer ./cmd/typeinfer
-go test ./...       # unit tests
-```
-
 Requires Go 1.27 or later.
 
-## Command line
-
+```sh
+./build.sh            # builds bin/typeinfer
+go test ./...         # runs the tests
 ```
-./run.sh < program.ml        # or: bin/typeinfer < program.ml
-```
 
-Standard input is the whole program; standard output gets one line per
-declaration:
+(`build.sh` is `go build -o bin/typeinfer ./cmd/typeinfer`.)
 
-- `name : <type>` for `let` / `let rec`
-- `- : <type>` for a bare expression
-- `error: unify`, `error: occurs` or `error: unbound` for a failing
-  declaration (it binds nothing; later declarations still run)
+## Command-line use
 
-The exit status is 0 (type errors are normal results). A syntax error is
-reported on stderr after the results that precede it.
+`typeinfer` reads the whole program from standard input and writes one line
+per declaration to standard output; `run.sh` is a wrapper that runs the built
+binary from any directory.
 
-```
-$ printf 'let compose f g x = f (g x);;\nfun f -> (f 1, f true);;\nlet rec len l = if null l then 0 else 1 + len (tl l);;\n' | ./run.sh
+```console
+$ printf 'let compose f g x = f (g x);;\nlet rec len l = if null l then 0 else 1 + len (tl l);;\n(len [true], compose);;\nfun f -> (f 1, f true);;\n' | ./run.sh
 compose : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
-error: unify
 len : 'a list -> int
+- : int * (('a -> 'b) -> ('c -> 'a) -> 'c -> 'b)
+error: unify
 ```
 
-## Language
+Output lines are `name : type` for `let`/`let rec`, `- : type` for a bare
+expression, and `error: unify`, `error: occurs` or `error: unbound` for a
+declaration that fails (it then binds nothing). Type errors are normal results:
+the exit status is 0. If the input is syntactically malformed, the lines for
+the declarations before the error are printed, a message goes to stderr and the
+exit status is 1.
+
+## The language
 
 ```
-decl  := "let" ["rec"] ident ident* "=" expr ";;" | expr ";;"
-expr  := "let" ["rec"] ident ident* "=" expr "in" expr
-       | "fun" ident+ "->" expr | "if" expr "then" expr "else" expr
-       | binary operators over applications and atoms
-atom  := integer | true | false | ident | () | (e) | (e, e, ...) | [] | [e; e; ...]
+decl   := "let" ident ident* "=" expr ";;"
+        | "let" "rec" ident ident+ "=" expr ";;"
+        | expr ";;"
+expr   := "let" ["rec"] ident ident* "=" expr "in" expr
+        | "fun" ident+ "->" expr
+        | "if" expr "then" expr "else" expr
+        | operators, loosest to tightest:  ||   &&   = < > <= >= (non-assoc)
+          ::  (right)   + -   * /   application
+atom   := integer | true | false | ident | "()" | "(" expr ")"
+        | "(" expr ("," expr)+ ")" | "[" "]" | "[" expr (";" expr)* "]"
 ```
 
-Operators, loosest to tightest: `||`, `&&`, comparison (`= < > <= >=`,
-non-associative), `::` (right-associative), `+ -`, `* /`, application.
-Arithmetic and comparison take `int`s; `&&`/`||` take `bool`s. Built-ins:
-`not fst snd hd tl null length map fold`. Types are `int`, `bool`, `unit`,
-`'a`, `t -> t`, `t * t * ...` and `t list`. The full specification is in
-`problems/typeinfer/SPEC.md` of the surrounding repository.
+Built-ins: `not fst snd hd tl null length map fold`. Types are `int`, `bool`,
+`unit`, `'a`, `t -> t`, `t * t * ...` and `t list`. Error kinds are reported
+in the order a single left-to-right pass would meet them.
 
 ## Library
 
-Import path `example.com/typeinfer` (module name in `go.mod`).
+```
+github.com/example/typeinfer          facade: Infer, Run, Result
+github.com/example/typeinfer/syntax   lexer, AST, recursive-descent parser
+github.com/example/typeinfer/types    type graph, unification, generalisation,
+                                      instantiation, printing
+github.com/example/typeinfer/infer    the inference engine and environment
+```
 
-| Package | Responsibility |
-| --- | --- |
-| `example.com/typeinfer` | `Checker`, `Result`, `ErrorKind`: inference, generalisation, printing |
-| `example.com/typeinfer/syntax` | `Lex`, `Parse`, the index-based AST, the identifier `Interner` |
-| `cmd/typeinfer` | the command-line tool |
-
-Source layout of the root package: `types.go` (type arena, union-find),
-`unify.go` (unification, occurs check fused with level adjustment),
-`generalize.go` (generalisation and instantiation), `env.go` (binding
-stacks), `infer.go` (the inference pass), `builtins.go`, `print.go`,
-`checker.go` (public API).
+Quick use of the facade:
 
 ```go
 package main
@@ -87,31 +81,43 @@ package main
 import (
 	"fmt"
 
-	"example.com/typeinfer"
+	"github.com/example/typeinfer"
 )
 
 func main() {
-	c := typeinfer.NewChecker()
-	results, err := c.Check([]byte(`
-let id x = x;;
-(id 1, id true);;
+	results, err := typeinfer.Infer(`
+let id = fun x -> x;;
+let g = id id;;
+(g 1, g true);;
 fun x -> x x;;
-`))
-	if err != nil { // only for syntax errors
+`)
+	if err != nil { // syntax error; results holds the declarations before it
 		fmt.Println(err)
 	}
 	for _, r := range results {
-		fmt.Println(r) // id : 'a -> 'a / - : int * bool / error: occurs
-		if !r.OK() {
-			fmt.Println("kind:", r.Err) // "occurs"
-		}
+		fmt.Println(r) // id : 'a -> 'a / g : 'a -> 'a / - : int * bool / error: occurs
 	}
-
-	// Bindings persist in the Checker across calls.
-	ty, _ := c.TypeOf("id") // "'a -> 'a"
-	fmt.Println(ty)
 }
 ```
 
-`typeinfer.Infer(src)` is a shortcut that uses a fresh `Checker`. A `Checker`
-is not safe for concurrent use; create one per goroutine.
+Using the layers directly, to infer one declaration at a time:
+
+```go
+decls, _ := syntax.ParseProgram("let twice f x = f (f x);;")
+in := infer.New()                 // environment with the built-ins
+res, err := in.Infer(decls[0])    // err is an *infer.Error on failure
+fmt.Println(res.Name, res.Scheme) // twice ('a -> 'a) -> 'a -> 'a
+```
+
+A declaration that fails leaves the `Inferer`'s environment unchanged.
+
+## Layout
+
+```
+cmd/typeinfer/   the command-line tool
+syntax/          lexer.go, ast.go, parser.go
+types/           types.go, context.go (unify/generalise/instantiate), print.go
+infer/           infer.go, env.go, builtins.go, errors.go
+testdata/golden/ input/expected-output pairs run by the root package's tests
+build.sh run.sh  build and run scripts
+```

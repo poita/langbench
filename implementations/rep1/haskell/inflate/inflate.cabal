@@ -1,0 +1,49 @@
+cabal-version:      3.0
+name:               inflate
+version:            0.1.0.0
+synopsis:           A from-scratch DEFLATE (RFC 1951) decoder with a table-driven Huffman decoder
+description:
+  A pure-Haskell decoder for raw DEFLATE streams (RFC 1951), written without
+  any zlib/gzip/DEFLATE library. Huffman codes are decoded with two-level
+  lookup tables, so every symbol costs one or two array reads.
+  The package also ships a small command-line tool, @inflate@, that reads a
+  hex-encoded stream on stdin and prints the hex-encoded result (or @error@).
+category:           Codec, Compression
+license:            MIT
+license-file:       LICENSE
+author:             inflate contributors
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Codec.Compression.Inflate
+                    Codec.Compression.Inflate.Hex
+                    Codec.Compression.Inflate.Huffman
+                    Codec.Compression.Inflate.Tables
+                    Codec.Compression.Inflate.Types
+  other-modules:    Codec.Compression.Inflate.Decoder
+  build-depends:    base >=4.20 && <5,
+                    array >=0.5 && <0.6,
+                    bytestring >=0.11 && <0.13
+
+executable inflate
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base, bytestring, inflate
+
+test-suite inflate-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    Encoder
+  build-depends:    base, bytestring, inflate, hspec, QuickCheck

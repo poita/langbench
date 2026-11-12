@@ -1,67 +1,63 @@
 /**
- * The deterministic scheduling simulation: ready heaps, a fixed set of
- * workers, a simulated clock, cache-hit settling, failure and cancellation.
+ * The deterministic scheduling simulation.
+ *
+ * An event-driven simulation of `N` workers: ready steps are taken lowest
+ * serial first from priority queues (O(log R) per operation), freshness is
+ * decided when a step becomes ready, and the clock jumps from one completion
+ * to the next. Commands run against the virtual file system.
  */
 module kiln.scheduler;
 
-import kiln.commands;
-import kiln.errors;
-import kiln.graph;
-import kiln.hash;
-import kiln.state;
-import kiln.step;
-import kiln.vfs;
+import kiln.commands : CommandResult, runCommand;
+import kiln.errors : KilnError;
+import kiln.graph : Graph, NodeKind;
+import kiln.model : BuildPlan, Step;
+import kiln.state : BuildState, HashedPath, StateEntry, isFresh;
+import kiln.workspace : Workspace;
 
-import std.algorithm : sort;
-
-/// Kinds of build event.
+/// What happened to a step.
 enum EventKind : ubyte
 {
-    hit,
-    run,
-    fail,
-    cancel,
+    hit, /// cache hit
+    run, /// executed successfully
+    fail, /// execution error
+    cancel, /// dispatched but still running when the build aborted
 }
 
-/// One line of a build's event log.
+/// One log event of a build.
 struct Event
 {
     EventKind kind;
-    /// Start time (the time itself for a hit).
+    int serial;
     long start;
     long end;
     int worker;
-    /// Serial of the step; orders events that start together.
-    int serial;
-    /// The step's primary output path.
     string target;
-    /// The step's canonical command string (empty for a hit).
     string command;
 }
 
-/// The outcome of the scheduling phase.
+/// The outcome of the execution phase.
 struct ScheduleResult
 {
-    /// Events sorted by start time, then serial.
-    Event[] events;
-    int ran;
-    int hits;
-    /// Completion time of the build.
+    Event[] events; // sorted by (start, serial)
+    long ran;
+    long hits;
     long time;
-    /// Non-null when an execution error aborted the build.
+    /// The reported execution error, or null.
     KilnError error;
 }
 
+/// A binary min-heap of step serials.
 private struct MinHeap
 {
-    int[] a;
+    private int[] a;
 
-    bool empty() const
+    bool empty() const @safe pure nothrow @nogc
     {
         return a.length == 0;
     }
 
-    void push(int v)
+    void push(int v) @safe pure nothrow
     {
         a ~= v;
         size_t i = a.length - 1;
@@ -77,15 +73,16 @@ private struct MinHeap
         }
     }
 
-    int pop()
+    int pop() @safe pure nothrow
     {
         immutable top = a[0];
         a[0] = a[$ - 1];
-        a.length = a.length - 1;
+        a.length -= 1;
         size_t i = 0;
-        for (;;)
+        while (true)
         {
-            size_t l = 2 * i + 1, r = l + 1, m = i;
+            immutable l = 2 * i + 1, r = l + 1;
+            size_t m = i;
             if (l < a.length && a[l] < a[m])
                 m = l;
             if (r < a.length && a[r] < a[m])
@@ -104,62 +101,48 @@ private struct MinHeap
 private struct Running
 {
     bool busy;
-    int serial;
-    long start, end;
+    int step;
+    long start;
+    long end;
     size_t eventIndex;
-    CommandResult result;
-    KilnError error;
-    ulong[] inHashes;
 }
 
 /**
- * Simulates the build of the reachable set on `workers` workers.
- *
- * `state` is updated in place: entries of steps that ran are replaced, those
- * of failed or cancelled steps removed.
+ * Simulates the build of the nodes in `reach` on `workers` workers,
+ * updating `ws` and `state` as commands complete.
  */
-ScheduleResult schedule(Graph g, const(bool)[] reach, Step[] steps, Vfs vfs, ref State state, int workers)
+ScheduleResult schedule(Graph graph, BuildPlan plan, const(int)[] reach, int workers,
+        Workspace ws, BuildState state) @safe
 {
     ScheduleResult res;
-    immutable n = g.kind.length;
-    auto dependents = new int[][n];
-    auto pending = new int[n];
-    foreach (node; 0 .. n)
+    auto nodes = graph.nodes;
+
+    // Pending counts and reverse edges over the reachable set.
+    auto pending = new size_t[nodes.length];
+    auto dependents = new int[][nodes.length];
+    foreach (n; reach)
     {
-        if (!reach[node])
-            continue;
-        pending[node] = cast(int) g.succ[node].length;
-        foreach (m; g.succ[node])
-            dependents[m] ~= cast(int) node;
+        pending[n] = nodes[n].successors.length;
+        foreach (m; nodes[n].successors)
+            dependents[m] ~= n;
     }
 
-    MinHeap undecided, stale;
-    int[] roots;
-    foreach (node; 0 .. n)
-    {
-        if (!reach[node])
-            continue;
-        if (g.kind[node] == NodeKind.step)
-        {
-            if (pending[node] == 0)
-                undecided.push(cast(int) node);
-        }
-        else if (g.kind[node] == NodeKind.source || pending[node] == 0)
-            roots ~= cast(int) node;
-    }
+    MinHeap undecided, staleReady;
 
-    void complete(int start)
+    // Completes node `n`; steps that become ready join `undecided`, and
+    // phony nodes whose last dependency just completed complete at once.
+    void complete(int n) @safe
     {
-        int[] work = [start];
+        int[] work = [n];
         while (work.length)
         {
-            immutable x = work[$ - 1];
-            work.length = work.length - 1;
-            foreach (d; dependents[x])
+            immutable c = work[$ - 1];
+            work = work[0 .. $ - 1];
+            foreach (d; dependents[c])
             {
                 if (--pending[d] != 0)
                     continue;
-                if (g.kind[d] == NodeKind.step)
+                if (nodes[d].kind == NodeKind.step)
                     undecided.push(d);
                 else
                     work ~= d;
@@ -167,66 +150,60 @@ ScheduleResult schedule(Graph g, const(bool)[] reach, Step[] steps, Vfs vfs, ref
         }
     }
 
-    foreach (r; roots)
-        complete(r);
+    foreach (n; reach)
+        if (nodes[n].kind == NodeKind.step && pending[n] == 0)
+            undecided.push(n);
+    foreach (n; reach)
+    {
+        if (nodes[n].kind == NodeKind.source)
+            complete(n);
+        else if (nodes[n].kind == NodeKind.phony && nodes[n].successors.length == 0)
+            complete(n);
+    }
 
     auto running = new Running[workers];
     long time = 0;
+    long maxTime = 0;
 
-    for (;;)
+    while (true)
     {
-        // (A) settle cache hits at the current time
+        // (A) settle cache hits at the current time.
         while (!undecided.empty)
         {
-            immutable id = undecided.pop();
-            auto step = steps[id];
-            auto entry = step.primary in state;
-            if (isFresh(entry ? *entry : null, step, vfs))
+            immutable n = undecided.pop();
+            auto step = plan.steps[n];
+            auto entry = step.primary in state.entries;
+            if (isFresh(step, entry, ws))
             {
                 res.hits++;
-                res.events ~= Event(EventKind.hit, time, time, 0, id, step.primary, step.canon);
-                complete(id);
+                res.events ~= Event(EventKind.hit, n, time, time, 0, step.primary, step.cmdString);
+                if (time > maxTime)
+                    maxTime = time;
+                complete(n);
             }
             else
-                stale.push(id);
-        }
-
-        // (B) dispatch
-        while (!stale.empty)
-        {
-            int w = -1;
-            foreach (k; 0 .. workers)
-                if (!running[k].busy)
-                {
-                    w = k;
-                    break;
-                }
-            if (w < 0)
-                break;
-            immutable id = stale.pop();
-            auto step = steps[id];
-            auto r = &running[w];
-            *r = Running.init;
-            r.busy = true;
-            r.serial = id;
-            r.start = time;
-            r.end = time + step.cost;
-            auto contents = new string[step.fileInputs.length];
-            r.inHashes = new ulong[step.fileInputs.length];
-            foreach (i, p; step.fileInputs)
             {
-                contents[i] = vfs.read(p);
-                r.inHashes[i] = vfs.hashOf(p);
+                staleReady.push(n);
             }
-            try
-                r.result = runCommand(step, contents, vfs);
-            catch (KilnError e)
-                r.error = e;
-            r.eventIndex = res.events.length;
-            res.events ~= Event(EventKind.run, time, r.end, w, id, step.primary, step.canon);
         }
 
-        // (C) advance the clock
+        // (B) dispatch onto the lowest-numbered free workers.
+        foreach (w; 0 .. workers)
+        {
+            if (staleReady.empty)
+                break;
+            if (running[w].busy)
+                continue;
+            immutable n = staleReady.pop();
+            auto step = plan.steps[n];
+            immutable end = time + step.effectiveCost;
+            res.events ~= Event(EventKind.run, n, time, end, w, step.primary, step.cmdString);
+            running[w] = Running(true, n, time, end, res.events.length - 1);
+            if (end > maxTime)
+                maxTime = end;
+        }
+
+        // (C) advance the clock.
         bool any = false;
         long next = long.max;
         foreach (ref r; running)
@@ -239,63 +216,89 @@ ScheduleResult schedule(Graph g, const(bool)[] reach, Step[] steps, Vfs vfs, ref
         if (!any)
             break;
         time = next;
+
+        int[] failedSteps;
+        KilnError[int] errors;
         int[] finished;
-        KilnError firstError;
-        int firstErrorSerial = int.max;
         foreach (w; 0 .. workers)
         {
-            auto r = &running[w];
-            if (!r.busy || r.end != time)
+            if (!running[w].busy || running[w].end != time)
                 continue;
-            r.busy = false;
-            auto step = steps[r.serial];
-            if (r.error !is null)
+            immutable n = running[w].step;
+            immutable ei = running[w].eventIndex;
+            running[w].busy = false;
+            auto step = plan.steps[n];
+            try
             {
-                res.events[r.eventIndex].kind = EventKind.fail;
-                state.remove(step.primary);
-                if (r.serial < firstErrorSerial)
-                {
-                    firstErrorSerial = r.serial;
-                    firstError = r.error;
-                }
-            }
-            else
-            {
-                auto e = new StateEntry;
-                e.cmd = step.canon;
-                foreach (i, p; step.fileInputs)
-                    e.ins ~= HashedPath(p, r.inHashes[i]);
-                foreach (i, p; r.result.depPaths)
-                    e.deps ~= HashedPath(p, r.result.depHashes[i]);
-                foreach (i, p; step.fullOutputs)
-                {
-                    immutable h = fnv1a(r.result.outputs[i]);
-                    vfs.writeWithHash(p, r.result.outputs[i], h);
-                    e.outs ~= HashedPath(p, h);
-                }
-                state[step.primary] = e;
+                auto result = runCommand(step, ws);
+                commit(step, result, ws, state);
                 res.ran++;
+                finished ~= n;
             }
-            finished ~= r.serial;
+            catch (KilnError e)
+            {
+                res.events[ei].kind = EventKind.fail;
+                failedSteps ~= n;
+                errors[n] = e;
+            }
         }
-        if (firstError !is null)
+        if (failedSteps.length)
         {
+            int best = failedSteps[0];
+            foreach (n; failedSteps)
+                if (n < best)
+                    best = n;
+            res.error = errors[best];
             foreach (w; 0 .. workers)
-                if (running[w].busy)
-                {
-                    res.events[running[w].eventIndex].kind = EventKind.cancel;
-                    state.remove(steps[running[w].serial].primary);
-                }
-            res.error = firstError;
+            {
+                if (!running[w].busy)
+                    continue;
+                res.events[running[w].eventIndex].kind = EventKind.cancel;
+                state.remove(plan.steps[running[w].step].primary);
+            }
+            foreach (n; failedSteps)
+                state.remove(plan.steps[n].primary);
             break;
         }
-        foreach (id; finished)
-            complete(id);
+        foreach (n; finished)
+            complete(n);
     }
 
-    foreach (ref e; res.events)
-        if (e.end > res.time)
-            res.time = e.end;
-    res.events.sort!((a, b) => a.start < b.start || (a.start == b.start && a.serial < b.serial));
+    res.time = maxTime;
+    sortEvents(res.events);
     return res;
+}
+
+/// Writes a successful command's outputs and records its state entry.
+private void commit(const Step step, ref CommandResult result, Workspace ws, BuildState state) @safe
+{
+    StateEntry e;
+    e.cmd = step.cmdString;
+    foreach (p; step.fileInputs)
+    {
+        ulong h;
+        ws.hashOf(p, h);
+        e.ins ~= HashedPath(p, h);
+    }
+    foreach (p; result.discovered)
+    {
+        ulong h;
+        ws.hashOf(p, h);
+        e.deps ~= HashedPath(p, h);
+    }
+    foreach (k, p; step.fullOuts)
+    {
+        ws.write(p, result.outputs[k]);
+        ulong h;
+        ws.hashOf(p, h);
+        e.outs ~= HashedPath(p, h);
+    }
+    state.put(step.primary, e);
+}
+
+private void sortEvents(Event[] events) @safe pure nothrow
+{
+    import std.algorithm.sorting : sort;
+
+    events.sort!((a, b) => a.start != b.start ? a.start < b.start : a.serial < b.serial);
 }

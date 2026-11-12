@@ -1,0 +1,9 @@
+sim 5 3
+attempt 1 msg_1 ep_a 1 1700000000 failure 500
+attempt 2 msg_1 ep_b 1 1700000000 success 200
+attempt 3 msg_1 ep_a 2 1700000005 timeout -
+attempt 4 msg_2 ep_a 1 1700000100 success 200
+attempt 5 msg_1 ep_a 3 1700000305 success 200
+delivery msg_1 ep_a delivered 3 1700000305 v1,x5lVgj0b/JJJaUYaa1+6I5J/EECcryrPlFN4VrkmI94=
+delivery msg_1 ep_b delivered 1 1700000000 v1,A5oIrJxXPB/PkULSoVu0e4khvPiqpF9vljmhkSKg0FI= v1,+y5T5nCYgPC5Y9oXnau3uEIax3TN0x8LoF05LBfU83s=
+delivery msg_2 ep_a delivered 1 1700000100 v1,Cu35wCUZTS4YnAIA1waQmIXPFLh46qYAWpcHufrxa9U=

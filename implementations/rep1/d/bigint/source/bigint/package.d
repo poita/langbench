@@ -1,13 +1,22 @@
 /**
  * Arbitrary-precision signed integer arithmetic.
  *
- * Public entry points:
- *  - `bigint.integer.BigInt`: the signed integer type with operators.
- *  - `bigint.queries.evaluateQueries`: the line-oriented calculator used by the CLI.
- *  - `bigint.magnitude`: the unsigned limb-array kernels (add, sub, mul, divmod).
- *  - `bigint.decimal`: linear-time decimal parsing and printing.
+ * Numbers are stored as a sign and a magnitude made of base-10^9 limbs, so
+ * conversion from and to decimal text is linear. All algorithms are the
+ * classical ones: schoolbook multiplication, Knuth's Algorithm D for division
+ * and binary exponentiation.
+ *
+ * Modules:
+ * $(UL
+ *   $(LI `bigint.bigint`     – the signed `BigInt` value type)
+ *   $(LI `bigint.magnitude`  – unsigned limb-vector arithmetic)
+ *   $(LI `bigint.decimal`    – decimal text <-> limb conversion)
+ *   $(LI `bigint.exceptions` – exception types)
+ *   $(LI `bigint.query`      – evaluator for the `<a> <op> <b>` line protocol)
+ * )
  */
 module bigint;
 
-public import bigint.integer;
-public import bigint.queries;
+public import bigint.bigint;
+public import bigint.exceptions;
+public import bigint.query;

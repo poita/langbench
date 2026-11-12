@@ -1,12 +1,15 @@
-// Command gitrepo answers a list of queries about a git repository.
+// Command gitrepo reads a git repository straight off disk and answers a list
+// of queries about it.
 //
 // Usage:
 //
-//	gitrepo <input dir> <output dir>
+//	gitrepo <input path> <output dir>
 //
-// <input dir> holds repo/ (a git directory) and commands.txt (one query per
-// line). For line k the answer is written to <output dir>/NNN.out; a failed
-// query produces the single line "error".
+// <input path> is a directory holding repo/ (a .git directory or bare
+// repository) and commands.txt (one query per line). For the command on line k
+// the program writes <output dir>/NNN.out, where NNN is k zero-padded to at
+// least three digits. A command that fails produces the file content "error".
+// The exit status is 0 unless the arguments or output directory are unusable.
 package main
 
 import (
@@ -16,11 +19,12 @@ import (
 	"strings"
 
 	"gitrepo"
+	"gitrepo/query"
 )
 
 func main() {
 	if len(os.Args) != 3 {
-		fmt.Fprintln(os.Stderr, "usage: gitrepo <input dir> <output dir>")
+		fmt.Fprintln(os.Stderr, "usage: gitrepo <input path> <output dir>")
 		os.Exit(2)
 	}
 	if err := run(os.Args[1], os.Args[2]); err != nil {
@@ -29,46 +33,39 @@ func main() {
 	}
 }
 
-func run(in, out string) error {
-	cmds, err := os.ReadFile(filepath.Join(in, "commands.txt"))
+func run(input, outDir string) error {
+	raw, err := os.ReadFile(filepath.Join(input, "commands.txt"))
 	if err != nil {
 		return err
 	}
-	if err := os.MkdirAll(out, 0o755); err != nil {
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return err
 	}
-	repo, err := gitrepo.Open(filepath.Join(in, "repo"))
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "gitrepo: opening repository:", err)
-		repo = nil // every query fails
+	var lines []string
+	if len(raw) > 0 {
+		lines = strings.Split(string(raw), "\n")
+		if lines[len(lines)-1] == "" {
+			lines = lines[:len(lines)-1]
+		}
 	}
-	lines := strings.Split(string(cmds), "\n")
-	if n := len(lines); n > 0 && lines[n-1] == "" {
-		lines = lines[:n-1]
+	repo, repoErr := gitrepo.Open(filepath.Join(input, "repo"))
+	if repoErr != nil {
+		fmt.Fprintln(os.Stderr, "gitrepo: cannot open repository:", repoErr)
 	}
 	for i, line := range lines {
-		var res []byte
-		if repo != nil {
-			res, err = execute(repo, line)
+		out := []byte(query.ErrorOutput)
+		if repoErr == nil {
+			res, err := query.Execute(repo, line)
+			if err == nil {
+				out = res
+			} else {
+				fmt.Fprintf(os.Stderr, "%d: %s: %v\n", i+1, line, err)
+			}
 		}
-		if repo == nil || err != nil {
-			res = []byte("error\n")
-		}
-		name := filepath.Join(out, fmt.Sprintf("%03d.out", i+1))
-		if err := os.WriteFile(name, res, 0o644); err != nil {
+		name := filepath.Join(outDir, fmt.Sprintf("%03d.out", i+1))
+		if err := os.WriteFile(name, out, 0o644); err != nil {
 			return err
 		}
 	}
 	return nil
-}
-
-// execute runs one query, turning any internal panic into a failure so that a
-// single bad query can never take the program down.
-func execute(repo *gitrepo.Repository, line string) (res []byte, err error) {
-	defer func() {
-		if p := recover(); p != nil {
-			res, err = nil, fmt.Errorf("internal error: %v", p)
-		}
-	}()
-	return repo.Execute(line)
 }

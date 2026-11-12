@@ -1,19 +1,19 @@
-// Command rubiks reads scrambles from standard input, one per line, and
-// prints for each a move sequence that solves the cube.
+// Command rubiks reads scrambles of a 3x3x3 Rubik's cube from standard
+// input, one per line, and prints a solution for each on standard output.
 //
-// Each input line holds zero or more space-separated move tokens (U D L R F B,
-// each optionally followed by ' or 2). The i-th output line is a solution to
-// the cube obtained by applying the i-th scramble to a solved cube.
+// Each input line holds zero or more move tokens (U D L R F B, optionally
+// followed by ' or 2) separated by single spaces. The output has one line per
+// input line: moves that return the scrambled cube to the solved state.
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 
-	"rubiks/cube"
-	"rubiks/solver"
+	"example.com/rubiks/cube"
+	"example.com/rubiks/solver"
 )
 
 func main() {
@@ -23,34 +23,40 @@ func main() {
 	}
 }
 
-// run solves every scramble read from in and writes the solutions to out.
 func run(in io.Reader, out io.Writer) error {
-	data, err := io.ReadAll(in)
-	if err != nil {
+	sc := bufio.NewScanner(in)
+	sc.Buffer(make([]byte, 1<<16), 1<<26)
+	w := bufio.NewWriterSize(out, 1<<16)
+
+	var s *solver.Solver // built on the first non-trivial scramble
+	var buf []byte
+	line := 0
+	for sc.Scan() {
+		line++
+		scramble, err := cube.ParseMoves(sc.Text())
+		if err != nil {
+			return fmt.Errorf("line %d: %w", line, err)
+		}
+		c := cube.Solved()
+		c.ApplyAll(scramble)
+		buf = buf[:0]
+		if !c.IsSolved() {
+			if s == nil {
+				s = solver.New()
+			}
+			sol, err := s.Solve(c)
+			if err != nil {
+				return fmt.Errorf("line %d: %w", line, err)
+			}
+			buf = cube.AppendMoves(buf, sol)
+		}
+		buf = append(buf, '\n')
+		if _, err := w.Write(buf); err != nil {
+			return err
+		}
+	}
+	if err := sc.Err(); err != nil {
 		return err
 	}
-	if len(data) == 0 {
-		return nil
-	}
-	// A final newline terminates the last line rather than starting a new one.
-	data = bytes.TrimSuffix(data, []byte("\n"))
-
-	s := solver.New()
-	var buf []byte
-	lineNo := 0
-	for _, line := range bytes.Split(data, []byte("\n")) {
-		lineNo++
-		moves, err := cube.ParseMoves(string(line))
-		if err != nil {
-			return fmt.Errorf("line %d: %w", lineNo, err)
-		}
-		sol, err := s.Solve(cube.Scrambled(moves))
-		if err != nil {
-			return fmt.Errorf("line %d: %w", lineNo, err)
-		}
-		buf = cube.AppendMoves(buf, sol)
-		buf = append(buf, '\n')
-	}
-	_, err = out.Write(buf)
-	return err
+	return w.Flush()
 }

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the webhooks command-line tool (bin/webhooks) with dub + LDC.
+# Builds the webhooks CLI into bin/webhooks. Works from any directory.
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 --quiet
+exec dub build -b release --compiler=ldc2 "$@"

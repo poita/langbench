@@ -1,447 +1,415 @@
-/// Parsers for the small value grammars used by SVG attributes: numbers,
-/// lengths, opacities, colours, transform lists and `style` declarations.
+/// Parsers for the small value grammars of SVG: numbers, lengths, colours,
+/// opacities, transform lists and `style` declarations.
 module svgraster.parse;
 
-import std.math : floor;
-import svgraster.buf;
+import std.ascii : isDigit, isWhite, isHexDigit, toLower;
+import std.conv : to;
+import std.math : tan, sin, cos, PI, floor, isFinite;
+import std.string : indexOf, strip;
 import svgraster.colors;
 import svgraster.geom;
 
-/// True for the XML/CSS whitespace characters.
-bool isSpace(char c) pure nothrow @nogc @safe
+/// Skip ASCII whitespace.
+void skipSpace(const(char)[] s, ref size_t i) pure nothrow @safe @nogc
 {
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f';
+    while (i < s.length && isWhite(s[i]))
+        ++i;
 }
 
-/// Advance `pos` past whitespace.
-void skipSpace(const(char)[] s, ref size_t pos) pure nothrow @nogc @safe
+/// Skip whitespace and commas (the separator of number lists).
+void skipSeparators(const(char)[] s, ref size_t i) pure nothrow @safe @nogc
 {
-    while (pos < s.length && isSpace(s[pos]))
-        ++pos;
+    while (i < s.length && (isWhite(s[i]) || s[i] == ','))
+        ++i;
 }
 
-/// Advance `pos` past whitespace and commas.
-void skipSpaceComma(const(char)[] s, ref size_t pos) pure nothrow @nogc @safe
+/// Scan a number starting exactly at `i` (no leading whitespace is skipped).
+/// On success advances `i` past it and stores the value in `v`.
+bool scanNumber(const(char)[] s, ref size_t i, out double v)
 {
-    while (pos < s.length && (isSpace(s[pos]) || s[pos] == ','))
-        ++pos;
-}
-
-/// `s` without leading and trailing whitespace.
-inout(char)[] trim(inout(char)[] s) pure nothrow @nogc @safe
-{
-    size_t a = 0, b = s.length;
-    while (a < b && isSpace(s[a]))
-        ++a;
-    while (b > a && isSpace(s[b - 1]))
-        --b;
-    return s[a .. b];
-}
-
-private bool isDigit(char c) pure nothrow @nogc @safe
-{
-    return c >= '0' && c <= '9';
-}
-
-/// True if `c` can begin a number.
-bool isNumberStart(char c) pure nothrow @nogc @safe
-{
-    return isDigit(c) || c == '.' || c == '+' || c == '-';
-}
-
-private double pow10(int n) pure nothrow @nogc @safe
-{
-    // n >= 0. Repeated squaring keeps small powers exact.
-    double r = 1, b = 10;
-    while (n > 0)
+    size_t j = i;
+    immutable n = s.length;
+    if (j < n && (s[j] == '+' || s[j] == '-'))
+        ++j;
+    size_t intDigits = 0, fracDigits = 0;
+    while (j < n && isDigit(s[j]))
     {
-        if (n & 1)
-            r *= b;
-        b *= b;
-        n >>= 1;
+        ++j;
+        ++intDigits;
+    }
+    if (j < n && s[j] == '.')
+    {
+        ++j;
+        while (j < n && isDigit(s[j]))
+        {
+            ++j;
+            ++fracDigits;
+        }
+    }
+    if (intDigits + fracDigits == 0)
+        return false;
+    if (j < n && (s[j] == 'e' || s[j] == 'E'))
+    {
+        size_t k = j + 1;
+        if (k < n && (s[k] == '+' || s[k] == '-'))
+            ++k;
+        if (k < n && isDigit(s[k]))
+        {
+            while (k < n && isDigit(s[k]))
+                ++k;
+            j = k;
+        }
+    }
+    v = toDouble(s[i .. j]);
+    i = j;
+    return true;
+}
+
+private double toDouble(const(char)[] tok)
+{
+    // std.conv wants digits on both sides of the point; normalise "5." / ".5".
+    char[] buf;
+    buf.reserve(tok.length + 2);
+    size_t k = 0;
+    if (k < tok.length && (tok[k] == '+' || tok[k] == '-'))
+        buf ~= tok[k++];
+    if (k >= tok.length || tok[k] == '.')
+        buf ~= '0';
+    while (k < tok.length)
+    {
+        buf ~= tok[k];
+        if (tok[k] == '.' && (k + 1 >= tok.length || !isDigit(tok[k + 1])))
+            buf ~= '0';
+        ++k;
+    }
+    try
+        return to!double(buf);
+    catch (Exception)
+        return 0;
+}
+
+/// Parse a number, allowing surrounding whitespace, that must span the whole
+/// of `s`.
+bool parseNumberExact(const(char)[] s, out double v)
+{
+    size_t i = 0;
+    skipSpace(s, i);
+    if (!scanNumber(s, i, v))
+        return false;
+    skipSpace(s, i);
+    return i == s.length;
+}
+
+/// Parse a length: a number optionally followed by `px`. A value that does not
+/// start with a number yields `false`; trailing text after the number is
+/// ignored.
+bool parseLength(const(char)[] s, out double v)
+{
+    size_t i = 0;
+    skipSpace(s, i);
+    return scanNumber(s, i, v);
+}
+
+/// Parse a length attribute, returning `dflt` if it is missing or malformed.
+double lengthOr(const(char)[] s, double dflt)
+{
+    double v;
+    if (s !is null && parseLength(s, v))
+        return v;
+    return dflt;
+}
+
+/// Parse a list of numbers separated by whitespace and/or commas. Parsing
+/// stops at the first token that is not a number.
+double[] parseNumberList(const(char)[] s)
+{
+    double[] r;
+    size_t i = 0;
+    while (true)
+    {
+        skipSeparators(s, i);
+        double v;
+        if (i >= s.length || !scanNumber(s, i, v))
+            break;
+        r ~= v;
     }
     return r;
 }
 
-/// Parse a number at `pos` (SPEC §4): sign, digits with optional fraction,
-/// optional exponent. On success advances `pos` and stores the value; on
-/// failure leaves `pos` unchanged.
-bool parseNumber(const(char)[] s, ref size_t pos, out double value) pure nothrow @nogc @safe
+/// Parse an opacity (a number or a percentage), clamped to `[0, 1]`.
+/// Returns `false` (leaving `v` untouched) for anything else.
+bool parseOpacity(const(char)[] s, ref double v)
 {
-    immutable n = s.length;
-    size_t p = pos;
-    bool neg = false;
-    if (p < n && (s[p] == '+' || s[p] == '-'))
-    {
-        neg = s[p] == '-';
-        ++p;
-    }
-    ulong mant = 0;
-    int exp10 = 0;
-    bool any = false;
-    enum ulong limit = 1_000_000_000_000_000_000UL;
-    while (p < n && isDigit(s[p]))
-    {
-        any = true;
-        if (mant < limit)
-            mant = mant * 10 + (s[p] - '0');
-        else
-            ++exp10;
-        ++p;
-    }
-    if (p < n && s[p] == '.')
-    {
-        size_t q = p + 1;
-        bool frac = false;
-        while (q < n && isDigit(s[q]))
-        {
-            frac = true;
-            if (mant < limit)
-            {
-                mant = mant * 10 + (s[q] - '0');
-                --exp10;
-            }
-            ++q;
-        }
-        if (any || frac)
-        {
-            any = true;
-            p = q;
-        }
-    }
-    if (!any)
+    size_t i = 0;
+    skipSpace(s, i);
+    double x;
+    if (!scanNumber(s, i, x))
         return false;
-    if (p < n && (s[p] == 'e' || s[p] == 'E'))
+    if (i < s.length && s[i] == '%')
     {
-        size_t q = p + 1;
-        bool eneg = false;
-        if (q < n && (s[q] == '+' || s[q] == '-'))
-        {
-            eneg = s[q] == '-';
-            ++q;
-        }
-        if (q < n && isDigit(s[q]))
-        {
-            int e = 0;
-            while (q < n && isDigit(s[q]))
-            {
-                if (e < 100_000)
-                    e = e * 10 + (s[q] - '0');
-                ++q;
-            }
-            exp10 += eneg ? -e : e;
-            p = q;
-        }
+        x /= 100;
+        ++i;
     }
-    double v = cast(double) mant;
-    if (mant != 0)
-    {
-        if (exp10 < 0)
-        {
-            int e = -exp10;
-            if (e > 330)
-                v = 0;
-            else if (e > 300)
-                v = v / pow10(300) / pow10(e - 300);
-            else
-                v = v / pow10(e);
-        }
-        else if (exp10 > 0)
-        {
-            v = exp10 > 330 ? double.infinity : v * pow10(exp10);
-        }
-    }
-    value = neg ? -v : v;
-    pos = p;
+    skipSpace(s, i);
+    if (i != s.length)
+        return false;
+    v = x < 0 ? 0 : (x > 1 ? 1 : x);
     return true;
 }
 
-/// Parse a length: a number optionally followed by `px`. Only the leading
-/// number matters; anything after it is ignored. Returns false when `s` does
-/// not start (after whitespace) with a number.
-bool parseLength(const(char)[] s, out double value) pure nothrow @nogc @safe
+private ubyte roundChannel(double v)
 {
-    size_t p = 0;
-    skipSpace(s, p);
-    return parseNumber(s, p, value);
+    // Clamp to [0,255], then round halves up (values are non-negative).
+    if (!(v > 0))
+        return 0;
+    if (v >= 255)
+        return 255;
+    return cast(ubyte) floor(v + 0.5);
 }
 
-/// Parse an opacity: a number or a percentage, clamped to [0, 1]. Returns
-/// false for anything else.
-bool parseOpacity(const(char)[] s, out double value) pure nothrow @nogc @safe
+private string lowerCase(const(char)[] s)
 {
-    s = trim(s);
-    size_t p = 0;
-    double v;
-    if (!parseNumber(s, p, v))
-        return false;
-    if (p < s.length && s[p] == '%')
-    {
-        v /= 100.0;
-        ++p;
-    }
-    if (p != s.length)
-        return false;
-    value = v < 0 ? 0 : (v > 1 ? 1 : v);
-    return true;
+    char[] o = new char[s.length];
+    foreach (k, ch; s)
+        o[k] = toLower(ch);
+    return o.idup;
 }
 
-/// Parse all numbers in a list separated by whitespace and/or commas into
-/// `out_`; stops at the first token that is not a number.
-void parseNumberList(const(char)[] s, ref Buf!double out_) pure nothrow @safe
+/// The result of parsing a paint value.
+struct ParsedColor
 {
-    size_t p = 0;
-    for (;;)
-    {
-        skipSpaceComma(s, p);
-        double v;
-        if (p >= s.length || !parseNumber(s, p, v))
-            return;
-        out_.push(v);
-    }
+    /// `none`.
+    bool none;
+    /// `currentColor`.
+    bool current;
+    /// The colour when neither of the above.
+    Rgb rgb;
 }
 
-/// Kinds of paint a colour-valued property can take.
-enum PaintKind : ubyte
+/// Parse a paint/colour value. Returns `false` if `s` is not in the grammar.
+bool parseColor(const(char)[] sIn, out ParsedColor pc)
 {
-    none,
-    currentColor,
-    color,
-}
-
-/// A parsed colour-valued property: `none`, `currentColor`, or an sRGB
-/// colour with channels in [0, 1].
-struct Paint
-{
-    PaintKind kind = PaintKind.none;
-    double r = 0, g = 0, b = 0;
-
-    /// The paint `none`.
-    static Paint none() pure nothrow @nogc @safe { return Paint(PaintKind.none); }
-    /// The marker `currentColor`.
-    static Paint current() pure nothrow @nogc @safe { return Paint(PaintKind.currentColor); }
-    /// An opaque colour from 8-bit channels.
-    static Paint rgb8(uint r8, uint g8, uint b8) pure nothrow @nogc @safe
-    {
-        return Paint(PaintKind.color, r8 / 255.0, g8 / 255.0, b8 / 255.0);
-    }
-}
-
-private int hexVal(char c) pure nothrow @nogc @safe
-{
-    if (c >= '0' && c <= '9')
-        return c - '0';
-    if (c >= 'a' && c <= 'f')
-        return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F')
-        return c - 'A' + 10;
-    return -1;
-}
-
-private char lower(char c) pure nothrow @nogc @safe
-{
-    return (c >= 'A' && c <= 'Z') ? cast(char)(c + 32) : c;
-}
-
-/// Case-insensitive (ASCII) equality with a lower-case literal.
-bool equalsIgnoreCase(const(char)[] s, string lowerLit) pure nothrow @nogc @safe
-{
-    if (s.length != lowerLit.length)
-        return false;
-    foreach (i; 0 .. s.length)
-        if (lower(s[i]) != lowerLit[i])
-            return false;
-    return true;
-}
-
-private uint roundHalfUp(double v) pure nothrow @nogc @safe
-{
-    return cast(uint) floor(v + 0.5);
-}
-
-/// Parse a paint: `none`, `currentColor`, `#rgb`, `#rrggbb`, `rgb(...)` or a
-/// colour keyword. Returns false if `s` is none of these.
-bool parsePaint(const(char)[] s, out Paint paint) pure nothrow @nogc @safe
-{
-    s = trim(s);
+    auto s = strip(sIn);
     if (s.length == 0)
         return false;
-    if (equalsIgnoreCase(s, "none"))
+    immutable low = lowerCase(s);
+    if (low == "none")
     {
-        paint = Paint.none;
+        pc.none = true;
         return true;
     }
-    if (equalsIgnoreCase(s, "currentcolor"))
+    if (low == "currentcolor")
     {
-        paint = Paint.current;
+        pc.current = true;
         return true;
     }
     if (s[0] == '#')
     {
         auto h = s[1 .. $];
-        int[6] d;
-        foreach (i, c; h)
-        {
-            if (i >= 6)
+        foreach (ch; h)
+            if (!isHexDigit(ch))
                 return false;
-            d[i] = hexVal(c);
-            if (d[i] < 0)
-                return false;
-        }
+        uint hv(char ch) { return isDigit(ch) ? ch - '0' : (ch | 0x20) - 'a' + 10; }
         if (h.length == 3)
         {
-            paint = Paint.rgb8(d[0] * 17, d[1] * 17, d[2] * 17);
+            pc.rgb = Rgb(cast(ubyte)(hv(h[0]) * 17), cast(ubyte)(hv(h[1]) * 17),
+                    cast(ubyte)(hv(h[2]) * 17));
             return true;
         }
         if (h.length == 6)
         {
-            paint = Paint.rgb8(d[0] * 16 + d[1], d[2] * 16 + d[3], d[4] * 16 + d[5]);
+            pc.rgb = Rgb(cast(ubyte)(hv(h[0]) * 16 + hv(h[1])),
+                    cast(ubyte)(hv(h[2]) * 16 + hv(h[3])), cast(ubyte)(hv(h[4]) * 16 + hv(h[5])));
             return true;
         }
         return false;
     }
-    if (s.length > 4 && lower(s[0]) == 'r' && lower(s[1]) == 'g' && lower(s[2]) == 'b' && s[3] == '(')
+    if (low.length > 4 && low[0 .. 4] == "rgb(")
     {
-        size_t p = 4;
-        uint[3] comp;
-        foreach (i; 0 .. 3)
-        {
-            skipSpaceComma(s, p);
-            double v;
-            if (!parseNumber(s, p, v))
-                return false;
-            if (p < s.length && s[p] == '%')
-            {
-                ++p;
-                v = v < 0 ? 0 : (v > 100 ? 100 : v);
-                v = v * 255.0 / 100.0;
-            }
-            else
-                v = v < 0 ? 0 : (v > 255 ? 255 : v);
-            comp[i] = roundHalfUp(v);
-        }
-        skipSpaceComma(s, p);
-        if (p >= s.length || s[p] != ')')
+        immutable close = low.indexOf(')');
+        if (close < 0)
             return false;
-        paint = Paint.rgb8(comp[0], comp[1], comp[2]);
+        auto body_ = low[4 .. close];
+        ubyte[3] ch;
+        size_t i = 0;
+        foreach (k; 0 .. 3)
+        {
+            skipSeparators(body_, i);
+            double v;
+            if (!scanNumber(body_, i, v))
+                return false;
+            if (i < body_.length && body_[i] == '%')
+            {
+                ++i;
+                v = (v < 0 ? 0 : (v > 100 ? 100 : v)) * 255.0 / 100.0;
+            }
+            ch[k] = roundChannel(v);
+        }
+        pc.rgb = Rgb(ch[0], ch[1], ch[2]);
         return true;
     }
-    if (s.length > 24)
-        return false;
-    char[24] buf;
-    foreach (i, c; s)
-        buf[i] = lower(c);
-    uint rgb;
-    if (lookupColor(buf[0 .. s.length], rgb))
-    {
-        paint = Paint.rgb8((rgb >> 16) & 255, (rgb >> 8) & 255, rgb & 255);
-        return true;
-    }
-    return false;
+    return lookupColorName(low, pc.rgb);
 }
 
-/// Parse a `transform` attribute (SPEC §7.2) into one matrix. Unknown
-/// functions and functions with too few arguments are skipped.
-Matrix parseTransform(const(char)[] s) pure nothrow @safe
+/// Parse a `transform` attribute into a single matrix. Unknown functions and
+/// functions with too few arguments are skipped.
+Matrix parseTransform(const(char)[] s)
 {
-    import std.math : isNaN;
-
     Matrix m;
-    size_t p = 0;
-    Buf!double args;
-    for (;;)
+    size_t i = 0;
+    immutable n = s.length;
+    while (i < n)
     {
-        skipSpaceComma(s, p);
-        size_t a = p;
-        while (p < s.length && ((s[p] >= 'a' && s[p] <= 'z') || (s[p] >= 'A' && s[p] <= 'Z')))
-            ++p;
-        if (p == a)
-            break;
-        auto name = s[a .. p];
-        skipSpace(s, p);
-        if (p >= s.length || s[p] != '(')
-            break;
-        ++p;
-        args.clear();
-        for (;;)
+        skipSeparators(s, i);
+        size_t j = i;
+        while (j < n && s[j] != '(' && !isWhite(s[j]) && s[j] != ',' && s[j] != ')')
+            ++j;
+        const name = s[i .. j];
+        i = j;
+        skipSpace(s, i);
+        if (i >= n || s[i] != '(')
         {
-            skipSpaceComma(s, p);
-            double v;
-            if (!parseNumber(s, p, v))
-                break;
-            args.push(v);
+            if (j == i && i < n && name.length == 0)
+                ++i; // stray character
+            continue;
         }
-        skipSpace(s, p);
-        if (p >= s.length || s[p] != ')')
-            break;
-        ++p;
-        auto v = args.slice;
-        if (name == "matrix")
-        {
-            if (v.length >= 6)
-                m = m * Matrix(v[0], v[1], v[2], v[3], v[4], v[5]);
-        }
-        else if (name == "translate")
-        {
-            if (v.length >= 1)
-                m = m * Matrix.translate(v[0], v.length >= 2 ? v[1] : 0);
-        }
-        else if (name == "scale")
-        {
-            if (v.length >= 1)
-                m = m * Matrix.scale(v[0], v.length >= 2 ? v[1] : v[0]);
-        }
-        else if (name == "rotate")
-        {
-            if (v.length >= 3)
-                m = m * Matrix.translate(v[1], v[2]) * Matrix.rotate(v[0]) * Matrix.translate(-v[1], -v[2]);
-            else if (v.length >= 1)
-                m = m * Matrix.rotate(v[0]);
-        }
-        else if (name == "skewX")
-        {
-            if (v.length >= 1)
-                m = m * Matrix.skewX(v[0]);
-        }
-        else if (name == "skewY")
-        {
-            if (v.length >= 1)
-                m = m * Matrix.skewY(v[0]);
-        }
+        ++i;
+        immutable close = s[i .. $].indexOf(')');
+        immutable end = close < 0 ? n : i + close;
+        const a = parseNumberList(s[i .. end]);
+        i = close < 0 ? n : end + 1;
+        m = m * transformFunction(name, a);
     }
     return m;
 }
 
-/// One `name: value` declaration from a `style` attribute (both trimmed, not
-/// lower-cased; compare names with `equalsIgnoreCase`).
-struct Decl
+private Matrix transformFunction(const(char)[] name, const double[] a)
 {
-    const(char)[] name;
-    const(char)[] value;
+    switch (name)
+    {
+    case "matrix":
+        if (a.length >= 6)
+            return Matrix(a[0], a[1], a[2], a[3], a[4], a[5]);
+        break;
+    case "translate":
+        if (a.length >= 1)
+            return Matrix.translation(a[0], a.length >= 2 ? a[1] : 0);
+        break;
+    case "scale":
+        if (a.length >= 1)
+            return Matrix.scaling(a[0], a.length >= 2 ? a[1] : a[0]);
+        break;
+    case "rotate":
+        if (a.length >= 1)
+        {
+            immutable r = a[0] * PI / 180;
+            immutable rot = Matrix(cos(r), sin(r), -sin(r), cos(r), 0, 0);
+            if (a.length >= 3)
+                return Matrix.translation(a[1], a[2]) * rot * Matrix.translation(-a[1], -a[2]);
+            return rot;
+        }
+        break;
+    case "skewX":
+        if (a.length >= 1)
+            return Matrix(1, 0, tan(a[0] * PI / 180), 1, 0, 0);
+        break;
+    case "skewY":
+        if (a.length >= 1)
+            return Matrix(1, tan(a[0] * PI / 180), 0, 1, 0, 0);
+        break;
+    default:
+        break;
+    }
+    return Matrix.identity;
 }
 
-/// Split a `style` attribute into declarations, appending to `out_`. Empty
-/// declarations, declarations without `:` and declarations with an empty
-/// value are dropped.
-void parseStyle(const(char)[] s, ref Buf!Decl out_) pure nothrow @safe
+/// Parse a `style` attribute into a property map. Names are lower-cased and
+/// trimmed; declarations without a `:` or with an empty value are dropped.
+/// Later declarations of the same property replace earlier ones.
+string[string] parseStyle(const(char)[] s)
 {
-    size_t i = 0;
-    while (i <= s.length)
+    string[string] r;
+    size_t start = 0;
+    while (start <= s.length)
     {
-        size_t j = i;
-        while (j < s.length && s[j] != ';')
-            ++j;
-        auto d = s[i .. j];
-        size_t colon = 0;
-        while (colon < d.length && d[colon] != ':')
-            ++colon;
-        if (colon < d.length)
+        auto semi = s[start .. $].indexOf(';');
+        immutable end = semi < 0 ? s.length : start + semi;
+        auto decl = s[start .. end];
+        immutable colon = decl.indexOf(':');
+        if (colon >= 0)
         {
-            auto name = trim(d[0 .. colon]);
-            auto value = trim(d[colon + 1 .. $]);
+            immutable name = lowerCase(strip(decl[0 .. colon]));
+            immutable value = strip(decl[colon + 1 .. $]).idup;
             if (name.length && value.length)
-                out_.push(Decl(name, value));
+                r[name] = value;
         }
-        i = j + 1;
+        start = end + 1;
     }
+    return r;
+}
+
+unittest
+{
+    import std.math : isClose;
+
+    double v;
+    size_t i;
+    foreach (t; ["5", ".5", "5.", "+5.25", "-1e2", "1E+2"])
+    {
+        i = 0;
+        assert(scanNumber(t, i, v) && i == t.length, t);
+    }
+    i = 0;
+    assert(scanNumber("1e", i, v) && i == 1 && v == 1);
+    i = 0;
+    assert(scanNumber("1.5.5", i, v) && i == 3 && v == 1.5);
+    i = 0;
+    assert(!scanNumber("-", i, v) && !scanNumber(".", i, v));
+    assert(parseNumberExact(" 5. ", v) && v == 5);
+    assert(parseLength("12px", v) && v == 12);
+    assert(!parseLength("px", v));
+    assert(parseNumberList("1,2 -3e1,.5x") == [1, 2, -30, 0.5]);
+}
+
+unittest
+{
+    double o = 1;
+    assert(parseOpacity("50%", o) && o == 0.5);
+    assert(parseOpacity(" 2 ", o) && o == 1);
+    o = 0.3;
+    assert(!parseOpacity("0.5px", o) && o == 0.3);
+    assert(!parseOpacity("", o));
+}
+
+unittest
+{
+    ParsedColor c;
+    assert(parseColor("#f39", c) && c.rgb == Rgb(0xff, 0x33, 0x99));
+    assert(parseColor("#AbCdEf", c) && c.rgb == Rgb(0xab, 0xcd, 0xef));
+    assert(parseColor("rgb(300, -5, 127.5)", c) && c.rgb == Rgb(255, 0, 128));
+    assert(parseColor("rgb(100% 50% 0%)", c) && c.rgb == Rgb(255, 128, 0));
+    assert(parseColor("CurrentColor", c) && c.current);
+    assert(parseColor("NONE", c) && c.none);
+    assert(parseColor("  Navy ", c) && c.rgb == Rgb(0, 0, 128));
+    assert(!parseColor("#ff", c) && !parseColor("bogus", c));
+}
+
+unittest
+{
+    import std.math : isClose;
+
+    immutable m = parseTransform("translate(10 20) scale(2)");
+    immutable p = m.apply(Point(1, 1));
+    assert(isClose(p.x, 12) && isClose(p.y, 22));
+    immutable r = parseTransform("rotate(90, 5, 5)").apply(Point(6, 5));
+    assert(isClose(r.x, 5, 1e-9, 1e-9) && isClose(r.y, 6));
+    assert(parseTransform("bogus(1) scale()") == Matrix.identity);
+    assert(parseTransform("matrix(1,2,3,4,5,6)").e == 5);
+}
+
+unittest
+{
+    auto st = parseStyle("fill : red;;stroke:blue; junk ; Opacity:.5;fill:");
+    assert(st["opacity"] == ".5" && st["stroke"] == "blue");
+    assert(st["fill"] == "red" && st.length == 3);
 }

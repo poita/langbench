@@ -1,3 +1,3 @@
-module example.com/regexvm
+module example.com/regex
 
-go 1.27.1
+go 1.27

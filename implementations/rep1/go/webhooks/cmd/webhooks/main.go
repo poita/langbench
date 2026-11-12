@@ -1,24 +1,18 @@
-// Command webhooks reads commands from standard input (sha256, hmac, b64enc,
-// sign, verify, simulate, ...) and writes one result per command to standard
-// output. See the README for the protocol.
+// Command webhooks reads commands from stdin and writes results to stdout.
+// See the README for the command language. The exit status is 0 unless
+// stdin or stdout fail at the I/O level.
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
-	"example.com/webhooks/commands"
+	"example.com/webhooks/protocol"
 )
 
 func main() {
-	w := bufio.NewWriterSize(os.Stdout, 1<<16)
-	err := commands.Run(os.Stdin, w)
-	if err == nil {
-		err = w.Flush()
-	}
-	if err != nil {
+	if err := protocol.Run(os.Stdin, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "webhooks:", err)
+		os.Exit(1)
 	}
-	// The protocol defines the exit status as always 0.
 }

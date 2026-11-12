@@ -1,0 +1,23 @@
+name "cardgame"
+description "A rules engine for Spiremark, an invented two-player duelling-card game."
+authors "cardgame authors"
+license "MIT"
+copyright "Copyright © cardgame authors"
+
+targetType "executable"
+targetName "cardgame"
+targetPath "bin"
+sourcePaths "source" "app"
+importPaths "source"
+mainSourceFile "app/main.d"
+
+configuration "application" {
+    targetType "executable"
+}
+
+configuration "library" {
+    targetType "library"
+    targetName "cardgame"
+    excludedSourceFiles "app/*"
+    sourcePaths "source"
+}

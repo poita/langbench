@@ -1,213 +1,277 @@
-/// The dynamically typed value model: NULL, INTEGER, TEXT and REAL.
+/**
+ * Dynamically typed SQL values and the total order used to compare them.
+ */
 module minisql.value;
 
-import std.array : Appender;
+import core.stdc.string : memcmp;
 
-/// The runtime type tag of a `Value`.
-enum Kind : ubyte
+/// The kind of a $(LREF Value).
+enum ValueKind : ubyte
 {
-    null_, /// SQL NULL
-    integer, /// signed 64-bit integer
-    text, /// UTF-8 text
-    real_, /// a number with two decimals, produced only by `AVG`
+    null_,    /// SQL NULL
+    integer,  /// signed 64-bit integer
+    text,     /// UTF-8 text
+    real_,    /// a number with two decimals; only produced by `AVG`
 }
 
-/// A single SQL value.
-///
-/// Copying a value is O(1): text is a slice of immutable UTF-8 bytes that is
-/// shared, never duplicated. A REAL is stored exactly as an integer number of
-/// hundredths, because only `AVG` produces reals and it rounds to two decimals.
+/**
+ * A single SQL value.
+ *
+ * `REAL` values are stored as a whole number of hundredths (the only way the
+ * dialect produces them is `AVG`, which rounds to two decimals).
+ */
 struct Value
 {
-    /// The type tag.
-    Kind kind;
-    /// The integer value, or the number of hundredths for a REAL.
+    ValueKind kind;
+    /// The integer, or the number of hundredths of a REAL.
     long num;
-    /// The text, when `kind == Kind.text`.
+    /// The characters of a TEXT value.
     string str;
 
     /// The NULL value.
-    static Value makeNull() pure nothrow @nogc @safe
+    static Value null_() @safe pure nothrow @nogc
     {
         return Value.init;
     }
 
     /// An INTEGER value.
-    static Value makeInt(long v) pure nothrow @nogc @safe
+    static Value integer(long v) @safe pure nothrow @nogc
     {
         Value r;
-        r.kind = Kind.integer;
+        r.kind = ValueKind.integer;
         r.num = v;
         return r;
     }
 
-    /// A TEXT value (the string is shared, not copied).
-    static Value makeText(string s) pure nothrow @nogc @safe
+    /// A TEXT value.
+    static Value text(string s) @safe pure nothrow @nogc
     {
         Value r;
-        r.kind = Kind.text;
+        r.kind = ValueKind.text;
         r.str = s;
         return r;
     }
 
-    /// A REAL value given as a number of hundredths (`450` is `4.50`).
-    static Value makeReal(long hundredths) pure nothrow @nogc @safe
+    /// A REAL value equal to `hundredths / 100`.
+    static Value real_(long hundredths) @safe pure nothrow @nogc
     {
         Value r;
-        r.kind = Kind.real_;
+        r.kind = ValueKind.real_;
         r.num = hundredths;
         return r;
     }
 
     /// True for NULL.
-    bool isNull() const pure nothrow @nogc @safe
+    bool isNull() const @safe pure nothrow @nogc
     {
-        return kind == Kind.null_;
+        return kind == ValueKind.null_;
+    }
+
+    /// True for INTEGER and REAL.
+    bool isNumber() const @safe pure nothrow @nogc
+    {
+        return kind == ValueKind.integer || kind == ValueKind.real_;
     }
 }
 
-private int rank(Kind k) pure nothrow @nogc @safe
+/// Three-valued truth: `unknown` is what NULL means in boolean context.
+enum Truth : ubyte
 {
-    final switch (k)
+    false_,
+    true_,
+    unknown,
+}
+
+/// Interprets `v` as a truth value (NULL is unknown, zero is false).
+Truth truthOf(in Value v) @safe pure nothrow @nogc
+{
+    final switch (v.kind)
     {
-    case Kind.null_:
+    case ValueKind.null_:
+        return Truth.unknown;
+    case ValueKind.integer:
+    case ValueKind.real_:
+        return v.num != 0 ? Truth.true_ : Truth.false_;
+    case ValueKind.text:
+        return Truth.false_;
+    }
+}
+
+/// The INTEGER 1 / 0 / NULL for a truth value.
+Value valueOf(Truth t) @safe pure nothrow @nogc
+{
+    final switch (t)
+    {
+    case Truth.true_:
+        return Value.integer(1);
+    case Truth.false_:
+        return Value.integer(0);
+    case Truth.unknown:
+        return Value.null_;
+    }
+}
+
+private int rank(in Value v) @safe pure nothrow @nogc
+{
+    final switch (v.kind)
+    {
+    case ValueKind.null_:
         return 0;
-    case Kind.integer:
-    case Kind.real_:
+    case ValueKind.integer:
+    case ValueKind.real_:
         return 1;
-    case Kind.text:
+    case ValueKind.text:
         return 2;
     }
 }
 
-private int cmp3(long a, long b) pure nothrow @nogc @safe
+private int cmpLong(long a, long b) @safe pure nothrow @nogc
 {
     return a < b ? -1 : (a > b ? 1 : 0);
 }
 
-/// The total order used by comparisons, ORDER BY, GROUP BY, MIN and MAX.
-///
-/// NULL is smallest; every number is smaller than every text; numbers compare
-/// by value; text compares bytewise (which is code point order for UTF-8).
-/// Returns a negative number, zero or a positive number.
-int compareValues(const Value a, const Value b) pure nothrow @nogc @safe
+private int cmpNumber(in Value a, in Value b) @safe pure nothrow @nogc
 {
-    immutable ra = rank(a.kind), rb = rank(b.kind);
+    if (a.kind == b.kind)
+        return cmpLong(a.num, b.num);
+    // One INTEGER and one REAL: compare in hundredths, guarding overflow.
+    enum limit = long.max / 100;
+    if (a.kind == ValueKind.integer)
+    {
+        if (a.num > limit)
+            return 1;
+        if (a.num < -limit)
+            return -1;
+        return cmpLong(a.num * 100, b.num);
+    }
+    return -cmpNumber(b, a);
+}
+
+/**
+ * The total order of the dialect: NULL < numbers < text; numbers compare by
+ * value, text by code point (equivalently, bytewise as UTF-8).
+ *
+ * Returns: a negative number, zero or a positive number.
+ */
+int compareValues(in Value a, in Value b) @trusted pure nothrow @nogc
+{
+    immutable ra = rank(a), rb = rank(b);
     if (ra != rb)
         return ra < rb ? -1 : 1;
-    final switch (a.kind)
-    {
-    case Kind.null_:
+    if (ra == 0)
         return 0;
-    case Kind.integer:
-        if (b.kind == Kind.integer)
-            return cmp3(a.num, b.num);
-        return a.num < long.min / 100 ? -1 : (a.num > long.max / 100 ? 1 : cmp3(a.num * 100, b.num));
-    case Kind.real_:
-        if (b.kind == Kind.real_)
-            return cmp3(a.num, b.num);
-        return -compareValues(b, a);
-    case Kind.text:
-        return a.str < b.str ? -1 : (a.str == b.str ? 0 : 1);
-    }
+    if (ra == 1)
+        return cmpNumber(a, b);
+    immutable n = a.str.length < b.str.length ? a.str.length : b.str.length;
+    immutable c = n == 0 ? 0 : memcmp(a.str.ptr, b.str.ptr, n);
+    if (c != 0)
+        return c < 0 ? -1 : 1;
+    return cmpLong(a.str.length, b.str.length);
 }
 
-/// Value equality that includes the type tag: `1` and `'1'` differ, and NULL
-/// equals NULL. Used for grouping and join keys.
-bool sameValue(const Value a, const Value b) pure nothrow @nogc @safe
+/// Value equality under the total order (NULL equals NULL here).
+bool sameValue(in Value a, in Value b) @safe pure nothrow @nogc
 {
-    if (a.kind != b.kind)
-        return false;
-    final switch (a.kind)
-    {
-    case Kind.null_:
-        return true;
-    case Kind.integer:
-    case Kind.real_:
-        return a.num == b.num;
-    case Kind.text:
-        return a.str == b.str;
-    }
+    return compareValues(a, b) == 0;
 }
 
-/// A 64-bit hash consistent with `sameValue`.
-ulong hashValue(const Value v) pure nothrow @nogc @trusted
+/// Appends the decimal form of `v` to `sink`.
+void putInteger(Sink)(ref Sink sink, long v)
 {
-    final switch (v.kind)
-    {
-    case Kind.null_:
-        return 0x9e3779b97f4a7c15UL;
-    case Kind.integer:
-    case Kind.real_:
-        ulong x = cast(ulong) v.num + (v.kind == Kind.real_ ? 0x1234567UL : 0UL);
-        x ^= x >> 33;
-        x *= 0xff51afd7ed558ccdUL;
-        x ^= x >> 33;
-        x *= 0xc4ceb9fe1a85ec53UL;
-        x ^= x >> 33;
-        return x;
-    case Kind.text:
-        // FNV-1a over the bytes.
-        ulong h = 0xcbf29ce484222325UL;
-        foreach (c; v.str)
-        {
-            h ^= cast(ubyte) c;
-            h *= 0x100000001b3UL;
-        }
-        return h;
-    }
-}
-
-/// Appends the decimal text of `v` to `buf`; returns the used slice of `buf`.
-/// `buf` must hold at least 20 characters.
-char[] formatInteger(long v, return scope char[] buf) pure nothrow @nogc @safe
-{
-    size_t pos = buf.length;
-    ulong u = v < 0 ? -cast(ulong) v : cast(ulong) v;
+    char[20] buf;
+    size_t i = buf.length;
+    // Work with the negative magnitude so long.min is handled.
+    long n = v > 0 ? -v : v;
     do
     {
-        buf[--pos] = cast(char)('0' + u % 10);
-        u /= 10;
+        buf[--i] = cast(char)('0' - n % 10);
+        n /= 10;
     }
-    while (u != 0);
+    while (n != 0);
     if (v < 0)
-        buf[--pos] = '-';
-    return buf[pos .. $];
+        buf[--i] = '-';
+    sink.put(buf[i .. $]);
 }
 
-/// Appends the display form of a value to an output buffer: `NULL`, a decimal
-/// integer, the raw text, or a REAL with exactly two decimals.
-void appendValue(ref Appender!(char[]) sink, const Value v) pure @safe
+/// Appends `h` hundredths as a number with exactly two decimals.
+void putHundredths(Sink)(ref Sink sink, long h)
 {
-    char[24] tmp = void;
+    if (h < 0)
+        sink.put("-");
+    // Magnitude as unsigned, safe for long.min.
+    ulong m = h < 0 ? -cast(ulong) h : cast(ulong) h;
+    putInteger(sink, cast(long)(m / 100));
+    sink.put(".");
+    immutable f = cast(uint)(m % 100);
+    char[2] d = [cast(char)('0' + f / 10), cast(char)('0' + f % 10)];
+    sink.put(d[]);
+}
+
+/// Appends the output form of `v` (as printed by a SELECT) to `sink`.
+void formatValue(Sink)(ref Sink sink, in Value v)
+{
     final switch (v.kind)
     {
-    case Kind.null_:
+    case ValueKind.null_:
         sink.put("NULL");
         break;
-    case Kind.integer:
-        sink.put(formatInteger(v.num, tmp[]));
+    case ValueKind.integer:
+        putInteger(sink, v.num);
         break;
-    case Kind.text:
+    case ValueKind.text:
         sink.put(v.str);
         break;
-    case Kind.real_:
-        immutable neg = v.num < 0;
-        immutable ulong u = neg ? -cast(ulong) v.num : cast(ulong) v.num;
-        if (neg)
-            sink.put('-');
-        sink.put(formatInteger(cast(long)(u / 100), tmp[]));
-        sink.put('.');
-        sink.put(cast(char)('0' + (u % 100) / 10));
-        sink.put(cast(char)('0' + u % 10));
+    case ValueKind.real_:
+        putHundredths(sink, v.num);
         break;
     }
 }
 
-/// Renders a value the way the command-line tool prints it.
-string toDisplay(const Value v) pure @safe
+/// The output form of `v` as a string.
+string toText(in Value v) @safe pure
 {
-    Appender!(char[]) sink;
-    appendValue(sink, v);
-    return sink[].idup;
+    import std.array : appender;
+
+    auto app = appender!string;
+    formatValue(app, v);
+    return app[];
+}
+
+@("compareValues orders NULL < numbers < text")
+unittest
+{
+    assert(compareValues(Value.null_, Value.integer(-5)) < 0);
+    assert(compareValues(Value.integer(100), Value.text("0")) < 0);
+    assert(compareValues(Value.text("B"), Value.text("a")) < 0);
+    assert(compareValues(Value.text(""), Value.text("a")) < 0);
+    assert(compareValues(Value.text("ab"), Value.text("b")) < 0);
+    assert(compareValues(Value.text("ab"), Value.text("ab")) == 0);
+    assert(compareValues(Value.null_, Value.null_) == 0);
+    assert(compareValues(Value.integer(2), Value.real_(200)) == 0);
+    assert(compareValues(Value.integer(2), Value.real_(201)) < 0);
+    assert(compareValues(Value.real_(-113), Value.integer(-1)) < 0);
+}
+
+@("values are formatted the way SELECT prints them")
+unittest
+{
+    assert(toText(Value.null_) == "NULL");
+    assert(toText(Value.integer(-42)) == "-42");
+    assert(toText(Value.integer(0)) == "0");
+    assert(toText(Value.integer(long.min)) == "-9223372036854775808");
+    assert(toText(Value.text("hi")) == "hi");
+    assert(toText(Value.real_(450)) == "4.50");
+    assert(toText(Value.real_(-113)) == "-1.13");
+    assert(toText(Value.real_(0)) == "0.00");
+    assert(toText(Value.real_(5)) == "0.05");
+}
+
+@("truthOf interprets values in boolean context")
+unittest
+{
+    assert(truthOf(Value.null_) == Truth.unknown);
+    assert(truthOf(Value.integer(0)) == Truth.false_);
+    assert(truthOf(Value.integer(-3)) == Truth.true_);
+    assert(truthOf(Value.real_(0)) == Truth.false_);
+    assert(truthOf(Value.real_(1)) == Truth.true_);
 }

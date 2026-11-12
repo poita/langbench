@@ -1,0 +1,13 @@
+{:paths ["src" "target/classes"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+ :aliases
+ {;; clojure -M:run < input.txt
+  :run {:main-opts ["-m" "textbuffer.cli"]}
+
+  ;; clojure -X:test   (or: clojure -M:test)
+  :test {:extra-paths ["test"]
+         :extra-deps {io.github.cognitect-labs/test-runner
+                      {:git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}
+                      org.clojure/test.check {:mvn/version "1.1.1"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}}}

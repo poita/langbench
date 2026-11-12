@@ -1,1013 +1,788 @@
 /**
- * TOML 1.0.0 decoder: a single-pass recursive-descent parser that builds a
- * `toml.node.Node` tree.
+ * The TOML 1.0.0 decoder: a single-pass recursive-descent parser that builds a
+ * `Node` tree.
  *
- * The parser works on bytes. Validity of the UTF-8 stream, the absence of a
- * byte-order mark and of lone CRs is checked up front; after that every
- * grammar rule is ASCII driven and bytes >= 0x80 are copied through.
+ * The parser works directly on UTF-8 bytes. The whole input is validated as
+ * UTF-8 up front; after that every syntactic character is ASCII, and bytes
+ * >= 0x80 only ever appear (legally) inside strings, quoted keys and comments.
  */
 module toml.decoder;
 
-import toml.errors : TomlException;
-import toml.floatfmt : formatFloat, parseFloatDecimal;
+import std.array : Appender, appender;
+
+import toml.datetime : parseDateTime;
 import toml.node;
-import toml.utf8 : appendUtf8, firstInvalidUtf8, isScalarValue;
+import toml.numbers : parseFloat, parseInteger;
+import toml.utf8 : encodeUtf8, findInvalidUtf8, isScalarValue;
 
 /**
  * Parses a TOML 1.0.0 document.
  *
  * Params:
- *     document = the document text; slices of it are shared with the result
+ *     data = the document, as raw bytes (must be valid UTF-8)
  * Returns: the root table
- * Throws: `TomlException` if the document is not valid TOML 1.0.0
+ * Throws: `TomlException` if the document is not valid TOML
  */
-Node parseToml(string document)
+Node parseToml(const(ubyte)[] data)
 {
-    auto parser = Parser(document);
-    return parser.parseDocument();
+    if (data.length >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF)
+        throw new TomlException("byte-order mark is not allowed", 0);
+    immutable bad = findInvalidUtf8(data);
+    if (bad != size_t.max)
+        throw new TomlException("invalid UTF-8", bad);
+    auto p = Parser(cast(string) data.idup);
+    return p.parseDocument();
 }
 
-/// ditto (copies the bytes)
-Node parseToml(const(ubyte)[] document)
+/// ditto
+Node parseToml(string text)
 {
-    return parseToml((cast(const(char)[]) document).idup);
+    return parseToml(cast(const(ubyte)[]) text);
 }
 
 private:
 
-enum ubyte[256] charClass = () {
-    // 1: bare key character, 2: ASCII digit (also set for bare), 4: hex digit
-    ubyte[256] t;
-    foreach (c; 'a' .. 'z' + 1)
-        t[c] |= 1;
-    foreach (c; 'A' .. 'Z' + 1)
-        t[c] |= 1;
-    foreach (c; '0' .. '9' + 1)
-        t[c] |= 1 | 2 | 4;
-    t['_'] |= 1;
-    t['-'] |= 1;
-    foreach (c; 'a' .. 'f' + 1)
-        t[c] |= 4;
-    foreach (c; 'A' .. 'F' + 1)
-        t[c] |= 4;
-    return t;
-}();
-
-bool isBare(char c) pure nothrow @nogc => (charClass[c] & 1) != 0;
-bool isDigit(char c) pure nothrow @nogc => c >= '0' && c <= '9';
-bool isHex(char c) pure nothrow @nogc => (charClass[c] & 4) != 0;
-
-int hexVal(char c) pure nothrow @nogc
+bool isBareKeyChar(char c) @safe pure nothrow @nogc
 {
-    if (c <= '9')
-        return c - '0';
-    return (c | 0x20) - 'a' + 10;
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+        || c == '_' || c == '-';
+}
+
+/// Characters that can make up a bare (unquoted) value token.
+bool isTokenChar(char c) @safe pure nothrow @nogc
+{
+    return isBareKeyChar(c) || c == '+' || c == '.' || c == ':';
+}
+
+bool isDigit(char c) @safe pure nothrow @nogc
+{
+    return c >= '0' && c <= '9';
+}
+
+bool isHexDigit(char c) @safe pure nothrow @nogc
+{
+    return isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
+uint hexValue(char c) @safe pure nothrow @nogc
+{
+    if (isDigit(c)) return c - '0';
+    if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+    return c - 'A' + 10;
+}
+
+/// Characters never allowed raw in strings and comments (tab is allowed).
+bool isForbiddenControl(char c) @safe pure nothrow @nogc
+{
+    return (c < 0x20 && c != '\t') || c == 0x7F;
 }
 
 struct Parser
 {
-    string s;
-    size_t p;
+    string src;
+    size_t pos;
     Node root;
-    Node cur;
-    char[] scratch;
+    Node current;
 
-    this(string doc)
+    this(string s)
     {
-        s = doc;
+        src = s;
+        root = table();
+        root.explicit = true;
+        current = root;
     }
 
-    // ------------------------------------------------------------------
-    // errors and low-level helpers
+    // ---- primitives ------------------------------------------------------
 
-    noreturn fail(string msg = "invalid TOML", size_t at = size_t.max)
+    bool eof() const @safe pure nothrow @nogc { return pos >= src.length; }
+
+    char peek() const @safe pure nothrow @nogc { return src[pos]; }
+
+    char peekAt(size_t n) const @safe pure nothrow @nogc
     {
-        throw new TomlException(msg, at == size_t.max ? p : at);
+        return pos + n < src.length ? src[pos + n] : '\0';
     }
 
-    bool eof() const pure nothrow @nogc => p >= s.length;
+    bool has(size_t n) const @safe pure nothrow @nogc { return pos + n <= src.length; }
 
-    void skipWs()
+    noreturn fail(string msg)
     {
-        while (p < s.length && (s[p] == ' ' || s[p] == '\t'))
-            p++;
+        throw new TomlException(msg, pos);
     }
 
-    /// Consumes LF or CRLF at the cursor if present.
-    bool acceptNewline()
+    void expect(char c)
     {
-        if (p < s.length)
+        if (eof || src[pos] != c)
+            fail("expected '" ~ c ~ "'");
+        pos++;
+    }
+
+    void skipWs() @safe pure nothrow @nogc
+    {
+        while (pos < src.length && (src[pos] == ' ' || src[pos] == '\t'))
+            pos++;
+    }
+
+    /// Length of the newline at `pos` (LF or CRLF), or 0 if none.
+    size_t newlineLen() const @safe pure nothrow @nogc
+    {
+        if (pos < src.length)
         {
-            if (s[p] == '\n')
-            {
-                p++;
-                return true;
-            }
-            if (s[p] == '\r' && p + 1 < s.length && s[p + 1] == '\n')
-            {
-                p += 2;
-                return true;
-            }
+            if (src[pos] == '\n')
+                return 1;
+            if (src[pos] == '\r' && pos + 1 < src.length && src[pos + 1] == '\n')
+                return 2;
         }
-        return false;
+        return 0;
     }
 
-    /// Skips a comment; the cursor is on `#`. Stops before the newline.
+    bool eatNewline() @safe pure nothrow @nogc
+    {
+        immutable n = newlineLen();
+        pos += n;
+        return n != 0;
+    }
+
+    /// Skips a comment; `pos` is at the '#'. Stops before the newline.
     void skipComment()
     {
-        p++;
-        while (p < s.length)
+        pos++;
+        while (pos < src.length)
         {
-            immutable c = s[p];
-            if (c == '\n' || c == '\r')
+            immutable c = src[pos];
+            if (c == '\n' || (c == '\r' && peekAt(1) == '\n'))
                 return;
-            if ((c < 0x20 && c != '\t') || c == 0x7F)
+            if (isForbiddenControl(c) || c == '\r')
                 fail("control character in comment");
-            p++;
+            pos++;
         }
     }
 
-    /// After a statement: optional whitespace, optional comment, then newline or EOF.
-    void expectLineEnd()
-    {
-        skipWs();
-        if (p < s.length && s[p] == '#')
-            skipComment();
-        if (p >= s.length || acceptNewline())
-            return;
-        fail("unexpected content at end of line");
-    }
-
-    /// Whitespace, newlines and comments (inside arrays).
+    /// Skips whitespace, newlines and comments (used inside arrays).
     void skipWsNlComments()
     {
-        for (;;)
-        {
-            skipWs();
-            if (p >= s.length)
-                return;
-            if (s[p] == '#')
-                skipComment();
-            else if (!acceptNewline())
-                return;
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // document
-
-    Node parseDocument()
-    {
-        if (s.length >= 3 && s[0 .. 3] == "\xEF\xBB\xBF")
-            fail("byte-order mark", 0);
-        immutable bad = firstInvalidUtf8(s);
-        if (bad != s.length)
-            fail("invalid UTF-8", bad);
-        validateCr();
-
-        root = Node.newTable(Origin.explicit);
-        cur = root;
         while (true)
         {
             skipWs();
-            if (p >= s.length)
-                break;
-            immutable c = s[p];
-            if (c == '\n' || c == '\r')
-            {
-                acceptNewline() || fail();
-                continue;
-            }
-            if (c == '#')
-            {
+            if (eof)
+                return;
+            if (src[pos] == '#')
                 skipComment();
-                continue;
+            else if (!eatNewline())
+                return;
+        }
+    }
+
+    // ---- document structure ---------------------------------------------
+
+    Node parseDocument()
+    {
+        while (true)
+        {
+            skipWs();
+            if (eof)
+                break;
+            immutable c = src[pos];
+            if (c == '#')
+                skipComment();
+            else if (c == '\n' || c == '\r')
+            {
             }
-            if (c == '[')
+            else if (c == '[')
                 parseHeader();
             else
-                parseKeyValue(cur);
-            expectLineEnd();
+                parseKeyValue();
+            skipWs();
+            if (eof)
+                break;
+            if (src[pos] == '#')
+                skipComment();
+            if (eof)
+                break;
+            if (!eatNewline())
+                fail("unexpected characters at end of line");
         }
         return root;
     }
 
-    /// Every CR must be followed by LF.
-    void validateCr()
+    void parseHeader()
     {
-        import core.stdc.string : memchr;
-
-        size_t i = 0;
-        while (i < s.length)
-        {
-            auto q = cast(const(char)*) memchr(s.ptr + i, '\r', s.length - i);
-            if (q is null)
-                return;
-            immutable at = q - s.ptr;
-            if (at + 1 >= s.length || s[at + 1] != '\n')
-                fail("lone CR", at);
-            i = at + 2;
-        }
+        bool isArray = peekAt(1) == '[';
+        pos += isArray ? 2 : 1;
+        auto keys = parseKey();
+        skipWs();
+        expect(']');
+        if (isArray)
+            expect(']');
+        current = isArray ? openArrayTable(keys) : openTable(keys);
     }
 
-    // ------------------------------------------------------------------
-    // keys
+    void parseKeyValue()
+    {
+        auto keys = parseKey();
+        skipWs();
+        expect('=');
+        skipWs();
+        auto v = parseValue();
+        assign(current, keys, v);
+    }
+
+    // ---- table resolution ------------------------------------------------
+
+    /// Walks the intermediate segments of a header, creating implicit tables.
+    Node walkHeader(string[] keys)
+    {
+        auto t = root;
+        foreach (k; keys[0 .. $ - 1])
+        {
+            auto p = k in t.entries;
+            if (p is null)
+            {
+                auto n = table();
+                t.entries[k] = n;
+                t = n;
+                continue;
+            }
+            auto n = *p;
+            if (n.isTable && !n.inline)
+                t = n;
+            else if (n.isArray && n.arrayOfTables)
+                t = n.items[$ - 1];
+            else
+                fail("cannot extend '" ~ k ~ "'");
+        }
+        return t;
+    }
+
+    Node openTable(string[] keys)
+    {
+        auto parent = walkHeader(keys);
+        immutable last = keys[$ - 1];
+        auto p = last in parent.entries;
+        if (p is null)
+        {
+            auto n = table();
+            n.explicit = true;
+            parent.entries[last] = n;
+            return n;
+        }
+        auto n = *p;
+        if (!n.isTable || n.explicit || n.dotted || n.inline)
+            fail("table '" ~ last ~ "' is already defined");
+        n.explicit = true;
+        return n;
+    }
+
+    Node openArrayTable(string[] keys)
+    {
+        auto parent = walkHeader(keys);
+        immutable last = keys[$ - 1];
+        auto elem = table();
+        elem.explicit = true;
+        auto p = last in parent.entries;
+        if (p is null)
+        {
+            auto arr = array();
+            arr.arrayOfTables = true;
+            arr.items ~= elem;
+            parent.entries[last] = arr;
+            return elem;
+        }
+        auto n = *p;
+        if (!n.isArray || !n.arrayOfTables)
+            fail("'" ~ last ~ "' is not an array of tables");
+        n.items ~= elem;
+        return elem;
+    }
+
+    /// Stores `value` at the (possibly dotted) `keys` relative to `base`.
+    void assign(Node base, string[] keys, Node value)
+    {
+        auto t = base;
+        foreach (k; keys[0 .. $ - 1])
+        {
+            auto p = k in t.entries;
+            if (p is null)
+            {
+                auto n = table();
+                n.dotted = true;
+                t.entries[k] = n;
+                t = n;
+                continue;
+            }
+            auto n = *p;
+            if (!n.isTable || n.explicit || n.inline)
+                fail("cannot extend '" ~ k ~ "' with a dotted key");
+            t = n;
+        }
+        immutable last = keys[$ - 1];
+        if (last in t.entries)
+            fail("duplicate key '" ~ last ~ "'");
+        t.entries[last] = value;
+    }
+
+    // ---- keys ------------------------------------------------------------
 
     string[] parseKey()
     {
-        string[] segs;
-        for (;;)
+        string[] keys;
+        while (true)
         {
             skipWs();
-            segs ~= parseSimpleKey();
+            keys ~= parseSimpleKey();
             skipWs();
-            if (p < s.length && s[p] == '.')
-            {
-                p++;
-                continue;
-            }
-            return segs;
+            if (!eof && src[pos] == '.')
+                pos++;
+            else
+                return keys;
         }
     }
 
     string parseSimpleKey()
     {
-        if (p >= s.length)
-            fail("expected key");
-        immutable c = s[p];
+        if (eof)
+            fail("expected a key");
+        immutable c = src[pos];
         if (c == '"')
             return parseBasicString();
         if (c == '\'')
             return parseLiteralString();
-        immutable start = p;
-        while (p < s.length && isBare(s[p]))
-            p++;
-        if (p == start)
-            fail("expected key");
-        return s[start .. p];
+        immutable start = pos;
+        while (pos < src.length && isBareKeyChar(src[pos]))
+            pos++;
+        if (pos == start)
+            fail("expected a key");
+        return src[start .. pos];
     }
 
-    // ------------------------------------------------------------------
-    // table headers and key/value pairs
+    // ---- strings ---------------------------------------------------------
 
-    void parseHeader()
+    /// Parses an escape sequence; `pos` is just after the backslash.
+    void parseEscape(ref Appender!string sink)
     {
-        p++; // '['
-        bool isArray = false;
-        if (p < s.length && s[p] == '[')
+        if (eof)
+            fail("unterminated escape");
+        immutable c = src[pos++];
+        switch (c)
         {
-            isArray = true;
-            p++;
-        }
-        auto segs = parseKey();
-        skipWs();
-        if (p >= s.length || s[p] != ']')
-            fail("expected ]");
-        p++;
-        if (isArray)
-        {
-            if (p >= s.length || s[p] != ']')
-                fail("expected ]]");
-            p++;
-        }
-
-        Node t = root;
-        foreach (seg; segs[0 .. $ - 1])
-            t = stepHeader(t, seg);
-        immutable last = segs[$ - 1];
-        auto existing = last in t.members;
-        if (!isArray)
-        {
-            if (existing is null)
+        case 'b': sink.put('\b'); break;
+        case 't': sink.put('\t'); break;
+        case 'n': sink.put('\n'); break;
+        case 'f': sink.put('\f'); break;
+        case 'r': sink.put('\r'); break;
+        case '"': sink.put('"'); break;
+        case '\\': sink.put('\\'); break;
+        case 'u':
+        case 'U':
+            immutable n = c == 'u' ? 4 : 8;
+            if (!has(n))
+                fail("truncated unicode escape");
+            uint cp = 0;
+            foreach (k; 0 .. n)
             {
-                auto n = Node.newTable(Origin.explicit);
-                t.members[last] = n;
-                cur = n;
+                immutable h = src[pos + k];
+                if (!isHexDigit(h))
+                    fail("bad unicode escape");
+                cp = cp * 16 + hexValue(h);
             }
-            else if ((*existing).kind == Kind.table && (*existing).origin == Origin.implicit)
-            {
-                (*existing).origin = Origin.explicit;
-                cur = *existing;
-            }
-            else
-                fail("table redefined");
-        }
-        else
-        {
-            auto elem = Node.newTable(Origin.explicit);
-            if (existing is null)
-            {
-                auto arr = Node.newArray(true);
-                arr.items ~= elem;
-                t.members[last] = arr;
-            }
-            else if ((*existing).kind == Kind.array && (*existing).isTableArray)
-                (*existing).items ~= elem;
-            else
-                fail("not an array of tables");
-            cur = elem;
+            if (!isScalarValue(cp))
+                fail("escape is not a unicode scalar value");
+            pos += n;
+            encodeUtf8(sink, cp);
+            break;
+        default:
+            fail("invalid escape sequence");
         }
     }
 
-    /// One intermediate segment of a header path.
-    Node stepHeader(Node t, string seg)
+    /// Basic string; `pos` is at the opening quote.
+    string parseBasicString()
     {
-        if (auto e = seg in t.members)
+        pos++;
+        immutable start = pos;
+        // Fast path: no escapes, so the value is a slice of the source.
+        while (pos < src.length)
         {
-            auto n = *e;
-            if (n.kind == Kind.table)
+            immutable c = src[pos];
+            if (c == '"')
             {
-                if (n.origin == Origin.inline)
-                    fail("cannot extend inline table");
-                return n;
+                pos++;
+                return src[start .. pos - 1];
             }
-            if (n.kind == Kind.array && n.isTableArray)
-                return n.items[$ - 1];
-            fail("key is not a table");
+            if (c == '\\')
+                break;
+            if (isForbiddenControl(c))
+                fail("control character in string");
+            pos++;
         }
-        auto n = Node.newTable(Origin.implicit);
-        t.members[seg] = n;
+        auto sink = appender!string();
+        sink.put(src[start .. pos]);
+        while (true)
+        {
+            if (eof)
+                fail("unterminated string");
+            immutable c = src[pos++];
+            if (c == '"')
+                return sink.data;
+            if (c == '\\')
+                parseEscape(sink);
+            else if (isForbiddenControl(c))
+            {
+                pos--;
+                fail("control character in string");
+            }
+            else
+                sink.put(c);
+        }
+    }
+
+    /// Literal string; `pos` is at the opening quote.
+    string parseLiteralString()
+    {
+        pos++;
+        immutable start = pos;
+        while (pos < src.length)
+        {
+            immutable c = src[pos];
+            if (c == '\'')
+            {
+                pos++;
+                return src[start .. pos - 1];
+            }
+            if (isForbiddenControl(c))
+                fail("control character in string");
+            pos++;
+        }
+        fail("unterminated string");
+    }
+
+    /// Counts the run of `q` characters at `pos` without consuming it.
+    size_t quoteRun(char q) const @safe pure nothrow @nogc
+    {
+        size_t n = 0;
+        while (pos + n < src.length && src[pos + n] == q)
+            n++;
         return n;
     }
 
-    /// Parses `key = value` and stores it in `table`.
-    void parseKeyValue(Node table)
+    /// Multi-line basic string; `pos` is at the opening `"""`.
+    string parseMultilineBasicString()
     {
-        auto segs = parseKey();
-        skipWs();
-        if (p >= s.length || s[p] != '=')
-            fail("expected =");
-        p++;
-        skipWs();
-
-        Node t = table;
-        foreach (seg; segs[0 .. $ - 1])
+        pos += 3;
+        eatNewline();
+        auto sink = appender!string();
+        while (true)
         {
-            if (auto e = seg in t.members)
+            if (eof)
+                fail("unterminated multi-line string");
+            immutable c = src[pos];
+            if (c == '"')
             {
-                auto n = *e;
-                if (n.kind != Kind.table || n.origin == Origin.explicit || n.origin == Origin.inline)
-                    fail("cannot extend table with dotted key");
-                t = n;
+                immutable n = quoteRun('"');
+                if (n < 3)
+                {
+                    foreach (_; 0 .. n)
+                        sink.put('"');
+                    pos += n;
+                    continue;
+                }
+                if (n > 5)
+                    fail("too many quotes");
+                foreach (_; 0 .. n - 3)
+                    sink.put('"');
+                pos += n;
+                return sink.data;
             }
-            else
+            if (c == '\\')
             {
-                auto n = Node.newTable(Origin.dotted);
-                t.members[seg] = n;
-                t = n;
+                pos++;
+                // Line-ending backslash: optional whitespace, then a newline.
+                size_t j = pos;
+                while (j < src.length && (src[j] == ' ' || src[j] == '\t'))
+                    j++;
+                immutable save = pos;
+                pos = j;
+                if (newlineLen() != 0)
+                {
+                    while (true)
+                    {
+                        skipWs();
+                        if (!eatNewline())
+                            break;
+                    }
+                }
+                else
+                {
+                    pos = save;
+                    parseEscape(sink);
+                }
+                continue;
             }
+            if (c == '\r' || c == '\n')
+            {
+                if (!eatNewline())
+                    fail("bare carriage return");
+                sink.put('\n');
+                continue;
+            }
+            if (isForbiddenControl(c))
+                fail("control character in string");
+            sink.put(c);
+            pos++;
         }
-        immutable last = segs[$ - 1];
-        if (last in t.members)
-            fail("duplicate key");
-        t.members[last] = parseValue();
     }
 
-    // ------------------------------------------------------------------
-    // values
+    /// Multi-line literal string; `pos` is at the opening `'''`.
+    string parseMultilineLiteralString()
+    {
+        pos += 3;
+        eatNewline();
+        auto sink = appender!string();
+        while (true)
+        {
+            if (eof)
+                fail("unterminated multi-line string");
+            immutable c = src[pos];
+            if (c == '\'')
+            {
+                immutable n = quoteRun('\'');
+                if (n < 3)
+                {
+                    foreach (_; 0 .. n)
+                        sink.put('\'');
+                    pos += n;
+                    continue;
+                }
+                if (n > 5)
+                    fail("too many quotes");
+                foreach (_; 0 .. n - 3)
+                    sink.put('\'');
+                pos += n;
+                return sink.data;
+            }
+            if (c == '\r' || c == '\n')
+            {
+                if (!eatNewline())
+                    fail("bare carriage return");
+                sink.put('\n');
+                continue;
+            }
+            if (isForbiddenControl(c))
+                fail("control character in string");
+            sink.put(c);
+            pos++;
+        }
+    }
+
+    // ---- values ----------------------------------------------------------
 
     Node parseValue()
     {
-        if (p >= s.length)
-            fail("expected value");
-        switch (s[p])
+        if (eof)
+            fail("expected a value");
+        switch (src[pos])
         {
         case '"':
-            if (p + 2 < s.length && s[p + 1] == '"' && s[p + 2] == '"')
-                return Node.fromString(parseMultiBasic());
-            return Node.fromString(parseBasicString());
+            if (peekAt(1) == '"' && peekAt(2) == '"')
+                return scalar(ScalarType.string_, parseMultilineBasicString());
+            return scalar(ScalarType.string_, parseBasicString());
         case '\'':
-            if (p + 2 < s.length && s[p + 1] == '\'' && s[p + 2] == '\'')
-                return Node.fromString(parseMultiLiteral());
-            return Node.fromString(parseLiteralString());
+            if (peekAt(1) == '\'' && peekAt(2) == '\'')
+                return scalar(ScalarType.string_, parseMultilineLiteralString());
+            return scalar(ScalarType.string_, parseLiteralString());
         case '[':
             return parseArray();
         case '{':
             return parseInlineTable();
         default:
-            return parseScalar();
+            return parseBareValue();
         }
     }
 
     Node parseArray()
     {
-        p++;
-        auto arr = Node.newArray(false);
-        for (;;)
+        pos++;
+        auto arr = array();
+        while (true)
         {
             skipWsNlComments();
-            if (p >= s.length)
-                fail("unterminated array");
-            if (s[p] == ']')
+            if (!eof && src[pos] == ']')
             {
-                p++;
+                pos++;
                 return arr;
             }
             arr.items ~= parseValue();
             skipWsNlComments();
-            if (p >= s.length)
+            if (eof)
                 fail("unterminated array");
-            if (s[p] == ',')
-                p++;
-            else if (s[p] != ']')
-                fail("expected , or ]");
+            if (src[pos] == ',')
+                pos++;
+            else if (src[pos] == ']')
+            {
+                pos++;
+                return arr;
+            }
+            else
+                fail("expected ',' or ']'");
         }
     }
 
     Node parseInlineTable()
     {
-        p++;
-        auto t = Node.newTable(Origin.explicit);
+        pos++;
+        auto t = table();
+        t.explicit = true;
+        t.inline = true;
         skipWs();
-        if (p < s.length && s[p] == '}')
+        if (!eof && src[pos] == '}')
         {
-            p++;
-            t.origin = Origin.inline;
+            pos++;
             return t;
         }
-        for (;;)
+        while (true)
         {
+            auto keys = parseKey();
             skipWs();
-            parseKeyValue(t);
+            expect('=');
             skipWs();
-            if (p >= s.length)
+            auto v = parseValue();
+            assign(t, keys, v);
+            skipWs();
+            if (eof)
                 fail("unterminated inline table");
-            if (s[p] == ',')
+            if (src[pos] == ',')
             {
-                p++;
-                continue;
+                pos++;
+                skipWs();
             }
-            if (s[p] == '}')
+            else if (src[pos] == '}')
             {
-                p++;
-                break;
+                pos++;
+                return t;
             }
-            fail("expected , or }");
-        }
-        seal(t);
-        return t;
-    }
-
-    /// Marks an inline table, and every dotted table created inside it, closed.
-    static void seal(Node t)
-    {
-        t.origin = Origin.inline;
-        foreach (child; t.members.byValue)
-            if (child.kind == Kind.table && child.origin == Origin.dotted)
-                seal(child);
-    }
-
-    // ------------------------------------------------------------------
-    // strings
-
-    /// Reads exactly `n` hex digits and returns the code point.
-    uint readHex(size_t n)
-    {
-        if (p + n > s.length)
-            fail("bad unicode escape");
-        uint v = 0;
-        foreach (i; 0 .. n)
-        {
-            immutable c = s[p + i];
-            if (!isHex(c))
-                fail("bad unicode escape", p + i);
-            v = (v << 4) | hexVal(c);
-        }
-        p += n;
-        if (!isScalarValue(v))
-            fail("unicode escape is not a scalar value");
-        return v;
-    }
-
-    /// Decodes the escape whose backslash was just consumed.
-    void parseEscape(ref char[] buf)
-    {
-        if (p >= s.length)
-            fail("unterminated escape");
-        immutable c = s[p++];
-        switch (c)
-        {
-        case 'b':
-            buf ~= '\b';
-            break;
-        case 't':
-            buf ~= '\t';
-            break;
-        case 'n':
-            buf ~= '\n';
-            break;
-        case 'f':
-            buf ~= '\f';
-            break;
-        case 'r':
-            buf ~= '\r';
-            break;
-        case '"':
-            buf ~= '"';
-            break;
-        case '\\':
-            buf ~= '\\';
-            break;
-        case 'u':
-            appendUtf8(buf, readHex(4));
-            break;
-        case 'U':
-            appendUtf8(buf, readHex(8));
-            break;
-        default:
-            fail("invalid escape", p - 1);
+            else
+                fail("expected ',' or '}'");
         }
     }
 
-    string parseBasicString()
+    /// Booleans, numbers and date-times: anything made of token characters.
+    Node parseBareValue()
     {
-        p++; // opening quote
-        size_t start = p;
-        char[] buf;
-        bool useBuf = false;
-        for (;;)
-        {
-            while (p < s.length)
-            {
-                immutable c = s[p];
-                if (c == '"' || c == '\\' || (c < 0x20 && c != '\t') || c == 0x7F)
-                    break;
-                p++;
-            }
-            if (p >= s.length)
-                fail("unterminated string");
-            immutable c = s[p];
-            if (c == '"')
-            {
-                string result = useBuf ? (buf ~= s[start .. p]).idup : s[start .. p];
-                p++;
-                return result;
-            }
-            if (c == '\\')
-            {
-                if (!useBuf)
-                {
-                    useBuf = true;
-                    buf = null;
-                }
-                buf ~= s[start .. p];
-                p++;
-                parseEscape(buf);
-                start = p;
-                continue;
-            }
-            fail("invalid character in string");
-        }
-    }
-
-    string parseLiteralString()
-    {
-        p++;
-        immutable start = p;
-        while (p < s.length)
-        {
-            immutable c = s[p];
-            if (c == '\'')
-            {
-                immutable r = s[start .. p];
-                p++;
-                return r;
-            }
-            if ((c < 0x20 && c != '\t') || c == 0x7F)
-                fail("invalid character in literal string");
-            p++;
-        }
-        fail("unterminated string");
-    }
-
-    string parseMultiBasic()
-    {
-        p += 3;
-        acceptNewline();
-        char[] buf;
-        for (;;)
-        {
-            immutable start = p;
-            while (p < s.length)
-            {
-                immutable c = s[p];
-                if (c == '"' || c == '\\' || c == '\r' || (c < 0x20 && c != '\t' && c != '\n') || c == 0x7F)
-                    break;
-                p++;
-            }
-            buf ~= s[start .. p];
-            if (p >= s.length)
-                fail("unterminated string");
-            immutable c = s[p];
-            if (c == '"')
-            {
-                size_t n = 0;
-                while (p + n < s.length && s[p + n] == '"')
-                    n++;
-                if (n < 3)
-                {
-                    foreach (_; 0 .. n)
-                        buf ~= '"';
-                    p += n;
-                    continue;
-                }
-                if (n > 5)
-                    fail("too many quotes");
-                foreach (_; 0 .. n - 3)
-                    buf ~= '"';
-                p += n;
-                return buf.idup;
-            }
-            if (c == '\r')
-            {
-                // validated: always CRLF
-                buf ~= '\n';
-                p += 2;
-                continue;
-            }
-            if (c == '\\')
-            {
-                p++;
-                // line-ending backslash?
-                size_t q = p;
-                while (q < s.length && (s[q] == ' ' || s[q] == '\t'))
-                    q++;
-                if (q < s.length && (s[q] == '\n' || (s[q] == '\r' && q + 1 < s.length && s[q + 1] == '\n')))
-                {
-                    p = q;
-                    while (p < s.length && (s[p] == ' ' || s[p] == '\t' || s[p] == '\n'
-                            || (s[p] == '\r' && p + 1 < s.length && s[p + 1] == '\n')))
-                        p += (s[p] == '\r') ? 2 : 1;
-                    continue;
-                }
-                parseEscape(buf);
-                continue;
-            }
-            fail("invalid character in string");
-        }
-    }
-
-    string parseMultiLiteral()
-    {
-        p += 3;
-        acceptNewline();
-        char[] buf;
-        for (;;)
-        {
-            immutable start = p;
-            while (p < s.length)
-            {
-                immutable c = s[p];
-                if (c == '\'' || c == '\r' || (c < 0x20 && c != '\t' && c != '\n') || c == 0x7F)
-                    break;
-                p++;
-            }
-            buf ~= s[start .. p];
-            if (p >= s.length)
-                fail("unterminated string");
-            immutable c = s[p];
-            if (c == '\'')
-            {
-                size_t n = 0;
-                while (p + n < s.length && s[p + n] == '\'')
-                    n++;
-                if (n < 3)
-                {
-                    foreach (_; 0 .. n)
-                        buf ~= '\'';
-                    p += n;
-                    continue;
-                }
-                if (n > 5)
-                    fail("too many quotes");
-                foreach (_; 0 .. n - 3)
-                    buf ~= '\'';
-                p += n;
-                return buf.idup;
-            }
-            if (c == '\r')
-            {
-                buf ~= '\n';
-                p += 2;
-                continue;
-            }
-            fail("invalid character in literal string");
-        }
-    }
-
-    // ------------------------------------------------------------------
-    // scalars: booleans, numbers, date-times
-
-    static bool isTokenEnd(char c) pure nothrow @nogc
-    {
-        return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '#' || c == ',' || c == ']' || c == '}';
-    }
-
-    Node parseScalar()
-    {
-        immutable start = p;
-        while (p < s.length && !isTokenEnd(s[p]))
-            p++;
-        // A date followed by a space and a complete-looking time is one token.
-        if (p - start == 10 && p + 3 < s.length && s[p] == ' ' && isDigit(s[p + 1])
-                && isDigit(s[p + 2]) && s[p + 3] == ':' && looksLikeDate(s[start .. p]))
-        {
-            p++;
-            while (p < s.length && !isTokenEnd(s[p]))
-                p++;
-        }
-        auto tok = s[start .. p];
+        immutable start = pos;
+        while (pos < src.length && isTokenChar(src[pos]))
+            pos++;
+        auto tok = src[start .. pos];
         if (tok.length == 0)
-            fail("expected value", start);
-        if (tok == "true")
-            return Node.newScalar(Kind.boolean, "true");
-        if (tok == "false")
-            return Node.newScalar(Kind.boolean, "false");
-        if (looksLikeDate(tok))
-            return parseDateTime(tok, start);
-        if (tok.length >= 3 && isDigit(tok[0]) && isDigit(tok[1]) && tok[2] == ':')
-            return parseDateTime(tok, start);
-        return parseNumber(tok, start);
-    }
+            fail("expected a value");
+        if (tok == "true" || tok == "false")
+            return scalar(ScalarType.boolean, tok);
 
-    static bool looksLikeDate(const(char)[] t) pure nothrow @nogc
-    {
-        return t.length >= 5 && isDigit(t[0]) && isDigit(t[1]) && isDigit(t[2]) && isDigit(t[3]) && t[4] == '-';
-    }
-
-    // ---- numbers
-
-    Node parseNumber(string tok, size_t at)
-    {
-        size_t i = 0;
-        bool neg = false, signed = false;
-        if (tok[0] == '+' || tok[0] == '-')
+        immutable looksDate = tok.length >= 5 && isDigit(tok[0]) && isDigit(tok[1])
+            && isDigit(tok[2]) && isDigit(tok[3]) && tok[4] == '-';
+        immutable looksTime = tok.length >= 3 && isDigit(tok[0]) && tok[2] == ':';
+        if (looksDate || looksTime)
         {
-            neg = tok[0] == '-';
-            signed = true;
-            i = 1;
-        }
-        auto rest = tok[i .. $];
-        if (rest == "inf")
-            return Node.newScalar(Kind.float_, neg ? "-inf" : "inf");
-        if (rest == "nan")
-            return Node.newScalar(Kind.float_, "nan");
-
-        if (!signed && tok.length > 2 && tok[0] == '0' && (tok[1] == 'x' || tok[1] == 'o' || tok[1] == 'b'))
-            return parsePrefixedInt(tok, at);
-
-        // decimal integer part
-        size_t j = i;
-        if (j >= tok.length || !isDigit(tok[j]))
-            fail("invalid number", at);
-        if (tok[j] == '0')
-            j++;
-        else
-        {
-            j++;
-            j = skipDigits(tok, j, at);
-        }
-        if (j == tok.length)
-        {
-            // integer
-            return Node.newScalar(Kind.integer, decimalInt(tok[i .. j], neg, at));
-        }
-        // float
-        scratch.length = 0;
-        if (neg)
-            scratch ~= '-';
-        scratch ~= tok[i .. j];
-        stripUnderscoresInPlace();
-        if (tok[j] == '.')
-        {
-            j++;
-            immutable fs = j;
-            if (j >= tok.length || !isDigit(tok[j]))
-                fail("invalid float", at);
-            j = skipDigits(tok, j, at);
-            scratch ~= '.';
-            scratch ~= tok[fs .. j];
-        }
-        if (j < tok.length && (tok[j] == 'e' || tok[j] == 'E'))
-        {
-            j++;
-            scratch ~= 'e';
-            if (j < tok.length && (tok[j] == '+' || tok[j] == '-'))
-                scratch ~= tok[j++];
-            immutable es = j;
-            if (j >= tok.length || !isDigit(tok[j]))
-                fail("invalid float", at);
-            j = skipDigits(tok, j, at);
-            scratch ~= tok[es .. j];
-        }
-        if (j != tok.length)
-            fail("invalid number", at);
-        // remove digit separators from what was appended after the int part
-        stripUnderscoresInPlace();
-        immutable v = parseFloatDecimal(scratch);
-        return Node.newScalar(Kind.float_, formatFloat(v));
-    }
-
-    void stripUnderscoresInPlace()
-    {
-        size_t w = 0;
-        foreach (c; scratch)
-            if (c != '_')
-                scratch[w++] = c;
-        scratch.length = w;
-    }
-
-    /// Skips `(_? digit)*` starting at `j`; an underscore must be followed by a digit.
-    size_t skipDigits(string tok, size_t j, size_t at)
-    {
-        while (j < tok.length)
-        {
-            immutable c = tok[j];
-            if (isDigit(c))
-                j++;
-            else if (c == '_')
+            // "YYYY-MM-DD HH:MM:SS..." : a space joins date and time only if
+            // a time follows.
+            if (looksDate && tok.length == 10 && peekAt(0) == ' ' && isDigit(peekAt(1))
+                && isDigit(peekAt(2)) && peekAt(3) == ':')
             {
-                if (j + 1 >= tok.length || !isDigit(tok[j + 1]))
-                    fail("invalid underscore", at);
-                j += 2;
+                immutable tstart = pos + 1;
+                pos = tstart;
+                while (pos < src.length && isTokenChar(src[pos]))
+                    pos++;
+                tok = tok ~ " " ~ src[tstart .. pos];
             }
-            else
-                break;
+            ScalarType ty;
+            string canon;
+            if (!parseDateTime(tok, ty, canon))
+                fail("invalid date or time");
+            return scalar(ty, canon);
         }
-        return j;
-    }
 
-    string decimalInt(const(char)[] digits, bool neg, size_t at)
+        string canon;
+        if (parseInteger(tok, canon))
+            return scalar(ScalarType.integer, canon);
+        if (parseFloat(tok, canon))
+            return scalar(ScalarType.float_, canon);
+        fail("invalid value");
+    }
+}
+
+version (unittest)
+{
+    bool invalid(string doc)
     {
-        ulong mag = 0;
-        foreach (c; digits)
+        try
         {
-            if (c == '_')
-                continue;
-            immutable d = c - '0';
-            if (mag > (ulong.max - d) / 10)
-                fail("integer out of range", at);
-            mag = mag * 10 + d;
-        }
-        return intText(mag, neg, at);
-    }
-
-    string intText(ulong mag, bool neg, size_t at)
-    {
-        import std.conv : to;
-
-        if (neg ? mag > (cast(ulong) long.max) + 1 : mag > long.max)
-            fail("integer out of range", at);
-        if (mag == 0)
-            return "0";
-        return neg ? "-" ~ mag.to!string : mag.to!string;
-    }
-
-    Node parsePrefixedInt(string tok, size_t at)
-    {
-        immutable base = tok[1] == 'x' ? 16 : tok[1] == 'o' ? 8 : 2;
-        size_t j = 2;
-        ulong mag = 0;
-        bool prevDigit = false;
-        for (; j < tok.length; j++)
-        {
-            immutable c = tok[j];
-            if (c == '_')
-            {
-                if (!prevDigit || j + 1 >= tok.length)
-                    fail("invalid underscore", at);
-                prevDigit = false;
-                continue;
-            }
-            int d;
-            if (base == 16)
-            {
-                if (!isHex(c))
-                    fail("invalid hex digit", at);
-                d = hexVal(c);
-            }
-            else
-            {
-                if (c < '0' || c >= '0' + base)
-                    fail("invalid digit", at);
-                d = c - '0';
-            }
-            if (mag > (ulong.max - d) / base)
-                fail("integer out of range", at);
-            mag = mag * base + d;
-            prevDigit = true;
-        }
-        if (!prevDigit)
-            fail("invalid integer", at);
-        return Node.newScalar(Kind.integer, intText(mag, false, at));
-    }
-
-    // ---- date-times
-
-    static int num(const(char)[] t, size_t i, size_t n) pure nothrow @nogc
-    {
-        int v = 0;
-        foreach (k; 0 .. n)
-            v = v * 10 + (t[i + k] - '0');
-        return v;
-    }
-
-    static bool digitsAt(const(char)[] t, size_t i, size_t n) pure nothrow @nogc
-    {
-        if (i + n > t.length)
+            parseToml(doc);
             return false;
-        foreach (k; 0 .. n)
-            if (!isDigit(t[i + k]))
-                return false;
-        return true;
+        }
+        catch (TomlException)
+            return true;
     }
 
-    static bool validDate(const(char)[] t) pure nothrow @nogc
-    {
-        // t is exactly YYYY-MM-DD
-        if (!digitsAt(t, 0, 4) || t[4] != '-' || !digitsAt(t, 5, 2) || t[7] != '-' || !digitsAt(t, 8, 2))
-            return false;
-        immutable y = num(t, 0, 4), m = num(t, 5, 2), d = num(t, 8, 2);
-        if (y < 1 || m < 1 || m > 12 || d < 1)
-            return false;
-        static immutable int[12] dim = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-        int maxd = dim[m - 1];
-        if (m == 2 && (y % 4 == 0 && (y % 100 != 0 || y % 400 == 0)))
-            maxd = 29;
-        return d <= maxd;
-    }
+    import toml.json : toTaggedJson;
 
-    /// Validates `HH:MM:SS[.frac]` at the start of `t`; returns its length or 0.
-    static size_t validTime(const(char)[] t) pure nothrow @nogc
+    string dec(string doc)
     {
-        if (!digitsAt(t, 0, 2) || t.length < 8 || t[2] != ':' || !digitsAt(t, 3, 2) || t[5] != ':'
-                || !digitsAt(t, 6, 2))
-            return 0;
-        if (num(t, 0, 2) > 23 || num(t, 3, 2) > 59 || num(t, 6, 2) > 59)
-            return 0;
-        size_t i = 8;
-        if (i < t.length && t[i] == '.')
-        {
-            i++;
-            immutable fs = i;
-            while (i < t.length && isDigit(t[i]))
-                i++;
-            if (i == fs)
-                return 0;
-        }
-        return i;
+        return toTaggedJson(parseToml(doc));
     }
+}
 
-    /// Canonical `HH:MM:SS[.frac]` with trailing fraction zeros removed.
-    static string canonTime(const(char)[] t) pure nothrow
-    {
-        size_t end = t.length;
-        if (end > 8)
-        {
-            while (end > 9 && t[end - 1] == '0')
-                end--;
-            if (end == 9) // only the '.' is left
-                end = 8;
-        }
-        return t[0 .. end].idup;
-    }
+unittest
+{
+    assert(dec("") == "{}");
+    assert(dec("a = 1") == `{"a":{"type":"integer","value":"1"}}`);
+    assert(dec("a.b = 1\na.c = 2") ==
+        `{"a":{"b":{"type":"integer","value":"1"},"c":{"type":"integer","value":"2"}}}`);
+    assert(dec("[a]\n[a.b]\nx = true") ==
+        `{"a":{"b":{"x":{"type":"bool","value":"true"}}}}`);
+    assert(dec("[[a]]\nx = 1\n[a.t]\ny = 2\n[[a]]\n") ==
+        `{"a":[{"t":{"y":{"type":"integer","value":"2"}},"x":{"type":"integer","value":"1"}},{}]}`);
+    assert(dec("d = 1979-05-27 # c") == `{"d":{"type":"date-local","value":"1979-05-27"}}`);
+    assert(dec("d = 1979-05-27 07:32:00") ==
+        `{"d":{"type":"datetime-local","value":"1979-05-27T07:32:00"}}`);
+    assert(dec("a = {b = [\n1,\n], c.d = 'x'}") ==
+        `{"a":{"b":[{"type":"integer","value":"1"}],"c":{"d":{"type":"string","value":"x"}}}}`);
+}
 
-    Node parseDateTime(string tok, size_t at)
-    {
-        if (!looksLikeDate(tok))
-        {
-            // time-local
-            immutable n = validTime(tok);
-            if (n == 0 || n != tok.length)
-                fail("invalid time", at);
-            return Node.newScalar(Kind.timeLocal, canonTime(tok));
-        }
-        if (tok.length < 10 || !validDate(tok[0 .. 10]))
-            fail("invalid date", at);
-        if (tok.length == 10)
-            return Node.newScalar(Kind.dateLocal, tok);
-        immutable sep = tok[10];
-        if (sep != 'T' && sep != 't' && sep != ' ')
-            fail("invalid date-time", at);
-        auto rest = tok[11 .. $];
-        immutable tn = validTime(rest);
-        if (tn == 0)
-            fail("invalid time", at);
-        auto timeText = canonTime(rest[0 .. tn]);
-        auto datePart = tok[0 .. 10];
-        if (tn == rest.length)
-            return Node.newScalar(Kind.datetimeLocal, datePart ~ "T" ~ timeText);
-        auto off = rest[tn .. $];
-        string offText;
-        if (off == "Z" || off == "z")
-            offText = "Z";
-        else
-        {
-            if (off.length != 6 || (off[0] != '+' && off[0] != '-') || !digitsAt(off, 1, 2)
-                    || off[3] != ':' || !digitsAt(off, 4, 2) || num(off, 1, 2) > 23 || num(off, 4, 2) > 59)
-                fail("invalid offset", at);
-            offText = (num(off, 1, 2) == 0 && num(off, 4, 2) == 0) ? "Z" : off;
-        }
-        return Node.newScalar(Kind.datetime, datePart ~ "T" ~ timeText ~ offText);
-    }
+unittest // strings
+{
+    assert(dec(`a = "x\tyé\U0001F600"`) == "{\"a\":{\"type\":\"string\",\"value\":\"x\\tyé\U0001F600\"}}");
+    assert(dec("a = \"\"\"\nx\\\n   y\"\"\"\"") == `{"a":{"type":"string","value":"xy\""}}`);
+    assert(dec("a = '''\r\nx\r\ny'''") == `{"a":{"type":"string","value":"x\ny"}}`);
+    assert(invalid("a = \"\"\"a\"\"\"\"\"\""));       // six quotes
+    assert(invalid(`a = "\x"`));
+    assert(invalid(`a = "\ud800"`));
+    assert(invalid("a = \"x\ny\""));
+    assert(invalid("a = 'x\ty\x01'"));
+    assert(invalid("a = \"\x7f\""));
+    assert(invalid("a = \"a\rb\""));
+    assert(invalid("# c\rd\n"));
+}
+
+unittest // tables and keys
+{
+    assert(invalid("a = 1\na = 2"));
+    assert(invalid("[a]\n[a]"));
+    assert(invalid("a.b = 1\n[a]"));
+    assert(invalid("[fruit]\napple.color = 1\n[fruit.apple]"));
+    assert(!invalid("[fruit]\napple.color = 1\n[fruit.apple.texture]"));
+    assert(invalid("a = {b = 1}\n[a.c]"));
+    assert(invalid("a = {b = 1}\na.c = 2"));
+    assert(invalid("a = [1]\n[[a]]"));
+    assert(invalid("[[a]]\n[a]"));
+    assert(invalid("[ [a] ]"));
+    assert(!invalid("[[ a . b ]]"));
+    assert(invalid("a = {b = 1,}"));
+    assert(invalid("a = {b = 1,\nc = 2}"));
+    assert(invalid("a = [1,,2]"));
+    assert(invalid("a = [,1]"));
+    assert(!invalid("a = [1,2,]"));
+    assert(invalid("a = 1 b = 2"));
+    assert(invalid("a ="));
+    assert(invalid("\xef\xbb\xbfa = 1"));
+    assert(invalid("a = \"\xff\""));
+    assert(!invalid("\"\" = 1\n'a b' = 2\n1234 = 3"));
 }

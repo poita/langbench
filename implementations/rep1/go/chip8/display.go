@@ -1,57 +1,54 @@
 package chip8
 
-// Display geometry.
 const (
-	Width  = 64
+	// Width is the display width in pixels.
+	Width = 64
+	// Height is the display height in pixels.
 	Height = 32
 )
 
-// Display is the 64x32 monochrome screen. Each row is one 64-bit word in
-// which column 0 is the most significant bit and column 63 the least.
-type Display [Height]uint64
+// Display is a 64x32 monochrome frame buffer. Pixels are indexed [row][column].
+type Display [Height][Width]bool
 
 // Clear turns every pixel off.
 func (d *Display) Clear() { *d = Display{} }
 
-// Pixel reports whether the pixel at column x, row y is lit. Coordinates are
-// reduced modulo the screen size.
-func (d *Display) Pixel(x, y int) bool {
-	return d[y&(Height-1)]>>(63-uint(x&(Width-1)))&1 != 0
-}
+// Pixel reports whether the pixel at column x, row y is lit.
+func (d *Display) Pixel(x, y int) bool { return d[y][x] }
 
-// Set turns the pixel at column x, row y on or off.
-func (d *Display) Set(x, y int, on bool) {
-	bit := uint64(1) << (63 - uint(x&(Width-1)))
-	if on {
-		d[y&(Height-1)] |= bit
-	} else {
-		d[y&(Height-1)] &^= bit
-	}
-}
-
-// Lit returns the number of lit pixels.
-func (d *Display) Lit() int {
-	n := 0
-	for _, r := range d {
-		for ; r != 0; r &= r - 1 {
-			n++
+// drawSprite XORs sprite rows (one byte per row, most significant bit leftmost)
+// onto the display with origin (x, y), wrapping around the edges. It reports
+// whether any lit pixel was turned off.
+func (d *Display) drawSprite(x, y int, rows []byte) (collision bool) {
+	for r, b := range rows {
+		py := (y + r) & (Height - 1)
+		for bit := 0; bit < 8; bit++ {
+			if b&(0x80>>bit) == 0 {
+				continue
+			}
+			px := (x + bit) & (Width - 1)
+			if d[py][px] {
+				collision = true
+			}
+			d[py][px] = !d[py][px]
 		}
 	}
-	return n
+	return collision
 }
 
-// AppendRows appends the display as 32 lines of 64 '#'/'.' characters, each
-// terminated by a newline, and returns the extended buffer.
-func (d *Display) AppendRows(dst []byte) []byte {
-	for _, r := range d {
-		for x := 63; x >= 0; x-- {
-			if r>>uint(x)&1 != 0 {
-				dst = append(dst, '#')
+// String renders the display as 32 newline-terminated lines of 64 characters,
+// using '#' for lit pixels and '.' for unlit ones.
+func (d *Display) String() string {
+	buf := make([]byte, 0, Height*(Width+1))
+	for y := 0; y < Height; y++ {
+		for x := 0; x < Width; x++ {
+			if d[y][x] {
+				buf = append(buf, '#')
 			} else {
-				dst = append(dst, '.')
+				buf = append(buf, '.')
 			}
 		}
-		dst = append(dst, '\n')
+		buf = append(buf, '\n')
 	}
-	return dst
+	return string(buf)
 }

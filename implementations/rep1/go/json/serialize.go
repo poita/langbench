@@ -1,94 +1,91 @@
 package jsoncanon
 
-import (
-	"bytes"
-	"slices"
-)
+import "slices"
 
-// handle refers to one member of an object while its members are sorted.
-type handle struct {
-	key []byte
-	idx int // index of the member's value in Value.kids
+// Canonicalize parses data and returns its canonical serialization (without a
+// trailing newline). See the package documentation for the canonical form.
+func Canonicalize(data []byte) ([]byte, error) {
+	v, err := Parse(data)
+	if err != nil {
+		return nil, err
+	}
+	return v.AppendCanonical(make([]byte, 0, len(data))), nil
 }
 
-// AppendCanonical appends the canonical serialization of v (without a
-// trailing newline) to dst and returns the extended slice.
+// AppendCanonical appends the canonical serialization of v to dst and returns
+// the extended slice. The tree is written in one pass into dst; no
+// intermediate text is built per subtree.
+//
+// In objects, members are ordered by [CompareKeys] on their keys (stable), and
+// of each run of equal keys only the last member is written. The tree itself
+// is not modified.
 func (v *Value) AppendCanonical(dst []byte) []byte {
-	switch v.kind {
+	switch v.Kind {
 	case Null:
 		return append(dst, "null"...)
-	case False:
+	case Bool:
+		if v.Bool {
+			return append(dst, "true"...)
+		}
 		return append(dst, "false"...)
-	case True:
-		return append(dst, "true"...)
 	case Number:
-		return append(dst, v.text...)
+		return append(dst, v.Text...)
 	case String:
-		return appendString(dst, v.text)
+		return appendString(dst, v.Text)
 	case Array:
 		dst = append(dst, '[')
-		for i := range v.kids {
+		for i := range v.Elems {
 			if i > 0 {
 				dst = append(dst, ',')
 			}
-			dst = v.kids[i].AppendCanonical(dst)
+			dst = v.Elems[i].AppendCanonical(dst)
 		}
 		return append(dst, ']')
+	case Object:
+		return appendObject(dst, v.Members)
 	}
-	return v.appendObject(dst)
+	return dst
 }
 
-func (v *Value) appendObject(dst []byte) []byte {
-	m := len(v.kids) / 2
+func appendObject(dst []byte, members []Member) []byte {
 	dst = append(dst, '{')
-	switch {
-	case m == 1:
-		dst = appendString(dst, v.kids[0].text)
+	// Sort indices rather than members, to keep the sort cheap and leave the
+	// tree untouched.
+	idx := make([]int32, len(members))
+	for i := range idx {
+		idx[i] = int32(i)
+	}
+	slices.SortStableFunc(idx, func(a, b int32) int {
+		return CompareKeys(members[a].Key, members[b].Key)
+	})
+	first := true
+	for i := 0; i < len(idx); i++ {
+		// Last member of each run of equal keys.
+		if i+1 < len(idx) && members[idx[i]].Key == members[idx[i+1]].Key {
+			continue
+		}
+		m := &members[idx[i]]
+		if !first {
+			dst = append(dst, ',')
+		}
+		first = false
+		dst = appendString(dst, m.Key)
 		dst = append(dst, ':')
-		dst = v.kids[1].AppendCanonical(dst)
-	case m > 1:
-		hs := make([]handle, m)
-		for i := range hs {
-			hs[i] = handle{v.kids[2*i].text, 2*i + 1}
-		}
-		slices.SortFunc(hs, func(a, b handle) int {
-			if c := compareKeys(a.key, b.key); c != 0 {
-				return c
-			}
-			return a.idx - b.idx
-		})
-		first := true
-		for i, h := range hs {
-			// Within a run of equal keys the last one has the highest index
-			// and is the one to keep.
-			if i+1 < m && bytes.Equal(h.key, hs[i+1].key) {
-				continue
-			}
-			if !first {
-				dst = append(dst, ',')
-			}
-			first = false
-			dst = appendString(dst, h.key)
-			dst = append(dst, ':')
-			dst = v.kids[h.idx].AppendCanonical(dst)
-		}
+		dst = m.Value.AppendCanonical(dst)
 	}
 	return append(dst, '}')
 }
 
-// needsEscape marks the bytes that must be escaped in canonical strings.
-var needsEscape = special
-
 const hexDigits = "0123456789abcdef"
 
 // appendString appends s as a quoted JSON string, escaping only '"', '\' and
-// control characters. Runs of other bytes are copied in bulk.
-func appendString(dst, s []byte) []byte {
+// U+0000–U+001F.
+func appendString(dst []byte, s string) []byte {
 	dst = append(dst, '"')
 	start := 0
 	for i := 0; i < len(s); i++ {
 		c := s[i]
-		if !needsEscape[c] {
+		if c >= 0x20 && c != '"' && c != '\\' {
 			continue
 		}
 		dst = append(dst, s[start:i]...)
@@ -109,7 +106,7 @@ func appendString(dst, s []byte) []byte {
 		case '\t':
 			dst = append(dst, '\\', 't')
 		default:
-			dst = append(dst, '\\', 'u', '0', '0', hexDigits[c>>4], hexDigits[c&15])
+			dst = append(dst, '\\', 'u', '0', '0', hexDigits[c>>4], hexDigits[c&0xF])
 		}
 	}
 	dst = append(dst, s[start:]...)

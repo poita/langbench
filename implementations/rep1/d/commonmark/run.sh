@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the commonmark tool: Markdown on stdin, HTML on stdout.
+# Runs the converter: Markdown on stdin, HTML on stdout.
 exec "$(dirname "$0")/bin/commonmark" "$@"

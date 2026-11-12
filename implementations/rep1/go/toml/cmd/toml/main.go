@@ -1,50 +1,55 @@
-// Command toml converts between TOML and tagged JSON.
+// Command toml converts between TOML documents and tagged JSON.
 //
-// It reads all of standard input. The first line is the mode, "decode" or
-// "encode"; the rest is the document. In decode mode the document is parsed
-// as TOML 1.0.0 and printed as tagged JSON, or "error" if it is invalid. In
-// encode mode the document is tagged JSON and the canonical TOML is printed.
+// It reads standard input. The first line is the mode, "decode" or
+// "encode"; the rest is the document.
+//
+// In decode mode the document is parsed as TOML 1.0.0 and printed as
+// compact, key-sorted tagged JSON, or the single word "error" if it is not
+// valid TOML. In encode mode the document is tagged JSON and the canonical
+// TOML rendering is printed.
 package main
 
 import (
+	"bufio"
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 
-	"github.com/example/toml"
+	"example.com/toml"
+	"example.com/toml/tagged"
 )
 
 func main() {
-	os.Exit(run(os.Stdin, os.Stdout))
+	in, err := io.ReadAll(bufio.NewReaderSize(os.Stdin, 1<<20))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "toml:", err)
+		os.Exit(1)
+	}
+	out := run(in)
+	if _, err := os.Stdout.Write(out); err != nil {
+		os.Exit(1)
+	}
 }
 
-func run(in io.Reader, out io.Writer) int {
-	input, err := io.ReadAll(in)
-	if err != nil {
-		return 1
-	}
-	mode, doc, _ := bytes.Cut(input, []byte("\n"))
-	var res []byte
+// run processes one request (mode line plus document) and returns the output.
+func run(in []byte) []byte {
+	mode, doc, _ := bytes.Cut(in, []byte{'\n'})
 	switch string(mode) {
 	case "decode":
 		t, err := toml.Parse(doc)
 		if err != nil {
-			res = []byte("error\n")
-		} else {
-			res = append(t.TaggedJSON(), '\n')
+			return []byte("error\n")
 		}
+		return append(tagged.Marshal(t), '\n')
 	case "encode":
-		t, err := toml.ParseTaggedJSON(doc)
+		t, err := tagged.Unmarshal(doc)
 		if err != nil {
-			res = []byte("error\n")
-		} else {
-			res = t.TOML()
+			fmt.Fprintln(os.Stderr, "toml:", err)
+			return []byte("error\n")
 		}
-	default:
-		return 2
+		return toml.Encode(t)
 	}
-	if _, err := out.Write(res); err != nil {
-		return 1
-	}
-	return 0
+	fmt.Fprintf(os.Stderr, "toml: unknown mode %q\n", mode)
+	return []byte("error\n")
 }

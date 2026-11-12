@@ -1,7 +1,6 @@
 .dub/
-chip8
-chip8-test
+bin/
 *.o
 *.a
 dub.selections.json
-chip8-test-unittest
+chip8-test-*

@@ -1,25 +1,31 @@
 name "chip8"
-description "Deterministic CHIP-8 interpreter library and command-line tool"
+description "A deterministic CHIP-8 interpreter library and command-line tool"
 authors "Peter Alexander"
+copyright "Copyright © 2026, Peter Alexander"
 license "MIT"
-copyright "Copyright © 2026"
+targetType "executable"
+targetName "chip8"
+targetPath "bin"
 
+# Default configuration: the command-line tool (library + cli/app.d).
 configuration "cli" {
     targetType "executable"
-    targetName "chip8"
-    sourcePaths "source" "app"
-    importPaths "source"
-    mainSourceFile "app/main.d"
+    sourcePaths "source" "cli"
+    mainSourceFile "cli/app.d"
 }
 
+# Reusable library only; depend on it with `subConfiguration "chip8" "library"`
+# (dub selects it automatically for dependents).
 configuration "library" {
     targetType "library"
     sourcePaths "source"
-    importPaths "source"
+    excludedSourceFiles "cli/*"
 }
 
+# Used by `dub test`: unit tests live next to the code in `unittest` blocks.
 configuration "unittest" {
-    targetType "library"
+    targetType "executable"
+    targetName "chip8-test"
     sourcePaths "source" "tests"
-    importPaths "source"
+    mainSourceFile "tests/main.d"
 }

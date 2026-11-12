@@ -1,15 +1,14 @@
-/// The editing core: a document, a set of cursors and an undo history.
+/// The text buffer: a document, a set of cursors and an undo history.
 module textbuffer.buffer;
 
-import core.stdc.string : memchr;
+import std.algorithm.comparison : min;
 
 import textbuffer.cursor;
+import textbuffer.document;
 import textbuffer.history;
-import textbuffer.lines;
-import textbuffer.position;
-import textbuffer.vec;
+import textbuffer.pos;
 
-/// Direction of a cursor movement.
+/// Cursor movement directions.
 enum Direction
 {
     left,
@@ -20,361 +19,544 @@ enum Direction
     end,
 }
 
-/// A text document with multiple cursors, selections, undo and redo.
+/// The editing core of a text editor.
 ///
-/// All positions passed to the public API are clamped to the document, so no
-/// call can fail. Every command normalises the cursor set (merging cursors
-/// that collide) and, except for vertical movement, resets the goal columns.
+/// Holds a document, a set of cursors (each with an optional selection) and
+/// undo/redo history. All commands apply to every cursor. After each command
+/// the cursor set is normalised, so cursors never overlap and are always
+/// listed in cursor order (ascending range start).
 final class TextBuffer
 {
-    private LineStore lines_;
-    private Cursor[] cursors_;
-    private Cursor[] beforeScratch;
-    private Vec!Replacement replScratch;
-    private CharBuf removedScratch;
-    private Stack!HistoryEntry undoStack;
-    private Stack!HistoryEntry redoStack;
+    private Document doc;
+    private Cursor[] cs;
+    private History hist;
 
-    /// Creates a document with one empty line and one cursor at the start.
-    this()
+    /// Creates a buffer from its lines (none means one empty line) with a
+    /// single primary cursor at the start of the document.
+    this(const(char)[][] lines = null) @safe nothrow
     {
-        this(null);
+        doc = new Document(lines);
+        cs = [Cursor.at(Pos(0, 0), true)];
     }
 
-    /// Creates a document from `initial` lines (an empty list is one empty
-    /// line). Lines must not contain newlines; they are copied.
-    this(const(char)[][] initial)
-    {
-        lines_ = new LineStore(initial);
-        cursors_ = [Cursor(Pos(0, 0), Pos(0, 0), false, true, 0)];
-    }
-
-    /// Creates a document from text, split at `'\n'`.
-    static TextBuffer fromText(const(char)[] text)
-    {
-        const(char)[][] parts;
-        size_t from = 0;
-        foreach (i, ch; text)
-        {
-            if (ch == '\n')
-            {
-                parts ~= text[from .. i];
-                from = i + 1;
-            }
-        }
-        parts ~= text[from .. $];
-        return new TextBuffer(parts);
-    }
-
-    // ------------------------------------------------------------ queries
+    // ------------------------------------------------------------ inspection
 
     /// Number of lines (at least 1).
-    size_t lineCount() const pure nothrow @nogc @safe { return lines_.length; }
-
-    /// The text of line `i`. Invalidated by the next edit.
-    const(char)[] line(size_t i) const pure nothrow @nogc @safe { return lines_[i].view; }
-
-    /// The whole text, lines joined by `'\n'`.
-    string text() const
+    size_t lineCount() const @safe nothrow @nogc
     {
-        CharBuf b;
-        lines_.writeText(b);
-        return b[].idup;
+        return doc.lineCount;
     }
 
-    /// The cursors in cursor order. Invalidated by the next command.
-    const(Cursor)[] cursors() const pure nothrow @nogc @safe { return cursors_; }
-
-    /// True if there is an edit that `undo` would revert.
-    bool canUndo() const pure nothrow @nogc @safe { return !undoStack.empty; }
-
-    /// True if there is an edit that `redo` would re-apply.
-    bool canRedo() const pure nothrow @nogc @safe { return !redoStack.empty; }
-
-    /// Clamps `(line, col)` to a valid position.
-    Pos clamp(long line, long col) const pure nothrow @nogc @safe
+    /// Text of line `i`, valid until the next editing command.
+    const(char)[] line(size_t i) const @safe nothrow @nogc
     {
-        if (line < 0) line = 0;
-        if (line > cast(long) lines_.length - 1) line = cast(long) lines_.length - 1;
-        if (col < 0) col = 0;
-        immutable len = cast(long) lines_.lineLength(cast(size_t) line);
-        if (col > len) col = len;
-        return Pos(cast(int) line, cast(int) col);
+        return doc.line(i);
     }
 
-    /// Writes the document, then one `cursor <line> <col>` line per cursor,
-    /// then `--` to `output`.
-    void render(ref CharBuf output) const nothrow
+    /// The whole text, lines joined by newlines.
+    string text() const @safe
     {
-        foreach (i; 0 .. lines_.length)
+        return doc.text;
+    }
+
+    /// The cursors in cursor order.
+    const(Cursor)[] cursors() const @safe nothrow @nogc
+    {
+        return cs;
+    }
+
+    /// Whether `undo` would do anything.
+    bool canUndo() const @safe nothrow @nogc
+    {
+        return hist.canUndo;
+    }
+
+    /// Whether `redo` would do anything.
+    bool canRedo() const @safe nothrow @nogc
+    {
+        return hist.canRedo;
+    }
+
+    // --------------------------------------------------------------- editing
+
+    /// Inserts `text` at every cursor, replacing selections. `text` may contain
+    /// newlines; it must be printable ASCII otherwise.
+    void insert(string text) @safe
+    {
+        if (text.length == 0)
         {
-            output.put(lines_[i].view);
-            output.put('\n');
+            finish();
+            return;
         }
-        foreach (ref c; cursors_)
-        {
-            output.put("cursor ");
-            output.putDecimal(c.head.line);
-            output.put(' ');
-            output.putDecimal(c.head.col);
-            output.put('\n');
-        }
-        output.put("--\n");
-    }
-
-    // ------------------------------------------------------------ editing
-
-    /// Inserts `text` (which may contain `'\n'`) at every cursor, replacing
-    /// selections. Does nothing if `text` is empty and no cursor has a selection.
-    void insert(const(char)[] text)
-    {
-        edit(EditKind.insert, text.idup);
+        edit(EditKind.insert, text);
     }
 
     /// Backspace: deletes each selection, or the character before each cursor.
-    void deleteBackward()
+    void deleteBackward() @safe
     {
         edit(EditKind.backward, "");
     }
 
-    /// Deletes each selection, or the character after each cursor.
-    void deleteForward()
+    /// Delete: deletes each selection, or the character after each cursor.
+    void deleteForward() @safe
     {
         edit(EditKind.forward, "");
     }
 
-    // ----------------------------------------------------------- movement
+    // -------------------------------------------------------------- movement
 
-    /// Moves every cursor; with `select`, extends (or starts) selections.
-    void move(Direction dir, bool select = false)
+    /// Moves every cursor; with `select` the selection is extended (or started).
+    void move(Direction dir, bool select = false) @safe
     {
-        foreach (ref c; cursors_)
+        foreach (ref c; cs)
             moveCursor(c, dir, select);
-        normalize(cursors_);
+        normalize(cs);
         if (dir != Direction.up && dir != Direction.down)
             resetGoals();
     }
 
-    /// Replaces all cursors with one primary cursor at the clamped position.
-    void goTo(long line, long col)
+    /// Replaces all cursors by one primary cursor at the (clamped) position.
+    void goTo(long line, long col) @safe
     {
-        immutable p = clamp(line, col);
-        cursors_.length = 1;
-        cursors_[0] = Cursor(p, p, false, true, p.col);
+        cs = [Cursor.at(doc.clamp(line, col), true)];
     }
 
-    /// Adds a non-primary cursor at the clamped position (merging if it
-    /// collides with an existing cursor).
-    void addCursor(long line, long col)
+    /// Adds a non-primary cursor at the (clamped) position; merges if it collides.
+    void addCursor(long line, long col) @safe
     {
-        immutable p = clamp(line, col);
-        cursors_ ~= Cursor(p, p, false, false, 0);
-        normalize(cursors_);
+        cs ~= Cursor.at(doc.clamp(line, col));
+        normalize(cs);
         resetGoals();
     }
 
     /// Removes every cursor except the primary one.
-    void clearCursors()
+    void clearCursors() @safe
     {
-        size_t w = 0;
-        foreach (ref c; cursors_)
+        foreach (c; cs)
             if (c.primary)
-                cursors_[w++] = c;
-        cursors_ = cursors_[0 .. w];
+            {
+                cs = [c];
+                break;
+            }
         resetGoals();
     }
 
-    // ------------------------------------------------------- undo / redo
+    // ------------------------------------------------------------ undo/redo
 
-    /// Reverts the most recent edit command. Returns false if there is none.
-    bool undo()
+    /// Reverts the most recent edit command. Returns false if there was none.
+    bool undo() @safe
     {
-        if (undoStack.empty)
+        if (!hist.canUndo)
         {
             resetGoals();
             return false;
         }
-        auto e = undoStack.pop();
+        auto e = hist.popUndo();
         foreach_reverse (ref r; e.replacements)
-        {
-            immutable end = advance(r.start, e.insertedShape);
-            lines_.splice(r.start, end, e.removed[r.removedOffset .. r.removedOffset + r.removedLength]);
-        }
-        assignCursors(cursors_, e.cursorsBefore);
+            doc.replace(r.start, endOfText(r.start, r.inserted), r.removed);
+        cs = e.before.dup;
         resetGoals();
-        redoStack.push(e);
         return true;
     }
 
-    /// Re-applies the most recently undone edit. Returns false if there is none.
-    bool redo()
+    /// Re-applies the most recently undone edit command. Returns false if there was none.
+    bool redo() @safe
     {
-        if (redoStack.empty)
+        if (!hist.canRedo)
         {
             resetGoals();
             return false;
         }
-        auto e = redoStack.pop();
+        auto e = hist.popRedo();
         foreach (ref r; e.replacements)
-        {
-            auto removed = e.removed[r.removedOffset .. r.removedOffset + r.removedLength];
-            immutable end = advance(r.start, shapeOf(removed));
-            lines_.splice(r.start, end, e.inserted);
-        }
-        assignCursors(cursors_, e.cursorsAfter);
+            doc.replace(r.start, endOfText(r.start, r.removed), r.inserted);
+        cs = e.after.dup;
         resetGoals();
-        undoStack.push(e);
         return true;
     }
 
-    // ----------------------------------------------------------- internals
+    // ------------------------------------------------------------- internals
 
-    private enum EditKind { insert, backward, forward }
-
-    private void resetGoals() pure nothrow @nogc @safe
+    private enum EditKind
     {
-        foreach (ref c; cursors_)
+        insert,
+        backward,
+        forward,
+    }
+
+    /// Maps positions of the document as it was before an edit command into
+    /// the document as it is now, through the composed effect of the
+    /// replacements made so far. Only valid for positions at or after the end
+    /// of the last replacement; O(1).
+    private struct Shift
+    {
+        bool active;
+        Pos oldEnd;  // end of the last replacement, before the command
+        Pos newEnd;  // where its cursor ended up
+
+        Pos map(Pos p) const @safe nothrow @nogc
+        {
+            if (!active)
+                return p;
+            if (p.line == oldEnd.line)
+                return Pos(newEnd.line, newEnd.col + p.col - oldEnd.col);
+            return Pos(p.line + newEnd.line - oldEnd.line, p.col);
+        }
+    }
+
+    private void resetGoals() @safe nothrow @nogc
+    {
+        foreach (ref c; cs)
             c.goal = c.head.col;
     }
 
-    private void edit(EditKind kind, string inserted)
+    private void finish() @safe
     {
-        assignCursors(beforeScratch, cursors_);
-        replScratch.clear();
-        removedScratch.clear();
-
-        // Composed shift for cursors not yet processed: a position p in the
-        // original coordinates maps to the current document via (A, B).
-        Pos A = Pos(0, 0), B = Pos(0, 0);
-        bool changed = false;
-        immutable insEmpty = inserted.length == 0;
-
-        foreach (ref c; cursors_)
-        {
-            Pos head = c.head, anchor = c.anchor;
-            if (A.line == head.line) head = Pos(B.line, B.col + head.col - A.col);
-            else head.line += B.line - A.line;
-            Pos s = head, e = head;
-            if (c.hasSelection)
-            {
-                if (A.line == anchor.line) anchor = Pos(B.line, B.col + anchor.col - A.col);
-                else anchor.line += B.line - A.line;
-                s = minPos(head, anchor);
-                e = maxPos(head, anchor);
-            }
-            else if (kind == EditKind.backward)
-            {
-                if (head.col > 0)
-                    s.col = head.col - 1;
-                else if (head.line > 0)
-                    s = Pos(head.line - 1, cast(int) lines_.lineLength(head.line - 1));
-            }
-            else if (kind == EditKind.forward)
-            {
-                if (cast(size_t) head.col < lines_.lineLength(head.line))
-                    e.col = head.col + 1;
-                else if (cast(size_t) head.line + 1 < lines_.length)
-                    e = Pos(head.line + 1, 0);
-            }
-
-            if (s == e && insEmpty)
-            {
-                c.head = head;
-                c.collapse();
-                continue;
-            }
-
-            // Map the end of the replaced range back to original coordinates.
-            Pos eOrig = e;
-            if (e.line == B.line) eOrig = Pos(A.line, A.col + e.col - B.col);
-            else eOrig.line = e.line - B.line + A.line;
-
-            immutable off = cast(uint) removedScratch.length;
-            lines_.extract(s, e, removedScratch);
-            replScratch.put(Replacement(s, off, cast(uint) removedScratch.length - off));
-
-            immutable newHead = lines_.splice(s, e, inserted);
-            A = eOrig;
-            B = newHead;
-            c.head = newHead;
-            c.collapse();
-            changed = true;
-        }
-
-        normalize(cursors_);
+        normalize(cs);
         resetGoals();
-        if (!changed)
-            return;
-
-        auto entry = new HistoryEntry;
-        entry.cursorsBefore = beforeScratch.dup;
-        entry.cursorsAfter = cursors_.dup;
-        entry.replacements = replScratch[].dup;
-        entry.removed = removedScratch[].idup;
-        entry.inserted = inserted;
-        entry.insertedShape = shapeOf(inserted);
-        undoStack.push(entry);
-        redoStack.clear();
     }
 
-    private Pos moveHead(Pos p, Direction dir, ref int goal) const pure nothrow @nogc @safe
+    private void edit(EditKind kind, string ins) @safe
     {
+        auto before = cs.dup;
+        Replacement[] reps;
+        Shift shift;
+        immutable shape = TextShape.of(ins);
+
+        foreach (ref c; cs)
+        {
+            Pos s, e, oldEnd;
+            if (c.hasSelection)
+            {
+                s = shift.map(c.start);
+                e = shift.map(c.end);
+                oldEnd = c.end;
+            }
+            else
+            {
+                s = e = shift.map(c.head);
+                oldEnd = c.head;
+                if (kind == EditKind.backward && s != Pos(0, 0))
+                    s = s.col > 0 ? Pos(s.line, s.col - 1)
+                        : Pos(s.line - 1, cast(int) doc.lineLength(s.line - 1));
+                else if (kind == EditKind.forward && s != doc.end)
+                {
+                    if (s.col < doc.lineLength(s.line))
+                    {
+                        e = Pos(s.line, s.col + 1);
+                        oldEnd = Pos(c.head.line, c.head.col + 1);
+                    }
+                    else
+                    {
+                        e = Pos(s.line + 1, 0);
+                        oldEnd = Pos(c.head.line + 1, 0);
+                    }
+                }
+            }
+            immutable text = kind == EditKind.insert ? ins : "";
+
+            Pos newHead = s;
+            if (s != e || text.length)
+            {
+                reps ~= Replacement(s, s != e ? doc.slice(s, e) : "", text);
+                doc.replace(s, e, text);
+                newHead = shape.endFrom(s);
+            }
+            shift = Shift(true, oldEnd, newHead);
+            c.head = c.anchor = newHead;
+            c.hasSelection = false;
+        }
+
+        finish();
+        if (reps.length)
+            hist.record(UndoEntry(before, cs.dup, reps));
+    }
+
+    private void moveCursor(ref Cursor c, Direction dir, bool select) @safe nothrow @nogc
+    {
+        if (!select && c.hasSelection && (dir == Direction.left || dir == Direction.right))
+        {
+            c.head = dir == Direction.left ? c.start : c.end;
+            c.collapse();
+            return;
+        }
+        if (!select)
+            c.collapse();
+        else if (!c.hasSelection)
+            c.anchor = c.head;
+
         final switch (dir)
         {
         case Direction.left:
-            if (p.col > 0) return Pos(p.line, p.col - 1);
-            if (p.line > 0) return Pos(p.line - 1, cast(int) lines_.lineLength(p.line - 1));
-            return p;
+            if (c.head.col > 0)
+                --c.head.col;
+            else if (c.head.line > 0)
+                c.head = Pos(c.head.line - 1, cast(int) doc.lineLength(c.head.line - 1));
+            break;
         case Direction.right:
-            if (cast(size_t) p.col < lines_.lineLength(p.line)) return Pos(p.line, p.col + 1);
-            if (cast(size_t) p.line + 1 < lines_.length) return Pos(p.line + 1, 0);
-            return p;
+            if (c.head.col < doc.lineLength(c.head.line))
+                ++c.head.col;
+            else if (c.head.line + 1 < doc.lineCount)
+                c.head = Pos(c.head.line + 1, 0);
+            break;
         case Direction.home:
-            return Pos(p.line, 0);
+            c.head.col = 0;
+            break;
         case Direction.end:
-            return Pos(p.line, cast(int) lines_.lineLength(p.line));
+            c.head.col = cast(int) doc.lineLength(c.head.line);
+            break;
         case Direction.up:
-            if (p.line == 0)
+            if (c.head.line == 0)
             {
-                goal = 0;
-                return Pos(0, 0);
+                c.head = Pos(0, 0);
+                c.goal = 0;
             }
-            return Pos(p.line - 1, clampCol(goal, p.line - 1));
+            else
+                c.head = Pos(c.head.line - 1,
+                    cast(int) min(cast(size_t) c.goal, doc.lineLength(c.head.line - 1)));
+            break;
         case Direction.down:
-            if (cast(size_t) p.line + 1 == lines_.length)
+            if (c.head.line + 1 == doc.lineCount)
             {
-                immutable col = cast(int) lines_.lineLength(p.line);
-                goal = col;
-                return Pos(p.line, col);
+                c.head = doc.end;
+                c.goal = c.head.col;
             }
-            return Pos(p.line + 1, clampCol(goal, p.line + 1));
+            else
+                c.head = Pos(c.head.line + 1,
+                    cast(int) min(cast(size_t) c.goal, doc.lineLength(c.head.line + 1)));
+            break;
         }
+
+        if (select)
+            c.hasSelection = c.head != c.anchor;
+        else
+            c.anchor = c.head;
+    }
+}
+
+version (unittest)
+{
+    private TextBuffer make(const(char)[][] lines...) @safe nothrow
+    {
+        return new TextBuffer(lines);
     }
 
-    private int clampCol(int col, int line) const pure nothrow @nogc @safe
+    private string describe(const TextBuffer b) @safe
     {
-        immutable len = cast(int) lines_.lineLength(line);
-        return col < len ? col : len;
-    }
+        import std.format : format;
+        import std.array : appender;
 
-    private void moveCursor(ref Cursor c, Direction dir, bool select) const pure nothrow @nogc @safe
-    {
-        if (!select)
+        auto app = appender!string();
+        app.put(b.text);
+        foreach (c; b.cursors)
         {
-            if (c.hasSelection && (dir == Direction.left || dir == Direction.right))
-            {
-                c.head = dir == Direction.left ? c.start : c.end;
-                c.collapse();
-                return;
-            }
-            c.collapse();
-            c.head = moveHead(c.head, dir, c.goal);
-            c.anchor = c.head;
-            return;
+            app.put(c.hasSelection
+                ? format!" [%d:%d-%d:%d%s]"(c.anchor.line, c.anchor.col, c.head.line,
+                    c.head.col, c.primary ? "*" : "")
+                : format!" [%d:%d%s]"(c.head.line, c.head.col, c.primary ? "*" : ""));
         }
-        if (!c.hasSelection)
-            c.anchor = c.head;
-        c.head = moveHead(c.head, dir, c.goal);
-        c.hasSelection = c.head != c.anchor;
+        return app[];
+    }
+}
+
+@safe unittest
+{
+    // Single-cursor typing and movement (spec example 1).
+    auto b = make("hello world", "second line");
+    b.move(Direction.end);
+    b.insert("!");
+    b.move(Direction.down);
+    b.insert(" (edited)");
+    b.goTo(0, 5);
+    b.insert(",");
+    assert(b.text == "hello, world!\nsecond line (edited)");
+    assert(b.cursors[0].head == Pos(0, 6));
+    b.deleteBackward();
+    b.deleteBackward();
+    assert(b.text == "hell world!\nsecond line (edited)");
+    assert(b.cursors[0].head == Pos(0, 4));
+}
+
+@safe unittest
+{
+    // Multiple cursors and selections (spec example 2).
+    auto b = make("alpha", "beta", "gamma");
+    b.addCursor(1, 0);
+    b.addCursor(2, 0);
+    b.insert("- ");
+    assert(b.text == "- alpha\n- beta\n- gamma");
+    assert(b.cursors.length == 3 && b.cursors[2].head == Pos(2, 2));
+    b.move(Direction.end, true);
+    b.insert("X");
+    assert(b.text == "- X\n- X\n- X");
+    b.goTo(0, 1);
+    b.move(Direction.right, true);
+    b.move(Direction.right, true);
+    b.deleteBackward();
+    assert(b.text == "-\n- X\n- X");
+    assert(b.cursors.length == 1 && b.cursors[0].head == Pos(0, 1));
+}
+
+@safe unittest
+{
+    // Undo and redo (spec example 3).
+    auto b = make("abc");
+    b.move(Direction.end);
+    b.insert("d\ne");
+    assert(b.text == "abcd\ne" && b.cursors[0].head == Pos(1, 1));
+    b.deleteBackward();
+    b.deleteBackward();
+    assert(b.text == "abcd");
+    assert(b.undo());
+    assert(b.text == "abcd\n" && b.cursors[0].head == Pos(1, 0));
+    assert(b.undo());
+    assert(b.text == "abcd\ne" && b.cursors[0].head == Pos(1, 1));
+    assert(b.redo());
+    assert(b.text == "abcd\n");
+    b.insert("Z");
+    assert(!b.redo());
+    assert(b.text == "abcd\nZ");
+}
+
+@safe unittest
+{
+    // Adjacent cursors both deleting backwards end up merged (spec note).
+    auto b = make("abcdef");
+    b.goTo(0, 3);
+    b.addCursor(0, 4);
+    b.deleteBackward();
+    assert(b.text == "abef");
+    assert(b.cursors.length == 1 && b.cursors[0].head == Pos(0, 2));
+    b.undo();
+    assert(b.text == "abcdef");
+    assert(b.cursors.length == 2);
+    assert(b.cursors[0].head == Pos(0, 3) && b.cursors[1].head == Pos(0, 4));
+    assert(b.cursors[0].primary && !b.cursors[1].primary);
+}
+
+@safe unittest
+{
+    // Forward delete at line ends joins lines; at the end of the document it is a no-op.
+    auto b = make("ab", "cd", "ef");
+    b.move(Direction.end);
+    b.addCursor(1, 2);
+    b.deleteForward();
+    assert(b.text == "abcdef");
+    assert(b.cursors.length == 2 && b.cursors[1].head == Pos(0, 4));
+    b.goTo(0, 6);
+    b.deleteForward();
+    assert(b.canUndo);  // the no-op delete recorded nothing; the earlier edit remains
+    assert(b.text == "abcdef");
+    b.undo();
+    assert(b.text == "ab\ncd\nef");
+    assert(!b.canUndo);
+    b.undo();  // nothing left
+    assert(b.text == "ab\ncd\nef");
+}
+
+@safe unittest
+{
+    // Goal column is remembered across vertical moves and reset by other commands.
+    auto b = make("abcdefgh", "ab", "abcdefgh");
+    b.goTo(0, 6);
+    b.move(Direction.down);
+    assert(b.cursors[0].head == Pos(1, 2));
+    b.move(Direction.down);
+    assert(b.cursors[0].head == Pos(2, 6));
+    b.move(Direction.up);
+    b.move(Direction.left);
+    b.move(Direction.down);
+    assert(b.cursors[0].head == Pos(2, 1));
+    // Edges.
+    b.move(Direction.down);
+    assert(b.cursors[0].head == Pos(2, 8) && b.cursors[0].goal == 8);
+    b.goTo(0, 3);
+    b.move(Direction.up);
+    assert(b.cursors[0].head == Pos(0, 0) && b.cursors[0].goal == 0);
+}
+
+@safe unittest
+{
+    // Selection movement rules.
+    auto b = make("abcdef");
+    b.goTo(0, 2);
+    b.move(Direction.right, true);
+    b.move(Direction.right, true);
+    assert(describe(b) == "abcdef [0:2-0:4*]");
+    b.move(Direction.left);  // collapses to the start
+    assert(describe(b) == "abcdef [0:2*]");
+    b.move(Direction.right, true);
+    b.move(Direction.left, true);  // selection becomes empty again
+    assert(describe(b) == "abcdef [0:2*]");
+    b.move(Direction.right, true);
+    b.move(Direction.home);  // selection dropped, head moves from the head
+    assert(describe(b) == "abcdef [0:0*]");
+}
+
+@safe unittest
+{
+    // Cursors merging on move, and clear-cursors keeps the primary one.
+    auto b = make("abc");
+    b.goTo(0, 1);
+    b.addCursor(0, 3);
+    b.addCursor(0, 2);
+    assert(b.cursors.length == 3);
+    b.move(Direction.home);
+    assert(b.cursors.length == 1 && b.cursors[0].primary);
+    b.addCursor(0, 2);
+    b.addCursor(0, 3);
+    b.clearCursors();
+    assert(describe(b) == "abc [0:0*]");
+}
+
+@safe unittest
+{
+    // Randomised round trip: undoing every edit restores the initial state, redoing
+    // every edit restores the final state, and the cursor invariants always hold.
+    import std.random : Random, uniform;
+
+    auto rng = Random(1234);
+    foreach (round; 0 .. 40)
+    {
+        auto b = make("one two three", "", "four", "five six");
+        immutable initialText = b.text;
+        size_t edits = 0;
+        foreach (step; 0 .. 120)
+        {
+            switch (uniform(0, 11, rng))
+            {
+            case 0: b.insert("ab"); break;
+            case 1: b.insert("x\ny\n"); break;
+            case 2: b.deleteBackward(); break;
+            case 3: b.deleteForward(); break;
+            case 4: b.move(cast(Direction) uniform(0, 6, rng), uniform(0, 2, rng) == 1); break;
+            case 5: b.addCursor(uniform(0, 8, rng), uniform(0, 20, rng)); break;
+            case 6: b.goTo(uniform(0, 8, rng), uniform(0, 20, rng)); break;
+            case 7: b.clearCursors(); break;
+            case 8: b.move(cast(Direction) uniform(0, 6, rng), true); break;
+            case 9: b.insert("\\"); break;
+            default: b.deleteBackward(); break;
+            }
+            // Invariants: exactly one primary, ordered, non-overlapping, valid.
+            size_t primaries;
+            foreach (i, c; b.cursors)
+            {
+                primaries += c.primary;
+                assert(c.head.line < b.lineCount && c.head.col <= b.line(c.head.line).length);
+                if (i > 0)
+                    assert(b.cursors[i - 1].start < c.start);
+            }
+            assert(primaries == 1);
+        }
+        immutable finalText = b.text;
+        size_t undone;
+        while (b.undo())
+            ++undone;
+        assert(b.text == initialText);
+        size_t redone;
+        while (b.redo())
+            ++redone;
+        assert(undone == redone);
+        assert(b.text == finalText);
     }
 }

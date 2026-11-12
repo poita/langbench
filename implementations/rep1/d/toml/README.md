@@ -1,82 +1,90 @@
 # toml
 
-A from-scratch TOML 1.0.0 parser and canonical serializer in D, with a small
-command-line tool that speaks the `toml-test` *tagged JSON* format. It uses
-only Phobos/druntime — no TOML or JSON library.
+A TOML 1.0.0 parser and serializer written in D, with a small command-line
+tool that speaks the [toml-test](https://github.com/toml-lang/toml-test)
+"tagged JSON" format. It uses only the D standard library (and the C runtime
+for correctly rounded float conversion).
+
+* **Decoder** – strict, single-pass recursive-descent parser. Rejects invalid
+  UTF-8, stray CRs, BOMs, bad escapes, out-of-range numbers and dates, and every
+  table/key redefinition forbidden by the spec. Scalars are kept as canonical text.
+* **Encoder** – deterministic, canonical TOML output (sorted keys, pairs before
+  tables, every table with an explicit header). `decode(encode(x)) == x`.
+* **Tagged JSON** – compact, key-sorted writer and a tolerant reader.
 
 ## Layout
 
-| Path | Contents |
-|------|----------|
-| `source/toml/node.d` | `Node` tree, `Kind`, `TomlException` |
-| `source/toml/validate.d` | strict UTF-8, BOM and lone-CR checks |
-| `source/toml/scalar.d` | integer / float / date-time scanners, float formatting |
-| `source/toml/parser.d` | `parse`: TOML text → `Node` tree |
-| `source/toml/json.d` | `toTaggedJson` / `fromTaggedJson` |
-| `source/toml/encoder.d` | `toToml`: tree → canonical TOML |
-| `source/toml/package.d` | `import toml;` re-exports everything |
-| `app/main.d` | the command-line tool |
-| `tests/` | unit tests (run by `dub test`) |
+| Module            | Responsibility                                            |
+|-------------------|-----------------------------------------------------------|
+| `toml`            | package module re-exporting the public API                |
+| `toml.value`      | `Node` document tree and `Kind`                           |
+| `toml.parser`     | `parse`: TOML text to `Node`                              |
+| `toml.encoder`    | `toToml`: `Node` to canonical TOML                        |
+| `toml.json`       | `toTaggedJson` / `fromTaggedJson`                         |
+| `toml.number`     | integer and float literals, canonical float text          |
+| `toml.datetime`   | date/time validation and canonicalisation (textual)       |
+| `toml.utf8`       | strict UTF-8 validation                                   |
+| `toml.exception`  | `TomlException` (with line and column)                    |
+| `app`             | the command-line tool                                     |
 
-## Building
+## Build
 
-Requires LDC 1.41 and dub 1.40.
+Requires LDC and dub.
 
+```sh
+dub build -b release --compiler=ldc2     # produces bin/toml
+dub test --compiler=ldc2                 # runs the unit tests
 ```
-./build.sh                                   # builds bin/toml-cli
-dub build -b release --compiler=ldc2         # same, by hand
-dub test --compiler=ldc2                     # unit tests
-```
+
+`./build.sh` builds, and `./run.sh` runs the tool from any directory.
 
 ## Command line
 
-`./run.sh` reads stdin: the first line is the mode (`decode` or `encode`), the
-rest is the document.
+The tool reads all of stdin. The first line is the mode; the rest is the document.
 
-```
-$ printf 'decode\na = 1\n[t]\nb = [1.5, "x"]\n' | ./run.sh
-{"a":{"type":"integer","value":"1"},"t":{"b":[{"type":"float","value":"1.5000000000000000e+00"},{"type":"string","value":"x"}]}}
+```sh
+printf 'decode\nname = "Tom"\nports = [1, 2]\n' | ./run.sh
+# {"name":{"type":"string","value":"Tom"},"ports":[{"type":"integer","value":"1"},{"type":"integer","value":"2"}]}
 
-$ printf 'decode\na = 1\n[t]\nb = [1.5, "x"]\n' | ./run.sh | sed '1s/^/encode\n/' | ./run.sh
-a = 1
-
-[t]
-b = [1.5000000000000000e+00, "x"]
+printf 'decode\na = \n' | ./run.sh          # error
+{ echo encode; echo '{"a":{"type":"integer","value":"1"}}'; } | ./run.sh
+# a = 1
 ```
 
-* `decode` prints compact, key-sorted tagged JSON, or `error` for an invalid
-  document.
-* `encode` prints the canonical TOML for a tagged JSON tree.
-* The exit status is always 0.
+`decode` prints one line of tagged JSON, or `error` for an invalid document;
+`encode` prints canonical TOML. The exit code is always 0.
 
-## Library
+Floats are printed as `%.16e` (17 significant digits); date-times are
+normalised textually (`T` separator, trailing fractional zeros removed,
+`+00:00`/`-00:00` becomes `Z`). See `problems/toml/SPEC.md` for the full format.
+
+## Library example
 
 ```d
-import std.stdio;
 import toml;
 
 void main()
 {
-    auto doc = parse("name = \"Tom\"\n[db]\nports = [8001, 8002]\n");
+    auto doc = parse(`
+        title = "Example"
+        [owner]
+        name = "Tom"
+        ports = [8001, 8002]
+    `);
 
-    writeln(doc["name"].asString);            // Tom
-    writeln(doc["db"]["ports"][1].asInteger); // 8002
+    assert(doc["title"].asString == "Example");
+    assert(doc["owner"]["ports"][1].asLong == 8002);
 
-    writeln(toTaggedJson(doc));  // {"db":{"ports":[...]},"name":{...}}
-    write(toToml(doc));          // canonical TOML
+    string toml = toToml(doc);           // canonical TOML
+    string json = toTaggedJson(doc);     // tagged JSON
+    assert(toToml(fromTaggedJson(json)) == toml);
 
-    try parse("a = 01");
-    catch (TomlException e) writeln("line ", e.line, ": ", e.msg);
+    try
+        parse("a = 1\na = 2");
+    catch (TomlException e)
+        assert(e.line == 2);             // errors carry a position
 }
 ```
 
-`parse` throws `TomlException` for any document that is not valid TOML 1.0.0.
-Scalars keep their canonical text in `Node.text` (decimal integers, 17-digit
-floats, normalised date-times); `asInteger`, `asFloat`, `asBool` and
-`asString` give typed access.
-
-## Notes
-
-Floats are converted with the C runtime's `strtod`/`snprintf("%.16e")`, which
-are correctly rounded. Everything else — lexing, table-provenance rules,
-date validation, JSON — is implemented in this repository.
+Use it from another dub project with `dependency "toml" path="../toml"` and
+`subConfiguration "toml" "library"`, which leaves out the command-line tool.

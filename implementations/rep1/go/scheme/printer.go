@@ -2,74 +2,72 @@ package scheme
 
 import "strconv"
 
-// String returns the write form of v (strings quoted and escaped).
-func (v Value) String() string { return string(appendValue(nil, v, false)) }
+// Write returns the write form of v: strings are quoted and escaped.
+func Write(v Value) string { return string(appendValue(nil, v, false)) }
 
-// Display returns the display form of v (strings raw, at any depth).
-func (v Value) Display() string { return string(appendValue(nil, v, true)) }
+// Display returns the display form of v: strings appear raw, at any depth.
+func Display(v Value) string { return string(appendValue(nil, v, true)) }
 
-// appendValue appends the write (display == false) or display form of v to b.
-// Lists are walked iteratively along the cdr chain; only cars recurse.
-func appendValue(b []byte, v Value, display bool) []byte {
-	switch v.t {
-	case tFix:
-		return strconv.AppendInt(b, v.n, 10)
-	case tBig:
-		return append(b, toBig(v).String()...)
-	case tBool:
-		if v.n != 0 {
-			return append(b, "#t"...)
+func appendValue(dst []byte, v Value, display bool) []byte {
+	switch v := v.(type) {
+	case Int:
+		return strconv.AppendInt(dst, int64(v), 10)
+	case *Big:
+		return append(dst, v.N.String()...)
+	case Bool:
+		if v {
+			return append(dst, "#t"...)
 		}
-		return append(b, "#f"...)
-	case tNil:
-		return append(b, "()"...)
-	case tVoid:
-		return append(b, "#<void>"...)
-	case tSym:
-		return append(b, v.symName()...)
-	case tStr:
+		return append(dst, "#f"...)
+	case *String:
 		if display {
-			return append(b, v.str()...)
+			return append(dst, v.S...)
 		}
-		return appendQuoted(b, v.str())
-	case tPrim, tClosure:
-		return append(b, "#<procedure>"...)
-	case tPair:
-		b = append(b, '(')
+		dst = append(dst, '"')
+		for i := 0; i < len(v.S); i++ {
+			switch c := v.S[i]; c {
+			case '\\':
+				dst = append(dst, '\\', '\\')
+			case '"':
+				dst = append(dst, '\\', '"')
+			case '\n':
+				dst = append(dst, '\\', 'n')
+			case '\t':
+				dst = append(dst, '\\', 't')
+			default:
+				dst = append(dst, c)
+			}
+		}
+		return append(dst, '"')
+	case *Symbol:
+		return append(dst, v.Name...)
+	case Null:
+		return append(dst, "()"...)
+	case Void:
+		return append(dst, "#<void>"...)
+	case *Pair:
+		dst = append(dst, '(')
+		var cur Value = v
+		first := true
 		for {
-			p := v.pair()
-			b = appendValue(b, p.car, display)
-			v = p.cdr
-			if v.t == tPair {
-				b = append(b, ' ')
-				continue
+			p, ok := cur.(*Pair)
+			if !ok {
+				break
 			}
-			if v.t != tNil {
-				b = append(b, " . "...)
-				b = appendValue(b, v, display)
+			if !first {
+				dst = append(dst, ' ')
 			}
-			break
+			first = false
+			dst = appendValue(dst, p.Car, display)
+			cur = p.Cdr
 		}
-		return append(b, ')')
-	}
-	return append(b, "#<unknown>"...)
-}
-
-func appendQuoted(b []byte, s string) []byte {
-	b = append(b, '"')
-	for i := 0; i < len(s); i++ {
-		switch c := s[i]; c {
-		case '\\':
-			b = append(b, '\\', '\\')
-		case '"':
-			b = append(b, '\\', '"')
-		case '\n':
-			b = append(b, '\\', 'n')
-		case '\t':
-			b = append(b, '\\', 't')
-		default:
-			b = append(b, c)
+		if _, ok := cur.(Null); !ok {
+			dst = append(dst, " . "...)
+			dst = appendValue(dst, cur, display)
 		}
+		return append(dst, ')')
+	case *Primitive, *Closure:
+		return append(dst, "#<procedure>"...)
 	}
-	return append(b, '"')
+	return append(dst, "#<unknown>"...)
 }

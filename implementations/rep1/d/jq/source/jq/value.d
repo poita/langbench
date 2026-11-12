@@ -1,362 +1,403 @@
-/**
- * Immutable JSON value model used throughout the library.
- *
- * A `Value` is a small tagged struct (16 bytes): `null`, booleans and numbers
- * live inline, while strings, arrays and objects are references to immutable
- * heap data. Copying a `Value` therefore never copies container contents.
- *
- * Objects preserve insertion order, intern-friendly shared key strings, a lazy
- * hash index for large objects and a lazily computed (and memoised) sorted key
- * permutation used by comparison and `keys`.
- */
+/// The immutable JSON value model: `Value`, `JObject`, ordering and equality.
 module jq.value;
 
 import core.stdc.string : memcmp;
 import std.algorithm.sorting : sort;
+import std.range : iota;
+import std.array : array;
 
-/// Kind of a `Value`. The declaration order is jq's cross-type sort order.
-enum Type : ubyte
+/// The type of a `Value`, declared in jq's type order
+/// (`null < false < true < numbers < strings < arrays < objects`).
+enum Kind : ubyte
 {
-    null_,
-    false_,
-    true_,
-    number,
-    string,
-    array,
-    object,
-    /// Internal marker used by evaluation to carry an error message.
-    error,
+    Null,
+    False,
+    True,
+    Number,
+    String,
+    Array,
+    Object,
 }
 
-/// Heap string (UTF-8 bytes). Shared by reference.
-final class JStr
+/// A JSON value.
+///
+/// Values are immutable by convention and cheap to copy: strings, arrays and
+/// objects are shared, never deep-copied. Build them with the `Value.make*`
+/// factory functions; inspect them with `kind` and the accessors below.
+struct Value
 {
-    /// The UTF-8 text.
-    string s;
-    this(string s) pure nothrow @safe @nogc { this.s = s; }
+    /// Which member of the union below is active.
+    Kind kind;
+
+    union
+    {
+        /// The number, when `kind == Kind.Number`.
+        double num;
+        /// The string (UTF-8), when `kind == Kind.String`.
+        string str;
+        /// The elements, when `kind == Kind.Array`. Never mutate.
+        Value[] arr;
+        /// The object, when `kind == Kind.Object`.
+        JObject obj;
+    }
+
+    /// The `null` value.
+    static Value makeNull() pure nothrow @nogc @safe
+    {
+        Value v;
+        v.kind = Kind.Null;
+        return v;
+    }
+
+    /// `true` or `false`.
+    static Value makeBool(bool b) pure nothrow @nogc @safe
+    {
+        Value v;
+        v.kind = b ? Kind.True : Kind.False;
+        return v;
+    }
+
+    /// A number.
+    static Value makeNumber(double d) pure nothrow @nogc @safe
+    {
+        Value v;
+        v.kind = Kind.Number;
+        v.num = d;
+        return v;
+    }
+
+    /// A string. The text is shared, not copied.
+    static Value makeString(string s) pure nothrow @nogc @trusted
+    {
+        Value v;
+        v.kind = Kind.String;
+        v.str = s;
+        return v;
+    }
+
+    /// An array. The slice is shared, not copied: do not mutate it afterwards.
+    static Value makeArray(Value[] a) pure nothrow @nogc @trusted
+    {
+        Value v;
+        v.kind = Kind.Array;
+        v.arr = a;
+        return v;
+    }
+
+    /// An object.
+    static Value makeObject(JObject o) pure nothrow @nogc @trusted
+    {
+        Value v;
+        v.kind = Kind.Object;
+        v.obj = o;
+        return v;
+    }
+
+    /// jq truthiness: everything except `false` and `null` is true.
+    bool truthy() const pure nothrow @nogc @safe
+    {
+        return kind != Kind.Null && kind != Kind.False;
+    }
+
+    /// The jq type name: "null", "boolean", "number", "string", "array" or "object".
+    string typeName() const pure nothrow @nogc @safe
+    {
+        final switch (kind)
+        {
+        case Kind.Null:
+            return "null";
+        case Kind.False:
+        case Kind.True:
+            return "boolean";
+        case Kind.Number:
+            return "number";
+        case Kind.String:
+            return "string";
+        case Kind.Array:
+            return "array";
+        case Kind.Object:
+            return "object";
+        }
+    }
+
+    /// Equality under jq's total order (object key order is irrelevant).
+    bool opEquals(const Value o) const
+    {
+        return equals(cast() this, cast() o);
+    }
 }
 
-/// Heap array. Never mutated after it has been published as a `Value`.
-final class JArr
+/// An insertion-ordered string-keyed map with expected O(1) lookup.
+///
+/// Objects are immutable once constructed (use `ObjectBuilder` to make one).
+/// The sorted key order is computed at most once and cached.
+final class JObject
 {
-    /// The elements.
-    Value[] items;
-    this(Value[] items) pure nothrow @safe @nogc { this.items = items; }
-}
-
-/// Insertion-ordered string-keyed map. Never mutated once published
-/// (only private builders created by one operation call `set`).
-final class JObj
-{
-    /// Keys in insertion order (shared strings).
-    JStr[] keys;
-    /// Values, parallel to `keys`.
+    /// Keys in insertion order. Never mutate.
+    string[] keys;
+    /// Values, parallel to `keys`. Never mutate.
     Value[] vals;
 
-    private int[string] index;
-    private bool indexed;
-    private uint[] order;
-    private bool ordered;
+    private int[string] index_;
+    private bool indexBuilt_;
+    private Store st_; // shared append-only storage, see `appendDisjoint`
+    private uint[] order_;
+    private bool orderBuilt_;
 
-    /// Objects with at most this many keys are searched linearly.
-    enum linearLimit = 16;
+    /// Objects up to this size are searched linearly.
+    private enum linearLimit = 12;
 
-    this() pure nothrow @safe {}
-    this(JStr[] keys, Value[] vals) pure nothrow @safe @nogc
+    /// Takes ownership of the two parallel arrays; keys must be distinct.
+    this(string[] keys, Value[] vals) pure nothrow @safe
     {
         this.keys = keys;
         this.vals = vals;
     }
 
-    /// Number of entries.
-    size_t length() const pure nothrow @safe @nogc { return keys.length; }
-
-    private ptrdiff_t findLinear(string k) const pure nothrow @trusted @nogc
+    /// Number of members.
+    size_t length() const pure nothrow @nogc @safe
     {
-        foreach (i, key; keys)
+        return keys.length;
+    }
+
+    /// Position of `key` in insertion order, or -1.
+    ptrdiff_t find(const(char)[] key) @trusted
+    {
+        immutable n = keys.length;
+        if (n <= linearLimit)
         {
-            const ks = key.s;
-            if (ks.length == k.length && (ks.ptr is k.ptr || memcmp(ks.ptr, k.ptr, k.length) == 0))
-                return i;
+            foreach (i; 0 .. n)
+            {
+                const k = keys[i];
+                if (k.length == key.length && (k.length == 0 || memcmp(k.ptr, key.ptr, k.length) == 0))
+                    return i;
+            }
+            return -1;
         }
-        return -1;
-    }
-
-    private void buildIndex() nothrow
-    {
-        foreach (i, key; keys)
-            index[key.s] = cast(int) i;
-        indexed = true;
-    }
-
-    /// Position of key `k`, or -1.
-    ptrdiff_t find(string k) nothrow
-    {
-        if (keys.length <= linearLimit && !indexed)
-            return findLinear(k);
-        if (!indexed)
-            buildIndex();
-        if (auto p = k in index)
+        if (st_ !is null)
+        {
+            st_.catchUp();
+            if (auto p = key in st_.idx)
+                return *p < n ? *p : -1;
+            return -1;
+        }
+        if (!indexBuilt_)
+        {
+            foreach (i, k; keys)
+                index_[k] = cast(int) i;
+            indexBuilt_ = true;
+        }
+        if (auto p = key in index_)
             return *p;
         return -1;
     }
 
-    /// Position of key `k`, always scanning linearly (no index construction).
-    ptrdiff_t findScan(string k) nothrow
+    /// A new object holding this object's members followed by `ks`/`vs`,
+    /// none of whose keys may already be present (and which are distinct).
+    ///
+    /// When this object is the newest user of its backing store the new
+    /// members are appended in place (older objects only ever see their own
+    /// prefix), so building an object by repeated `+` costs O(|new members|)
+    /// amortized rather than O(size) per step. Values stay immutable.
+    JObject appendDisjoint(const(string)[] ks, const(Value)[] vs) @trusted
     {
-        if (indexed)
-            return find(k);
-        return findLinear(k);
-    }
-
-    /// Value for `k`, or `null` if absent.
-    Value get(string k) nothrow
-    {
-        const i = find(k);
-        return i < 0 ? Value.makeNull : vals[i];
-    }
-
-    /// True if `k` is present.
-    bool has(string k) nothrow { return find(k) >= 0; }
-
-    /// Set a key on a private builder: existing keys keep their position.
-    void set(JStr k, Value v) nothrow
-    {
-        const i = find(k.s);
-        if (i >= 0)
+        immutable n = keys.length, m = ks.length;
+        Store st = st_;
+        if (st is null || st.used != n || st.keysBuf.length < n + m)
         {
-            vals[i] = v;
-            return;
+            immutable cap = (n + m) * 2 < 8 ? 8 : (n + m) * 2;
+            auto nst = new Store;
+            nst.keysBuf = new string[cap];
+            nst.valsBuf = new Value[cap];
+            nst.keysBuf[0 .. n] = keys[];
+            nst.valsBuf[0 .. n] = vals[];
+            nst.used = n;
+            st = nst;
         }
-        append(k, v);
+        st.keysBuf[n .. n + m] = ks[];
+        st.valsBuf[n .. n + m] = vs[];
+        st.used = n + m;
+        auto r = new JObject(st.keysBuf[0 .. n + m], st.valsBuf[0 .. n + m]);
+        r.st_ = st;
+        return r;
     }
 
-    /// As `set`, but scans linearly unless an index already exists.
-    void setScan(JStr k, Value v) nothrow
+    /// The value stored under `key`, or null if absent.
+    Value* get(const(char)[] key)
     {
-        const i = findScan(k.s);
-        if (i >= 0)
+        immutable i = find(key);
+        return i < 0 ? null : &vals[i];
+    }
+
+    /// Indices into `keys`/`vals` in ascending key order (code point order).
+    /// Computed on first use, then cached.
+    const(uint)[] sortedOrder() @trusted
+    {
+        if (!orderBuilt_)
         {
-            vals[i] = v;
-            return;
-        }
-        append(k, v);
-    }
-
-    /// Append a key known to be absent (private builders only).
-    void append(JStr k, Value v) nothrow
-    {
-        keys ~= k;
-        vals ~= v;
-        if (indexed)
-            index[k.s] = cast(int)(keys.length - 1);
-    }
-
-    /// Positions of the entries sorted by key (code point order); computed once.
-    const(uint)[] sortedOrder() nothrow
-    {
-        if (!ordered)
-        {
-            auto o = new uint[keys.length];
-            foreach (i, ref x; o)
-                x = cast(uint) i;
+            auto ord = iota(0u, cast(uint) keys.length).array;
             auto ks = keys;
-            if (o.length > 1)
-                o.sort!((a, b) => ks[a].s < ks[b].s);
-            order = o;
-            ordered = true;
+            sort!((a, b) => compareStrings(ks[a], ks[b]) < 0)(ord);
+            order_ = ord;
+            orderBuilt_ = true;
         }
-        return order;
+        return order_;
     }
 
-    /// Shallow private copy that can be extended with `set`/`append`.
-    JObj copy() nothrow
+    /// The keys in ascending order.
+    string[] sortedKeys()
     {
-        auto o = new JObj(keys.dup, vals.dup);
-        return o;
+        auto ord = sortedOrder();
+        auto r = new string[ord.length];
+        foreach (i, o; ord)
+            r[i] = keys[o];
+        return r;
     }
 }
 
-/// A JSON value (or, internally, an error marker). See the module comment.
-struct Value
+/// Append-only backing arrays shared by a chain of objects built with
+/// `JObject.appendDisjoint`, plus a key index covering all of them.
+private final class Store
 {
-    /// The kind of value.
-    Type type = Type.null_;
-    union
+    string[] keysBuf;
+    Value[] valsBuf;
+    size_t used; // members written so far
+    int[string] idx; // key -> position, for positions < indexed
+    size_t indexed;
+
+    void catchUp()
     {
-        /// Payload for `Type.number`.
-        double num;
-        /// Payload for `Type.string` and `Type.error` (the message).
-        JStr str;
-        /// Payload for `Type.array`.
-        JArr arr;
-        /// Payload for `Type.object`.
-        JObj obj;
-    }
-
-    /// The `null` value.
-    static Value makeNull() pure nothrow @trusted @nogc
-    {
-        Value v;
-        v.type = Type.null_;
-        v.num = 0;
-        return v;
-    }
-
-    /// A boolean.
-    static Value makeBool(bool b) pure nothrow @trusted @nogc
-    {
-        Value v;
-        v.type = b ? Type.true_ : Type.false_;
-        v.num = 0;
-        return v;
-    }
-
-    /// A number.
-    static Value makeNumber(double d) pure nothrow @trusted @nogc
-    {
-        Value v;
-        v.type = Type.number;
-        v.num = d;
-        return v;
-    }
-
-    /// A string value from UTF-8 text.
-    static Value makeString(string s) pure nothrow @trusted
-    {
-        Value v;
-        v.type = Type.string;
-        v.str = new JStr(s);
-        return v;
-    }
-
-    /// A string value sharing an existing heap string.
-    static Value makeString(JStr s) pure nothrow @trusted @nogc
-    {
-        Value v;
-        v.type = Type.string;
-        v.str = s;
-        return v;
-    }
-
-    /// An array value (takes ownership of `items`).
-    static Value makeArray(Value[] items) pure nothrow @trusted
-    {
-        Value v;
-        v.type = Type.array;
-        v.arr = new JArr(items);
-        return v;
-    }
-
-    /// An object value.
-    static Value makeObject(JObj o) pure nothrow @trusted @nogc
-    {
-        Value v;
-        v.type = Type.object;
-        v.obj = o;
-        return v;
-    }
-
-    /// An error marker carrying a message.
-    static Value makeError(string msg) pure nothrow @trusted
-    {
-        Value v;
-        v.type = Type.error;
-        v.str = new JStr(msg);
-        return v;
-    }
-
-    /// jq truthiness: everything except `false` and `null`.
-    bool truthy() const pure nothrow @safe @nogc { return type >= Type.true_; }
-
-    /// True for the internal error marker.
-    bool isError() const pure nothrow @safe @nogc { return type == Type.error; }
-
-    /// The string contents (valid only for strings / errors).
-    string text() const pure nothrow @trusted @nogc { return str.s; }
-
-    /// The array elements (valid only for arrays).
-    Value[] items() pure nothrow @trusted @nogc { return arr.items; }
-}
-
-/// jq's name for the type of `v` ("null", "boolean", "number", ...).
-string typeName(Type t) pure nothrow @safe @nogc
-{
-    final switch (t)
-    {
-    case Type.null_: return "null";
-    case Type.false_:
-    case Type.true_: return "boolean";
-    case Type.number: return "number";
-    case Type.string: return "string";
-    case Type.array: return "array";
-    case Type.object: return "object";
-    case Type.error: return "error";
+        for (; indexed < used; ++indexed)
+            idx[keysBuf[indexed]] = cast(int) indexed;
     }
 }
 
-/// Three-way comparison of two byte strings.
-int compareStrings(string a, string b) pure nothrow @trusted @nogc
+/// Accumulates members for a new `JObject`. A repeated key keeps its first
+/// position but takes the last value.
+struct ObjectBuilder
 {
-    const n = a.length < b.length ? a.length : b.length;
-    const c = n == 0 ? 0 : memcmp(a.ptr, b.ptr, n);
-    if (c != 0)
-        return c < 0 ? -1 : 1;
+    private string[] keys_;
+    private Value[] vals_;
+    private size_t n_;
+    private int[string] index_;
+
+    /// Reserves room for `n` members.
+    this(size_t n)
+    {
+        keys_ = new string[n];
+        vals_ = new Value[n];
+    }
+
+    /// Number of distinct keys so far.
+    size_t length() const pure nothrow @nogc @safe
+    {
+        return n_;
+    }
+
+    /// Sets `key` to `v`.
+    void set(string key, Value v)
+    {
+        if (n_ <= 12)
+        {
+            foreach (i; 0 .. n_)
+                if (keys_[i] == key)
+                {
+                    vals_[i] = v;
+                    return;
+                }
+        }
+        else
+        {
+            if (index_ is null)
+                foreach (i; 0 .. n_)
+                    index_[keys_[i]] = cast(int) i;
+            if (auto p = key in index_)
+            {
+                vals_[*p] = v;
+                return;
+            }
+        }
+        if (n_ == keys_.length)
+        {
+            immutable cap = n_ < 4 ? 4 : n_ * 2;
+            keys_.length = cap;
+            vals_.length = cap;
+        }
+        keys_[n_] = key;
+        vals_[n_] = v;
+        if (index_ !is null)
+            index_[key] = cast(int) n_;
+        ++n_;
+    }
+
+    /// The finished object. The builder must not be used afterwards.
+    JObject build()
+    {
+        return new JObject(keys_[0 .. n_], vals_[0 .. n_]);
+    }
+}
+
+/// Compares two strings by code point (equivalently by UTF-8 bytes).
+int compareStrings(const(char)[] a, const(char)[] b) @trusted pure nothrow @nogc
+{
+    immutable n = a.length < b.length ? a.length : b.length;
+    if (n != 0)
+    {
+        immutable c = memcmp(a.ptr, b.ptr, n);
+        if (c != 0)
+            return c < 0 ? -1 : 1;
+    }
     return a.length < b.length ? -1 : (a.length > b.length ? 1 : 0);
 }
 
-/// Total order over values (null < false < true < numbers < strings < arrays < objects).
-int compare(Value a, Value b) nothrow
+/// Compares two arrays of values lexicographically (a proper prefix sorts first).
+int compareArrays(const(Value)[] a, const(Value)[] b)
 {
-    if (a.type != b.type)
+    immutable n = a.length < b.length ? a.length : b.length;
+    foreach (i; 0 .. n)
     {
-        return a.type < b.type ? -1 : 1;
+        immutable c = compare(cast() a[i], cast() b[i]);
+        if (c != 0)
+            return c;
     }
-    final switch (a.type)
+    return a.length < b.length ? -1 : (a.length > b.length ? 1 : 0);
+}
+
+/// jq's total order over values; returns a negative, zero or positive int.
+int compare(Value a, Value b)
+{
+    if (a.kind != b.kind)
+        return a.kind < b.kind ? -1 : 1;
+    final switch (a.kind)
     {
-    case Type.null_:
-    case Type.false_:
-    case Type.true_:
-    case Type.error:
+    case Kind.Null:
+    case Kind.False:
+    case Kind.True:
         return 0;
-    case Type.number:
+    case Kind.Number:
         return a.num < b.num ? -1 : (a.num > b.num ? 1 : 0);
-    case Type.string:
-        if (a.str is b.str)
-            return 0;
-        return compareStrings(a.str.s, b.str.s);
-    case Type.array:
+    case Kind.String:
+        return compareStrings(a.str, b.str);
+    case Kind.Array:
+        return compareArrays(a.arr, b.arr);
+    case Kind.Object:
         {
-            if (a.arr is b.arr)
+            auto x = a.obj, y = b.obj;
+            if (x is y)
                 return 0;
-            auto x = a.arr.items, y = b.arr.items;
-            const n = x.length < y.length ? x.length : y.length;
+            auto ox = x.sortedOrder(), oy = y.sortedOrder();
+            immutable n = ox.length < oy.length ? ox.length : oy.length;
             foreach (i; 0 .. n)
             {
-                const c = compare(x[i], y[i]);
+                immutable c = compareStrings(x.keys[ox[i]], y.keys[oy[i]]);
                 if (c != 0)
                     return c;
             }
-            return x.length < y.length ? -1 : (x.length > y.length ? 1 : 0);
-        }
-    case Type.object:
-        {
-            if (a.obj is b.obj)
-                return 0;
-            auto oa = a.obj, ob = b.obj;
-            auto sa = oa.sortedOrder, sb = ob.sortedOrder;
-            const n = sa.length < sb.length ? sa.length : sb.length;
+            if (ox.length != oy.length)
+                return ox.length < oy.length ? -1 : 1;
             foreach (i; 0 .. n)
             {
-                const c = compareStrings(oa.keys[sa[i]].s, ob.keys[sb[i]].s);
-                if (c != 0)
-                    return c;
-            }
-            if (sa.length != sb.length)
-                return sa.length < sb.length ? -1 : 1;
-            foreach (i; 0 .. n)
-            {
-                const c = compare(oa.vals[sa[i]], ob.vals[sb[i]]);
+                immutable c = compare(x.vals[ox[i]], y.vals[oy[i]]);
                 if (c != 0)
                     return c;
             }
@@ -365,8 +406,106 @@ int compare(Value a, Value b) nothrow
     }
 }
 
-/// Equality under the total order.
-bool equals(Value a, Value b) nothrow
+/// Equality: "compares equal under jq's order".
+bool equals(Value a, Value b)
 {
-    return compare(a, b) == 0;
+    if (a.kind != b.kind)
+        return false;
+    final switch (a.kind)
+    {
+    case Kind.Null:
+    case Kind.False:
+    case Kind.True:
+        return true;
+    case Kind.Number:
+        return a.num == b.num;
+    case Kind.String:
+        return a.str == b.str;
+    case Kind.Array:
+        {
+            if (a.arr.length != b.arr.length)
+                return false;
+            foreach (i; 0 .. a.arr.length)
+                if (!equals(a.arr[i], b.arr[i]))
+                    return false;
+            return true;
+        }
+    case Kind.Object:
+        {
+            auto x = a.obj, y = b.obj;
+            if (x is y)
+                return true;
+            if (x.length != y.length)
+                return false;
+            foreach (i; 0 .. x.length)
+            {
+                auto p = y.get(x.keys[i]);
+                if (p is null || !equals(x.vals[i], *p))
+                    return false;
+            }
+            return true;
+        }
+    }
+}
+
+version (unittest)
+{
+    private Value obj(string[] ks, Value[] vs)
+    {
+        return Value.makeObject(new JObject(ks, vs));
+    }
+
+    private Value num(double d)
+    {
+        return Value.makeNumber(d);
+    }
+
+    private Value str(string s)
+    {
+        return Value.makeString(s);
+    }
+}
+
+unittest
+{
+    // type order
+    Value[] ordered = [
+        Value.makeNull(), Value.makeBool(false), Value.makeBool(true), num(-1), num(0),
+        str(""), str("a"), str("ab"), str("b"), str("z"), str("é"),
+        Value.makeArray([]), Value.makeArray([num(1)]), Value.makeArray([num(1), num(0)]),
+        Value.makeArray([num(2)]), obj([], []), obj(["a"], [num(1)]), obj(["a"], [num(2)]),
+        obj(["b"], [num(0)]),
+    ];
+    foreach (i; 0 .. ordered.length)
+        foreach (j; 0 .. ordered.length)
+        {
+            immutable c = compare(ordered[i], ordered[j]);
+            assert((c < 0) == (i < j) && (c == 0) == (i == j), "order");
+        }
+}
+
+unittest
+{
+    // equality ignores object key order
+    assert(equals(obj(["a", "b"], [num(1), num(2)]), obj(["b", "a"], [num(2), num(1)])));
+    assert(!equals(obj(["a"], [num(1)]), obj(["a"], [num(2)])));
+    assert(compare(obj(["a", "b"], [num(1), num(2)]), obj(["b", "a"], [num(2), num(1)])) == 0);
+}
+
+unittest
+{
+    ObjectBuilder b;
+    b.set("a", num(1));
+    b.set("b", num(2));
+    b.set("a", num(3));
+    auto o = b.build();
+    assert(o.keys == ["a", "b"] && o.vals[0].num == 3);
+    assert(o.find("b") == 1 && o.find("c") == -1);
+    // large object uses the hash index
+    ObjectBuilder big;
+    foreach (i; 0 .. 100)
+        big.set(cast(string)("k" ~ cast(char)('a' + i % 26) ~ cast(char)('a' + i / 26)), num(i));
+    auto bo = big.build();
+    assert(bo.length == 100 && bo.find("kba") == 1);
+    assert(bo.sortedKeys()[0] == "kaa");
 }

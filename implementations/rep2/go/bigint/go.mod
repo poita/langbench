@@ -1,3 +1,3 @@
-module github.com/peteralexander/bigint
+module example.com/bigint
 
-go 1.27
+go 1.27.1

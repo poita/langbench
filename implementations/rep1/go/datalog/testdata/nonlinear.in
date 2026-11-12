@@ -1,0 +1,4 @@
+link(1, 2). link(2, 3). link(3, 4). link(4, 5).
+link(X, Z) :- link(X, Y), link(Y, Z).
+?- link(1, X).
+?- link(X, 5).

@@ -4,23 +4,40 @@
  * ---
  * import toml;
  *
- * auto doc = parseToml("name = \"Tom\"\n[db]\nports = [8001, 8002]\n");
- * assert(doc["name"].str == "Tom");
- * assert(doc["db"]["ports"][1].integer == 8002);
- *
- * string json = toTaggedJson(doc);   // toml-test tagged JSON
- * string back = toToml(fromTaggedJson(json)); // canonical TOML
+ * auto doc = parseToml(`name = "Tom"
+ * [db]
+ * ports = [8001, 8002]`);
+ * assert(doc["name"].text == "Tom");
+ * assert(doc["db"]["ports"].items.length == 2);
+ * writeln(toTaggedJson(doc));   // the toml-test tagged-JSON form
+ * writeln(toToml(doc));         // canonical TOML
  * ---
  *
- * Modules: `toml.decoder` (parsing), `toml.node` (the tree),
- * `toml.jsonwriter` / `toml.jsonreader` (tagged JSON), `toml.encoder`
- * (canonical TOML output), `toml.floatfmt`, `toml.utf8`, `toml.errors`.
+ * Modules:
+ * $(UL
+ *   $(LI `toml.node`     - the document tree (`Node`) and `TomlException`)
+ *   $(LI `toml.decoder`  - `parseToml`)
+ *   $(LI `toml.encoder`  - `toToml`)
+ *   $(LI `toml.json`     - `toTaggedJson` / `fromTaggedJson`)
+ *   $(LI `toml.convert`  - whole-document helpers used by the CLI)
+ *   $(LI `toml.datetime`, `toml.numbers`, `toml.utf8` - scalar helpers)
+ * )
  */
 module toml;
 
+public import toml.convert;
+public import toml.datetime;
 public import toml.decoder;
 public import toml.encoder;
-public import toml.errors;
-public import toml.jsonreader;
-public import toml.jsonwriter;
+public import toml.json;
 public import toml.node;
+public import toml.numbers;
+public import toml.utf8;
+
+unittest
+{
+    auto doc = parseToml("name = \"Tom\"\n[db]\nports = [8001, 8002]\n");
+    assert(doc["name"].text == "Tom");
+    assert(doc["db"]["ports"].items.length == 2);
+    assert(toToml(doc) == "name = \"Tom\"\n\n[db]\nports = [8001, 8002]\n");
+}

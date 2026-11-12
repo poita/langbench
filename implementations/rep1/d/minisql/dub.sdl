@@ -1,29 +1,19 @@
 name "minisql"
-description "A small in-memory relational database that executes a subset of SQL."
-authors "minisql contributors"
-copyright "Copyright © minisql contributors"
+description "A small in-memory relational database that executes a subset of SQL"
+authors "minisql authors"
+copyright "Copyright © minisql authors"
 license "MIT"
 
-# `dub build` builds the command-line tool (the first configuration).
+// The first configuration is what `dub build` produces: the command-line tool.
+// Dependants of this package automatically get the "library" configuration.
 configuration "cli" {
     targetType "executable"
     targetName "minisql"
     targetPath "bin"
-    sourcePaths "source" "app"
-    importPaths "source"
-    mainSourceFile "app/main.d"
+    mainSourceFile "source/app.d"
 }
 
-# Use `--config=library` to build just the reusable library.
 configuration "library" {
     targetType "library"
-    sourcePaths "source"
-    importPaths "source"
-}
-
-# `dub test` runs the unit tests in tests/ against the library sources.
-configuration "unittest" {
-    targetType "library"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
+    excludedSourceFiles "source/app.d"
 }

@@ -1,65 +1,100 @@
-/// Block-level syntax tree: node kinds and the `Document` container.
+/**
+ * Block-level syntax tree produced by `commonmark.block.parseBlocks`.
+ *
+ * The tree consists of `Block` nodes. Containers (document, block quote, list,
+ * list item) own child blocks; leaves (paragraph, heading, thematic break,
+ * code block) carry text. Inline content is not part of this tree: the raw text
+ * of paragraphs and headings is parsed lazily by `commonmark.inline`.
+ */
 module commonmark.ast;
 
 /// The kinds of block nodes.
 enum BlockKind : ubyte
 {
+    /// The root of every tree.
     document,
+    /// A `>` block quote.
     blockQuote,
+    /// A bullet or ordered list; contains only `item` blocks.
     list,
+    /// A list item.
     item,
+    /// A paragraph; `Block.text` is its raw inline content.
     paragraph,
+    /// An ATX or setext heading; `Block.text` is its raw inline content.
     heading,
+    /// A thematic break (`***`, `---`, `___`).
     thematicBreak,
-    indentedCode,
-    fencedCode,
+    /// An indented or fenced code block; `Block.text` is the literal content.
+    codeBlock,
 }
 
-/// One block node. Blocks live in `Document.blocks` and refer to each other
-/// by index; index 0 is the document root and also serves as "none" in the
-/// child/sibling links.
-struct Block
+/// A node of the block tree. Children are linked as a doubly linked list.
+final class Block
 {
+    /// What kind of block this is.
     BlockKind kind;
-    /// Still accepting lines (only meaningful while parsing).
-    bool open = true;
-    /// Whether the last line of this block was blank (list tightness).
-    bool lastLineBlank;
-    /// Memo flag for the tightness computation.
-    bool lastLineChecked;
-    /// List: ordered list?
-    bool ordered;
-    /// List: tight (items rendered without paragraph tags)?
-    bool tight = true;
-    /// List: bullet character or ordered delimiter (`.` / `)`).
-    char marker;
-    /// Heading level (1-6).
-    ubyte level;
-    /// Fenced code: fence character.
-    char fenceChar;
-    /// Fenced code: fence length.
-    int fenceLength;
-    /// Fenced code: indentation of the opening fence.
-    int fenceOffset;
-    /// List item: indentation of the marker.
-    int markerOffset;
-    /// List item: columns needed to continue the item.
-    int padding;
-    /// Ordered list: start number.
-    int start;
-    /// 1-based number of the line on which the block started.
-    int line;
-    /// Tree links; 0 means "none".
-    int parent, firstChild, lastChild, next, prev;
-    /// Raw text of paragraphs, headings and code blocks.
-    char[] content;
-    /// Fenced code: decoded info string.
-    string info;
-}
+    /// Parent block, or `null` for the document.
+    Block parent;
+    /// First and last child (containers only).
+    Block firstChild, lastChild;
+    /// Previous and next sibling.
+    Block prev, next;
 
-/// The result of parsing the block structure of a document.
-struct Document
-{
-    /// All blocks; `blocks[0]` is the document.
-    Block[] blocks;
+    /// Leaf content: raw inline text (paragraph, heading) or literal code.
+    string text;
+
+    // --- list and item data ---
+    /// List: true for an ordered list.
+    bool ordered;
+    /// List/item: the bullet character, or `.` / `)` for ordered lists.
+    char delimiter;
+    /// List: the start number of an ordered list.
+    int start = 1;
+    /// List: true if the list is tight (no blank lines between its blocks).
+    bool tight;
+    /// Item: indentation of the marker.
+    int markerOffset;
+    /// Item: columns from the marker offset to the item's content.
+    int padding;
+
+    // --- heading data ---
+    /// Heading level (1 to 6).
+    int level;
+
+    // --- code block data ---
+    /// True for a fenced code block.
+    bool fenced;
+    /// Fenced code: the info string, with entities and escapes decoded.
+    string info;
+
+    // --- parser bookkeeping (not meaningful once parsing is done) ---
+    package bool open = true;
+    package bool lastLineBlank;
+    package bool lastLineChecked;
+    package bool setext;
+    package int startLine;
+    package char fenceChar;
+    package int fenceLength;
+    package int fenceOffset;
+    package char[] buf;
+
+    /// Creates a block of the given kind.
+    this(BlockKind kind) @safe pure nothrow
+    {
+        this.kind = kind;
+    }
+
+    /// Appends `child` as the last child of this block.
+    package void appendChild(Block child) @safe pure nothrow @nogc
+    {
+        child.parent = this;
+        child.prev = lastChild;
+        child.next = null;
+        if (lastChild !is null)
+            lastChild.next = child;
+        else
+            firstChild = child;
+        lastChild = child;
+    }
 }

@@ -1,286 +1,429 @@
-/// The DEFLATE decoder proper.
+/**
+ * The DEFLATE decoder (RFC 1951).
+ *
+ * Decoding is a single pass over the input with table-driven Huffman
+ * decoding (see `inflate.huffman`). Back-references copy from the output
+ * already produced, so the whole output is held in memory.
+ */
 module inflate.decoder;
 
-import inflate.bitreader;
-import inflate.errors;
-import inflate.huffman;
-import inflate.tables;
+import inflate.bitreader : BitReader;
+import inflate.constants : codeLengthOrder, distBase, distExtra, endOfBlock, fixedDistLengths,
+    fixedLitLenLengths, lengthBase, lengthExtra, maxDistSymbol, maxLitLenSymbol;
+import inflate.error : fail, InflateError, InflateException;
+import inflate.huffman : CodePolicy, HuffmanTable;
 
 /**
- * Decompresses a raw DEFLATE stream (RFC 1951, no zlib/gzip wrapper).
- *
- * The stream must end exactly at the end of the final block, apart from the
- * unused bits of its last byte; any further whole byte is an error.
+ * Decompress a raw DEFLATE stream.
  *
  * Params:
- *   data     = the compressed bytes
- *   sizeHint = expected decompressed size, used to pre-size the output buffer
- *
- * Returns: the decompressed bytes.
- *
- * Throws: `InflateException` if the stream is malformed.
+ *     data      = the compressed stream (no zlib/gzip wrapper)
+ *     maxOutput = fail with `InflateError.outputLimitExceeded` rather than
+ *                 produce more than this many bytes
+ * Returns: the decompressed bytes
+ * Throws: `InflateException` if the stream is malformed, truncated, or has
+ *         whole bytes after the final block.
  */
-ubyte[] decompress(const(ubyte)[] data, size_t sizeHint = 0) @safe
+ubyte[] decompress(scope const(ubyte)[] data, size_t maxOutput = size_t.max) @safe pure
 {
-    auto inflater = Inflater(sizeHint);
-    return inflater.run(data);
-}
-
-///
-@safe unittest
-{
-    // One stored block holding the byte 0x41.
-    immutable ubyte[] stream = [0x01, 0x01, 0x00, 0xfe, 0xff, 0x41];
-    assert(decompress(stream) == [0x41]);
+    auto d = Decoder(data, maxOutput);
+    return d.run();
 }
 
 /**
- * Non-throwing variant of `decompress`.
- *
- * Returns: `true` and sets `result` on success; `false` and sets `error` if
- * the stream is malformed.
+ * Like `decompress`, but returns `false` instead of throwing when the stream is
+ * malformed. `result` is only meaningful when `true` is returned.
  */
-bool tryDecompress(const(ubyte)[] data, out ubyte[] result, out InflateError error) @safe
+bool tryDecompress(scope const(ubyte)[] data, out ubyte[] result, size_t maxOutput = size_t.max) @safe pure
 {
     try
     {
-        result = decompress(data);
+        result = decompress(data, maxOutput);
         return true;
     }
-    catch (InflateException e)
+    catch (InflateException)
     {
-        error = e.error;
         return false;
     }
 }
 
-/**
- * A decoder with reusable Huffman table storage.
- *
- * Decoding many streams with one `Inflater` avoids reallocating the tables.
- */
-struct Inflater
+private struct Decoder
 {
-    private HuffmanTable lit, dist, clen;
-    private HuffmanTable fixedLit, fixedDist;
-    private bool fixedReady;
-    private ubyte[] output;
-    private size_t outLen;
+    BitReader br;
+    size_t maxOutput;
+    ubyte[] outBuf;
+    size_t outLen;
+    HuffmanTable litTable, distTable, clTable;
+    bool fixedReady;
+    HuffmanTable fixedLit, fixedDist;
 
-    /// Creates a decoder; `sizeHint` is the expected output size (0 = unknown).
-    this(size_t sizeHint) @safe
+    this(const(ubyte)[] data, size_t maxOutput) @safe pure
     {
-        lit = HuffmanTable(litRootBits, 2048);
-        dist = HuffmanTable(distRootBits, 1024);
-        clen = HuffmanTable(clenRootBits, 1 << clenRootBits);
-        output = new ubyte[sizeHint ? sizeHint : 1 << 16];
+        br = BitReader(data);
+        this.maxOutput = maxOutput;
+        litTable = HuffmanTable(10, 288);
+        distTable = HuffmanTable(8, 32);
+        clTable = HuffmanTable(7, 19);
+        outBuf = new ubyte[data.length < (size_t.max >> 4) ? data.length * 4 + 4096 : 4096];
     }
 
-    /// Decodes one complete stream; see `decompress`. The decoder may be reused afterwards.
-    ubyte[] run(const(ubyte)[] data) @safe
+    ubyte[] run() @safe pure
     {
-        auto br = BitReader(data);
-        outLen = 0;
         bool last;
         do
         {
-            immutable header = br.take(3);
-            last = (header & 1) != 0;
-            final switch (header >> 1)
+            br.refill();
+            last = br.bits(1) != 0;
+            switch (br.bits(2))
             {
-            case 0: storedBlock(br); break;
-            case 1: fixedBlock(br); break;
-            case 2: dynamicBlock(br); break;
-            case 3: throw new InflateException(InflateError.invalidBlockType);
+            case 0:
+                storedBlock();
+                break;
+            case 1:
+                if (!fixedReady)
+                {
+                    fixedLit = HuffmanTable(9, 288);
+                    fixedLit.build(fixedLitLenLengths[], CodePolicy.complete);
+                    fixedDist = HuffmanTable(5, 32);
+                    fixedDist.build(fixedDistLengths[], CodePolicy.complete);
+                    fixedReady = true;
+                }
+                codedBlock(fixedLit, fixedDist);
+                break;
+            case 2:
+                dynamicTables();
+                codedBlock(litTable, distTable);
+                break;
+            default:
+                fail(InflateError.invalidBlockType, "invalid block type 3");
             }
         }
         while (!last);
 
-        if (!br.atEnd)
-            throw new InflateException(InflateError.trailingData);
-        auto result = output[0 .. outLen];
-        output = null; // hand the buffer to the caller
-        return result;
+        if (br.hasUnconsumedBytes)
+            fail(InflateError.trailingData, "data after the final block");
+        if (outLen > maxOutput)
+            fail(InflateError.outputLimitExceeded, "output limit exceeded");
+        return outBuf[0 .. outLen];
     }
 
-    private enum litRootBits = 10;
-    private enum distRootBits = 8;
-    private enum clenRootBits = 7;
+    /// Make room for `extra` more output bytes.
+    void reserve(size_t extra) @safe pure
+    {
+        if (outLen > maxOutput || extra > maxOutput - outLen)
+            fail(InflateError.outputLimitExceeded, "output limit exceeded");
+        const need = outLen + extra;
+        if (need > outBuf.length)
+        {
+            size_t cap = outBuf.length * 2;
+            if (cap < need)
+                cap = need;
+            outBuf.length = cap;
+        }
+    }
 
-    private void storedBlock(ref BitReader br) @safe
+    void storedBlock() @safe pure
     {
         br.alignToByte();
         br.refill();
-        immutable len = br.take(16);
-        immutable nlen = br.take(16);
-        if ((len ^ nlen) != 0xFFFF)
-            throw new InflateException(InflateError.storedLengthMismatch);
-        auto bytes = br.takeBytes(len);
+        const len = br.bits(16);
+        const nlen = br.bits(16);
+        if ((len ^ nlen) != 0xffff)
+            fail(InflateError.storedLengthMismatch, "stored block LEN/NLEN mismatch");
+        const src = br.takeBytes(len);
         reserve(len);
-        output[outLen .. outLen + len] = bytes[];
+        outBuf[outLen .. outLen + len] = src[];
         outLen += len;
     }
 
-    private void reserve(size_t extra) @safe
+    void dynamicTables() @safe pure
     {
-        output = grow(output, outLen, extra);
-    }
-
-    private void fixedBlock(ref BitReader br) @safe
-    {
-        if (!fixedReady)
-        {
-            ubyte[fixedLitSymbols] ll = void;
-            ll[0 .. 144] = 8;
-            ll[144 .. 256] = 9;
-            ll[256 .. 280] = 7;
-            ll[280 .. 288] = 8;
-            ubyte[fixedDistSymbols] dl = 5;
-            fixedLit = HuffmanTable(litRootBits, 2048);
-            fixedDist = HuffmanTable(distRootBits, 1024);
-            fixedLit.build(ll[], Completeness.complete);
-            fixedDist.build(dl[], Completeness.complete);
-            fixedReady = true;
-        }
-        decodeSymbols(br, fixedLit, fixedDist);
-    }
-
-    private void dynamicBlock(ref BitReader br) @safe
-    {
-        immutable nlit = br.take(5) + 257;
-        immutable ndist = br.take(5) + 1;
-        immutable nclen = br.take(4) + 4;
-        if (nlit > 286 || ndist > 30)
-            throw new InflateException(InflateError.tooManyCodes);
+        const hlit = br.readBits(5);
+        const hdist = br.readBits(5);
+        const hclen = br.readBits(4);
+        if (hlit > 29 || hdist > 29)
+            fail(InflateError.tooManyCodes, "too many length or distance codes");
 
         ubyte[19] clLens;
-        foreach (i; 0 .. nclen)
-            clLens[codeLengthOrder[i]] = cast(ubyte) br.take(3);
-        clen.build(clLens[], Completeness.complete);
+        foreach (i; 0 .. hclen + 4)
+            clLens[codeLengthOrder[i]] = cast(ubyte) br.readBits(3);
+        clTable.build(clLens[], CodePolicy.complete);
 
-        immutable total = nlit + ndist;
+        const nlit = hlit + 257;
+        const total = nlit + hdist + 1;
         ubyte[286 + 30] lens;
-        uint n = 0;
-        while (n < total)
+        uint i = 0;
+        while (i < total)
         {
             br.refill();
-            immutable e = clen.entries[br.peek(clenRootBits)];
-            if (e == 0)
-                throw new InflateException(InflateError.invalidCode);
-            br.drop(e & 0xFF);
-            immutable sym = e >> 16;
+            const sym = clTable.decode(br);
             if (sym < 16)
             {
-                lens[n++] = cast(ubyte) sym;
+                lens[i++] = cast(ubyte) sym;
                 continue;
             }
             ubyte value = 0;
-            uint repeat;
+            uint rep;
             if (sym == 16)
             {
-                if (n == 0)
-                    throw new InflateException(InflateError.repeatWithoutPrevious);
-                value = lens[n - 1];
-                repeat = 3 + br.take(2);
+                if (i == 0)
+                    fail(InflateError.repeatWithoutPrevious, "length repeat with no previous length");
+                value = lens[i - 1];
+                rep = 3 + br.bits(2);
             }
             else if (sym == 17)
-                repeat = 3 + br.take(3);
+                rep = 3 + br.bits(3);
             else
-                repeat = 11 + br.take(7);
-            if (repeat > total - n)
-                throw new InflateException(InflateError.repeatOverflow);
-            lens[n .. n + repeat] = value;
-            n += repeat;
+                rep = 11 + br.bits(7);
+            if (rep > total - i)
+                fail(InflateError.repeatOverflow, "length repeat overflows the length list");
+            lens[i .. i + rep] = value;
+            i += rep;
         }
 
-        if (lens[256] == 0)
-            throw new InflateException(InflateError.missingEndOfBlock);
-        lit.build(lens[0 .. nlit], Completeness.orSingle);
-        dist.build(lens[nlit .. total], Completeness.orSingleOrEmpty);
-        decodeSymbols(br, lit, dist);
+        if (lens[endOfBlock] == 0)
+            fail(InflateError.missingEndOfBlock, "no code for the end-of-block symbol");
+        litTable.build(lens[0 .. nlit], CodePolicy.litLen);
+        distTable.build(lens[nlit .. total], CodePolicy.distance);
     }
 
-    /// Decodes literal/length and distance symbols up to the end-of-block code.
-    private void decodeSymbols(ref BitReader brRef, ref const HuffmanTable litTab,
-        ref const HuffmanTable distTab) @safe
+    void codedBlock(ref const HuffmanTable lit, ref const HuffmanTable dist) @safe pure
     {
-        // Work on local copies so the hot state lives in registers.
-        auto br = brRef;
-        auto o = output;
-        size_t n = outLen;
-
         for (;;)
         {
-            br.refill(); // >= 56 bits unless the input is nearly exhausted
-            immutable sym = decodeSymbol(br, litTab);
+            br.refill(); // >= 56 bits: enough for a whole length/distance pair (<= 48)
+            const sym = lit.decode(br);
             if (sym < 256)
             {
-                if (n == o.length)
-                    o = grow(o, n, 1);
-                o[n++] = cast(ubyte) sym;
+                if (outLen == outBuf.length)
+                    reserve(1);
+                outBuf[outLen++] = cast(ubyte) sym;
                 continue;
             }
-            if (sym == 256)
-                break;
-            if (sym > 285)
-                throw new InflateException(InflateError.invalidSymbol);
+            if (sym == endOfBlock)
+                return;
+            if (sym > maxLitLenSymbol)
+                fail(InflateError.invalidSymbol, "invalid literal/length symbol");
 
-            immutable ls = sym - 257;
-            immutable lextra = lengthExtra[ls];
-            immutable length = lengthBase[ls] + br.peek(lextra);
-            br.drop(lextra);
+            const li = sym - 257;
+            const length = lengthBase[li] + br.bits(lengthExtra[li]);
 
-            immutable ds = decodeSymbol(br, distTab);
-            if (ds > 29)
-                throw new InflateException(InflateError.invalidSymbol);
-            immutable dextra = distExtra[ds];
-            immutable distance = distBase[ds] + br.peek(dextra);
-            br.drop(dextra);
+            // With no distance codes every lookup fails; report that distinctly.
+            const dsym = dist.decode(br);
+            if (dsym > maxDistSymbol)
+                fail(InflateError.invalidSymbol, "invalid distance symbol");
+            const distance = distBase[dsym] + br.bits(distExtra[dsym]);
+            if (distance > outLen)
+                fail(InflateError.distanceTooFar, "distance reaches before start of output");
 
-            if (distance > n)
-                throw new InflateException(InflateError.distanceTooFar);
-            if (length > o.length - n)
-                o = grow(o, n, length);
+            if (outLen + length > outBuf.length)
+                reserve(length);
+            copyMatch(distance, length);
+        }
+    }
 
-            if (distance >= length)
-                o[n .. n + length] = o[n - distance .. n - distance + length];
-            else
-                foreach (i; n .. n + length)
-                    o[i] = o[i - distance];
-            n += length;
+    void copyMatch(size_t distance, size_t length) @trusted pure nothrow @nogc
+    {
+        ubyte* dst = outBuf.ptr + outLen;
+        const(ubyte)* src = dst - distance;
+        outLen += length;
+        if (distance >= length)
+        {
+            import core.stdc.string : memcpy;
+
+            memcpy(dst, src, length);
+        }
+        else if (distance == 1)
+        {
+            dst[0 .. length] = *src;
+        }
+        else
+        {
+            foreach (i; 0 .. length)
+                dst[i] = src[i];
+        }
+    }
+}
+
+version (unittest)
+{
+    import inflate.hex : fromHex;
+    import std.exception : collectException;
+
+    private ubyte[] run(string hex) @safe pure
+    {
+        return decompress(fromHex(hex));
+    }
+
+    private InflateError errorOf(string hex) @safe pure
+    {
+        auto e = collectException!InflateException(run(hex));
+        assert(e !is null, "expected an error for " ~ hex);
+        return e.kind;
+    }
+}
+
+// Examples from the specification.
+@safe pure unittest
+{
+    assert(run("0300") == []);
+    assert(run("010100feff41") == [0x41]);
+    assert(run("4b4c4a862000") == [cast(ubyte) 97, 98, 99, 97, 98, 99, 97, 98, 99]);
+    assert(errorOf("030200") == InflateError.distanceTooFar);
+}
+
+@safe pure unittest
+{
+    // Stored blocks: empty, LEN 0, multiple blocks.
+    assert(run("010000ffff") == []);
+    assert(run("000000ffff" ~ "010200fdff4142") == [0x41, 0x42]);
+    // Non-zero discarded bits before LEN are ignored.
+    assert(run("f9" ~ "0100feff41") == [0x41]);
+}
+
+@safe pure unittest
+{
+    // Errors.
+    assert(errorOf("") == InflateError.truncated);
+    assert(errorOf("00") == InflateError.truncated);
+    assert(errorOf("07") == InflateError.invalidBlockType);
+    assert(errorOf("010100ffff41") == InflateError.storedLengthMismatch);
+    assert(errorOf("010100feff") == InflateError.truncated);
+}
+
+@safe pure unittest
+{
+    // Trailing whole bytes are rejected; spare bits in the last byte are not.
+    assert(errorOf("030000") == InflateError.trailingData);
+    assert(run("03fc") == []); // spare bits are not checked
+    assert(errorOf("03") == InflateError.truncated);
+}
+
+@safe pure unittest
+{
+    // maxOutput is honoured.
+    auto d = fromHex("010300fcff414243");
+    assert(decompress(d, 3) == [0x41, 0x42, 0x43]);
+    auto e = collectException!InflateException(decompress(d, 2));
+    assert(e !is null && e.kind == InflateError.outputLimitExceeded);
+    ubyte[] r;
+    assert(tryDecompress(d, r) && r.length == 3);
+    assert(!tryDecompress(fromHex("07"), r));
+}
+
+@safe pure unittest
+{
+    // Fixed block: 'a', then length 258 at distance 1 via symbol 285, then end of block.
+    // Hand-encoded with a tiny bit writer.
+    BitWriter w;
+    w.put(1, 1);
+    w.put(1, 2);
+    w.code(0x30 + 'a', 8); // literals 0..143: 00110000 + sym
+    w.code(0xc0 + (285 - 280), 8); // 280..287: 11000000 + (sym-280)
+    w.code(0, 5); // distance symbol 0
+    w.code(0, 7); // end of block (symbol 256)
+    auto out_ = decompress(w.bytes);
+    assert(out_.length == 259);
+    foreach (b; out_)
+        assert(b == 'a');
+}
+
+// Dynamic-Huffman streams produced by zlib (level 9, raw deflate).
+@safe pure unittest
+{
+    import std.array : replicate;
+    import std.string : representation;
+
+    const text = (
+        "the quick brown fox jumps over the lazy dog. ".replicate(6)
+        ~ "pack my box with five dozen liquor jugs\n").representation.dup;
+    assert(text.length == 310);
+
+    // Default strategy: literals and back-references.
+    assert(run("ddcbc91180201044d1bb517404e6043a020a0cb2a810bd5386e1b1ebbfae967036b71cd0"
+        ~ "99ef888d1fec2da402be28a34af66a74ac6ce66ffd1a27252e746841b7ab169bbb48d2a008efcec659bea64c2f") == text);
+
+    // A run of 1000 'a': dynamic or fixed block with long overlapping copies.
+    assert(run("4b4c1c05a360140c770000") == 'a'.repeatUbyte(1000));
+
+    // Truncating the dynamic stream anywhere is an error, never a crash.
+    auto full = fromHex("ddcbc91180201044d1bb517404e6043a020a0cb2a810bd5386e1b1ebbfae967036b71cd0"
+        ~ "99ef888d1fec2da402be28a34af66a74ac6ce66ffd1a27252e746841b7ab169bbb48d2a008efcec659bea64c2f");
+    foreach (n; 0 .. full.length)
+    {
+        ubyte[] r;
+        // Prefixes may rarely be valid streams, but must never throw anything else.
+        cast(void) tryDecompress(full[0 .. n], r);
+    }
+    // Appending a byte makes it trailing data.
+    auto e = collectException!InflateException(decompress(full ~ 0));
+    assert(e !is null && e.kind == InflateError.trailingData);
+}
+
+version (unittest)
+{
+    private ubyte[] repeatUbyte(char c, size_t n) @safe pure nothrow
+    {
+        auto r = new ubyte[n];
+        r[] = cast(ubyte) c;
+        return r;
+    }
+}
+
+// Hand-assembled dynamic blocks exercising the validity rules.
+@safe pure unittest
+{
+    // Build a dynamic header + body from explicit code-length-code lengths.
+    // Code-length alphabet: symbols 0 and 1 and 18 with lengths 1,2,2 is complete.
+    // Literal/length lengths: 256 -> 1 (end of block only), everything else 0;
+    // distance: none (one zero length). Then the block body is the single
+    // code '0' for end-of-block.
+    BitWriter w;
+    w.put(1, 1); // BFINAL
+    w.put(2, 2); // BTYPE = dynamic
+    w.put(0, 5); // HLIT = 0 -> 257 lengths
+    w.put(0, 5); // HDIST = 0 -> 1 length
+    w.put(14, 4); // HCLEN = 14 -> 18 entries (up to symbol 1 in the order)
+    // order: 16 17 18 0 8 7 9 6 10 5 11 4 12 3 13 2 14 1
+    foreach (sym; [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1])
+    {
+        // lengths: 18 -> 2, 0 -> 2, 1 -> 1 (complete: 1/4+1/4+1/2)
+        w.put(sym == 18 ? 2 : sym == 0 ? 2 : sym == 1 ? 1 : 0, 3);
+    }
+    // Canonical codes: len1: sym1='0'; len2: sym0='10', sym18='11'.
+    // lengths: 256 zeros-ish: 138 + 118 zeros, then a 1, then a zero (distance).
+    w.code(0b11, 2); w.put(138 - 11, 7); // 18: 138 zeros
+    w.code(0b11, 2); w.put(118 - 11, 7); // 18: 118 zeros (total 256)
+    w.code(0b0, 1); // length 1 for symbol 256
+    w.code(0b10, 2); // length 0 for the distance symbol
+    w.code(0b0, 1); // end-of-block
+    assert(decompress(w.bytes) == []);
+}
+
+version (unittest)
+{
+    struct BitWriter
+    {
+        ubyte[] bytes;
+        uint nbits;
+
+        /// Append `n` bits of `v`, LSB first.
+        void put(uint v, uint n) @safe pure
+        {
+            foreach (i; 0 .. n)
+            {
+                if (nbits % 8 == 0)
+                    bytes ~= 0;
+                bytes[$ - 1] |= cast(ubyte)(((v >> i) & 1) << (nbits % 8));
+                ++nbits;
+            }
         }
 
-        brRef = br;
-        output = o;
-        outLen = n;
+        /// Append an `n`-bit Huffman code, MSB first.
+        void code(uint c, uint n) @safe pure
+        {
+            foreach (i; 0 .. n)
+                put((c >> (n - 1 - i)) & 1, 1);
+        }
     }
-}
-
-/// Looks up and consumes one Huffman-coded symbol.
-pragma(inline, true)
-private uint decodeSymbol(ref BitReader br, ref const HuffmanTable t) @safe
-{
-    uint e = t.entries[br.peek(t.rootBits)];
-    if (e & linkFlag)
-    {
-        br.drop(t.rootBits);
-        e = t.entries[(e >> 16) + br.peek(e & 0xFF)];
-    }
-    if (e == 0)
-        throw new InflateException(InflateError.invalidCode);
-    br.drop(e & 0xFF);
-    return e >> 16;
-}
-
-/// Returns `buf` (or a larger copy) with room for `extra` more bytes after `used`.
-private ubyte[] grow(ubyte[] buf, size_t used, size_t extra) pure nothrow @safe
-{
-    immutable need = used + extra;
-    if (need <= buf.length)
-        return buf;
-    size_t newLen = buf.length * 2;
-    if (newLen < need)
-        newLen = need;
-    buf.length = newLen;
-    return buf;
 }

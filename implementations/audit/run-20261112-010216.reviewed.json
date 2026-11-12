@@ -1,0 +1,8 @@
+[
+ {
+  "agent": "rep2:haskell:buildsys",
+  "kind": "forbidden-path",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; sed -n 1,80p run_tests.py | head -120; ls ~/.cabal/packages 2>/dev/null; ls <root>/tools/haskell 2>/dev/null\"}",
+  "reason": "`ls <root>/tools/haskell 2>/dev/null`, after the agent saw the Haskell package store's path in its cabal config: the sandbox denies reading that directory (only tools/haskell/store is readable) and the command discarded the refusal message, so the transcript cannot show it. The ls printed nothing and the agent did not use the directory."
+ }
+]

@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "softfloat"
+version = "1.0.0"
+description = "Software IEEE-754 binary32 arithmetic (round-to-nearest-even) using only integer operations"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+softfloat = "softfloat.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

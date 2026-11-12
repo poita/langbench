@@ -1,5 +1,6 @@
 .dub/
-/regex
-/regex-test
-*.o
+regex
+regex-test-*
 *.a
+*.o
+dub.selections.json

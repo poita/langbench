@@ -6,73 +6,72 @@ import (
 	"strings"
 )
 
-// MaxComponent is the largest value accepted for a version component.
-const MaxComponent = 1000000
+// MaxComponent is the largest value accepted for a version component. It
+// keeps the arithmetic used to turn ranges into half-open intervals free of
+// overflow.
+const MaxComponent = 1<<31 - 1
 
-// Key is a Version packed into one integer that orders like the version
-// itself. Components use 21 bits each, so keys of the exclusive bounds that
-// ranges produce (a component of MaxComponent+1) still order correctly.
-type Key uint64
-
-const (
-	componentBits = 21
-	componentMask = 1<<componentBits - 1
-	// maxKey is above every key a real version can have.
-	maxKey = Key(^uint64(0))
-)
-
-// Version is a semantic version MAJOR.MINOR.PATCH (no prerelease or build
-// suffixes).
+// Version is a semantic version without prerelease or build metadata.
 type Version struct {
 	Major, Minor, Patch uint32
 }
 
-// ParseVersion parses "MAJOR.MINOR.PATCH". Each component must be a decimal
-// integer without leading zeros and at most MaxComponent.
+// Compare returns -1, 0 or +1 according to whether v is older than, equal
+// to or newer than w. Components are compared numerically, major first.
+func (v Version) Compare(w Version) int {
+	switch {
+	case v.Major != w.Major:
+		return cmp3(v.Major, w.Major)
+	case v.Minor != w.Minor:
+		return cmp3(v.Minor, w.Minor)
+	default:
+		return cmp3(v.Patch, w.Patch)
+	}
+}
+
+func cmp3(a, b uint32) int {
+	if a < b {
+		return -1
+	}
+	if a > b {
+		return 1
+	}
+	return 0
+}
+
+// Less reports whether v is older than w.
+func (v Version) Less(w Version) bool { return v.Compare(w) < 0 }
+
+// String formats v as MAJOR.MINOR.PATCH.
+func (v Version) String() string {
+	return strconv.FormatUint(uint64(v.Major), 10) + "." +
+		strconv.FormatUint(uint64(v.Minor), 10) + "." +
+		strconv.FormatUint(uint64(v.Patch), 10)
+}
+
+// next returns the smallest version strictly greater than v.
+func (v Version) next() Version { return Version{v.Major, v.Minor, v.Patch + 1} }
+
+// ParseVersion parses "MAJOR.MINOR.PATCH": three decimal integers without
+// leading zeros, each at most MaxComponent.
 func ParseVersion(s string) (Version, error) {
-	var parts [3]uint32
-	rest := s
-	for i := 0; i < 3; i++ {
-		var field string
-		if i < 2 {
-			j := strings.IndexByte(rest, '.')
-			if j < 0 {
-				return Version{}, fmt.Errorf("invalid version %q: want MAJOR.MINOR.PATCH", s)
-			}
-			field, rest = rest[:j], rest[j+1:]
-		} else {
-			field = rest
-		}
-		n, err := parseComponent(field)
+	parts := strings.Split(s, ".")
+	if len(parts) != 3 {
+		return Version{}, fmt.Errorf("invalid version %q: want MAJOR.MINOR.PATCH", s)
+	}
+	var c [3]uint32
+	for i, p := range parts {
+		n, err := parseNum(p)
 		if err != nil {
-			return Version{}, fmt.Errorf("invalid version %q: %w", s, err)
+			return Version{}, fmt.Errorf("invalid version %q: %v", s, err)
 		}
-		parts[i] = n
+		c[i] = n
 	}
-	return Version{parts[0], parts[1], parts[2]}, nil
+	return Version{c[0], c[1], c[2]}, nil
 }
 
-func parseComponent(f string) (uint32, error) {
-	if f == "" {
-		return 0, fmt.Errorf("empty component")
-	}
-	if len(f) > 1 && f[0] == '0' {
-		return 0, fmt.Errorf("component %q has a leading zero", f)
-	}
-	for i := 0; i < len(f); i++ {
-		if f[i] < '0' || f[i] > '9' {
-			return 0, fmt.Errorf("component %q is not a number", f)
-		}
-	}
-	n, err := strconv.ParseUint(f, 10, 32)
-	if err != nil || n > MaxComponent {
-		return 0, fmt.Errorf("component %q out of range (max %d)", f, MaxComponent)
-	}
-	return uint32(n), nil
-}
-
-// MustParseVersion is like ParseVersion but panics on error. It is intended
-// for tests and constants.
+// MustParseVersion is like ParseVersion but panics on error. It is meant for
+// literals in tests and examples.
 func MustParseVersion(s string) Version {
 	v, err := ParseVersion(s)
 	if err != nil {
@@ -81,37 +80,23 @@ func MustParseVersion(s string) Version {
 	return v
 }
 
-// Key returns the packed integer key of v.
-func (v Version) Key() Key {
-	return makeKey(uint64(v.Major), uint64(v.Minor), uint64(v.Patch))
-}
-
-func makeKey(major, minor, patch uint64) Key {
-	return Key(major<<(2*componentBits) | minor<<componentBits | patch)
-}
-
-// Compare returns -1, 0 or +1 as v is older than, equal to or newer than w,
-// comparing components numerically.
-func (v Version) Compare(w Version) int {
-	a, b := v.Key(), w.Key()
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
+func parseNum(s string) (uint32, error) {
+	if s == "" {
+		return 0, fmt.Errorf("empty number")
 	}
-	return 0
-}
-
-// String formats v as "MAJOR.MINOR.PATCH".
-func (v Version) String() string {
-	return string(v.appendTo(nil))
-}
-
-func (v Version) appendTo(b []byte) []byte {
-	b = strconv.AppendUint(b, uint64(v.Major), 10)
-	b = append(b, '.')
-	b = strconv.AppendUint(b, uint64(v.Minor), 10)
-	b = append(b, '.')
-	return strconv.AppendUint(b, uint64(v.Patch), 10)
+	if len(s) > 1 && s[0] == '0' {
+		return 0, fmt.Errorf("leading zero in %q", s)
+	}
+	var n uint64
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c < '0' || c > '9' {
+			return 0, fmt.Errorf("bad digit in %q", s)
+		}
+		n = n*10 + uint64(c-'0')
+		if n > MaxComponent {
+			return 0, fmt.Errorf("number %q too large", s)
+		}
+	}
+	return uint32(n), nil
 }

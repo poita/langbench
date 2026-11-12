@@ -1,0 +1,17 @@
+[package]
+name = "spreadsheet"
+version = "0.1.0"
+edition = "2021"
+description = "A small spreadsheet engine with eager, incremental recalculation"
+license = "MIT"
+readme = "README.md"
+keywords = ["spreadsheet", "formula", "recalculation"]
+categories = ["data-structures"]
+
+[lib]
+name = "spreadsheet"
+path = "src/lib.rs"
+
+[[bin]]
+name = "spreadsheet"
+path = "src/bin/spreadsheet.rs"

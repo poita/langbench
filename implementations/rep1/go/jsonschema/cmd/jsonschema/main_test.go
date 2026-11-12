@@ -2,65 +2,73 @@ package main
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-func runString(t *testing.T, in string) (string, string, error) {
-	t.Helper()
-	var out, warn bytes.Buffer
-	err := run(strings.NewReader(in), &out, &warn)
-	return out.String(), warn.String(), err
-}
-
-func TestRunExample(t *testing.T) {
-	out, _, err := runString(t, `{
-	  "schema": {"type": "integer", "minimum": 1},
-	  "tests": [
-	    {"description": "a positive integer", "data": 3},
-	    {"description": "zero", "data": 0},
-	    {"description": "a string", "data": "3"}
-	  ]}`)
-	if err != nil {
-		t.Fatal(err)
+// TestGolden runs every testdata/*.in through the command and compares its
+// output with the matching .out file.
+func TestGolden(t *testing.T) {
+	inputs, err := filepath.Glob("testdata/*.in")
+	if err != nil || len(inputs) == 0 {
+		t.Fatalf("no golden inputs found (%v)", err)
 	}
-	if want := "valid\ninvalid\ninvalid\n"; out != want {
-		t.Errorf("output %q, want %q", out, want)
-	}
-}
-
-func TestRunRemotesAndExtraMembers(t *testing.T) {
-	out, _, err := runString(t, `{
-	  "extra": [1,2,3],
-	  "schema": {"$id": "http://localhost:1234/a/root.json", "$ref": "int.json"},
-	  "remotes": {"http://localhost:1234/a/int.json": {"type": "integer"}},
-	  "tests": [{"description": "ok", "data": 1}, {"description": "bad", "data": "x"}]}`)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if out != "valid\ninvalid\n" {
-		t.Errorf("output %q", out)
+	for _, in := range inputs {
+		name := strings.TrimSuffix(filepath.Base(in), ".in")
+		t.Run(name, func(t *testing.T) {
+			input, err := os.ReadFile(in)
+			if err != nil {
+				t.Fatal(err)
+			}
+			want, err := os.ReadFile(strings.TrimSuffix(in, ".in") + ".out")
+			if err != nil {
+				t.Fatal(err)
+			}
+			var stdout, stderr bytes.Buffer
+			if code := run(bytes.NewReader(input), &stdout, &stderr); code != 0 {
+				t.Fatalf("exit status %d: %s", code, stderr.String())
+			}
+			if got := strings.TrimRight(stdout.String(), "\n"); got != strings.TrimRight(string(want), "\n") {
+				t.Errorf("output mismatch\ngot:\n%s\nwant:\n%s", got, want)
+			}
+		})
 	}
 }
 
-func TestRunNoTests(t *testing.T) {
-	out, _, err := runString(t, `{"schema": true, "tests": []}`)
-	if err != nil || out != "" {
-		t.Errorf("out=%q err=%v", out, err)
+func TestOutputFormat(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	code := run(strings.NewReader(`{"schema":{"type":"integer"},"tests":[{"description":"a","data":1},{"data":"x"}],"extra":true}`), &stdout, &stderr)
+	if code != 0 || stdout.String() != "valid\ninvalid\n" || stderr.Len() != 0 {
+		t.Errorf("code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
 	}
 }
 
-func TestRunUnresolvableReferenceIsInvalidWithWarning(t *testing.T) {
-	out, warn, err := runString(t, `{"schema": {"$ref": "http://nowhere/x"}, "tests": [{"description":"d","data": 1}]}`)
-	if err != nil || out != "invalid\n" || warn == "" {
-		t.Errorf("out=%q warn=%q err=%v", out, warn, err)
+func TestEmptyTests(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := run(strings.NewReader(`{"schema":true,"tests":[]}`), &stdout, &stderr); code != 0 || stdout.Len() != 0 {
+		t.Errorf("code=%d stdout=%q", code, stdout.String())
 	}
 }
 
-func TestRunRejectsMalformedRequests(t *testing.T) {
-	for _, in := range []string{``, `[`, `[]`, `{"tests":[]}`, `{"schema":true}`, `{"schema":true,"tests":{}}`} {
-		if _, _, err := runString(t, in); err == nil {
-			t.Errorf("run(%q) succeeded, want error", in)
+func TestRemotes(t *testing.T) {
+	in := `{"schema":{"$ref":"http://r.test/s"},"remotes":{"http://r.test/s":{"type":"string"}},"tests":[{"data":"a"},{"data":1}]}`
+	var stdout, stderr bytes.Buffer
+	if code := run(strings.NewReader(in), &stdout, &stderr); code != 0 || stdout.String() != "valid\ninvalid\n" {
+		t.Errorf("code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+}
+
+func TestMalformedInput(t *testing.T) {
+	for _, in := range []string{
+		``, `[`, `[]`, `{}`, `{"schema":true}`, `{"tests":[]}`, `{"schema":true,"tests":{}}`,
+		`{"schema":true,"tests":[1]}`, `{"schema":true,"tests":[{}]}`,
+		`{"schema":true,"tests":[],"remotes":[]}`, `{"schema":{"pattern":"("},"tests":[]}`,
+	} {
+		var stdout, stderr bytes.Buffer
+		if code := run(strings.NewReader(in), &stdout, &stderr); code != 1 || stderr.Len() == 0 || stdout.Len() != 0 {
+			t.Errorf("input %q: code=%d stdout=%q stderr=%q", in, code, stdout.String(), stderr.String())
 		}
 	}
 }

@@ -1,0 +1,13 @@
+{
+  "title": "Home"
+}
+--
+=== main
+{% extends "base" %}
+{% block title %}{{ title }} page{% endblock %}
+{% block content %}Welcome to {{ title }}.{% endblock %}
+
+=== base
+<html><head><title>{% block title %}Default{% endblock %}</title></head>
+<body>{% block content %}{% endblock %}
+<footer>{% block footer %}(c) {{ title }}{% endblock %}</footer></body></html>

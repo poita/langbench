@@ -1,0 +1,4 @@
+#!/bin/sh
+# Run the rasteriser: run.sh <input-dir> <output-dir>
+dir="$(cd "$(dirname "$0")" && pwd)"
+exec "$dir/target/release/svgraster" "$@"

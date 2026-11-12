@@ -1,0 +1,38 @@
+1 GAME-START A
+2 DESTROY #1 LEX-001
+3 TURN 1 A
+4 PHASE dawn
+5 EMBER A 1 1
+6 EMBER B 0 0
+7 PHASE draw
+8 PHASE main1
+CARD BEGIN LEX-001
+name Odd (Name); with ;punctuation
+type unit
+cost 0
+body 0/0
+tags -
+keywords -
+ability 1 on arrive - (modify -2 -3 self)
+ability 2 act (cost (once)) - (spire -1 you)
+CARD END
+CARD BEGIN LEX-002
+name 
+type relic
+cost 7
+tags a,b,c
+keywords -
+ability 1 aura (when (and (not (myturn)) (or (spire you le 5) (vault foe ge 0))) (grant (plating 3) (units all)))
+CARD END
+CARD BEGIN LEX-003
+unknown
+CARD END
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 1 cap 1 vault 0 hand 0 ash 1 rift 0
+player B spire 25 ember 0 cap 0 vault 0 hand 0 ash 0 rift 0
+field B #2 LEX-002 -/- w0 c0 ready - kw -
+ash A 1 #1 LEX-001
+effect 1 ts3 B aura grant plating:3 on -
+STATE END
+9 RESULT pending none

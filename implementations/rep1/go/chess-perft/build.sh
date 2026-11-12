@@ -1,7 +1,6 @@
 #!/bin/sh
-# Build the chess-perft command-line tool into ./bin/chess-perft.
-set -e
+# Builds the chess-perft command into bin/chess-perft.
+set -eu
 dir=$(cd "$(dirname "$0")" && pwd)
 cd "$dir"
-mkdir -p bin
 go build -o bin/chess-perft ./cmd/chess-perft

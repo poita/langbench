@@ -1,146 +1,139 @@
 /**
- * The abstract syntax tree produced by the parser and walked by the evaluator.
+ * Syntax trees for KBL expressions and statements.
  */
 module kiln.ast;
 
-/// Expression node kinds.
-enum EK : ubyte
-{
-    intLit,
-    strLit,
-    interp,
-    boolLit,
-    variable,
-    list,
-    neg,
-    not,
-    binary,
-    and,
-    or,
-    call,
-    index,
-}
+import kiln.value : Value;
 
-/// Binary operators (other than the short-circuit `&&` and `||`).
+/// Binary operators.
 enum BinOp : ubyte
 {
-    add,
-    sub,
-    mul,
-    div,
-    mod,
-    strCat,
-    listCat,
+    or,
+    and,
     eq,
     ne,
     lt,
     le,
     gt,
     ge,
+    listCat,
+    strCat,
+    add,
+    sub,
+    mul,
+    div,
+    mod,
 }
 
-/// The spelling of a binary operator, used as the error site.
+/// Unary operators.
+enum UnOp : ubyte
+{
+    not,
+    neg,
+}
+
+/// The spelling of a binary operator.
 string spelling(BinOp op) @safe pure nothrow @nogc
 {
-    static immutable string[] names = ["+", "-", "*", "/", "%", "~", "++", "==", "!=", "<", "<=", ">", ">="];
+    static immutable string[] names = [
+        "||", "&&", "==", "!=", "<", "<=", ">", ">=", "++", "~", "+", "-", "*", "/", "%"
+    ];
     return names[op];
 }
 
-/// One piece of an interpolated string: literal text or an expression.
-struct InterpPart
+/// The spelling of a unary operator.
+string spelling(UnOp op) @safe pure nothrow @nogc
 {
-    string literal;
-    Expr expr; // null for a literal piece
+    return op == UnOp.not ? "!" : "-";
+}
+
+/// Expression node kinds.
+enum ExprKind : ubyte
+{
+    literal, /// `lit`
+    interpolated, /// `parts`
+    variable, /// `name`
+    list, /// `args`
+    unary, /// `unop`, `lhs`
+    binary, /// `binop`, `lhs`, `rhs`
+    call, /// `name`, `args`
+    index, /// `lhs` indexed by `rhs`
+}
+
+/// One piece of a double-quoted string literal.
+struct StrPart
+{
+    string text; /// Literal bytes (when `expr` is null).
+    Expr expr; /// Interpolated expression, or null for a literal piece.
 }
 
 /// An expression node.
 final class Expr
 {
-    EK kind;
-    BinOp op;
-    long intValue;
-    /// String literal value, variable name or function name.
-    string text;
-    /// Operands, list elements or call arguments.
-    Expr[] kids;
-    InterpPart[] parts;
-    /// Built-in function id for calls; -1 when unknown.
-    int fn = -1;
-
-    this(EK kind)
-    {
-        this.kind = kind;
-    }
+    ExprKind kind;
+    Value lit;
+    string name;
+    BinOp binop;
+    UnOp unop;
+    Expr lhs, rhs;
+    Expr[] args;
+    StrPart[] parts;
+    /// Cached built-in lookup for `call` nodes (set by the evaluator).
+    const(void)* resolved;
 }
 
-/// Statement kinds.
-enum SK : ubyte
+/// Statement node kinds.
+enum StmtKind : ubyte
 {
     let,
     set,
     include,
     abort,
-    default_,
+    defaultTargets,
     phony,
     use,
     when,
     each,
     rule,
     step,
+    // step fields
+    fieldOut,
+    fieldIn,
+    fieldAfter,
+    fieldCost,
+    fieldDepfile,
+    fieldCmd,
 }
 
-/// Step field kinds.
-enum FK : ubyte
+/// An argument of a `use` statement.
+struct UseArg
 {
-    out_,
-    in_,
-    after,
-    cost,
-    depfile,
-    cmd,
+    string keyword; /// Empty for a positional argument.
+    Expr value;
 }
 
-/// A field of a `step` block.
-struct StepField
-{
-    FK kind;
-    Expr expr;
-    string cmdName;
-    Expr[] cmdArgs;
-}
-
-/// A rule parameter with an optional default.
+/// A rule parameter.
 struct Param
 {
     string name;
-    Expr defaultValue; // null when required
+    Expr defaultValue; /// Null if the parameter has no default.
 }
 
 /// A statement node.
 final class Stmt
 {
-    SK kind;
+    StmtKind kind;
     int line;
-    /// Variable / phony / rule name, or the `each` element name.
-    string name;
-    /// The `each` index variable, if any.
-    string indexName;
-    Expr expr;
-    /// `use` arguments; `argNames[i]` is empty for a positional argument.
-    Expr[] args;
-    string[] argNames;
-    /// `each` / `rule` block.
-    Stmt[] block;
-    /// `when` / `elsewhen` conditions and bodies; `bodies` has one more entry
-    /// than `conds` when an `otherwise` branch exists.
-    Expr[] conds;
-    Stmt[][] bodies;
-    Param[] params;
-    StepField[] fields;
-
-    this(SK kind, int line)
-    {
-        this.kind = kind;
-        this.line = line;
-    }
+    string name; // let/set/phony name, use/rule name, cmd name, each value var
+    string indexName; // each: the index variable ("" if absent)
+    Expr expr; // let/set/include/abort/default/phony/each subject/field value
+    Expr[] conds; // when/elsewhen conditions
+    Stmt[][] branches; // when/elsewhen bodies
+    Stmt[] otherwise; // otherwise body
+    bool hasOtherwise;
+    Stmt[] children; // each, rule body
+    Stmt[] fields; // step fields
+    Param[] params; // rule
+    UseArg[] useArgs; // use
+    Expr[] cmdArgs; // cmd field
 }

@@ -1,30 +1,24 @@
 /**
  * Rubik's cube solver library.
  *
- * Modules:
+ * Import `rubiks` to get everything:
+ *
  * $(UL
- *   $(LI $(MREF rubiks, moves): faces, move tokens, parsing and formatting)
- *   $(LI $(MREF rubiks, facelet): the 54-sticker model from the specification)
- *   $(LI $(MREF rubiks, cubie): corner/edge permutation and orientation, moves)
- *   $(LI $(MREF rubiks, coord): phase coordinates and ranking helpers)
- *   $(LI $(MREF rubiks, movetables): per-component move tables)
- *   $(LI $(MREF rubiks, phases): the phase coordinate spaces and distance-table BFS)
- *   $(LI $(MREF rubiks, solver): the `Solver` class)
+ *   $(LI `rubiks.move` - moves and their notation,)
+ *   $(LI `rubiks.facelets` - the sticker model from the specification,)
+ *   $(LI `rubiks.cubie` - the cubie-level cube,)
+ *   $(LI `rubiks.coords` - coordinates and move tables,)
+ *   $(LI `rubiks.phase` - one phase of the algorithm,)
+ *   $(LI `rubiks.solver` - the four-phase solver,)
+ *   $(LI `rubiks.io` - the line-based text format of the CLI.)
  * )
- *
- * Importing `rubiks` gives the everyday API: `Move`, `parseMoves`,
- * `formatMoves`, `CubieCube`, `FaceletCube` and `Solver`.
- *
- * ---
- * import rubiks;
- * auto solver = new Solver;                       // builds tables once
- * auto solution = solver.solve("R U R' U' F2");   // Move[]
- * writeln(formatMoves(solution));
- * ---
  */
 module rubiks;
 
+public import rubiks.move;
+public import rubiks.facelets;
 public import rubiks.cubie;
-public import rubiks.facelet;
-public import rubiks.moves;
+public import rubiks.coords;
+public import rubiks.phase;
 public import rubiks.solver;
+public import rubiks.io;

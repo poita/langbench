@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds the project in release mode with LDC.
+# Builds the Kiln command-line tool (bin/kiln) with dub and LDC.
 set -e
 cd "$(dirname "$0")"
 dub build -b release --compiler=ldc2

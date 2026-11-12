@@ -1,0 +1,12 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+ :aliases
+ {:run {:main-opts ["-m" "chip8.main"]}
+  :compile {:extra-paths ["target/classes"]
+            :main-opts ["-e" "(binding [*compile-path* \"target/classes\"] (compile 'chip8.main))"]}
+  :test {:extra-paths ["test"]
+         :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
+                      io.github.cognitect-labs/test-runner
+                      {:git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}}}

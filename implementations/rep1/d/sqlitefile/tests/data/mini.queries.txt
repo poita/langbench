@@ -1,0 +1,10 @@
+.tables
+SELECT * FROM people
+SELECT name,height FROM people ORDER BY height DESC LIMIT 2
+SELECT name FROM people WHERE age IS NULL
+SELECT name FROM people WHERE age > 40
+SELECT rowid,name FROM people WHERE photo IS NOT NULL
+INDEX people_age 45
+COUNT people
+SELECT nope FROM people
+.schema people

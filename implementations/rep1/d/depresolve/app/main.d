@@ -1,18 +1,27 @@
-/// Command-line front end: reads the registry and root manifest on stdin,
-/// writes the resolution (or `unsatisfiable`) on stdout.
+/// Command-line front end: reads a registry and root manifest on stdin, prints the resolution.
 module main;
 
-import std.stdio : stdin, stdout;
+import std.stdio : stdin, stdout, stderr;
 import depresolve;
 
 int main()
 {
-    ubyte[] data;
+    // Read all of standard input.
+    ubyte[] raw;
     foreach (chunk; stdin.byChunk(1 << 16))
-        data ~= chunk;
-    auto reg = parseRegistry(cast(const(char)[]) data);
-    const res = resolve(reg);
-    stdout.rawWrite(formatResolution(res));
-    stdout.flush();
-    return 0;
+        raw ~= chunk;
+    auto text = cast(string) raw.idup;
+
+    try
+    {
+        auto problem = parseProblem(text);
+        auto resolution = resolve(problem.registry, problem.root);
+        stdout.write(formatResolution(resolution));
+        return 0;
+    }
+    catch (SyntaxException e)
+    {
+        stderr.writeln("depresolve: malformed input: ", e.msg);
+        return 2;
+    }
 }

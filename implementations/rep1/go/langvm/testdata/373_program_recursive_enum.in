@@ -1,0 +1,6 @@
+@module main
+enum Tree { Leaf(Int), Node(Tree, Tree) }
+fn sum(t: Tree) -> Int {
+    match t { Leaf(n) -> n, Node(l, r) -> sum(l) + sum(r) }
+}
+fn main() { print(showInt(sum(Node(Leaf(1), Node(Leaf(2), Leaf(3)))))); }

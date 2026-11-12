@@ -1,86 +1,89 @@
 # qrcode
 
-A QR Code Model 2 (ISO/IEC 18004) encoder written in D, using only Phobos and
-druntime. It is a small reusable library plus a thin command-line tool that
-reads queries on stdin and prints each symbol as a `#`/`.` module matrix.
+A QR Code Model 2 (ISO/IEC 18004) encoder written in D, using only Phobos. It
+is a reusable library (`source/qrcode/`) plus a thin command-line tool
+(`cli/app.d`) that reads encoding queries on stdin and prints each symbol's
+module matrix as text.
 
-Features: numeric, alphanumeric and byte modes (chosen automatically),
-versions 1–40, error correction levels L/M/Q/H, Reed-Solomon coding over
-GF(2^8), all eight mask patterns, and automatic mask selection by the
-standard N1–N4 penalty scoring.
+Supported: versions 1-40, error correction levels L/M/Q/H, numeric,
+alphanumeric and byte modes (single segment, no ECI), fixed masks 0-7 or
+automatic mask selection by the standard penalty rules (N1-N4).
 
-## Layout
-
-| Path                  | Contents                                           |
-|-----------------------|----------------------------------------------------|
-| `src/qrcode/`         | the library (`import qrcode;`)                     |
-| `app/main.d`          | the command-line tool                              |
-| `tests/`              | unit tests (separate from the library sources)     |
-| `build.sh`, `run.sh`  | build and run helpers                              |
-
-Library modules: `tables` (capacity tables), `segment` (mode/version
-selection, data packing), `bitbuffer` (MSB-first bit writer), `gf`
-(GF(2^8) and Reed-Solomon), `matrix` (function patterns, placement, masking),
-`penalty` (mask scoring) and `encoder` (the public `encode` function).
-
-## Building
+## Build
 
 Requires LDC and dub (developed with LDC 1.41.0 and dub 1.40.0).
 
-    dub build -b release --compiler=ldc2    # or ./build.sh
+    dub build -b release --compiler=ldc2      # or ./build.sh
 
-This produces `bin/qrcode`. Run the unit tests with:
+This builds the `application` configuration and produces the `qrcode`
+executable in the project root. `./run.sh` runs it from any directory.
+
+## Test
 
     dub test --compiler=ldc2
 
-## Command-line usage
+The tests are D `unittest` blocks next to the code they exercise, including the
+worked examples of the specification.
 
-`./run.sh` (or `bin/qrcode`) reads all of stdin. Each line is
+## Command-line use
 
-    <ecl> <mask> <text>
+Each line of stdin is a query, `<ecl> <mask> <text>`:
 
-where `<ecl>` is `L`, `M`, `Q` or `H`, `<mask>` is `0`–`7` or `auto`, and
-`<text>` is the rest of the line, treated as raw UTF-8 bytes. For each query
-it prints
+* `<ecl>`: `L`, `M`, `Q` or `H`
+* `<mask>`: `0`..`7`, or `auto` to choose by penalty score (ties: lowest mask)
+* `<text>`: the rest of the line, taken as raw UTF-8 bytes
 
-    version <v> mask <m>
-    <size rows of # (dark) and . (light)>
-    <empty line>
+For each query the tool prints `version <v> mask <m>`, then `4v+17` rows of `#`
+(dark) and `.` (light) with no quiet zone, then an empty line.
 
-Example:
-
-    $ echo "M auto HELLO WORLD" | ./run.sh
-    version 1 mask 0
-    #######...#.#.#######
+    $ echo "L auto 01234567" | ./run.sh
+    version 1 mask 3
+    #######.##..#.#######
     ...
 
-Malformed input or text too long for version 40 prints a message on stderr
-and exits with status 1.
+The exit status is 0 on success; 1 for a malformed query or a payload that
+fits in no version.
 
-## Library usage
+## Library use
 
 ```d
-import std.stdio;
 import qrcode;
+import std.stdio;
 
 void main()
 {
-    // Mode and version are chosen automatically; the mask is picked by
-    // penalty scoring. Pass 0..7 as the third argument to force a mask.
-    auto code = encode("HELLO WORLD", Ecl.M);
+    // Mask chosen automatically; pass 0..7 as the third argument to force one.
+    QrCode qr = encodeText("HELLO WORLD", Ecl.medium);
+    writeln("version ", qr.ver, ", mask ", qr.mask, ", size ", qr.size);
 
-    writeln("version ", code.version_, ", mask ", code.mask, ", ", code.size, " modules");
-    foreach (y; 0 .. code.size)
+    foreach (y; 0 .. qr.size)
     {
-        foreach (x; 0 .. code.size)
-            write(code.isDark(x, y) ? "##" : "  ");
+        foreach (x; 0 .. qr.size)
+            write(qr.isDark(x, y) ? "██" : "  ");
         writeln();
     }
-    // code.toText() gives the same text format the CLI prints.
+
+    writeln(qr.toText()); // same format as the command-line tool
 }
 ```
 
-`encode` accepts either a `string` or a `const(ubyte)[]` payload and throws
-`QrException` if the data does not fit in version 40 at the requested level.
-To use the library from another dub project, add this package as a
-dependency and select its `library` configuration.
+`encode(const(ubyte)[] data, Ecl ecl, int mask = autoMask)` is the byte-level
+entry point; both throw `DataTooLongException` if the payload does not fit.
+
+### Modules
+
+| module               | responsibility                                        |
+|----------------------|-------------------------------------------------------|
+| `qrcode.tables`      | capacity, block and alignment tables, `Ecl`            |
+| `qrcode.bitbuffer`   | MSB-first bit accumulator                              |
+| `qrcode.segment`     | mode and version selection, data bit stream, padding   |
+| `qrcode.reedsolomon` | GF(2^8) arithmetic, generator polynomial, ECC          |
+| `qrcode.matrix`      | function patterns, zigzag placement, masks, format info|
+| `qrcode.penalty`     | mask penalty rules N1-N4                               |
+| `qrcode.encoder`     | `encode`, `QrCode`, block interleaving                 |
+| `qrcode.query`       | parsing/rendering of the CLI query format              |
+
+`import qrcode;` re-exports all of them.
+
+To use the library without the CLI, depend on the package and select the
+`library` configuration.

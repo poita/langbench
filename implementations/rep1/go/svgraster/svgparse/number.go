@@ -4,30 +4,26 @@
 package svgparse
 
 import (
-	"math"
 	"strconv"
 	"strings"
+
+	"svgraster/geom"
 )
 
-// IsSpace reports whether c is an XML/SVG whitespace byte.
-func IsSpace(c byte) bool { return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' }
-
-// SkipSep returns the index of the first byte at or after i that is neither
-// whitespace nor a comma.
-func SkipSep(s string, i int) int {
-	for i < len(s) && (IsSpace(s[i]) || s[i] == ',') {
-		i++
-	}
-	return i
+func isSpace(c byte) bool {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f'
 }
 
 func isDigit(c byte) bool { return c >= '0' && c <= '9' }
 
-// ScanNumber parses a number starting exactly at s[i] (no leading space
-// skipping). It returns the value and the index just past the number. An
-// exponent that is not followed by a digit is not part of the number.
-func ScanNumber(s string, i int) (v float64, next int, ok bool) {
-	start := i
+// ScanNumber scans a number at the start of s and returns its value and the
+// number of bytes consumed. n == 0 means s does not start with a number.
+//
+// The grammar is an optional sign, digits with an optional fraction (at least
+// one digit overall) and an optional exponent, which is only part of the
+// number when it contains at least one digit.
+func ScanNumber(s string) (v float64, n int) {
+	i := 0
 	if i < len(s) && (s[i] == '+' || s[i] == '-') {
 		i++
 	}
@@ -37,14 +33,19 @@ func ScanNumber(s string, i int) (v float64, next int, ok bool) {
 		digits++
 	}
 	if i < len(s) && s[i] == '.' {
-		i++
-		for i < len(s) && isDigit(s[i]) {
-			i++
-			digits++
+		j := i + 1
+		frac := 0
+		for j < len(s) && isDigit(s[j]) {
+			j++
+			frac++
+		}
+		if digits+frac > 0 {
+			i = j
+			digits += frac
 		}
 	}
 	if digits == 0 {
-		return 0, start, false
+		return 0, 0
 	}
 	if i < len(s) && (s[i] == 'e' || s[i] == 'E') {
 		j := i + 1
@@ -58,80 +59,157 @@ func ScanNumber(s string, i int) (v float64, next int, ok bool) {
 			i = j
 		}
 	}
-	// ParseFloat returns ±Inf with an error on overflow, which is the
-	// value we want; syntax errors cannot occur here.
-	v, _ = strconv.ParseFloat(s[start:i], 64)
-	return v, i, true
-}
-
-// NumberList parses numbers separated by whitespace and/or commas, stopping
-// at the first token that is not a number.
-func NumberList(s string) []float64 {
-	var out []float64
-	i := 0
-	for {
-		i = SkipSep(s, i)
-		v, n, ok := ScanNumber(s, i)
-		if !ok {
-			return out
+	f, err := strconv.ParseFloat(s[:i], 64)
+	if err != nil {
+		// Out-of-range values come back as ±Inf with err set; keep them
+		// only if they are finite, otherwise clamp to a huge finite value.
+		if f > 1e300 {
+			f = 1e300
+		} else if f < -1e300 {
+			f = -1e300
 		}
-		out = append(out, v)
-		i = n
 	}
+	return f, i
 }
 
-// Length parses a number optionally followed by "px", with surrounding
-// whitespace allowed. ok is false when s does not start with a number.
-func Length(s string) (v float64, ok bool) {
-	i := 0
-	for i < len(s) && IsSpace(s[i]) {
-		i++
-	}
-	v, _, ok = ScanNumber(s, i)
-	return v, ok
-}
-
-// Opacity parses a number or a percentage and clamps it to [0, 1]. ok is
-// false for anything else.
-func Opacity(s string) (v float64, ok bool) {
-	s = strings.TrimSpace(s)
-	v, n, ok := ScanNumber(s, 0)
-	if !ok {
+// ParseLength parses a length: a number optionally followed by "px", with
+// optional surrounding whitespace. Only the leading number matters; ok is
+// false when the value does not start with a number.
+func ParseLength(s string) (v float64, ok bool) {
+	s = strings.TrimLeft(s, " \t\r\n\f")
+	v, n := ScanNumber(s)
+	if n == 0 {
 		return 0, false
 	}
-	switch s[n:] {
+	return v, true
+}
+
+// ParseOpacity parses an opacity: a number or a percentage, clamped to
+// [0, 1]. ok is false if the value is not of that form.
+func ParseOpacity(s string) (v float64, ok bool) {
+	s = strings.TrimSpace(s)
+	v, n := ScanNumber(s)
+	if n == 0 {
+		return 0, false
+	}
+	rest := s[n:]
+	switch rest {
 	case "":
 	case "%":
 		v /= 100
 	default:
 		return 0, false
 	}
-	if v != v {
-		return 0, false
+	if v < 0 {
+		v = 0
+	} else if v > 1 {
+		v = 1
 	}
-	return math.Min(1, math.Max(0, v)), true
+	return v, true
 }
 
-// Style splits a style attribute into declarations and calls fn for each
-// valid one, in order. Names are lower-cased and both parts are trimmed;
-// declarations without a colon or with an empty value are skipped.
-func Style(s string, fn func(name, value string)) {
-	for len(s) > 0 {
-		var decl string
-		if i := strings.IndexByte(s, ';'); i >= 0 {
-			decl, s = s[:i], s[i+1:]
-		} else {
-			decl, s = s, ""
+// ParseNumberList parses numbers separated by whitespace and/or commas. It
+// stops at the first thing that is not a number.
+func ParseNumberList(s string) []float64 {
+	var out []float64
+	i := 0
+	for i < len(s) {
+		for i < len(s) && (isSpace(s[i]) || s[i] == ',') {
+			i++
 		}
-		c := strings.IndexByte(decl, ':')
-		if c < 0 {
-			continue
+		if i >= len(s) {
+			break
 		}
-		name := strings.ToLower(strings.TrimSpace(decl[:c]))
-		value := strings.TrimSpace(decl[c+1:])
-		if name == "" || value == "" {
-			continue
+		v, n := ScanNumber(s[i:])
+		if n == 0 {
+			break
 		}
-		fn(name, value)
+		out = append(out, v)
+		i += n
 	}
+	return out
+}
+
+// ViewBox returns the user-space rectangle (x, y, w, h) described by a
+// viewBox attribute value, and ok=false unless it holds at least four numbers
+// with positive width and height.
+func ViewBox(s string) (x, y, w, h float64, ok bool) {
+	nums := ParseNumberList(s)
+	if len(nums) < 4 || !(nums[2] > 0) || !(nums[3] > 0) {
+		return 0, 0, 0, 0, false
+	}
+	return nums[0], nums[1], nums[2], nums[3], true
+}
+
+// ParseTransform parses a transform list into a single matrix. Unknown
+// functions and functions with too few arguments are skipped; parsing stops
+// at malformed syntax.
+func ParseTransform(s string) geom.Matrix {
+	m := geom.Identity
+	i := 0
+	for i < len(s) {
+		for i < len(s) && (isSpace(s[i]) || s[i] == ',') {
+			i++
+		}
+		start := i
+		for i < len(s) && s[i] != '(' && !isSpace(s[i]) && s[i] != ',' && s[i] != ')' {
+			i++
+		}
+		name := s[start:i]
+		for i < len(s) && isSpace(s[i]) {
+			i++
+		}
+		if i >= len(s) || s[i] != '(' || name == "" {
+			break
+		}
+		close := strings.IndexByte(s[i:], ')')
+		var args []float64
+		if close < 0 {
+			args = ParseNumberList(s[i+1:])
+			i = len(s)
+		} else {
+			args = ParseNumberList(s[i+1 : i+close])
+			i += close + 1
+		}
+		if f, ok := transformFunc(name, args); ok {
+			m = m.Mul(f)
+		}
+	}
+	return m
+}
+
+func transformFunc(name string, a []float64) (geom.Matrix, bool) {
+	switch name {
+	case "matrix":
+		if len(a) >= 6 {
+			return geom.Matrix{A: a[0], B: a[1], C: a[2], D: a[3], E: a[4], F: a[5]}, true
+		}
+	case "translate":
+		if len(a) >= 2 {
+			return geom.Translate(a[0], a[1]), true
+		} else if len(a) == 1 {
+			return geom.Translate(a[0], 0), true
+		}
+	case "scale":
+		if len(a) >= 2 {
+			return geom.ScaleM(a[0], a[1]), true
+		} else if len(a) == 1 {
+			return geom.ScaleM(a[0], a[0]), true
+		}
+	case "rotate":
+		if len(a) >= 3 {
+			return geom.Translate(a[1], a[2]).Mul(geom.Rotate(a[0])).Mul(geom.Translate(-a[1], -a[2])), true
+		} else if len(a) >= 1 {
+			return geom.Rotate(a[0]), true
+		}
+	case "skewX":
+		if len(a) >= 1 {
+			return geom.SkewX(a[0]), true
+		}
+	case "skewY":
+		if len(a) >= 1 {
+			return geom.SkewY(a[0]), true
+		}
+	}
+	return geom.Identity, false
 }

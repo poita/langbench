@@ -3,82 +3,65 @@ package glob
 import "testing"
 
 func TestMatch(t *testing.T) {
-	cases := []struct {
-		pat, s string
-		want   bool
+	tests := []struct {
+		pat string
+		yes []string
+		no  []string
 	}{
-		{"src/*.txt", "src/a.txt", true},
-		{"src/*.txt", "src/.txt", true},
-		{"src/*.txt", "src/sub/a.txt", false},
-		{"src/*.txt", "a.txt", false},
-		{"src/**", "src/a.txt", true},
-		{"src/**", "src/x/y/z.txt", true},
-		{"src/**", "src", true},
-		{"src/**", "other/a.txt", false},
-		{"src/**", "srcx", false},
-		{"**/*.txt", "a.txt", true},
-		{"**/*.txt", "a/b/c.txt", true},
-		{"**/*.txt", "a.text", false},
-		{"src/**/t_*.txt", "src/t_1.txt", true},
-		{"src/**/t_*.txt", "src/a/b/t_2.txt", true},
-		{"src/**/t_*.txt", "src/t.txt", false},
-		{"src/?.txt", "src/a.txt", true},
-		{"src/?.txt", "src/ab.txt", false},
-		{"src/[ab]*.txt", "src/a1.txt", true},
-		{"src/[ab]*.txt", "src/c.txt", false},
-		{"src/[!ab]*.txt", "src/c.txt", true},
-		{"src/[!ab]*.txt", "src/a.txt", false},
-		{"src/[0-9].txt", "src/7.txt", true},
-		{"src/[0-9].txt", "src/x.txt", false},
-		{"a**b", "axyzb", true},
-		{"a**b", "ab", true},
-		{"a**b", "a/b", false},
-		{"[-a]", "-", true},
-		{"[a-]", "-", true},
-		{"[*?]", "*", true},
-		{"*", "", true},
-		{"*", "a//b", false},
-		{"**", "a//b", true},
-		{"?", "", false},
-		{"**/**/x", "a/b/x", true},
-		{"**/a/**/b/**", "x/a/y/z/b", true},
-		{"**/a/**/b/**", "x/b/a", false},
-		{"a*b*c", "aXbYbZc", true},
-		{"a*b*c", "aXbYbZ", false},
+		{"src/*.txt", []string{"src/a.txt", "src/.txt"}, []string{"src/sub/a.txt", "a.txt"}},
+		{"src/**", []string{"src/a.txt", "src/x/y/z.txt", "src"}, []string{"other/a.txt", "srcx"}},
+		{"**/*.txt", []string{"a.txt", "src/a.txt", "a/b/c.txt"}, []string{"a.text"}},
+		{"src/**/t_*.txt", []string{"src/t_1.txt", "src/a/b/t_2.txt"}, []string{"src/t.txt"}},
+		{"src/?.txt", []string{"src/a.txt"}, []string{"src/ab.txt"}},
+		{"src/[ab]*.txt", []string{"src/a1.txt", "src/b.txt"}, []string{"src/c.txt"}},
+		{"src/[!ab]*.txt", []string{"src/c.txt"}, []string{"src/a.txt"}},
+		{"src/[0-9].txt", []string{"src/7.txt"}, []string{"src/x.txt"}},
+		{"a**b", []string{"axyzb", "ab"}, []string{"a/b"}},
+		{"*", []string{"", "abc"}, []string{"a/b", "a//b"}},
+		{"**", []string{"", "a", "a//b", "x/"}, nil},
+		{"?", nil, []string{""}},
+		{"[-a]", []string{"-", "a"}, []string{"b"}},
+		{"[a-]", []string{"-", "a"}, []string{"b"}},
+		{"[*?]", []string{"*", "?"}, []string{"a"}},
+		{"a/*/c", []string{"a//c", "a/b/c"}, []string{"a/c", "a/b/b/c"}},
 	}
-	for _, c := range cases {
-		p, err := Compile(c.pat)
+	for _, tc := range tests {
+		p, err := Compile(tc.pat)
 		if err != nil {
-			t.Errorf("Compile(%q): %v", c.pat, err)
-			continue
+			t.Fatalf("Compile(%q): %v", tc.pat, err)
 		}
-		if got := p.Match(c.s); got != c.want {
-			t.Errorf("%q ~ %q = %v, want %v", c.pat, c.s, got, c.want)
+		for _, s := range tc.yes {
+			if !p.Match(s) {
+				t.Errorf("%q should match %q", tc.pat, s)
+			}
+		}
+		for _, s := range tc.no {
+			if p.Match(s) {
+				t.Errorf("%q should not match %q", tc.pat, s)
+			}
 		}
 	}
 }
 
-func TestMalformed(t *testing.T) {
-	for _, pat := range []string{"", "/a", "a/", "a//b", "[", "[]", "[!]", "[a", "[b-a]", "a/[x", "[a/b]"} {
+func TestBadPatterns(t *testing.T) {
+	for _, pat := range []string{"", "/a", "a/", "a//b", "[", "[]", "[!]", "[a", "[z-a]", "a/[b", "[a/b]"} {
 		if _, err := Compile(pat); err == nil {
-			t.Errorf("Compile(%q) succeeded", pat)
+			t.Errorf("Compile(%q) succeeded, want error", pat)
 		}
 	}
 }
 
 func TestLiteralPrefix(t *testing.T) {
-	cases := map[string]string{
-		"src/*.txt": "src",
-		"src/a/b":   "src/a/b",
-		"src/**":    "src",
-		"**/x":      "",
-		"*/x":       "",
-		"a/b?/c":    "a",
-		"a/b/[x]":   "a/b",
-		"plain.txt": "plain.txt",
-		"a/b**/c":   "a",
+	tests := map[string]string{
+		"src/**/*.txt": "src/",
+		"src/a.txt":    "src/a.txt",
+		"**/x":         "",
+		"src/ab*":      "src/ab",
+		"lib/**":       "lib",
+		"lib/**/**":    "lib",
+		"lib/**/x":     "lib/",
 	}
-	for pat, want := range cases {
+	for pat, want := range tests {
 		p, err := Compile(pat)
 		if err != nil {
 			t.Fatal(err)
@@ -86,13 +69,5 @@ func TestLiteralPrefix(t *testing.T) {
 		if got := p.LiteralPrefix(); got != want {
 			t.Errorf("LiteralPrefix(%q) = %q, want %q", pat, got, want)
 		}
-	}
-}
-
-func TestManyDoubleStarsTerminate(t *testing.T) {
-	p, _ := Compile("**/a/**/a/**/a/**/a/**/b")
-	s := "a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a/a"
-	if p.Match(s) {
-		t.Error("unexpected match")
 	}
 }

@@ -1,0 +1,19 @@
+@module main
+fn pick(a: Int, b: Int, c: Int) -> Int { a * 100 + b * 10 + c }
+fn main() {
+  var i = 0;
+  while i < 6 {
+     i = i + 1;
+     let v = pick(1, 2 * (match i { 3 -> { continue; } 5 -> { break; } _ -> i }), [i, 7][1]);
+     print(showInt(v));
+  }
+  for j in 0 .. 5 {
+     let w = [j, (if j == 2 { continue; } else { j * 2 }), j + 1];
+     print(showInt(listLen(w)) ++ showInt(w[1]));
+  }
+  print("done");
+}
+fn early(n: Int) -> Int {
+   let r = 10 + (match n { 0 -> { return 99; } _ -> n });
+   r
+}

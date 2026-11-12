@@ -1,23 +1,29 @@
 /**
- * A JSON Schema draft 2020-12 validator.
+ * A JSON Schema draft 2020-12 validator written from scratch.
  *
- * Importing `jsonschema` gives the whole public API:
- *
+ * Public API:
  * $(UL
- *   $(LI $(MREF jsonschema.validator): `Validator`, the entry point.)
- *   $(LI $(MREF jsonschema.json): the `Value` tree, `parseJson`, `jsonEqual`.)
- *   $(LI $(MREF jsonschema.number): exact decimal `Number`.)
- *   $(LI $(MREF jsonschema.regex): the ECMA-262 subset `Regex` engine.)
- *   $(LI $(MREF jsonschema.uri), $(MREF jsonschema.pointer): RFC 3986 and RFC 6901 helpers.)
- *   $(LI $(MREF jsonschema.compiler), $(MREF jsonschema.node), $(MREF jsonschema.evaluator): the schema compiler and evaluator.)
- *   $(LI $(MREF jsonschema.request): the request format of the command-line tool.)
+ *   $(LI `parseJson` — JSON text to `JsonValue` (numbers are exact decimals).)
+ *   $(LI `SchemaValidator` — compile a schema (plus optional remote documents)
+ *        and test instances against it.)
+ *   $(LI `validateDocument` — the stdin/stdout document format of the CLI.)
  * )
+ *
+ * Example:
+ * ---
+ * import jsonschema;
+ *
+ * auto v = new SchemaValidator(parseJson(`{"type":"integer","minimum":1}`));
+ * assert(v.isValid(parseJson("3")));
+ * assert(!v.isValid(parseJson("0")));
+ * ---
  */
 module jsonschema;
 
-public import jsonschema.compiler : SchemaException;
 public import jsonschema.json;
 public import jsonschema.number;
-public import jsonschema.regex : Regex, RegexException;
-public import jsonschema.request : processRequest, RequestException;
-public import jsonschema.validator : Validator;
+public import jsonschema.regex;
+public import jsonschema.runner;
+public import jsonschema.schema;
+public import jsonschema.uri;
+public import jsonschema.validator;

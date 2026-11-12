@@ -1,0 +1,18 @@
+1 GAME-START A
+2 SHUFFLE A
+3 SHUFFLE B
+4 TURN 1 A
+5 PHASE dawn
+6 EMBER A 1 1
+7 EMBER B 0 0
+8 PHASE draw
+9 PHASE main1
+VAULT BEGIN
+vault B 1 #1 LOM-001
+VAULT END
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 1 cap 1 vault 0 hand 0 ash 0 rift 0
+player B spire 25 ember 0 cap 0 vault 1 hand 0 ash 0 rift 0
+STATE END
+10 RESULT pending none

@@ -1,0 +1,4 @@
+{
+  "tests/test_filters.py::test_filter[{(\"k\"+\"1\"): .a | . + 1}]": true,
+  "tests/test_filters.py::test_long_pipe_chain": true
+}

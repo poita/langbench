@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    let s = "abc";
+    print(showChar(s[1]));
+    print(showInt(strLen(s)));
+    print(showChar(s[3]));
+}

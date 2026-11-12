@@ -1,46 +1,58 @@
 # minisql
 
 A small in-memory relational database written in Go, using only the standard
-library. It executes a strict subset of SQLite's SQL dialect: `CREATE TABLE`,
-`INSERT`, `UPDATE`, `DELETE` and `SELECT` with `WHERE`, joins of up to two
-tables (comma or `[INNER] JOIN ... ON`), `GROUP BY`, `HAVING`, `ORDER BY`,
-`LIMIT`/`OFFSET`, and the aggregates `COUNT`, `SUM`, `MIN`, `MAX` and `AVG`.
-Values are dynamically typed (`NULL`, `INTEGER`, `TEXT`, plus `REAL` produced
-by `AVG`), with three-valued logic and SQLite-style `LIKE`.
+library. It executes a subset of SQL (a strict subset of SQLite's dialect):
+`CREATE TABLE`, `INSERT`, `UPDATE`, `DELETE`, and `SELECT` with comma/`INNER`
+joins of up to two tables, `WHERE`, `GROUP BY`/`HAVING`, the aggregates
+`COUNT SUM MIN MAX AVG`, `ORDER BY`, `LIMIT`/`OFFSET`, `LIKE`, and
+three-valued logic over `NULL`, 64-bit integers and text.
 
-The engine is written from scratch; it does not use SQLite or any other SQL
-engine.
+The engine is written from scratch: tokenizer, recursive-descent parser,
+binder (name resolution and semantic checks) and an interpreter over the bound
+expression tree. Equality joins use a hash join that preserves nested-loop
+output order; `GROUP BY` uses a hash map; `ORDER BY` is one stable sort.
+
+## Layout
+
+| Package            | Responsibility                                              |
+|--------------------|-------------------------------------------------------------|
+| `minisql`          | Public facade: `DB`, `Exec`, `ExecScript`, `RunScript`      |
+| `minisql/value`    | Dynamic values, the total ordering, `AVG` rounding, `LIKE`  |
+| `minisql/syntax`   | Lexer, statement splitter, AST, parser                      |
+| `minisql/engine`   | Tables, binding, execution (scans, joins, grouping, sorting) |
+| `cmd/minisql`      | Command-line tool                                           |
 
 ## Build
 
-Requires Go 1.27.1.
-
-```sh
-./build.sh          # builds bin/minisql (go build -o bin/minisql ./cmd/minisql)
-go test ./...       # unit tests
 ```
+./build.sh          # runs: go build -o bin/minisql ./cmd/minisql
+```
+
+Requires Go 1.27 or newer. Run the tests with `go test ./...`.
 
 ## Command-line use
 
-`minisql` reads a SQL script on standard input and prints the result of every
-`SELECT` on standard output; `run.sh` is a wrapper that works from any
-directory.
+The program reads a whole SQL script on standard input and writes to standard
+output; it takes no arguments (`./run.sh` just launches `bin/minisql`).
 
-```sh
-$ printf "CREATE TABLE t (k INTEGER, v TEXT);
-INSERT INTO t VALUES (1, 'a'), (2, NULL);
-SELECT k, v FROM t ORDER BY k DESC;" | ./run.sh
-2	NULL
-1	a
+```
+$ ./run.sh <<'SQL'
+CREATE TABLE emp (id INTEGER, name TEXT, dept TEXT, salary INTEGER);
+INSERT INTO emp VALUES (1,'ann','eng',120), (2,'bob','ops',90), (3,'cy','eng',NULL);
+SELECT dept, COUNT(*), AVG(salary) FROM emp GROUP BY dept ORDER BY dept;
+SELECT * FROM nosuch;
+SQL
+eng	2	120.00
+ops	1	90.00
 -- 2 rows
+error
 ```
 
-- Each `SELECT` prints one tab-separated line per row (`NULL` for NULL, `REAL`
-  with two decimals), then `-- N rows`.
-- A statement that fails (syntax error, unknown table, ...) prints `error`,
-  has no effect on the database, and execution continues with the next
-  statement.
-- Other statements print nothing. The exit status is 0 unless I/O fails.
+For each `SELECT` it prints one line per row (values separated by a tab, `NULL`
+for NULL, reals with two decimals) followed by `-- N rows`. A statement that
+fails prints `error`, has no effect on the database, and execution continues
+with the next statement. The exit status is 0 unless reading stdin or writing
+stdout fails.
 
 ## Library use
 
@@ -51,65 +63,28 @@ import (
 	"fmt"
 	"os"
 
-	"example.com/minisql"
+	"minisql"
 )
 
 func main() {
 	db := minisql.New()
+	db.Exec("CREATE TABLE t (a INTEGER, b TEXT)")
+	db.Exec("INSERT INTO t VALUES (1, 'x'), (2, 'y'), (3, NULL)")
 
-	// Run a whole script, printing output exactly like the CLI does.
-	db.RunScript(`
-		CREATE TABLE emp (name TEXT, dept TEXT, salary INTEGER);
-		INSERT INTO emp VALUES ('ann', 'eng', 120), ('bob', 'ops', 90), ('cy', 'eng', 100);
-	`, os.Stdout)
-
-	// Or execute one statement at a time and inspect typed results.
-	res, err := db.Exec("SELECT dept, AVG(salary) FROM emp GROUP BY dept")
+	res, err := db.Exec("SELECT a, b FROM t WHERE a >= 2 ORDER BY a DESC")
 	if err != nil {
-		panic(err) // *minisql.Error with Kind SyntaxError or SemanticError
+		panic(err)
 	}
 	for _, row := range res.Rows {
-		fmt.Println(row[0].Str(), row[1]) // eng 110.00, ops 90.00
+		fmt.Println(row[0], row[1]) // minisql.Value implements fmt.Stringer
 	}
+
+	// Run a whole script and print results in the command-line format.
+	db.RunScript("SELECT COUNT(*) FROM t;", os.Stdout)
 }
 ```
 
-Public API (see the package documentation for details):
-
-| Item | Purpose |
-|------|---------|
-| `New() *DB` | create an empty database |
-| `(*DB).Exec(sql)` | execute one statement; returns `*Result` (nil unless SELECT) |
-| `(*DB).ExecScript(script)` | execute many statements, one `Outcome` each |
-| `(*DB).RunScript(script, w)` | execute a script and write CLI-format output |
-| `Result.Rows` | `[][]Value` |
-| `Value` | `Kind()`, `IsNull()`, `Integer()`, `Str()`, `Hundredths()`, `String()` |
-| `Compare(a, b)` | the engine's total order on values |
-| `*Error` | `Kind` is `SyntaxError` or `SemanticError` |
-
-A `DB` is not safe for concurrent use.
-
-## Design
-
-Each statement is **parsed** to an AST, **bound** against the current schema
-(columns resolved to slot/column indices, aggregates assigned accumulator
-slots, all semantic checks run), and then **executed**. Because binding
-completes before any table is touched and execution cannot fail, a failing
-statement never needs undoing.
-
-Execution is a full scan per statement. Two-table queries filter each table by
-its own conjuncts and hash-join on cross-table equalities (arbitrary
-expressions are allowed on each side), emitting pairs in nested-loop order.
-`GROUP BY` uses a hash map of streaming accumulators; `ORDER BY` is a stable
-sort over precomputed keys.
-
-| File | Responsibility |
-|------|----------------|
-| `value.go`, `output.go` | values, total order, hash-key encoding, formatting |
-| `lexer.go` | tokenizer and statement splitting |
-| `ast.go`, `parser.go` | AST and recursive-descent parser |
-| `bind.go` | name resolution, semantic checks, join planning |
-| `eval.go`, `like.go` | expression interpreter, `LIKE` matcher |
-| `select.go`, `dml.go` | query / data-modification execution |
-| `db.go` | public API |
-| `cmd/minisql` | the command-line tool |
+`DB.Exec` runs one statement and returns the `*Result` of a `SELECT` (nil for
+other statements). `DB.ExecScript` runs a script and returns one `Outcome`
+(result or error) per statement. See the package documentation
+(`go doc minisql`) for details.

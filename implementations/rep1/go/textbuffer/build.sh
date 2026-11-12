@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds bin/textbuffer. Works from any current directory.
+# Builds the textbuffer command-line tool into bin/textbuffer.
 set -e
 dir=$(cd "$(dirname "$0")" && pwd)
 cd "$dir"

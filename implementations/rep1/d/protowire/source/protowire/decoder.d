@@ -1,319 +1,203 @@
-/**
- * Wire-format decoder: bytes to a value tree.
- */
+/// Binary wire format -> value tree.
 module protowire.decoder;
 
-import protowire.memory;
+import protowire.errors : WireException;
 import protowire.schema;
 import protowire.utf8 : isValidUtf8;
 import protowire.value;
 import protowire.wire;
 
-/// Deepest message or group nesting the decoder accepts.
-enum maxNesting = 100;
+/// Maximum message nesting accepted when decoding.
+enum maxNestingDepth = 128;
 
-/// Convert a decoded varint to the canonical 64-bit form for `k`.
-ulong varintToCanonical(Kind k, ulong v) pure nothrow @nogc @safe
+/// Decodes `data` as a message of type `desc`.
+///
+/// Follows proto3 semantics: unknown fields and fields with a mismatched wire
+/// type are skipped, repeated numeric fields may be packed or unpacked,
+/// repeated occurrences of a singular sub-message are merged, and strings must
+/// be valid UTF-8. Throws `WireException` on malformed data. Runs in time
+/// linear in `data.length`.
+Message decodeMessage(const MessageDescriptor desc, const(ubyte)[] data) @safe
 {
-    final switch (k)
+    auto m = new Message(desc);
+    decodeInto(m, data, 0);
+    return m;
+}
+
+private void decodeInto(Message m, const(ubyte)[] data, uint depth) @safe
+{
+    if (depth > maxNestingDepth)
+        throw new WireException("nesting too deep");
+    auto r = Reader(data);
+    const desc = m.descriptor;
+    while (!r.empty)
     {
-    case Kind.int32:
-        return cast(ulong) cast(long) cast(int) v;
-    case Kind.int64, Kind.uint64:
-        return v;
-    case Kind.uint32:
-        return v & 0xffff_ffffUL;
-    case Kind.sint32:
-        return cast(ulong) cast(long) unzigzag32(cast(uint) v);
-    case Kind.sint64:
-        return cast(ulong) unzigzag64(v);
-    case Kind.boolean:
-        return v != 0;
-    case Kind.fixed32, Kind.sfixed32, Kind.fixed64, Kind.sfixed64,
-            Kind.text, Kind.bytes, Kind.message:
-        assert(0);
+        immutable tag = r.readTag();
+        if (tag.wireType == WireType.endGroup)
+            throw new WireException("unexpected end group");
+        immutable idx = desc.indexOfNumber(tag.fieldNumber);
+        if (idx < 0)
+        {
+            r.skipValue(tag);
+            continue;
+        }
+        decodeField(desc.fields[idx], m.slots[idx], r, tag, depth);
     }
 }
 
-/**
- * Decodes one wire-format message into a value tree allocated in an arena.
- *
- * Methods return false on malformed input and leave a description in
- * `error`; the partially built tree must then be discarded.
- */
-struct Decoder
+private void decodeField(ref const FieldDescriptor f, ref Slot slot, ref Reader r,
+        Tag tag, uint depth) @safe
 {
-    const(ubyte)[] buf;
-    const(Message)[] messages;
-    Arena* arena;
-    string error;
-
-    /// Decode `buf[pos .. end]` as message `msgIndex` into `node`.
-    bool decodeMessage(size_t msgIndex, Node* node, size_t pos, size_t end, uint depth) nothrow @trusted
+    immutable kind = f.kind;
+    if (kind == FieldKind.message || kind == FieldKind.string_ || kind == FieldKind.bytes_)
     {
-        if (depth > maxNesting)
-            return fail("nesting too deep");
-        const msg = &messages[msgIndex];
-        while (pos < end)
+        if (tag.wireType != WireType.lengthDelimited)
         {
-            uint num, wt;
-            if (!readTag(pos, end, num, wt))
-                return false;
-            if (wt == WireType.endGroup)
-                return fail("unexpected end-group tag");
-            const slotIdx = msg.findNumber(num);
-            if (slotIdx >= 0)
+            r.skipValue(tag);
+            return;
+        }
+        auto payload = r.readLengthDelimited();
+        if (kind == FieldKind.message)
+        {
+            if (f.repeated)
             {
-                const f = &msg.fields[slotIdx];
-                Slot* sl = &node.slots[slotIdx];
-                if (wt == f.wireType)
-                {
-                    if (!decodeValue(f, sl, pos, end, depth))
-                        return false;
-                    continue;
-                }
-                if (wt == WireType.lengthDelimited && f.repeated && isNumeric(f.kind))
-                {
-                    if (!decodePacked(f, sl, pos, end))
-                        return false;
-                    continue;
-                }
+                auto child = new Message(f.message);
+                decodeInto(child, payload, depth + 1);
+                slot.messages ~= child;
             }
-            if (!skipField(num, wt, pos, end, depth))
-                return false;
-        }
-        return true;
-    }
-
-private:
-    bool fail(string why) nothrow @nogc @safe
-    {
-        error = why;
-        return false;
-    }
-
-    bool readTag(ref size_t pos, size_t end, out uint num, out uint wt) nothrow @nogc @trusted
-    {
-        ulong t;
-        if (!readVarint(buf.ptr, pos, end, maxTagBytes, t))
-            return fail("bad tag");
-        if (t >> 32)
-            return fail("tag too large");
-        num = cast(uint)(t >> 3);
-        wt = cast(uint)(t & 7);
-        if (num == 0)
-            return fail("field number 0");
-        if (wt > 5)
-            return fail("bad wire type");
-        return true;
-    }
-
-    bool readLength(ref size_t pos, size_t end, out size_t len) nothrow @nogc @trusted
-    {
-        ulong l;
-        if (!readVarint(buf.ptr, pos, end, maxTagBytes, l))
-            return fail("bad length prefix");
-        if (l > end - pos)
-            return fail("length exceeds remaining bytes");
-        len = cast(size_t) l;
-        return true;
-    }
-
-    bool skipField(uint num, uint wt, ref size_t pos, size_t end, uint depth) nothrow @trusted
-    {
-        switch (wt)
-        {
-        case WireType.varint:
-            ulong ignored;
-            if (!readVarint(buf.ptr, pos, end, maxVarintBytes, ignored))
-                return fail("bad varint");
-            return true;
-        case WireType.fixed64:
-            if (end - pos < 8)
-                return fail("truncated fixed64");
-            pos += 8;
-            return true;
-        case WireType.lengthDelimited:
-            size_t len;
-            if (!readLength(pos, end, len))
-                return false;
-            pos += len;
-            return true;
-        case WireType.startGroup:
-            return skipGroup(num, pos, end, depth + 1);
-        case WireType.fixed32:
-            if (end - pos < 4)
-                return fail("truncated fixed32");
-            pos += 4;
-            return true;
-        default:
-            return fail("bad wire type");
-        }
-    }
-
-    bool skipGroup(uint startNum, ref size_t pos, size_t end, uint depth) nothrow @trusted
-    {
-        if (depth > maxNesting)
-            return fail("nesting too deep");
-        while (pos < end)
-        {
-            uint num, wt;
-            if (!readTag(pos, end, num, wt))
-                return false;
-            if (wt == WireType.endGroup)
-                return num == startNum ? true : fail("mismatched end-group tag");
-            if (!skipField(num, wt, pos, end, depth))
-                return false;
-        }
-        return fail("unterminated group");
-    }
-
-    static void storeNumber(ref Arena arena, const(Field)* f, Slot* sl, ulong v) nothrow @trusted
-    {
-        if (f.repeated)
-        {
-            if (sl.kind == SlotKind.absent)
+            else
             {
-                sl.numList = arena.make!(Vec!ulong)();
-                sl.kind = SlotKind.numList;
+                if (slot.message is null)
+                    slot.message = new Message(f.message);
+                decodeInto(slot.message, payload, depth + 1);
             }
-            sl.numList.push(arena, v);
         }
         else
         {
-            sl.kind = SlotKind.number;
-            sl.num = v;
+            if (kind == FieldKind.string_ && !isValidUtf8(payload))
+                throw new WireException("invalid UTF-8 in string");
+            if (f.repeated)
+                slot.blobs ~= payload.dup;
+            else
+                slot.bytes = payload.dup;
         }
+        slot.present = true;
+        return;
     }
 
-    bool decodeValue(const(Field)* f, Slot* sl, ref size_t pos, size_t end, uint depth) nothrow @trusted
+    // Numeric / bool field.
+    if (tag.wireType == wireTypeOf(kind))
     {
-        final switch (f.kind)
-        {
-        case Kind.int32, Kind.int64, Kind.uint32, Kind.uint64, Kind.sint32,
-                Kind.sint64, Kind.boolean:
-            ulong v;
-            if (!readVarint(buf.ptr, pos, end, maxVarintBytes, v))
-                return fail("bad varint");
-            storeNumber(*arena, f, sl, varintToCanonical(f.kind, v));
-            return true;
-        case Kind.fixed32, Kind.sfixed32:
-            if (end - pos < 4)
-                return fail("truncated fixed32");
-            storeNumber(*arena, f, sl, loadFixed32(f.kind, buf.ptr + pos));
-            pos += 4;
-            return true;
-        case Kind.fixed64, Kind.sfixed64:
-            if (end - pos < 8)
-                return fail("truncated fixed64");
-            storeNumber(*arena, f, sl, loadFixed64(buf.ptr + pos));
-            pos += 8;
-            return true;
-        case Kind.text, Kind.bytes:
-            size_t len;
-            if (!readLength(pos, end, len))
-                return false;
-            const view = buf[pos .. pos + len];
-            if (f.kind == Kind.text && !isValidUtf8(view))
-                return fail("invalid UTF-8 in string");
-            pos += len;
-            if (f.repeated)
-            {
-                if (sl.kind == SlotKind.absent)
-                {
-                    sl.bytesList = arena.make!(Vec!ByteView)();
-                    sl.kind = SlotKind.bytesList;
-                }
-                sl.bytesList.push(*arena, view);
-            }
-            else
-            {
-                sl.kind = SlotKind.bytes;
-                sl.view = view;
-            }
-            return true;
-        case Kind.message:
-            size_t len;
-            if (!readLength(pos, end, len))
-                return false;
-            const sub = &messages[f.message];
-            Node* child;
-            if (f.repeated)
-            {
-                if (sl.kind == SlotKind.absent)
-                {
-                    sl.childList = arena.make!(Vec!(Node*))();
-                    sl.kind = SlotKind.childList;
-                }
-                child = newNode(*arena, sub.fields.length);
-                sl.childList.push(*arena, child);
-            }
-            else if (sl.kind == SlotKind.child)
-                child = sl.node; // merge into the existing sub-message
-            else
-            {
-                child = newNode(*arena, sub.fields.length);
-                sl.kind = SlotKind.child;
-                sl.node = child;
-            }
-            if (!decodeMessage(f.message, child, pos, pos + len, depth + 1))
-                return false;
-            pos += len;
-            return true;
-        }
+        immutable v = tag.wireType == WireType.varint ? fromVarint(kind, r.readVarint())
+            : tag.wireType == WireType.fixed32 ? fromFixed32(kind, r.readFixed32())
+            : r.readFixed64();
+        if (f.repeated)
+            slot.numbers ~= v;
+        else
+            slot.scalar = v;
+        slot.present = true;
     }
-
-    bool decodePacked(const(Field)* f, Slot* sl, ref size_t pos, size_t end) nothrow @trusted
+    else if (f.repeated && tag.wireType == WireType.lengthDelimited)
     {
-        size_t len;
-        if (!readLength(pos, end, len))
-            return false;
-        const subEnd = pos + len;
-        if (sl.kind == SlotKind.absent)
-        {
-            sl.numList = arena.make!(Vec!ulong)();
-            sl.kind = SlotKind.numList;
-        }
-        auto list = sl.numList;
-        switch (f.wireType)
-        {
-        case WireType.varint:
-            while (pos < subEnd)
-            {
-                ulong v;
-                if (!readVarint(buf.ptr, pos, subEnd, maxVarintBytes, v))
-                    return fail("bad varint in packed field");
-                list.push(*arena, varintToCanonical(f.kind, v));
-            }
-            return true;
-        case WireType.fixed32:
-            if (len % 4 != 0)
-                return fail("packed fixed32 length not a multiple of 4");
-            list.reserve(*arena, len / 4);
-            for (; pos < subEnd; pos += 4)
-                list.push(*arena, loadFixed32(f.kind, buf.ptr + pos));
-            return true;
-        default:
-            if (len % 8 != 0)
-                return fail("packed fixed64 length not a multiple of 8");
-            list.reserve(*arena, len / 8);
-            for (; pos < subEnd; pos += 8)
-                list.push(*arena, loadFixed64(buf.ptr + pos));
-            return true;
-        }
+        decodePacked(kind, r.readLengthDelimited(), slot);
+        slot.present = true;
+    }
+    else
+    {
+        r.skipValue(tag);
     }
 }
 
-private ulong loadFixed32(Kind k, const(ubyte)* p) pure nothrow @nogc @system
+private void decodePacked(FieldKind kind, const(ubyte)[] payload, ref Slot slot) @safe
 {
-    const uint v = p[0] | (p[1] << 8) | (p[2] << 16) | (cast(uint) p[3] << 24);
-    return k == Kind.sfixed32 ? cast(ulong) cast(long) cast(int) v : v;
+    auto pr = Reader(payload);
+    switch (wireTypeOf(kind))
+    {
+    case WireType.varint:
+        while (!pr.empty)
+            slot.numbers ~= fromVarint(kind, pr.readVarint());
+        break;
+    case WireType.fixed32:
+        if (payload.length % 4)
+            throw new WireException("packed fixed32 length not a multiple of 4");
+        slot.numbers.reserve(slot.numbers.length + payload.length / 4);
+        while (!pr.empty)
+            slot.numbers ~= fromFixed32(kind, pr.readFixed32());
+        break;
+    default: // fixed64
+        if (payload.length % 8)
+            throw new WireException("packed fixed64 length not a multiple of 8");
+        slot.numbers.reserve(slot.numbers.length + payload.length / 8);
+        while (!pr.empty)
+            slot.numbers ~= pr.readFixed64();
+        break;
+    }
 }
 
-private ulong loadFixed64(const(ubyte)* p) pure nothrow @nogc @system
+/// Converts a raw varint to the internal 64-bit representation for `kind`.
+ulong fromVarint(FieldKind kind, ulong v) @safe pure nothrow @nogc
 {
-    ulong v = 0;
-    foreach (i; 0 .. 8)
-        v |= cast(ulong) p[i] << (8 * i);
-    return v;
+    with (FieldKind) final switch (kind)
+    {
+    case int32:
+        return cast(ulong) cast(long) cast(int) v;
+    case int64, uint64:
+        return v;
+    case uint32:
+        return v & 0xffff_ffff;
+    case sint32:
+        return cast(ulong) cast(long) unzigzag32(cast(uint) v);
+    case sint64:
+        return cast(ulong) unzigzag64(v);
+    case bool_:
+        return v != 0;
+    case fixed32, fixed64, sfixed32, sfixed64, string_, bytes_, message:
+        assert(false, "not a varint kind");
+    }
+}
+
+/// Converts a raw little-endian 32-bit value to the internal representation.
+ulong fromFixed32(FieldKind kind, uint v) @safe pure nothrow @nogc
+{
+    return kind == FieldKind.sfixed32 ? cast(ulong) cast(long) cast(int) v : v;
+}
+
+@safe unittest
+{
+    import std.exception : assertThrown;
+
+    auto s = Schema.parse("message P { repeated int32 r = 1; P p = 2; string s = 3; sint32 z = 4; "
+            ~ "repeated fixed32 f = 5; bool b = 6; }");
+    auto p = s["P"];
+
+    // spec example: unpacked elements and merged sub-messages
+    auto m = decodeMessage(p, [0x08, 0x01, 0x08, 0x02, 0x12, 0x02, 0x08, 0x03, 0x12, 0x02, 0x08, 0x04]);
+    assert(m.slots[0].numbers == [1, 2]);
+    assert(m.slots[1].message.slots[0].numbers == [3, 4]);
+
+    // mixed packed and unpacked
+    m = decodeMessage(p, [0x0a, 0x02, 0x01, 0x02, 0x08, 0x03]);
+    assert(m.slots[0].numbers == [1, 2, 3]);
+
+    // negative int32 from a 10-byte varint
+    m = decodeMessage(p, [0x08, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x01]);
+    assert(cast(long) m.slots[0].numbers[0] == -1);
+
+    // zigzag
+    m = decodeMessage(p, [0x20, 0x09]);
+    assert(cast(long) m.slots[3].scalar == -5);
+
+    // wrong wire type is skipped, group is skipped
+    m = decodeMessage(p, [0x1b, 0x08, 0x01, 0x1c, 0x08, 0x05]);
+    assert(!m.slots[2].present && m.slots[0].numbers == [5]);
+    m = decodeMessage(p, [0x31, 1, 2, 3, 4, 5, 6, 7, 8]); // field 6, fixed64 for a bool
+    assert(!m.slots[5].present);
+
+    // errors
+    assertThrown!WireException(decodeMessage(p, [0x08, 0xff]));
+    assertThrown!WireException(decodeMessage(p, [0x1b, 0x14]));       // end group mismatch
+    assertThrown!WireException(decodeMessage(p, [0x1a, 0x01, 0xff])); // bad UTF-8
+    assertThrown!WireException(decodeMessage(p, [0x2a, 0x03, 0, 0, 0])); // packed fixed32 length
+    assertThrown!WireException(decodeMessage(p, [0x0a, 0x01, 0x80])); // packed varint cut short
+    assertThrown!WireException(decodeMessage(p, [0x0c]));             // stray end group
 }

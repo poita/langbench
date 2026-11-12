@@ -1,37 +1,38 @@
 package softfloat
 
-// divShift is the number of bits the dividend is shifted left before the
-// integer division, giving a quotient of 32 or 33 significant bits.
-const divShift = 32
-
 // Div returns a / b.
 func Div(a, b uint32) uint32 {
-	if IsNaN(a) || IsNaN(b) {
-		return QNaN
-	}
-	sign := (a ^ b) & signMask
+	neg := (a^b)&signMask != 0
 	switch {
+	case IsNaN(a) || IsNaN(b):
+		return QNaN
 	case IsInf(a):
 		if IsInf(b) {
 			return QNaN
 		}
-		return sign | PosInf
+		return signBit(neg) | Inf
 	case IsInf(b):
-		return sign
+		return signBit(neg)
 	case IsZero(b):
 		if IsZero(a) {
 			return QNaN
 		}
-		return sign | PosInf
+		return signBit(neg) | Inf
 	case IsZero(a):
-		return sign
+		return signBit(neg)
 	}
-	// Normalising both significands to 24 bits guarantees the quotient has at
-	// least 32 significant bits, even for denormal operands.
-	ma, ea := unpackNorm(a)
-	mb, eb := unpackNorm(b)
-	num := ma << divShift
-	q := num / mb
-	r := num % mb
-	return roundPack(sign, q, ea-eb-divShift, r != 0)
+
+	ma, ea := unpack(a).normalize()
+	mb, eb := unpack(b).normalize()
+	// Both significands are in [2^23, 2^24), so the quotient below lies in
+	// (2^37, 2^39) and the dividend (< 2^62) fits in 64 bits.
+	num := uint64(ma) << 38
+	den := uint64(mb)
+	q := num / den
+	sig := q << 1
+	if num%den != 0 {
+		sig |= 1 // sticky
+	}
+	// value = (q + frac) * 2^(ea-eb-38) = sig * 2^(ea-eb-39).
+	return roundPack(neg, ea-eb-39, sig)
 }

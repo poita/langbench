@@ -1,0 +1,24 @@
+sum : int list -> int
+rev : 'a list -> 'a list
+len : 'a list -> int
+mymap : ('a -> 'b) -> 'a list -> 'b list
+all : bool list -> bool
+count : ('a -> bool) -> 'a list -> int
+- : 'a list -> ('a * 'a) list
+- : ('a * 'b) list -> 'a list
+- : int list list -> int list list
+- : (int -> 'a) list -> 'a list
+- : int list
+- : (int -> int) list -> int
+- : int
+- : 'a -> 'b list -> 'a
+- : 'a -> 'a list -> 'a
+- : 'a list list -> 'a list
+- : ('a * 'b) list -> ('b * 'a) list
+- : 'a list -> 'a
+compose : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+- : 'a list -> 'a list
+error: unbound
+app : 'a list -> 'a list -> 'a list
+flatten : 'a list list -> 'a list
+- : 'a list list -> 'a list

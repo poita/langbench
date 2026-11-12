@@ -1,48 +1,51 @@
 # sat
 
-A CDCL SAT solver for DIMACS CNF, written in Go using only the standard
-library. It is a reusable library with a thin command-line tool on top.
+A small CDCL SAT solver in Go, with a DIMACS CNF command-line tool. It is
+MiniSat-style and uses only the standard library:
 
-The solver is MiniSat-style: two watched literals, first-UIP clause learning
-with local minimisation, VSIDS branching on an indexed heap, phase saving,
-Luby restarts, and periodic learnt-clause reduction. The search is fully
-deterministic.
+- two-watched-literal unit propagation (with blocking literals),
+- first-UIP conflict analysis with local clause minimisation,
+- VSIDS branching (double-precision activities, a binary heap) with phase saving
+  (initially false),
+- Luby restarts (`100·luby(2, i)` conflicts),
+- activity-based deletion of the lower half of the learnt clauses after a
+  restart, keeping binary clauses.
 
 ## Layout
 
-| Path          | Purpose                                                        |
-|---------------|----------------------------------------------------------------|
-| `solver/`     | The CDCL solver (`New`, `AddClause`, `Solve`, `Model`).        |
-| `dimacs/`     | DIMACS CNF parser and result writer.                           |
-| `cmd/sat/`    | The command-line tool (stdin → stdout).                        |
-| `build.sh`    | Builds `bin/sat`.                                              |
-| `run.sh`      | Runs `bin/sat`; works from any directory.                      |
+| Path          | Contents                                                   |
+|---------------|------------------------------------------------------------|
+| `*.go` (root) | package `sat`: the solver (`solver.go`, `propagate.go`, `analyze.go`, `reduce.go`, `heap.go`, `lit.go`) |
+| `dimacs/`     | package `dimacs`: DIMACS parser and result writer          |
+| `cmd/sat/`    | the command-line tool                                      |
 
 ## Build
 
-    ./build.sh          # or: go build -o bin/sat ./cmd/sat
+```
+./build.sh          # or: go build -o bin/sat ./cmd/sat
+```
 
-Requires Go 1.27.1. Run the unit tests with `go test ./...`.
+Run the tests with `go test ./...`.
 
-## Command-line use
+## Command line
 
-    ./run.sh < formula.cnf
+```
+sat [file] < formula.cnf
+```
 
-Input is a DIMACS CNF file on standard input. Output on standard output is
+Reads a DIMACS CNF formula from standard input (or from `file`) and prints
 either
 
-    UNSAT
+```
+SAT
+1 -2 3 0
+```
 
-or
+(one literal per variable, then `0`) or `UNSAT`. The exit status is 0 for both
+answers; malformed input prints a message on stderr and exits non-zero.
+`./run.sh` runs the built binary from any directory.
 
-    SAT
-    1 -2 3 0
-
-where the second line has one literal per variable `1..V` (positive if the
-variable is true) followed by `0`. The exit status is 0 in both cases; a
-malformed input prints an error on stderr and exits 1.
-
-## Library use
+## Library
 
 ```go
 package main
@@ -50,32 +53,24 @@ package main
 import (
 	"fmt"
 
-	"github.com/example/sat/dimacs"
-	"github.com/example/sat/solver"
+	"example.com/sat"
 )
 
 func main() {
-	// Build a formula directly...
-	s := solver.New(3)
-	s.AddClause(1, -2) // x1 ∨ ¬x2
-	s.AddClause(2, 3)  // x2 ∨ x3
-	if s.Solve() == solver.Sat {
-		fmt.Println(s.Model()) // model[i] is the value of variable i+1
-	}
+	s := sat.NewSolver()
+	a, b := s.NewVar(), s.NewVar()
+	s.AddClause(sat.MkLit(a, false), sat.MkLit(b, false)) // a ∨ b
+	s.AddClause(sat.MkLit(a, true))                       // ¬a
 
-	// ...or parse DIMACS text.
-	f, err := dimacs.Parse([]byte("p cnf 2 2\n1 2 0\n-1 0\n"))
-	if err != nil {
-		panic(err)
+	if s.Solve() == sat.Satisfiable {
+		fmt.Println(s.Model()) // [false true]
 	}
-	t := solver.New(f.NumVars)
-	for _, c := range f.Clauses {
-		t.AddClause(c...)
-	}
-	fmt.Println(t.Solve()) // SAT
 }
 ```
 
-Literals are non-zero DIMACS integers. `AddClause` removes duplicate literals,
-ignores tautologies, and returns `false` once the formula is known to be
-unsatisfiable. Clauses may be added between calls to `Solve`.
+Variables are numbered from 0; `sat.FromDIMACS(k)` builds a literal from a
+DIMACS integer. `AddClause` simplifies at the root level (duplicates,
+tautologies, satisfied clauses, false literals) and returns false once the
+formula is known to be unsatisfiable. Clauses may be added between `Solve`
+calls. To load DIMACS text, use `dimacs.Parse` and `(*dimacs.CNF).Solver`; a
+`Solver` is not safe for concurrent use.

@@ -1,163 +1,301 @@
 /**
  * The resolution search.
  *
- * Implements the SPEC's depth-first, newest-first, chronologically
- * backtracking search iteratively. The pending requirement list is a
- * persistent singly linked list in an arena that is truncated on backtrack;
- * chosen versions are undone through the frame stack. No state is copied per
- * step.
+ * Implements exactly the depth-first, newest-version-first, chronologically
+ * backtracking search from the specification, iteratively:
+ *
+ * $(UL
+ *  $(LI pending requirements are an immutable singly linked list stored in an
+ *       arena, so a choice point shares its tail instead of copying it;)
+ *  $(LI choices are undone through a trail, so a step costs $(I O(1)) plus
+ *       the requirements it pushes;)
+ *  $(LI candidates are the precomputed index range of each requirement, no
+ *       version list is ever filtered during the search;)
+ *  $(LI an explicit choice-point stack replaces recursion, so depth is
+ *       limited by memory only.)
+ * )
  */
 module depresolve.resolver;
 
-import std.algorithm.sorting : sort;
-import std.array : appender;
-import std.format : formattedWrite;
-
+import depresolve.parser : Problem;
 import depresolve.registry;
 import depresolve.semver;
 
-/// A package and the version picked for it.
+/// One picked package version.
 struct Pick
 {
+    /// Package name.
     string name;
+    /// Chosen version.
     Version version_;
 }
 
-/// The outcome of a resolution.
+/// Outcome of a resolution.
 struct Resolution
 {
-    /// True if a complete solution exists.
+    /// True if a complete resolution was found.
     bool satisfiable;
-    /// The chosen packages sorted by name (byte order). Empty if unsatisfiable.
+    /// Picks sorted by name in ascending byte order (empty if unsatisfiable).
     Pick[] picks;
+    /// Number of choice points opened by the search (a work measure).
+    size_t choicePoints;
 }
 
 /**
- * Run the search over `reg` and return the first solution in search order.
+ * Resolves `root` against `registry`.
  *
- * Complexity: O(search steps + requirements prepended) after the O(R log V)
- * preprocessing done by `RegistryBuilder.build`; memory is proportional to the
- * longest search path. Worst-case time is exponential, as the problem allows.
+ * The registry is sealed (sorted and bound) first if necessary. `root` may
+ * be unbound; it is bound against the registry internally.
+ *
+ * Returns: the first solution in the specified search order, or an
+ * unsatisfiable `Resolution`.
  */
-Resolution resolve(const Registry reg) pure @safe
+Resolution resolve(ref Registry registry, const(Requirement)[] root) pure @safe
 {
-    enum uint nil = uint.max;
-    enum uint none = uint.max;
+    registry.seal();
 
-    struct Cell
-    {
-        uint req, next;
-    }
+    // Bound copy of the root requirements.
+    auto rootReqs = root.dup;
+    foreach (ref r; rootReqs)
+        registry.bind(r);
 
-    struct Frame
-    {
-        uint pkg;
-        uint cursor, end; // candidate indices into the package's version list
-        uint rest;        // pending list after this requirement
-        uint mark;        // arena length when the frame was opened
-    }
+    const nPkg = registry.packages.length;
 
-    // Hot state in locals.
-    auto reqs = reg.reqs;
-    auto versions = reg.versions;
-    auto verStart = reg.verStart;
-    auto chosen = new uint[reg.packageCount];
+    // Index of the chosen version of each package, or `none`.
+    auto chosen = new uint[nPkg];
     chosen[] = none;
-    auto arena = new Cell[](reg.reqs.length + 64);
-    size_t arenaLen = 0;
-    auto frames = new Frame[](64);
-    size_t nFrames = 0;
+    // Packages in the order they were chosen; undo log for backtracking.
+    PackageId[] trail;
+    trail.reserve(nPkg);
 
-    // Prepend the requirements of `e` (last first) to `tail`; return the head.
-    uint pushReqs(VersionEntry e, uint tail) @safe
+    // Pending requirements: persistent linked list in an arena.
+    static struct Node
     {
-        immutable need = arenaLen + e.reqCount;
-        if (need > arena.length)
-            arena.length = need > arena.length * 2 ? need : arena.length * 2;
-        foreach_reverse (i; e.reqStart .. e.reqStart + e.reqCount)
-        {
-            arena[arenaLen] = Cell(i, tail);
-            tail = cast(uint) arenaLen++;
-        }
-        return tail;
+        const(Requirement)* req;
+        uint next;
+    }
+    Node[] nodes;
+    nodes.reserve(1024);
+
+    // Choice points.
+    static struct Choice
+    {
+        PackageId pkg;
+        uint cur;       // index of the candidate currently applied
+        uint end;       // one past the last candidate
+        uint rest;      // pending list that follows the chosen version's requirements
+        uint trailMark; // trail length before this choice
+        uint nodeMark;  // arena length before this choice's requirements
+    }
+    Choice[] stack;
+    stack.reserve(256);
+
+    size_t choicePoints = 0;
+
+    // Pending list head: build the root requirements (first listed = head).
+    uint pending = none;
+    foreach_reverse (ref r; rootReqs)
+    {
+        () @trusted { nodes ~= Node(&r, pending); }();
+        pending = cast(uint) nodes.length - 1;
     }
 
-    // Initial pending list: the root manifest.
-    uint cur = pushReqs(VersionEntry(0, reg.rootStart, reg.rootCount), nil);
-
-    bool fail = false;
-    while (cur != nil)
+    // Applies candidate `cp.cur` of the choice point `cp`: records it, and
+    // pushes the version's requirements in front of `cp.rest`.
+    // Returns the new pending head.
+    uint apply(ref const Choice cp) @safe
     {
-        immutable cell = arena[cur];
-        immutable q = reqs[cell.req];
-        immutable c = chosen[q.pkg];
-        if (c != none)
+        chosen[cp.pkg] = cp.cur;
+        trail ~= cp.pkg;
+        const pv = &registry.packages[cp.pkg].versions[cp.cur];
+        uint head = cp.rest;
+        foreach_reverse (i; pv.reqStart .. pv.reqEnd)
         {
-            if (c >= q.first && c < q.last)
-            {
-                cur = cell.next;
-                continue;
-            }
+            () @trusted { nodes ~= Node(&registry.pool[i], head); }();
+            head = cast(uint) nodes.length - 1;
         }
-        else if (q.first < q.last)
+        return head;
+    }
+
+    bool failed = false;
+    while (true)
+    {
+        if (failed)
         {
-            if (nFrames == frames.length)
-                frames.length = frames.length * 2;
-            frames[nFrames++] = Frame(q.pkg, q.first, q.last, cell.next, cast(uint) arenaLen);
-            chosen[q.pkg] = q.first;
-            cur = pushReqs(versions[verStart[q.pkg] + q.first], cell.next);
+            // Chronological backtracking: advance the most recent choice
+            // point that still has an untried candidate.
+            bool resumed = false;
+            while (stack.length)
+            {
+                auto cp = &stack[$ - 1];
+                foreach (p; trail[cp.trailMark .. $])
+                    chosen[p] = none;
+                trail.length = cp.trailMark;
+                nodes.length = cp.nodeMark;
+                ++cp.cur;
+                if (cp.cur < cp.end)
+                {
+                    pending = apply(*cp);
+                    resumed = true;
+                    break;
+                }
+                stack.length = stack.length - 1;
+            }
+            if (!resumed)
+                return Resolution(false, null, choicePoints);
+            failed = false;
+        }
+
+        if (pending == none)
+            break; // success
+
+        const node = nodes[pending];
+        const req = node.req;
+        const rest = node.next;
+
+        const cur = chosen[req.pkg];
+        if (cur != none)
+        {
+            if (cur >= req.first && cur < req.last)
+                pending = rest;
+            else
+                failed = true;
+            continue;
+        }
+        if (req.first >= req.last)
+        {
+            failed = true;
             continue;
         }
 
-        // Backtrack: move the most recent frame with an untried candidate on.
-        bool resumed = false;
-        while (nFrames > 0)
-        {
-            auto f = &frames[nFrames - 1];
-            arenaLen = f.mark;
-            if (++f.cursor < f.end)
-            {
-                chosen[f.pkg] = f.cursor;
-                cur = pushReqs(versions[verStart[f.pkg] + f.cursor], f.rest);
-                resumed = true;
-                break;
-            }
-            chosen[f.pkg] = none;
-            --nFrames;
-        }
-        if (!resumed)
-        {
-            fail = true;
-            break;
-        }
+        ++choicePoints;
+        stack ~= Choice(req.pkg, req.first, req.last, rest,
+                        cast(uint) trail.length, cast(uint) nodes.length);
+        pending = apply(stack[$ - 1]);
     }
 
-    Resolution result;
-    if (fail)
-        return result;
-    result.satisfiable = true;
-    result.picks = new Pick[nFrames];
-    foreach (i; 0 .. nFrames)
-    {
-        immutable f = frames[i];
-        result.picks[i] = Pick(reg.names[f.pkg],
-            Version.fromKey(versions[verStart[f.pkg] + f.cursor].key));
-    }
-    result.picks.sort!((a, b) => a.name < b.name);
-    return result;
+    Pick[] picks;
+    picks.reserve(trail.length);
+    foreach (p; trail)
+        picks ~= Pick(registry.packages[p].name,
+                      registry.packages[p].versions[chosen[p]].version_);
+    import std.algorithm.sorting : sort;
+    picks.sort!((a, b) => a.name < b.name);
+    return Resolution(true, picks, choicePoints);
 }
 
-/**
- * Format a resolution as the SPEC's output text: one `name version` line per
- * pick, or the single line `unsatisfiable`.
- */
-string formatResolution(const Resolution r) pure @safe
+/// Convenience overload taking a parsed `Problem`.
+Resolution resolve(ref Problem problem) pure @safe
 {
-    if (!r.satisfiable)
-        return "unsatisfiable\n";
-    auto buf = appender!string;
-    foreach (p; r.picks)
-        formattedWrite(buf, "%s %d.%d.%d\n", p.name, p.version_.major,
-            p.version_.minor, p.version_.patch);
-    return buf.data;
+    return resolve(problem.registry, problem.root);
+}
+
+version (unittest)
+{
+    import depresolve.parser : parseProblem;
+
+    private string solve(string input)
+    {
+        auto p = parseProblem(input);
+        auto r = resolve(p);
+        if (!r.satisfiable)
+            return "unsatisfiable";
+        string s;
+        foreach (pk; r.picks)
+            s ~= pk.name ~ " " ~ pk.version_.toString ~ "\n";
+        return s;
+    }
+}
+
+// Spec example 1: diamond that needs backtracking.
+unittest
+{
+    assert(solve("a 1.0.0: c ^1.0.0\nb 1.0.0: c ~1.2.0\nc 1.1.0:\nc 1.2.5:\nc 1.3.0:\n"
+                 ~ "root: a *, b *\n") == "a 1.0.0\nb 1.0.0\nc 1.2.5\n");
+}
+
+// Spec example 2: first solution, not the globally newest set.
+unittest
+{
+    assert(solve("a 2.0.0: b ~1.0.0\na 1.0.0:\nb 1.0.0:\nb 1.0.5:\nb 1.5.0:\nb 2.0.0:\n"
+                 ~ "root: a *, b *\n") == "a 2.0.0\nb 1.0.5\n");
+}
+
+// Spec example 3: conflicting majors.
+unittest
+{
+    assert(solve("a 1.0.0: c ^1.0.0\nb 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\n"
+                 ~ "root: a *, b *\n") == "unsatisfiable");
+}
+
+// Spec example 4: requirement order matters.
+unittest
+{
+    enum reg = "a 2.0.0: c ^2.0.0\na 1.0.0: c ^1.0.0\nb 2.0.0: c ^1.0.0\n"
+             ~ "b 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\n";
+    assert(solve(reg ~ "root: a *, b *\n") == "a 2.0.0\nb 1.0.0\nc 2.0.0\n");
+    assert(solve(reg ~ "root: b *, a *\n") == "a 1.0.0\nb 2.0.0\nc 1.0.0\n");
+}
+
+unittest
+{
+    assert(solve("root:\n") == "");
+    assert(solve("a 1.0.0:\nroot:\n") == "");
+}
+
+// Missing package / empty range / self requirement / cycles.
+unittest
+{
+    assert(solve("root: ghost *\n") == "unsatisfiable");
+    assert(solve("a 1.0.0:\nroot: a >=2.0.0 <1.0.0\n") == "unsatisfiable");
+    assert(solve("a 1.0.0: a 1.0.0\nroot: a *\n") == "a 1.0.0\n");
+    assert(solve("a 2.0.0: a ^1.0.0\na 1.0.0: a ^1.0.0\nroot: a *\n") == "a 1.0.0\n");
+    assert(solve("a 1.0.0: b *\nb 1.0.0: a *\nroot: a *\n") == "a 1.0.0\nb 1.0.0\n");
+}
+
+// Numeric (not lexicographic) version order and byte-order output sorting.
+unittest
+{
+    assert(solve("a 1.9.0:\na 1.10.0:\nroot: a *\n") == "a 1.10.0\n");
+    assert(solve("mylib 1.0.0:\nmy-lib2 1.0.0:\nmy-lib 1.0.0:\n"
+                 ~ "root: mylib *, my-lib2 *, my-lib *\n")
+           == "my-lib 1.0.0\nmy-lib2 1.0.0\nmylib 1.0.0\n");
+}
+
+// Chronological backtracking revisits an unrelated earlier choice.
+unittest
+{
+    // x is chosen before the conflict between y and z, and only x 1.0.0 helps.
+    enum reg = "x 2.0.0: z ^2.0.0\nx 1.0.0: z ^1.0.0\n"
+             ~ "y 1.0.0: z ^1.0.0\nz 1.0.0:\nz 2.0.0:\n";
+    assert(solve(reg ~ "root: x *, y *\n") == "x 1.0.0\ny 1.0.0\nz 1.0.0\n");
+}
+
+// Deep chains must not overflow the call stack.
+unittest
+{
+    import std.array : appender;
+    import std.format : format;
+    auto app = appender!string;
+    enum n = 20_000;
+    foreach (i; 0 .. n)
+        app ~= format("p%d 1.0.0: p%d *\n", i, i + 1);
+    app ~= format("p%d 1.0.0:\nroot: p0 *\n", n);
+    auto p = parseProblem(app.data);
+    auto r = resolve(p);
+    assert(r.satisfiable && r.picks.length == n + 1);
+}
+
+// Many versions stepped through before one fits.
+unittest
+{
+    import std.array : appender;
+    import std.format : format;
+    auto app = appender!string;
+    foreach (i; 0 .. 1000)
+        app ~= format("a %d.0.0:\n", i);
+    app ~= "root: a *, a <=3.0.0\n";
+    // `a *` fixes a to 999.0.0 first; the second requirement then fails and
+    // the search steps down through the versions until it fits.
+    assert(solve(app.data) == "a 3.0.0\n");
 }

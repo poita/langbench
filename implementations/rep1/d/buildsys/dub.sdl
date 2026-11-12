@@ -1,30 +1,24 @@
 name "buildsys"
-description "Kiln: an incremental build system with a deterministic simulated scheduler"
-authors "Kiln authors"
-copyright "Copyright (c) Kiln authors"
+description "Kiln: an incremental build system with a deterministic parallel-build simulator"
+authors "buildsys contributors"
+copyright "Copyright © buildsys contributors"
 license "MIT"
 
-sourcePaths "source"
-importPaths "source"
+targetName "kiln"
+targetPath "bin"
 
-// The command-line tool (default configuration).
-configuration "cli" {
+// The default configuration builds the command-line tool.  The library
+// configuration builds only the reusable `kiln` package (`import kiln;`).
+configuration "application" {
     targetType "executable"
-    targetName "kiln"
-    mainSourceFile "source/app.d"
+    sourcePaths "source" "app"
+    importPaths "source"
+    mainSourceFile "app/main.d"
 }
 
-// The reusable library only (package `kiln.*`), for use as a dependency.
 configuration "library" {
     targetType "library"
     targetName "kiln"
-    excludedSourceFiles "source/app.d"
-}
-
-// Unit tests live in tests/, separate from the library sources.
-configuration "unittest" {
-    targetType "library"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-    excludedSourceFiles "source/app.d"
+    sourcePaths "source"
+    importPaths "source"
 }

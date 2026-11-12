@@ -1,115 +1,108 @@
-/// The `render.txt` job list and directory-level driver.
+/// Batch rendering driven by a `render.txt` job list.
 module svgraster.batch;
 
-import std.conv : to;
-import std.file : exists, isDir, mkdirRecurse, read, write;
+import std.algorithm : endsWith;
+import std.array : split;
+import std.conv : to, ConvException;
+import std.file : exists, mkdirRecurse, read, write;
 import std.path : buildPath;
-import svgraster.parse : isSpace;
+import std.string : strip;
 import svgraster.render;
-import svgraster.xml : parseXml;
 
-/// One line of `render.txt`: render `name` at `width` x `height`.
+/// One line of `render.txt`.
 struct Job
 {
-    /// File name in the input directory (ends in `.svg`).
+    /// SVG file name relative to the input directory.
     string name;
-    /// Output width in pixels.
-    int width;
-    /// Output height in pixels.
-    int height;
+    /// Output size in pixels.
+    int width, height;
 
-    /// The output file name: `name` without `.svg`, plus `.ppm`.
-    string outputName() const pure nothrow @safe
+    /// Output file name: `name` without its `.svg` suffix plus `.ppm`.
+    string outputName() const
     {
-        auto stem = name.length >= 4 && name[$ - 4 .. $] == ".svg" ? name[0 .. $ - 4] : name;
-        return stem ~ ".ppm";
+        return (name.endsWith(".svg") ? name[0 .. $ - 4] : name) ~ ".ppm";
     }
 }
 
-/// Parse the text of a `render.txt` file. Blank lines and `#` comments are
-/// skipped; lines that do not have exactly three valid fields are ignored.
-Job[] parseJobs(string text) pure @safe
+/// Parse the text of a `render.txt`: `NAME WIDTH HEIGHT` per line; blank lines
+/// and lines starting (after spaces) with `#` are ignored.
+/// Throws: `Exception` for a malformed line.
+Job[] parseJobList(string text)
 {
     Job[] jobs;
-    size_t i = 0;
-    while (i <= text.length)
+    foreach (raw; text.split('\n'))
     {
-        size_t j = i;
-        while (j < text.length && text[j] != '\n')
-            ++j;
-        auto line = text[i .. j];
-        i = j + 1;
-        if (line.length && line[$ - 1] == '\r')
-            line = line[0 .. $ - 1];
-        string[3] f;
-        size_t nf = 0;
-        size_t p = 0;
-        bool extra = false;
-        while (true)
-        {
-            while (p < line.length && isSpace(line[p]))
-                ++p;
-            if (p >= line.length)
-                break;
-            size_t q = p;
-            while (q < line.length && !isSpace(line[q]))
-                ++q;
-            if (nf == 0 && line[p] == '#')
-                break;
-            if (nf < 3)
-                f[nf] = line[p .. q];
-            else
-                extra = true;
-            ++nf;
-            p = q;
-        }
-        if (nf == 3 && !extra)
-        {
-            int w, h;
-            if (parseDim(f[1], w) && parseDim(f[2], h))
-                jobs ~= Job(f[0], w, h);
-        }
+        auto line = raw.strip;
+        if (line.length == 0 || line[0] == '#')
+            continue;
+        auto fields = line.split;
+        if (fields.length != 3)
+            throw new Exception("malformed render.txt line: " ~ line);
+        try
+            jobs ~= Job(fields[0], fields[1].to!int, fields[2].to!int);
+        catch (ConvException)
+            throw new Exception("malformed render.txt line: " ~ line);
+        if (jobs[$ - 1].width < 1 || jobs[$ - 1].height < 1)
+            throw new Exception("invalid size in render.txt line: " ~ line);
     }
     return jobs;
 }
 
-private bool parseDim(string s, out int v) pure nothrow @safe
+/// Render every job named in `<inputDir>/render.txt` into `outputDir`.
+/// Returns: the number of jobs that failed (their errors are reported through
+/// `onError`).
+int renderDirectory(string inputDir, string outputDir, void delegate(string) onError)
 {
-    if (s.length == 0 || s.length > 9)
-        return false;
-    int r = 0;
-    foreach (c; s)
-    {
-        if (c < '0' || c > '9')
-            return false;
-        r = r * 10 + (c - '0');
-    }
-    v = r;
-    return r >= 1;
-}
-
-/// Render every job listed in `<inputDir>/render.txt` into `outputDir`.
-/// Returns the names of jobs that could not be rendered (unreadable input).
-string[] renderDirectory(string inputDir, string outputDir)
-{
-    auto listText = cast(string) read(buildPath(inputDir, "render.txt"));
-    auto jobs = parseJobs(listText);
-    if (!exists(outputDir))
-        mkdirRecurse(outputDir);
-    auto renderer = new Renderer;
-    string[] failed;
+    immutable text = cast(string) read(buildPath(inputDir, "render.txt"));
+    auto jobs = parseJobList(text);
+    mkdirRecurse(outputDir);
+    int failures = 0;
     foreach (job; jobs)
     {
-        string src;
         try
-            src = cast(string) read(buildPath(inputDir, job.name));
-        catch (Exception)
         {
-            failed ~= job.name;
-            continue;
+            immutable src = cast(string) read(buildPath(inputDir, job.name));
+            auto canvas = renderSvg(src, job.width, job.height);
+            write(buildPath(outputDir, job.outputName), canvas.toPpm());
         }
-        auto img = renderer.render(parseXml(src), job.width, job.height);
-        write(buildPath(outputDir, job.outputName), img.toPpm());
+        catch (Exception e)
+        {
+            ++failures;
+            onError(job.name ~ ": " ~ e.msg);
+        }
     }
-    return failed;
+    return failures;
+}
+
+unittest
+{
+    auto jobs = parseJobList("# comment\n\n  # indented\nlogo.svg 64 32\r\nb.svg\t5   6\n");
+    assert(jobs.length == 2);
+    assert(jobs[0] == Job("logo.svg", 64, 32) && jobs[0].outputName == "logo.ppm");
+    assert(jobs[1] == Job("b.svg", 5, 6));
+    import std.exception : assertThrown;
+
+    assertThrown(parseJobList("a.svg 10"));
+    assertThrown(parseJobList("a.svg 0 10"));
+}
+
+unittest
+{
+    import std.file : tempDir, rmdirRecurse, mkdirRecurse, write, read;
+    import std.path : buildPath;
+    import std.process : thisProcessID;
+
+    immutable base = buildPath(tempDir, "svgraster-batch-" ~ thisProcessID.to!string);
+    scope (exit)
+        rmdirRecurse(base);
+    mkdirRecurse(buildPath(base, "in"));
+    write(buildPath(base, "in", "render.txt"), "a.svg 4 2\nmissing.svg 1 1\n");
+    write(buildPath(base, "in", "a.svg"), `<svg viewBox="0 0 4 2"><rect width="4" height="2" fill="#000"/></svg>`);
+    string[] errors;
+    immutable failed = renderDirectory(buildPath(base, "in"), buildPath(base, "out", "nested"),
+            (string m) { errors ~= m; });
+    assert(failed == 1 && errors.length == 1);
+    const data = cast(const(ubyte)[]) read(buildPath(base, "out", "nested", "a.ppm"));
+    assert(data.length == "P6\n4 2\n255\n".length + 24);
+    assert(data[$ - 1] == 0);
 }

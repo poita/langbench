@@ -1,210 +1,216 @@
-// Package engine evaluates a checked Datalog program bottom-up with
-// semi-naive evaluation over hash-indexed relations of interned constants.
 package engine
 
-// Relation is a set of fixed-arity tuples of constant ids. Tuples are stored
-// contiguously in insertion order, so a tuple has a stable position, and an
-// open-addressing hash set over whole tuples deduplicates inserts and answers
-// membership tests.
-type Relation struct {
+// A relation stores a set of fixed-arity tuples of interned constants (ids
+// that are ranks in the constant order, so comparing ids compares
+// constants). Tuples live in one flat slice in insertion order; a tuple's
+// position in that order is its id. A hash set deduplicates insertions and
+// per-access-pattern hash indexes (see index) serve joins.
+
+type relation struct {
 	arity int
-	data  []int32 // n*arity ids
+	data  []uint32 // n tuples, arity values each
 	n     int
-	table []int32 // open-addressing slots holding position+1; 0 = empty
-	mask  uint64
-	idx   map[uint32]*Index // by bitmask of indexed columns
+	set   []int32 // open addressing: tuple id+1, 0 = empty
+	// Delta bookkeeping used by semi-naive evaluation of the relation's
+	// component: tuples [dlo,dhi) are the previous round's new tuples and
+	// mark is the tuple count when that round ended.
+	dlo, dhi, mark int
+	indexes        map[uint32]*index // by bit mask of bound columns
 }
 
-func newRelation(arity int) *Relation {
-	return &Relation{
-		arity: arity,
-		table: make([]int32, 16),
-		mask:  15,
-		idx:   map[uint32]*Index{},
-	}
+func newRelation(arity int) *relation {
+	return &relation{arity: arity, indexes: map[uint32]*index{}}
 }
 
-// Arity returns the number of columns.
-func (r *Relation) Arity() int { return r.arity }
-
-// Len returns the number of tuples.
-func (r *Relation) Len() int { return r.n }
-
-// Tuple returns the i-th tuple in insertion order. The slice aliases the
-// relation's storage and must not be modified.
-func (r *Relation) Tuple(i int) []int32 { return r.data[i*r.arity : (i+1)*r.arity] }
-
-func hashIDs(t []int32) uint64 {
+func hashVals(t []uint32) uint64 {
 	h := uint64(0x9E3779B97F4A7C15)
 	for _, v := range t {
-		h = (h ^ uint64(uint32(v))) * 0xff51afd7ed558ccd
-		h ^= h >> 29
+		h = (h ^ uint64(v)) * 0xff51afd7ed558ccd
+		h ^= h >> 32
 	}
+	h *= 0xc4ceb9fe1a85ec53
+	h ^= h >> 29
 	return h
 }
 
-// Contains reports whether t is in the relation.
-func (r *Relation) Contains(t []int32) bool {
-	_, found := r.find(t, hashIDs(t))
-	return found
-}
+func (r *relation) tuple(id int) []uint32 { return r.data[id*r.arity : (id+1)*r.arity] }
 
-func (r *Relation) find(t []int32, h uint64) (slot uint64, found bool) {
-	a := r.arity
-	for s := h & r.mask; ; s = (s + 1) & r.mask {
-		e := r.table[s]
-		if e == 0 {
-			return s, false
+func equalVals(a, b []uint32) bool {
+	for i := range a {
+		if a[i] != b[i] {
+			return false
 		}
-		base := int(e-1) * a
-		row := r.data[base : base+a]
-		eq := true
-		for i, v := range row {
-			if v != t[i] {
-				eq = false
-				break
-			}
-		}
-		if eq {
-			return s, true
-		}
-	}
-}
-
-// Add inserts t and reports whether it was new.
-func (r *Relation) Add(t []int32) bool {
-	h := hashIDs(t)
-	slot, found := r.find(t, h)
-	if found {
-		return false
-	}
-	r.data = append(r.data, t...)
-	r.n++
-	r.table[slot] = int32(r.n)
-	if uint64(r.n)*2 > r.mask {
-		r.grow()
 	}
 	return true
 }
 
-func (r *Relation) grow() {
-	size := (r.mask + 1) * 2
-	r.table = make([]int32, size)
-	r.mask = size - 1
-	for i := 0; i < r.n; i++ {
-		s := hashIDs(r.Tuple(i)) & r.mask
-		for r.table[s] != 0 {
-			s = (s + 1) & r.mask
+// contains reports whether t is in the relation.
+func (r *relation) contains(t []uint32) bool {
+	if len(r.set) == 0 {
+		return false
+	}
+	mask := uint64(len(r.set) - 1)
+	for s := hashVals(t) & mask; ; s = (s + 1) & mask {
+		v := r.set[s]
+		if v == 0 {
+			return false
 		}
-		r.table[s] = int32(i + 1)
+		if equalVals(r.tuple(int(v-1)), t) {
+			return true
+		}
 	}
 }
 
-// index returns the index over the given columns (ascending), creating it if
-// needed. A new index is empty until Update is called.
-func (r *Relation) index(cols []int) *Index {
-	var m uint32
-	for _, c := range cols {
-		m |= 1 << c
+// insert adds t if absent and reports whether it was added. Indexes are not
+// updated; they catch up in index.sync.
+func (r *relation) insert(t []uint32) bool {
+	if (r.n+1)*2 > len(r.set) {
+		r.growSet()
 	}
-	if ix, ok := r.idx[m]; ok {
+	mask := uint64(len(r.set) - 1)
+	s := hashVals(t) & mask
+	for ; ; s = (s + 1) & mask {
+		v := r.set[s]
+		if v == 0 {
+			break
+		}
+		if equalVals(r.tuple(int(v-1)), t) {
+			return false
+		}
+	}
+	r.data = append(r.data, t...)
+	r.n++
+	r.set[s] = int32(r.n)
+	return true
+}
+
+func (r *relation) growSet() {
+	size := max(16, len(r.set)*2)
+	r.set = make([]int32, size)
+	mask := uint64(size - 1)
+	for id := 0; id < r.n; id++ {
+		s := hashVals(r.tuple(id)) & mask
+		for r.set[s] != 0 {
+			s = (s + 1) & mask
+		}
+		r.set[s] = int32(id + 1)
+	}
+}
+
+// getIndex returns the index on the columns in mask (bit i = column i),
+// creating an empty one if needed.
+func (r *relation) getIndex(mask uint32) *index {
+	if ix, ok := r.indexes[mask]; ok {
 		return ix
 	}
-	ix := &Index{rel: r, cols: append([]int(nil), cols...), table: make([]int32, 16), mask: 15}
-	r.idx[m] = ix
+	ix := &index{}
+	for c := 0; c < r.arity; c++ {
+		if mask&(1<<c) != 0 {
+			ix.cols = append(ix.cols, c)
+		}
+	}
+	r.indexes[mask] = ix
 	return ix
 }
 
-// Index maps the values of a fixed set of columns to the positions of the
-// matching tuples, in ascending order. Entries for one key form a linked list
-// threaded through next, so appending a tuple is O(1) and the list can be
-// walked until a position outside the caller's snapshot is reached.
-type Index struct {
-	rel   *Relation
+// index is a hash index over a subset of columns. Tuples with equal values
+// in those columns form a chain in ascending id order, so a reader that only
+// wants tuples below some id stops at the first id past the limit. An index
+// is only ever extended (sync), never rebuilt, so its total maintenance cost
+// is linear in the relation.
+type index struct {
 	cols  []int
-	done  int     // tuples [0,done) are indexed
-	table []int32 // open addressing: bucket+1
-	mask  uint64
-	keys  []int32 // bucket b's key is keys[b*len(cols):]
-	head  []int32 // first position of bucket
-	tail  []int32 // last position of bucket
-	next  []int32 // next[pos] = next position with the same key, or -1
+	slots []slot
+	used  int
+	next  []int32 // next[id] = id+1 of the next tuple in id's chain, 0 = end
+	upto  int     // tuples [0,upto) are indexed
 }
 
-func (ix *Index) keyOf(pos int, buf *[6]int32) []int32 {
-	t := ix.rel.Tuple(pos)
-	k := buf[:len(ix.cols)]
-	for i, c := range ix.cols {
-		k[i] = t[c]
+type slot struct{ head, tail int32 } // tuple id+1; head == 0 means empty
+
+func (ix *index) keyOf(r *relation, id int, buf []uint32) []uint32 {
+	t := r.tuple(id)
+	buf = buf[:0]
+	for _, c := range ix.cols {
+		buf = append(buf, t[c])
 	}
-	return k
+	return buf
 }
 
-func (ix *Index) probe(key []int32, h uint64) (slot uint64, bucket int) {
-	w := len(ix.cols)
-	for s := h & ix.mask; ; s = (s + 1) & ix.mask {
-		e := ix.table[s]
-		if e == 0 {
-			return s, -1
+func (ix *index) sameKey(r *relation, id int, key []uint32) bool {
+	t := r.tuple(id)
+	for i, c := range ix.cols {
+		if t[c] != key[i] {
+			return false
 		}
-		b := int(e - 1)
-		stored := ix.keys[b*w : b*w+w]
-		eq := true
-		for i, v := range stored {
-			if v != key[i] {
-				eq = false
+	}
+	return true
+}
+
+// sync adds the relation's tuples not yet indexed.
+func (ix *index) sync(r *relation) {
+	if ix.upto == r.n {
+		return
+	}
+	for len(ix.next) < r.n {
+		ix.next = append(ix.next, 0)
+	}
+	var kb [8]uint32
+	for id := ix.upto; id < r.n; id++ {
+		if (ix.used+1)*2 > len(ix.slots) {
+			ix.grow(r)
+		}
+		key := ix.keyOf(r, id, kb[:0])
+		mask := uint64(len(ix.slots) - 1)
+		s := hashVals(key) & mask
+		for {
+			sl := &ix.slots[s]
+			if sl.head == 0 {
+				sl.head, sl.tail = int32(id+1), int32(id+1)
+				ix.used++
 				break
 			}
+			if ix.sameKey(r, int(sl.head-1), key) {
+				ix.next[sl.tail-1] = int32(id + 1)
+				sl.tail = int32(id + 1)
+				break
+			}
+			s = (s + 1) & mask
 		}
-		if eq {
-			return s, b
-		}
+		ix.upto = id + 1
 	}
 }
 
-// Update indexes the tuples appended to the relation since the last call.
-func (ix *Index) Update() {
-	var buf [6]int32
-	n := ix.rel.n
-	for pos := ix.done; pos < n; pos++ {
-		key := ix.keyOf(pos, &buf)
-		slot, b := ix.probe(key, hashIDs(key))
-		ix.next = append(ix.next, -1)
-		if b >= 0 {
-			ix.next[ix.tail[b]] = int32(pos)
-			ix.tail[b] = int32(pos)
+func (ix *index) grow(r *relation) {
+	old := ix.slots
+	ix.slots = make([]slot, max(16, len(old)*2))
+	mask := uint64(len(ix.slots) - 1)
+	var kb [8]uint32
+	for _, sl := range old {
+		if sl.head == 0 {
 			continue
 		}
-		ix.keys = append(ix.keys, key...)
-		ix.head = append(ix.head, int32(pos))
-		ix.tail = append(ix.tail, int32(pos))
-		ix.table[slot] = int32(len(ix.head))
-		if uint64(len(ix.head))*2 > ix.mask {
-			ix.grow()
+		s := hashVals(ix.keyOf(r, int(sl.head-1), kb[:0])) & mask
+		for ix.slots[s].head != 0 {
+			s = (s + 1) & mask
 		}
-	}
-	ix.done = n
-}
-
-func (ix *Index) grow() {
-	size := (ix.mask + 1) * 2
-	ix.table = make([]int32, size)
-	ix.mask = size - 1
-	w := len(ix.cols)
-	for b := range ix.head {
-		s := hashIDs(ix.keys[b*w:b*w+w]) & ix.mask
-		for ix.table[s] != 0 {
-			s = (s + 1) & ix.mask
-		}
-		ix.table[s] = int32(b + 1)
+		ix.slots[s] = sl
 	}
 }
 
-// first returns the first position whose columns equal key, or -1.
-func (ix *Index) first(key []int32) int32 {
-	_, b := ix.probe(key, hashIDs(key))
-	if b < 0 {
-		return -1
+// find returns id+1 of the first tuple whose indexed columns equal key, or 0.
+func (ix *index) find(r *relation, key []uint32) int32 {
+	if len(ix.slots) == 0 {
+		return 0
 	}
-	return ix.head[b]
+	mask := uint64(len(ix.slots) - 1)
+	for s := hashVals(key) & mask; ; s = (s + 1) & mask {
+		sl := ix.slots[s]
+		if sl.head == 0 {
+			return 0
+		}
+		if ix.sameKey(r, int(sl.head-1), key) {
+			return sl.head
+		}
+	}
 }

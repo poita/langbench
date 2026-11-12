@@ -1,84 +1,102 @@
-/// Strict UTF-8 helpers.
+/// Minimal UTF-8 helpers: strict validation and code point encoding.
 module toml.utf8;
 
-/// Returns the index of the first byte that is not part of well-formed UTF-8
-/// (overlong forms, surrogates and values above U+10FFFF are malformed), or
-/// `s.length` when the whole input is valid.
-size_t firstInvalidUtf8(scope const(char)[] s) pure nothrow @nogc @trusted
+/**
+ * Finds the first byte offset at which `data` is not well-formed UTF-8
+ * (rejecting overlong forms, surrogates and values above U+10FFFF).
+ * Returns `size_t.max` when the input is valid.
+ */
+size_t findInvalidUtf8(const(ubyte)[] data) @safe pure nothrow @nogc
 {
     size_t i = 0;
-    immutable n = s.length;
-    const(ubyte)* p = cast(const(ubyte)*) s.ptr;
+    immutable n = data.length;
     while (i < n)
     {
-        immutable c = p[i];
+        immutable ubyte c = data[i];
         if (c < 0x80)
         {
             i++;
             continue;
         }
-        size_t need;
+        size_t len;
         uint lo = 0x80, hi = 0xBF; // allowed range of the second byte
         if (c >= 0xC2 && c <= 0xDF)
-            need = 1;
+            len = 2;
         else if (c >= 0xE0 && c <= 0xEF)
         {
-            need = 2;
-            if (c == 0xE0)
-                lo = 0xA0; // no overlongs
-            else if (c == 0xED)
-                hi = 0x9F; // no surrogates
+            len = 3;
+            if (c == 0xE0) lo = 0xA0;       // no overlongs
+            else if (c == 0xED) hi = 0x9F;  // no surrogates
         }
         else if (c >= 0xF0 && c <= 0xF4)
         {
-            need = 3;
-            if (c == 0xF0)
-                lo = 0x90;
-            else if (c == 0xF4)
-                hi = 0x8F;
+            len = 4;
+            if (c == 0xF0) lo = 0x90;       // no overlongs
+            else if (c == 0xF4) hi = 0x8F;  // nothing above U+10FFFF
         }
         else
             return i;
-        if (i + need >= n)
+        if (i + len > n)
             return i;
-        immutable c1 = p[i + 1];
-        if (c1 < lo || c1 > hi)
+        if (data[i + 1] < lo || data[i + 1] > hi)
             return i;
-        foreach (k; 2 .. need + 1)
-            if ((p[i + k] & 0xC0) != 0x80)
+        foreach (k; 2 .. len)
+            if ((data[i + k] & 0xC0) != 0x80)
                 return i;
-        i += need + 1;
+        i += len;
     }
-    return n;
+    return size_t.max;
 }
 
-/// Appends the UTF-8 encoding of scalar value `cp` to `buf`.
-void appendUtf8(ref char[] buf, uint cp) pure nothrow
+/// True when `cp` is a Unicode scalar value (not a surrogate, <= U+10FFFF).
+bool isScalarValue(uint cp) @safe pure nothrow @nogc
+{
+    return cp <= 0x10FFFF && !(cp >= 0xD800 && cp <= 0xDFFF);
+}
+
+/// Appends the UTF-8 encoding of the scalar value `cp` to `sink`.
+void encodeUtf8(Sink)(ref Sink sink, uint cp)
 {
     if (cp < 0x80)
-        buf ~= cast(char) cp;
+        sink.put(cast(char) cp);
     else if (cp < 0x800)
     {
-        buf ~= cast(char)(0xC0 | (cp >> 6));
-        buf ~= cast(char)(0x80 | (cp & 0x3F));
+        sink.put(cast(char)(0xC0 | (cp >> 6)));
+        sink.put(cast(char)(0x80 | (cp & 0x3F)));
     }
     else if (cp < 0x10000)
     {
-        buf ~= cast(char)(0xE0 | (cp >> 12));
-        buf ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
-        buf ~= cast(char)(0x80 | (cp & 0x3F));
+        sink.put(cast(char)(0xE0 | (cp >> 12)));
+        sink.put(cast(char)(0x80 | ((cp >> 6) & 0x3F)));
+        sink.put(cast(char)(0x80 | (cp & 0x3F)));
     }
     else
     {
-        buf ~= cast(char)(0xF0 | (cp >> 18));
-        buf ~= cast(char)(0x80 | ((cp >> 12) & 0x3F));
-        buf ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
-        buf ~= cast(char)(0x80 | (cp & 0x3F));
+        sink.put(cast(char)(0xF0 | (cp >> 18)));
+        sink.put(cast(char)(0x80 | ((cp >> 12) & 0x3F)));
+        sink.put(cast(char)(0x80 | ((cp >> 6) & 0x3F)));
+        sink.put(cast(char)(0x80 | (cp & 0x3F)));
     }
 }
 
-/// True if `cp` is a Unicode scalar value.
-bool isScalarValue(uint cp) pure nothrow @nogc @safe
+unittest
 {
-    return cp <= 0x10FFFF && !(cp >= 0xD800 && cp <= 0xDFFF);
+    import std.array : appender;
+
+    assert(findInvalidUtf8(cast(const(ubyte)[]) "héllo €𝄞") == size_t.max);
+    assert(findInvalidUtf8([0xFF]) == 0);
+    assert(findInvalidUtf8([0x61, 0xC0, 0x80]) == 1);        // overlong
+    assert(findInvalidUtf8([0xED, 0xA0, 0x80]) == 0);        // surrogate
+    assert(findInvalidUtf8([0xF4, 0x90, 0x80, 0x80]) == 0);  // > U+10FFFF
+    assert(findInvalidUtf8([0xE2, 0x82]) == 0);              // truncated
+    assert(findInvalidUtf8([0xE0, 0x80, 0x80]) == 0);        // overlong
+    assert(findInvalidUtf8([0xFE, 0xFF]) == 0);              // UTF-16 BOM
+
+    auto a = appender!string();
+    encodeUtf8(a, 0x24);
+    encodeUtf8(a, 0xE9);
+    encodeUtf8(a, 0x20AC);
+    encodeUtf8(a, 0x1D11E);
+    assert(a.data == "$é€𝄞");
+    assert(isScalarValue(0x10FFFF) && !isScalarValue(0xD800) && !isScalarValue(0x110000));
 }

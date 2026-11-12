@@ -1,98 +1,115 @@
 # webhooks
 
-A small D library (and command-line tool) for [Standard Webhooks](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md)
-signatures, plus a deterministic webhook delivery simulator with a fixed retry
-schedule.
+A small D library and command-line tool for [Standard Webhooks](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md):
 
-SHA-256, HMAC-SHA-256 and Base64 are implemented from scratch: nothing from
-`std.digest`, `std.base64` or any third-party package is used, only the D
-standard library for containers and I/O.
+* **SHA-256, HMAC-SHA-256 and Base64** (standard and URL-safe), written from
+  scratch — no hash, MAC or Base64 routine from Phobos is used;
+* the **signature scheme**: `whsec_` secrets, signing, key rotation, and
+  verification with timestamp tolerance;
+* a deterministic **delivery simulator** that signs events and retries failed
+  deliveries on a fixed schedule (5s, 5m, 30m, 2h, 5h, 10h, 10h).
 
-## Layout
-
-| path | contents |
-|---|---|
-| `source/webhooks/sha256.d` | incremental SHA-256 |
-| `source/webhooks/hmac.d` | HMAC-SHA-256 with precomputed ipad/opad states |
-| `source/webhooks/base64.d` | standard / URL-safe Base64, spec-conformant decoder |
-| `source/webhooks/hex.d` | lowercase hex helpers |
-| `source/webhooks/signature.d` | secrets, signing, verification |
-| `source/webhooks/simulator.d`, `simparse.d`, `heap.d` | delivery simulator, block parser, scheduler heap |
-| `source/webhooks/commands.d` | the stdin command-stream interpreter |
-| `source/webhooks/grammar.d`, `buffer.d` | field validation, line/field views, output buffer |
-| `cli/app.d` | thin CLI: stdin → `processInput` → stdout |
-| `tests/*.d` | unit tests (separate from the library sources) |
+Only the D standard library is used (for containers/strings/IO plumbing); tests
+use D's built-in `unittest`.
 
 ## Build
 
-Requires LDC and dub.
+Requires LDC 1.41 and dub 1.40.
 
 ```sh
-./build.sh          # dub build -b release --compiler=ldc2  →  bin/webhooks
+./build.sh          # = dub build -b release --compiler=ldc2  → bin/webhooks
 dub test --compiler=ldc2
 ```
 
-## Command-line use
+## Command-line tool
 
-`bin/webhooks` (or `./run.sh`) reads the whole of stdin and writes one result
-per command line to stdout. It always exits 0; malformed lines print `error`.
-Blank lines are ignored. Free-form byte arguments are lowercase hex (`-` means
-empty).
+`bin/webhooks` (or `./run.sh`) reads commands from stdin, one per line, and
+writes one result per command to stdout. The exit code is always 0; malformed
+input yields the single word `error`.
+
+| command | output |
+|---|---|
+| `sha256 <hex>` | digest as hex |
+| `hmac <key-hex> <msg-hex>` | MAC as hex |
+| `b64enc <hex>` / `b64urlenc <hex>` | padded standard / unpadded URL-safe Base64 (`-` if empty) |
+| `b64dec <text-hex>` | decoded bytes as hex (`-` if empty), or `error` |
+| `secret <secret>` | the raw key as hex, or `error` |
+| `sign <secrets> <id> <ts> <payload-hex>` | `webhook-signature` header value |
+| `verify <secrets> <id> <ts> <now> <header-hex> <payload-hex>` | `ok <secret> <token>` or `fail <reason>` |
+| `simulate` … `end` | a delivery-simulation report |
+
+Byte strings are lowercase hex, with `-` for the empty string. `<secrets>` is a
+comma-separated list of up to 16 secrets (`whsec_` prefix optional).
+A simulation block looks like
 
 ```
-$ printf 'sha256 616263\nb64enc 666f6f\nsecret whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw\n' | ./run.sh
+simulate
+endpoint ep_a whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw * 500,timeout,200
+endpoint ep_b whsec_c2VjcmV0,whsec_b3RoZXI user.created 200
+event msg_1 1700000000 user.created 7b7d
+end
+```
+
+and prints `sim <attempts> <deliveries>`, one `attempt …` line per attempt in
+processing order, then one `delivery …` line per delivery. The full format is
+in the problem specification.
+
+```sh
+$ printf 'sha256 616263\nb64urlenc fbff\n' | ./run.sh
 ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
-Zm9v
-31f290f6bf06298aab4f08d43c3f082cf648a362da2da4b0
+-_8
 ```
 
-Commands: `sha256`, `hmac`, `b64enc`, `b64urlenc`, `b64dec`, `secret`, `sign`,
-`verify`, and `simulate … end` blocks (endpoints with scripted responses, then
-events; the output lists every attempt and every delivery). The full grammar
-and semantics are in `problems/webhooks/SPEC.md` of the task this was built
-for.
+## Library
 
-## Library use
+Source layout (`source/webhooks/`):
 
-Add the package as a dependency (`dependency "webhooks" path="../webhooks"`)
-and `import webhooks;`:
+| module | responsibility |
+|---|---|
+| `sha256`, `hmac`, `base64`, `hex` | primitives |
+| `secret`, `signature` | secrets, signing, verification |
+| `heap`, `simulator` | priority queue and delivery simulator |
+| `fields`, `blockparser`, `protocol` | argument validation and the command interpreter |
+
+`import webhooks;` pulls in everything. The CLI is the thin `app/main.d`.
 
 ```d
+import std.stdio;
 import webhooks;
 
 void main()
 {
-    Secret[] secrets;
-    assert(parseSecrets(cast(const(ubyte)[]) "whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw", secrets));
-
+    // Sign a message.
+    Secret secret;
+    assert(Secret.parse("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw", secret));
     auto id = cast(const(ubyte)[]) "msg_p5jXN8AQM9LWM0D4loKWxJek";
     auto ts = cast(const(ubyte)[]) "1614265330";
     auto body_ = cast(const(ubyte)[]) `{"test": 2432232314}`;
 
-    // Sign: "v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE="
-    ByteSink header;
-    signHeader(secrets, id, ts, body_, header);
+    string header = signatureHeader([secret], id, ts, body_);
+    writeln(header); // v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=
 
-    // Verify a received webhook at time `now`.
-    auto result = verify(secrets, id, ts, header.data, body_, 1614265400);
-    assert(result.ok && result.secretIndex == 0 && result.tokenIndex == 0);
+    // Verify it 70 seconds later.
+    auto r = verify([secret], id, ts, cast(const(ubyte)[]) header, body_, 1614265400);
+    writeln(r.ok, " ", r.secretIndex, " ", r.tokenIndex); // true 0 0
 
-    // Primitives
-    ubyte[32] digest = sha256Of(cast(const(ubyte)[]) "abc");
-    string b64 = encodeStandard(digest[]);
+    // Primitives.
+    writeln(toHex(sha256(cast(const(ubyte)[]) "abc")));
 }
 ```
 
-Running the simulator from code: fill a `Simulation` (`endpoints`, `events`)
-or parse a block with `parseSimulateBlock`, then call `createDeliveries()`,
-`run()` and `render(sink)`.
+## Tests
+
+`dub test --compiler=ldc2` runs the `unittest` blocks in each module: published
+test vectors for the primitives (NIST/FIPS, RFC 4231, the Standard Webhooks
+vector), edge cases for Base64 and the protocol grammar, and simulator
+scenarios.
 
 ## Design notes
 
-* Input is read in bulk; lines and fields are slices of that buffer.
-* HMAC keys are prepared once (`HmacKey` stores the ipad and opad hasher
-  states); the signed content `id.ts.body` is streamed, never concatenated.
-* `verify` decodes each header token once and computes one MAC per secret.
-* The simulator signs each delivery once at creation and schedules attempts
-  with a binary min-heap of `(time, delivery)` pairs.
-* All output goes to a single growable buffer written at the end.
+* `verify` computes one HMAC per secret and decodes each header token once, so
+  its cost is O(S·(B + T)).
+* Each secret's key schedule is absorbed once (`Secret.keyed`); each delivery is
+  signed once when the delivery is created.
+* The simulator uses a binary min-heap keyed by `(time, delivery number)`,
+  holding at most one pending attempt per delivery: O(log D) per step.

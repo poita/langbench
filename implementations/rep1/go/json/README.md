@@ -1,50 +1,47 @@
 # jsoncanon
 
 A strict JSON (RFC 8259) parser and canonical serializer in Go, written from
-scratch with only the standard library (no `encoding/json`). It parses a
-document, rejecting anything not strictly valid, and re-emits it in a
-canonical form:
+scratch on the standard library only (no `encoding/json`).
 
-- no whitespace outside strings;
-- object members sorted by key in UTF-16 code unit order, duplicate keys
-  collapsed to the last occurrence;
-- only `"`, `\` and U+0000–U+001F escaped (lowercase `\u00xx`); everything
-  else, including `/`, is raw UTF-8;
-- numbers echoed as text (never converted to floating point, so any size is
-  preserved), with exponents normalized (`1E+05` → `1e5`, `1e-0` → `1e0`).
+It reads one JSON document and prints its canonical form: no insignificant
+whitespace, minimal string escaping, normalized number exponents, duplicate
+object keys collapsed (last wins) and object members sorted by the UTF-16 code
+units of their keys. Numbers are echoed as text, never converted to floating
+point, so arbitrarily large integers survive unchanged. Nesting is limited to
+512 levels; invalid UTF-8, a BOM, lone surrogates and every other grammar
+violation make the document invalid.
 
-Validation is strict: well-formed UTF-8 only (no overlong forms, surrogates or
-BOM), paired `\u` surrogate escapes, whitespace limited to the four JSON
-characters, and nesting depth at most 512.
+## Layout
 
-The design: validate the whole input as UTF-8 in one pass, parse with a single
-recursive-descent pass over bytes (escape-free strings and plain numbers alias
-the input), then serialize once into a single buffer. Object keys are sorted
-through small handles by comparing UTF-8 bytes directly, adjusting the order of
-U+E000–U+FFFF versus supplementary characters to match UTF-16.
+| File | Responsibility |
+|------|----------------|
+| `utf8.go` | strict UTF-8 validation |
+| `parse.go`, `parse_string.go`, `parse_number.go` | recursive-descent parser: structure, strings, numbers |
+| `value.go` | the `Value` tree |
+| `order.go` | UTF-16 key ordering |
+| `serialize.go` | single-buffer canonical serializer |
+| `cmd/jsoncanon` | command-line tool |
 
 ## Build
 
-Requires Go 1.27.1.
+Requires Go 1.27 or later.
 
 ```
 ./build.sh          # writes bin/jsoncanon
-go test ./...       # unit tests
+go test ./...       # run the tests
 ```
 
-## Command-line use
-
-`jsoncanon` reads the whole of stdin as one document and prints one line: the
-canonical form, or `invalid`. The exit status is 0 either way.
+## Command line
 
 ```
-$ echo '{ "b": [1, 2.50, 1E+3], "a": "héllo\/", "b": null }' | ./run.sh
+echo '{ "b": [1, 2.50, 1E+3], "a": "héllo\/", "b": null }' | ./run.sh
 {"a":"héllo/","b":null}
-$ echo '[1, 2, ]' | ./run.sh
-invalid
 ```
 
-## Library use
+The whole of stdin is the document. The output is one line: the canonical form
+or `invalid`. The exit status is 0 in both cases.
+
+## Library
 
 ```go
 package main
@@ -52,32 +49,22 @@ package main
 import (
 	"fmt"
 
-	"example.com/jsoncanon"
+	"github.com/example/jsoncanon"
 )
 
 func main() {
-	out, err := jsoncanon.Canonicalize([]byte(`{"b":1e+05,"a":[true, null]}`))
+	out, err := jsoncanon.Canonicalize([]byte(`{"b":1e+05,"a":[true,"x"]}`))
 	if err != nil {
-		fmt.Println("invalid:", err) // err is a *jsoncanon.SyntaxError
+		fmt.Println("invalid:", err)
 		return
 	}
-	fmt.Println(string(out)) // {"a":[true,null],"b":1e5}
+	fmt.Println(string(out)) // {"a":[true,"x"],"b":1e5}
 
-	// Inspect a document before serializing it.
-	v, _ := jsoncanon.Parse([]byte(`{"k":1,"k":2}`))
-	fmt.Println(v.Lookup("k").Num()) // 2 (last occurrence wins)
+	v, _ := jsoncanon.Parse([]byte(`[1,2]`))
+	fmt.Println(v.Kind, len(v.Elems)) // array 2
 }
 ```
 
-## Layout
-
-| File | Responsibility |
-| --- | --- |
-| `canon.go` | `Canonicalize`, the one-call entry point |
-| `parser.go` | UTF-8/BOM check, recursive-descent parser, strings, numbers, `Parse` |
-| `utf8.go` | strict RFC 3629 validator |
-| `value.go` | `Value`/`Kind` tree and accessors |
-| `keyorder.go` | UTF-16-order key comparison on UTF-8 bytes |
-| `serialize.go` | canonical writer, key sort and dedup, string escaping |
-| `errors.go` | `SyntaxError` |
-| `cmd/jsoncanon` | the command-line tool |
+`Parse` returns a `*Value` tree (strings decoded, numbers as canonical text,
+objects with all members in input order); `Value.AppendCanonical` serializes
+it. Errors are `*SyntaxError` with a byte offset.

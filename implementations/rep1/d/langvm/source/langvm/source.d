@@ -1,108 +1,142 @@
-/// Splitting of the input into modules (the "module stream" of the language specification).
+/// Splitting of the input into the modules of a program (SPEC.md section 2).
 module langvm.source;
 
 import langvm.diag;
-import std.utf : toUTF32;
+import langvm.lexer : isIdentifier;
 
-/// One module of the stream: its name and the lines of its body.
+/// One module of the input stream: its name and the lines of its body.
 struct SourceModule
 {
     /// The module name from its `@module` header.
     string name;
-    /// The lines of the body (without line terminators), as arrays of Unicode scalar values.
-    dstring[] lines;
+    /// The body: the lines strictly after the header, without line terminators.
+    const(dchar)[][] lines;
 }
 
-/// Keywords of the language (never identifiers).
-immutable string[] keywords = [
-    "as", "break", "continue", "else", "enum", "false", "fn", "for", "if", "impl",
-    "in", "let", "match", "pub", "return", "self", "struct", "trait", "true", "use",
-    "var", "when", "while",
-];
-
-/// True if `s` is a keyword.
-bool isKeyword(const(char)[] s)
+/// Decode UTF-8 text into scalar values (bytes that are not valid UTF-8 are
+/// mapped one-to-one so that decoding never fails).
+const(dchar)[] decodeUtf8(const(char)[] text) @trusted
 {
-    foreach (k; keywords)
-        if (k == s)
-            return true;
-    return false;
-}
+    import std.utf : toUTF32, UTFException;
 
-/// True if `s` is a well-formed identifier of at most 200 characters, not a keyword and not `_`.
-bool isIdentifier(const(char)[] s)
-{
-    if (s.length == 0 || s.length > 200)
-        return false;
-    foreach (i, c; s)
+    try
+        return toUTF32(text);
+    catch (UTFException)
     {
-        bool letter = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
-        bool digit = c >= '0' && c <= '9';
-        if (!(letter || (i > 0 && digit)))
-            return false;
+        dchar[] r;
+        r.reserve(text.length);
+        foreach (c; cast(const(ubyte)[]) text)
+            r ~= cast(dchar) c;
+        return r;
     }
-    return s != "_" && !isKeyword(s);
 }
 
-/// Splits `input` (UTF-8) into lines: LF-terminated, a single CR before the LF removed.
-string[] splitLines(string input)
+/// Split `text` into lines: a line ends at LF, and one CR directly before the
+/// LF is dropped. The final line need not be terminated; empty input has none.
+const(dchar)[][] splitLines(const(dchar)[] text) @safe pure nothrow
 {
-    string[] lines;
+    const(dchar)[][] lines;
     size_t start = 0;
-    foreach (i, c; input)
+    foreach (i, c; text)
     {
         if (c == '\n')
         {
             size_t end = i;
-            if (end > start && input[end - 1] == '\r')
+            if (end > start && text[end - 1] == '\r')
                 end--;
-            lines ~= input[start .. end];
+            lines ~= text[start .. end];
             start = i + 1;
         }
     }
-    if (start < input.length)
-        lines ~= input[start .. $];
+    if (start < text.length)
+        lines ~= text[start .. $];
     return lines;
 }
 
-/// Splits the whole input into modules.
-/// Throws: [CompileError] (`bad-module` or `dup-module`).
-SourceModule[] splitModules(string input)
+/// If `line` is exactly `@module <name>` with a valid name, return the name.
+private bool parseHeader(const(dchar)[] line, out string name) @safe
 {
-    auto lines = splitLines(input);
+    import std.conv : to;
+
+    enum prefix = "@module "d;
+    if (line.length <= prefix.length || line[0 .. prefix.length] != prefix)
+        return false;
+    auto rest = line[prefix.length .. $];
+    if (rest.length > 200)
+        return false;
+    foreach (c; rest)
+        if (c >= 0x80)
+            return false;
+    auto n = rest.to!string;
+    if (!isIdentifier(n))
+        return false;
+    name = n;
+    return true;
+}
+
+/// Split the whole input into modules, or throw `bad-module` / `dup-module`.
+SourceModule[] splitModules(const(char)[] input) @safe
+{
+    auto lines = splitLines(decodeUtf8(input));
     if (lines.length == 0)
-        throw new CompileError("bad-module", 1, 1);
-    SourceModule[] mods;
-    bool[string] seen;
-    int dupLine = 0;
-    foreach (idx, ln; lines)
+        throw err(Kind.badModule, Pos(1, 1));
+
+    string[] names;
+    size_t[] headerLine; // 0-based index of each header line
+    foreach (i, ln; lines)
     {
-        int lineNo = cast(int) idx + 1;
-        bool isHeader = false;
         string name;
-        if (ln.length >= 8 && ln[0 .. 8] == "@module ")
-        {
-            name = ln[8 .. $];
-            isHeader = isIdentifier(name);
-        }
+        const isHeader = parseHeader(ln, name);
         if (isHeader)
         {
-            if (name in seen)
-            {
-                if (dupLine == 0)
-                    dupLine = lineNo;
-            }
-            seen[name] = true;
-            SourceModule m;
-            m.name = name;
-            mods ~= m;
+            names ~= name;
+            headerLine ~= i;
         }
-        else if (idx == 0 || (ln.length > 0 && ln[0] == '@'))
-            throw new CompileError("bad-module", lineNo, 1);
-        else
-            mods[$ - 1].lines ~= toUTF32(ln);
+        else if (i == 0 || (ln.length > 0 && ln[0] == '@'))
+            throw err(Kind.badModule, Pos(cast(int) i + 1, 1));
     }
-    if (dupLine != 0)
-        throw new CompileError("dup-module", dupLine, 1);
+    foreach (i, n; names)
+        foreach (j; 0 .. i)
+            if (names[j] == n)
+                throw err(Kind.dupModule, Pos(cast(int) headerLine[i] + 1, 1));
+
+    SourceModule[] mods;
+    foreach (k, n; names)
+    {
+        const from = headerLine[k] + 1;
+        const to = k + 1 < names.length ? headerLine[k + 1] : lines.length;
+        mods ~= SourceModule(n, lines[from .. to]);
+    }
     return mods;
+}
+
+@safe unittest
+{
+    auto m = splitModules("@module a\nfn x\n@module b\r\n");
+    assert(m.length == 2);
+    assert(m[0].name == "a" && m[0].lines.length == 1);
+    assert(m[1].name == "b" && m[1].lines.length == 0);
+}
+
+@safe unittest
+{
+    void expect(string input, Kind k, int line)
+    {
+        try
+        {
+            splitModules(input);
+            assert(false, "expected an error");
+        }
+        catch (CompileError e)
+        {
+            assert(e.kind == k && e.pos.line == line && e.pos.col == 1);
+        }
+    }
+
+    expect("", Kind.badModule, 1);
+    expect("hello\n@module a\n", Kind.badModule, 1);
+    expect("@module a\n@module  b\n", Kind.badModule, 2);
+    expect("@module a\n@module a\n", Kind.dupModule, 2);
+    expect("@module a \n", Kind.badModule, 1);
+    expect("@module fn\n", Kind.badModule, 1);
 }

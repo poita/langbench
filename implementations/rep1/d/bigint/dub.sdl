@@ -1,0 +1,17 @@
+name "bigint"
+description "Arbitrary-precision signed integer arithmetic (base 10^9, schoolbook algorithms) with a query-evaluating CLI"
+authors "Peter Alexander"
+copyright "Copyright © 2026"
+license "MIT"
+targetPath "bin"
+
+configuration "application" {
+    targetType "executable"
+    targetName "bigint"
+    mainSourceFile "source/app.d"
+}
+
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}

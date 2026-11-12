@@ -1,0 +1,72 @@
+cabal-version:      3.0
+name:               svgraster
+version:            0.1.0.0
+synopsis:           A small SVG 1.1 subset rasteriser producing binary PPM images
+description:
+  A from-scratch rasteriser for a subset of SVG 1.1: XML parsing, path
+  parsing, curve flattening, stroke outlining, anti-aliased scanline filling
+  and alpha compositing. The library exposes each stage; the @svgraster@
+  executable renders a directory of SVG files to PPM.
+category:           Graphics
+license:            MIT
+license-file:       LICENSE
+author:             svgraster contributors
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall -Wno-name-shadowing
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Graphics.SVG.Raster
+    Graphics.SVG.Raster.Canvas
+    Graphics.SVG.Raster.Color
+    Graphics.SVG.Raster.Geometry
+    Graphics.SVG.Raster.Parse
+    Graphics.SVG.Raster.Path
+    Graphics.SVG.Raster.Render
+    Graphics.SVG.Raster.Stroke
+    Graphics.SVG.Raster.Xml
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.18 && <5
+    , bytestring  >=0.11 && <0.13
+    , containers  >=0.6 && <0.9
+
+executable svgraster
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts
+  build-depends:
+    , base
+    , bytestring
+    , directory   >=1.3 && <1.4
+    , filepath    >=1.4 && <1.6
+    , svgraster
+
+test-suite svgraster-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  ghc-options:      -Wno-incomplete-uni-patterns -Wno-x-partial
+  other-modules:
+    CanvasSpec
+    ParseSpec
+    PathSpec
+    RenderSpec
+    StrokeSpec
+    XmlSpec
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , hspec        >=2.10 && <3
+    , QuickCheck   >=2.14 && <3
+    , svgraster

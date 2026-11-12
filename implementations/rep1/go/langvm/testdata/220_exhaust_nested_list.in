@@ -1,0 +1,10 @@
+@module main
+fn f(xss: [[Int]]) -> Int {
+    match xss {
+        [[a], ..] -> a,
+        [[], ..] -> 0,
+        [] -> -1,
+        [_, ..] -> -2,
+    }
+}
+fn main() { print("ok"); }

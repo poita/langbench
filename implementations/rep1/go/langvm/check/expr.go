@@ -3,805 +3,846 @@ package check
 import (
 	"langvm/ast"
 	"langvm/diag"
+	"langvm/types"
 )
 
-func (b *body) infer(e ast.Expr) *Type { return b.expr(e, nil) }
-func (b *body) check(e ast.Expr, t *Type) {
-	b.expr(e, t)
+// ---------------------------------------------------------------- paths
+
+type resKind uint8
+
+const (
+	resLocal resKind = iota
+	resFunc
+	resVariant
+	resTraitMethod
+	resType
+)
+
+type valueRes struct {
+	kind    resKind
+	local   *types.Local
+	fn      *types.Func
+	variant *types.Variant
+	trait   *types.Trait
+	method  int
 }
 
-// def applies the default checking rule of SPEC 9.1.
-func (b *body) def(e ast.Expr, s, exp *Type) *Type {
-	if exp != nil && !unify(exp, s) {
-		b.fail(diag.TypeMismatch, e.Position())
+func (fc *fnCtx) lookupValue(name string) (valEntry, bool) {
+	if e, ok := fc.mod.valuesNS[name]; ok {
+		return e, true
 	}
-	return s
+	e, ok := fc.c.preludeValues[name]
+	return e, ok
 }
 
-func (b *body) expr(e ast.Expr, exp *Type) *Type {
-	switch n := e.(type) {
-	case *ast.IntLit:
-		return b.def(e, TInt, exp)
-	case *ast.FloatLit:
-		return b.def(e, TFloat, exp)
-	case *ast.StrLit:
-		return b.def(e, TStr, exp)
-	case *ast.CharLit:
-		return b.def(e, TChar, exp)
-	case *ast.BoolLit:
-		return b.def(e, TBool, exp)
-	case *ast.SelfExpr:
-		if b.selfTy == nil {
-			b.fail(diag.SelfOutside, n.P)
-		}
-		l := b.lookup("self")
-		b.useLocal(l)
-		n.Res = l
-		return b.def(e, l.Type, exp)
-	case *ast.PathExpr:
-		return b.pathValue(n, exp)
-	case *ast.Unary:
-		return b.unary(n, exp)
-	case *ast.Binary:
-		return b.binary(n, exp)
-	case *ast.IndexExpr:
-		return b.index(n, exp)
-	case *ast.FieldExpr:
-		t := prune(b.infer(n.X))
-		if t.Kind != KNamed || t.Decl.IsEnum {
-			b.fail(diag.NotStruct, n.X.Position())
-		}
-		for i, f := range t.Decl.Fields {
-			if f.Name == n.Name.Name {
-				n.Sem = i
-				return b.def(e, subst(f.Type, declSubst(t)), exp)
-			}
-		}
-		b.fail(diag.UnknownField, n.Name.Pos)
-	case *ast.ListLit:
-		return b.listLit(n, exp)
-	case *ast.MapLit:
-		return b.mapLit(n, exp)
-	case *ast.TupleLit:
-		return b.tupleLit(n, exp)
-	case *ast.Lambda:
-		return b.lambda(n, exp)
-	case *ast.IfExpr:
-		return b.ifExpr(n, exp)
-	case *ast.MatchExpr:
-		return b.matchExpr(n, exp)
-	case *ast.Block:
-		return b.blockExpr(n, exp)
-	case *ast.StructLit:
-		return b.structLit(n, exp)
-	case *ast.Call:
-		return b.call(n, exp)
-	case *ast.MethodCall:
-		return b.methodCall(n, exp)
-	}
-	panic("check: unknown expression node")
-}
-
-// ------------------------------------------------------------------ operators
-
-func (b *body) unary(n *ast.Unary, exp *Type) *Type {
-	switch n.Op {
-	case ast.OpNeg:
-		t := prune(b.infer(n.X))
-		switch t.Kind {
-		case KInt:
-			n.Sem = SemInt
-		case KFloat:
-			n.Sem = SemFloat
-		default:
-			b.fail(diag.TypeMismatch, n.X.Position())
-		}
-		return b.def(n, t, exp)
-	case ast.OpNot:
-		b.check(n.X, TBool)
-		return b.def(n, TBool, exp)
-	}
-	b.check(n.X, TInt)
-	return b.def(n, TInt, exp)
-}
-
-func (b *body) binary(n *ast.Binary, exp *Type) *Type {
-	switch n.Op {
-	case ast.OpAdd, ast.OpSub, ast.OpMul, ast.OpDiv, ast.OpMod:
-		l := prune(b.infer(n.L))
-		switch l.Kind {
-		case KInt:
-			n.Sem = SemInt
-		case KFloat:
-			n.Sem = SemFloat
-			if n.Op == ast.OpMod {
-				b.fail(diag.TypeMismatch, n.L.Position())
-			}
-		default:
-			b.fail(diag.TypeMismatch, n.L.Position())
-		}
-		b.check(n.R, l)
-		return b.def(n, l, exp)
-	case ast.OpConcat:
-		l := prune(b.infer(n.L))
-		switch l.Kind {
-		case KStr:
-			n.Sem = SemStr
-		case KList:
-			n.Sem = SemList
-		default:
-			b.fail(diag.TypeMismatch, n.L.Position())
-		}
-		b.check(n.R, l)
-		return b.def(n, l, exp)
-	case ast.OpBitAnd, ast.OpBitOr, ast.OpBitXor, ast.OpShl, ast.OpShr:
-		b.check(n.L, TInt)
-		b.check(n.R, TInt)
-		return b.def(n, TInt, exp)
-	case ast.OpLt, ast.OpLe, ast.OpGt, ast.OpGe:
-		l := b.infer(n.L)
-		if !b.c.isOrd(l) {
-			b.fail(diag.NotOrd, n.L.Position())
-		}
-		b.check(n.R, l)
-		return b.def(n, TBool, exp)
-	case ast.OpEq, ast.OpNe:
-		l := b.infer(n.L)
-		if !b.c.isEq(l, map[*TypeDecl]bool{}) {
-			b.fail(diag.NotEq, n.L.Position())
-		}
-		b.check(n.R, l)
-		return b.def(n, TBool, exp)
-	}
-	// && and ||
-	b.check(n.L, TBool)
-	b.check(n.R, TBool)
-	return b.def(n, TBool, exp)
-}
-
-func (b *body) index(n *ast.IndexExpr, exp *Type) *Type {
-	a := prune(b.infer(n.X))
-	switch a.Kind {
-	case KList:
-		b.check(n.Index, TInt)
-		n.Sem = SemList
-		return b.def(n, a.Elems[0], exp)
-	case KStr:
-		b.check(n.Index, TInt)
-		n.Sem = SemStr
-		return b.def(n, TChar, exp)
-	case KMap:
-		b.check(n.Index, a.Elems[0])
-		n.Sem = SemMap
-		return b.def(n, a.Elems[1], exp)
-	}
-	b.fail(diag.NotIndexable, n.X.Position())
-	return nil
-}
-
-// ------------------------------------------------------------------ literals
-
-func (b *body) listLit(n *ast.ListLit, exp *Type) *Type {
-	if exp == nil {
-		if len(n.Elems) == 0 {
-			b.fail(diag.CannotInfer, n.P)
-		}
-		t := b.infer(n.Elems[0])
-		for _, e := range n.Elems[1:] {
-			b.check(e, t)
-		}
-		return listOf(t)
-	}
-	t := prune(exp)
-	if t.Kind == KVar {
-		nt := listOf(b.newVar())
-		unify(t, nt)
-		t = nt
-	}
-	if t.Kind != KList {
-		b.fail(diag.TypeMismatch, n.P)
-	}
-	for _, e := range n.Elems {
-		b.check(e, t.Elems[0])
-	}
-	return t
-}
-
-func (b *body) mapLit(n *ast.MapLit, exp *Type) *Type {
-	if exp == nil {
-		if len(n.Keys) == 0 {
-			b.fail(diag.CannotInfer, n.P)
-		}
-		k := b.infer(n.Keys[0])
-		if !b.c.isKey(k) {
-			b.fail(diag.BadKeyType, n.Keys[0].Position())
-		}
-		v := b.infer(n.Vals[0])
-		for i := 1; i < len(n.Keys); i++ {
-			b.check(n.Keys[i], k)
-			b.check(n.Vals[i], v)
-		}
-		return mapOf(k, v)
-	}
-	t := prune(exp)
-	if t.Kind == KVar {
-		nt := mapOf(b.newVar(), b.newVar())
-		unify(t, nt)
-		t = nt
-	}
-	if t.Kind != KMap {
-		b.fail(diag.TypeMismatch, n.P)
-	}
-	for i := range n.Keys {
-		b.check(n.Keys[i], t.Elems[0])
-		b.check(n.Vals[i], t.Elems[1])
-	}
-	if k := prune(t.Elems[0]); k.Kind != KVar && !b.c.isKey(k) {
-		b.fail(diag.BadKeyType, n.P)
-	}
-	return t
-}
-
-func (b *body) tupleLit(n *ast.TupleLit, exp *Type) *Type {
-	if len(n.Elems) > 8 {
-		b.fail(diag.BadArity, n.P)
-	}
-	if exp == nil {
-		elems := make([]*Type, len(n.Elems))
-		for i, e := range n.Elems {
-			elems[i] = b.infer(e)
-		}
-		return &Type{Kind: KTuple, Elems: elems}
-	}
-	t := prune(exp)
-	if t.Kind == KVar {
-		elems := make([]*Type, len(n.Elems))
-		for i := range elems {
-			elems[i] = b.newVar()
-		}
-		nt := &Type{Kind: KTuple, Elems: elems}
-		unify(t, nt)
-		t = nt
-	}
-	if t.Kind != KTuple || len(t.Elems) != len(n.Elems) {
-		b.fail(diag.TypeMismatch, n.P)
-	}
-	for i, e := range n.Elems {
-		b.check(e, t.Elems[i])
-	}
-	return t
-}
-
-// ------------------------------------------------------------------- lambdas
-
-func (b *body) lambda(n *ast.Lambda, exp *Type) *Type {
-	var ptypes []*Type
-	var ret *Type
-	if exp == nil {
-		ptypes = make([]*Type, len(n.Params))
-		for i, p := range n.Params {
-			if p.Type == nil {
-				b.fail(diag.CannotInfer, p.Name.Pos)
-			}
-			ptypes[i] = b.c.resolveType(p.Type, b.sc)
-		}
-		if n.Ret != nil {
-			ret = b.c.resolveType(n.Ret, b.sc)
-		}
-		b.dupLambdaParams(n)
-		if ret == nil {
-			ret = b.lambdaBody(n, ptypes, nil)
-		} else {
-			b.lambdaBody(n, ptypes, ret)
-		}
-		return &Type{Kind: KFn, Elems: ptypes, Ret: ret}
-	}
-	t := prune(exp)
-	if t.Kind == KVar {
-		elems := make([]*Type, len(n.Params))
-		for i := range elems {
-			elems[i] = b.newVar()
-		}
-		nt := &Type{Kind: KFn, Elems: elems, Ret: b.newVar()}
-		unify(t, nt)
-		t = nt
-	}
-	if t.Kind != KFn || len(t.Elems) != len(n.Params) {
-		b.fail(diag.TypeMismatch, n.P)
-	}
-	ptypes = t.Elems
-	for i, p := range n.Params {
-		if p.Type != nil {
-			ann := b.c.resolveType(p.Type, b.sc)
-			if !unify(ptypes[i], ann) {
-				b.fail(diag.TypeMismatch, p.Type.Pos)
-			}
-		} else if prune(ptypes[i]).Kind == KVar {
-			b.fail(diag.CannotInfer, p.Name.Pos)
-		}
-	}
-	ret = t.Ret
-	if n.Ret != nil {
-		ann := b.c.resolveType(n.Ret, b.sc)
-		if !unify(ret, ann) {
-			b.fail(diag.TypeMismatch, n.Ret.Pos)
-		}
-	}
-	b.dupLambdaParams(n)
-	b.lambdaBody(n, ptypes, ret)
-	return t
-}
-
-func (b *body) dupLambdaParams(n *ast.Lambda) {
-	seen := map[string]bool{}
-	for _, p := range n.Params {
-		if seen[p.Name.Name] {
-			b.fail(diag.DupName, p.Name.Pos)
-		}
-		seen[p.Name.Name] = true
-	}
-}
-
-// lambdaBody checks a lambda's body. With ret != nil the body is checked
-// against it (SPEC 11.6); with ret == nil the body's type is synthesised and
-// returned.
-func (b *body) lambdaBody(n *ast.Lambda, ptypes []*Type, ret *Type) *Type {
-	info := &FnInfo{Parent: b.fn, Lambda: n, Ret: ret}
-	n.Info = info
-	saved := b.fn
-	b.fn = info
-	b.push()
-	for i, p := range n.Params {
-		info.Params = append(info.Params, b.declare(p.Name.Name, false, ptypes[i]))
-	}
-	var result *Type
-	blk, isBlock := n.Body.(*ast.Block)
-	switch {
-	case ret != nil && isBlock:
-		b.funcBody(blk, ret, n.P)
-		result = ret
-	case ret != nil:
-		b.check(n.Body, ret)
-		result = ret
-	case isBlock:
-		b.push()
-		for _, s := range blk.Stmts {
-			b.stmt(s)
-		}
-		if blk.Tail != nil {
-			result = b.infer(blk.Tail)
-		} else {
-			result = TUnit
-		}
-		b.pop()
-		info.Ret = result
-	default:
-		result = b.infer(n.Body)
-		info.Ret = result
-	}
-	b.pop()
-	b.fn = saved
-	return result
-}
-
-// ---------------------------------------------------------------- if / match
-
-func (b *body) ifExpr(n *ast.IfExpr, exp *Type) *Type {
-	b.check(n.Cond, TBool)
-	if n.Else == nil {
-		if exp != nil && !unify(exp, TUnit) {
-			b.fail(diag.TypeMismatch, n.P)
-		}
-		b.check(n.Then, TUnit)
-		return TUnit
-	}
-	if exp != nil {
-		b.check(n.Then, exp)
-		b.check(n.Else, exp)
-		return exp
-	}
-	if !n.Then.Div {
-		t := b.infer(n.Then)
-		b.check(n.Else, t)
-		return t
-	}
-	b.infer(n.Then)
-	if ast.Diverges(n.Else) {
-		b.infer(n.Else)
-		return TUnit
-	}
-	return b.infer(n.Else)
-}
-
-func (b *body) blockExpr(n *ast.Block, exp *Type) *Type {
-	b.push()
-	for _, s := range n.Stmts {
-		b.stmt(s)
-	}
-	var t *Type
-	switch {
-	case n.Tail != nil && exp != nil:
-		b.check(n.Tail, exp)
-		t = exp
-	case n.Tail != nil:
-		t = b.infer(n.Tail)
-	case exp != nil:
-		if !n.Div && !unify(exp, TUnit) {
-			b.fail(diag.TypeMismatch, n.P)
-		}
-		t = exp
-	default:
-		t = TUnit
-	}
-	b.pop()
-	return t
-}
-
-func (b *body) matchExpr(n *ast.MatchExpr, exp *Type) *Type {
-	s := b.infer(n.Scrut)
-	if len(n.Arms) == 0 {
-		b.fail(diag.NonExhaustive, n.P)
-	}
-	r := exp
-	for _, arm := range n.Arms {
-		b.push()
-		b.pattern(arm.Pat, s)
-		if arm.Guard != nil {
-			b.check(arm.Guard, TBool)
-		}
-		switch {
-		case r == nil:
-			if ast.Diverges(arm.Body) {
-				b.infer(arm.Body)
-			} else {
-				r = b.infer(arm.Body)
-			}
-		default:
-			b.check(arm.Body, r)
-		}
-		b.pop()
-	}
-	b.matchAnalysis(n, s)
-	if r == nil {
-		return TUnit
-	}
-	return r
-}
-
-// ----------------------------------------------------------------- struct lit
-
-// StructLitRes annotates a struct literal.
-type StructLitRes struct {
-	Decl  *TypeDecl
-	Order []int // declaration index of each written field
-}
-
-func (b *body) structDecl(mod *ast.Ident, name ast.Ident, pos ast.Pos) *TypeDecl {
-	if mod == nil {
-		if _, ok := b.sc.params[name.Name]; ok {
-			b.fail(diag.NotStruct, pos)
-		}
-		if name.Name == "Self" {
-			if b.sc.self == nil {
-				b.fail(diag.SelfOutside, pos)
-			}
-			st := prune(b.sc.self)
-			if st.Kind != KNamed || st.Decl.IsEnum {
-				b.fail(diag.NotStruct, pos)
-			}
-			return st.Decl
-		}
-		if _, ok := primTypes[name.Name]; ok {
-			b.fail(diag.NotStruct, pos)
-		}
-	}
-	d := b.c.lookupTypeDecl(b.mod, mod, name)
-	if d.IsEnum {
-		b.fail(diag.NotStruct, pos)
-	}
-	return d
-}
-
-func (b *body) structLit(n *ast.StructLit, exp *Type) *Type {
-	d := b.structDecl(n.Mod, n.Name, n.P)
-	b.pushVars()
-	vars := make([]*Type, len(d.Params))
-	m := make(map[*TypeParam]*Type, len(d.Params))
-	for i, p := range d.Params {
-		vars[i] = b.newVar()
-		m[p] = vars[i]
-	}
-	st := &Type{Kind: KNamed, Decl: d, Elems: vars}
-	if exp != nil && !unify(exp, st) {
-		b.fail(diag.TypeMismatch, n.P)
-	}
-	res := &StructLitRes{Decl: d, Order: make([]int, len(n.Fields))}
-	n.Res = res
-	seen := map[string]bool{}
-	for i, f := range n.Fields {
-		if seen[f.Name.Name] {
-			b.fail(diag.DupField, f.Name.Pos)
-		}
-		seen[f.Name.Name] = true
-		idx := -1
-		for j, df := range d.Fields {
-			if df.Name == f.Name.Name {
-				idx = j
-				break
-			}
-		}
-		if idx < 0 {
-			b.fail(diag.UnknownField, f.Name.Pos)
-		}
-		res.Order[i] = idx
-	}
-	for j, df := range d.Fields {
-		var fe ast.Expr
-		for i, f := range n.Fields {
-			if res.Order[i] == j {
-				fe = f.X
-				break
-			}
-		}
-		if fe == nil {
-			b.fail(diag.MissingField, n.P)
-		}
-		b.check(fe, subst(df.Type, m))
-	}
-	b.popVars(n.P)
-	return zonk(st)
-}
-
-// --------------------------------------------------------------------- paths
-
-func (b *body) isTypeName(name string) bool {
-	if _, ok := b.mod.Types[name]; ok {
-		return true
-	}
-	if _, ok := b.c.prelude.Types[name]; ok {
+func (fc *fnCtx) isTypeName(name string) bool {
+	if _, ok := fc.mod.typesNS[name]; ok {
 		return true
 	}
 	if _, ok := primTypes[name]; ok {
 		return true
 	}
-	return name == "Self"
-}
-
-// resolveValue resolves a value path to a *Local, *Func, *Variant or
-// *TraitMethodRef.
-func (b *body) resolveValue(n *ast.PathExpr) any {
-	if n.Mod == nil {
-		name := n.Name.Name
-		if l := b.lookup(name); l != nil {
-			return l
-		}
-		if v, ok := b.mod.Values[name]; ok {
-			return v
-		}
-		if v, ok := b.c.prelude.Values[name]; ok {
-			return v
-		}
-		if b.isTypeName(name) {
-			b.fail(diag.BadValueRef, n.Name.Pos)
-		}
-		b.fail(diag.UnknownName, n.Name.Pos)
+	switch name {
+	case "Option", "Result", "Self":
+		return true
 	}
-	return b.qualifiedValue(n.Mod, n.Name)
+	return false
 }
 
-func (c *Checker) findTrait(mod *Module, name string) *Trait {
-	for _, t := range c.visibleTraits(mod) {
-		if t.Name == name {
-			return t
-		}
+func entryRes(e valEntry) valueRes {
+	if e.fn != nil {
+		return valueRes{kind: resFunc, fn: e.fn}
 	}
-	return c.prelude.Traits[name]
+	return valueRes{kind: resVariant, variant: e.variant}
 }
 
-func (b *body) qualifiedValue(mod *ast.Ident, name ast.Ident) any {
-	if m, ok := b.mod.Imports[mod.Name]; ok {
-		v, ok := m.Values[name.Name]
+// resolvePath resolves a value path (section 5.4 and 10.2). With allowLocal
+// an unqualified name is looked up among local bindings first.
+func (fc *fnCtx) resolvePath(p *ast.PathExpr, allowLocal bool) valueRes {
+	name := p.Name.Name
+	if p.Qual == nil {
+		if allowLocal {
+			if l := fc.findLocal(name); l != nil {
+				fc.useLocal(l)
+				return valueRes{kind: resLocal, local: l}
+			}
+		}
+		if e, ok := fc.lookupValue(name); ok {
+			return entryRes(e)
+		}
+		if fc.isTypeName(name) {
+			return valueRes{kind: resType}
+		}
+		fc.fail(diag.UnknownName, p.Name.Pos)
+	}
+	im := fc.mod.imports[p.Qual.Name]
+	if im != nil {
+		e, ok := im.valuesNS[name]
 		if !ok {
-			b.fail(diag.UnknownName, name.Pos)
+			fc.fail(diag.UnknownName, p.Name.Pos)
 		}
-		pub := true
-		switch x := v.(type) {
-		case *Func:
-			pub = x.Pub
-		case *Variant:
-			pub = x.Enum.Pub
+		pub := false
+		if e.fn != nil {
+			pub = e.fn.Pub
+		} else {
+			pub = e.variant.Decl.Pub
 		}
-		if !pub && m != b.mod {
-			b.fail(diag.NotPublic, name.Pos)
+		if !pub && im != fc.mod {
+			fc.fail(diag.NotPublic, p.Name.Pos)
 		}
-		return v
+		return entryRes(e)
 	}
-	if tr := b.c.findTrait(b.mod, mod.Name); tr != nil {
-		mt, ok := tr.ByName[name.Name]
-		if !ok {
-			b.fail(diag.UnknownName, name.Pos)
+	if tr := fc.c.visibleTraitByName(fc.mod, p.Qual.Name); tr != nil {
+		mi := tr.MethodIndex(name)
+		if mi < 0 {
+			fc.fail(diag.UnknownName, p.Name.Pos)
 		}
-		return &TraitMethodRef{Trait: tr, Method: mt}
+		return valueRes{kind: resTraitMethod, trait: tr, method: mi}
 	}
-	b.fail(diag.UnknownModule, mod.Pos)
+	fc.fail(diag.UnknownModule, p.Qual.Pos)
+	return valueRes{}
+}
+
+// identVariant returns the 0-payload variant a bare identifier pattern
+// names, or nil when it is a binding.
+func (fc *fnCtx) identVariant(name string) *types.Variant {
+	e, ok := fc.lookupValue(name)
+	if ok && e.variant != nil && len(e.variant.Payload) == 0 {
+		return e.variant
+	}
 	return nil
 }
 
-// enumType is the type `E<P1, ..., Pk>` over the enum's own parameters.
-func enumType(d *TypeDecl) *Type {
-	elems := make([]*Type, len(d.Params))
-	for i, p := range d.Params {
-		elems[i] = p.T
+// ---------------------------------------------------------------- infer
+
+func (fc *fnCtx) mismatch(pos diag.Pos) { fc.fail(diag.TypeMismatch, pos) }
+
+func (fc *fnCtx) infer(e ast.Expr) *types.Type {
+	switch e := e.(type) {
+	case *ast.IntLit:
+		return types.Int
+	case *ast.FloatLit:
+		return types.Float
+	case *ast.StrLit:
+		return types.Str
+	case *ast.CharLit:
+		return types.Char
+	case *ast.BoolLit:
+		return types.Bool
+	case *ast.SelfExpr:
+		l := fc.findLocal("self")
+		if l == nil {
+			fc.fail(diag.SelfOutside, e.Pos)
+		}
+		fc.useLocal(l)
+		e.Local = l
+		return l.Type
+	case *ast.PathExpr:
+		return fc.pathValue(e, nil)
+	case *ast.UnaryExpr:
+		return fc.unary(e)
+	case *ast.BinaryExpr:
+		return fc.binary(e)
+	case *ast.CallExpr:
+		t, _ := fc.callExpr(e, nil)
+		return t
+	case *ast.MethodCallExpr:
+		return fc.methodCall(e)
+	case *ast.IndexExpr:
+		return fc.index(e)
+	case *ast.FieldExpr:
+		return fc.field(e)
+	case *ast.StructLit:
+		return fc.structLit(e, nil)
+	case *ast.ListLit:
+		if len(e.Elems) == 0 {
+			fc.fail(diag.CannotInfer, e.Pos)
+		}
+		t := fc.infer(e.Elems[0])
+		for _, x := range e.Elems[1:] {
+			fc.check(x, t)
+		}
+		return types.NewList(t)
+	case *ast.MapLit:
+		if len(e.Entries) == 0 {
+			fc.fail(diag.CannotInfer, e.Pos)
+		}
+		k := fc.infer(e.Entries[0].K)
+		if !fc.c.isKey(k) {
+			fc.fail(diag.BadKeyType, e.Entries[0].K.ExprPos())
+		}
+		v := fc.infer(e.Entries[0].V)
+		for _, en := range e.Entries[1:] {
+			fc.check(en.K, k)
+			fc.check(en.V, v)
+		}
+		return types.NewMap(k, v)
+	case *ast.TupleLit:
+		if len(e.Elems) > 8 {
+			fc.fail(diag.BadArity, e.Pos)
+		}
+		ps := make([]*types.Type, len(e.Elems))
+		for i, x := range e.Elems {
+			ps[i] = fc.infer(x)
+		}
+		return types.NewTuple(ps)
+	case *ast.Lambda:
+		return fc.lambda(e, nil)
+	case *ast.IfExpr:
+		return fc.ifExpr(e, nil)
+	case *ast.MatchExpr:
+		return fc.matchExpr(e, nil)
+	case *ast.Block:
+		return fc.inferBlock(e)
 	}
-	return &Type{Kind: KNamed, Decl: d, Elems: elems}
+	panic("unhandled expression")
 }
 
-// pathValue types a value path used as a plain value (not as a callee).
-func (b *body) pathValue(n *ast.PathExpr, exp *Type) *Type {
-	switch r := b.resolveValue(n).(type) {
-	case *Local:
-		b.useLocal(r)
-		n.Res = r
-		return b.def(n, r.Type, exp)
-	case *Variant:
-		if len(r.Payload) > 0 {
-			b.fail(diag.BadValueRef, n.Name.Pos)
+func (fc *fnCtx) pathValue(e *ast.PathExpr, want *types.Type) *types.Type {
+	res := fc.resolvePath(e, true)
+	switch res.kind {
+	case resLocal:
+		e.Kind = ast.RefLocal
+		e.Local = res.local
+		return res.local.Type
+	case resVariant:
+		if len(res.variant.Payload) == 0 {
+			e.Kind = ast.RefVariant
+			e.Variant = res.variant
+			return fc.genericCall(e.Pos, res.variant.Decl.TParams, nil, variantRet(res.variant), nil, want)
 		}
-		n.Res = r
-		return b.genericCall(n.P, r.Enum.Params, nil, enumType(r.Enum), nil, exp)
 	}
-	b.fail(diag.BadValueRef, n.Name.Pos)
+	fc.fail(diag.BadValueRef, e.Name.Pos)
 	return nil
 }
 
-// ----------------------------------------------------------------- generic calls
-
-// genericCall implements SPEC 9.4.
-func (b *body) genericCall(pos ast.Pos, tparams []*TypeParam, params []*Type, ret *Type, args []ast.Expr, exp *Type) *Type {
-	if len(args) != len(params) {
-		b.fail(diag.Arity, pos)
+func variantRet(v *types.Variant) *types.Type {
+	args := make([]*types.Type, len(v.Decl.TParams))
+	for i, p := range v.Decl.TParams {
+		args[i] = types.NewParam(p)
 	}
-	b.pushVars()
-	var m map[*TypeParam]*Type
-	if len(tparams) > 0 {
-		m = make(map[*TypeParam]*Type, len(tparams))
-		for _, p := range tparams {
-			m[p] = b.newVar()
+	return types.NewNamed(v.Decl, args)
+}
+
+// ---------------------------------------------------------------- check
+
+func (fc *fnCtx) check(e ast.Expr, want *types.Type) {
+	switch e := e.(type) {
+	case *ast.ListLit:
+		w := rs(want)
+		var elem *types.Type
+		switch w.Kind {
+		case types.KVar:
+			elem = fc.c.newVar()
+			types.Unify(w, types.NewList(elem))
+		case types.KList:
+			elem = w.Args[0]
+		default:
+			fc.mismatch(e.Pos)
 		}
+		for _, x := range e.Elems {
+			fc.check(x, elem)
+		}
+	case *ast.MapLit:
+		w := rs(want)
+		var k, v *types.Type
+		switch w.Kind {
+		case types.KVar:
+			k, v = fc.c.newVar(), fc.c.newVar()
+			types.Unify(w, types.NewMap(k, v))
+		case types.KMap:
+			k, v = w.Args[0], w.Args[1]
+		default:
+			fc.mismatch(e.Pos)
+		}
+		for _, en := range e.Entries {
+			fc.check(en.K, k)
+			fc.check(en.V, v)
+		}
+		if types.Ground(k) && !fc.c.isKey(k) {
+			fc.fail(diag.BadKeyType, e.Pos)
+		}
+	case *ast.TupleLit:
+		if len(e.Elems) > 8 {
+			fc.fail(diag.BadArity, e.Pos)
+		}
+		w := rs(want)
+		var parts []*types.Type
+		switch w.Kind {
+		case types.KVar:
+			parts = make([]*types.Type, len(e.Elems))
+			for i := range parts {
+				parts[i] = fc.c.newVar()
+			}
+			types.Unify(w, types.NewTuple(parts))
+		case types.KTuple:
+			if len(w.Args) != len(e.Elems) {
+				fc.mismatch(e.Pos)
+			}
+			parts = w.Args
+		default:
+			fc.mismatch(e.Pos)
+		}
+		for i, x := range e.Elems {
+			fc.check(x, parts[i])
+		}
+	case *ast.Lambda:
+		fc.lambda(e, want)
+	case *ast.IfExpr:
+		fc.ifExpr(e, want)
+	case *ast.MatchExpr:
+		fc.matchExpr(e, want)
+	case *ast.Block:
+		fc.checkBlock(e, want)
+	case *ast.CallExpr:
+		t, used := fc.callExpr(e, want)
+		if !used && !types.Unify(want, t) {
+			fc.mismatch(e.Pos)
+		}
+	case *ast.PathExpr:
+		res := fc.resolvePath(e, true)
+		if res.kind == resVariant && len(res.variant.Payload) == 0 {
+			e.Kind = ast.RefVariant
+			e.Variant = res.variant
+			fc.genericCall(e.Pos, res.variant.Decl.TParams, nil, variantRet(res.variant), nil, want)
+			return
+		}
+		t := fc.pathFromRes(e, res)
+		if !types.Unify(want, t) {
+			fc.mismatch(e.Pos)
+		}
+	case *ast.StructLit:
+		fc.structLit(e, want)
+	default:
+		s := fc.infer(e)
+		if !types.Unify(want, s) {
+			fc.mismatch(e.ExprPos())
+		}
+	}
+}
+
+func (fc *fnCtx) pathFromRes(e *ast.PathExpr, res valueRes) *types.Type {
+	if res.kind == resLocal {
+		e.Kind = ast.RefLocal
+		e.Local = res.local
+		return res.local.Type
+	}
+	fc.fail(diag.BadValueRef, e.Name.Pos)
+	return nil
+}
+
+// ---------------------------------------------------------------- blocks
+
+func (fc *fnCtx) inferBlock(b *ast.Block) *types.Type {
+	fc.pushScope()
+	defer fc.popScope()
+	for _, s := range b.Stmts {
+		fc.stmt(s)
+	}
+	if b.Trailing != nil {
+		return fc.infer(b.Trailing)
+	}
+	return types.Unit
+}
+
+func (fc *fnCtx) checkBlock(b *ast.Block, want *types.Type) {
+	fc.pushScope()
+	defer fc.popScope()
+	for _, s := range b.Stmts {
+		fc.stmt(s)
+	}
+	if b.Trailing != nil {
+		fc.check(b.Trailing, want)
+		return
+	}
+	if b.Diverges() {
+		return
+	}
+	if !types.Unify(want, types.Unit) {
+		fc.mismatch(b.Pos)
+	}
+}
+
+// ---------------------------------------------------------------- operators
+
+func (fc *fnCtx) unary(e *ast.UnaryExpr) *types.Type {
+	switch e.Op {
+	case "-":
+		t := rs(fc.infer(e.X))
+		if t.Kind != types.KInt && t.Kind != types.KFloat {
+			fc.mismatch(e.X.ExprPos())
+		}
+		e.Float = t.Kind == types.KFloat
+		return t
+	case "!":
+		fc.check(e.X, types.Bool)
+		return types.Bool
+	}
+	fc.check(e.X, types.Int)
+	return types.Int
+}
+
+func (fc *fnCtx) binary(e *ast.BinaryExpr) *types.Type {
+	switch e.Op {
+	case "+", "-", "*", "/", "%":
+		l := rs(fc.infer(e.L))
+		if l.Kind != types.KInt && l.Kind != types.KFloat {
+			fc.mismatch(e.L.ExprPos())
+		}
+		if e.Op == "%" && l.Kind == types.KFloat {
+			fc.mismatch(e.L.ExprPos())
+		}
+		fc.check(e.R, l)
+		e.Float = l.Kind == types.KFloat
+		return l
+	case "++":
+		l := rs(fc.infer(e.L))
+		if l.Kind != types.KStr && l.Kind != types.KList {
+			fc.mismatch(e.L.ExprPos())
+		}
+		fc.check(e.R, l)
+		e.List = l.Kind == types.KList
+		return l
+	case "&", "|", "^", "<<", ">>":
+		fc.check(e.L, types.Int)
+		fc.check(e.R, types.Int)
+		return types.Int
+	case "<", "<=", ">", ">=":
+		l := fc.infer(e.L)
+		if !fc.c.isOrd(l) {
+			fc.fail(diag.NotOrd, e.L.ExprPos())
+		}
+		fc.check(e.R, l)
+		return types.Bool
+	case "==", "!=":
+		l := fc.infer(e.L)
+		if !fc.c.isEq(l) {
+			fc.fail(diag.NotEq, e.L.ExprPos())
+		}
+		fc.check(e.R, l)
+		return types.Bool
+	}
+	// && ||
+	fc.check(e.L, types.Bool)
+	fc.check(e.R, types.Bool)
+	return types.Bool
+}
+
+func (fc *fnCtx) index(e *ast.IndexExpr) *types.Type {
+	a := rs(fc.infer(e.X))
+	switch a.Kind {
+	case types.KList:
+		fc.check(e.I, types.Int)
+		return a.Args[0]
+	case types.KStr:
+		fc.check(e.I, types.Int)
+		return types.Char
+	case types.KMap:
+		fc.check(e.I, a.Args[0])
+		return a.Args[1]
+	}
+	fc.fail(diag.NotIndexable, e.X.ExprPos())
+	return nil
+}
+
+func (fc *fnCtx) field(e *ast.FieldExpr) *types.Type {
+	t := rs(fc.infer(e.X))
+	if t.Kind != types.KNamed || t.Decl.IsEnum {
+		fc.fail(diag.NotStruct, e.X.ExprPos())
+	}
+	i := t.Decl.FieldIndex(e.Name.Name)
+	if i < 0 {
+		fc.fail(diag.UnknownField, e.Name.Pos)
+	}
+	e.Index = i
+	return types.Subst(t.Decl.Fields[i].Type, declSubst(t.Decl, t.Args))
+}
+
+func declSubst(d *types.Decl, args []*types.Type) map[*types.TypeParam]*types.Type {
+	m := make(map[*types.TypeParam]*types.Type, len(args))
+	for i, p := range d.TParams {
+		m[p] = args[i]
+	}
+	return m
+}
+
+// ---------------------------------------------------------------- struct literals
+
+func (fc *fnCtx) structLit(e *ast.StructLit, want *types.Type) *types.Type {
+	decl := fc.c.lookupTypeDecl(fc.mod, e.Path)
+	if decl.IsEnum {
+		fc.fail(diag.NotStruct, e.Path.Pos)
+	}
+	e.Decl = decl
+	fc.c.pushVars()
+	args := make([]*types.Type, len(decl.TParams))
+	for i := range args {
+		args[i] = fc.c.newVar()
+	}
+	st := types.NewNamed(decl, args)
+	if want != nil {
+		if !types.Unify(st, want) {
+			fc.mismatch(e.Path.Pos)
+		}
+	}
+	seen := map[string]bool{}
+	e.Order = make([]int, len(e.Fields))
+	provided := make([]*ast.FieldInit, len(decl.Fields))
+	for wi, fi := range e.Fields {
+		if seen[fi.Name.Name] {
+			fc.fail(diag.DupField, fi.Name.Pos)
+		}
+		seen[fi.Name.Name] = true
+		idx := decl.FieldIndex(fi.Name.Name)
+		if idx < 0 {
+			fc.fail(diag.UnknownField, fi.Name.Pos)
+		}
+		e.Order[wi] = idx
+		provided[idx] = fi
+	}
+	sub := declSubst(decl, args)
+	for i, f := range decl.Fields {
+		if provided[i] == nil {
+			fc.fail(diag.MissingField, e.Path.Pos)
+		}
+		fc.check(provided[i].Value, types.Subst(f.Type, sub))
+	}
+	vars := fc.c.popVars()
+	for _, v := range vars {
+		if !types.Ground(v) {
+			fc.fail(diag.CannotInfer, e.Path.Pos)
+		}
+	}
+	return st
+}
+
+// ---------------------------------------------------------------- calls
+
+// genericCall implements the generic-call rule of section 9.4 for a callee
+// whose arity has already been checked. params and args have equal length.
+func (fc *fnCtx) genericCall(pos diag.Pos, tparams []*types.TypeParam, params []*types.Type,
+	ret *types.Type, args []ast.Expr, expected *types.Type) *types.Type {
+	c := fc.c
+	c.pushVars()
+	sub := make(map[*types.TypeParam]*types.Type, len(tparams))
+	for _, p := range tparams {
+		sub[p] = c.newVar()
 	}
 	for i, a := range args {
-		b.check(a, subst(params[i], m))
+		fc.check(a, types.Subst(params[i], sub))
 	}
-	rt := subst(ret, m)
-	if exp != nil && !unify(rt, exp) {
-		b.fail(diag.TypeMismatch, pos)
+	g := types.Subst(ret, sub)
+	if expected != nil {
+		if !types.Unify(g, expected) {
+			fc.mismatch(pos)
+		}
 	}
-	b.popVars(pos)
+	vars := c.popVars()
+	for _, v := range vars {
+		if !types.Ground(v) {
+			fc.fail(diag.CannotInfer, pos)
+		}
+	}
 	for _, p := range tparams {
-		for _, bd := range p.Bounds {
-			if !b.c.satisfies(zonk(m[p]), bd) {
-				b.fail(diag.UnsatisfiedBound, pos)
+		for _, b := range p.Bounds {
+			if !c.holds(sub[p], b) {
+				fc.fail(diag.UnsatisfiedBound, pos)
 			}
 		}
 	}
-	return zonk(rt)
+	return g
 }
 
-// ---------------------------------------------------------------------- calls
-
-func (b *body) call(n *ast.Call, exp *Type) *Type {
-	if len(n.Args) > 16 {
-		b.fail(diag.BadArity, n.Callee.Position())
+// callExpr types a call. The boolean reports whether the expected type (if
+// any) was used by a generic-call rule, so the caller need not unify again.
+func (fc *fnCtx) callExpr(e *ast.CallExpr, expected *types.Type) (*types.Type, bool) {
+	if len(e.Args) > 16 {
+		fc.fail(diag.BadArity, e.Pos)
 	}
-	if path, ok := n.Callee.(*ast.PathExpr); ok {
-		switch r := b.resolveValue(path).(type) {
-		case *Local:
-			b.useLocal(r)
-			path.Res = r
-			return b.indirectCall(n, r.Type, exp)
-		case *Func:
-			path.Res = r
-			kind := CallFunc
-			if r.Builtin >= 0 {
-				kind = CallBuiltin
+	var calleeType *types.Type
+	if p, ok := e.Callee.(*ast.PathExpr); ok {
+		res := fc.resolvePath(p, true)
+		switch res.kind {
+		case resFunc:
+			f := res.fn
+			p.Kind = ast.RefFunc
+			p.Func = f
+			e.Func = f
+			if f.Builtin >= 0 {
+				e.Kind = ast.CallBuiltin
+			} else {
+				e.Kind = ast.CallFunc
 			}
-			n.Res = &CallRes{Kind: kind, Func: r}
-			return b.genericCall(path.P, r.TParams, r.Params, r.Ret, n.Args, exp)
-		case *Variant:
-			path.Res = r
-			n.Res = &CallRes{Kind: CallVariant, Variant: r}
-			return b.genericCall(path.P, r.Enum.Params, r.Payload, enumType(r.Enum), n.Args, exp)
-		case *TraitMethodRef:
-			path.Res = r
-			n.Res = &CallRes{Kind: CallTraitMethod, Trait: r}
-			return b.traitPathCall(n, path, r, exp)
+			if len(e.Args) != len(f.Params) {
+				fc.fail(diag.Arity, e.Pos)
+			}
+			return fc.genericCall(e.Pos, f.TParams, f.Params, f.Ret, e.Args, expected), true
+		case resVariant:
+			v := res.variant
+			p.Kind = ast.RefVariant
+			p.Variant = v
+			e.Kind = ast.CallVariant
+			e.Variant = v
+			if len(e.Args) != len(v.Payload) {
+				fc.fail(diag.Arity, e.Pos)
+			}
+			return fc.genericCall(e.Pos, v.Decl.TParams, v.Payload, variantRet(v), e.Args, expected), true
+		case resTraitMethod:
+			p.Kind = ast.RefTraitMethod
+			p.Trait = res.trait
+			p.Method = res.method
+			return fc.traitPathCall(e, p, res), false
+		case resType:
+			fc.fail(diag.BadValueRef, p.Name.Pos)
+		case resLocal:
+			p.Kind = ast.RefLocal
+			p.Local = res.local
+			calleeType = res.local.Type
 		}
+	} else {
+		calleeType = fc.infer(e.Callee)
 	}
-	f := b.infer(n.Callee)
-	n.Res = &CallRes{Kind: CallValue}
-	return b.indirectCall(n, f, exp)
+	ft := rs(calleeType)
+	if ft.Kind != types.KFunc {
+		fc.fail(diag.NotCallable, e.Callee.ExprPos())
+	}
+	if len(ft.Args) != len(e.Args) {
+		fc.fail(diag.Arity, e.Callee.ExprPos())
+	}
+	for i, a := range e.Args {
+		fc.check(a, ft.Args[i])
+	}
+	e.Kind = ast.CallValue
+	return ft.Ret, false
 }
 
-func (b *body) indirectCall(n *ast.Call, f *Type, exp *Type) *Type {
-	f = prune(f)
-	if f.Kind != KFn {
-		b.fail(diag.NotCallable, n.Callee.Position())
+// methodBound enforces steps 4 and 5 of section 8.5.
+func (fc *fnCtx) methodBound(tr *types.Trait, r *types.Type, pos diag.Pos) {
+	r = rs(r)
+	if r.Kind == types.KParam {
+		if !r.Param.HasBound(tr) {
+			fc.fail(diag.UnsatisfiedBound, pos)
+		}
+		return
 	}
-	if len(n.Args) != len(f.Elems) {
-		b.fail(diag.Arity, n.Callee.Position())
+	if !fc.c.holds(r, tr) {
+		fc.fail(diag.UnsatisfiedBound, pos)
 	}
-	for i, a := range n.Args {
-		b.check(a, f.Elems[i])
-	}
-	if n.Res == nil {
-		n.Res = &CallRes{Kind: CallValue}
-	}
-	return b.def(n, f.Ret, exp)
 }
 
-// methodCandidates returns the distinct visible traits declaring method name.
-func (c *Checker) methodCandidates(mod *Module, name string) []*Trait {
-	var out []*Trait
-	for _, t := range c.visibleTraits(mod) {
-		if _, ok := t.ByName[name]; !ok {
-			continue
+func (fc *fnCtx) methodCall(e *ast.MethodCallExpr) *types.Type {
+	if len(e.Args) > 16 {
+		fc.fail(diag.BadArity, e.Name.Pos)
+	}
+	r := fc.infer(e.Recv)
+	var cand *types.Trait
+	n := 0
+	for _, t := range fc.c.visibleTraits(fc.mod) {
+		if t.MethodIndex(e.Name.Name) >= 0 {
+			cand = t
+			n++
 		}
-		dup := false
-		for _, o := range out {
-			if o == t {
-				dup = true
+	}
+	if n == 0 {
+		fc.fail(diag.NoMethod, e.Name.Pos)
+	}
+	if n > 1 {
+		fc.fail(diag.AmbigMethod, e.Name.Pos)
+	}
+	mi := cand.MethodIndex(e.Name.Name)
+	tm := cand.Methods[mi]
+	if len(e.Args) != len(tm.Params) {
+		fc.fail(diag.Arity, e.Name.Pos)
+	}
+	e.Trait, e.Method = cand, mi
+	return fc.finishMethod(cand, tm, r, e.Name.Pos, e.Args)
+}
+
+func (fc *fnCtx) finishMethod(tr *types.Trait, tm *types.TraitMethod, r *types.Type, pos diag.Pos, args []ast.Expr) *types.Type {
+	fc.methodBound(tr, r, pos)
+	sub := map[*types.TypeParam]*types.Type{tr.SelfParam: rs(r)}
+	for i, a := range args {
+		fc.check(a, types.Subst(tm.Params[i], sub))
+	}
+	return types.Subst(tm.Ret, sub)
+}
+
+func (fc *fnCtx) traitPathCall(e *ast.CallExpr, p *ast.PathExpr, res valueRes) *types.Type {
+	tr := res.trait
+	tm := tr.Methods[res.method]
+	if len(e.Args) == 0 || len(e.Args)-1 != len(tm.Params) {
+		fc.fail(diag.Arity, p.Name.Pos)
+	}
+	r := fc.infer(e.Args[0])
+	e.Kind = ast.CallMethod
+	e.Trait, e.Method = tr, res.method
+	return fc.finishMethod(tr, tm, r, p.Name.Pos, e.Args[1:])
+}
+
+// ---------------------------------------------------------------- lambdas
+
+func (fc *fnCtx) lambda(l *ast.Lambda, want *types.Type) *types.Type {
+	n := len(l.Params)
+	var fnT *types.Type
+	if want != nil {
+		w := rs(want)
+		switch {
+		case w.Kind == types.KVar:
+			ps := make([]*types.Type, n)
+			for i := range ps {
+				ps[i] = fc.c.newVar()
+			}
+			ft := types.NewFunc(ps, fc.c.newVar())
+			types.Unify(w, ft)
+			w = ft
+		case w.Kind != types.KFunc || len(w.Args) != n:
+			fc.mismatch(l.Pos)
+		}
+		fnT = w
+	}
+	ptypes := make([]*types.Type, n)
+	for i, p := range l.Params {
+		if fnT != nil {
+			pt := fnT.Args[i]
+			if p.Type != nil {
+				ann := fc.c.resolveType(fc.tc, p.Type)
+				if !types.Unify(pt, ann) {
+					fc.mismatch(p.Type.TypePos())
+				}
+			} else if rs(pt).Kind == types.KVar {
+				fc.fail(diag.CannotInfer, p.Name.Pos)
+			}
+			ptypes[i] = pt
+		} else {
+			if p.Type == nil {
+				fc.fail(diag.CannotInfer, p.Name.Pos)
+			}
+			ptypes[i] = fc.c.resolveType(fc.tc, p.Type)
+		}
+	}
+	var ret *types.Type
+	known := true
+	if fnT != nil {
+		ret = fnT.Ret
+		if l.Ret != nil {
+			ann := fc.c.resolveType(fc.tc, l.Ret)
+			if !types.Unify(ret, ann) {
+				fc.mismatch(l.Ret.TypePos())
 			}
 		}
-		if !dup {
-			out = append(out, t)
+	} else if l.Ret != nil {
+		ret = fc.c.resolveType(fc.tc, l.Ret)
+	} else {
+		known = false
+	}
+	seen := map[string]bool{}
+	for _, p := range l.Params {
+		if seen[p.Name.Name] {
+			fc.fail(diag.DupName, p.Name.Pos)
+		}
+		seen[p.Name.Name] = true
+	}
+	body := &types.Body{Parent: fc.body}
+	sub := &fnCtx{c: fc.c, mod: fc.mod, tc: fc.tc, parent: fc, body: body, ret: ret, retUnknown: !known}
+	sub.pushScope()
+	for i, p := range l.Params {
+		loc := sub.newLocal(p.Name.Name, ptypes[i], false)
+		p.Local = loc
+		sub.declare(loc)
+		body.Params = append(body.Params, loc)
+	}
+	f := &types.Func{Name: "<lambda>", Module: fc.mod.tmod, Builtin: -1, Body: body, Params: ptypes}
+	l.Func = f
+	if known {
+		switch b := l.Body.(type) {
+		case *ast.Block:
+			sub.funcBody(b, ret, l.Pos)
+		default:
+			sub.check(l.Body, ret)
+		}
+	} else {
+		switch b := l.Body.(type) {
+		case *ast.Block:
+			for _, s := range b.Stmts {
+				sub.stmt(s)
+			}
+			if b.Trailing != nil {
+				ret = sub.infer(b.Trailing)
+			} else {
+				ret = types.Unit
+			}
+		default:
+			ret = sub.infer(l.Body)
 		}
 	}
-	return out
+	f.Ret = ret
+	return types.NewFunc(ptypes, ret)
 }
 
-func (b *body) methodCall(n *ast.MethodCall, exp *Type) *Type {
-	if len(n.Args) > 16 {
-		b.fail(diag.BadArity, n.Name.Pos)
+// ---------------------------------------------------------------- if / match
+
+func (fc *fnCtx) ifExpr(e *ast.IfExpr, want *types.Type) *types.Type {
+	fc.check(e.Cond, types.Bool)
+	if want != nil {
+		if e.Else == nil {
+			if !types.Unify(want, types.Unit) {
+				fc.mismatch(e.Pos)
+			}
+			fc.checkBlock(e.Then, types.Unit)
+			return types.Unit
+		}
+		fc.checkBlock(e.Then, want)
+		fc.check(e.Else, want)
+		return want
 	}
-	r := b.infer(n.Recv)
-	cands := b.c.methodCandidates(b.mod, n.Name.Name)
-	if len(cands) == 0 {
-		b.fail(diag.NoMethod, n.Name.Pos)
+	if e.Else == nil {
+		fc.checkBlock(e.Then, types.Unit)
+		return types.Unit
 	}
-	if len(cands) > 1 {
-		b.fail(diag.AmbigMethod, n.Name.Pos)
+	if !e.Then.Diverges() {
+		t := fc.inferBlock(e.Then)
+		fc.check(e.Else, t)
+		return t
 	}
-	tr := cands[0]
-	mt := tr.ByName[n.Name.Name]
-	if len(n.Args) != len(mt.Params) {
-		b.fail(diag.Arity, n.Name.Pos)
+	fc.inferBlock(e.Then)
+	if ast.ExprDiverges(e.Else) {
+		fc.infer(e.Else)
+		return types.Unit
 	}
-	if !b.c.satisfies(r, tr) {
-		b.fail(diag.UnsatisfiedBound, n.Name.Pos)
-	}
-	sm := map[*TypeParam]*Type{tr.Self: r}
-	for i, a := range n.Args {
-		b.check(a, subst(mt.Params[i], sm))
-	}
-	n.Res = &MethodRes{Trait: tr, Method: mt}
-	return b.def(n, subst(mt.Ret, sm), exp)
+	return fc.infer(e.Else)
 }
 
-func (b *body) traitPathCall(n *ast.Call, path *ast.PathExpr, ref *TraitMethodRef, exp *Type) *Type {
-	tr, mt := ref.Trait, ref.Method
-	if len(n.Args) == 0 {
-		b.fail(diag.Arity, path.Name.Pos)
+func (fc *fnCtx) matchExpr(m *ast.MatchExpr, want *types.Type) *types.Type {
+	s := fc.infer(m.Scr)
+	if len(m.Arms) == 0 {
+		fc.fail(diag.NonExhaustive, m.Pos)
 	}
-	r := b.infer(n.Args[0])
-	if len(n.Args)-1 != len(mt.Params) {
-		b.fail(diag.Arity, path.Name.Pos)
+	var r *types.Type
+	if want != nil {
+		r = want
 	}
-	if !b.c.satisfies(r, tr) {
-		b.fail(diag.UnsatisfiedBound, path.Name.Pos)
+	for _, arm := range m.Arms {
+		bs := newBinds()
+		fc.pattern(arm.Pat, s, bs)
+		fc.pushScope()
+		fc.declareBinds(bs)
+		if arm.Guard != nil {
+			fc.check(arm.Guard, types.Bool)
+		}
+		if r == nil {
+			if ast.ExprDiverges(arm.Body) {
+				fc.infer(arm.Body)
+			} else {
+				r = fc.infer(arm.Body)
+			}
+		} else {
+			fc.check(arm.Body, r)
+		}
+		fc.popScope()
 	}
-	sm := map[*TypeParam]*Type{tr.Self: r}
-	for i, a := range n.Args[1:] {
-		b.check(a, subst(mt.Params[i], sm))
+	fc.checkExhaustive(m, s)
+	if r == nil {
+		return types.Unit
 	}
-	return b.def(n, subst(mt.Ret, sm), exp)
+	return r
 }

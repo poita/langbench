@@ -2,166 +2,150 @@ package linalg
 
 import "math"
 
-// QRResult is a thin Householder QR factorisation A = Q R.
-type QRResult struct {
-	Q *Matrix // m x n, orthonormal columns
-	R *Matrix // n x n, upper triangular, non-negative diagonal
+// QRFactors is a thin Householder QR factorisation A = Q R.
+type QRFactors struct {
+	Q *Matrix // m x n with orthonormal columns
+	R *Matrix // n x n upper triangular with a non-negative diagonal
 }
 
-// QR computes the thin QR factorisation of an m x n matrix with m >= n
-// (ErrDimensionMismatch otherwise) using Householder reflectors. The
-// factorisation is made unique by forcing a non-negative diagonal on R.
-// A zero column simply yields an identity reflector, so QR also succeeds on
-// rank-deficient input.
-func QR(a *Matrix) (*QRResult, error) {
+// QR computes the thin Householder QR factorisation of an m x n matrix with
+// m >= n (ErrDimensionMismatch otherwise). The diagonal of R is made
+// non-negative by negating rows of R and the matching columns of Q.
+func QR(a *Matrix) (*QRFactors, error) {
 	m, n := a.Rows, a.Cols
 	if m < n {
 		return nil, ErrDimensionMismatch
 	}
 	r := a.Clone()
-	vs := make([][]float64, n) // vs[k] has length m-k; nil = identity reflector
-	w := make([]float64, n)
+	rd := r.Data
+	vs := make([][]float64, n) // nil entry: identity reflector
+	dots := make([]float64, n)
 	for k := 0; k < n; k++ {
-		nu := 0.0
+		s := 0.0
 		for i := k; i < m; i++ {
-			x := r.Data[i*n+k]
-			nu += x * x
+			x := rd[i*n+k]
+			s += float64(x * x)
 		}
-		nu = math.Sqrt(nu)
+		nu := math.Sqrt(s)
 		if nu == 0 {
 			for i := k + 1; i < m; i++ {
-				r.Data[i*n+k] = 0
+				rd[i*n+k] = 0
 			}
 			continue
 		}
 		alpha := -nu
-		if r.Data[k*n+k] < 0 {
+		if rd[k*n+k] < 0 {
 			alpha = nu
 		}
 		v := make([]float64, m-k)
 		for i := range v {
-			v[i] = r.Data[(k+i)*n+k]
+			v[i] = rd[(k+i)*n+k]
 		}
 		v[0] -= alpha
-		ss := 0.0
+		vn := 0.0
 		for _, x := range v {
-			ss += x * x
+			vn += float64(x * x)
 		}
-		norm := math.Sqrt(ss)
+		vn = math.Sqrt(vn)
 		for i := range v {
-			v[i] /= norm
+			v[i] /= vn
 		}
 		vs[k] = v
-		applyReflector(r.Data, n, v, k, k+1, n, w)
-		r.Data[k*n+k] = alpha
+		reflect(rd, n, k, k+1, v, dots)
+		rd[k*n+k] = alpha
 		for i := k + 1; i < m; i++ {
-			r.Data[i*n+k] = 0
+			rd[i*n+k] = 0
 		}
 	}
 
 	q := New(m, n)
-	for j := 0; j < n; j++ {
-		q.Data[j*n+j] = 1
+	for i := 0; i < n; i++ {
+		q.Data[i*n+i] = 1
 	}
 	for k := n - 1; k >= 0; k-- {
 		if vs[k] != nil {
-			applyReflector(q.Data, n, vs[k], k, k, n, w)
+			reflect(q.Data, n, k, 0, vs[k], dots)
 		}
 	}
 
-	rr := New(n, n)
-	copy(rr.Data, r.Data[:n*n])
+	out := New(n, n)
 	for j := 0; j < n; j++ {
-		if rr.Data[j*n+j] < 0 {
-			row := rr.Row(j)
-			for c := range row {
-				row[c] = -row[c]
+		neg := rd[j*n+j] < 0
+		for c := j; c < n; c++ {
+			v := rd[j*n+c]
+			if neg {
+				v = -v
 			}
+			out.Data[j*n+c] = v
+		}
+		if neg {
 			for i := 0; i < m; i++ {
 				q.Data[i*n+j] = -q.Data[i*n+j]
 			}
 		}
-		for c := 0; c < j; c++ {
-			rr.Data[j*n+c] = 0
-		}
 	}
-	return &QRResult{Q: q, R: rr}, nil
+	return &QRFactors{Q: q, R: out}, nil
 }
 
-// applyReflector applies H = I - 2 v vᵀ (v supported on rows k..k+len(v)-1)
-// to columns c0..c1-1 of the row-major matrix d with the given row stride.
-// For each column the dot product runs over increasing row index. w is
-// scratch of length >= c1.
-func applyReflector(d []float64, stride int, v []float64, k, c0, c1 int, w []float64) {
-	w = w[c0:c1]
-	for j := range w {
-		w[j] = 0
+// reflect applies X[k..][c0..] -= 2 v (vᵀ X[k..][c0..]) to the row-major
+// matrix d with n columns, where v has length rows-k. dots is scratch of
+// length n.
+func reflect(d []float64, n, k, c0 int, v, dots []float64) {
+	for c := c0; c < n; c++ {
+		dots[c] = 0
 	}
 	for i, vi := range v {
-		row := d[(k+i)*stride+c0 : (k+i)*stride+c1]
-		for j, x := range row {
-			w[j] += vi * x
+		row := d[(k+i)*n : (k+i+1)*n]
+		for c := c0; c < n; c++ {
+			dots[c] += float64(vi * row[c])
 		}
 	}
-	for j := range w {
-		w[j] *= 2
-	}
 	for i, vi := range v {
-		row := d[(k+i)*stride+c0 : (k+i)*stride+c1]
-		for j := range row {
-			row[j] -= w[j] * vi
+		row := d[(k+i)*n : (k+i+1)*n]
+		for c := c0; c < n; c++ {
+			row[c] -= float64(float64(2*dots[c]) * vi)
 		}
 	}
 }
 
-// LeastSquares returns the n x k matrix X minimising ‖A X - B‖F for A of
-// shape m x n (m >= n) and B of shape m x k. Both shape violations are
-// ErrDimensionMismatch. It factors A = Q R, forms Qᵀ B and back-substitutes;
-// ErrSingular is returned when a diagonal entry of R is exactly zero.
+// LeastSquares returns the n x k minimiser of ‖A X − B‖F for a full column
+// rank m x n matrix A with m >= n, via QR and back substitution. It returns
+// ErrDimensionMismatch for m < n or a B with the wrong row count, and
+// ErrSingular if R has an exactly zero diagonal entry.
 func LeastSquares(a, b *Matrix) (*Matrix, error) {
-	m, n := a.Rows, a.Cols
-	if m < n || b.Rows != m {
+	if a.Rows < a.Cols || b.Rows != a.Rows {
 		return nil, ErrDimensionMismatch
 	}
 	f, err := QR(a)
 	if err != nil {
 		return nil, err
 	}
-	for j := 0; j < n; j++ {
-		if f.R.Data[j*n+j] == 0 {
+	m, n, k := a.Rows, a.Cols, b.Cols
+	for i := 0; i < n; i++ {
+		if f.R.Data[i*n+i] == 0 {
 			return nil, ErrSingular
 		}
 	}
-	k := b.Cols
-	y := New(n, k)
-	for i := 0; i < m; i++ {
-		qi, bi := f.Q.Row(i), b.Row(i)
-		for j, q := range qi {
-			if q == 0 {
-				continue
+	x := New(n, k)
+	rhs := make([]float64, n)
+	for c := 0; c < k; c++ {
+		for i := 0; i < n; i++ {
+			s := 0.0
+			for r := 0; r < m; r++ {
+				s += float64(f.Q.Data[r*n+i] * b.Data[r*k+c])
 			}
-			yj := y.Row(j)
-			for c, v := range bi {
-				yj[c] += q * v
+			rhs[i] = s
+		}
+		for i := n - 1; i >= 0; i-- {
+			s := rhs[i]
+			for j := i + 1; j < n; j++ {
+				s -= float64(f.R.Data[i*n+j] * rhs[j])
 			}
+			rhs[i] = s / f.R.Data[i*n+i]
+		}
+		for i := 0; i < n; i++ {
+			x.Data[i*k+c] = rhs[i]
 		}
 	}
-	for i := n - 1; i >= 0; i-- {
-		yi := y.Row(i)
-		ri := f.R.Row(i)
-		for j := i + 1; j < n; j++ {
-			u := ri[j]
-			if u == 0 {
-				continue
-			}
-			for c, v := range y.Row(j) {
-				yi[c] -= u * v
-			}
-		}
-		d := ri[i]
-		for c := range yi {
-			yi[c] /= d
-		}
-	}
-	return y, nil
+	return x, nil
 }

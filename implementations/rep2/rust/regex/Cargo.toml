@@ -1,0 +1,18 @@
+[package]
+name = "btregex"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "A small backtracking regular-expression engine with Perl-style leftmost-first semantics and capture positions"
+license = "MIT"
+readme = "README.md"
+keywords = ["regex", "backtracking", "pattern-matching"]
+categories = ["text-processing"]
+
+[lib]
+name = "btregex"
+path = "src/lib.rs"
+
+[[bin]]
+name = "btregex"
+path = "src/main.rs"

@@ -1,0 +1,87 @@
+3	c	1	p
+3	c	2	q
+3	c	1	r
+3	c	3	s
+3	c	NULL	u
+1	a	1	p
+1	a	2	q
+1	a	1	r
+1	a	3	s
+1	a	NULL	u
+2	b	1	p
+2	b	2	q
+2	b	1	r
+2	b	3	s
+2	b	NULL	u
+1	aa	1	p
+1	aa	2	q
+1	aa	1	r
+1	aa	3	s
+1	aa	NULL	u
+NULL	n	1	p
+NULL	n	2	q
+NULL	n	1	r
+NULL	n	3	s
+NULL	n	NULL	u
+-- 25 rows
+3	c	3	s
+1	a	1	p
+1	a	1	r
+2	b	2	q
+1	aa	1	p
+1	aa	1	r
+-- 6 rows
+c	s
+a	r
+b	q
+aa	r
+-- 4 rows
+1	p	1	a
+1	p	1	aa
+2	q	2	b
+1	r	1	a
+1	r	1	aa
+3	s	3	c
+-- 6 rows
+a	q
+a	s
+b	s
+aa	q
+aa	s
+-- 5 rows
+a	q
+b	p
+b	r
+aa	q
+-- 4 rows
+n	u
+-- 1 rows
+c	s
+a	r
+aa	r
+b	q
+a	p
+aa	p
+-- 6 rows
+25
+-- 1 rows
+6
+-- 1 rows
+a	p	11
+a	r	11
+aa	p	11
+aa	r	11
+b	q	22
+c	s	33
+-- 6 rows
+1	a	1	p
+1	a	1	r
+-- 2 rows
+1	4
+2	1
+3	1
+-- 3 rows
+1	4
+2	4
+3	7
+-- 3 rows

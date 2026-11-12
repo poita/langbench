@@ -2,11 +2,11 @@ package uri
 
 import "testing"
 
-// The reference resolution examples of RFC 3986 section 5.4.
-func TestResolveRFC3986Examples(t *testing.T) {
+// Examples from RFC 3986 section 5.4.
+func TestResolveRFC3986(t *testing.T) {
 	const base = "http://a/b/c/d;p?q"
 	tests := []struct{ ref, want string }{
-		// normal
+		// 5.4.1 normal examples
 		{"g:h", "g:h"},
 		{"g", "http://a/b/c/g"},
 		{"./g", "http://a/b/c/g"},
@@ -30,7 +30,7 @@ func TestResolveRFC3986Examples(t *testing.T) {
 		{"../..", "http://a/"},
 		{"../../", "http://a/"},
 		{"../../g", "http://a/g"},
-		// abnormal
+		// 5.4.2 abnormal examples
 		{"../../../g", "http://a/g"},
 		{"../../../../g", "http://a/g"},
 		{"/./g", "http://a/g"},
@@ -49,50 +49,72 @@ func TestResolveRFC3986Examples(t *testing.T) {
 		{"g?y/../x", "http://a/b/c/g?y/../x"},
 		{"g#s/./x", "http://a/b/c/g#s/./x"},
 		{"g#s/../x", "http://a/b/c/g#s/../x"},
-		{"http:g", "http:g"},
+		{"http:g", "http:g"}, // strict resolution keeps the scheme
 	}
 	for _, tc := range tests {
-		if got := Resolve(base, tc.ref); got != tc.want {
+		if got := ResolveString(base, tc.ref); got != tc.want {
 			t.Errorf("Resolve(%q, %q) = %q, want %q", base, tc.ref, got, tc.want)
 		}
 	}
 }
 
-func TestResolveEdgeCases(t *testing.T) {
+func TestResolveSpecialBases(t *testing.T) {
 	tests := []struct{ base, ref, want string }{
-		{"", "foo.json", "foo.json"},
 		{"", "#/$defs/a", "#/$defs/a"},
+		{"", "integer.json", "integer.json"},
 		{"", "", ""},
-		{"http://x", "y", "http://x/y"},
-		{"http://x", "#f", "http://x#f"},
-		{"urn:uuid:deadbeef", "#/$defs/bar", "urn:uuid:deadbeef#/$defs/bar"},
-		{"urn:example:x", "urn:example:y", "urn:example:y"},
-		{"http://localhost:1234/draft2020-12/root.json", "integer.json", "http://localhost:1234/draft2020-12/integer.json"},
-		{"http://localhost:1234/a/b/", "../c.json#x", "http://localhost:1234/a/c.json#x"},
-		{"foo/bar", "baz", "foo/baz"},
-		{"http://x/y", "?q", "http://x/y?q"},
+		{"http://x.test", "a", "http://x.test/a"},
+		{"urn:example:root", "#foo", "urn:example:root#foo"},
+		{"http://x.test/a/b.json", "../c.json#f", "http://x.test/c.json#f"},
+		{"http://x.test/a/b.json#old", "#new", "http://x.test/a/b.json#new"},
 	}
 	for _, tc := range tests {
-		if got := Resolve(tc.base, tc.ref); got != tc.want {
+		if got := ResolveString(tc.base, tc.ref); got != tc.want {
 			t.Errorf("Resolve(%q, %q) = %q, want %q", tc.base, tc.ref, got, tc.want)
 		}
 	}
 }
 
-func TestParseRoundTrip(t *testing.T) {
-	for _, s := range []string{
-		"http://u@h:80/p/q?x=1#f", "urn:a:b", "//h/p", "/p", "p", "?q", "#f", "", "http://h", "mailto:a@b", "a:b#c#d",
-	} {
-		if got := Parse(s).String(); got != s {
-			t.Errorf("round trip %q -> %q", s, got)
+func TestParseComponents(t *testing.T) {
+	u := Parse("http://user@host:80/p/a?q=1#frag")
+	if u.Scheme != "http" || u.Authority != "user@host:80" || u.Path != "/p/a" || u.Query != "q=1" || u.Fragment != "frag" {
+		t.Errorf("unexpected components: %+v", u)
+	}
+	if got := u.String(); got != "http://user@host:80/p/a?q=1#frag" {
+		t.Errorf("String() = %q", got)
+	}
+	if u := Parse("a?"); !u.HasQuery || u.Query != "" || u.String() != "a?" {
+		t.Errorf("empty query lost: %+v", u)
+	}
+	if u := Parse("a#"); !u.HasFragment || u.String() != "a#" {
+		t.Errorf("empty fragment lost: %+v", u)
+	}
+	if u := Parse("a/b:c"); u.HasScheme {
+		t.Errorf("a/b:c has no scheme: %+v", u)
+	}
+	if u := Parse("1http://x"); u.HasScheme {
+		t.Errorf("scheme cannot start with a digit: %+v", u)
+	}
+	if got := Parse("http://x/y#f").WithoutFragment().String(); got != "http://x/y" {
+		t.Errorf("WithoutFragment = %q", got)
+	}
+}
+
+func TestPercentDecode(t *testing.T) {
+	tests := map[string]string{
+		"plain":        "plain",
+		"a%20b":        "a b",
+		"%25":          "%",
+		"%C3%A9":       "é",
+		"%zz":          "%zz",
+		"%2":           "%2",
+		"100%":         "100%",
+		"%7Efoo%2fbar": "~foo/bar",
+	}
+	for in, want := range tests {
+		if got := PercentDecode(in); got != want {
+			t.Errorf("PercentDecode(%q) = %q, want %q", in, got, want)
 		}
-	}
-	u := Parse("http://h:80/p?q#f")
-	if u.Scheme != "http" || u.Authority != "h:80" || u.Path != "/p" || u.Query != "q" || u.Fragment != "f" {
-		t.Errorf("components: %+v", u)
-	}
-	if u := Parse("1abc:x"); u.HasScheme {
-		t.Error("scheme must start with a letter")
 	}
 }
 
@@ -100,45 +122,15 @@ func TestRemoveDotSegments(t *testing.T) {
 	tests := map[string]string{
 		"/a/b/c/./../../g":   "/a/g",
 		"mid/content=5/../6": "mid/6",
+		"/a/b/..":            "/a/",
+		"a/./b":              "a/b",
+		"../x":               "x",
 		"/..":                "/",
-		"a/..":               "/",
 		"":                   "",
-		"/a/./b":             "/a/b",
 	}
 	for in, want := range tests {
 		if got := RemoveDotSegments(in); got != want {
 			t.Errorf("RemoveDotSegments(%q) = %q, want %q", in, got, want)
-		}
-	}
-}
-
-func TestFragmentHelpers(t *testing.T) {
-	doc, frag, ok := SplitFragment("http://x/y#/a/b")
-	if doc != "http://x/y" || frag != "/a/b" || !ok {
-		t.Errorf("SplitFragment = %q %q %v", doc, frag, ok)
-	}
-	if doc, frag, ok := SplitFragment("http://x/y"); doc != "http://x/y" || frag != "" || ok {
-		t.Errorf("no fragment: %q %q %v", doc, frag, ok)
-	}
-	if StripFragment("a#b#c") != "a" {
-		t.Error("StripFragment")
-	}
-}
-
-func TestPercentDecode(t *testing.T) {
-	tests := map[string]string{
-		"/$defs/tilde~0field":    "/$defs/tilde~0field",
-		"/$defs/percent%25field": "/$defs/percent%field",
-		"%C3%A9":                 "é",
-		"a%2Fb":                  "a/b",
-		"100%":                   "100%",
-		"%zz":                    "%zz",
-		"%4":                     "%4",
-		"plain":                  "plain",
-	}
-	for in, want := range tests {
-		if got := PercentDecode(in); got != want {
-			t.Errorf("PercentDecode(%q) = %q, want %q", in, got, want)
 		}
 	}
 }

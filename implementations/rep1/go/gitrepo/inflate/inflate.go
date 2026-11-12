@@ -1,177 +1,241 @@
-// Package inflate is a table-driven decoder for DEFLATE (RFC 1951) streams
-// and the zlib wrapper (RFC 1950).
+// Package inflate implements a decoder for DEFLATE (RFC 1951) streams and the
+// zlib container (RFC 1950) around them.
 //
-// The decoder is self-terminating: it stops at the end-of-block symbol of the
-// final block and reports how many input bytes it used, so several streams
-// can be stored back to back (as in a git packfile). The Adler-32 trailer of
-// a zlib stream is neither verified nor consumed.
+// The decoder works on in-memory byte slices and reports how many input bytes
+// a stream occupied, which is what a packfile reader needs: objects in a pack
+// are stored back to back and the end of one is found by decoding it.
 package inflate
 
 import (
 	"errors"
-	"math/bits"
-	"slices"
+	"fmt"
+	"sync"
 )
 
-// Errors returned by the decoder.
-var (
-	ErrHeader    = errors.New("inflate: invalid zlib header")
-	ErrTruncated = errors.New("inflate: unexpected end of input")
-	ErrCorrupt   = errors.New("inflate: corrupt stream")
-)
+// ErrCorrupt is wrapped by every error caused by malformed input.
+var ErrCorrupt = errors.New("inflate: corrupt stream")
+
+func corrupt(format string, args ...any) error {
+	return fmt.Errorf("%w: %s", ErrCorrupt, fmt.Sprintf(format, args...))
+}
 
 const (
-	rootLit  = 10 // root table width for literal/length codes
-	rootDist = 8  // root table width for distance codes
-	rootCL   = 7  // code-length code (max code length is 7)
-	maxBits  = 15
-	maxHint  = 1 << 24 // cap on the initial output allocation
+	maxBits    = 15
+	maxLitLen  = 286
+	maxDist    = 30
+	maxCodeLen = 19
 )
 
-// Table entry layout: bits 0-7 code length (0 = not a code), bit 8 set when
-// the entry points to a second-level table, bits 16-31 the symbol (or the
-// subtable offset).
-const subFlag = 1 << 8
-
-var (
-	lenBase = [29]uint16{3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31,
-		35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258}
-	lenExtra = [29]uint8{0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2,
-		3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0}
-	distBase = [30]uint16{1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193,
-		257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577}
-	distExtra = [30]uint8{0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6,
-		7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13}
-	clOrder = [19]uint8{16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15}
-)
-
-// table is a two-level Huffman lookup table. t[:1<<root] is the root; the
-// subtables follow it.
-type table struct {
-	t    []uint32
-	root uint
+// Zlib decodes the zlib stream at the start of src. It returns the
+// decompressed bytes and the number of bytes of src the stream occupied
+// (header, DEFLATE data and Adler-32 trailer). Bytes after the stream are not
+// examined. sizeHint, if positive, pre-sizes the output buffer.
+//
+// The header must name the deflate method, pass the header check and not use a
+// preset dictionary. The Adler-32 trailer is verified.
+func Zlib(src []byte, sizeHint int) (out []byte, n int, err error) {
+	if len(src) < 2 {
+		return nil, 0, corrupt("truncated zlib header")
+	}
+	cmf, flg := src[0], src[1]
+	if cmf&0x0f != 8 || (uint(cmf)<<8|uint(flg))%31 != 0 || flg&0x20 != 0 {
+		return nil, 0, corrupt("bad zlib header %02x%02x", cmf, flg)
+	}
+	out, used, err := Deflate(src[2:], sizeHint)
+	if err != nil {
+		return nil, 0, err
+	}
+	pos := 2 + used
+	if len(src) < pos+4 {
+		return nil, 0, corrupt("truncated zlib trailer")
+	}
+	want := uint32(src[pos])<<24 | uint32(src[pos+1])<<16 | uint32(src[pos+2])<<8 | uint32(src[pos+3])
+	if adler32(out) != want {
+		return nil, 0, corrupt("adler-32 mismatch")
+	}
+	return out, pos + 4, nil
 }
 
-// Decoder holds the reusable Huffman tables. A Decoder may be reused for any
-// number of streams but is not safe for concurrent use.
-type Decoder struct {
-	lit, dist, cl table
-	fixedLit      table
-	fixedDist     table
-	fixedReady    bool
-
-	// scratch space for table construction
-	lens    [320]uint8
-	codes   [288]uint16
-	subW    [1 << rootLit]uint8
-	touched []uint16
+// Deflate decodes the raw DEFLATE stream at the start of src. It returns the
+// decompressed bytes and the number of bytes of src consumed, i.e. up to and
+// including the byte holding the last bit of the final block.
+func Deflate(src []byte, sizeHint int) (out []byte, n int, err error) {
+	d := &decoder{src: src}
+	if sizeHint > 0 && sizeHint < 1<<30 {
+		d.out = make([]byte, 0, sizeHint)
+	}
+	for {
+		final, err := d.bits(1)
+		if err != nil {
+			return nil, 0, err
+		}
+		typ, err := d.bits(2)
+		if err != nil {
+			return nil, 0, err
+		}
+		switch typ {
+		case 0:
+			err = d.stored()
+		case 1:
+			fixedOnce()
+			err = d.codes(&fixedLit, &fixedDist)
+		case 2:
+			err = d.dynamic()
+		default:
+			err = corrupt("reserved block type")
+		}
+		if err != nil {
+			return nil, 0, err
+		}
+		if final == 1 {
+			return d.out, d.pos, nil
+		}
+	}
 }
 
-// NewDecoder returns a ready Decoder.
-func NewDecoder() *Decoder {
-	d := &Decoder{}
-	d.lit.root, d.dist.root, d.cl.root = rootLit, rootDist, rootCL
-	d.fixedLit.root, d.fixedDist.root = rootLit, rootDist
-	return d
+func adler32(p []byte) uint32 {
+	const mod = 65521
+	a, b := uint32(1), uint32(0)
+	for len(p) > 0 {
+		n := len(p)
+		if n > 5552 {
+			n = 5552
+		}
+		for _, c := range p[:n] {
+			a += uint32(c)
+			b += a
+		}
+		a %= mod
+		b %= mod
+		p = p[n:]
+	}
+	return b<<16 | a
 }
 
-// build constructs the lookup table for the given code lengths. An
-// incomplete code is accepted only when allowIncomplete is set and no code is
-// longer than one bit (zlib's rule); over-subscribed codes are always
-// rejected.
-func (d *Decoder) build(tb *table, lens []uint8, allowIncomplete bool) error {
-	var count [maxBits + 1]int
-	for _, l := range lens {
-		count[l]++
-	}
-	count[0] = 0
-	left := 1
-	maxLen := 0
-	for l := 1; l <= maxBits; l++ {
-		left <<= 1
-		left -= count[l]
-		if left < 0 {
-			return ErrCorrupt // over-subscribed
-		}
-		if count[l] > 0 {
-			maxLen = l
-		}
-	}
-	if left > 0 && !(allowIncomplete && maxLen <= 1) {
-		return ErrCorrupt
-	}
-	var next [maxBits + 1]uint16
-	code := uint16(0)
-	for l := 1; l <= maxBits; l++ {
-		code = (code + uint16(count[l-1])) << 1
-		next[l] = code
-	}
-	root := tb.root
-	rsize := 1 << root
-	if cap(tb.t) < rsize {
-		tb.t = make([]uint32, rsize, rsize*2)
-	}
-	tb.t = tb.t[:rsize]
-	clear(tb.t)
+type decoder struct {
+	src    []byte
+	pos    int
+	bitbuf uint32
+	bitcnt uint
+	out    []byte
+}
 
-	// pass 1: assign bit-reversed codes and find the subtable widths
-	touched := d.touched[:0]
-	for sym, l := range lens {
-		if l == 0 {
-			continue
+func (d *decoder) bits(n uint) (int, error) {
+	for d.bitcnt < n {
+		if d.pos >= len(d.src) {
+			return 0, corrupt("unexpected end of input")
 		}
-		c := next[l]
-		next[l]++
-		rev := bits.Reverse16(c) >> (16 - uint(l))
-		d.codes[sym] = rev
-		if uint(l) > root {
-			idx := rev & uint16(rsize-1)
-			w := l - uint8(root)
-			if d.subW[idx] == 0 {
-				touched = append(touched, idx)
-			}
-			if w > d.subW[idx] {
-				d.subW[idx] = w
-			}
-		}
+		d.bitbuf |= uint32(d.src[d.pos]) << d.bitcnt
+		d.pos++
+		d.bitcnt += 8
 	}
-	d.touched = touched
-	for _, idx := range touched {
-		w := uint(d.subW[idx])
-		off := len(tb.t)
-		need := off + 1<<w
-		tb.t = slices.Grow(tb.t, 1<<w)[:need]
-		clear(tb.t[off:need])
-		tb.t[idx] = uint32(off)<<16 | subFlag | uint32(w)
+	v := d.bitbuf & (1<<n - 1)
+	d.bitbuf >>= n
+	d.bitcnt -= n
+	return int(v), nil
+}
+
+func (d *decoder) stored() error {
+	d.bitbuf, d.bitcnt = 0, 0 // discard the rest of the current byte
+	if d.pos+4 > len(d.src) {
+		return corrupt("truncated stored block header")
 	}
-	// pass 2: fill the tables
-	for sym, l := range lens {
-		if l == 0 {
-			continue
-		}
-		rev := uint32(d.codes[sym])
-		if uint(l) <= root {
-			e := uint32(sym)<<16 | uint32(l)
-			for i := rev; i < uint32(rsize); i += 1 << l {
-				tb.t[i] = e
-			}
-		} else {
-			ptr := tb.t[rev&uint32(rsize-1)]
-			off, w := ptr>>16, ptr&0xff
-			sl := uint32(l) - uint32(root)
-			e := uint32(sym)<<16 | sl
-			for i := rev >> root; i < 1<<w; i += 1 << sl {
-				tb.t[off+i] = e
-			}
-		}
+	n := int(d.src[d.pos]) | int(d.src[d.pos+1])<<8
+	nn := int(d.src[d.pos+2]) | int(d.src[d.pos+3])<<8
+	if n != ^nn&0xffff {
+		return corrupt("stored block length mismatch")
 	}
-	for _, idx := range touched {
-		d.subW[idx] = 0
+	d.pos += 4
+	if d.pos+n > len(d.src) {
+		return corrupt("truncated stored block")
 	}
+	d.out = append(d.out, d.src[d.pos:d.pos+n]...)
+	d.pos += n
 	return nil
 }
 
-func (d *Decoder) buildFixed() {
+// huffman is a canonical Huffman decoding table in the style of zlib's puff.
+type huffman struct {
+	count  [maxBits + 1]uint16 // number of codes of each length
+	symbol []uint16            // symbols ordered by code
+}
+
+// build constructs a table from code lengths. The returned left is 0 for a
+// complete code, positive for an incomplete one and negative if the code is
+// over-subscribed.
+func (h *huffman) build(lengths []uint8) (left int) {
+	h.count = [maxBits + 1]uint16{}
+	for _, l := range lengths {
+		h.count[l]++
+	}
+	if int(h.count[0]) == len(lengths) {
+		h.symbol = h.symbol[:0]
+		return 0
+	}
+	left = 1
+	for l := 1; l <= maxBits; l++ {
+		left <<= 1
+		left -= int(h.count[l])
+		if left < 0 {
+			return left
+		}
+	}
+	var offs [maxBits + 2]uint16
+	for l := 1; l <= maxBits; l++ {
+		offs[l+1] = offs[l] + h.count[l]
+	}
+	h.symbol = make([]uint16, len(lengths))
+	for sym, l := range lengths {
+		if l != 0 {
+			h.symbol[offs[l]] = uint16(sym)
+			offs[l]++
+		}
+	}
+	return left
+}
+
+func (d *decoder) decode(h *huffman) (int, error) {
+	code, first, index := 0, 0, 0
+	for l := 1; l <= maxBits; l++ {
+		if d.bitcnt == 0 {
+			if d.pos >= len(d.src) {
+				return 0, corrupt("unexpected end of input")
+			}
+			d.bitbuf = uint32(d.src[d.pos])
+			d.pos++
+			d.bitcnt = 8
+		}
+		code |= int(d.bitbuf & 1)
+		d.bitbuf >>= 1
+		d.bitcnt--
+		count := int(h.count[l])
+		if code-count < first {
+			return int(h.symbol[index+(code-first)]), nil
+		}
+		index += count
+		first += count
+		first <<= 1
+		code <<= 1
+	}
+	return 0, corrupt("invalid Huffman code")
+}
+
+var (
+	lenBase   = [29]uint16{3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258}
+	lenExtra  = [29]uint8{0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0}
+	distBase  = [30]uint16{1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577}
+	distExtra = [30]uint8{0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13}
+	clOrder   = [maxCodeLen]uint8{16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15}
+)
+
+var (
+	fixedLit, fixedDist huffman
+	fixedBuild          sync.Once
+)
+
+func fixedOnce() { fixedBuild.Do(buildFixed) }
+
+func buildFixed() {
 	var l [288]uint8
 	for i := range l {
 		switch {
@@ -185,271 +249,143 @@ func (d *Decoder) buildFixed() {
 			l[i] = 8
 		}
 	}
-	d.build(&d.fixedLit, l[:], false)
-	// 32 distance codes exist in the fixed code; 30 and 31 are rejected
-	// when decoded.
-	var dl [32]uint8
+	fixedLit.build(l[:])
+	var dl [maxDist]uint8
 	for i := range dl {
 		dl[i] = 5
 	}
-	d.build(&d.fixedDist, dl[:], false)
-	d.fixedReady = true
+	fixedDist.build(dl[:])
 }
 
-// bitReader state lives in the decode call to keep it in registers.
-type state struct {
-	src   []byte
-	pos   int
-	buf   uint64
-	nbits uint
-	extra uint // zero bytes appended past the end of src
-}
-
-func (s *state) refill() {
-	for s.nbits <= 56 {
-		if s.pos < len(s.src) {
-			s.buf |= uint64(s.src[s.pos]) << s.nbits
-			s.pos++
-		} else {
-			s.extra++
-		}
-		s.nbits += 8
-	}
-}
-
-// overrun reports whether bits that do not exist were consumed.
-func (s *state) overrun() bool { return s.nbits < s.extra*8 }
-
-func (s *state) take(n uint) uint32 {
-	v := uint32(s.buf & (1<<n - 1))
-	s.buf >>= n
-	s.nbits -= n
-	return v
-}
-
-func (s *state) sym(tb *table) (uint32, bool) {
-	e := tb.t[s.buf&(1<<tb.root-1)]
-	if e&subFlag != 0 {
-		s.buf >>= tb.root
-		s.nbits -= tb.root
-		e = tb.t[(e>>16)+uint32(s.buf&(1<<(e&0xff)-1))]
-	}
-	n := uint(e & 0xff)
-	if n == 0 {
-		return 0, false
-	}
-	s.buf >>= n
-	s.nbits -= n
-	return e >> 16, true
-}
-
-// Zlib decodes a zlib stream (RFC 1950) at the start of src. sizeHint is the
-// expected decompressed size, used only to size the initial allocation. It
-// returns the decompressed data and the number of bytes of src occupied by
-// the header and DEFLATE stream (the Adler-32 trailer is not counted).
-func (d *Decoder) Zlib(src []byte, sizeHint int) ([]byte, int, error) {
-	if len(src) < 2 {
-		return nil, 0, ErrTruncated
-	}
-	cmf, flg := src[0], src[1]
-	if cmf&0x0f != 8 || (uint(cmf)*256+uint(flg))%31 != 0 || flg&0x20 != 0 {
-		return nil, 0, ErrHeader
-	}
-	out, n, err := d.Deflate(src[2:], sizeHint)
-	return out, n + 2, err
-}
-
-// Deflate decodes a raw DEFLATE stream at the start of src and returns the
-// output and the number of input bytes used.
-func (d *Decoder) Deflate(src []byte, sizeHint int) ([]byte, int, error) {
-	if !d.fixedReady {
-		d.buildFixed()
-	}
-	if sizeHint < 0 {
-		sizeHint = 0
-	}
-	if sizeHint > maxHint {
-		sizeHint = maxHint
-	}
-	if sizeHint < 64 {
-		sizeHint = 64
-	}
-	out := make([]byte, 0, sizeHint)
-	s := state{src: src}
+func (d *decoder) codes(lit, dist *huffman) error {
 	for {
-		s.refill()
-		final := s.take(1)
-		typ := s.take(2)
-		var err error
-		switch typ {
-		case 0:
-			out, err = d.stored(&s, out)
-		case 1:
-			out, err = d.decodeCodes(&s, out, &d.fixedLit, &d.fixedDist)
-		case 2:
-			if err = d.readDynamic(&s); err == nil {
-				out, err = d.decodeCodes(&s, out, &d.lit, &d.dist)
-			}
-		default:
-			err = ErrCorrupt
-		}
+		sym, err := d.decode(lit)
 		if err != nil {
-			return nil, 0, err
+			return err
 		}
-		if s.overrun() {
-			return nil, 0, ErrTruncated
-		}
-		if final == 1 {
-			break
+		switch {
+		case sym < 256:
+			d.out = append(d.out, byte(sym))
+		case sym == 256:
+			return nil
+		default:
+			sym -= 257
+			if sym >= 29 {
+				return corrupt("invalid length symbol")
+			}
+			eb, err := d.bits(uint(lenExtra[sym]))
+			if err != nil {
+				return err
+			}
+			length := int(lenBase[sym]) + eb
+			ds, err := d.decode(dist)
+			if err != nil {
+				return err
+			}
+			if ds >= maxDist {
+				return corrupt("invalid distance symbol")
+			}
+			eb, err = d.bits(uint(distExtra[ds]))
+			if err != nil {
+				return err
+			}
+			distance := int(distBase[ds]) + eb
+			if distance > len(d.out) {
+				return corrupt("distance too far back")
+			}
+			start := len(d.out) - distance
+			if distance >= length {
+				d.out = append(d.out, d.out[start:start+length]...)
+			} else {
+				for i := 0; i < length; i++ {
+					d.out = append(d.out, d.out[start+i])
+				}
+			}
 		}
 	}
-	// whole bytes still buffered were not consumed
-	used := s.pos - int(s.nbits/8) + int(s.extra)
-	return out, used, nil
 }
 
-func (d *Decoder) stored(s *state, out []byte) ([]byte, error) {
-	s.take(s.nbits & 7)
-	whole := int(s.nbits / 8)
-	if whole < int(s.extra) {
-		return nil, ErrTruncated
-	}
-	s.pos -= whole - int(s.extra)
-	s.buf, s.nbits, s.extra = 0, 0, 0
-	if s.pos+4 > len(s.src) {
-		return nil, ErrTruncated
-	}
-	n := int(s.src[s.pos]) | int(s.src[s.pos+1])<<8
-	nn := int(s.src[s.pos+2]) | int(s.src[s.pos+3])<<8
-	if n != ^nn&0xffff {
-		return nil, ErrCorrupt
-	}
-	s.pos += 4
-	if s.pos+n > len(s.src) {
-		return nil, ErrTruncated
-	}
-	out = append(out, s.src[s.pos:s.pos+n]...)
-	s.pos += n
-	return out, nil
-}
-
-func (d *Decoder) readDynamic(s *state) error {
-	s.refill()
-	hlit := int(s.take(5)) + 257
-	hdist := int(s.take(5)) + 1
-	hclen := int(s.take(4)) + 4
-	if hlit > 286 || hdist > 30 {
-		return ErrCorrupt
-	}
-	var cl [19]uint8
-	for i := 0; i < hclen; i++ {
-		if s.nbits < 3 {
-			s.refill()
-		}
-		cl[clOrder[i]] = uint8(s.take(3))
-	}
-	if s.overrun() {
-		return ErrTruncated
-	}
-	if err := d.build(&d.cl, cl[:], false); err != nil {
+func (d *decoder) dynamic() error {
+	v, err := d.bits(5)
+	if err != nil {
 		return err
 	}
-	lens := d.lens[:hlit+hdist]
-	for i := 0; i < len(lens); {
-		s.refill()
-		v, ok := s.sym(&d.cl)
-		if !ok {
-			return ErrCorrupt
+	nlen := v + 257
+	if v, err = d.bits(5); err != nil {
+		return err
+	}
+	ndist := v + 1
+	if v, err = d.bits(4); err != nil {
+		return err
+	}
+	ncode := v + 4
+	if nlen > maxLitLen || ndist > maxDist {
+		return corrupt("too many length or distance codes")
+	}
+	var lengths [maxLitLen + maxDist]uint8
+	for i := 0; i < ncode; i++ {
+		if v, err = d.bits(3); err != nil {
+			return err
 		}
-		if s.overrun() {
-			return ErrTruncated
+		lengths[clOrder[i]] = uint8(v)
+	}
+	var cl huffman
+	if cl.build(lengths[:maxCodeLen]) != 0 {
+		return corrupt("incomplete or over-subscribed code length code")
+	}
+	lengths = [maxLitLen + maxDist]uint8{}
+	for i := 0; i < nlen+ndist; {
+		sym, err := d.decode(&cl)
+		if err != nil {
+			return err
 		}
-		if v < 16 {
-			lens[i] = uint8(v)
+		if sym < 16 {
+			lengths[i] = uint8(sym)
 			i++
 			continue
 		}
 		var prev uint8
 		var rep int
-		switch v {
+		switch sym {
 		case 16:
 			if i == 0 {
-				return ErrCorrupt
+				return corrupt("repeat with no previous length")
 			}
-			prev = lens[i-1]
-			rep = 3 + int(s.take(2))
+			prev = lengths[i-1]
+			if rep, err = d.bits(2); err != nil {
+				return err
+			}
+			rep += 3
 		case 17:
-			rep = 3 + int(s.take(3))
+			if rep, err = d.bits(3); err != nil {
+				return err
+			}
+			rep += 3
 		default:
-			rep = 11 + int(s.take(7))
+			if rep, err = d.bits(7); err != nil {
+				return err
+			}
+			rep += 11
 		}
-		if i+rep > len(lens) {
-			return ErrCorrupt
+		if i+rep > nlen+ndist {
+			return corrupt("too many code lengths")
 		}
 		for ; rep > 0; rep-- {
-			lens[i] = prev
+			lengths[i] = prev
 			i++
 		}
 	}
-	if s.overrun() {
-		return ErrTruncated
+	if lengths[256] == 0 {
+		return corrupt("no end-of-block code")
 	}
-	if lens[256] == 0 {
-		return ErrCorrupt
+	var lit, dist huffman
+	left := lit.build(lengths[:nlen])
+	if left < 0 || (left > 0 && nlen != int(lit.count[0])+int(lit.count[1])) {
+		return corrupt("bad literal/length code")
 	}
-	if err := d.build(&d.lit, lens[:hlit], true); err != nil {
-		return err
+	left = dist.build(lengths[nlen : nlen+ndist])
+	if left < 0 || (left > 0 && ndist != int(dist.count[0])+int(dist.count[1])) {
+		return corrupt("bad distance code")
 	}
-	return d.build(&d.dist, lens[hlit:], true)
-}
-
-func (d *Decoder) decodeCodes(s *state, out []byte, lit, dist *table) ([]byte, error) {
-	for {
-		s.refill()
-		v, ok := s.sym(lit)
-		if !ok {
-			return nil, ErrCorrupt
-		}
-		if s.overrun() {
-			return nil, ErrTruncated
-		}
-		if v < 256 {
-			out = append(out, byte(v))
-			continue
-		}
-		if v == 256 {
-			return out, nil
-		}
-		v -= 257
-		if v >= 29 {
-			return nil, ErrCorrupt
-		}
-		length := int(lenBase[v]) + int(s.take(uint(lenExtra[v])))
-		dv, ok := s.sym(dist)
-		if !ok || dv >= 30 {
-			return nil, ErrCorrupt
-		}
-		off := int(distBase[dv]) + int(s.take(uint(distExtra[dv])))
-		if s.overrun() {
-			return nil, ErrTruncated
-		}
-		n := len(out)
-		if off > n {
-			return nil, ErrCorrupt
-		}
-		out = copyMatch(out, off, length)
-	}
-}
-
-// copyMatch appends length bytes copied from off bytes back in out. When
-// off < length the source overlaps the destination and the copy repeats the
-// last off bytes; each round at least doubles the available source.
-func copyMatch(out []byte, off, length int) []byte {
-	src := len(out) - off
-	for length > 0 {
-		k := min(length, len(out)-src)
-		out = append(out, out[src:src+k]...)
-		length -= k
-	}
-	return out
+	return d.codes(&lit, &dist)
 }

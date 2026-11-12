@@ -1,0 +1,262 @@
+[
+ {
+  "agent": "rep1:python:langvm",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>/problems/langvm 2>/dev/null || cd <allowed>//problems/langvm; for t in 409_heavy_fib 413_heavy_string_scan 418_heavy_interp_long 376_program_dijkstra 380_program_life 308_runtime_stack_overflow 288_listlib_sort_by_stable; do /usr/bin/time -f \\\"$t %es\\\" ../../l"
+ },
+ {
+  "agent": "rep1:haskell:langvm",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; env | grep -i -E \\\"cabal|ghc|haskell|stack\\\" ; which ghc cabal; ls ~/.cabal 2>&1 | head; ls <root>/tools/haskell/ 2>&1 | head; ls problems/langvm/tests/*.out | head -3; grep -l \\\"bad-arity\\\" problems/langvm/tests/*.out | head\"}"
+ },
+ {
+  "agent": "rep1:haskell:kvstore",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>/kvstore 2>/dev/null || cd <allowed>//kvstore\\npython3 - <<'EOF'\\nimport re\\np='src/Tessera/Value.hs'\\ns=open(p).read()\\ns=s.replace(\\\"\\\\n_unused :: Int\\\\n_unused = 1 `shiftL` 0\\\\n\\\",\\\"\\\").replace(\\\"import Data.Bits (shiftL)\\\\n\\\",\\\"\\\")\\nopen(p,'w').write(s)\\nEO"
+ },
+ {
+  "agent": "rep1:haskell:cardgame",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; ls ~/.cabal/packages 2>/dev/null; ls <allowed>/ 2>&1 | head; ls <root>/tools/haskell 2>&1|head; env | grep -i -E 'cabal|ghc'; cat ~/.cabal/config 2>/dev/null | grep -v '^ *--' | grep -v '^$' | head -20; ls <allowed>//\"}"
+ },
+ {
+  "agent": "rep1:haskell:bigint",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"env | grep -iE \\\"cabal|ghc|haskell\\\"; ls <allowed>/ | head; ls <root>/tools/haskell; sed -n 1,60p run_tests.py\"}"
+ },
+ {
+  "agent": "rep1:haskell:diff",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"env | grep -i -E 'cabal|ghc|haskell|HOME'; ls -la <root>/tools/haskell/ 2>&1; ls <allowed>//ghc-9.14.1-ea4f | head -50; sed -n 1,60p <allowed>//problems/diff/verify.py\"}"
+ },
+ {
+  "agent": "rep1:haskell:commonmark",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; which ghc cabal; ghc --version; cabal --version; ls ~/.cabal 2>&1 | head; ls <root>/tools/haskell/ 2>&1; env | grep -i -E \\\"cabal|ghc|stack\\\" ; sed -n 1,60p run_tests.py; ls problems/commonmark/tests | sed -n 1,400p | grep -c in\"}"
+ },
+ {
+  "agent": "rep1:haskell:fulltext",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; ls problems/fulltext/tests; ls problems/fulltext/tests/005*/ problems/fulltext/tests/005*/input; env | grep -i -E \\\"cabal|ghc|haskell\\\"; ls <root>/tools/haskell/ ; cat problems/fulltext/corpus/tests-notice.md | head -20; sed -n 1,60p run_tests.py\"}"
+ },
+ {
+  "agent": "rep1:haskell:jsonschema",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>; ls; ls tools tools/haskell; which ghc cabal; ghc --version; cabal --version; echo $HOME; ls ~/.cabal 2>&1 | head; env | grep -i -E \\\"cabal|ghc\\\"; cat w/6a86623b/run_tests.py | head -60; ls w/6a86623b/problems/jsonschema/corpus | head\"}"
+ },
+ {
+  "agent": "rep1:haskell:minisql",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"ls problems/minisql/tests | head -20; ls problems/minisql/tests | wc -l; which ghc cabal; ghc --version; cabal --version; ghc-pkg list 2>/dev/null | grep -E \\\"containers|text|bytestring|hspec|tasty|QuickCheck|unordered|hashable\\\"; ls ~/.cabal/packages 2>/dev/null; ls <allowed>/ | head; "
+ },
+ {
+  "agent": "rep1:rust:protowire",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>/protowire 2>/dev/null || cd <allowed>//protowire; sed -i 's/\\\\\\\\xAb\\\\\\\\x7f/\\\\\\\\xC3\\\\\\\\xa9\\\\\\\\x7f/' src/parse.rs; cargo test --lib 2>&1 | grep -B2 -A6 \\\"left\\\" | head -40\"}"
+ },
+ {
+  "agent": "rep1:haskell:qrcode",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cabal --version; env | grep -i -E \\\"cabal|ghc|haskell\\\"; ls <root>/tools/haskell/ <allowed>//*; ls problems/qrcode/tests | tail -12; ls -S -l problems/qrcode/tests | head -4\"}"
+ },
+ {
+  "agent": "rep1:haskell:rrule",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"ls <root>/tools/haskell/ <allowed>//*; env | grep -i -E 'cabal|ghc'; cat ~/.cabal/config 2>/dev/null | grep -v '^ *--' | grep -v '^$' | head -20; ls -S problems/rrule/tests | head -3; ls ..; cat run_tests.py | head -60\"}"
+ },
+ {
+  "agent": "rep1:haskell:sat",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; ls <root>/tools/haskell/ <allowed>/ 2>&1 | head; cat ~/.cabal/config 2>/dev/null | grep -v '^ *--' | grep -v '^$' | head -30; env | grep -i -E 'cabal|ghc'; sed -n 1,80p run_tests.py | head -60; ls problems/sat/tests | sed -n 20,102p | grep '\\\\.in' | tr '\\"
+ },
+ {
+  "agent": "rep1:clojure:scheme",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>/scheme && sed -i 's/(let \\\\[qhat (estimate-qhat u vn1 vn2 j n)/(let [qhat (long (estimate-qhat u vn1 vn2 j n))/; s/t (mul-sub! u v qhat j n)\\\\]/t (long (mul-sub! u v qhat j n))]/' src/scheme/bignum.clj\\ncat > test/scheme/bignum_test.clj <<'EOF'\\n(ns scheme.big"
+ },
+ {
+  "agent": "rep1:haskell:sitegen",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; ls <root>/tools/haskell/ <allowed>//*; echo $CABAL_DIR; env | grep -i -E \\\"cabal|ghc|haskell\\\"; ls -a ~ 2>&1 | head -30; cat ~/.cabal/config 2>&1 | grep -v '^ *--' | grep -v '^$' | head -30\"}"
+ },
+ {
+  "agent": "rep1:haskell:spreadsheet",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; ls problems/spreadsheet/tests | tail -30; env | grep -i -E \\\"cabal|ghc\\\"; ls <root>/tools/haskell/ <allowed>//*; ls -la ~ | head -30\"}"
+ },
+ {
+  "agent": "rep1:python:svgraster",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>/svgraster 2>/dev/null || cd <allowed>//svgraster\\ncat > tests/conftest.py <<'EOF'\\nimport os\\nimport sys\\n\\nsys.path.insert(0, os.path.join(os.path.dirname(__file__), \\\"..\\\", \\\"src\\\"))\\nEOF\\ncat > tests/helpers.py <<'EOF'\\nfrom svgraster import render_svg\\n\\n\\"
+ },
+ {
+  "agent": "rep1:haskell:svgraster",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; env | grep -i -E \\\"cabal|ghc|haskell\\\"; ls <root>/tools/haskell/ 2>&1; cat problems/svgraster/tests/034*/input/*.svg problems/svgraster/tests/035*/input/render.txt; cat problems/svgraster/tests/021*/input/*.svg | head -40; cat problems/svgraster/verify.py"
+ },
+ {
+  "agent": "rep1:haskell:webhooks",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>/problems/webhooks/tests 2>/dev/null || cd <allowed>//problems/webhooks/tests; ../../../webhooks/run.sh < 027_simulate_errors.in | diff - 027_simulate_errors.out; sed -n 41,80p 027_simulate_errors.in | cut -c1-100 | cat -n\"}"
+ },
+ {
+  "agent": "rep2:haskell:buildsys",
+  "kind": "forbidden-path",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; sed -n 1,80p run_tests.py | head -120; ls ~/.cabal/packages 2>/dev/null; ls <root>/tools/haskell 2>/dev/null\"}"
+ },
+ {
+  "agent": "rep2:haskell:bigint",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; cat .cache/cabal/config | grep -v '^ *--' | grep -v '^$' | head -30; ls <allowed>//ghc-9.14.1-ea4f* | head -30; ls <root>/tools/haskell\"}"
+ },
+ {
+  "agent": "rep2:haskell:bigint",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <root>/scratch 2>/dev/null || mkdir -p <allowed>//scratch && cd <allowed>//scratch\\nexport CABAL_DIR=<allowed>//.cache/cabal\\nsed -n '/^```haskell/,/^```$/p' ../bigint/README.md | sed '1d;$d' > Ex.hs\\ncd ../bigint && cabal exec -- runghc ../scratch/Ex.hs 2>&1 | grep "
+ },
+ {
+  "agent": "rep2:haskell:depresolve",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"env | grep -iE \\\"cabal|ghc|haskell\\\"; ls <root>/tools/haskell/ <allowed>/ | head -30; which cabal ghc; cat problems/depresolve/tests/001_empty_root.in | head -3; sed -n 1,60p run_tests.py\"}"
+ },
+ {
+  "agent": "rep2:haskell:regex",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"cd <allowed>/; cat run_tests.py | head -60; env | grep -i -E \\\"cabal|ghc|haskell\\\"; ls ~/.cabal 2>&1 | head; ls <root>/tools/haskell/ <allowed>/ 2>&1 | head -30; ls -S problems/regex/tests | head -4\"}"
+ },
+ {
+  "agent": "rep2:haskell:sat",
+  "kind": "blocked-attempt",
+  "detail": "Bash: {\"command\": \"env | grep -i -E \\\"cabal|ghc|haskell\\\"; ls <root>/tools/haskell/ 2>&1; ls problems/sat/tests | sed -n '20,200p' | grep '\\\\.in' | tr '\\\\n' ' '; sed -n 1,200p problems/sat/verify.py | head -5\"}"
+ },
+ {
+  "agent": "rep1:clojure:bigint",
+  "kind": "banned-facility",
+  "detail": "java.math (test/bigint/properties_test.clj)"
+ },
+ {
+  "agent": "rep1:clojure:gitrepo",
+  "kind": "banned-facility",
+  "detail": "java.util.zip (test/gitrepo/inflate_test.clj)"
+ },
+ {
+  "agent": "rep1:clojure:gitrepo",
+  "kind": "banned-facility",
+  "detail": "java.security (test/gitrepo/sha1_test.clj)"
+ },
+ {
+  "agent": "rep1:clojure:gitrepo",
+  "kind": "banned-facility",
+  "detail": "java.util.zip (test/gitrepo/test_util.clj)"
+ },
+ {
+  "agent": "rep1:clojure:inflate",
+  "kind": "banned-facility",
+  "detail": "java.util.zip (test/inflate/core_test.clj)"
+ },
+ {
+  "agent": "rep1:clojure:json",
+  "kind": "build-flags",
+  "detail": "direct-linking=true (deps.edn)"
+ },
+ {
+  "agent": "rep1:clojure:mime",
+  "kind": "banned-facility",
+  "detail": "java.util.Base64 (test/mime/transfer_test.clj)"
+ },
+ {
+  "agent": "rep1:clojure:ordered-map",
+  "kind": "build-flags",
+  "detail": "direct-linking=true (build.sh)"
+ },
+ {
+  "agent": "rep1:clojure:scheme",
+  "kind": "banned-facility",
+  "detail": "java.math (test/scheme/bignum_test.clj)"
+ },
+ {
+  "agent": "rep1:cpp:ordered-map",
+  "kind": "banned-facility",
+  "detail": "<map> (tests/ordered_map_test.cpp)"
+ },
+ {
+  "agent": "rep1:go:gitrepo",
+  "kind": "banned-facility",
+  "detail": "compress/zlib (inflate/inflate_test.go)"
+ },
+ {
+  "agent": "rep1:go:gitrepo",
+  "kind": "banned-facility",
+  "detail": "compress/zlib (internal/testrepo/testrepo.go)"
+ },
+ {
+  "agent": "rep1:go:inflate",
+  "kind": "banned-facility",
+  "detail": "compress/flate (decoder_test.go)"
+ },
+ {
+  "agent": "rep1:python:gitrepo",
+  "kind": "banned-facility",
+  "detail": "hashlib (tests/conftest.py)"
+ },
+ {
+  "agent": "rep1:python:gitrepo",
+  "kind": "banned-facility",
+  "detail": "zlib (tests/conftest.py)"
+ },
+ {
+  "agent": "rep1:python:gitrepo",
+  "kind": "banned-facility",
+  "detail": "zlib (tests/test_inflate.py)"
+ },
+ {
+  "agent": "rep1:python:gitrepo",
+  "kind": "banned-facility",
+  "detail": "hashlib (tests/test_repository.py)"
+ },
+ {
+  "agent": "rep1:python:gitrepo",
+  "kind": "banned-facility",
+  "detail": "zlib (tests/test_repository.py)"
+ },
+ {
+  "agent": "rep1:python:gitrepo",
+  "kind": "banned-facility",
+  "detail": "hashlib (tests/test_sha1.py)"
+ },
+ {
+  "agent": "rep1:python:inflate",
+  "kind": "banned-facility",
+  "detail": "zlib (tests/test_decoder.py)"
+ },
+ {
+  "agent": "rep1:python:mime",
+  "kind": "banned-facility",
+  "detail": "base64 (tests/test_transfer.py)"
+ },
+ {
+  "agent": "rep1:python:mime",
+  "kind": "banned-facility",
+  "detail": "binascii (tests/test_transfer.py)"
+ },
+ {
+  "agent": "rep1:python:rrule",
+  "kind": "banned-facility",
+  "detail": "datetime (tests/test_dates.py)"
+ },
+ {
+  "agent": "rep1:python:webhooks",
+  "kind": "banned-facility",
+  "detail": "base64 (tests/test_primitives.py)"
+ },
+ {
+  "agent": "rep1:python:webhooks",
+  "kind": "banned-facility",
+  "detail": "hashlib (tests/test_primitives.py)"
+ },
+ {
+  "agent": "rep1:python:webhooks",
+  "kind": "banned-facility",
+  "detail": "hmac (tests/test_primitives.py)"
+ }
+]

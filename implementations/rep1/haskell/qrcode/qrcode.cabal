@@ -1,0 +1,61 @@
+cabal-version:      3.0
+name:               qrcode
+version:            0.1.0.0
+synopsis:           QR Code Model 2 encoder (ISO/IEC 18004) written from scratch
+description:
+  A dependency-light QR Code encoder. It selects the encoding mode and the
+  smallest version, adds Reed-Solomon error correction, lays out the symbol,
+  and applies (or automatically chooses) a mask pattern. Includes a
+  command-line tool that prints symbols as text.
+category:           Codec
+license:            MIT
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC ==9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Codec.QRCode
+    Codec.QRCode.Types
+    Codec.QRCode.Tables
+    Codec.QRCode.Segment
+    Codec.QRCode.ReedSolomon
+    Codec.QRCode.Codewords
+    Codec.QRCode.Matrix
+    Codec.QRCode.Penalty
+    Codec.QRCode.Render
+    Codec.QRCode.Query
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.18 && <5
+    , bytestring  >=0.11 && <0.13
+    , text        >=2.0 && <2.2
+
+executable qrcode
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts
+  build-depends:
+    , base
+    , bytestring
+    , qrcode
+
+test-suite qrcode-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+    , array
+    , base
+    , bytestring
+    , hspec       >=2.10
+    , QuickCheck  >=2.14
+    , qrcode

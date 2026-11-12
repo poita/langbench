@@ -2,92 +2,61 @@ package chess
 
 import "testing"
 
-func sq(t *testing.T, s string) Square {
-	t.Helper()
-	v, err := ParseSquare(s)
-	if err != nil {
-		t.Fatal(err)
+func TestAttackTables(t *testing.T) {
+	e4, _ := ParseSquare("e4")
+	if KnightAttacks(e4).Count() != 8 || KingAttacks(e4).Count() != 8 {
+		t.Error("central knight/king should attack 8 squares")
 	}
-	return v
-}
-
-func TestLeaperTables(t *testing.T) {
-	cases := []struct {
-		name string
-		got  Bitboard
-		n    int
-	}{
-		{"knight a1", KnightAttacks(sq(t, "a1")), 2},
-		{"knight d4", KnightAttacks(sq(t, "d4")), 8},
-		{"king a1", KingAttacks(sq(t, "a1")), 3},
-		{"king e4", KingAttacks(sq(t, "e4")), 8},
-		{"white pawn a2", PawnAttacks(White, sq(t, "a2")), 1},
-		{"black pawn e7", PawnAttacks(Black, sq(t, "e7")), 2},
-		{"white pawn e8", PawnAttacks(White, sq(t, "e8")), 0},
+	if KnightAttacks(A1).Count() != 2 || KingAttacks(A1).Count() != 3 {
+		t.Error("corner knight/king attack counts")
 	}
-	for _, c := range cases {
-		if c.got.Count() != c.n {
-			t.Errorf("%s: %d squares, want %d\n%v", c.name, c.got.Count(), c.n, c.got)
-		}
+	if PawnAttacks(White, e4).Count() != 2 || PawnAttacks(White, e4).Lsb() != NewSquare(3, 4) {
+		t.Error("white pawn attacks")
 	}
-	if !PawnAttacks(White, sq(t, "e4")).Has(sq(t, "d5")) || !PawnAttacks(Black, sq(t, "e4")).Has(sq(t, "f3")) {
-		t.Error("pawn attack direction wrong")
+	if PawnAttacks(Black, NewSquare(0, 6)) != NewSquare(1, 5).Bit() {
+		t.Error("black edge pawn attacks")
+	}
+	if RookAttacks(e4, 0).Count() != 14 || BishopAttacks(e4, 0).Count() != 13 {
+		t.Error("empty-board slider attack counts")
 	}
 }
 
-func TestSliderAttacks(t *testing.T) {
-	d4 := sq(t, "d4")
-	if got := RookAttacks(d4, 0).Count(); got != 14 {
-		t.Errorf("empty-board rook: %d, want 14", got)
+func TestSliderBlockers(t *testing.T) {
+	// Rook on a1 with blockers on a4 and d1: sees a2 a3 a4 b1 c1 d1.
+	occ := NewSquare(0, 3).Bit() | NewSquare(3, 0).Bit() | NewSquare(7, 7).Bit()
+	want := NewSquare(0, 1).Bit() | NewSquare(0, 2).Bit() | NewSquare(0, 3).Bit() |
+		NewSquare(1, 0).Bit() | NewSquare(2, 0).Bit() | NewSquare(3, 0).Bit()
+	if got := RookAttacks(A1, occ); got != want {
+		t.Errorf("rook attacks:\n%v want\n%v", got, want)
 	}
-	if got := BishopAttacks(d4, 0).Count(); got != 13 {
-		t.Errorf("empty-board bishop: %d, want 13", got)
+	// Bishop on h8 blocked at e5 on the long diagonal.
+	if got := BishopAttacks(63, NewSquare(4, 4).Bit()); got.Count() != 3 {
+		t.Errorf("bishop attacks:\n%v", got)
 	}
-	if got := QueenAttacks(d4, 0).Count(); got != 27 {
-		t.Errorf("empty-board queen: %d, want 27", got)
-	}
-	// Blockers on d6 (north), b4 (west), f6 (north-east), c3 (south-west).
-	occ := sq(t, "d6").Bitboard() | sq(t, "b4").Bitboard() | sq(t, "f6").Bitboard() | sq(t, "c3").Bitboard()
-	r := RookAttacks(d4, occ)
-	for _, want := range []string{"d5", "d6", "c4", "b4", "d1", "h4"} {
-		if !r.Has(sq(t, want)) {
-			t.Errorf("rook should attack %s", want)
-		}
-	}
-	for _, not := range []string{"d7", "a4"} {
-		if r.Has(sq(t, not)) {
-			t.Errorf("rook should not attack %s", not)
-		}
-	}
-	b := BishopAttacks(d4, occ)
-	for _, want := range []string{"e5", "f6", "c3", "a7", "g1"} {
-		if !b.Has(sq(t, want)) {
-			t.Errorf("bishop should attack %s", want)
-		}
-	}
-	if b.Has(sq(t, "g7")) || b.Has(sq(t, "b2")) {
-		t.Error("bishop attacks past a blocker")
+	// Downward-pointing rays stop at the highest blocker below.
+	if got := RookAttacks(H8, NewSquare(7, 3).Bit()|NewSquare(7, 5).Bit()); !got.Has(NewSquare(7, 5)) || got.Has(NewSquare(7, 4)) {
+		t.Errorf("negative ray blocking:\n%v", got)
 	}
 }
 
 func TestBetweenAndLine(t *testing.T) {
-	if got := Between(sq(t, "a1"), sq(t, "a8")); got.Count() != 6 {
-		t.Errorf("between a1,a8: %d squares", got.Count())
+	e1, e8, d2 := NewSquare(4, 0), NewSquare(4, 7), NewSquare(3, 1)
+	if between[e1][e8].Count() != 6 || between[e8][e1] != between[e1][e8] {
+		t.Error("between on a file")
 	}
-	if got := Between(sq(t, "a1"), sq(t, "h8")); got.Count() != 6 || got.Has(sq(t, "a1")) || got.Has(sq(t, "h8")) {
-		t.Errorf("between a1,h8 wrong:\n%v", got)
+	if between[e1][d2] != 0 || between[A1][NewSquare(1, 2)] != 0 {
+		t.Error("adjacent or unaligned squares have nothing between")
 	}
-	if Between(sq(t, "a1"), sq(t, "b3")) != 0 || Line(sq(t, "a1"), sq(t, "b3")) != 0 {
-		t.Error("non-aligned squares must give empty sets")
+	if line[e1][NewSquare(4, 3)].Count() != 8 || line[A1][H8].Count() != 8 {
+		t.Error("line through two aligned squares")
 	}
-	if Between(sq(t, "e4"), sq(t, "e5")) != 0 {
-		t.Error("adjacent squares have nothing between")
+	// A diagonal and its opposite must pair up correctly (regression: the
+	// opposite of NE is SW, not SE).
+	e7 := NewSquare(4, 6)
+	if line[e7][NewSquare(5, 5)].Has(NewSquare(5, 7)) {
+		t.Error("line e7-f6 must not contain f8")
 	}
-	l := Line(sq(t, "c3"), sq(t, "e5"))
-	if l.Count() != 8 || !l.Has(sq(t, "a1")) || !l.Has(sq(t, "h8")) {
-		t.Errorf("line c3,e5 wrong:\n%v", l)
-	}
-	if Line(sq(t, "c3"), sq(t, "e5")) != Line(sq(t, "e5"), sq(t, "c3")) {
-		t.Error("line must be symmetric")
+	if !line[e7][NewSquare(5, 5)].Has(NewSquare(3, 7)) {
+		t.Error("line e7-f6 must contain d8")
 	}
 }

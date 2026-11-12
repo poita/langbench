@@ -1,112 +1,103 @@
 /**
- * The Standard Webhooks signature scheme: secrets, signing and verification.
+ * The Standard Webhooks signature scheme: signing a message with one or more
+ * secrets and verifying a received `webhook-signature` header.
  */
 module webhooks.signature;
 
 import webhooks.base64;
-import webhooks.buffer;
-import webhooks.grammar;
 import webhooks.hmac;
+import webhooks.secret;
 
-/// Maximum secrets per `<secrets>` field.
-enum size_t maxSecrets = 16;
-/// Allowed clock skew, in seconds, in either direction (inclusive).
+/// Tolerance, in seconds, between the message timestamp and the verifier's clock.
 enum long timestampTolerance = 300;
-
-private immutable ubyte[6] secretPrefix = ['w', 'h', 's', 'e', 'c', '_'];
-
-/// A parsed secret: the raw key and its precomputed HMAC key object.
-struct Secret
-{
-    ubyte[] key;
-    HmacKey mac;
-}
+/// Largest absolute timestamp accepted as a canonical integer.
+enum long maxTimestamp = 1_000_000_000_000_000;
 
 /**
- * Parses one `<secret>` (1..512 characters from 0x21..0x7e excluding `,`,
- * optional single `whsec_` prefix, Base64 remainder decoding to >= 1 byte).
+ * Parses a canonical decimal integer: `0`, or an optional `-` followed by a
+ * non-zero digit and more digits, with absolute value at most 10^15.
+ *
+ * Returns: `true` and fills `value` if `text` is canonical.
  */
-bool parseSecret(scope const(ubyte)[] text, out Secret secret) @safe pure nothrow
+bool parseCanonicalInt(scope const(ubyte)[] text, out long value) pure nothrow @safe @nogc
 {
-    if (text.length < 1 || text.length > 512)
+    if (text.length == 0)
         return false;
-    foreach (b; text)
-        if (b < 0x21 || b > 0x7e || b == ',')
+    if (text.length == 1 && text[0] == '0')
+    {
+        value = 0;
+        return true;
+    }
+    immutable negative = text[0] == '-';
+    auto digits = negative ? text[1 .. $] : text;
+    // 10^15 has 16 digits; refuse longer input before it can overflow.
+    if (digits.length == 0 || digits.length > 16 || digits[0] < '1' || digits[0] > '9')
+        return false;
+    long v = 0;
+    foreach (c; digits)
+    {
+        if (c < '0' || c > '9')
             return false;
-    if (text.length >= secretPrefix.length && text[0 .. secretPrefix.length] == secretPrefix[])
-        text = text[secretPrefix.length .. $];
-    ubyte[] raw;
-    if (!decode(text, raw) || raw.length == 0)
-        return false;
-    secret.key = raw;
-    secret.mac = HmacKey(raw);
-    return true;
-}
-
-/// Parses a `<secrets>` field: 1..16 comma-separated secrets.
-bool parseSecrets(const(ubyte)[] field, out Secret[] secrets) @safe pure nothrow
-{
-    // Count first so a huge comma list is rejected without parsing it.
-    size_t commas = 0;
-    foreach (b; field)
-        if (b == ',')
-            ++commas;
-    if (commas + 1 > maxSecrets)
-        return false;
-    auto result = new Secret[commas + 1];
-    size_t idx = 0;
-    size_t start = 0;
-    foreach (i; 0 .. field.length + 1)
-    {
-        if (i == field.length || field[i] == ',')
-        {
-            if (!parseSecret(field[start .. i], result[idx++]))
-                return false;
-            start = i + 1;
-        }
+        v = v * 10 + (c - '0');
     }
-    secrets = result;
+    if (v > maxTimestamp)
+        return false;
+    value = negative ? -v : v;
     return true;
 }
 
-private immutable ubyte[1] dot = ['.'];
-
-/// MAC over `id "." timestamp "." body`, streamed (never concatenated).
-ubyte[32] signedContentMac(ref const HmacKey key, scope const(ubyte)[] id,
-    scope const(ubyte)[] timestamp, scope const(ubyte)[] body_) @safe pure nothrow @nogc
+/// ditto
+bool parseCanonicalInt(scope const(char)[] text, out long value) pure nothrow @trusted @nogc
 {
-    auto s = key.start();
-    s.put(id);
-    s.put(dot[]);
-    s.put(timestamp);
-    s.put(dot[]);
-    s.put(body_);
-    return s.finish();
+    return parseCanonicalInt(cast(const(ubyte)[]) text, value);
 }
 
-/// Appends `v1,<base64(mac)>` to `sink`.
-void appendSignature(scope const(ubyte)[] mac, ref ByteSink sink) @safe pure nothrow
+/// Feeds the signed content `id "." timestamp "." body` into `mac`.
+private void putSignedContent(ref Hmac mac, scope const(ubyte)[] id, scope const(ubyte)[] timestamp,
+    scope const(ubyte)[] body_) pure nothrow @safe @nogc
 {
-    sink.put("v1,");
-    encodeStandard(mac, sink);
+    mac.put(id);
+    mac.put(cast(const(ubyte)[]) ".");
+    mac.put(timestamp);
+    mac.put(cast(const(ubyte)[]) ".");
+    mac.put(body_);
+}
+
+/// The 32-byte HMAC of the signed content under `secret`.
+ubyte[32] computeMac(ref const Secret secret, scope const(ubyte)[] id,
+    scope const(ubyte)[] timestamp, scope const(ubyte)[] body_) pure nothrow @safe @nogc
+{
+    Hmac mac = secret.keyed;
+    putSignedContent(mac, id, timestamp, body_);
+    return mac.finish();
+}
+
+/// The `v1,<base64>` signature of one message under one secret.
+string sign(ref const Secret secret, scope const(ubyte)[] id,
+    scope const(ubyte)[] timestamp, scope const(ubyte)[] body_) pure nothrow @safe
+{
+    immutable mac = computeMac(secret, id, timestamp, body_);
+    return "v1," ~ encodeBase64(mac[]);
 }
 
 /**
- * Appends the `webhook-signature` header value for `secrets` to `sink`:
- * one `v1,<sig>` per secret in order, separated by single spaces.
+ * The `webhook-signature` header value for a message: one `v1,<base64>`
+ * signature per secret, in order, joined by single spaces.
  */
-void signHeader(const Secret[] secrets, scope const(ubyte)[] id, scope const(ubyte)[] timestamp,
-    scope const(ubyte)[] body_, ref ByteSink sink) @safe pure nothrow
+string signatureHeader(scope const(Secret)[] secrets, scope const(ubyte)[] id,
+    scope const(ubyte)[] timestamp, scope const(ubyte)[] body_) pure nothrow @safe
 {
-    foreach (i, ref s; secrets)
+    string header;
+    foreach (i, ref secret; secrets)
     {
-        if (i != 0)
-            sink.putChar(' ');
-        appendSignature(signedContentMac(s.mac, id, timestamp, body_)[], sink);
+        if (i > 0)
+            header ~= ' ';
+        header ~= sign(secret, id, timestamp, body_);
     }
+    return header;
 }
 
-/// Why verification failed.
+/// Why a verification failed.
 enum VerifyFailure
 {
     none,
@@ -117,128 +108,208 @@ enum VerifyFailure
     noMatch,
 }
 
-/// The wire name of a failure reason (e.g. `no-match`).
-string failureName(VerifyFailure f) @safe pure nothrow @nogc
+/// The protocol name of a failure reason, e.g. `timestamp-too-old`.
+string failureName(VerifyFailure f) pure nothrow @safe @nogc
 {
     final switch (f)
     {
-    case VerifyFailure.none: return "none";
-    case VerifyFailure.missingSignature: return "missing-signature";
-    case VerifyFailure.invalidTimestamp: return "invalid-timestamp";
-    case VerifyFailure.timestampTooOld: return "timestamp-too-old";
-    case VerifyFailure.timestampTooNew: return "timestamp-too-new";
-    case VerifyFailure.noMatch: return "no-match";
+    case VerifyFailure.none:
+        return "none";
+    case VerifyFailure.missingSignature:
+        return "missing-signature";
+    case VerifyFailure.invalidTimestamp:
+        return "invalid-timestamp";
+    case VerifyFailure.timestampTooOld:
+        return "timestamp-too-old";
+    case VerifyFailure.timestampTooNew:
+        return "timestamp-too-new";
+    case VerifyFailure.noMatch:
+        return "no-match";
     }
 }
 
 /// Outcome of `verify`.
 struct VerifyResult
 {
+    /// `true` if some signature matched.
     bool ok;
-    /// Index of the matching secret (valid if `ok`).
-    size_t secretIndex;
-    /// Index of the matching header token (valid if `ok`).
-    size_t tokenIndex;
-    /// Failure reason (valid if `!ok`).
+    /// On failure, the reason.
     VerifyFailure failure;
-}
-
-private struct Candidate
-{
-    size_t token;
-    ubyte[32] mac;
+    /// On success, the 0-based index of the matching secret.
+    size_t secretIndex;
+    /// On success, the 0-based index of the matching header token (empty
+    /// tokens between spaces count).
+    size_t tokenIndex;
 }
 
 /**
- * Verifies a received webhook.
+ * Verifies a received message.
+ *
+ * The checks run in a fixed order and stop at the first that decides:
+ * the header must contain a non-empty token; the timestamp must be a canonical
+ * integer; it must lie within `timestampTolerance` seconds of `now`; and some
+ * `v1` token must match the HMAC of some secret. One MAC is computed per
+ * secret, and every header token is Base64-decoded at most once.
  *
  * Params:
- *   secrets   = active secrets in order
- *   id        = received `webhook-id`
- *   timestamp = received `webhook-timestamp` text
- *   header    = received `webhook-signature` value
- *   body_     = received body
- *   now       = current Unix time in seconds
+ *   secrets = the active secrets, in order
+ *   id = the received `webhook-id`
+ *   timestamp = the received `webhook-timestamp` text
+ *   header = the received `webhook-signature` value
+ *   body_ = the raw request body
+ *   now = the verifier's clock, Unix seconds
  */
-VerifyResult verify(const Secret[] secrets, scope const(ubyte)[] id, scope const(ubyte)[] timestamp,
-    scope const(ubyte)[] header, scope const(ubyte)[] body_, long now) @safe pure nothrow
+VerifyResult verify(scope const(Secret)[] secrets, scope const(ubyte)[] id,
+    scope const(ubyte)[] timestamp, scope const(ubyte)[] header, scope const(ubyte)[] body_,
+    long now) pure nothrow @safe
 {
-    VerifyResult fail(VerifyFailure f)
+    VerifyResult fail(VerifyFailure why)
     {
         VerifyResult r;
-        r.failure = f;
+        r.failure = why;
         return r;
     }
 
-    // 1. Split the header on spaces.
-    bool anyToken = false;
-    foreach (b; header)
-        if (b != ' ')
+    // 1. Split the header on single spaces.
+    const(ubyte)[][] tokens;
+    bool anyNonEmpty = false;
+    size_t start = 0;
+    foreach (i; 0 .. header.length + 1)
+    {
+        if (i == header.length || header[i] == ' ')
         {
-            anyToken = true;
-            break;
+            tokens ~= header[start .. i];
+            if (i > start)
+                anyNonEmpty = true;
+            start = i + 1;
         }
-    if (!anyToken)
+    }
+    if (!anyNonEmpty)
         return fail(VerifyFailure.missingSignature);
 
-    // 2. Canonical timestamp.
+    // 2. Timestamp must be canonical.
     long ts;
-    if (!parseInt(timestamp, ts))
+    if (!parseCanonicalInt(timestamp, ts))
         return fail(VerifyFailure.invalidTimestamp);
 
-    // 3. Tolerance window.
+    // 3. Tolerance (inclusive).
     if (now - ts > timestampTolerance)
         return fail(VerifyFailure.timestampTooOld);
     if (ts - now > timestampTolerance)
         return fail(VerifyFailure.timestampTooNew);
 
-    // 4. Pre-decode each token once; keep only v1 tokens that decode to 32 bytes.
-    Candidate[] candidates;
-    size_t tokenIndex = 0;
-    size_t start = 0;
-    foreach (i; 0 .. header.length + 1)
+    // 4. Decode each `v1,<value>` token once.
+    struct Candidate
     {
-        if (i != header.length && header[i] != ' ')
-            continue;
-        auto token = header[start .. i];
-        start = i + 1;
-        immutable j = tokenIndex++;
+        bool usable;
+        ubyte[] bytes;
+    }
+
+    auto candidates = new Candidate[tokens.length];
+    foreach (j, token; tokens)
+    {
         size_t comma = 0;
         while (comma < token.length && token[comma] != ',')
             ++comma;
-        if (comma == token.length || comma != 2 || token[0] != 'v' || token[1] != '1')
+        if (comma == token.length || token[0 .. comma] != cast(const(ubyte)[]) "v1")
             continue;
-        auto value = token[comma + 1 .. $];
-        // 32 bytes need exactly 43 Base64 characters (plus up to 1 '=').
-        if (value.length < 43 || value.length > 44)
-            continue;
-        ubyte[48] buf = void;
-        immutable n = decodeInto(value, buf[]);
-        if (n != 32)
-            continue;
-        Candidate c;
-        c.token = j;
-        c.mac[] = buf[0 .. 32];
-        candidates ~= c;
+        candidates[j].usable = decodeBase64(token[comma + 1 .. $], candidates[j].bytes);
     }
 
-    if (candidates.length != 0)
+    foreach (i, ref secret; secrets)
     {
-        foreach (si, ref s; secrets)
+        immutable mac = computeMac(secret, id, timestamp, body_);
+        foreach (j, ref c; candidates)
         {
-            immutable expected = signedContentMac(s.mac, id, timestamp, body_);
-            foreach (ref c; candidates)
+            if (c.usable && constantTimeEqual(c.bytes, mac[]))
             {
-                if (c.mac == expected)
-                {
-                    VerifyResult r;
-                    r.ok = true;
-                    r.secretIndex = si;
-                    r.tokenIndex = c.token;
-                    return r;
-                }
+                VerifyResult r;
+                r.ok = true;
+                r.secretIndex = i;
+                r.tokenIndex = j;
+                return r;
             }
         }
     }
     return fail(VerifyFailure.noMatch);
+}
+
+/// Compares two byte strings without exiting early on the first difference
+/// (when the lengths are equal).
+bool constantTimeEqual(scope const(ubyte)[] a, scope const(ubyte)[] b) pure nothrow @safe @nogc
+{
+    if (a.length != b.length)
+        return false;
+    ubyte diff = 0;
+    foreach (i; 0 .. a.length)
+        diff |= a[i] ^ b[i];
+    return diff == 0;
+}
+
+version (unittest)
+{
+    private Secret testSecret(string text) @safe
+    {
+        Secret s;
+        assert(Secret.parse(text, s));
+        return s;
+    }
+
+    private immutable testId = cast(immutable(ubyte)[]) "msg_p5jXN8AQM9LWM0D4loKWxJek";
+    private immutable testTs = cast(immutable(ubyte)[]) "1614265330";
+    private immutable testBody = cast(immutable(ubyte)[]) `{"test": 2432232314}`;
+    private immutable testHeader = cast(immutable(ubyte)[]) "v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=";
+}
+
+/// The published Standard Webhooks test vector.
+@safe unittest
+{
+    auto s = testSecret("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw");
+    assert(sign(s, testId, testTs, testBody) == "v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=");
+
+    auto r = verify([s], testId, testTs, testHeader, testBody, 1614265400);
+    assert(r.ok && r.secretIndex == 0 && r.tokenIndex == 0);
+}
+
+@safe unittest
+{
+    auto s = testSecret("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw");
+    // Tolerance is inclusive.
+    assert(verify([s], testId, testTs, testHeader, testBody, 1614265630).ok);
+    assert(verify([s], testId, testTs, testHeader, testBody, 1614265631).failure
+            == VerifyFailure.timestampTooOld);
+    assert(verify([s], testId, testTs, testHeader, testBody, 1614265030).ok);
+    assert(verify([s], testId, testTs, testHeader, testBody, 1614265029).failure
+            == VerifyFailure.timestampTooNew);
+    // Body changed / empty header / bad timestamp.
+    assert(verify([s], testId, testTs, testHeader, cast(const(ubyte)[]) "{}", 1614265400).failure
+            == VerifyFailure.noMatch);
+    assert(verify([s], testId, testTs, [], testBody, 1614265400).failure
+            == VerifyFailure.missingSignature);
+    assert(verify([s], testId, testTs, cast(const(ubyte)[]) "  ", testBody, 1614265400).failure
+            == VerifyFailure.missingSignature);
+    assert(verify([s], testId, cast(const(ubyte)[]) "01614265330", testHeader, testBody, 1614265400).failure
+            == VerifyFailure.invalidTimestamp);
+}
+
+@safe unittest
+{
+    auto s0 = testSecret("c2VjcmV0");
+    auto s1 = testSecret("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw");
+    // Garbage and empty tokens are skipped but counted; secret order wins over token order.
+    auto header = cast(const(ubyte)[]) ("garbage  v1,!!! v2,AAAA " ~ cast(string) testHeader);
+    auto r = verify([s0, s1], testId, testTs, header, testBody, 1614265330);
+    assert(r.ok && r.secretIndex == 1 && r.tokenIndex == 4);
+}
+
+@safe unittest
+{
+    long v;
+    assert(parseCanonicalInt("0", v) && v == 0);
+    assert(parseCanonicalInt("-5", v) && v == -5);
+    assert(parseCanonicalInt("1000000000000000", v) && v == maxTimestamp);
+    assert(parseCanonicalInt("-1000000000000000", v) && v == -maxTimestamp);
+    foreach (bad; ["", "-", "-0", "+5", "007", "1.0", "1e3", "1000000000000001",
+            "99999999999999999999", " 1", "1 "])
+        assert(!parseCanonicalInt(bad, v), bad);
 }

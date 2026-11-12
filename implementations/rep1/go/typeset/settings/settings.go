@@ -1,397 +1,278 @@
-// Package settings parses settings.cfg and holds the resolved layout
-// settings, with every default, range and derived value of the specification.
+// Package settings parses settings.cfg into a Settings value, applying the
+// defaults, ranges and error positions of the specification.
 package settings
 
 import (
 	"strings"
+	"unicode/utf8"
 
 	"typeset/diag"
-	"typeset/metrics"
-	"typeset/units"
+	"typeset/dim"
 )
+
+// File is the name reported in settings errors.
+const File = "settings.cfg"
 
 // Alignment values.
 const (
-	Justify = iota
-	Left
-	Right
-	Center
+	Justify = "justify"
+	Left    = "left"
+	Right   = "right"
+	Center  = "center"
 )
 
-// TextPart is one piece of a text-valued setting: a literal run, or a
-// placeholder name such as "page".
-type TextPart struct {
-	Lit         string
-	Placeholder string // non-empty for a {name} placeholder
+// Header and footer slot indices into Settings.Slots[parity].
+const (
+	HeaderLeft = iota
+	HeaderCenter
+	HeaderRight
+	FooterLeft
+	FooterCenter
+	FooterRight
+	NumSlots
+)
+
+// Template is a text setting: literal runs and placeholders.
+type Template []TemplatePart
+
+// TemplatePart is either literal text (Placeholder == "") or a placeholder
+// such as "page".
+type TemplatePart struct {
+	Literal     string
+	Placeholder string
 }
 
-// Text is a parsed text setting.
-type Text []TextPart
-
-// Literal returns the concatenation of the literal parts.
-func (t Text) Literal() string {
-	var sb strings.Builder
+// HasPlaceholder reports whether the template contains a placeholder.
+func (t Template) HasPlaceholder() bool {
 	for _, p := range t {
-		sb.WriteString(p.Lit)
+		if p.Placeholder != "" {
+			return true
+		}
 	}
-	return sb.String()
+	return false
 }
 
-// Settings is the complete set of layout settings. Lengths are millipoints.
+// Literal returns the template's text with placeholders ignored; it is
+// meaningful only for templates without placeholders.
+func (t Template) Literal() string {
+	var b strings.Builder
+	for _, p := range t {
+		b.WriteString(p.Literal)
+	}
+	return b.String()
+}
+
+// Settings is the complete set of layout settings. All lengths are in
+// millipoints. Level-indexed arrays are indexed by heading level minus one.
 type Settings struct {
-	// Page geometry.
 	PageWidth, PageHeight                            int64
 	MarginTop, MarginBottom, MarginLeft, MarginRight int64
 	HeaderBaseline, FooterBaseline                   int64
 	PageStart                                        int64
 
-	// Body text.
-	BodyFont                    int
+	BodyFont                    string
 	BodySize, Leading, LineSkip int64
-	Align                       int
+	Align                       string
 	ParIndent, ParSpace         int64
 
-	// Line breaking.
-	Tolerance, LinePenalty, HyphenPenalty, ExHyphenPenalty int64
-	AdjDemerits, DoubleHyphenDemerits, FinalHyphenDemerits int64
-	RaggedStretch                                          int64
-	Hyphenate                                              bool
-	HyphenPatterns                                         string
+	Tolerance, LinePenalty            int64
+	HyphenPenalty, ExHyphenPenalty    int64
+	AdjDemerits, DoubleHyphenDemerits int64
+	FinalHyphenDemerits               int64
+	RaggedStretch                     int64
+	Hyphenate                         bool
+	HyphenPatterns                    string
 
-	// Headings.
-	HeadingFont      int
-	HeadingBold      bool
-	HeadingItalic    bool
-	HeadingAlign     int
-	HeadingNumber    bool
-	HeadingNumberGap int64
-	H1Newpage        bool
-	HSize, HLeading  [4]int64
-	HSpaceBefore     [4]int64
-	HSpaceAfter      [4]int64
+	HeadingFont                string
+	HeadingBold, HeadingItalic bool
+	HeadingAlign               string
+	HeadingNumber              bool
+	HeadingNumberGap           int64
+	H1Newpage                  bool
+	HSize, HLeading            [4]int64
+	HSpaceBefore, HSpaceAfter  [4]int64
 
-	// Lists, quotes, preformatted text.
-	ListIndent, ListMarkerGap, ListSpace, ListItemSpace int64
-	QuoteIndent, QuoteSpace                             int64
-	PreFont                                             int
-	PreSize, PreLeading, PreIndent, PreSpace            int64
+	ListIndent, ListMarkerGap int64
+	ListSpace, ListItemSpace  int64
+	QuoteIndent, QuoteSpace   int64
+	PreFont                   string
+	PreSize, PreLeading       int64
+	PreIndent, PreSpace       int64
 
-	// Tables and rules.
-	TableColGap, TableRowSpace, TableRuleSpace, TableRuleThickness int64
-	TableSpace, TableLeading, RuleThickness, RuleSpace             int64
+	TableColGap, TableRowSpace         int64
+	TableRuleSpace, TableRuleThickness int64
+	TableSpace, TableLeading           int64
+	RuleThickness, RuleSpace           int64
 
-	// Footnotes.
-	FootnoteFont                                            int
-	FootnoteSize, FootnoteLeading, FootnoteIndent           int64
-	FootnoteMarkGap, FootnoteMarkSize, FootnoteMarkRaise    int64
-	FootnoteItemSpace, FootnoteRuleWidth, FootnoteRuleThick int64
-	FootnoteSpaceBefore, FootnoteSpaceAfter                 int64
-	FootnoteMinSplit                                        int64
-	FootnoteMaxHeight                                       int64
-	MarkSize, MarkRaise                                     int64
+	FootnoteFont                             string
+	FootnoteSize, FootnoteLeading            int64
+	FootnoteIndent, FootnoteMarkGap          int64
+	FootnoteMarkSize, FootnoteMarkRaise      int64
+	FootnoteItemSpace                        int64
+	FootnoteRuleWidth, FootnoteRuleThickness int64
+	FootnoteSpaceBefore, FootnoteSpaceAfter  int64
+	FootnoteMinSplit                         int64
+	FootnoteMaxHeight                        int64
+	MarkSize, MarkRaise                      int64
 
-	// Figures.
-	FigureWidth                                     int64
-	FigureFrame                                     bool
-	FigureCaptionFont                               int
-	FigureCaptionSize, FigureCaptionLeading         int64
-	FigureCaptionAlign                              int
-	FigureCaptionSpace                              int64
-	FigureCaptionPrefix                             string
-	FigureCaptionGap, FloatSpaceAfter, FloatMinBody int64
+	FigureWidth                             int64
+	FigureFrame                             bool
+	FigureCaptionFont                       string
+	FigureCaptionSize, FigureCaptionLeading int64
+	FigureCaptionAlign                      string
+	FigureCaptionSpace                      int64
+	FigureCaptionPrefix                     string
+	FigureCaptionGap                        int64
+	FloatSpaceAfter, FloatMinBody           int64
 
-	// Page breaking.
 	Widows, Orphans int64
 	KeepWithNext    bool
 
-	// Table of contents.
-	TOCDepth                                     int64
-	TOCFont                                      int
-	TOCSize, TOCLeading, TOCIndent, TOCNumberGap int64
-	TOCReserve                                   int64
-	TOCLeader                                    string
-	TOCLeaderGap, TOCEntrySpace                  int64
-	TOCTitle                                     string
-	TOCTitleFont                                 int
-	TOCTitleSize, TOCTitleSpaceAfter             int64
+	TocDepth                            int64
+	TocFont                             string
+	TocSize, TocLeading                 int64
+	TocIndent, TocNumberGap, TocReserve int64
+	TocLeader                           string
+	TocLeaderGap, TocEntrySpace         int64
+	TocTitle                            string
+	TocTitleFont                        string
+	TocTitleSize, TocTitleSpaceAfter    int64
 
-	// Running headers and footers.
-	HeaderFont int
+	HeaderFont string
 	HeaderSize int64
-	// Slots: header-left, -center, -right, footer-left, -center, -right,
-	// each for odd pages (index 0) and even pages (index 1).
-	Slots [2][6]Text
+	// Slots[0] holds the odd-page templates, Slots[1] the even-page ones.
+	Slots [2][NumSlots]Template
 }
 
-// Default returns the settings with every value at its default, except the
-// derived ones (footer-baseline, footnote-max-height), which are fixed up by
-// Finish.
-func Default() *Settings {
-	return &Settings{
-		PageWidth: 612 * units.Pt, PageHeight: 792 * units.Pt,
-		MarginTop: 72 * units.Pt, MarginBottom: 72 * units.Pt,
-		MarginLeft: 72 * units.Pt, MarginRight: 72 * units.Pt,
-		HeaderBaseline: 36 * units.Pt, PageStart: 1,
-
-		BodyFont: metrics.Serif, BodySize: 10 * units.Pt, Leading: 12 * units.Pt,
-		LineSkip: 1 * units.Pt, Align: Justify, ParIndent: 18 * units.Pt,
-
-		Tolerance: 1000, LinePenalty: 10, HyphenPenalty: 50, ExHyphenPenalty: 50,
-		AdjDemerits: 10000, DoubleHyphenDemerits: 10000, FinalHyphenDemerits: 5000,
-		RaggedStretch: 3, Hyphenate: true, HyphenPatterns: "english",
-
-		HeadingFont: metrics.Sans, HeadingBold: true, HeadingAlign: Left,
-		HeadingNumber: true, HeadingNumberGap: 6 * units.Pt,
-		HSize:        [4]int64{20 * units.Pt, 14 * units.Pt, 12 * units.Pt, 11 * units.Pt},
-		HLeading:     [4]int64{24 * units.Pt, 17 * units.Pt, 14 * units.Pt, 13 * units.Pt},
-		HSpaceBefore: [4]int64{18 * units.Pt, 14 * units.Pt, 12 * units.Pt, 11 * units.Pt},
-		HSpaceAfter:  [4]int64{9 * units.Pt, 7 * units.Pt, 6 * units.Pt, 5 * units.Pt},
-
-		ListIndent: 18 * units.Pt, ListMarkerGap: 4 * units.Pt, ListSpace: 6 * units.Pt,
-		QuoteIndent: 18 * units.Pt, QuoteSpace: 6 * units.Pt,
-		PreFont: metrics.Mono, PreSize: 9 * units.Pt, PreLeading: 11 * units.Pt,
-		PreSpace: 6 * units.Pt,
-
-		TableColGap: 8 * units.Pt, TableRowSpace: 2 * units.Pt, TableRuleSpace: 2 * units.Pt,
-		TableRuleThickness: 400, TableSpace: 6 * units.Pt, TableLeading: 12 * units.Pt,
-		RuleThickness: 500, RuleSpace: 6 * units.Pt,
-
-		FootnoteFont: metrics.Serif, FootnoteSize: 8 * units.Pt, FootnoteLeading: 10 * units.Pt,
-		FootnoteIndent: 10 * units.Pt, FootnoteMarkGap: 2 * units.Pt,
-		FootnoteMarkSize: 6 * units.Pt, FootnoteMarkRaise: 2 * units.Pt,
-		FootnoteItemSpace: 2 * units.Pt, FootnoteRuleWidth: 120 * units.Pt,
-		FootnoteRuleThick: 400, FootnoteSpaceBefore: 6 * units.Pt,
-		FootnoteSpaceAfter: 3 * units.Pt, FootnoteMinSplit: 1,
-		MarkSize: 7 * units.Pt, MarkRaise: 3 * units.Pt,
-
-		FigureFrame: true, FigureCaptionFont: metrics.Serif,
-		FigureCaptionSize: 9 * units.Pt, FigureCaptionLeading: 11 * units.Pt,
-		FigureCaptionAlign: Center, FigureCaptionSpace: 4 * units.Pt,
-		FigureCaptionPrefix: "Figure", FigureCaptionGap: 4 * units.Pt,
-		FloatSpaceAfter: 12 * units.Pt, FloatMinBody: 24 * units.Pt,
-
-		Widows: 2, Orphans: 2, KeepWithNext: true,
-
-		TOCDepth: 2, TOCFont: metrics.Serif, TOCSize: 10 * units.Pt, TOCLeading: 14 * units.Pt,
-		TOCIndent: 18 * units.Pt, TOCNumberGap: 6 * units.Pt, TOCReserve: 30 * units.Pt,
-		TOCLeader: ".", TOCLeaderGap: 3 * units.Pt, TOCTitle: "Contents",
-		TOCTitleFont: metrics.Sans, TOCTitleSize: 20 * units.Pt, TOCTitleSpaceAfter: 12 * units.Pt,
-
-		HeaderFont: metrics.Sans, HeaderSize: 9 * units.Pt,
-	}
-}
-
-// BodyX, BodyY, BodyWidth, BodyHeight and BodyBottom give the body rectangle.
+// BodyX, BodyY, BodyWidth, BodyHeight and BodyBottom describe the body
+// rectangle.
 func (s *Settings) BodyX() int64      { return s.MarginLeft }
 func (s *Settings) BodyY() int64      { return s.MarginTop }
 func (s *Settings) BodyWidth() int64  { return s.PageWidth - s.MarginLeft - s.MarginRight }
 func (s *Settings) BodyHeight() int64 { return s.PageHeight - s.MarginTop - s.MarginBottom }
 func (s *Settings) BodyBottom() int64 { return s.BodyY() + s.BodyHeight() }
 
-type kind int
-
-const (
-	kLength kind = iota
-	kInt
-	kBool
-	kEnum
-	kFamily
-	kPatterns
-	kText
-	kString // text restricted to literals (no placeholders)
-)
-
-var alignWords = []string{"justify", "left", "right", "center"}
-
-// Placeholders recognised in header/footer text.
-var placeholders = map[string]bool{"page": true, "pages": true, "title": true,
-	"author": true, "date": true, "chapter": true, "section": true}
-
-type def struct {
-	key    string
-	kind   kind
-	lo, hi int64
-	ip     *int64
-	bp     *bool
-	enum   *int // enum / family result
-	sp     *string
-	tp     *Text
-	check  func(v string, t Text) bool // extra range check for strings
+// Defaults returns the settings used when no settings.cfg is given.
+func Defaults() *Settings {
+	s := &Settings{}
+	s.setDefaults()
+	s.finish(nil)
+	return s
 }
 
-const big = int64(1) << 60
-
-func (s *Settings) table() []def {
-	var d []def
-	L := func(key string, p *int64, lo, hi int64) {
-		d = append(d, def{key: key, kind: kLength, lo: lo, hi: hi, ip: p})
-	}
-	I := func(key string, p *int64, lo, hi int64) {
-		d = append(d, def{key: key, kind: kInt, lo: lo, hi: hi, ip: p})
-	}
-	B := func(key string, p *bool) { d = append(d, def{key: key, kind: kBool, bp: p}) }
-	A := func(key string, p *int) { d = append(d, def{key: key, kind: kEnum, enum: p}) }
-	F := func(key string, p *int) { d = append(d, def{key: key, kind: kFamily, enum: p}) }
-	T := func(key string, p *Text) { d = append(d, def{key: key, kind: kText, tp: p}) }
-	S := func(key string, p *string, check func(string, Text) bool) {
-		d = append(d, def{key: key, kind: kString, sp: p, check: check})
-	}
-	sizeLo, sizeHi := int64(1000), int64(200000)
-
-	L("page-width", &s.PageWidth, 36000, big)
-	L("page-height", &s.PageHeight, 36000, big)
-	L("margin-top", &s.MarginTop, 0, big)
-	L("margin-bottom", &s.MarginBottom, 0, big)
-	L("margin-left", &s.MarginLeft, 0, big)
-	L("margin-right", &s.MarginRight, 0, big)
-	L("header-baseline", &s.HeaderBaseline, 0, big)
-	L("footer-baseline", &s.FooterBaseline, 0, big)
-	I("page-start", &s.PageStart, 1, 3000)
-
-	F("body-font", &s.BodyFont)
-	L("body-size", &s.BodySize, sizeLo, sizeHi)
-	L("leading", &s.Leading, 1000, big)
-	L("line-skip", &s.LineSkip, 0, big)
-	A("align", &s.Align)
-	L("par-indent", &s.ParIndent, 0, big)
-	L("par-space", &s.ParSpace, 0, big)
-
-	I("tolerance", &s.Tolerance, 0, 10000)
-	I("line-penalty", &s.LinePenalty, 0, 10000)
-	I("hyphen-penalty", &s.HyphenPenalty, -9999, 9999)
-	I("ex-hyphen-penalty", &s.ExHyphenPenalty, -9999, 9999)
-	I("adj-demerits", &s.AdjDemerits, 0, 1000000)
-	I("double-hyphen-demerits", &s.DoubleHyphenDemerits, 0, 1000000)
-	I("final-hyphen-demerits", &s.FinalHyphenDemerits, 0, 1000000)
-	I("ragged-stretch", &s.RaggedStretch, 0, 100)
-	B("hyphenate", &s.Hyphenate)
-	d = append(d, def{key: "hyphen-patterns", kind: kPatterns, sp: &s.HyphenPatterns})
-
-	F("heading-font", &s.HeadingFont)
-	B("heading-bold", &s.HeadingBold)
-	B("heading-italic", &s.HeadingItalic)
-	A("heading-align", &s.HeadingAlign)
-	B("heading-number", &s.HeadingNumber)
-	L("heading-number-gap", &s.HeadingNumberGap, 0, big)
-	B("h1-newpage", &s.H1Newpage)
-	for i := 0; i < 4; i++ {
-		n := string(rune('1' + i))
-		L("h"+n+"-size", &s.HSize[i], sizeLo, sizeHi)
-	}
-	for i := 0; i < 4; i++ {
-		L("h"+string(rune('1'+i))+"-leading", &s.HLeading[i], 1000, big)
-	}
-	for i := 0; i < 4; i++ {
-		L("h"+string(rune('1'+i))+"-space-before", &s.HSpaceBefore[i], 0, big)
-	}
-	for i := 0; i < 4; i++ {
-		L("h"+string(rune('1'+i))+"-space-after", &s.HSpaceAfter[i], 0, big)
-	}
-
-	L("list-indent", &s.ListIndent, 0, big)
-	L("list-marker-gap", &s.ListMarkerGap, 0, big)
-	L("list-space", &s.ListSpace, 0, big)
-	L("list-item-space", &s.ListItemSpace, 0, big)
-	L("quote-indent", &s.QuoteIndent, 0, big)
-	L("quote-space", &s.QuoteSpace, 0, big)
-	F("pre-font", &s.PreFont)
-	L("pre-size", &s.PreSize, sizeLo, sizeHi)
-	L("pre-leading", &s.PreLeading, 1000, big)
-	L("pre-indent", &s.PreIndent, 0, big)
-	L("pre-space", &s.PreSpace, 0, big)
-
-	L("table-col-gap", &s.TableColGap, 0, big)
-	L("table-row-space", &s.TableRowSpace, 0, big)
-	L("table-rule-space", &s.TableRuleSpace, 0, big)
-	L("table-rule-thickness", &s.TableRuleThickness, 1, big)
-	L("table-space", &s.TableSpace, 0, big)
-	L("table-leading", &s.TableLeading, 1000, big)
-	L("rule-thickness", &s.RuleThickness, 1, big)
-	L("rule-space", &s.RuleSpace, 0, big)
-
-	F("footnote-font", &s.FootnoteFont)
-	L("footnote-size", &s.FootnoteSize, sizeLo, sizeHi)
-	L("footnote-leading", &s.FootnoteLeading, 1000, big)
-	L("footnote-indent", &s.FootnoteIndent, 0, big)
-	L("footnote-mark-gap", &s.FootnoteMarkGap, 0, big)
-	L("footnote-mark-size", &s.FootnoteMarkSize, sizeLo, sizeHi)
-	L("footnote-mark-raise", &s.FootnoteMarkRaise, 0, big)
-	L("footnote-item-space", &s.FootnoteItemSpace, 0, big)
-	L("footnote-rule-width", &s.FootnoteRuleWidth, 0, big)
-	L("footnote-rule-thickness", &s.FootnoteRuleThick, 1, big)
-	L("footnote-space-before", &s.FootnoteSpaceBefore, 0, big)
-	L("footnote-space-after", &s.FootnoteSpaceAfter, 0, big)
-	I("footnote-min-split", &s.FootnoteMinSplit, 1, 100)
-	L("footnote-max-height", &s.FootnoteMaxHeight, 1000, big)
-	L("mark-size", &s.MarkSize, sizeLo, sizeHi)
-	L("mark-raise", &s.MarkRaise, 0, big)
-
-	L("figure-width", &s.FigureWidth, 0, big)
-	B("figure-frame", &s.FigureFrame)
-	F("figure-caption-font", &s.FigureCaptionFont)
-	L("figure-caption-size", &s.FigureCaptionSize, sizeLo, sizeHi)
-	L("figure-caption-leading", &s.FigureCaptionLeading, 1000, big)
-	A("figure-caption-align", &s.FigureCaptionAlign)
-	L("figure-caption-space", &s.FigureCaptionSpace, 0, big)
-	S("figure-caption-prefix", &s.FigureCaptionPrefix, nil)
-	L("figure-caption-gap", &s.FigureCaptionGap, 0, big)
-	L("float-space-after", &s.FloatSpaceAfter, 0, big)
-	L("float-min-body", &s.FloatMinBody, 0, big)
-
-	I("widows", &s.Widows, 1, 20)
-	I("orphans", &s.Orphans, 1, 20)
-	B("keep-with-next", &s.KeepWithNext)
-
-	I("toc-depth", &s.TOCDepth, 0, 4)
-	F("toc-font", &s.TOCFont)
-	L("toc-size", &s.TOCSize, sizeLo, sizeHi)
-	L("toc-leading", &s.TOCLeading, 1000, big)
-	L("toc-indent", &s.TOCIndent, 0, big)
-	L("toc-number-gap", &s.TOCNumberGap, 0, big)
-	L("toc-reserve", &s.TOCReserve, 0, big)
-	S("toc-leader", &s.TOCLeader, func(v string, _ Text) bool {
-		n := len([]rune(v))
-		return n >= 1 && n <= 8 && !strings.ContainsRune(v, ' ')
-	})
-	L("toc-leader-gap", &s.TOCLeaderGap, 0, big)
-	L("toc-entry-space", &s.TOCEntrySpace, 0, big)
-	S("toc-title", &s.TOCTitle, nil)
-	F("toc-title-font", &s.TOCTitleFont)
-	L("toc-title-size", &s.TOCTitleSize, sizeLo, sizeHi)
-	L("toc-title-space-after", &s.TOCTitleSpaceAfter, 0, big)
-
-	F("header-font", &s.HeaderFont)
-	L("header-size", &s.HeaderSize, sizeLo, sizeHi)
-	names := []string{"header-left", "header-center", "header-right", "footer-left", "footer-center", "footer-right"}
-	for i, n := range names {
-		T(n, &s.Slots[0][i])
-		T(n+"-even", &s.Slots[1][i])
-	}
-	return d
+func (s *Settings) setDefaults() {
+	pt := int64(dim.Pt)
+	s.PageWidth, s.PageHeight = 612*pt, 792*pt
+	s.MarginTop, s.MarginBottom, s.MarginLeft, s.MarginRight = 72*pt, 72*pt, 72*pt, 72*pt
+	s.HeaderBaseline = 36 * pt
+	s.PageStart = 1
+	s.BodyFont = "serif"
+	s.BodySize, s.Leading, s.LineSkip = 10*pt, 12*pt, 1*pt
+	s.Align = Justify
+	s.ParIndent, s.ParSpace = 18*pt, 0
+	s.Tolerance, s.LinePenalty = 1000, 10
+	s.HyphenPenalty, s.ExHyphenPenalty = 50, 50
+	s.AdjDemerits, s.DoubleHyphenDemerits, s.FinalHyphenDemerits = 10000, 10000, 5000
+	s.RaggedStretch = 3
+	s.Hyphenate = true
+	s.HyphenPatterns = "english"
+	s.HeadingFont = "sans"
+	s.HeadingBold = true
+	s.HeadingAlign = Left
+	s.HeadingNumber = true
+	s.HeadingNumberGap = 6 * pt
+	s.HSize = [4]int64{20 * pt, 14 * pt, 12 * pt, 11 * pt}
+	s.HLeading = [4]int64{24 * pt, 17 * pt, 14 * pt, 13 * pt}
+	s.HSpaceBefore = [4]int64{18 * pt, 14 * pt, 12 * pt, 11 * pt}
+	s.HSpaceAfter = [4]int64{9 * pt, 7 * pt, 6 * pt, 5 * pt}
+	s.ListIndent, s.ListMarkerGap, s.ListSpace, s.ListItemSpace = 18*pt, 4*pt, 6*pt, 0
+	s.QuoteIndent, s.QuoteSpace = 18*pt, 6*pt
+	s.PreFont = "mono"
+	s.PreSize, s.PreLeading, s.PreIndent, s.PreSpace = 9*pt, 11*pt, 0, 6*pt
+	s.TableColGap, s.TableRowSpace, s.TableRuleSpace = 8*pt, 2*pt, 2*pt
+	s.TableRuleThickness = 400
+	s.TableSpace, s.TableLeading = 6*pt, 12*pt
+	s.RuleThickness, s.RuleSpace = 500, 6*pt
+	s.FootnoteFont = "serif"
+	s.FootnoteSize, s.FootnoteLeading = 8*pt, 10*pt
+	s.FootnoteIndent, s.FootnoteMarkGap = 10*pt, 2*pt
+	s.FootnoteMarkSize, s.FootnoteMarkRaise = 6*pt, 2*pt
+	s.FootnoteItemSpace = 2 * pt
+	s.FootnoteRuleWidth, s.FootnoteRuleThickness = 120*pt, 400
+	s.FootnoteSpaceBefore, s.FootnoteSpaceAfter = 6*pt, 3*pt
+	s.FootnoteMinSplit = 1
+	s.MarkSize, s.MarkRaise = 7*pt, 3*pt
+	s.FigureCaptionFont = "serif"
+	s.FigureFrame = true
+	s.FigureCaptionSize, s.FigureCaptionLeading = 9*pt, 11*pt
+	s.FigureCaptionAlign = Center
+	s.FigureCaptionSpace = 4 * pt
+	s.FigureCaptionPrefix = "Figure"
+	s.FigureCaptionGap = 4 * pt
+	s.FloatSpaceAfter, s.FloatMinBody = 12*pt, 24*pt
+	s.Widows, s.Orphans = 2, 2
+	s.KeepWithNext = true
+	s.TocDepth = 2
+	s.TocFont = "serif"
+	s.TocSize, s.TocLeading = 10*pt, 14*pt
+	s.TocIndent, s.TocNumberGap, s.TocReserve = 18*pt, 6*pt, 30*pt
+	s.TocLeader = "."
+	s.TocLeaderGap = 3 * pt
+	s.TocTitle = "Contents"
+	s.TocTitleFont = "sans"
+	s.TocTitleSize, s.TocTitleSpaceAfter = 20*pt, 12*pt
+	s.HeaderFont = "sans"
+	s.HeaderSize = 9 * pt
 }
 
-// Parse parses the text of a settings.cfg. A nil data means "absent". The
-// returned settings are complete (defaults and derived values applied).
+// finish resolves the derived defaults. assigned records which keys were
+// explicitly set.
+func (s *Settings) finish(assigned map[string]bool) {
+	if !assigned["footer-baseline"] {
+		s.FooterBaseline = s.PageHeight - 36*dim.Pt
+	}
+	if !assigned["footnote-max-height"] {
+		s.FootnoteMaxHeight = dim.FloorDiv(s.BodyHeight(), 2)
+	}
+	for slot := 0; slot < NumSlots; slot++ {
+		if !assigned[evenKeys[slot]] {
+			s.Slots[1][slot] = s.Slots[0][slot]
+		}
+	}
+}
+
+var slotKeys = [NumSlots]string{
+	"header-left", "header-center", "header-right",
+	"footer-left", "footer-center", "footer-right",
+}
+
+var evenKeys = [NumSlots]string{
+	"header-left-even", "header-center-even", "header-right-even",
+	"footer-left-even", "footer-center-even", "footer-right-even",
+}
+
+// pos is a 1-based line/column.
+type pos struct{ line, col int }
+
+// Parse parses the contents of settings.cfg. A nil *diag.Error means success.
 func Parse(data []byte) (*Settings, *diag.Error) {
-	s := Default()
-	defs := s.table()
-	byKey := make(map[string]*def, len(defs))
-	for i := range defs {
-		byKey[defs[i].key] = &defs[i]
-	}
+	s := &Settings{}
+	s.setDefaults()
+	tab := s.table()
 	assigned := map[string]bool{}
-	var geomLine, geomCol int // position of the last explicit geometry key
-	geomKeys := map[string]bool{"page-width": true, "page-height": true,
-		"margin-top": true, "margin-bottom": true, "margin-left": true, "margin-right": true}
+	valuePos := map[string]pos{}
+	var geomOrder []string
 
 	text := string(data)
 	lines := strings.Split(text, "\n")
-	if len(lines) > 0 && lines[len(lines)-1] == "" {
-		lines = lines[:len(lines)-1]
+	if n := len(lines); n > 0 && lines[n-1] == "" {
+		lines = lines[:n-1]
 	}
 	for ln, raw := range lines {
 		line := []rune(raw)
-		fail := func(col int, code string) *diag.Error { return diag.New("settings.cfg", ln+1, col, code) }
+		fail := func(col int, code string) (*Settings, *diag.Error) {
+			return nil, &diag.Error{File: File, Line: ln + 1, Col: col, Code: code}
+		}
 		i := 0
 		for i < len(line) && (line[i] == ' ' || line[i] == '\t') {
 			i++
@@ -399,19 +280,26 @@ func Parse(data []byte) (*Settings, *diag.Error) {
 		if i == len(line) || line[i] == '#' {
 			continue
 		}
-		first := i
-		ks := i
-		for i < len(line) && (line[i] >= 'a' && line[i] <= 'z' || line[i] >= '0' && line[i] <= '9' || line[i] == '-') {
+		keyStart := i
+		for i < len(line) && isKeyChar(line[i]) {
 			i++
 		}
-		key := string(line[ks:i])
+		keyEnd := i
 		for i < len(line) && (line[i] == ' ' || line[i] == '\t') {
 			i++
 		}
-		if key == "" || i >= len(line) || line[i] != '=' {
-			return nil, fail(first+1, "bad-syntax")
+		if keyEnd == keyStart || i >= len(line) || line[i] != '=' {
+			return fail(keyStart+1, diag.BadSyntax)
 		}
 		i++
+		key := string(line[keyStart:keyEnd])
+		f, ok := tab[key]
+		if !ok {
+			return fail(keyStart+1, diag.UnknownSetting)
+		}
+		if assigned[key] {
+			return fail(keyStart+1, diag.DuplicateSetting)
+		}
 		vs := i
 		for vs < len(line) && (line[vs] == ' ' || line[vs] == '\t') {
 			vs++
@@ -420,162 +308,310 @@ func Parse(data []byte) (*Settings, *diag.Error) {
 		for ve > vs && (line[ve-1] == ' ' || line[ve-1] == '\t') {
 			ve--
 		}
+		value := line[vs:ve]
 		valCol := vs + 1
 		if vs >= len(line) {
 			valCol = len(line) + 1
 		}
-		value := string(line[vs:ve])
-		d, ok := byKey[key]
-		if !ok {
-			return nil, fail(ks+1, "unknown-setting")
-		}
-		if assigned[key] {
-			return nil, fail(ks+1, "duplicate-setting")
-		}
-		if code, col := d.assign(value, valCol); code != "" {
-			return nil, fail(col, code)
+		if code, off := f(value); code != "" {
+			return fail(valCol+off, code)
 		}
 		assigned[key] = true
-		if geomKeys[key] {
-			geomLine, geomCol = ln+1, valCol
+		valuePos[key] = pos{ln + 1, valCol}
+		switch key {
+		case "page-width", "page-height", "margin-top", "margin-bottom", "margin-left", "margin-right":
+			geomOrder = append(geomOrder, key)
 		}
-	}
-
-	// Derived defaults.
-	if !assigned["footer-baseline"] {
-		s.FooterBaseline = s.PageHeight - 36*units.Pt
 	}
 	if s.BodyWidth() < 36000 || s.BodyHeight() < 36000 {
-		return nil, diag.New("settings.cfg", geomLine, geomCol, "bad-value")
-	}
-	if !assigned["footnote-max-height"] {
-		s.FootnoteMaxHeight = units.FloorDiv(s.BodyHeight(), 2)
-	}
-	for i := 0; i < 6; i++ {
-		names := []string{"header-left", "header-center", "header-right", "footer-left", "footer-center", "footer-right"}
-		if !assigned[names[i]+"-even"] {
-			s.Slots[1][i] = s.Slots[0][i]
+		e := &diag.Error{File: File, Code: diag.BadValue}
+		if len(geomOrder) > 0 {
+			p := valuePos[geomOrder[len(geomOrder)-1]]
+			e.Line, e.Col = p.line, p.col
 		}
+		return nil, e
 	}
+	s.finish(assigned)
 	return s, nil
 }
 
-// assign parses and range-checks one value; it returns an error code and the
-// column to report it at, or "" on success.
-func (d *def) assign(v string, valCol int) (string, int) {
-	switch d.kind {
-	case kLength, kInt:
-		var x int64
-		var ok bool
-		if d.kind == kLength {
-			x, ok = units.ParseLength(v)
-		} else {
-			x, ok = units.ParseInt(v)
-		}
-		if !ok {
-			if d.kind == kLength {
-				return "bad-length", valCol
-			}
-			return "bad-integer", valCol
-		}
-		if x < d.lo || x > d.hi {
-			return "bad-value", valCol
-		}
-		*d.ip = x
-	case kBool:
-		switch v {
-		case "on":
-			*d.bp = true
-		case "off":
-			*d.bp = false
-		default:
-			return "bad-boolean", valCol
-		}
-	case kEnum:
-		for i, w := range alignWords {
-			if v == w {
-				*d.enum = i
-				return "", 0
-			}
-		}
-		return "bad-enum", valCol
-	case kFamily:
-		switch v {
-		case "serif":
-			*d.enum = metrics.Serif
-		case "sans":
-			*d.enum = metrics.Sans
-		case "mono":
-			*d.enum = metrics.Mono
-		default:
-			return "unknown-font", valCol
-		}
-	case kPatterns:
-		if v != "english" && v != "minimal" {
-			return "unknown-patterns", valCol
-		}
-		*d.sp = v
-	case kText, kString:
-		t, code, off := parseText(v)
-		if code != "" {
-			return code, valCol + off
-		}
-		if d.kind == kText {
-			*d.tp = t
-			return "", 0
-		}
-		for _, p := range t {
-			if p.Placeholder != "" {
-				return "bad-value", valCol
-			}
-		}
-		lv := t.Literal()
-		if d.check != nil && !d.check(lv, t) {
-			return "bad-value", valCol
-		}
-		*d.sp = lv
-	}
-	return "", 0
+func isKeyChar(r rune) bool {
+	return (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') || r == '-'
 }
 
-// parseText scans a text value in one left-to-right pass. On error it
-// returns the code and the rune offset of the offending character.
-func parseText(v string) (Text, string, int) {
-	r := []rune(v)
-	var out Text
-	var cur []rune
-	flush := func() {
-		if len(cur) > 0 {
-			out = append(out, TextPart{Lit: string(cur)})
-			cur = nil
+// A parser returns an error code and the rune offset within the value at
+// which it is reported ("" means success).
+type parser func(v []rune) (string, int)
+
+func (s *Settings) table() map[string]parser {
+	t := map[string]parser{}
+	length := func(key string, p *int64, lo, hi int64) {
+		t[key] = func(v []rune) (string, int) {
+			x, ok := dim.ParseLength(string(v))
+			if !ok {
+				return diag.BadLength, 0
+			}
+			if x < lo || x > hi {
+				return diag.BadValue, 0
+			}
+			*p = x
+			return "", 0
 		}
 	}
-	for i := 0; i < len(r); i++ {
-		switch c := r[i]; c {
+	const inf = int64(1) << 60
+	integer := func(key string, p *int64, lo, hi int64) {
+		t[key] = func(v []rune) (string, int) {
+			x, ok := dim.ParseInteger(string(v))
+			if !ok {
+				return diag.BadInteger, 0
+			}
+			if x < lo || x > hi {
+				return diag.BadValue, 0
+			}
+			*p = x
+			return "", 0
+		}
+	}
+	boolean := func(key string, p *bool) {
+		t[key] = func(v []rune) (string, int) {
+			switch string(v) {
+			case "on":
+				*p = true
+			case "off":
+				*p = false
+			default:
+				return diag.BadBoolean, 0
+			}
+			return "", 0
+		}
+	}
+	enum := func(key string, p *string) {
+		t[key] = func(v []rune) (string, int) {
+			switch string(v) {
+			case Justify, Left, Right, Center:
+				*p = string(v)
+				return "", 0
+			}
+			return diag.BadEnum, 0
+		}
+	}
+	family := func(key string, p *string) {
+		t[key] = func(v []rune) (string, int) {
+			switch string(v) {
+			case "serif", "sans", "mono":
+				*p = string(v)
+				return "", 0
+			}
+			return diag.UnknownFont, 0
+		}
+	}
+	// plain text: no placeholders allowed; check receives the unescaped text.
+	plain := func(key string, p *string, check func(string) bool) {
+		t[key] = func(v []rune) (string, int) {
+			tpl, code, off := parseText(v)
+			if code != "" {
+				return code, off
+			}
+			if tpl.HasPlaceholder() {
+				return diag.BadValue, 0
+			}
+			lit := tpl.Literal()
+			if check != nil && !check(lit) {
+				return diag.BadValue, 0
+			}
+			*p = lit
+			return "", 0
+		}
+	}
+	slot := func(key string, p *Template) {
+		t[key] = func(v []rune) (string, int) {
+			tpl, code, off := parseText(v)
+			if code != "" {
+				return code, off
+			}
+			*p = tpl
+			return "", 0
+		}
+	}
+
+	length("page-width", &s.PageWidth, 36000, inf)
+	length("page-height", &s.PageHeight, 36000, inf)
+	length("margin-top", &s.MarginTop, 0, inf)
+	length("margin-bottom", &s.MarginBottom, 0, inf)
+	length("margin-left", &s.MarginLeft, 0, inf)
+	length("margin-right", &s.MarginRight, 0, inf)
+	length("header-baseline", &s.HeaderBaseline, 0, inf)
+	length("footer-baseline", &s.FooterBaseline, 0, inf)
+	integer("page-start", &s.PageStart, 1, 3000)
+
+	family("body-font", &s.BodyFont)
+	length("body-size", &s.BodySize, 1000, 200000)
+	length("leading", &s.Leading, 1000, inf)
+	length("line-skip", &s.LineSkip, 0, inf)
+	enum("align", &s.Align)
+	length("par-indent", &s.ParIndent, 0, inf)
+	length("par-space", &s.ParSpace, 0, inf)
+
+	integer("tolerance", &s.Tolerance, 0, 10000)
+	integer("line-penalty", &s.LinePenalty, 0, 10000)
+	integer("hyphen-penalty", &s.HyphenPenalty, -9999, 9999)
+	integer("ex-hyphen-penalty", &s.ExHyphenPenalty, -9999, 9999)
+	integer("adj-demerits", &s.AdjDemerits, 0, 1000000)
+	integer("double-hyphen-demerits", &s.DoubleHyphenDemerits, 0, 1000000)
+	integer("final-hyphen-demerits", &s.FinalHyphenDemerits, 0, 1000000)
+	integer("ragged-stretch", &s.RaggedStretch, 0, 100)
+	boolean("hyphenate", &s.Hyphenate)
+	t["hyphen-patterns"] = func(v []rune) (string, int) {
+		switch string(v) {
+		case "english", "minimal":
+			s.HyphenPatterns = string(v)
+			return "", 0
+		}
+		return diag.UnknownPatterns, 0
+	}
+
+	family("heading-font", &s.HeadingFont)
+	boolean("heading-bold", &s.HeadingBold)
+	boolean("heading-italic", &s.HeadingItalic)
+	enum("heading-align", &s.HeadingAlign)
+	boolean("heading-number", &s.HeadingNumber)
+	length("heading-number-gap", &s.HeadingNumberGap, 0, inf)
+	boolean("h1-newpage", &s.H1Newpage)
+	for i := 0; i < 4; i++ {
+		n := string(rune('1' + i))
+		length("h"+n+"-size", &s.HSize[i], 1000, 200000)
+		length("h"+n+"-leading", &s.HLeading[i], 1000, inf)
+		length("h"+n+"-space-before", &s.HSpaceBefore[i], 0, inf)
+		length("h"+n+"-space-after", &s.HSpaceAfter[i], 0, inf)
+	}
+
+	length("list-indent", &s.ListIndent, 0, inf)
+	length("list-marker-gap", &s.ListMarkerGap, 0, inf)
+	length("list-space", &s.ListSpace, 0, inf)
+	length("list-item-space", &s.ListItemSpace, 0, inf)
+	length("quote-indent", &s.QuoteIndent, 0, inf)
+	length("quote-space", &s.QuoteSpace, 0, inf)
+	family("pre-font", &s.PreFont)
+	length("pre-size", &s.PreSize, 1000, 200000)
+	length("pre-leading", &s.PreLeading, 1000, inf)
+	length("pre-indent", &s.PreIndent, 0, inf)
+	length("pre-space", &s.PreSpace, 0, inf)
+
+	length("table-col-gap", &s.TableColGap, 0, inf)
+	length("table-row-space", &s.TableRowSpace, 0, inf)
+	length("table-rule-space", &s.TableRuleSpace, 0, inf)
+	length("table-rule-thickness", &s.TableRuleThickness, 1, inf)
+	length("table-space", &s.TableSpace, 0, inf)
+	length("table-leading", &s.TableLeading, 1000, inf)
+	length("rule-thickness", &s.RuleThickness, 1, inf)
+	length("rule-space", &s.RuleSpace, 0, inf)
+
+	family("footnote-font", &s.FootnoteFont)
+	length("footnote-size", &s.FootnoteSize, 1000, 200000)
+	length("footnote-leading", &s.FootnoteLeading, 1000, inf)
+	length("footnote-indent", &s.FootnoteIndent, 0, inf)
+	length("footnote-mark-gap", &s.FootnoteMarkGap, 0, inf)
+	length("footnote-mark-size", &s.FootnoteMarkSize, 1000, 200000)
+	length("footnote-mark-raise", &s.FootnoteMarkRaise, 0, inf)
+	length("footnote-item-space", &s.FootnoteItemSpace, 0, inf)
+	length("footnote-rule-width", &s.FootnoteRuleWidth, 0, inf)
+	length("footnote-rule-thickness", &s.FootnoteRuleThickness, 1, inf)
+	length("footnote-space-before", &s.FootnoteSpaceBefore, 0, inf)
+	length("footnote-space-after", &s.FootnoteSpaceAfter, 0, inf)
+	integer("footnote-min-split", &s.FootnoteMinSplit, 1, 100)
+	length("footnote-max-height", &s.FootnoteMaxHeight, 1000, inf)
+	length("mark-size", &s.MarkSize, 1000, 200000)
+	length("mark-raise", &s.MarkRaise, 0, inf)
+
+	length("figure-width", &s.FigureWidth, 0, inf)
+	boolean("figure-frame", &s.FigureFrame)
+	family("figure-caption-font", &s.FigureCaptionFont)
+	length("figure-caption-size", &s.FigureCaptionSize, 1000, 200000)
+	length("figure-caption-leading", &s.FigureCaptionLeading, 1000, inf)
+	enum("figure-caption-align", &s.FigureCaptionAlign)
+	length("figure-caption-space", &s.FigureCaptionSpace, 0, inf)
+	plain("figure-caption-prefix", &s.FigureCaptionPrefix, nil)
+	length("figure-caption-gap", &s.FigureCaptionGap, 0, inf)
+	length("float-space-after", &s.FloatSpaceAfter, 0, inf)
+	length("float-min-body", &s.FloatMinBody, 0, inf)
+
+	integer("widows", &s.Widows, 1, 20)
+	integer("orphans", &s.Orphans, 1, 20)
+	boolean("keep-with-next", &s.KeepWithNext)
+
+	integer("toc-depth", &s.TocDepth, 0, 4)
+	family("toc-font", &s.TocFont)
+	length("toc-size", &s.TocSize, 1000, 200000)
+	length("toc-leading", &s.TocLeading, 1000, inf)
+	length("toc-indent", &s.TocIndent, 0, inf)
+	length("toc-number-gap", &s.TocNumberGap, 0, inf)
+	length("toc-reserve", &s.TocReserve, 0, inf)
+	plain("toc-leader", &s.TocLeader, func(lit string) bool {
+		n := utf8.RuneCountInString(lit)
+		return n >= 1 && n <= 8 && !strings.Contains(lit, " ")
+	})
+	length("toc-leader-gap", &s.TocLeaderGap, 0, inf)
+	length("toc-entry-space", &s.TocEntrySpace, 0, inf)
+	plain("toc-title", &s.TocTitle, nil)
+	family("toc-title-font", &s.TocTitleFont)
+	length("toc-title-size", &s.TocTitleSize, 1000, 200000)
+	length("toc-title-space-after", &s.TocTitleSpaceAfter, 0, inf)
+
+	family("header-font", &s.HeaderFont)
+	length("header-size", &s.HeaderSize, 1000, 200000)
+	for i := 0; i < NumSlots; i++ {
+		slot(slotKeys[i], &s.Slots[0][i])
+		slot(evenKeys[i], &s.Slots[1][i])
+	}
+	return t
+}
+
+var placeholders = map[string]bool{
+	"page": true, "pages": true, "title": true, "author": true,
+	"date": true, "chapter": true, "section": true,
+}
+
+// parseText scans a text value in a single left-to-right pass. On error it
+// returns the code and the rune offset of the offending character.
+func parseText(v []rune) (Template, string, int) {
+	var tpl Template
+	var lit []rune
+	flush := func() {
+		if len(lit) > 0 {
+			tpl = append(tpl, TemplatePart{Literal: string(lit)})
+			lit = lit[:0]
+		}
+	}
+	for i := 0; i < len(v); i++ {
+		c := v[i]
+		switch c {
 		case '\\':
-			if i+1 < len(r) && (r[i+1] == '{' || r[i+1] == '}' || r[i+1] == '\\') {
-				cur = append(cur, r[i+1])
+			if i+1 < len(v) && (v[i+1] == '{' || v[i+1] == '}' || v[i+1] == '\\') {
+				lit = append(lit, v[i+1])
 				i++
 			} else {
-				return nil, "bad-escape", i
+				return nil, diag.BadEscape, i
 			}
 		case '{':
-			j := i + 1
-			for j < len(r) && r[j] != '}' {
-				j++
+			end := -1
+			for j := i + 1; j < len(v); j++ {
+				if v[j] == '}' {
+					end = j
+					break
+				}
 			}
-			if j >= len(r) || !placeholders[string(r[i+1:j])] {
-				return nil, "unknown-placeholder", i
+			if end < 0 || !placeholders[string(v[i+1:end])] {
+				return nil, diag.UnknownPlaceholder, i
 			}
 			flush()
-			out = append(out, TextPart{Placeholder: string(r[i+1 : j])})
-			i = j
+			tpl = append(tpl, TemplatePart{Placeholder: string(v[i+1 : end])})
+			i = end
 		case '}':
-			return nil, "stray-brace", i
+			return nil, diag.StrayBrace, i
 		default:
-			cur = append(cur, c)
+			lit = append(lit, c)
 		}
 	}
 	flush()
-	return out, "", 0
+	return tpl, "", 0
 }

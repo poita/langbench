@@ -1,212 +1,57 @@
-/// Tokeniser for the command language.
+/// The token stream of the command language (SPEC §6.1).
 module tessera.lexer;
+
+import std.array : Appender;
 
 import tessera.errors;
 
-/// Lexical class of a token.
-enum TokenKind : ubyte
+/// Token classes.
+enum Tok : ubyte
 {
     word,
-    integer,
-    string_,
+    int_,
+    str,
     punct,
     op,
 }
 
-/// Comparison operators.
-enum CmpOp : ubyte
-{
-    eq,
-    ne,
-    lt,
-    le,
-    gt,
-    ge,
-}
-
-/// One token. Values of integer and string tokens are decoded during lexing,
-/// but problems with the *value* (range, surrogates) are only recorded here;
-/// the parser reports them when it consumes the token.
+/// A token: its class and the source text it covers. For a `str` token the
+/// text is what lies between the quotes, escapes still unresolved.
 struct Token
 {
-    TokenKind kind;
-    /// Spelling of a word, punctuation or operator token.
+    Tok kind;
     string text;
-    /// Value of an integer token (valid when `!intOverflow`).
-    long intValue;
-    /// The integer does not fit in a signed 64-bit integer.
-    bool intOverflow;
-    /// Decoded value of a string token (UTF-8).
-    string strValue;
-    /// The string holds an unpaired surrogate escape.
-    bool badUtf8;
-    /// The operator of an `op` token.
-    CmpOp op;
 
-    /// True for the punctuation token `c`.
-    bool isPunct(char c) const pure nothrow @nogc @safe
+    /// Whether this is the punctuation or operator `s`.
+    bool isSym(string s) const @safe pure nothrow @nogc
     {
-        return kind == TokenKind.punct && text[0] == c;
+        return (kind == Tok.punct || kind == Tok.op) && text == s;
     }
 
-    /// True for the word token spelled `w`.
-    bool isWord(string w) const pure nothrow @nogc @safe
+    /// Whether this is the word `s`.
+    bool isWord(string s) const @safe pure nothrow @nogc
     {
-        return kind == TokenKind.word && text == w;
+        return kind == Tok.word && text == s;
     }
 }
 
-private bool isWordStart(char c) pure nothrow @nogc @safe
-{
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
-}
-
-private bool isDigit(char c) pure nothrow @nogc @safe
+private bool isDigit(char c) @safe pure nothrow @nogc
 {
     return c >= '0' && c <= '9';
 }
 
-private int hexValue(char c) pure nothrow @nogc @safe
+private bool isHex(char c) @safe pure nothrow @nogc
 {
-    if (c >= '0' && c <= '9')
-        return c - '0';
-    if (c >= 'a' && c <= 'f')
-        return c - 'a' + 10;
-    if (c >= 'A' && c <= 'F')
-        return c - 'A' + 10;
-    return -1;
+    return isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 }
 
-/// Read four hex digits at `s[i .. i+4]`; -1 when they are not all hex digits.
-private int hex4(const(char)[] s, size_t i) pure nothrow @nogc @safe
+private bool isWordStart(char c) @safe pure nothrow @nogc
 {
-    if (i + 4 > s.length)
-        return -1;
-    int v = 0;
-    foreach (k; 0 .. 4)
-    {
-        immutable h = hexValue(s[i + k]);
-        if (h < 0)
-            return -1;
-        v = v * 16 + h;
-    }
-    return v;
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-private void encodeUtf8(ref char[] buf, uint cp) pure nothrow @safe
-{
-    if (cp < 0x80)
-        buf ~= cast(char) cp;
-    else if (cp < 0x800)
-    {
-        buf ~= cast(char)(0xC0 | (cp >> 6));
-        buf ~= cast(char)(0x80 | (cp & 0x3F));
-    }
-    else if (cp < 0x10000)
-    {
-        buf ~= cast(char)(0xE0 | (cp >> 12));
-        buf ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
-        buf ~= cast(char)(0x80 | (cp & 0x3F));
-    }
-    else
-    {
-        buf ~= cast(char)(0xF0 | (cp >> 18));
-        buf ~= cast(char)(0x80 | ((cp >> 12) & 0x3F));
-        buf ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
-        buf ~= cast(char)(0x80 | (cp & 0x3F));
-    }
-}
-
-/// Lex a string literal starting at the opening quote `line[start]`. Returns
-/// the index just past the closing quote. Throws `syntax` on lexical errors.
-private size_t lexString(string line, size_t start, ref Token tok) pure @safe
-{
-    size_t i = start + 1;
-    immutable n = line.length;
-    // Fast path: no escapes.
-    size_t j = i;
-    while (j < n && line[j] != '"' && line[j] != '\\' && cast(ubyte) line[j] >= 0x20)
-        j++;
-    if (j < n && line[j] == '"')
-    {
-        tok.kind = TokenKind.string_;
-        tok.strValue = line[i .. j];
-        return j + 1;
-    }
-    char[] buf = line[i .. j].dup;
-    i = j;
-    bool bad = false;
-    while (true)
-    {
-        if (i >= n)
-            fail(ErrorKind.syntax);
-        immutable c = line[i];
-        if (c == '"')
-        {
-            i++;
-            break;
-        }
-        if (cast(ubyte) c < 0x20)
-            fail(ErrorKind.syntax);
-        if (c != '\\')
-        {
-            buf ~= c;
-            i++;
-            continue;
-        }
-        i++;
-        if (i >= n)
-            fail(ErrorKind.syntax);
-        immutable e = line[i];
-        i++;
-        switch (e)
-        {
-        case '"': buf ~= '"'; break;
-        case '\\': buf ~= '\\'; break;
-        case '/': buf ~= '/'; break;
-        case 'b': buf ~= '\b'; break;
-        case 'f': buf ~= '\f'; break;
-        case 'n': buf ~= '\n'; break;
-        case 'r': buf ~= '\r'; break;
-        case 't': buf ~= '\t'; break;
-        case 'u':
-            immutable cp = hex4(line, i);
-            if (cp < 0)
-                fail(ErrorKind.syntax);
-            i += 4;
-            if (cp >= 0xD800 && cp <= 0xDBFF)
-            {
-                // Needs an immediately following \uXXXX low surrogate.
-                if (i + 1 < n && line[i] == '\\' && line[i + 1] == 'u')
-                {
-                    immutable lo = hex4(line, i + 2);
-                    if (lo >= 0xDC00 && lo <= 0xDFFF)
-                    {
-                        i += 6;
-                        encodeUtf8(buf, 0x10000 + ((cast(uint) cp - 0xD800) << 10) + (cast(uint) lo - 0xDC00));
-                        break;
-                    }
-                }
-                bad = true;
-            }
-            else if (cp >= 0xDC00 && cp <= 0xDFFF)
-                bad = true;
-            else
-                encodeUtf8(buf, cast(uint) cp);
-            break;
-        default:
-            fail(ErrorKind.syntax);
-        }
-    }
-    tok.kind = TokenKind.string_;
-    tok.strValue = (() @trusted => cast(string) buf)();
-    tok.badUtf8 = bad;
-    return i;
-}
-
-/// Split one command line into tokens. Throws `syntax` when any part of the
-/// line is not lexically well formed.
-Token[] tokenize(string line) pure @safe
+/// Tokenise a whole line. Throws `syntax` for anything that is not a token.
+Token[] lex(string line) @safe pure
 {
     Token[] toks;
     size_t i = 0;
@@ -219,93 +64,279 @@ Token[] tokenize(string line) pure @safe
             i++;
             continue;
         }
-        Token t;
+        immutable start = i;
         if (isWordStart(c))
         {
-            size_t j = i + 1;
-            while (j < n && (isWordStart(line[j]) || isDigit(line[j])))
-                j++;
-            t.kind = TokenKind.word;
-            t.text = line[i .. j];
-            i = j;
+            while (i < n && (isWordStart(line[i]) || isDigit(line[i])))
+                i++;
+            toks ~= Token(Tok.word, line[start .. i]);
         }
-        else if (c == '-' || isDigit(c))
+        else if (isDigit(c) || c == '-')
         {
-            bool neg = c == '-';
-            size_t d0 = neg ? i + 1 : i;
-            if (d0 >= n || !isDigit(line[d0]))
-                fail(ErrorKind.syntax);
-            size_t d1 = d0;
-            while (d1 < n && isDigit(line[d1]))
-                d1++;
-            auto digits = line[d0 .. d1];
-            if (digits.length > 1 && digits[0] == '0')
-                fail(ErrorKind.syntax);
-            if (neg && digits == "0")
-                fail(ErrorKind.syntax);
-            t.kind = TokenKind.integer;
-            t.text = line[i .. d1];
-            if (digits.length > 19)
-                t.intOverflow = true;
-            else
+            if (c == '-')
             {
-                ulong acc = 0;
-                foreach (ch; digits)
-                    acc = acc * 10 + (ch - '0');
-                if (neg)
-                {
-                    if (acc > 9_223_372_036_854_775_808UL)
-                        t.intOverflow = true;
-                    else
-                        t.intValue = cast(long)(0UL - acc);
-                }
-                else
-                {
-                    if (acc > 9_223_372_036_854_775_807UL)
-                        t.intOverflow = true;
-                    else
-                        t.intValue = cast(long) acc;
-                }
+                i++;
+                if (i >= n || !isDigit(line[i]))
+                    fail(ErrorKind.syntax);
             }
-            i = d1;
+            immutable digits = i;
+            while (i < n && isDigit(line[i]))
+                i++;
+            if (i - digits > 1 && line[digits] == '0')
+                fail(ErrorKind.syntax);
+            if (c == '-' && line[digits] == '0')
+                fail(ErrorKind.syntax);
+            toks ~= Token(Tok.int_, line[start .. i]);
         }
         else if (c == '"')
         {
-            i = lexString(line, i, t);
-        }
-        else if (c == '{' || c == '}' || c == '[' || c == ']' || c == '(' || c == ')'
-                || c == ',' || c == ':' || c == '.')
-        {
-            t.kind = TokenKind.punct;
-            t.text = line[i .. i + 1];
             i++;
-        }
-        else if (c == '<' || c == '>')
-        {
-            t.kind = TokenKind.op;
-            if (i + 1 < n && line[i + 1] == '=')
+            while (true)
             {
-                t.text = line[i .. i + 2];
-                t.op = c == '<' ? CmpOp.le : CmpOp.ge;
-                i += 2;
-            }
-            else
-            {
-                t.text = line[i .. i + 1];
-                t.op = c == '<' ? CmpOp.lt : CmpOp.gt;
+                if (i >= n)
+                    fail(ErrorKind.syntax);
+                immutable d = line[i];
+                if (d == '"')
+                    break;
+                if (d < 0x20)
+                    fail(ErrorKind.syntax);
+                if (d == '\\')
+                {
+                    i++;
+                    if (i >= n)
+                        fail(ErrorKind.syntax);
+                    switch (line[i])
+                    {
+                    case '"', '\\', '/', 'b', 'f', 'n', 'r', 't':
+                        break;
+                    case 'u':
+                        foreach (k; 1 .. 5)
+                            if (i + k >= n || !isHex(line[i + k]))
+                                fail(ErrorKind.syntax);
+                        i += 4;
+                        break;
+                    default:
+                        fail(ErrorKind.syntax);
+                    }
+                }
                 i++;
             }
-        }
-        else if ((c == '=' || c == '!') && i + 1 < n && line[i + 1] == '=')
-        {
-            t.kind = TokenKind.op;
-            t.text = line[i .. i + 2];
-            t.op = c == '=' ? CmpOp.eq : CmpOp.ne;
-            i += 2;
+            toks ~= Token(Tok.str, line[start + 1 .. i]);
+            i++;
         }
         else
-            fail(ErrorKind.syntax);
-        toks ~= t;
+        {
+            switch (c)
+            {
+            case '{', '}', '[', ']', '(', ')', ',', ':', '.':
+                i++;
+                toks ~= Token(Tok.punct, line[start .. i]);
+                break;
+            case '=', '!':
+                if (i + 1 >= n || line[i + 1] != '=')
+                    fail(ErrorKind.syntax);
+                i += 2;
+                toks ~= Token(Tok.op, line[start .. i]);
+                break;
+            case '<', '>':
+                i++;
+                if (i < n && line[i] == '=')
+                    i++;
+                toks ~= Token(Tok.op, line[start .. i]);
+                break;
+            default:
+                fail(ErrorKind.syntax);
+            }
+        }
     }
     return toks;
+}
+
+/// Resolve the escapes of a `str` token into UTF-8 text (SPEC §6.1).
+/// Throws `badUtf8` for an unpaired surrogate.
+string unescape(string raw) @safe pure
+{
+    // fast path: nothing to resolve
+    bool plain = true;
+    foreach (char c; raw)
+        if (c == '\\')
+        {
+            plain = false;
+            break;
+        }
+    if (plain)
+        return raw;
+
+    Appender!string o;
+    size_t i = 0;
+    uint hex4(size_t at)
+    {
+        uint v = 0;
+        foreach (k; 0 .. 4)
+        {
+            immutable c = raw[at + k];
+            v = v * 16 + (isDigit(c) ? c - '0' : (c | 0x20) - 'a' + 10);
+        }
+        return v;
+    }
+
+    while (i < raw.length)
+    {
+        immutable c = raw[i];
+        if (c != '\\')
+        {
+            o.put(c);
+            i++;
+            continue;
+        }
+        immutable e = raw[i + 1];
+        i += 2;
+        switch (e)
+        {
+        case '"':
+            o.put('"');
+            break;
+        case '\\':
+            o.put('\\');
+            break;
+        case '/':
+            o.put('/');
+            break;
+        case 'b':
+            o.put('\b');
+            break;
+        case 'f':
+            o.put('\f');
+            break;
+        case 'n':
+            o.put('\n');
+            break;
+        case 'r':
+            o.put('\r');
+            break;
+        case 't':
+            o.put('\t');
+            break;
+        default: // 'u'
+            uint cp = hex4(i);
+            i += 4;
+            if (cp >= 0xD800 && cp <= 0xDBFF)
+            {
+                if (i + 5 < raw.length && raw[i] == '\\' && raw[i + 1] == 'u')
+                {
+                    immutable lo = hex4(i + 2);
+                    if (lo < 0xDC00 || lo > 0xDFFF)
+                        fail(ErrorKind.badUtf8);
+                    i += 6;
+                    cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
+                }
+                else
+                    fail(ErrorKind.badUtf8);
+            }
+            else if (cp >= 0xDC00 && cp <= 0xDFFF)
+                fail(ErrorKind.badUtf8);
+            putUtf8(o, cp);
+        }
+    }
+    return o[];
+}
+
+private void putUtf8(ref Appender!string o, uint cp) @safe pure
+{
+    if (cp < 0x80)
+        o.put(cast(char) cp);
+    else if (cp < 0x800)
+    {
+        o.put(cast(char)(0xC0 | (cp >> 6)));
+        o.put(cast(char)(0x80 | (cp & 0x3F)));
+    }
+    else if (cp < 0x10000)
+    {
+        o.put(cast(char)(0xE0 | (cp >> 12)));
+        o.put(cast(char)(0x80 | ((cp >> 6) & 0x3F)));
+        o.put(cast(char)(0x80 | (cp & 0x3F)));
+    }
+    else
+    {
+        o.put(cast(char)(0xF0 | (cp >> 18)));
+        o.put(cast(char)(0x80 | ((cp >> 12) & 0x3F)));
+        o.put(cast(char)(0x80 | ((cp >> 6) & 0x3F)));
+        o.put(cast(char)(0x80 | (cp & 0x3F)));
+    }
+}
+
+/// Resolve an `int_` token. Throws `intRange` when it does not fit 64 bits.
+long resolveInt(string text) @safe pure
+{
+    bool neg = text[0] == '-';
+    ulong v = 0;
+    foreach (char c; neg ? text[1 .. $] : text)
+    {
+        immutable d = c - '0';
+        if (v > (ulong.max - d) / 10)
+            fail(ErrorKind.intRange);
+        v = v * 10 + d;
+    }
+    if (neg)
+    {
+        if (v > 0x8000_0000_0000_0000UL)
+            fail(ErrorKind.intRange);
+        return cast(long)(0UL - v);
+    }
+    if (v > long.max)
+        fail(ErrorKind.intRange);
+    return cast(long) v;
+}
+
+@safe pure unittest
+{
+    auto t = lex(`put "a" {x:-1}  <=`);
+    assert(t.length == 8);
+    assert(t[1].kind == Tok.str && t[1].text == "a");
+    assert(t[5].kind == Tok.int_ && t[5].text == "-1");
+    assert(lex(`a<=b`).length == 3);
+    assert(lex(`a<=b`)[1].text == "<=");
+    assert(lex("  \t ").length == 0);
+    foreach (bad; [`007`, `-0`, `-`, `+1`, `=`, `!`, `"abc`, `"\x"`, `"\u00zz"`, `#`, "\"a\tb\""])
+    {
+        bool threw;
+        try
+            lex(bad);
+        catch (TesseraError e)
+            threw = e.kind == ErrorKind.syntax;
+        assert(threw, bad);
+    }
+    assert(lex(`0`)[0].text == "0");
+    assert(lex(`-5`)[0].kind == Tok.int_);
+}
+
+@safe pure unittest
+{
+    assert(unescape(`a\"b\\c\/d\n`) == "a\"b\\c/d\n");
+    assert(unescape(`é`) == "é");
+    assert(unescape(`😀`) == "😀");
+    assert(unescape(`\u0000`) == "\0");
+    foreach (bad; [`\ud800`, `\ud800x`, `\udc00`, `\ud800A`, `\ud800\ud800`])
+    {
+        bool threw;
+        try
+            unescape(bad);
+        catch (TesseraError e)
+            threw = e.kind == ErrorKind.badUtf8;
+        assert(threw, bad);
+    }
+    assert(resolveInt("-9223372036854775808") == long.min);
+    assert(resolveInt("9223372036854775807") == long.max);
+    bool threw;
+    try
+        resolveInt("9223372036854775808");
+    catch (TesseraError e)
+        threw = e.kind == ErrorKind.intRange;
+    assert(threw);
+    threw = false;
+    try
+        resolveInt("99999999999999999999999");
+    catch (TesseraError e)
+        threw = e.kind == ErrorKind.intRange;
+    assert(threw);
 }

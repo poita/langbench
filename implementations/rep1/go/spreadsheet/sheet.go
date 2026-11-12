@@ -1,234 +1,334 @@
 package spreadsheet
 
 import (
+	"fmt"
 	"slices"
-
-	"example.com/spreadsheet/cellref"
-	"example.com/spreadsheet/formula"
+	"strconv"
 )
 
-// cell is the per-cell record. Cells are addressed by dense int32 handles
-// into Sheet.cells; a handle is allocated the first time a cell is named
-// (by a command or by a formula) and never reused.
+type contentKind uint8
+
+const (
+	contentEmpty contentKind = iota
+	contentNumber
+	contentString
+	contentFormula
+)
+
+// cell is one node of the dependency graph.
 type cell struct {
-	key     int32 // cellref key
+	key     cellKey
 	content contentKind
-	val     Value
-	expr    *formula.Expr
-	selfDep bool    // the formula refers to this very cell
-	deps    []int32 // deduplicated cells this formula reads
-	rdeps   []int32 // cells whose formulas read this cell
+	num     float64  // contentNumber
+	str     string   // contentString
+	formula *formula // contentFormula
 
-	// Scratch state for recalculation; valid only when mark == Sheet.gen.
-	mark  uint32
-	tIdx  int32
-	tLow  int32
-	tPos  int32
-	onStk bool
-	// depStamp is used to deduplicate dependency lists.
-	depStamp uint32
+	value Value // current value; always up to date between commands
+
+	deps    []*cell            // cells this cell's formula reads (distinct)
+	rev     map[*cell]struct{} // cells whose formulas read this cell
+	selfRef bool               // formula reads the cell itself
+
+	// Scratch state for recalculation.
+	mark    uint32 // == Sheet.epoch when the cell is in the affected set
+	index   int32  // Tarjan index (0 = unvisited)
+	low     int32
+	onStack bool
 }
 
-// Sheet is a spreadsheet. The zero value is not usable; call New. A Sheet is
-// not safe for concurrent use.
+// Sheet is an in-memory spreadsheet. The zero value is not usable; call New.
 type Sheet struct {
-	cells  []cell
-	handle map[int32]int32 // cell key -> handle
-
-	nonEmpty int     // number of non-empty cells
-	order    []int32 // cached row-major order of non-empty cells
-	orderOK  bool
-
-	gen      uint32
-	depGen   uint32
-	affected []int32 // scratch: affected set A
-	work     []int32 // scratch: DFS / Tarjan call stack
-	stk      []int32 // scratch: Tarjan stack
-	scc      []int32 // scratch: current component
-	depBuf   []int32 // scratch: raw dependency list
-	scratch  []byte  // scratch: text building in '&'
-}
-
-// New returns an empty sheet.
-func New() *Sheet {
-	return &Sheet{handle: make(map[int32]int32)}
+	cells map[cellKey]*cell
+	epoch uint32
 }
 
 // Entry is a non-empty cell as reported by Dump.
 type Entry struct {
-	Name  string
+	Name  string // cell name, e.g. "B12"
 	Value Value
 }
 
-// handleFor returns the handle of the cell with the given key, creating the
-// cell if needed.
-func (s *Sheet) handleFor(key int32) int32 {
-	if h, ok := s.handle[key]; ok {
-		return h
-	}
-	h := int32(len(s.cells))
-	s.cells = append(s.cells, cell{key: key})
-	s.handle[key] = h
-	return h
+// New returns an empty sheet.
+func New() *Sheet {
+	return &Sheet{cells: make(map[cellKey]*cell)}
 }
 
-// Set replaces the content of the named cell and recalculates every cell
-// that depends on it. content is a number literal (-?[0-9]+(\.[0-9]+)?), a
-// string literal ("...", with no embedded quotes) or a formula (=...). If
-// the name or content is invalid, an error is returned and the sheet is not
-// modified.
-func (s *Sheet) Set(name, content string) error {
-	key, ok := cellref.ParseKey(name)
-	if !ok {
-		return ErrCellName
+// get returns the cell for key, creating an empty one if needed.
+func (s *Sheet) get(key cellKey) *cell {
+	c := s.cells[key]
+	if c == nil {
+		c = &cell{key: key}
+		s.cells[key] = c
 	}
-	pc, err := parseContent(content)
+	return c
+}
+
+func (s *Sheet) lookupName(name string) (*cell, error) {
+	key, ok := parseCellName(name)
+	if !ok {
+		return nil, fmt.Errorf("spreadsheet: invalid cell name %q", name)
+	}
+	return s.get(key), nil
+}
+
+// Set replaces the content of the named cell. content is interpreted as in
+// the command language: text starting with '=' is a formula, text enclosed in
+// double quotes is a string, and anything else must be a decimal number such
+// as 5, -3 or 4.50. On error the sheet is left unchanged.
+func (s *Sheet) Set(name, content string) error {
+	switch {
+	case len(content) > 0 && content[0] == '=':
+		return s.SetFormula(name, content[1:])
+	case len(content) >= 2 && content[0] == '"' && content[len(content)-1] == '"':
+		return s.SetString(name, content[1:len(content)-1])
+	}
+	if !isNumberLiteral(content) {
+		return fmt.Errorf("spreadsheet: invalid content %q", content)
+	}
+	f, err := strconv.ParseFloat(content, 64)
+	if err != nil {
+		return fmt.Errorf("spreadsheet: invalid number %q: %w", content, err)
+	}
+	return s.SetNumber(name, f)
+}
+
+// isNumberLiteral reports whether s matches -?[0-9]+(\.[0-9]+)?.
+func isNumberLiteral(s string) bool {
+	i := 0
+	if i < len(s) && s[i] == '-' {
+		i++
+	}
+	digits := func() bool {
+		start := i
+		for i < len(s) && isDigit(s[i]) {
+			i++
+		}
+		return i > start
+	}
+	if !digits() {
+		return false
+	}
+	if i < len(s) && s[i] == '.' {
+		i++
+		if !digits() {
+			return false
+		}
+	}
+	return i == len(s)
+}
+
+// SetNumber stores a number in the named cell. NaN and infinities are
+// rejected.
+func (s *Sheet) SetNumber(name string, f float64) error {
+	c, err := s.lookupName(name)
 	if err != nil {
 		return err
 	}
-	h := s.handleFor(int32(key))
-	s.unlink(h)
-	s.install(h, pc)
-	s.recalc(h)
+	if f != f || f > maxFloat || f < -maxFloat {
+		return fmt.Errorf("spreadsheet: number %v is not finite", f)
+	}
+	if f == 0 {
+		f = 0 // normalise -0
+	}
+	s.install(c, contentNumber, f, "", nil)
 	return nil
 }
 
-// Clear makes the named cell empty and recalculates its dependents.
+const maxFloat = 1.7976931348623157e308
+
+// SetString stores a string in the named cell.
+func (s *Sheet) SetString(name, text string) error {
+	c, err := s.lookupName(name)
+	if err != nil {
+		return err
+	}
+	s.install(c, contentString, 0, text, nil)
+	return nil
+}
+
+// SetFormula stores a formula in the named cell. src is the formula text
+// without the leading '='. A syntax error leaves the sheet unchanged. A
+// formula containing an invalid reference is accepted and evaluates to #REF!.
+func (s *Sheet) SetFormula(name, src string) error {
+	c, err := s.lookupName(name)
+	if err != nil {
+		return err
+	}
+	f, err := parseFormula(src, s.get)
+	if err != nil {
+		return fmt.Errorf("spreadsheet: formula in %s: %w", name, err)
+	}
+	s.install(c, contentFormula, 0, "", f)
+	return nil
+}
+
+// Clear empties the named cell.
 func (s *Sheet) Clear(name string) error {
-	key, ok := cellref.ParseKey(name)
-	if !ok {
-		return ErrCellName
+	c, err := s.lookupName(name)
+	if err != nil {
+		return err
 	}
-	h, exists := s.handle[int32(key)]
-	if !exists {
-		return nil // never set or referenced: already empty
-	}
-	if s.cells[h].content == contentEmpty {
-		return nil
-	}
-	s.unlink(h)
-	s.install(h, parsedContent{})
-	s.recalc(h)
+	s.install(c, contentEmpty, 0, "", nil)
 	return nil
 }
 
-// Get returns the value of the named cell. An empty cell yields the zero
-// (Empty) Value.
+// Get returns the current value of the named cell; an empty cell yields the
+// zero (empty) Value.
 func (s *Sheet) Get(name string) (Value, error) {
-	key, ok := cellref.ParseKey(name)
+	key, ok := parseCellName(name)
 	if !ok {
-		return Value{}, ErrCellName
+		return Value{}, fmt.Errorf("spreadsheet: invalid cell name %q", name)
 	}
-	if h, exists := s.handle[int32(key)]; exists {
-		return s.cells[h].val, nil
+	if c := s.cells[key]; c != nil {
+		return c.value, nil
 	}
 	return Value{}, nil
 }
 
-// Dump returns every non-empty cell in row-major order (ascending row, then
-// ascending column).
+// Dump returns every non-empty cell in row-major order.
 func (s *Sheet) Dump() []Entry {
-	order := s.sortedCells()
-	out := make([]Entry, len(order))
-	for i, h := range order {
-		c := &s.cells[h]
-		col, row := cellref.Split(int(c.key))
-		out[i] = Entry{Name: cellref.Name(col, row), Value: c.val}
+	var cells []*cell
+	for _, c := range s.cells {
+		if c.content != contentEmpty {
+			cells = append(cells, c)
+		}
+	}
+	slices.SortFunc(cells, func(a, b *cell) int { return int(a.key) - int(b.key) })
+	out := make([]Entry, len(cells))
+	for i, c := range cells {
+		out[i] = Entry{Name: c.key.String(), Value: c.value}
 	}
 	return out
 }
 
-// AppendDump appends the dump as lines of "<CELL> <value>\n" to dst. It is
-// equivalent to, but cheaper than, formatting the result of Dump.
-func (s *Sheet) AppendDump(dst []byte) []byte {
-	for _, h := range s.sortedCells() {
-		c := &s.cells[h]
-		col, row := cellref.Split(int(c.key))
-		dst = cellref.Append(dst, col, row)
-		dst = append(dst, ' ')
-		dst = c.val.AppendTo(dst)
-		dst = append(dst, '\n')
-	}
-	return dst
-}
-
-// sortedCells returns the handles of the non-empty cells in row-major order,
-// caching the result until the set of non-empty cells changes.
-func (s *Sheet) sortedCells() []int32 {
-	if s.orderOK {
-		return s.order
-	}
-	s.order = s.order[:0]
-	for h := range s.cells {
-		if s.cells[h].content != contentEmpty {
-			s.order = append(s.order, int32(h))
-		}
-	}
-	slices.SortFunc(s.order, func(a, b int32) int {
-		return int(s.cells[a].key) - int(s.cells[b].key)
-	})
-	s.orderOK = true
-	return s.order
-}
-
-// unlink removes cell h from the dependents lists of its current
-// dependencies and forgets its formula.
-func (s *Sheet) unlink(h int32) {
-	c := &s.cells[h]
+// install replaces c's content, rewires its dependency edges and recalculates
+// everything affected.
+func (s *Sheet) install(c *cell, kind contentKind, num float64, str string, f *formula) {
 	for _, d := range c.deps {
-		rd := s.cells[d].rdeps
-		for i, x := range rd {
-			if x == h {
-				last := len(rd) - 1
-				rd[i] = rd[last]
-				s.cells[d].rdeps = rd[:last]
-				break
+		delete(d.rev, c)
+	}
+	c.deps, c.selfRef, c.formula = nil, false, nil
+	c.content, c.num, c.str = kind, num, str
+	if f != nil {
+		c.formula = f
+		c.deps = f.deps
+		for _, d := range f.deps {
+			if d.rev == nil {
+				d.rev = make(map[*cell]struct{})
+			}
+			d.rev[c] = struct{}{}
+			if d == c {
+				c.selfRef = true
 			}
 		}
 	}
-	c.deps = c.deps[:0]
-	c.expr = nil
-	c.selfDep = false
+	s.recalc(c)
 }
 
-// install stores new content in cell h and links its dependencies. For a
-// literal the value is set immediately; for a formula the value is computed
-// by recalc.
-func (s *Sheet) install(h int32, pc parsedContent) {
-	if (s.cells[h].content == contentEmpty) != (pc.kind == contentEmpty) {
-		s.orderOK = false
-		if pc.kind == contentEmpty {
-			s.nonEmpty--
-		} else {
-			s.nonEmpty++
+// recalc re-evaluates the affected set of start: start plus every cell that
+// transitively reads it. Tarjan's algorithm over the subgraph induced by the
+// affected set emits strongly connected components dependencies-first, so each
+// non-cyclic cell is evaluated after everything it reads. The traversal is
+// iterative because dependency chains can be very deep.
+func (s *Sheet) recalc(start *cell) {
+	s.epoch++
+	epoch := s.epoch
+	affected := []*cell{start}
+	start.mark = epoch
+	for i := 0; i < len(affected); i++ {
+		for r := range affected[i].rev {
+			if r.mark != epoch {
+				r.mark = epoch
+				affected = append(affected, r)
+			}
 		}
 	}
-	switch pc.kind {
-	case contentEmpty:
-		c := &s.cells[h]
-		c.content, c.val = contentEmpty, Value{}
-	case contentLiteral:
-		c := &s.cells[h]
-		c.content, c.val = contentLiteral, pc.value
-	case contentFormula:
-		pc.expr.Resolve(s.handleFor) // may grow s.cells
-		s.depGen++
-		raw := pc.expr.Deps(s.depBuf[:0])
-		s.depBuf = raw
-		c := &s.cells[h]
-		c.content, c.expr = contentFormula, pc.expr
-		c.deps = c.deps[:0]
-		for _, d := range raw {
-			dc := &s.cells[d]
-			if dc.depStamp == s.depGen {
+	for _, c := range affected {
+		c.index, c.low, c.onStack = 0, 0, false
+	}
+
+	type frame struct {
+		c *cell
+		i int
+	}
+	var (
+		counter int32
+		stack   []*cell
+		calls   []frame
+	)
+	push := func(c *cell) {
+		counter++
+		c.index, c.low, c.onStack = counter, counter, true
+		stack = append(stack, c)
+		calls = append(calls, frame{c: c})
+	}
+	for _, root := range affected {
+		if root.index != 0 {
+			continue
+		}
+		push(root)
+		for len(calls) > 0 {
+			f := &calls[len(calls)-1]
+			c := f.c
+			if f.i < len(c.deps) {
+				d := c.deps[f.i]
+				f.i++
+				if d.mark != epoch {
+					continue
+				}
+				if d.index == 0 {
+					push(d)
+				} else if d.onStack && d.index < c.low {
+					c.low = d.index
+				}
 				continue
 			}
-			dc.depStamp = s.depGen
-			c.deps = append(c.deps, d)
-			dc.rdeps = append(dc.rdeps, h)
-			if d == h {
-				c.selfDep = true
+			calls = calls[:len(calls)-1]
+			if c.low == c.index {
+				top := len(stack) - 1
+				for stack[top] != c {
+					top--
+				}
+				comp := stack[top:]
+				stack = stack[:top]
+				for _, m := range comp {
+					m.onStack = false
+				}
+				if len(comp) > 1 || c.selfRef {
+					for _, m := range comp {
+						m.value = Error(ErrCycle)
+					}
+				} else {
+					c.value = c.evaluate()
+				}
+			}
+			if len(calls) > 0 {
+				p := calls[len(calls)-1].c
+				if c.low < p.low {
+					p.low = c.low
+				}
 			}
 		}
 	}
+}
+
+// evaluate computes the cell's value from its content and the stored values of
+// the cells it reads.
+func (c *cell) evaluate() Value {
+	switch c.content {
+	case contentNumber:
+		return Number(c.num)
+	case contentString:
+		return String(c.str)
+	case contentFormula:
+		if c.formula.badRef {
+			return Error(ErrRef)
+		}
+		v := c.formula.root.eval()
+		if v.kind == KindEmpty {
+			return Number(0)
+		}
+		return v
+	}
+	return Value{}
 }

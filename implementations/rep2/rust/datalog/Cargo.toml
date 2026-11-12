@@ -1,0 +1,18 @@
+[package]
+name = "datalog"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "A bottom-up Datalog engine with stratified negation and semi-naive evaluation"
+readme = "README.md"
+license = "MIT"
+keywords = ["datalog", "logic", "database", "query"]
+categories = ["command-line-utilities", "database-implementations"]
+
+[lib]
+name = "datalog"
+path = "src/lib.rs"
+
+[[bin]]
+name = "datalog"
+path = "src/main.rs"

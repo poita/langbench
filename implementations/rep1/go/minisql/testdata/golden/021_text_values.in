@@ -1,0 +1,23 @@
+
+CREATE TABLE t (id INTEGER, s TEXT);
+INSERT INTO t VALUES (1, ''), (2, ' '), (3, 'a'), (4, 'A'), (5, 'Z'), (6, 'z'), (7, '0'), (8, '9'), (9, '~'), (10, 'é'), (11, '中文'), (12, 'abc'), (13, 'ab'), (14, '  lead'), (15, 'trail  '), (16, NULL), (17, 'it''s'), (18, '😀'), (19, 'ÿ'), (20, 'Zz'), (21, '￥'), (22, ''), (23, '𐀀'), (24, '�'), (25, 'a😀'), (26, 'a￥');
+SELECT id, s FROM t ORDER BY s;
+SELECT id FROM t ORDER BY s DESC;
+SELECT s FROM t WHERE s = '';
+SELECT id FROM t WHERE s > 'a';
+SELECT id FROM t WHERE s < 'A';
+SELECT id FROM t WHERE s >= 'ab' AND s <= 'abc';
+SELECT MIN(s), MAX(s), COUNT(s) FROM t;
+SELECT id FROM t WHERE s > '￥' ORDER BY s;
+SELECT id FROM t WHERE s LIKE 'a_' ORDER BY s DESC;
+SELECT s, COUNT(*) FROM t WHERE s LIKE '_' GROUP BY s;
+SELECT id FROM t WHERE s = '0';
+SELECT id, s FROM t WHERE s LIKE 'z%';
+SELECT id, s FROM t WHERE s LIKE '%s';
+SELECT id FROM t WHERE s LIKE '  %';
+SELECT s FROM t WHERE id = 17 OR id = 15 OR id = 1;
+SELECT s = 'a', s = 'A', s < 'b' FROM t WHERE id = 4;
+UPDATE t SET s = '' WHERE s IS NULL;
+SELECT id, s FROM t WHERE s = '';
+UPDATE t SET s = NULL WHERE s = '';
+SELECT COUNT(*), COUNT(s) FROM t;

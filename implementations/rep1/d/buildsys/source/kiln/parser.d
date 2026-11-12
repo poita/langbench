@@ -1,854 +1,738 @@
-/// KBL parser: logical lines -> statements and expressions.
+/**
+ * The KBL parser: classifies logical lines, tracks the block stack and parses
+ * expressions with precedence climbing.
+ */
 module kiln.parser;
 
 import kiln.ast;
 import kiln.errors;
 import kiln.lexer;
+import kiln.value : Value;
 
-/// Parses the build file `text` (named `file` in error messages) into statements.
+/// Parses the build file `path` whose text is `source`.
 ///
-/// Throws `KilnError` (`E_PARSE`) with the line of the first offending logical
-/// line, or of the innermost unterminated block.
-Stmt[] parseSource(string file, string text) @safe
+/// Throws: `KilnError` of kind `E_PARSE` (detail `path:line`).
+BuildFile parseBuildFile(string path, string source)
 {
-    auto p = new Parser(file, lexSource(file, text));
-    return p.parseFile();
+    import std.conv : to;
+
+    try
+    {
+        auto lines = lexSource(source);
+        auto bf = new BuildFile;
+        bf.path = path;
+        bf.statements = parseLines(lines);
+        return bf;
+    }
+    catch (SyntaxError e)
+    {
+        throw new KilnError("E_PARSE", path ~ ":" ~ e.line.to!string);
+    }
 }
 
-private final class Parser
+private:
+
+enum FrameKind { root, when, each, rule, step }
+
+final class Frame
 {
-    string file;
-    LogicalLine[] lines;
-    size_t pos;
-    int curLine;
-    Token[] toks;
-    size_t tp, tend;
+    FrameKind kind;
+    Stmt stmt;
+    Stmt[] cur;
+    bool inOtherwise;
+    int headerLine;
+}
 
-    this(string file, LogicalLine[] lines) @safe
+Stmt[] parseLines(LogicalLine[] lines)
+{
+    Frame[] stack;
+    auto rootFrame = new Frame;
+    rootFrame.kind = FrameKind.root;
+    stack ~= rootFrame;
+
+    foreach (ref ll; lines)
     {
-        this.file = file;
-        this.lines = lines;
-    }
-
-    KilnError fail() @safe
-    {
-        return parseError(file, curLine);
-    }
-
-    // ---------------------------------------------------------------- blocks
-
-    Stmt[] parseFile() @safe
-    {
-        auto stmts = parseBody(0, false);
-        return stmts;
-    }
-
-    private bool isSymTok(size_t i, string s) const @safe
-    {
-        return toks[i].kind == TokKind.sym && toks[i].text == s;
-    }
-
-    private bool isIdentTok(size_t i, string s) const @safe
-    {
-        return toks[i].kind == TokKind.ident && toks[i].text == s;
-    }
-
-    /// Parses statements until a terminator line (left unconsumed) or end of file.
-    Stmt[] parseBody(int headerLine, bool nested) @safe
-    {
-        Stmt[] result;
-        while (pos < lines.length)
+        try
         {
-            auto ln = &lines[pos];
-            curLine = ln.line;
-            toks = ln.tokens;
-            tp = 0;
-            tend = toks.length;
-            if (isSymTok(0, "}"))
+            handleLine(ll, stack);
+        }
+        catch (SyntaxError e)
+        {
+            e.line = ll.line;
+            throw e;
+        }
+    }
+    if (stack.length > 1)
+        throw new SyntaxError(stack[$ - 1].headerLine, "unterminated block");
+    return rootFrame.cur;
+}
+
+void closeBranch(Frame f)
+{
+    f.stmt.bodies ~= f.cur;
+    f.cur = null;
+}
+
+void handleLine(ref LogicalLine ll, ref Frame[] stack)
+{
+    auto toks = ll.tokens;
+    auto top = stack[$ - 1];
+    if (toks[0].isSym("}"))
+    {
+        if (toks.length == 1)
+        {
+            if (stack.length == 1)
+                throw new SyntaxError(ll.line);
+            auto f = stack[$ - 1];
+            stack = stack[0 .. $ - 1];
+            auto parent = stack[$ - 1];
+            final switch (f.kind)
             {
-                if (!nested)
-                    throw fail();
-                return result;
+            case FrameKind.when:
+                closeBranch(f);
+                parent.cur ~= f.stmt;
+                break;
+            case FrameKind.each:
+            case FrameKind.rule:
+                f.stmt.body_ = f.cur;
+                parent.cur ~= f.stmt;
+                break;
+            case FrameKind.step:
+                parent.cur ~= f.stmt;
+                break;
+            case FrameKind.root:
+                assert(false);
             }
-            if (isSymTok(tend - 1, "{"))
-            {
-                result ~= parseHeader();
-                continue;
-            }
-            result ~= parseSimple();
-            ++pos;
-        }
-        if (nested)
-            throw parseError(file, headerLine);
-        return result;
-    }
-
-    /// At a terminator line: require exactly `}` and consume it.
-    private void closeBlock() @safe
-    {
-        auto ln = &lines[pos];
-        curLine = ln.line;
-        if (ln.tokens.length != 1)
-            throw fail();
-        ++pos;
-    }
-
-    private Stmt parseHeader() @safe
-    {
-        const line = curLine;
-        tend = toks.length - 1; // exclude the trailing '{'
-        if (tend == 0 || toks[0].kind != TokKind.ident)
-            throw fail();
-        switch (toks[0].text)
-        {
-        case "step":
-            if (tend != 1)
-                throw fail();
-            return parseStepBlock(line);
-        case "when":
-            return parseWhen(line);
-        case "each":
-            return parseEach(line);
-        case "rule":
-            return parseRule(line);
-        default:
-            throw fail();
-        }
-    }
-
-    private Stmt parseWhen(int line) @safe
-    {
-        auto s = new Stmt;
-        s.kind = StmtKind.when;
-        s.line = line;
-        tp = 1;
-        auto cond = parseExpr();
-        if (tp != tend)
-            throw fail();
-        ++pos;
-        int headerLine = line;
-        while (true)
-        {
-            auto body_ = parseBody(headerLine, true);
-            s.conds ~= cond;
-            s.bodies ~= body_;
-            // at a terminator
-            auto ln = &lines[pos];
-            curLine = ln.line;
-            toks = ln.tokens;
-            if (toks.length == 1)
-            {
-                ++pos;
-                return s;
-            }
-            if (isIdentTok(1, "elsewhen") && isSymTok(toks.length - 1, "{") && toks.length >= 4)
-            {
-                tp = 2;
-                tend = toks.length - 1;
-                cond = parseExpr();
-                if (tp != tend)
-                    throw fail();
-                headerLine = curLine;
-                ++pos;
-                continue;
-            }
-            if (isIdentTok(1, "otherwise") && toks.length == 3 && isSymTok(2, "{"))
-            {
-                headerLine = curLine;
-                ++pos;
-                s.otherwise = parseBody(headerLine, true);
-                s.hasOtherwise = true;
-                closeBlock();
-                return s;
-            }
-            throw fail();
-        }
-    }
-
-    private Stmt parseEach(int line) @safe
-    {
-        auto s = new Stmt;
-        s.kind = StmtKind.each;
-        s.line = line;
-        tp = 1;
-        string n1 = expectName();
-        string n2;
-        if (tp < tend && isSymTok(tp, ","))
-        {
-            ++tp;
-            n2 = expectName();
-            if (n1 == n2)
-                throw fail();
-            s.indexName = n1;
-            s.name = n2;
-        }
-        else
-            s.name = n1;
-        if (tp >= tend || !isIdentTok(tp, "in"))
-            throw fail();
-        ++tp;
-        s.expr = parseExpr();
-        if (tp != tend)
-            throw fail();
-        ++pos;
-        s.body = parseBody(line, true);
-        closeBlock();
-        return s;
-    }
-
-    private Stmt parseRule(int line) @safe
-    {
-        auto s = new Stmt;
-        s.kind = StmtKind.rule;
-        s.line = line;
-        tp = 1;
-        s.name = expectName();
-        if (tp >= tend || !isSymTok(tp, "("))
-            throw fail();
-        ++tp;
-        bool sawDefault = false;
-        if (tp < tend && isSymTok(tp, ")"))
-        {
-            ++tp;
-        }
-        else
-        {
-            while (true)
-            {
-                Param prm;
-                prm.name = expectName();
-                foreach (ref q; s.params)
-                    if (q.name == prm.name)
-                        throw fail();
-                if (tp < tend && isSymTok(tp, "="))
-                {
-                    ++tp;
-                    prm.def = parseExpr();
-                    sawDefault = true;
-                }
-                else if (sawDefault)
-                    throw fail();
-                s.params ~= prm;
-                if (tp < tend && isSymTok(tp, ","))
-                {
-                    ++tp;
-                    if (tp < tend && isSymTok(tp, ")"))
-                    {
-                        ++tp;
-                        break;
-                    }
-                    continue;
-                }
-                if (tp < tend && isSymTok(tp, ")"))
-                {
-                    ++tp;
-                    break;
-                }
-                throw fail();
-            }
-        }
-        if (tp != tend)
-            throw fail();
-        ++pos;
-        s.body = parseBody(line, true);
-        closeBlock();
-        return s;
-    }
-
-    private Stmt parseStepBlock(int line) @safe
-    {
-        auto s = new Stmt;
-        s.kind = StmtKind.step;
-        s.line = line;
-        ++pos;
-        while (true)
-        {
-            if (pos >= lines.length)
-                throw parseError(file, line);
-            auto ln = &lines[pos];
-            curLine = ln.line;
-            toks = ln.tokens;
-            tp = 0;
-            tend = toks.length;
-            if (isSymTok(0, "}"))
-            {
-                closeBlock();
-                return s;
-            }
-            if (isSymTok(tend - 1, "{"))
-                throw fail();
-            s.fields ~= parseField();
-            ++pos;
-        }
-    }
-
-    private StepField parseField() @safe
-    {
-        StepField f;
-        if (toks[0].kind != TokKind.ident)
-            throw fail();
-        switch (toks[0].text)
-        {
-        case "out":
-            f.kind = FieldKind.out_;
-            break;
-        case "in":
-            f.kind = FieldKind.in_;
-            break;
-        case "after":
-            f.kind = FieldKind.after;
-            break;
-        case "cost":
-            f.kind = FieldKind.cost;
-            break;
-        case "depfile":
-            f.kind = FieldKind.depfile;
-            break;
-        case "cmd":
-            f.kind = FieldKind.cmd;
-            break;
-        default:
-            throw fail();
-        }
-        tp = 1;
-        if (f.kind == FieldKind.cmd)
-        {
-            if (tp >= tend || toks[tp].kind != TokKind.ident)
-                throw fail();
-            f.cmdName = toks[tp].text;
-            ++tp;
-            if (tp >= tend || !isSymTok(tp, "("))
-                throw fail();
-            ++tp;
-            f.args = parseArgList();
-        }
-        else
-            f.expr = parseExpr();
-        if (tp != tend)
-            throw fail();
-        return f;
-    }
-
-    // ------------------------------------------------------ simple statements
-
-    private string expectName() @safe
-    {
-        if (tp >= tend || toks[tp].kind != TokKind.ident || isReserved(toks[tp].text))
-            throw fail();
-        return toks[tp++].text;
-    }
-
-    private Stmt parseSimple() @safe
-    {
-        auto s = new Stmt;
-        s.line = curLine;
-        if (toks[0].kind != TokKind.ident)
-            throw fail();
-        tp = 1;
-        switch (toks[0].text)
-        {
-        case "let":
-        case "set":
-            s.kind = toks[0].text == "let" ? StmtKind.let : StmtKind.set;
-            s.name = expectName();
-            if (tp >= tend || !isSymTok(tp, "="))
-                throw fail();
-            ++tp;
-            s.expr = parseExpr();
-            break;
-        case "phony":
-            s.kind = StmtKind.phony;
-            s.name = expectName();
-            if (tp >= tend || !isSymTok(tp, "="))
-                throw fail();
-            ++tp;
-            s.expr = parseExpr();
-            break;
-        case "include":
-            s.kind = StmtKind.include;
-            s.expr = parseExpr();
-            break;
-        case "abort":
-            s.kind = StmtKind.abort;
-            s.expr = parseExpr();
-            break;
-        case "default":
-            s.kind = StmtKind.default_;
-            s.expr = parseExpr();
-            break;
-        case "use":
-            s.kind = StmtKind.use;
-            if (tp >= tend || toks[tp].kind != TokKind.ident)
-                throw fail();
-            s.name = toks[tp++].text;
-            if (tp >= tend || !isSymTok(tp, "("))
-                throw fail();
-            ++tp;
-            parseUseArgs(s);
-            break;
-        default:
-            throw fail();
-        }
-        if (tp != tend)
-            throw fail();
-        return s;
-    }
-
-    private void parseUseArgs(Stmt s) @safe
-    {
-        if (tp < tend && isSymTok(tp, ")"))
-        {
-            ++tp;
             return;
         }
+        if (top.kind != FrameKind.when || top.inOtherwise || !toks[$ - 1].isSym("{"))
+            throw new SyntaxError(ll.line);
+        if (toks[1].isIdent("elsewhen"))
+        {
+            auto p = new Parser(toks[2 .. $ - 1]);
+            auto cond = p.parseExprComplete();
+            closeBranch(top);
+            top.stmt.conds ~= cond;
+            top.headerLine = ll.line;
+            return;
+        }
+        if (toks[1].isIdent("otherwise") && toks.length == 3)
+        {
+            closeBranch(top);
+            top.stmt.hasOtherwise = true;
+            top.inOtherwise = true;
+            top.headerLine = ll.line;
+            return;
+        }
+        throw new SyntaxError(ll.line);
+    }
+
+    if (toks[$ - 1].isSym("{"))
+    {
+        if (top.kind == FrameKind.step)
+            throw new SyntaxError(ll.line);
+        auto f = new Frame;
+        f.headerLine = ll.line;
+        auto s = new Stmt;
+        s.line = ll.line;
+        f.stmt = s;
+        auto head = toks[0 .. $ - 1];
+        if (head.length == 0)
+            throw new SyntaxError(ll.line);
+        if (head.length == 1 && head[0].isIdent("step"))
+        {
+            s.kind = Stmt.Kind.step;
+            f.kind = FrameKind.step;
+        }
+        else if (head[0].isIdent("when"))
+        {
+            s.kind = Stmt.Kind.when;
+            f.kind = FrameKind.when;
+            s.conds ~= (new Parser(head[1 .. $])).parseExprComplete();
+        }
+        else if (head[0].isIdent("each"))
+        {
+            s.kind = Stmt.Kind.each;
+            f.kind = FrameKind.each;
+            parseEachHeader(head, s);
+        }
+        else if (head[0].isIdent("rule"))
+        {
+            s.kind = Stmt.Kind.rule;
+            f.kind = FrameKind.rule;
+            parseRuleHeader(head, s);
+        }
+        else
+            throw new SyntaxError(ll.line);
+        stack ~= f;
+        return;
+    }
+
+    if (top.kind == FrameKind.step)
+        top.stmt.fields ~= parseStepField(toks);
+    else
+        top.cur ~= parseSimple(ll.line, toks);
+}
+
+void parseEachHeader(Token[] head, Stmt s)
+{
+    // each IDENT [, IDENT] in EXPR
+    size_t i = 1;
+    string nameOf(size_t k)
+    {
+        if (k >= head.length || head[k].kind != Token.Kind.ident || isReserved(head[k].text))
+            throw new SyntaxError;
+        return head[k].text;
+    }
+
+    const first = nameOf(i++);
+    string second = null;
+    if (i < head.length && head[i].isSym(","))
+    {
+        ++i;
+        second = nameOf(i++);
+    }
+    if (i >= head.length || !head[i].isIdent("in"))
+        throw new SyntaxError;
+    ++i;
+    if (second !is null)
+    {
+        if (first == second)
+            throw new SyntaxError;
+        s.indexName = first;
+        s.name = second;
+    }
+    else
+        s.name = first;
+    s.expr = (new Parser(head[i .. $])).parseExprComplete();
+}
+
+void parseRuleHeader(Token[] head, Stmt s)
+{
+    // rule IDENT ( [params] )
+    if (head.length < 4 || head[1].kind != Token.Kind.ident || isReserved(head[1].text) || !head[2].isSym("("))
+        throw new SyntaxError;
+    s.name = head[1].text;
+    auto p = new Parser(head[3 .. $]);
+    bool sawDefault = false;
+    if (p.peekSym(")"))
+        p.advance();
+    else
+    {
         while (true)
         {
-            if (tp + 1 < tend && toks[tp].kind == TokKind.ident && !isReserved(toks[tp].text)
-                    && isSymTok(tp + 1, "="))
+            auto t = p.next();
+            if (t.kind != Token.Kind.ident || isReserved(t.text))
+                throw new SyntaxError;
+            foreach (ref q; s.params)
+                if (q.name == t.text)
+                    throw new SyntaxError;
+            Param prm;
+            prm.name = t.text;
+            if (p.peekSym("="))
             {
-                KwArg kw;
-                kw.name = toks[tp].text;
-                tp += 2;
-                kw.value = parseExpr();
-                s.kwArgs ~= kw;
+                p.advance();
+                prm.defaultValue = p.parseExpr();
+                sawDefault = true;
             }
-            else
+            else if (sawDefault)
+                throw new SyntaxError;
+            s.params ~= prm;
+            if (p.peekSym(","))
             {
-                if (s.kwArgs.length)
-                    throw fail();
-                s.posArgs ~= parseExpr();
-            }
-            if (tp < tend && isSymTok(tp, ","))
-            {
-                ++tp;
-                if (tp < tend && isSymTok(tp, ")"))
+                p.advance();
+                if (p.peekSym(")"))
                 {
-                    ++tp;
-                    return;
+                    p.advance();
+                    break;
                 }
                 continue;
             }
-            if (tp < tend && isSymTok(tp, ")"))
-            {
-                ++tp;
-                return;
-            }
-            throw fail();
+            p.expectSym(")");
+            break;
         }
     }
+    p.expectEnd();
+}
 
-    // ------------------------------------------------------------ expressions
+Stmt parseSimple(int line, Token[] toks)
+{
+    auto s = new Stmt;
+    s.line = line;
+    if (toks[0].kind != Token.Kind.ident)
+        throw new SyntaxError;
+    auto p = new Parser(toks[1 .. $]);
 
-    /// Parses `[expr {, expr} [,]] )` after the opening parenthesis has been consumed.
-    private Expr[] parseArgList() @safe
+    string bindName()
     {
-        Expr[] args;
-        if (tp < tend && isSymTok(tp, ")"))
+        auto t = p.next();
+        if (t.kind != Token.Kind.ident || isReserved(t.text))
+            throw new SyntaxError;
+        return t.text;
+    }
+
+    switch (toks[0].text)
+    {
+    case "let":
+    case "set":
+    case "phony":
+        s.kind = toks[0].text == "let" ? Stmt.Kind.let : (toks[0].text == "set" ? Stmt.Kind.set : Stmt.Kind.phony);
+        s.name = bindName();
+        p.expectSym("=");
+        s.expr = p.parseExprComplete();
+        break;
+    case "include":
+        s.kind = Stmt.Kind.include;
+        s.expr = p.parseExprComplete();
+        break;
+    case "abort":
+        s.kind = Stmt.Kind.abort;
+        s.expr = p.parseExprComplete();
+        break;
+    case "default":
+        s.kind = Stmt.Kind.default_;
+        s.expr = p.parseExprComplete();
+        break;
+    case "use":
+        s.kind = Stmt.Kind.use;
+        auto t = p.next();
+        if (t.kind != Token.Kind.ident)
+            throw new SyntaxError;
+        s.name = t.text;
+        p.expectSym("(");
+        s.useArgs = p.parseUseArgs();
+        p.expectEnd();
+        break;
+    default:
+        throw new SyntaxError;
+    }
+    return s;
+}
+
+StepField parseStepField(Token[] toks)
+{
+    StepField f;
+    if (toks[0].kind != Token.Kind.ident)
+        throw new SyntaxError;
+    auto p = new Parser(toks[1 .. $]);
+    switch (toks[0].text)
+    {
+    case "out": f.kind = StepField.Kind.out_; break;
+    case "in": f.kind = StepField.Kind.in_; break;
+    case "after": f.kind = StepField.Kind.after; break;
+    case "cost": f.kind = StepField.Kind.cost; break;
+    case "depfile": f.kind = StepField.Kind.depfile; break;
+    case "cmd":
+        f.kind = StepField.Kind.cmd;
+        auto t = p.next();
+        if (t.kind != Token.Kind.ident)
+            throw new SyntaxError;
+        f.cmdName = t.text;
+        p.expectSym("(");
+        f.cmdArgs = p.parseExprList(")");
+        p.expectEnd();
+        return f;
+    default:
+        throw new SyntaxError;
+    }
+    f.expr = p.parseExprComplete();
+    return f;
+}
+
+/// Recursive-descent expression parser over one token slice.
+final class Parser
+{
+    private Token[] t;
+    private size_t pos;
+
+    this(Token[] tokens) { t = tokens; }
+
+    bool atEnd() const { return pos >= t.length; }
+
+    Token next()
+    {
+        if (pos >= t.length)
+            throw new SyntaxError;
+        return t[pos++];
+    }
+
+    void advance() { ++pos; }
+
+    bool peekSym(string s) const { return pos < t.length && t[pos].isSym(s); }
+
+    void expectSym(string s)
+    {
+        if (!peekSym(s))
+            throw new SyntaxError;
+        ++pos;
+    }
+
+    void expectEnd()
+    {
+        if (pos != t.length)
+            throw new SyntaxError;
+    }
+
+    Expr parseExprComplete()
+    {
+        auto e = parseExpr();
+        expectEnd();
+        return e;
+    }
+
+    Expr parseExpr() { return parsePipe(); }
+
+    /// Parses `expr {, expr} [,]` up to and including the closing symbol `close`.
+    Expr[] parseExprList(string close)
+    {
+        Expr[] r;
+        if (peekSym(close))
         {
-            ++tp;
-            return args;
+            ++pos;
+            return r;
         }
         while (true)
         {
-            args ~= parseExpr();
-            if (tp < tend && isSymTok(tp, ","))
+            r ~= parseExpr();
+            if (peekSym(","))
             {
-                ++tp;
-                if (tp < tend && isSymTok(tp, ")"))
+                ++pos;
+                if (peekSym(close))
                 {
-                    ++tp;
-                    return args;
+                    ++pos;
+                    return r;
                 }
                 continue;
             }
-            if (tp < tend && isSymTok(tp, ")"))
+            expectSym(close);
+            return r;
+        }
+    }
+
+    /// Parses the arguments of a `use` statement up to and including `)`.
+    UseArg[] parseUseArgs()
+    {
+        UseArg[] r;
+        bool sawKeyword = false;
+        if (peekSym(")"))
+        {
+            ++pos;
+            return r;
+        }
+        while (true)
+        {
+            UseArg a;
+            if (pos + 1 < t.length && t[pos].kind == Token.Kind.ident && !isReserved(t[pos].text)
+                && t[pos + 1].isSym("="))
             {
-                ++tp;
-                return args;
+                a.keyword = t[pos].text;
+                pos += 2;
+                sawKeyword = true;
             }
-            throw fail();
-        }
-    }
-
-    private bool atSym(string s) const @safe
-    {
-        return tp < tend && toks[tp].kind == TokKind.sym && toks[tp].text == s;
-    }
-
-    Expr parseExpr() @safe
-    {
-        auto e = parseOr();
-        while (atSym("|>"))
-        {
-            ++tp;
-            if (tp >= tend || toks[tp].kind != TokKind.ident)
-                throw fail();
-            auto c = new Expr;
-            c.kind = ExprKind.call;
-            c.name = toks[tp++].text;
-            c.kids = [e];
-            if (atSym("("))
+            else if (sawKeyword)
+                throw new SyntaxError;
+            a.value = parseExpr();
+            r ~= a;
+            if (peekSym(","))
             {
-                ++tp;
-                c.kids ~= parseArgList();
+                ++pos;
+                if (peekSym(")"))
+                {
+                    ++pos;
+                    return r;
+                }
+                continue;
             }
-            e = c;
+            expectSym(")");
+            return r;
         }
-        return e;
     }
 
-    private Expr parseOr() @safe
+    private Expr parsePipe()
     {
-        auto e = parseAnd();
-        while (atSym("||"))
+        auto lhs = parseBinary(0);
+        while (peekSym("|>"))
         {
-            ++tp;
-            auto r = parseAnd();
-            e = binary(ExprKind.logicalOr, Op.add, e, r);
-        }
-        return e;
-    }
-
-    private Expr parseAnd() @safe
-    {
-        auto e = parseCmp();
-        while (atSym("&&"))
-        {
-            ++tp;
-            auto r = parseCmp();
-            e = binary(ExprKind.logicalAnd, Op.add, e, r);
-        }
-        return e;
-    }
-
-    private static Expr binary(ExprKind k, Op op, Expr l, Expr r) @safe
-    {
-        auto e = new Expr;
-        e.kind = k;
-        e.op = op;
-        e.kids = [l, r];
-        return e;
-    }
-
-    private Expr parseCmp() @safe
-    {
-        auto e = parseCat();
-        while (tp < tend && toks[tp].kind == TokKind.sym)
-        {
-            Op op;
-            switch (toks[tp].text)
+            ++pos;
+            auto name = next();
+            if (name.kind != Token.Kind.ident)
+                throw new SyntaxError;
+            auto call = new Expr;
+            call.kind = Expr.Kind.call;
+            call.name = name.text;
+            call.args = [lhs];
+            if (peekSym("("))
             {
-            case "==":
-                op = Op.eq;
-                break;
-            case "!=":
-                op = Op.ne;
-                break;
-            case "<":
-                op = Op.lt;
-                break;
-            case "<=":
-                op = Op.le;
-                break;
-            case ">":
-                op = Op.gt;
-                break;
-            case ">=":
-                op = Op.ge;
-                break;
-            default:
-                return e;
+                ++pos;
+                call.args ~= parseExprList(")");
             }
-            ++tp;
-            e = binary(ExprKind.binary, op, e, parseCat());
+            lhs = call;
         }
-        return e;
+        return lhs;
     }
 
-    private Expr parseCat() @safe
+    private static immutable string[][] levels = [
+        ["||"], ["&&"], ["==", "!=", "<", "<=", ">", ">="], ["++"], ["~"], ["+", "-"], ["*", "/", "%"],
+    ];
+
+    private Expr parseBinary(size_t level)
     {
-        auto e = parseStr();
-        while (atSym("++"))
+        if (level == levels.length)
+            return parseUnary();
+        auto lhs = parseBinary(level + 1);
+        while (pos < t.length && t[pos].kind == Token.Kind.symbol && isOpAt(level, t[pos].text))
         {
-            ++tp;
-            e = binary(ExprKind.binary, Op.concatList, e, parseStr());
+            const op = t[pos++].text;
+            auto rhs = parseBinary(level + 1);
+            auto b = new Expr;
+            b.kind = Expr.Kind.binary;
+            b.name = op;
+            b.args = [lhs, rhs];
+            lhs = b;
         }
-        return e;
+        return lhs;
     }
 
-    private Expr parseStr() @safe
+    private static bool isOpAt(size_t level, string s)
     {
-        auto e = parseAdd();
-        while (atSym("~"))
-        {
-            ++tp;
-            e = binary(ExprKind.binary, Op.concatStr, e, parseAdd());
-        }
-        return e;
+        foreach (o; levels[level])
+            if (o == s)
+                return true;
+        return false;
     }
 
-    private Expr parseAdd() @safe
+    private Expr parseUnary()
     {
-        auto e = parseMul();
-        while (atSym("+") || atSym("-"))
+        if (peekSym("!") || peekSym("-"))
         {
-            const op = toks[tp].text == "+" ? Op.add : Op.sub;
-            ++tp;
-            e = binary(ExprKind.binary, op, e, parseMul());
-        }
-        return e;
-    }
-
-    private Expr parseMul() @safe
-    {
-        auto e = parseUnary();
-        while (atSym("*") || atSym("/") || atSym("%"))
-        {
-            const t = toks[tp].text;
-            const op = t == "*" ? Op.mul : (t == "/" ? Op.div : Op.mod);
-            ++tp;
-            e = binary(ExprKind.binary, op, e, parseUnary());
-        }
-        return e;
-    }
-
-    private Expr parseUnary() @safe
-    {
-        if (atSym("!") || atSym("-"))
-        {
-            auto e = new Expr;
-            e.kind = ExprKind.unary;
-            e.op = toks[tp].text == "!" ? Op.not : Op.neg;
-            ++tp;
-            e.kids = [parseUnary()];
-            return e;
+            const op = t[pos++].text;
+            auto u = new Expr;
+            u.kind = Expr.Kind.unary;
+            u.name = op;
+            u.args = [parseUnary()];
+            return u;
         }
         return parsePostfix();
     }
 
-    private Expr parsePostfix() @safe
+    private Expr parsePostfix()
     {
         auto e = parsePrimary();
         while (true)
         {
-            if (atSym("["))
+            if (peekSym("["))
             {
-                ++tp;
-                auto idx = parseExpr();
-                if (!atSym("]"))
-                    throw fail();
-                ++tp;
-                auto n = new Expr;
-                n.kind = ExprKind.index;
-                n.kids = [e, idx];
-                e = n;
+                ++pos;
+                auto i = parseExpr();
+                expectSym("]");
+                auto x = new Expr;
+                x.kind = Expr.Kind.index;
+                x.args = [e, i];
+                e = x;
             }
-            else if (atSym("("))
-                throw fail(); // calls apply only to bare identifiers
+            else if (peekSym("("))
+                throw new SyntaxError; // a call applies only to an identifier
             else
                 return e;
         }
     }
 
-    private Expr parsePrimary() @safe
+    private Expr parsePrimary()
     {
-        if (tp >= tend)
-            throw fail();
-        const t = toks[tp];
+        auto tok = next();
         auto e = new Expr;
-        switch (t.kind)
+        final switch (tok.kind)
         {
-        case TokKind.integer:
-            ++tp;
-            e.kind = ExprKind.intLit;
-            e.ival = t.value;
+        case Token.Kind.integer:
+            e.kind = Expr.Kind.literal;
+            ulong v = 0;
+            foreach (char c; tok.text)
+                v = v * 10 + (c - '0');
+            e.lit = Value.ofInt(cast(long) v);
             return e;
-        case TokKind.str:
-            ++tp;
-            return parseStringLiteral(t);
-        case TokKind.ident:
-            ++tp;
-            if (atSym("("))
+        case Token.Kind.str:
+            return parseStringLiteral(tok.text);
+        case Token.Kind.ident:
+            if (peekSym("("))
             {
-                ++tp;
-                e.kind = ExprKind.call;
-                e.name = t.text;
-                e.kids = parseArgList();
+                ++pos;
+                e.kind = Expr.Kind.call;
+                e.name = tok.text;
+                e.args = parseExprList(")");
                 return e;
             }
-            if (t.text == "true" || t.text == "false")
+            if (tok.text == "true" || tok.text == "false")
             {
-                e.kind = ExprKind.boolLit;
-                e.ival = t.text == "true";
+                e.kind = Expr.Kind.literal;
+                e.lit = Value.ofBool(tok.text == "true");
                 return e;
             }
-            if (isReserved(t.text))
-                throw fail();
-            e.kind = ExprKind.variable;
-            e.name = t.text;
+            if (isReserved(tok.text))
+                throw new SyntaxError;
+            e.kind = Expr.Kind.variable;
+            e.name = tok.text;
             return e;
-        case TokKind.sym:
-            if (t.text == "(")
+        case Token.Kind.symbol:
+            if (tok.text == "(")
             {
-                ++tp;
                 auto inner = parseExpr();
-                if (!atSym(")"))
-                    throw fail();
-                ++tp;
+                expectSym(")");
                 return inner;
             }
-            if (t.text == "[")
+            if (tok.text == "[")
             {
-                ++tp;
-                e.kind = ExprKind.list;
-                if (atSym("]"))
-                {
-                    ++tp;
-                    return e;
-                }
-                while (true)
-                {
-                    e.kids ~= parseExpr();
-                    if (atSym(","))
-                    {
-                        ++tp;
-                        if (atSym("]"))
-                        {
-                            ++tp;
-                            return e;
-                        }
-                        continue;
-                    }
-                    if (atSym("]"))
-                    {
-                        ++tp;
-                        return e;
-                    }
-                    throw fail();
-                }
+                e.kind = Expr.Kind.list;
+                e.args = parseExprList("]");
+                return e;
             }
-            throw fail();
-        default:
-            throw fail();
+            throw new SyntaxError;
+        }
+    }
+}
+
+/// Parses a string-literal token (quotes included) into a literal or interpolation node.
+Expr parseStringLiteral(string raw)
+{
+    auto e = new Expr;
+    const content = raw[1 .. $ - 1];
+    if (raw[0] == '\'')
+    {
+        char[] buf;
+        size_t i = 0;
+        while (i < content.length)
+        {
+            buf ~= content[i];
+            i += (content[i] == '\'') ? 2 : 1;
+        }
+        e.kind = Expr.Kind.literal;
+        e.lit = Value.ofStr(buf.idup);
+        return e;
+    }
+
+    Expr.Part[] parts;
+    char[] lit;
+    void flush()
+    {
+        if (lit.length)
+        {
+            parts ~= Expr.Part(lit.idup, null);
+            lit = null;
         }
     }
 
-    // --------------------------------------------------------- string literals
-
-    private Expr parseStringLiteral(const Token t) @safe
+    size_t i = 0;
+    while (i < content.length)
     {
-        auto e = new Expr;
-        const body_ = t.text;
-        if (!t.dq)
+        const c = content[i];
+        if (c == '\\')
         {
-            char[] buf;
-            buf.reserve(body_.length);
-            size_t i = 0;
-            while (i < body_.length)
+            if (i + 1 >= content.length)
+                throw new SyntaxError;
+            switch (content[i + 1])
             {
-                buf ~= body_[i];
-                i += (body_[i] == '\'' && i + 1 < body_.length && body_[i + 1] == '\'') ? 2 : 1;
+            case '\\': lit ~= '\\'; break;
+            case '"': lit ~= '"'; break;
+            case 'n': lit ~= '\n'; break;
+            case 't': lit ~= '\t'; break;
+            case 'r': lit ~= '\r'; break;
+            case '0': lit ~= '\0'; break;
+            default: throw new SyntaxError;
             }
-            e.kind = ExprKind.strLit;
-            e.name = (() @trusted => cast(string) buf)();
-            return e;
+            i += 2;
         }
-        char[] buf;
-        StrPart[] parts;
-        size_t i = 0;
-        const n = body_.length;
-        while (i < n)
+        else if (c == '{')
         {
-            const c = body_[i];
-            if (c == '\\')
+            if (i + 1 < content.length && content[i + 1] == '{')
             {
-                if (i + 1 >= n)
-                    throw fail();
-                switch (body_[i + 1])
-                {
-                case '\\':
-                    buf ~= '\\';
-                    break;
-                case '"':
-                    buf ~= '"';
-                    break;
-                case 'n':
-                    buf ~= '\n';
-                    break;
-                case 't':
-                    buf ~= '\t';
-                    break;
-                case 'r':
-                    buf ~= '\r';
-                    break;
-                case '0':
-                    buf ~= '\0';
-                    break;
-                default:
-                    throw fail();
-                }
+                lit ~= '{';
                 i += 2;
-            }
-            else if (c == '{')
-            {
-                if (i + 1 < n && body_[i + 1] == '{')
-                {
-                    buf ~= '{';
-                    i += 2;
-                    continue;
-                }
-                const end = scanRegion(body_, i + 1);
-                if (end < 0)
-                    throw fail();
-                const inner = body_[i + 1 .. cast(size_t) end - 1];
-                Token[] sub;
-                if (!tokenize(inner, sub) || sub.length == 0)
-                    throw fail();
-                auto saveToks = toks;
-                const saveTp = tp, saveEnd = tend;
-                toks = sub;
-                tp = 0;
-                tend = sub.length;
-                auto ie = parseExpr();
-                if (tp != tend)
-                    throw fail();
-                toks = saveToks;
-                tp = saveTp;
-                tend = saveEnd;
-                if (buf.length)
-                {
-                    parts ~= StrPart((() @trusted => cast(string) buf.dup)(), null);
-                    buf.length = 0;
-                }
-                parts ~= StrPart(null, ie);
-                i = cast(size_t) end;
-            }
-            else if (c == '}')
-            {
-                if (i + 1 < n && body_[i + 1] == '}')
-                {
-                    buf ~= '}';
-                    i += 2;
-                }
-                else
-                    throw fail();
             }
             else
             {
-                buf ~= c;
-                ++i;
+                const end = skipRegion(content, i + 1);
+                const body_ = content[i + 1 .. end - 1];
+                auto toks = tokenize(body_);
+                if (toks.length == 0)
+                    throw new SyntaxError;
+                flush();
+                parts ~= Expr.Part(null, (new Parser(toks)).parseExprComplete());
+                i = end;
             }
         }
-        if (parts.length == 0)
+        else if (c == '}')
         {
-            e.kind = ExprKind.strLit;
-            e.name = (() @trusted => cast(string) buf)();
-            return e;
+            if (i + 1 < content.length && content[i + 1] == '}')
+            {
+                lit ~= '}';
+                i += 2;
+            }
+            else
+                throw new SyntaxError;
         }
-        if (buf.length)
-            parts ~= StrPart((() @trusted => cast(string) buf)(), null);
-        e.kind = ExprKind.interp;
-        e.parts = parts;
-        return e;
+        else
+        {
+            lit ~= c;
+            ++i;
+        }
     }
+    flush();
+    bool constant = true;
+    foreach (ref p; parts)
+        if (p.expr !is null)
+            constant = false;
+    if (constant)
+    {
+        e.kind = Expr.Kind.literal;
+        e.lit = Value.ofStr(parts.length ? parts[0].literal : "");
+        // Adjacent literal parts are merged by `flush`, so at most one exists.
+    }
+    else
+    {
+        e.kind = Expr.Kind.interp;
+        e.parts = parts;
+    }
+    return e;
+}
+
+unittest
+{
+    auto bf = parseBuildFile("main.kiln", "let x = 1 + 2 * 3\nlet s = \"a{x}b{{c}}\"\n");
+    assert(bf.statements.length == 2);
+    assert(bf.statements[0].kind == Stmt.Kind.let && bf.statements[0].expr.name == "+");
+    assert(bf.statements[1].expr.kind == Expr.Kind.interp && bf.statements[1].expr.parts.length == 3);
+}
+
+unittest
+{
+    string errAt(string src)
+    {
+        try
+        {
+            parseBuildFile("f", src);
+            return "ok";
+        }
+        catch (KilnError e)
+            return e.detail;
+    }
+
+    assert(errAt("let = 1\nlet x = \"abc\n") == "f:2"); // lexical errors come first
+    assert(errAt("let x = 1 2\n") == "f:1");
+    assert(errAt("out \"x\"\n") == "f:1");
+    assert(errAt("step {\n let x = 1\n}\n") == "f:2");
+    assert(errAt("when true {\n") == "f:1");
+    assert(errAt("when true {\n} otherwise {\nlet x = 1\n") == "f:2");
+    assert(errAt("}\n") == "f:1");
+    assert(errAt("each a, a in [] {\n}\n") == "f:1");
+    assert(errAt("rule r(a = 1, b) {\n}\n") == "f:1");
+    assert(errAt("rule r(a, a) {\n}\n") == "f:1");
+    assert(errAt("use r(a = 1, 2)\n") == "f:1");
+    assert(errAt("let x = f(1)(2)\n") == "f:1");
+    assert(errAt("let x = \"{}\"\n") == "f:1");
+    assert(errAt("let x = \"a}b\"\n") == "f:1");
+    assert(errAt("let x = \"\\q\"\n") == "f:1");
+    assert(errAt("let x = let\n") == "f:1");
+    assert(errAt("let x = 1 |> cost\n") == "ok");
+    assert(errAt("use cost()\nlet y = true(1)\n") == "ok");
+    assert(errAt("when true {\n} elsewhen false {\n} otherwise {\n} elsewhen true {\n}\n") == "f:4");
+    assert(errAt("{\n") == "f:1");
 }

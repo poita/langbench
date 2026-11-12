@@ -1,29 +1,50 @@
 # chip8
 
-A deterministic CHIP-8 interpreter in Go: a reusable library plus a thin
-command-line tool. It implements the fixed CHIP-8 variant defined in the
-project's `SPEC.md` (in-place shifts, wrapping sprites, a timer tick every 8
-cycles, and a built-in LCG random generator). Standard library only.
+A deterministic CHIP-8 interpreter written in Go, as a reusable library plus a
+small command-line tool. It uses only the standard library.
+
+The semantics are a fully specified variant of CHIP-8: shifts work on `VX` in
+place, `FX55`/`FX65` leave `I` unchanged, `BNNN` always uses `V0`, sprites wrap
+around the screen edges, the timers tick once every 8 cycles, and `CXNN` uses
+a fixed-seed 32-bit LCG. Every cycle the opcode is fetched from memory and
+decoded afresh, so self-modifying programs work.
+
+## Layout
+
+| File | Responsibility |
+|------|----------------|
+| `machine.go` | `Machine` state, `New`, `LoadROM`, `Run`, `Step` (fetch + timers) |
+| `exec.go` | Instruction decode and execution |
+| `display.go` | 64x32 `Display`, XOR sprite drawing with wrap-around |
+| `rng.go` | The specified LCG |
+| `keys.go` | `KeyEvent` / `KeySchedule` |
+| `input.go` | `ParseInput`: the textual ROM/cycles/key-schedule format |
+| `output.go` | `Machine.Report`: the 34-line textual state report |
+| `cmd/chip8` | The command-line tool |
 
 ## Build
 
 ```
-./build.sh          # produces bin/chip8
-go test ./...       # unit tests
+./build.sh          # or: go build -o bin/chip8 ./cmd/chip8
 ```
 
-## CLI
+Requires Go 1.27 or newer. Run the tests with `go test ./...`.
 
-`./run.sh` reads all of stdin and writes the result to stdout:
+## Command-line use
+
+`chip8` reads its input from stdin and writes the result to stdout
+(`./run.sh` is a wrapper that finds the binary from any directory).
+
+Input is three lines (the third is optional):
 
 ```
-<rom-hex>
-<cycles>
-<key-schedule>      (optional: "<cycle>:<mask-hex4>" events separated by spaces)
+<rom-hex>         lowercase hex, 1..3584 bytes, loaded at 0x200
+<cycles>          decimal, 0..4000000000
+<key-schedule>    events "<cycle>:<mask>" separated by spaces; mask is 4 hex digits
 ```
 
-It runs exactly `<cycles>` instruction cycles and prints 32 display rows
-(`#`/`.`), then a `PC=… I=… SP=… DT=… ST=…` line and a `V=…` register line.
+Output is 34 lines: the 32 display rows (`#` lit, `.` unlit), then
+`PC=… I=… SP=… DT=… ST=…`, then `V=` followed by the sixteen registers.
 
 ```
 $ printf '60ff7001610180141208\n6\n' | ./run.sh | tail -2
@@ -31,20 +52,9 @@ PC=0208 I=0000 SP=0 DT=00 ST=00
 V=01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ```
 
-## Library
+The exit status is 0 on success and 1 on malformed input.
 
-Package `github.com/example/chip8`, split by responsibility:
-
-| File | Contents |
-|------|----------|
-| `font.go` | font data and memory layout constants |
-| `display.go` | `Display`: 32 rows of 64-bit words, rotate-based sprite XOR |
-| `rng.go` | `NextRNG`, the `CXNN` generator |
-| `machine.go` | `Machine`, `New`, `LoadROM`, `Run`, `Step` |
-| `input.go` | `ParseInput`, `ParseHexROM`, `ParseSchedule`, `KeyEvent` |
-| `output.go` | `Machine.Format`, the 34-line text output |
-
-Example:
+## Library use
 
 ```go
 package main
@@ -52,22 +62,29 @@ package main
 import (
 	"fmt"
 
-	"github.com/example/chip8"
+	"github.com/peter/chip8"
 )
 
 func main() {
-	rom, _ := chip8.ParseHexROM("6a3e6b1e6000f029dab5") // draw glyph "0" at (62,30)
 	m := chip8.New()
+
+	// V0 = 5; I = glyph for V0; draw it at (V1, V2) = (0, 0); loop forever.
+	rom := []byte{0x60, 0x05, 0xF0, 0x29, 0xD1, 0x25, 0x12, 0x06}
 	if err := m.LoadROM(rom); err != nil {
 		panic(err)
 	}
-	// Hold key 3 from cycle 2 onward.
-	m.Run(5, []chip8.KeyEvent{{Cycle: 2, Mask: 1 << 3}})
-	fmt.Printf("PC=%04x VF=%d pixel(62,30)=%v\n", m.PC, m.V[0xF], m.Display.Pixel(62, 30))
-	fmt.Print(string(m.Format()))
+
+	// Run 100 cycles; key 3 is pressed from cycle 50 on.
+	m.Run(100, chip8.KeySchedule{{Cycle: 50, Mask: 1 << 3}})
+
+	fmt.Print(m.Display.String())
+	fmt.Printf("PC=%04x I=%04x\n", m.PC, m.I)
 }
 ```
 
-`Run` keeps the program counter, registers and timers in locals for the
-duration of the loop and dispatches on the top nibble of each opcode with a
-single `switch`; nothing is pre-decoded, so self-modifying code works.
+Use `Machine.Step` to advance one cycle at a time (setting `Machine.Keys`
+yourself), or `ParseInput` / `Program.Execute` / `Machine.Report` to work with
+the textual format used by the CLI.
+
+Pushing onto a full stack or popping an empty one is unspecified by the
+format; this implementation ignores such operations rather than panicking.

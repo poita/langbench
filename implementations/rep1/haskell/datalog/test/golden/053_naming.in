@@ -1,0 +1,11 @@
+edge(edge, path). edge(path, not_a_keyword). edge(notx, edge). notx(1). notx(2).
+path(Long_Var1, Long_Var1) :- edge(Long_Var1, _).
+path(Long_Var1, Another_var_2) :- edge(Long_Var1, Another_var_2).
+path(X, Z) :- path(X, Y), edge(Y, Z).
+np(X) :- notx(X), not notx(2).
+np2(X) :- notx(X), not np(X).
+?- path(edge, X).
+?- path(X, X).
+?- np(X).
+?- np2(X).
+?- notx(X).

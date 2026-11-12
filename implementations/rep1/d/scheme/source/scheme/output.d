@@ -1,39 +1,82 @@
-/// The output buffer all program output is appended to.
+/**
+ * Buffered output sink used by the interpreter.
+ *
+ * `display`, `newline` and the top-level result printer all write through an
+ * $(LREF Output). Output either streams to a user-supplied delegate (the CLI
+ * uses this to write to stdout) or, when no delegate is given, accumulates in
+ * memory so that it can be collected with $(LREF Output.take).
+ */
 module scheme.output;
 
-/// A growable character buffer.
+/// Callback receiving chunks of output.
+alias OutputSink = void delegate(const(char)[] chunk);
+
+/// A write buffer in front of an optional sink.
 final class Output
 {
-    private char[] buf;
-    private size_t len;
+    private enum flushThreshold = 1 << 16;
+
+    private OutputSink sink;
+    private char[] buffer;
+
+    /// Create an output. With a null `sink`, everything is kept in memory.
+    this(OutputSink sink = null) nothrow
+    {
+        this.sink = sink;
+        buffer.reserve(flushThreshold);
+    }
+
+    /// Append text.
+    void put(const(char)[] text)
+    {
+        buffer ~= text;
+        if (sink !is null && buffer.length >= flushThreshold)
+            flush();
+    }
 
     /// Append one character.
     void put(char c)
     {
-        if (len == buf.length)
-            grow(1);
-        buf[len++] = c;
+        buffer ~= c;
+        if (sink !is null && buffer.length >= flushThreshold)
+            flush();
     }
 
-    /// Append a string.
-    void put(const(char)[] s)
+    /// Hand buffered text to the sink (no-op for in-memory outputs).
+    void flush()
     {
-        if (len + s.length > buf.length)
-            grow(s.length);
-        buf[len .. len + s.length] = s[];
-        len += s.length;
+        if (sink is null || buffer.length == 0)
+            return;
+        sink(buffer);
+        buffer.length = 0;
+        buffer.assumeSafeAppend();
     }
 
-    /// Everything written so far.
-    const(char)[] data() const { return buf[0 .. len]; }
-
-    private void grow(size_t extra)
+    /// Return and clear the text accumulated by an in-memory output.
+    string take()
     {
-        size_t n = buf.length * 2;
-        if (n < len + extra)
-            n = len + extra;
-        if (n < 4096)
-            n = 4096;
-        buf.length = n;
+        auto s = buffer.idup;
+        buffer.length = 0;
+        buffer.assumeSafeAppend();
+        return s;
     }
+}
+
+unittest
+{
+    auto o = new Output();
+    o.put("ab");
+    o.put('c');
+    assert(o.take() == "abc");
+    assert(o.take() == "");
+}
+
+unittest
+{
+    string got;
+    auto o = new Output((const(char)[] c) { got ~= c; });
+    o.put("hello");
+    assert(got == "");
+    o.flush();
+    assert(got == "hello");
 }

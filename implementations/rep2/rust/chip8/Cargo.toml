@@ -1,0 +1,17 @@
+[package]
+name = "chip8"
+version = "0.1.0"
+edition = "2021"
+description = "A deterministic CHIP-8 interpreter library and command-line tool"
+license = "MIT"
+readme = "README.md"
+keywords = ["chip8", "emulator", "interpreter"]
+categories = ["emulators"]
+
+[lib]
+name = "chip8"
+path = "src/lib.rs"
+
+[[bin]]
+name = "chip8"
+path = "src/main.rs"

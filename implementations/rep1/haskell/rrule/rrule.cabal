@@ -1,0 +1,63 @@
+cabal-version:      3.0
+name:               rrule
+version:            0.1.0.0
+synopsis:           Expansion of RFC 5545 recurrence rules (python-dateutil semantics)
+description:
+  A small, dependency-light library that expands a subset of RFC 5545
+  @RRULE@ recurrence rules (FREQ YEARLY, MONTHLY, WEEKLY and DAILY with the
+  usual BY-parts) into occurrences, following the behaviour of
+  python-dateutil's @rrule@.  All calendar arithmetic is implemented in the
+  library itself.  A command-line tool for batch expansion is included.
+category:           Data, Time
+license:            MIT
+author:             rrule contributors
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    RRule
+    RRule.Batch
+    RRule.Calendar
+    RRule.Expand
+    RRule.Format
+    RRule.Parse
+    RRule.Types
+  build-depends:
+    , base        >=4.18 && <5
+    , array       >=0.5  && <0.6
+    , bytestring  >=0.11 && <0.13
+    , containers  >=0.6  && <0.9
+
+executable rrule
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , rrule
+
+test-suite rrule-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  other-modules:
+    CalendarSpec
+    ExpandSpec
+    ParseSpec
+  build-depends:
+    , base
+    , bytestring
+    , hspec       >=2.10
+    , QuickCheck  >=2.14
+    , rrule

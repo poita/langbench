@@ -1,4 +1,3 @@
 #!/bin/sh
-# Runs the bigint command-line tool: queries on stdin, results on stdout.
-dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/bin/bigint" "$@"
+# Run the bigint tool: queries on stdin, answers on stdout.
+exec "$(dirname "$0")/bin/bigint" "$@"

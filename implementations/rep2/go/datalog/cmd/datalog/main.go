@@ -1,30 +1,40 @@
-// Command datalog reads a Datalog program on standard input and writes the
-// answers to its queries on standard output. A program that is unsafe or not
-// stratifiable (or malformed) prints "error". The exit status is 0 either way.
+// Command datalog reads a Datalog program on stdin and prints the answers to
+// its queries on stdout. An unsafe, unstratifiable or malformed program makes
+// it print "error" (and exit 0); diagnostics go to stderr.
 package main
 
 import (
-	"bufio"
+	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	"datalog"
+	"example.com/datalog"
+	"example.com/datalog/parser"
 )
 
 func main() {
-	src, err := io.ReadAll(bufio.NewReaderSize(os.Stdin, 1<<20))
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "datalog:", err)
-		os.Exit(1)
+	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
+}
+
+// run implements the command and returns its exit status.
+func run(stdin io.Reader, stdout, stderr io.Writer) int {
+	var out bytes.Buffer // nothing is printed unless the whole program is accepted
+	err := datalog.Run(stdin, &out)
+	var syn *parser.SyntaxError
+	switch {
+	case err == nil:
+		if _, err := stdout.Write(out.Bytes()); err != nil {
+			fmt.Fprintln(stderr, "datalog:", err)
+			return 1
+		}
+	case errors.Is(err, datalog.ErrUnsafe), errors.Is(err, datalog.ErrNotStratifiable), errors.As(err, &syn):
+		fmt.Fprintln(stdout, "error")
+		fmt.Fprintln(stderr, err)
+	default:
+		fmt.Fprintln(stderr, "datalog:", err)
+		return 1
 	}
-	out, err := datalog.Run(src)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "datalog:", err)
-		fmt.Println("error")
-		return
-	}
-	if _, err := os.Stdout.Write(out); err != nil {
-		os.Exit(1)
-	}
+	return 0
 }

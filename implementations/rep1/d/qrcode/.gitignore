@@ -1,6 +1,5 @@
 .dub/
-bin/
+qrcode
 *.o
 *.a
 dub.selections.json
-qrcode-test*

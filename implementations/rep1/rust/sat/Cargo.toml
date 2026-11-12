@@ -1,0 +1,17 @@
+[package]
+name = "cdcl-sat"
+version = "0.1.0"
+edition = "2021"
+description = "A small MiniSat-style CDCL SAT solver for DIMACS CNF"
+license = "MIT"
+readme = "README.md"
+keywords = ["sat", "cdcl", "solver", "dimacs"]
+categories = ["algorithms", "command-line-utilities"]
+
+[lib]
+name = "cdcl_sat"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sat"
+path = "src/main.rs"

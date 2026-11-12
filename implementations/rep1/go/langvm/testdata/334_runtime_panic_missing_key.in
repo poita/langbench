@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    let m = #["a": 1]; print(showInt(m["b"]));
+}

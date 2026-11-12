@@ -1,359 +1,300 @@
-/// Recursive-descent parser from lexed items to a template syntax tree.
+/**
+ * The template parser: items to a syntax tree.
+ */
 module sitegen.templating.parser;
 
 import sitegen.templating.ast;
 import sitegen.templating.errors;
 import sitegen.templating.lexer;
-import sitegen.templating.value;
+import sitegen.templating.filters : isFilterName;
 
-private bool isKeyword(string n) pure nothrow @safe @nogc
-{
-    switch (n)
-    {
-    case "and": case "or": case "not": case "in": case "is":
-    case "true": case "false": case "none":
-        return true;
-    default:
-        return false;
-    }
-}
-
-private FilterId filterByName(string n) pure nothrow @safe @nogc
-{
-    switch (n)
-    {
-    case "upper": return FilterId.upper;
-    case "lower": return FilterId.lower;
-    case "trim": return FilterId.trim;
-    case "escape": return FilterId.escape;
-    case "replace": return FilterId.replace;
-    case "length": return FilterId.length;
-    case "int": return FilterId.int_;
-    case "join": return FilterId.join;
-    case "first": return FilterId.first;
-    case "last": return FilterId.last;
-    case "reverse": return FilterId.reverse;
-    case "sort": return FilterId.sort;
-    case "default": return FilterId.default_;
-    default: return FilterId.unknown;
-    }
-}
-
-/// Parse template `source`. Throws a `syntax` error for malformed input, and
-/// a `filter` error (only if the syntax is fine) for an unknown filter name.
+/**
+ * Lexes, parses and filter-checks a template.
+ *
+ * Throws: `TemplateException` of kind `syntax` if the template is not
+ * well formed, then of kind `filter` if it uses an unknown filter.
+ */
 Template parseTemplate(string name, string source)
 {
-    auto p = new Parser(lexTemplate(source));
-    auto t = p.parseAll();
+    auto p = new Parser(lex(source));
+    auto t = new Template;
     t.name = name;
-    if (p.sawUnknownFilter)
-        throw new TemplateError(ErrorKind.filter);
+    t.body_ = p.parseTop(t);
+    foreach (f; p.filterNames)
+        if (!isFilterName(f)) filterError("unknown filter " ~ f);
     return t;
+}
+
+private bool isKeyword(string s) pure nothrow @nogc @safe
+{
+    switch (s)
+    {
+        case "and", "or", "not", "in", "is", "true", "false", "none":
+            return true;
+        default:
+            return false;
+    }
 }
 
 private final class Parser
 {
     Item[] items;
-    size_t itemPos;
-    bool sawUnknownFilter;
-    Stmt[] blocks;
-    bool[string] blockNames;
-    bool sawExtends;
-    int nesting;
-
-    // cursor over the tokens of the current tag
+    size_t ip;
     Token[] toks;
     size_t tp;
+    string[] filterNames;
+    Template tmpl;
+    int depth;
+    bool sawExtends;
 
     this(Item[] items)
     {
         this.items = items;
     }
 
-    Template parseAll()
+    Node[] parseTop(Template t)
     {
-        auto t = new Template;
+        tmpl = t;
         string end;
-        t.body_ = parseBody(null, end);
-        t.blocks = blocks;
-        return t;
-    }
-
-    // ------------------------------------------------------------------
-    // statements
-
-    /// Parse statements until a statement tag whose keyword is in `enders`
-    /// (left unconsumed; its keyword is stored in `endKeyword`) or the end.
-    Stmt[] parseBody(const(string)[] enders, out string endKeyword)
-    {
-        Stmt[] body_;
-        while (itemPos < items.length)
-        {
-            Item it = items[itemPos];
-            final switch (it.kind)
-            {
-            case ItemKind.text:
-            {
-                ++itemPos;
-                auto s = new Stmt(StmtKind.text);
-                s.text = it.text;
-                body_ ~= s;
-                break;
-            }
-            case ItemKind.print:
-            {
-                ++itemPos;
-                toks = it.tokens;
-                tp = 0;
-                auto s = new Stmt(StmtKind.print);
-                s.expr = parseExpr();
-                expectEnd();
-                body_ ~= s;
-                break;
-            }
-            case ItemKind.stmt:
-            {
-                toks = it.tokens;
-                tp = 0;
-                if (toks.length == 0 || toks[0].kind != TokKind.name)
-                    throw syntaxError("empty or malformed statement");
-                immutable kw = toks[0].text;
-                foreach (e; enders)
-                    if (e == kw)
-                    {
-                        endKeyword = kw;
-                        return body_;
-                    }
-                ++itemPos;
-                tp = 1;
-                body_ ~= parseStatement(kw);
-                break;
-            }
-            }
-        }
-        if (enders.length)
-            throw syntaxError("unexpected end of template");
+        auto body_ = parseBody(null, end);
         return body_;
     }
 
-    Stmt parseStatement(string kw)
+    // ------------------------------------------------------------------
+    // Statements
+    // ------------------------------------------------------------------
+
+    /// Parses items until one of the `terminators` statement keywords; `end`
+    /// receives the keyword, and the tokens of that tag become current.  With
+    /// no terminators, parses to the end of the template.
+    Node[] parseBody(const string[] terminators, out string end)
+    {
+        Node[] nodes;
+        while (ip < items.length)
+        {
+            auto item = items[ip++];
+            final switch (item.kind)
+            {
+                case ItemKind.text:
+                    auto n = new Node(NodeKind.text);
+                    n.text = item.text;
+                    nodes ~= n;
+                    break;
+                case ItemKind.print:
+                    {
+                        toks = item.tokens;
+                        tp = 0;
+                        auto n = new Node(NodeKind.print);
+                        n.expr = parseExpr();
+                        expectEnd();
+                        nodes ~= n;
+                    }
+                    break;
+                case ItemKind.statement:
+                    {
+                        toks = item.tokens;
+                        tp = 0;
+                        if (toks.length == 0 || toks[0].kind != TokKind.name)
+                            syntaxError("empty or malformed statement");
+                        const kw = toks[0].text;
+                        tp = 1;
+                        foreach (t; terminators)
+                        {
+                            if (kw == t)
+                            {
+                                end = kw;
+                                return nodes;
+                            }
+                        }
+                        nodes ~= parseStatement(kw);
+                    }
+                    break;
+            }
+        }
+        if (terminators.length) syntaxError("missing end tag");
+        return nodes;
+    }
+
+    Node parseStatement(string kw)
     {
         switch (kw)
         {
-        case "if":
-            return parseIf();
-        case "for":
-            return parseFor();
-        case "set":
-        {
-            auto s = new Stmt(StmtKind.set);
-            s.name = expectName();
-            expectOp("=");
-            s.expr = parseExpr();
-            expectEnd();
-            return s;
-        }
-        case "macro":
-            return parseMacro();
-        case "include":
-        {
-            auto s = new Stmt(StmtKind.include);
-            s.expr = parseExpr();
-            expectEnd();
-            return s;
-        }
-        case "extends":
-        {
-            if (nesting != 0 || sawExtends)
-                throw syntaxError("misplaced extends");
-            sawExtends = true;
-            auto s = new Stmt(StmtKind.extends);
-            s.expr = parseExpr();
-            expectEnd();
-            return s;
-        }
-        case "block":
-            return parseBlock();
-        default:
-            throw syntaxError("unknown statement");
+            case "if": return parseIf();
+            case "for": return parseFor();
+            case "set": return parseSet();
+            case "macro": return parseMacro();
+            case "include":
+                {
+                    auto n = new Node(NodeKind.include);
+                    n.expr = parseExpr();
+                    expectEnd();
+                    return n;
+                }
+            case "extends":
+                {
+                    if (depth != 0 || sawExtends) syntaxError("misplaced extends");
+                    sawExtends = true;
+                    auto n = new Node(NodeKind.extends);
+                    n.expr = parseExpr();
+                    expectEnd();
+                    return n;
+                }
+            case "block": return parseBlock();
+            default:
+                syntaxError("unknown statement " ~ kw);
         }
     }
 
-    Stmt parseIf()
+    Node parseIf()
     {
-        auto s = new Stmt(StmtKind.if_);
-        s.conds ~= parseExpr();
+        auto n = new Node(NodeKind.if_);
+        n.conds ~= parseExpr();
         expectEnd();
-        ++nesting;
-        scope (exit)
-            --nesting;
+        depth++;
+        scope (exit) depth--;
         while (true)
         {
             string end;
-            s.bodies ~= parseBody(["elif", "else", "endif"], end);
-            ++itemPos;
-            tp = 1;
+            auto body_ = parseBody(["elif", "else", "endif"], end);
+            n.bodies ~= body_;
             if (end == "elif")
             {
-                s.conds ~= parseExpr();
+                n.conds ~= parseExpr();
                 expectEnd();
             }
             else if (end == "else")
             {
                 expectEnd();
                 string end2;
-                s.elseBody = parseBody(["endif"], end2);
-                ++itemPos;
-                tp = 1;
+                n.elseBody = parseBody(["endif"], end2);
                 expectEnd();
-                return s;
+                break;
             }
             else
             {
                 expectEnd();
-                return s;
-            }
-        }
-    }
-
-    Stmt parseFor()
-    {
-        auto s = new Stmt(StmtKind.for_);
-        s.name = expectName();
-        expectKeyword("in");
-        s.expr = parseExpr();
-        expectEnd();
-        ++nesting;
-        scope (exit)
-            --nesting;
-        string end;
-        s.body_ = parseBody(["else", "endfor"], end);
-        ++itemPos;
-        tp = 1;
-        expectEnd();
-        if (end == "else")
-        {
-            string end2;
-            s.elseBody = parseBody(["endfor"], end2);
-            ++itemPos;
-            tp = 1;
-            expectEnd();
-        }
-        return s;
-    }
-
-    Stmt parseMacro()
-    {
-        auto s = new Stmt(StmtKind.macroDef);
-        s.name = expectName();
-        expectOp("(");
-        if (!peekOp(")"))
-        {
-            while (true)
-            {
-                string pname = expectName();
-                foreach (existing; s.params)
-                    if (existing == pname)
-                        throw syntaxError("duplicate macro parameter");
-                s.params ~= pname;
-                if (peekOp("="))
-                {
-                    ++tp;
-                    s.defaults ~= parseExpr();
-                }
-                else
-                    s.defaults ~= null;
-                if (peekOp(","))
-                {
-                    ++tp;
-                    continue;
-                }
                 break;
             }
         }
-        expectOp(")");
-        expectEnd();
-        ++nesting;
-        scope (exit)
-            --nesting;
-        string end;
-        s.body_ = parseBody(["endmacro"], end);
-        ++itemPos;
-        tp = 1;
-        expectEnd();
-        return s;
-    }
-
-    Stmt parseBlock()
-    {
-        auto s = new Stmt(StmtKind.block);
-        if (tp >= toks.length || toks[tp].kind != TokKind.name)
-            throw syntaxError("block needs a name");
-        s.name = toks[tp++].text;
-        expectEnd();
-        if (s.name in blockNames)
-            throw syntaxError("duplicate block");
-        blockNames[s.name] = true;
-        blocks ~= s;
-        ++nesting;
-        scope (exit)
-            --nesting;
-        string end;
-        s.body_ = parseBody(["endblock"], end);
-        ++itemPos;
-        tp = 1;
-        if (tp < toks.length)
-        {
-            if (toks[tp].kind != TokKind.name || toks[tp].text != s.name)
-                throw syntaxError("mismatched endblock name");
-            ++tp;
-        }
-        expectEnd();
-        return s;
-    }
-
-    // ------------------------------------------------------------------
-    // token helpers
-
-    bool peekOp(string op) const
-    {
-        return tp < toks.length && toks[tp].kind == TokKind.op && toks[tp].text == op;
-    }
-
-    bool peekName(string n) const
-    {
-        return tp < toks.length && toks[tp].kind == TokKind.name && toks[tp].text == n;
-    }
-
-    void expectOp(string op)
-    {
-        if (!peekOp(op))
-            throw syntaxError("expected '" ~ op ~ "'");
-        ++tp;
-    }
-
-    void expectKeyword(string kw)
-    {
-        if (!peekName(kw))
-            throw syntaxError("expected '" ~ kw ~ "'");
-        ++tp;
+        return n;
     }
 
     string expectName()
     {
         if (tp >= toks.length || toks[tp].kind != TokKind.name || isKeyword(toks[tp].text))
-            throw syntaxError("expected a name");
+            syntaxError("expected a name");
         return toks[tp++].text;
+    }
+
+    Node parseFor()
+    {
+        auto n = new Node(NodeKind.for_);
+        n.name = expectName();
+        if (!isKw("in")) syntaxError("expected 'in'");
+        tp++;
+        n.expr = parseExpr();
+        expectEnd();
+        depth++;
+        scope (exit) depth--;
+        string end;
+        n.body_ = parseBody(["else", "endfor"], end);
+        if (end == "else")
+        {
+            expectEnd();
+            string end2;
+            n.elseBody = parseBody(["endfor"], end2);
+        }
+        expectEnd();
+        return n;
+    }
+
+    Node parseSet()
+    {
+        auto n = new Node(NodeKind.set);
+        n.name = expectName();
+        if (!isOp("=")) syntaxError("expected '='");
+        tp++;
+        n.expr = parseExpr();
+        expectEnd();
+        return n;
+    }
+
+    Node parseMacro()
+    {
+        auto n = new Node(NodeKind.macro_);
+        n.name = expectName();
+        if (!isOp("(")) syntaxError("expected '('");
+        tp++;
+        while (!isOp(")"))
+        {
+            Param p;
+            p.name = expectName();
+            foreach (q; n.params)
+                if (q.name == p.name) syntaxError("duplicate parameter");
+            if (isOp("="))
+            {
+                tp++;
+                p.defaultValue = parseExpr();
+            }
+            n.params ~= p;
+            if (isOp(","))
+                tp++;
+            else if (!isOp(")"))
+                syntaxError("expected ',' or ')'");
+        }
+        tp++;
+        expectEnd();
+        depth++;
+        scope (exit) depth--;
+        string end;
+        n.body_ = parseBody(["endmacro"], end);
+        expectEnd();
+        return n;
+    }
+
+    Node parseBlock()
+    {
+        auto n = new Node(NodeKind.block);
+        n.name = expectName();
+        expectEnd();
+        if (n.name in tmpl.blocks) syntaxError("duplicate block " ~ n.name);
+        tmpl.blocks[n.name] = n;
+        depth++;
+        scope (exit) depth--;
+        string end;
+        n.body_ = parseBody(["endblock"], end);
+        if (tp < toks.length)
+        {
+            if (expectName() != n.name) syntaxError("mismatched endblock name");
+        }
+        expectEnd();
+        return n;
+    }
+
+    // ------------------------------------------------------------------
+    // Expressions
+    // ------------------------------------------------------------------
+
+    bool isOp(string s) const
+    {
+        return tp < toks.length && toks[tp].kind == TokKind.op && toks[tp].text == s;
+    }
+
+    bool isKw(string s) const
+    {
+        return tp < toks.length && toks[tp].kind == TokKind.name && toks[tp].text == s;
     }
 
     void expectEnd()
     {
-        if (tp != toks.length)
-            throw syntaxError("unexpected tokens at end of tag");
+        if (tp != toks.length) syntaxError("unexpected tokens at the end of a tag");
     }
 
-    // ------------------------------------------------------------------
-    // expressions
+    void expectOp(string s)
+    {
+        if (!isOp(s)) syntaxError("expected '" ~ s ~ "'");
+        tp++;
+    }
 
     Expr parseExpr()
     {
@@ -362,37 +303,37 @@ private final class Parser
 
     Expr parseOr()
     {
-        auto lhs = parseAnd();
-        while (peekName("or"))
+        auto left = parseAnd();
+        while (isKw("or"))
         {
-            ++tp;
+            tp++;
             auto e = new Expr(ExprKind.or);
-            e.a = lhs;
+            e.a = left;
             e.b = parseAnd();
-            lhs = e;
+            left = e;
         }
-        return lhs;
+        return left;
     }
 
     Expr parseAnd()
     {
-        auto lhs = parseNot();
-        while (peekName("and"))
+        auto left = parseNot();
+        while (isKw("and"))
         {
-            ++tp;
+            tp++;
             auto e = new Expr(ExprKind.and);
-            e.a = lhs;
+            e.a = left;
             e.b = parseNot();
-            lhs = e;
+            left = e;
         }
-        return lhs;
+        return left;
     }
 
     Expr parseNot()
     {
-        if (peekName("not"))
+        if (isKw("not"))
         {
-            ++tp;
+            tp++;
             auto e = new Expr(ExprKind.not);
             e.a = parseNot();
             return e;
@@ -400,56 +341,40 @@ private final class Parser
         return parseCompare();
     }
 
-    bool matchCompareOp(out CmpOp op)
-    {
-        if (tp >= toks.length)
-            return false;
-        auto t = toks[tp];
-        if (t.kind == TokKind.op)
-        {
-            switch (t.text)
-            {
-            case "==": op = CmpOp.eq; break;
-            case "!=": op = CmpOp.ne; break;
-            case "<": op = CmpOp.lt; break;
-            case "<=": op = CmpOp.le; break;
-            case ">": op = CmpOp.gt; break;
-            case ">=": op = CmpOp.ge; break;
-            default: return false;
-            }
-            ++tp;
-            return true;
-        }
-        if (t.kind == TokKind.name)
-        {
-            if (t.text == "in")
-            {
-                op = CmpOp.in_;
-                ++tp;
-                return true;
-            }
-            if (t.text == "not" && tp + 1 < toks.length && toks[tp + 1].kind == TokKind.name
-                    && toks[tp + 1].text == "in")
-            {
-                op = CmpOp.notIn;
-                tp += 2;
-                return true;
-            }
-        }
-        return false;
-    }
-
     Expr parseCompare()
     {
         auto first = parseAdditive();
-        CmpOp op;
         Expr cmp;
-        while (matchCompareOp(op))
+        while (true)
         {
+            CmpOp op;
+            if (isOp("=="))
+                op = CmpOp.eq;
+            else if (isOp("!="))
+                op = CmpOp.ne;
+            else if (isOp("<"))
+                op = CmpOp.lt;
+            else if (isOp("<="))
+                op = CmpOp.le;
+            else if (isOp(">"))
+                op = CmpOp.gt;
+            else if (isOp(">="))
+                op = CmpOp.ge;
+            else if (isKw("in"))
+                op = CmpOp.in_;
+            else if (isKw("not") && tp + 1 < toks.length && toks[tp + 1].kind == TokKind.name
+                && toks[tp + 1].text == "in")
+            {
+                op = CmpOp.notIn;
+                tp++;
+            }
+            else
+                break;
+            tp++;
             if (cmp is null)
             {
                 cmp = new Expr(ExprKind.compare);
-                cmp.a = first;
+                cmp.args ~= first;
             }
             cmp.cmpOps ~= op;
             cmp.args ~= parseAdditive();
@@ -457,105 +382,105 @@ private final class Parser
         return cmp is null ? first : cmp;
     }
 
-    Expr binary(Expr l, BinOp op, Expr r)
+    Expr binary(BinOp op, Expr a, Expr b)
     {
         auto e = new Expr(ExprKind.binary);
-        e.a = l;
-        e.b = r;
-        e.bop = op;
+        e.binOp = op;
+        e.a = a;
+        e.b = b;
         return e;
     }
 
     Expr parseAdditive()
     {
-        auto lhs = parseConcat();
+        auto left = parseConcat();
         while (true)
         {
-            if (peekOp("+"))
+            if (isOp("+"))
             {
-                ++tp;
-                lhs = binary(lhs, BinOp.add, parseConcat());
+                tp++;
+                left = binary(BinOp.add, left, parseConcat());
             }
-            else if (peekOp("-"))
+            else if (isOp("-"))
             {
-                ++tp;
-                lhs = binary(lhs, BinOp.sub, parseConcat());
+                tp++;
+                left = binary(BinOp.sub, left, parseConcat());
             }
             else
-                return lhs;
+                break;
         }
+        return left;
     }
 
     Expr parseConcat()
     {
-        auto lhs = parseTerm();
-        while (peekOp("~"))
+        auto left = parseTerm();
+        while (isOp("~"))
         {
-            ++tp;
-            lhs = binary(lhs, BinOp.concat, parseTerm());
+            tp++;
+            left = binary(BinOp.concat, left, parseTerm());
         }
-        return lhs;
+        return left;
     }
 
     Expr parseTerm()
     {
-        auto lhs = parsePower();
+        auto left = parsePower();
         while (true)
         {
             BinOp op;
-            if (peekOp("*"))
+            if (isOp("*"))
                 op = BinOp.mul;
-            else if (peekOp("/"))
+            else if (isOp("/"))
                 op = BinOp.div;
-            else if (peekOp("//"))
+            else if (isOp("//"))
                 op = BinOp.floorDiv;
-            else if (peekOp("%"))
+            else if (isOp("%"))
                 op = BinOp.mod;
             else
-                return lhs;
-            ++tp;
-            lhs = binary(lhs, op, parsePower());
+                break;
+            tp++;
+            left = binary(op, left, parsePower());
         }
+        return left;
     }
 
     Expr parsePower()
     {
-        auto lhs = parseFiltered();
-        while (peekOp("**"))
+        auto left = parseFiltered();
+        while (isOp("**"))
         {
-            ++tp;
-            lhs = binary(lhs, BinOp.pow, parseFiltered());
+            tp++;
+            left = binary(BinOp.pow, left, parseFiltered());
         }
-        return lhs;
+        return left;
     }
 
     Expr parseFiltered()
     {
-        auto lhs = parseUnary();
+        auto e = parseUnary();
         while (true)
         {
-            if (peekOp("|"))
+            if (isOp("|"))
             {
-                ++tp;
+                tp++;
                 if (tp >= toks.length || toks[tp].kind != TokKind.name)
-                    throw syntaxError("expected a filter name");
-                auto e = new Expr(ExprKind.filter);
-                e.name = toks[tp++].text;
-                e.filter = filterByName(e.name);
-                if (e.filter == FilterId.unknown)
-                    sawUnknownFilter = true;
-                e.a = lhs;
-                if (peekOp("("))
+                    syntaxError("expected a filter name");
+                auto f = new Expr(ExprKind.filter);
+                f.str = toks[tp++].text;
+                f.a = e;
+                filterNames ~= f.str;
+                if (isOp("("))
                 {
-                    ++tp;
-                    if (!peekOp(")"))
+                    tp++;
+                    if (!isOp(")"))
                     {
                         while (true)
                         {
-                            e.args ~= parseExpr();
-                            if (peekOp(","))
+                            f.args ~= parseExpr();
+                            if (isOp(","))
                             {
-                                ++tp;
+                                tp++;
                                 continue;
                             }
                             break;
@@ -563,31 +488,33 @@ private final class Parser
                     }
                     expectOp(")");
                 }
-                lhs = e;
+                e = f;
             }
-            else if (peekName("is"))
+            else if (isKw("is"))
             {
-                ++tp;
-                auto e = new Expr(ExprKind.isDefined);
-                if (peekName("not"))
+                tp++;
+                auto d = new Expr(ExprKind.isDefined);
+                if (isKw("not"))
                 {
-                    ++tp;
-                    e.negate = true;
+                    tp++;
+                    d.flag = true;
                 }
-                expectKeyword("defined");
-                e.a = lhs;
-                lhs = e;
+                if (!isKw("defined")) syntaxError("unknown test");
+                tp++;
+                d.a = e;
+                e = d;
             }
             else
-                return lhs;
+                break;
         }
+        return e;
     }
 
     Expr parseUnary()
     {
-        if (peekOp("-"))
+        if (isOp("-"))
         {
-            ++tp;
+            tp++;
             auto e = new Expr(ExprKind.neg);
             e.a = parseUnary();
             return e;
@@ -600,154 +527,159 @@ private final class Parser
         auto e = parsePrimary();
         while (true)
         {
-            if (peekOp("."))
+            if (isOp("."))
             {
-                ++tp;
+                tp++;
                 if (tp >= toks.length || toks[tp].kind != TokKind.name)
-                    throw syntaxError("expected attribute name");
+                    syntaxError("expected an attribute name");
                 auto a = new Expr(ExprKind.attr);
                 a.a = e;
-                a.name = toks[tp++].text;
-                a.lit = Value.of(a.name);
+                a.str = toks[tp++].text;
                 e = a;
             }
-            else if (peekOp("["))
+            else if (isOp("["))
             {
-                ++tp;
-                auto ix = new Expr(ExprKind.index);
-                ix.a = e;
-                ix.b = parseExpr();
+                tp++;
+                auto x = new Expr(ExprKind.index);
+                x.a = e;
+                x.b = parseExpr();
                 expectOp("]");
-                e = ix;
+                e = x;
             }
-            else if (peekOp("("))
+            else if (isOp("("))
             {
-                ++tp;
-                e = parseCall(e);
-            }
-            else
-                return e;
-        }
-    }
-
-    Expr parseCall(Expr callee)
-    {
-        auto c = new Expr(ExprKind.call);
-        c.a = callee;
-        if (!peekOp(")"))
-        {
-            while (true)
-            {
-                if (tp + 1 < toks.length && toks[tp].kind == TokKind.name
-                        && toks[tp + 1].kind == TokKind.op && toks[tp + 1].text == "=")
-                {
-                    string kw = toks[tp].text;
-                    foreach (existing; c.kwNames)
-                        if (existing == kw)
-                            throw syntaxError("duplicate keyword argument");
-                    tp += 2;
-                    c.kwNames ~= kw;
-                    c.kwArgs ~= parseExpr();
-                }
-                else
-                {
-                    if (c.kwNames.length)
-                        throw syntaxError("positional argument after keyword argument");
-                    c.args ~= parseExpr();
-                }
-                if (peekOp(","))
-                {
-                    ++tp;
-                    continue;
-                }
-                break;
-            }
-        }
-        expectOp(")");
-        return c;
-    }
-
-    Expr parsePrimary()
-    {
-        if (tp >= toks.length)
-            throw syntaxError("expression expected");
-        Token t = toks[tp];
-        switch (t.kind)
-        {
-        case TokKind.integer:
-        {
-            ++tp;
-            auto e = new Expr(ExprKind.literal);
-            e.lit = Value.of(t.ival);
-            return e;
-        }
-        case TokKind.floating:
-        {
-            ++tp;
-            auto e = new Expr(ExprKind.literal);
-            e.lit = Value.of(t.fval);
-            return e;
-        }
-        case TokKind.str:
-        {
-            ++tp;
-            auto e = new Expr(ExprKind.literal);
-            e.lit = Value.of(t.text);
-            return e;
-        }
-        case TokKind.name:
-        {
-            ++tp;
-            if (t.text == "true" || t.text == "false")
-            {
-                auto e = new Expr(ExprKind.literal);
-                e.lit = Value.of(t.text == "true");
-                return e;
-            }
-            if (t.text == "none")
-            {
-                auto e = new Expr(ExprKind.literal);
-                e.lit = Value.none();
-                return e;
-            }
-            if (isKeyword(t.text))
-                throw syntaxError("unexpected keyword");
-            auto e = new Expr(ExprKind.name);
-            e.name = t.text;
-            e.isRangeName = t.text == "range";
-            return e;
-        }
-        case TokKind.op:
-            if (t.text == "(")
-            {
-                ++tp;
-                auto e = parseExpr();
-                expectOp(")");
-                return e;
-            }
-            if (t.text == "[")
-            {
-                ++tp;
-                auto e = new Expr(ExprKind.list);
-                if (!peekOp("]"))
+                tp++;
+                auto c = new Expr(ExprKind.call);
+                c.a = e;
+                if (!isOp(")"))
                 {
                     while (true)
                     {
-                        e.args ~= parseExpr();
-                        if (peekOp(","))
+                        if (tp + 1 < toks.length && toks[tp].kind == TokKind.name
+                            && !isKeyword(toks[tp].text) && toks[tp + 1].kind == TokKind.op
+                            && toks[tp + 1].text == "=")
                         {
-                            ++tp;
+                            const kw = toks[tp].text;
+                            tp += 2;
+                            foreach (k; c.kwNames)
+                                if (k == kw) syntaxError("repeated keyword argument");
+                            c.kwNames ~= kw;
+                            c.kwValues ~= parseExpr();
+                        }
+                        else
+                        {
+                            if (c.kwNames.length) syntaxError("positional argument after keyword");
+                            c.args ~= parseExpr();
+                        }
+                        if (isOp(","))
+                        {
+                            tp++;
                             continue;
                         }
                         break;
                     }
                 }
-                expectOp("]");
-                return e;
+                expectOp(")");
+                e = c;
             }
-            throw syntaxError("unexpected operator");
-        default:
-            throw syntaxError("unexpected token");
+            else
+                break;
+        }
+        return e;
+    }
+
+    Expr parsePrimary()
+    {
+        if (tp >= toks.length) syntaxError("incomplete expression");
+        const t = toks[tp];
+        final switch (t.kind)
+        {
+            case TokKind.integer:
+                {
+                    tp++;
+                    auto e = new Expr(ExprKind.intLit);
+                    e.ival = t.ival;
+                    return e;
+                }
+            case TokKind.floating:
+                {
+                    tp++;
+                    auto e = new Expr(ExprKind.floatLit);
+                    e.fval = t.fval;
+                    return e;
+                }
+            case TokKind.string_:
+                {
+                    tp++;
+                    auto e = new Expr(ExprKind.strLit);
+                    e.str = t.text;
+                    return e;
+                }
+            case TokKind.name:
+                {
+                    tp++;
+                    if (t.text == "true" || t.text == "false")
+                    {
+                        auto e = new Expr(ExprKind.boolLit);
+                        e.flag = t.text == "true";
+                        return e;
+                    }
+                    if (t.text == "none") return new Expr(ExprKind.noneLit);
+                    if (isKeyword(t.text)) syntaxError("unexpected keyword " ~ t.text);
+                    auto e = new Expr(ExprKind.name);
+                    e.str = t.text;
+                    return e;
+                }
+            case TokKind.op:
+                if (t.text == "(")
+                {
+                    tp++;
+                    auto e = parseExpr();
+                    expectOp(")");
+                    return e;
+                }
+                if (t.text == "[")
+                {
+                    tp++;
+                    auto e = new Expr(ExprKind.list);
+                    if (!isOp("]"))
+                    {
+                        while (true)
+                        {
+                            e.args ~= parseExpr();
+                            if (isOp(","))
+                            {
+                                tp++;
+                                if (isOp("]")) break; // tolerate a trailing comma
+                                continue;
+                            }
+                            break;
+                        }
+                    }
+                    expectOp("]");
+                    return e;
+                }
+                syntaxError("unexpected '" ~ t.text ~ "'");
         }
     }
+}
+
+unittest
+{
+    import std.exception : collectException;
+
+    auto t = parseTemplate("t", "a{% if x %}b{% elif y %}c{% else %}d{% endif %}{{ z|upper }}");
+    assert(t.body_.length == 3);
+
+    foreach (bad; ["{% if x %}", "{% endif %}", "{% foo %}", "{% for a, b in x %}{% endfor %}",
+            "{{ x - }}", "{{ [1, 2 }}", "{% block a %}{% endblock b %}",
+            "{% block a %}{% endblock %}{% block a %}{% endblock %}",
+            "{% if x %}{% extends \"b\" %}{% endif %}", "{{ x is foo }}", "{% set a, b = 1 %}",
+            "{{ f(a=1, 2) }}", "{{ f(a=1, a=2) }}", "{% include \"x\" ignore missing %}"])
+    {
+        auto e = collectException!TemplateException(parseTemplate("t", bad));
+        assert(e !is null && e.kind == ErrorKind.syntax, bad);
+    }
+    auto e = collectException!TemplateException(parseTemplate("t", "{{ x|nope }}"));
+    assert(e !is null && e.kind == ErrorKind.filter);
 }

@@ -1,4 +1,5 @@
-// Package render formats a laid-out document as layout.txt and report.txt.
+// Package render formats a laid-out document as layout.txt, report.txt and
+// error.txt.
 package render
 
 import (
@@ -6,95 +7,64 @@ import (
 	"strconv"
 	"strings"
 
+	"typeset/diag"
 	"typeset/layout"
-	"typeset/metrics"
+	"typeset/settings"
 )
 
-var regionNames = [...]string{"header", "float", "body", "footnote", "footer"}
-
-type formatted struct {
-	region, kind uint8
-	x, y         int64
-	line         string
+// ErrorFile returns the contents of error.txt for e.
+func ErrorFile(e *diag.Error) []byte {
+	return []byte(e.Error() + "\n")
 }
 
-func appendInt(b []byte, n int64) []byte { return strconv.AppendInt(b, n, 10) }
+type line struct {
+	region layout.Region
+	y, x   int64
+	kind   layout.ItemKind
+	text   string
+}
 
-func format(it *layout.OutItem) formatted {
-	b := make([]byte, 0, 64)
-	b = append(b, "  "...)
-	switch it.Kind {
-	case layout.KText:
-		b = append(b, "text "...)
-		b = append(b, regionNames[it.Region]...)
-		b = append(b, ' ')
-		b = append(b, metrics.FaceNames[it.Face]...)
-		b = append(b, ' ')
-		b = appendInt(b, it.Size)
-		b = append(b, ' ')
-		b = appendInt(b, it.X)
-		b = append(b, ' ')
-		b = appendInt(b, it.Y)
-		b = append(b, ' ')
-		b = appendInt(b, it.W)
-		b = append(b, " \""...)
-		for i := 0; i < len(it.Text); i++ {
-			c := it.Text[i]
-			if c == '\\' || c == '"' {
-				b = append(b, '\\')
-			}
-			b = append(b, c)
+func quote(s string) string {
+	var b strings.Builder
+	b.WriteByte('"')
+	for _, r := range s {
+		if r == '\\' || r == '"' {
+			b.WriteByte('\\')
 		}
-		b = append(b, '"')
-	case layout.KRule:
-		b = append(b, "rule "...)
-		b = append(b, regionNames[it.Region]...)
-		b = append(b, ' ')
-		b = appendInt(b, it.X)
-		b = append(b, ' ')
-		b = appendInt(b, it.Y)
-		b = append(b, ' ')
-		b = appendInt(b, it.W)
-		b = append(b, ' ')
-		b = appendInt(b, it.H)
-	default:
-		b = append(b, "box "...)
-		b = append(b, regionNames[it.Region]...)
-		b = append(b, ' ')
-		b = appendInt(b, it.X)
-		b = append(b, ' ')
-		b = appendInt(b, it.Y)
-		b = append(b, ' ')
-		b = appendInt(b, it.W)
-		b = append(b, ' ')
-		b = appendInt(b, it.H)
+		b.WriteRune(r)
 	}
-	return formatted{region: it.Region, kind: it.Kind, x: it.X, y: it.Y, line: string(b)}
+	b.WriteByte('"')
+	return b.String()
 }
 
-// Layout renders layout.txt. geometry is the six numbers that follow the
-// label in every page record.
-func Layout(res *layout.Result, geometry [6]int64) string {
-	var sb strings.Builder
-	sb.WriteString("layout 1\npages ")
-	sb.WriteString(strconv.Itoa(len(res.Pages)))
-	sb.WriteByte('\n')
-	for i, p := range res.Pages {
-		sb.WriteString("page ")
-		sb.WriteString(strconv.Itoa(i + 1))
-		sb.WriteByte(' ')
-		sb.WriteString(p.Label)
-		for _, g := range geometry {
-			sb.WriteByte(' ')
-			sb.WriteString(strconv.FormatInt(g, 10))
+func formatItem(it *layout.PlacedItem) string {
+	i := func(v int64) string { return strconv.FormatInt(v, 10) }
+	switch it.Kind {
+	case layout.ItemText:
+		return "  text " + it.Region.String() + " " + it.Face + " " + i(it.Size) + " " +
+			i(it.X) + " " + i(it.Y) + " " + i(it.W) + " " + quote(it.Text)
+	case layout.ItemRule:
+		return "  rule " + it.Region.String() + " " + i(it.X) + " " + i(it.Y) + " " + i(it.W) + " " + i(it.H)
+	}
+	return "  box " + it.Region.String() + " " + i(it.X) + " " + i(it.Y) + " " + i(it.W) + " " + i(it.H)
+}
+
+// Layout returns the contents of layout.txt.
+func Layout(res *layout.Result, s *settings.Settings) []byte {
+	var b strings.Builder
+	i := func(v int64) string { return strconv.FormatInt(v, 10) }
+	b.WriteString("layout 1\npages " + strconv.Itoa(len(res.Pages)) + "\n")
+	for n, pg := range res.Pages {
+		b.WriteString("page " + strconv.Itoa(n+1) + " " + pg.Label + " " +
+			i(s.PageWidth) + " " + i(s.PageHeight) + " " + i(s.BodyX()) + " " + i(s.BodyY()) + " " +
+			i(s.BodyWidth()) + " " + i(s.BodyHeight()) + "\n")
+		lines := make([]line, len(pg.Items))
+		for k := range pg.Items {
+			it := &pg.Items[k]
+			lines[k] = line{it.Region, it.Y, it.X, it.Kind, formatItem(it)}
 		}
-		sb.WriteByte('\n')
-		fs := make([]formatted, len(p.Items))
-		for k := range p.Items {
-			fs[k] = format(&p.Items[k])
-		}
-		sort.Slice(fs, func(a, b int) bool {
-			x, y := &fs[a], &fs[b]
+		sort.SliceStable(lines, func(a, c int) bool {
+			x, y := &lines[a], &lines[c]
 			if x.region != y.region {
 				return x.region < y.region
 			}
@@ -107,40 +77,36 @@ func Layout(res *layout.Result, geometry [6]int64) string {
 			if x.kind != y.kind {
 				return x.kind < y.kind
 			}
-			return x.line < y.line
+			return x.text < y.text
 		})
-		for _, f := range fs {
-			sb.WriteString(f.line)
-			sb.WriteByte('\n')
+		for _, l := range lines {
+			b.WriteString(l.text)
+			b.WriteByte('\n')
 		}
 	}
-	return sb.String()
+	return []byte(b.String())
 }
 
-// Report renders report.txt.
-func Report(res *layout.Result) string {
-	st := res.Stats
-	var sb strings.Builder
-	add := func(k string, v int64) {
-		sb.WriteString(k)
-		sb.WriteByte(' ')
-		sb.WriteString(strconv.FormatInt(v, 10))
-		sb.WriteByte('\n')
+// Report returns the contents of report.txt.
+func Report(st layout.Stats) []byte {
+	var b strings.Builder
+	row := func(k string, v int64) {
+		b.WriteString(k + " " + strconv.FormatInt(v, 10) + "\n")
 	}
-	sb.WriteString("report 1\n")
-	add("pages", int64(len(res.Pages)))
-	add("front-pages", int64(res.FrontPages))
-	add("body-pages", int64(res.BodyPages))
-	add("lines", int64(st.Lines))
-	add("paragraphs", int64(st.Paragraphs))
-	add("headings", int64(st.Headings))
-	add("tables", int64(st.Tables))
-	add("figures", int64(st.Figures))
-	add("footnotes", int64(st.Footnotes))
-	add("footnote-split-lines", int64(st.FootnoteSplitLines))
-	add("hyphenated-lines", int64(st.HyphenatedLines))
-	add("overfull-lines", int64(st.OverfullLines))
-	add("emergency-lists", int64(st.EmergencyLists))
-	add("total-demerits", st.TotalDemerits)
-	return sb.String()
+	b.WriteString("report 1\n")
+	row("pages", int64(st.Pages))
+	row("front-pages", int64(st.FrontPages))
+	row("body-pages", int64(st.BodyPages))
+	row("lines", int64(st.Lines))
+	row("paragraphs", int64(st.Paragraphs))
+	row("headings", int64(st.Headings))
+	row("tables", int64(st.Tables))
+	row("figures", int64(st.Figures))
+	row("footnotes", int64(st.Footnotes))
+	row("footnote-split-lines", int64(st.FootnoteSplitLines))
+	row("hyphenated-lines", int64(st.HyphenatedLines))
+	row("overfull-lines", int64(st.OverfullLines))
+	row("emergency-lists", int64(st.EmergencyLists))
+	row("total-demerits", st.TotalDemerits)
+	return []byte(b.String())
 }

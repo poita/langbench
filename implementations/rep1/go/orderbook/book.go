@@ -1,462 +1,205 @@
 package orderbook
 
-import (
-	"math"
-	"slices"
-	"strconv"
-)
-
-// level is the FIFO queue of orders at one price.
-type level struct {
-	head, tail int32 // arena indices, -1 when empty
-	total      int64 // sum of remaining quantities
-	count      int32 // number of orders
-}
-
-// order is an arena record for a resting order.
-type order struct {
-	id         string
-	qty        int64 // remaining quantity
-	rank       int32 // price rank
-	side       Side
-	prev, next int32 // FIFO neighbours within the level (next doubles as the free-list link)
-}
-
-// bookSide is one side of the book: a dense level array plus its index tree.
-type bookSide struct {
-	levels []level
-	tree   segTree
-}
-
-// refresh republishes level r to the tree.
-func (s *bookSide) refresh(r int) {
-	lv := &s.levels[r]
-	s.tree.set(r, lv.total, lv.count > 0)
-}
-
-// Book is a limit order book over a fixed table of prices. Create one with
-// [NewBook]. Methods append their events to an internal output buffer; see
-// [Book.Output].
+// Book is a single-instrument limit order book. Create one with [New]; the
+// zero value is not usable. A Book is not safe for concurrent use.
+//
+// The methods that process commands return the events they produced. The
+// returned slice is owned by the Book and is only valid until the next call
+// to a command method; copy it if it must be kept.
 type Book struct {
-	prices []int64
-	sides  [2]bookSide
-	orders []order
-	free   int32 // head of the arena free list, -1 if none
-	ids    map[string]int32
-	out    []byte
-	prefix []byte // scratch: "TRADE <taker-id> "
+	bids, asks *bookSide
+	orders     map[string]*order
+	spare      []*order
+	ev         []Event
 }
 
-// NewBook returns an empty book that accepts exactly the given prices, which
-// must be positive and strictly ascending. The slice is retained and must
-// not be modified afterwards.
-func NewBook(prices []int64) (*Book, error) {
-	for i, p := range prices {
-		if p <= 0 || (i > 0 && p <= prices[i-1]) {
-			return nil, ErrBadPrices
-		}
+// New returns an empty book.
+func New() *Book {
+	return &Book{
+		bids:   newSide(true, 0x9e3779b9),
+		asks:   newSide(false, 0x85ebca6b),
+		orders: make(map[string]*order),
 	}
-	b := &Book{prices: prices, free: -1, ids: make(map[string]int32)}
-	for s := range b.sides {
-		lv := make([]level, len(prices))
-		for i := range lv {
-			lv[i].head, lv[i].tail = -1, -1
-		}
-		b.sides[s] = bookSide{levels: lv, tree: newSegTree(len(prices))}
-	}
-	return b, nil
 }
-
-// Reserve pre-sizes the order arena, id map and output buffer for roughly n
-// commands. It is only a hint and never changes behaviour.
-func (b *Book) Reserve(n int) {
-	resting := min(n, 1<<16)
-	if cap(b.orders) < resting {
-		b.orders = slices.Grow(b.orders, resting)
-	}
-	if len(b.ids) == 0 {
-		b.ids = make(map[string]int32, resting)
-	}
-	b.out = slices.Grow(b.out, min(n, 1<<22)*24)
-}
-
-// Output returns the events appended so far. The slice is valid until the
-// next call that appends or resets.
-func (b *Book) Output() []byte { return b.out }
-
-// ResetOutput discards the buffered events, keeping the book's state.
-func (b *Book) ResetOutput() { b.out = b.out[:0] }
 
 // Len returns the number of resting orders.
-func (b *Book) Len() int { return len(b.ids) }
+func (b *Book) Len() int { return len(b.orders) }
 
-// rankOf returns the rank of price in the table.
-func (b *Book) rankOf(price int64) (int32, error) {
-	i, ok := slices.BinarySearch(b.prices, price)
-	if !ok {
-		return 0, ErrUnknownPrice
-	}
-	return int32(i), nil
+// Has reports whether id denotes a currently resting order.
+func (b *Book) Has(id string) bool { _, ok := b.orders[id]; return ok }
+
+// Bids returns the non-empty bid levels, best (highest price) first.
+func (b *Book) Bids() []Level { return b.bids.levels() }
+
+// Asks returns the non-empty ask levels, best (lowest price) first.
+func (b *Book) Asks() []Level { return b.asks.levels() }
+
+// Snapshot returns the book as events: one Bid event per bid level (best
+// first), one Ask event per ask level (best first), then EndBook. It does not
+// change the book.
+func (b *Book) Snapshot() []Event {
+	b.ev = b.ev[:0]
+	b.bids.each(func(l *level) bool {
+		b.ev = append(b.ev, Event{Kind: Bid, Price: l.price, Qty: l.total, Orders: uint64(l.count)})
+		return true
+	})
+	b.asks.each(func(l *level) bool {
+		b.ev = append(b.ev, Event{Kind: Ask, Price: l.price, Qty: l.total, Orders: uint64(l.count)})
+		return true
+	})
+	b.ev = append(b.ev, Event{Kind: EndBook})
+	return b.ev
 }
 
-// Best returns the best price on the side (highest bid, lowest ask).
-func (b *Book) Best(side Side) (price int64, ok bool) {
-	t := &b.sides[side].tree
-	r := t.lowest()
-	if side == Buy {
-		r = t.highest()
-	}
-	if r < 0 {
-		return 0, false
-	}
-	return b.prices[r], true
-}
-
-// EachLevel calls fn for every non-empty level of the side, best first
-// (descending prices for Buy, ascending for Sell), until fn returns false.
-func (b *Book) EachLevel(side Side, fn func(Level) bool) {
-	s := &b.sides[side]
-	var r int
-	if side == Buy {
-		r = s.tree.highest()
-	} else {
-		r = s.tree.lowest()
-	}
-	for r >= 0 {
-		lv := &s.levels[r]
-		if !fn(Level{Price: b.prices[r], Qty: lv.total, Orders: int(lv.count)}) {
-			return
-		}
-		if side == Buy {
-			r = s.tree.prev(r - 1)
-		} else {
-			r = s.tree.next(r + 1)
-		}
-	}
-}
-
-// Snapshot appends a BOOK listing (all bid levels best first, all ask levels
-// best first, then "--") to the output.
-func (b *Book) Snapshot() {
-	for _, side := range [2]Side{Buy, Sell} {
-		word := "BID "
-		if side == Sell {
-			word = "ASK "
-		}
-		b.EachLevel(side, func(l Level) bool {
-			b.out = append(b.out, word...)
-			b.out = strconv.AppendInt(b.out, l.Price, 10)
-			b.out = append(b.out, ' ')
-			b.out = strconv.AppendInt(b.out, l.Qty, 10)
-			b.out = append(b.out, ' ')
-			b.out = strconv.AppendInt(b.out, int64(l.Orders), 10)
-			b.out = append(b.out, '\n')
-			return true
-		})
-	}
-	b.out = append(b.out, "--\n"...)
-}
-
-// Execute runs one parsed command against the book.
-func (b *Book) Execute(c Command) error {
+// Execute runs a generic command and returns its events.
+func (b *Book) Execute(c Command) []Event {
 	switch c.Kind {
-	case KindLimit:
+	case CmdLimit:
 		return b.Limit(c.ID, c.Side, c.Price, c.Qty, c.TIF)
-	case KindMarket:
+	case CmdMarket:
 		return b.Market(c.ID, c.Side, c.Qty)
-	case KindCancel:
-		b.Cancel(c.ID)
-	case KindReplace:
+	case CmdCancel:
+		return b.Cancel(c.ID)
+	case CmdReplace:
 		return b.Replace(c.ID, c.Price, c.Qty)
-	case KindBook:
-		b.Snapshot()
-	default:
-		return ErrBadCommand
+	case CmdBook:
+		return b.Snapshot()
 	}
-	return nil
+	panic("orderbook: unknown command kind")
 }
 
-// execRanked runs a command whose price rank was precomputed by the parser.
-func (b *Book) execRanked(c *Command) error {
-	switch c.Kind {
-	case KindLimit:
-		return b.limit(c.ID, c.Side, c.rank, c.Qty, c.TIF)
-	case KindMarket:
-		return b.Market(c.ID, c.Side, c.Qty)
-	case KindCancel:
-		b.Cancel(c.ID)
-	case KindReplace:
-		return b.replace(c.ID, c.rank, c.Qty)
-	case KindBook:
-		b.Snapshot()
-	default:
-		return ErrBadCommand
+// Limit submits a limit order. The order is matched against the opposite
+// side at prices no worse than price; what happens to the remainder depends
+// on tif (see [TimeInForce]). Ids must be unique among submitted orders; a
+// Limit whose id is already resting is rejected.
+func (b *Book) Limit(id string, side Side, price, qty uint64, tif TimeInForce) []Event {
+	b.ev = b.ev[:0]
+	if _, dup := b.orders[id]; dup {
+		b.emit(Event{Kind: Reject, ID: id})
+		return b.ev
 	}
-	return nil
+	if tif == FOK && b.available(side, price) < qty {
+		b.emit(Event{Kind: Reject, ID: id})
+		return b.ev
+	}
+	b.submit(id, side, price, qty, true, tif)
+	return b.ev
 }
 
-// Limit submits a limit order. Events are appended to the output: TRADE and
-// FILLED lines for the makers it hits, then FILLED, REST, CANCEL or REJECT
-// for the order itself, according to tif. Returns ErrUnknownPrice,
-// ErrInvalidQty or ErrDuplicateID (with nothing appended) for invalid input.
-func (b *Book) Limit(id []byte, side Side, price, qty int64, tif TimeInForce) error {
-	rank, err := b.rankOf(price)
-	if err != nil {
-		return err
-	}
-	return b.limit(id, side, rank, qty, tif)
+// Market submits a market order, which takes whatever the opposite side
+// offers, best price first, and never rests.
+func (b *Book) Market(id string, side Side, qty uint64) []Event {
+	b.ev = b.ev[:0]
+	b.submit(id, side, 0, qty, false, IOC)
+	return b.ev
 }
 
-func (b *Book) limit(id []byte, side Side, rank int32, qty int64, tif TimeInForce) error {
-	if qty <= 0 {
-		return ErrInvalidQty
-	}
-	if tif == GTC {
-		if _, dup := b.ids[string(id)]; dup {
-			return ErrDuplicateID
-		}
-	}
-	if tif == FOK && b.available(side, rank) < qty {
-		b.appendLine("REJECT ", id)
-		return nil
-	}
-	b.setPrefix(id)
-	rem := b.match(side, rank, qty)
-	switch {
-	case rem == 0:
-		b.appendLine("FILLED ", id)
-	case tif == GTC:
-		idx := b.alloc(string(id), side)
-		b.orders[idx].qty = rem
-		b.orders[idx].rank = rank
-		b.link(idx)
-		b.appendLine("REST ", id)
-	default:
-		b.appendCancel(id, rem)
-	}
-	return nil
-}
-
-// Market submits a market order. It never rests: the unfilled remainder, if
-// any, is reported as CANCEL.
-func (b *Book) Market(id []byte, side Side, qty int64) error {
-	if qty <= 0 {
-		return ErrInvalidQty
-	}
-	limit := int32(0) // a sell crosses every rank >= 0
-	if side == Buy {
-		limit = math.MaxInt32 // a buy crosses every rank <= MaxInt32
-	}
-	b.setPrefix(id)
-	if rem := b.match(side, limit, qty); rem == 0 {
-		b.appendLine("FILLED ", id)
-	} else {
-		b.appendCancel(id, rem)
-	}
-	return nil
-}
-
-// Cancel removes a resting order, printing CANCEL with its remaining
-// quantity, or REJECT if id is not resting.
-func (b *Book) Cancel(id []byte) {
-	idx, ok := b.ids[string(id)]
+// Cancel removes the resting order id, reporting its remaining quantity, or
+// rejects the command if id is not resting.
+func (b *Book) Cancel(id string) []Event {
+	b.ev = b.ev[:0]
+	o, ok := b.orders[id]
 	if !ok {
-		b.appendLine("REJECT ", id)
-		return
+		b.emit(Event{Kind: Reject, ID: id})
+		return b.ev
 	}
-	o := &b.orders[idx]
-	b.appendCancel(id, o.qty)
-	b.unlink(idx)
-	delete(b.ids, o.id)
-	b.release(idx)
+	b.emit(Event{Kind: Cancel, ID: id, Qty: o.qty})
+	b.drop(o)
+	return b.ev
 }
 
-// Replace modifies a resting order: price becomes price and the remaining
-// quantity becomes qty. An unchanged price with a non-increased quantity
-// keeps queue priority; anything else re-enters the order as a new limit
-// order on its original side. Prints REJECT if id is not resting.
-func (b *Book) Replace(id []byte, price, qty int64) error {
-	rank, err := b.rankOf(price)
-	if err != nil {
-		return err
-	}
-	return b.replace(id, rank, qty)
-}
-
-func (b *Book) replace(id []byte, rank int32, qty int64) error {
-	if qty <= 0 {
-		return ErrInvalidQty
-	}
-	idx, ok := b.ids[string(id)]
+// Replace sets the remaining quantity and price of the resting order id. If
+// the price is unchanged and the quantity does not increase the order keeps
+// its queue position; otherwise it loses priority and re-enters as a new
+// plain limit order with its original side. A Replace of an order that is not
+// resting is rejected.
+func (b *Book) Replace(id string, price, qty uint64) []Event {
+	b.ev = b.ev[:0]
+	o, ok := b.orders[id]
 	if !ok {
-		b.appendLine("REJECT ", id)
-		return nil
+		b.emit(Event{Kind: Reject, ID: id})
+		return b.ev
 	}
-	o := &b.orders[idx]
-	s := &b.sides[o.side]
-	if rank == o.rank && qty <= o.qty {
-		s.levels[rank].total -= o.qty - qty
+	if price == o.lvl.price && qty <= o.qty {
+		o.lvl.total -= o.qty - qty
 		o.qty = qty
-		s.refresh(int(rank))
-		b.appendLine("REST ", id)
-		return nil
+		b.emit(Event{Kind: Rest, ID: id})
+		return b.ev
 	}
 	side := o.side
-	b.unlink(idx)
-	b.setPrefix(id)
-	rem := b.match(side, rank, qty)
-	o = &b.orders[idx] // match never grows the arena, but stay safe
-	if rem == 0 {
-		b.appendLine("FILLED ", id)
-		delete(b.ids, o.id)
-		b.release(idx)
-		return nil
-	}
-	o.qty = rem
-	o.rank = rank
-	b.link(idx)
-	b.appendLine("REST ", id)
-	return nil
+	b.drop(o)
+	b.submit(id, side, price, qty, true, GTC)
+	return b.ev
 }
 
-// available returns the resting quantity an incoming order on side with
-// limit rank would cross.
-func (b *Book) available(side Side, rank int32) int64 {
-	if side == Buy {
-		return b.sides[Sell].tree.prefixSum(int(rank))
+func (b *Book) emit(e Event) { b.ev = append(b.ev, e) }
+
+func (b *Book) sideOf(s Side) *bookSide {
+	if s == Buy {
+		return b.bids
 	}
-	return b.sides[Buy].tree.suffixSum(int(rank))
+	return b.asks
 }
 
-// match fills an incoming order of the given side and quantity against the
-// opposite side while the best level crosses limit (a rank: a buy crosses
-// ranks <= limit, a sell ranks >= limit). b.prefix must hold the TRADE line
-// prefix for the taker. It returns the unfilled quantity.
-func (b *Book) match(side Side, limit int32, qty int64) int64 {
-	opp := &b.sides[1-side]
+// available returns the total quantity a taker on side with the given limit
+// price could trade against.
+func (b *Book) available(side Side, limit uint64) uint64 {
+	opp := b.sideOf(side ^ 1)
+	var sum uint64
+	opp.each(func(l *level) bool {
+		if !opp.crosses(l.price, limit) {
+			return false
+		}
+		sum += l.total
+		return true
+	})
+	return sum
+}
+
+// drop removes a resting order from the book and the id index.
+func (b *Book) drop(o *order) {
+	b.sideOf(o.side).remove(o)
+	delete(b.orders, o.id)
+	*o = order{}
+	b.spare = append(b.spare, o)
+}
+
+// submit matches a taker and then disposes of its remainder.
+func (b *Book) submit(id string, side Side, limit, qty uint64, hasLimit bool, tif TimeInForce) {
+	opp := b.sideOf(side ^ 1)
 	for qty > 0 {
-		var r int
-		if side == Buy {
-			r = opp.tree.lowest()
-			if r < 0 || r > int(limit) {
-				break
-			}
+		l := opp.best
+		if l == nil || (hasLimit && !opp.crosses(l.price, limit)) {
+			break
+		}
+		m := l.head
+		t := min(qty, m.qty)
+		b.emit(Event{Kind: Trade, ID: id, MakerID: m.id, Price: l.price, Qty: t})
+		qty -= t
+		m.qty -= t
+		l.total -= t
+		if m.qty == 0 {
+			mid := m.id
+			b.drop(m)
+			b.emit(Event{Kind: Filled, ID: mid})
+		}
+	}
+	switch {
+	case qty == 0:
+		b.emit(Event{Kind: Filled, ID: id})
+	case tif == GTC && hasLimit:
+		var o *order
+		if n := len(b.spare); n > 0 {
+			o = b.spare[n-1]
+			b.spare = b.spare[:n-1]
 		} else {
-			r = opp.tree.highest()
-			if r < 0 || r < int(limit) {
-				break
-			}
+			o = new(order)
 		}
-		lv := &opp.levels[r]
-		price := b.prices[r]
-		for qty > 0 && lv.head >= 0 {
-			idx := lv.head
-			o := &b.orders[idx]
-			t := min(qty, o.qty)
-			b.out = append(b.out, b.prefix...)
-			b.out = append(b.out, o.id...)
-			b.out = append(b.out, ' ')
-			b.out = strconv.AppendInt(b.out, price, 10)
-			b.out = append(b.out, ' ')
-			b.out = strconv.AppendInt(b.out, t, 10)
-			b.out = append(b.out, '\n')
-			qty -= t
-			o.qty -= t
-			lv.total -= t
-			if o.qty == 0 {
-				b.out = append(b.out, "FILLED "...)
-				b.out = append(b.out, o.id...)
-				b.out = append(b.out, '\n')
-				lv.head = o.next
-				if lv.head >= 0 {
-					b.orders[lv.head].prev = -1
-				} else {
-					lv.tail = -1
-				}
-				lv.count--
-				delete(b.ids, o.id)
-				b.release(idx)
-			}
-		}
-		opp.refresh(r)
+		o.id, o.qty, o.side = id, qty, side
+		b.sideOf(side).add(o, limit)
+		b.orders[id] = o
+		b.emit(Event{Kind: Rest, ID: id})
+	default:
+		b.emit(Event{Kind: Cancel, ID: id, Qty: qty})
 	}
-	return qty
-}
-
-// alloc takes an arena record for a new resting order and registers its id.
-func (b *Book) alloc(id string, side Side) int32 {
-	var idx int32
-	if b.free >= 0 {
-		idx = b.free
-		b.free = b.orders[idx].next
-		b.orders[idx] = order{id: id, side: side}
-	} else {
-		idx = int32(len(b.orders))
-		b.orders = append(b.orders, order{id: id, side: side})
-	}
-	b.ids[id] = idx
-	return idx
-}
-
-// release returns an arena record to the free list. The caller removes the
-// id from the map.
-func (b *Book) release(idx int32) {
-	b.orders[idx] = order{next: b.free}
-	b.free = idx
-}
-
-// link appends order idx to the back of its level's queue.
-func (b *Book) link(idx int32) {
-	o := &b.orders[idx]
-	s := &b.sides[o.side]
-	lv := &s.levels[o.rank]
-	o.prev, o.next = lv.tail, -1
-	if lv.tail >= 0 {
-		b.orders[lv.tail].next = idx
-	} else {
-		lv.head = idx
-	}
-	lv.tail = idx
-	lv.total += o.qty
-	lv.count++
-	s.refresh(int(o.rank))
-}
-
-// unlink removes order idx from its level's queue (the record stays
-// allocated and registered).
-func (b *Book) unlink(idx int32) {
-	o := &b.orders[idx]
-	s := &b.sides[o.side]
-	lv := &s.levels[o.rank]
-	if o.prev >= 0 {
-		b.orders[o.prev].next = o.next
-	} else {
-		lv.head = o.next
-	}
-	if o.next >= 0 {
-		b.orders[o.next].prev = o.prev
-	} else {
-		lv.tail = o.prev
-	}
-	lv.total -= o.qty
-	lv.count--
-	s.refresh(int(o.rank))
-}
-
-func (b *Book) setPrefix(id []byte) {
-	b.prefix = append(append(append(b.prefix[:0], "TRADE "...), id...), ' ')
-}
-
-func (b *Book) appendLine(word string, id []byte) {
-	b.out = append(b.out, word...)
-	b.out = append(b.out, id...)
-	b.out = append(b.out, '\n')
-}
-
-func (b *Book) appendCancel(id []byte, rem int64) {
-	b.out = append(b.out, "CANCEL "...)
-	b.out = append(b.out, id...)
-	b.out = append(b.out, ' ')
-	b.out = strconv.AppendInt(b.out, rem, 10)
-	b.out = append(b.out, '\n')
 }

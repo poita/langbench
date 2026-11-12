@@ -1,0 +1,2 @@
+[.[] | select(.a)], [.[] | select(.a | not)], map(select(has("a")))
+[{"a":true},{"a":null},{"a":0},{},{"a":false},{"a":""},{"a":[]}]

@@ -1,16 +1,25 @@
-/// Recursive-descent parser: one function per precedence level of the grammar.
+/**
+ * Recursive-descent parser for the statements of the dialect.
+ */
 module minisql.parser;
 
 import minisql.ast;
 import minisql.errors;
 import minisql.lexer;
+import minisql.value;
 
-/// Parses the tokens of exactly one statement (without its `;`).
-/// Throws `SqlException` on any syntax error.
-Statement parseStatement(const(Token)[] toks) @safe
+/**
+ * Parses the tokens of one statement (without its `;`).
+ *
+ * Throws: $(REF SqlError, minisql.errors) if the tokens are not a statement.
+ */
+Stmt parseStatement(const(Token)[] tokens) @safe
 {
-    auto p = Parser(toks);
-    return p.statement();
+    auto p = Parser(tokens);
+    auto s = p.statement();
+    if (!p.atEnd)
+        fail("syntax error: unexpected trailing input");
+    return s;
 }
 
 private struct Parser
@@ -18,165 +27,180 @@ private struct Parser
     const(Token)[] toks;
     size_t pos;
 
-    this(const(Token)[] t) @safe
+    this(const(Token)[] toks) @safe pure nothrow @nogc
     {
-        toks = t;
+        this.toks = toks;
     }
 
-    Tok peek(size_t ahead = 0) const pure nothrow @nogc @safe
+    bool atEnd() const @safe pure nothrow @nogc
     {
-        return pos + ahead < toks.length ? toks[pos + ahead].kind : Tok.eof;
+        return pos >= toks.length;
     }
 
-    bool accept(Tok k) pure @safe
+    // --- token helpers ---
+
+    bool peekKeyword(Keyword k, size_t ahead = 0) const @safe pure nothrow @nogc
     {
-        if (peek() == k)
+        return pos + ahead < toks.length && toks[pos + ahead].kind == TokenKind.ident
+            && toks[pos + ahead].keyword == k;
+    }
+
+    bool peekKind(TokenKind k, size_t ahead = 0) const @safe pure nothrow @nogc
+    {
+        return pos + ahead < toks.length && toks[pos + ahead].kind == k;
+    }
+
+    bool acceptKeyword(Keyword k) @safe pure nothrow @nogc
+    {
+        if (peekKeyword(k))
         {
-            pos++;
+            ++pos;
             return true;
         }
         return false;
     }
 
-    void expect(Tok k) pure @safe
+    bool acceptKind(TokenKind k) @safe pure nothrow @nogc
     {
-        if (!accept(k))
-            fail("syntax error");
+        if (peekKind(k))
+        {
+            ++pos;
+            return true;
+        }
+        return false;
     }
 
-    string expectName() pure @safe
+    void expectKeyword(Keyword k) @safe pure
     {
-        if (peek() != Tok.ident)
+        if (!acceptKeyword(k))
+            fail("syntax error: expected keyword");
+    }
+
+    void expectKind(TokenKind k) @safe pure
+    {
+        if (!acceptKind(k))
+            fail("syntax error: unexpected token");
+    }
+
+    /// True if the next token is a plain (non-reserved) identifier.
+    bool peekName() const @safe pure nothrow @nogc
+    {
+        return peekKind(TokenKind.ident) && toks[pos].keyword == Keyword.none;
+    }
+
+    string expectName() @safe pure
+    {
+        if (!peekName)
             fail("syntax error: expected a name");
         return toks[pos++].text;
     }
 
-    long expectInteger() pure @safe
+    long expectInteger() @safe pure
     {
-        if (peek() != Tok.integer)
+        if (!peekKind(TokenKind.integer))
             fail("syntax error: expected an integer");
         return toks[pos++].value;
     }
 
-    void expectEnd() pure @safe
+    // --- statements ---
+
+    Stmt statement() @safe pure
     {
-        if (pos != toks.length)
-            fail("syntax error: unexpected token");
+        if (atEnd)
+            fail("syntax error: empty statement");
+        if (acceptKeyword(Keyword.create))
+            return createTable();
+        if (acceptKeyword(Keyword.insert))
+            return insert();
+        if (acceptKeyword(Keyword.delete_))
+            return deleteFrom();
+        if (acceptKeyword(Keyword.update))
+            return update();
+        if (acceptKeyword(Keyword.select))
+            return select();
+        fail("syntax error: unsupported statement");
     }
 
-    // ---- statements ----
-
-    Statement statement() @safe
+    Stmt createTable() @safe pure
     {
-        Statement s;
-        switch (peek())
+        auto s = new Stmt(StmtKind.createTable);
+        expectKeyword(Keyword.table);
+        s.table = expectName();
+        expectKind(TokenKind.lparen);
+        do
         {
-        case Tok.kSelect:
-            s = select();
-            break;
-        case Tok.kInsert:
-            s = insert();
-            break;
-        case Tok.kDelete:
-            s = delete_();
-            break;
-        case Tok.kUpdate:
-            s = update();
-            break;
-        case Tok.kCreate:
-            s = create();
-            break;
-        default:
-            fail("syntax error: unsupported statement");
+            s.columnNames ~= expectName();
+            if (!acceptKeyword(Keyword.integer) && !acceptKeyword(Keyword.text))
+                fail("syntax error: expected INTEGER or TEXT");
         }
-        expectEnd();
+        while (acceptKind(TokenKind.comma));
+        expectKind(TokenKind.rparen);
         return s;
     }
 
-    Statement create() @safe
+    Stmt insert() @safe pure
     {
-        pos++;
-        expect(Tok.kTable);
-        auto st = new CreateStmt;
-        st.table = expectName();
-        expect(Tok.lparen);
+        auto s = new Stmt(StmtKind.insert);
+        expectKeyword(Keyword.into);
+        s.table = expectName();
+        expectKeyword(Keyword.values);
         do
         {
-            st.columns ~= expectName();
-            if (!accept(Tok.kInteger) && !accept(Tok.kText))
-                fail("syntax error: expected a column type");
-        }
-        while (accept(Tok.comma));
-        expect(Tok.rparen);
-        return st;
-    }
-
-    Statement insert() @safe
-    {
-        pos++;
-        expect(Tok.kInto);
-        auto st = new InsertStmt;
-        st.table = expectName();
-        expect(Tok.kValues);
-        do
-        {
-            expect(Tok.lparen);
+            expectKind(TokenKind.lparen);
             Expr[] row;
             do
                 row ~= expr();
-            while (accept(Tok.comma));
-            expect(Tok.rparen);
-            st.rows ~= row;
+            while (acceptKind(TokenKind.comma));
+            expectKind(TokenKind.rparen);
+            s.rows ~= row;
         }
-        while (accept(Tok.comma));
-        return st;
+        while (acceptKind(TokenKind.comma));
+        return s;
     }
 
-    Statement delete_() @safe
+    Stmt deleteFrom() @safe pure
     {
-        pos++;
-        expect(Tok.kFrom);
-        auto st = new DeleteStmt;
-        st.table = expectName();
-        if (accept(Tok.kWhere))
-            st.where_ = expr();
-        return st;
+        auto s = new Stmt(StmtKind.delete_);
+        expectKeyword(Keyword.from);
+        s.table = expectName();
+        if (acceptKeyword(Keyword.where))
+            s.where = expr();
+        return s;
     }
 
-    Statement update() @safe
+    Stmt update() @safe pure
     {
-        pos++;
-        auto st = new UpdateStmt;
-        st.table = expectName();
-        expect(Tok.kSet);
+        auto s = new Stmt(StmtKind.update);
+        s.table = expectName();
+        expectKeyword(Keyword.set);
         do
         {
-            st.columns ~= expectName();
-            expect(Tok.eq);
-            st.values ~= expr();
+            s.setColumns ~= expectName();
+            expectKind(TokenKind.eq);
+            s.setValues ~= expr();
         }
-        while (accept(Tok.comma));
-        if (accept(Tok.kWhere))
-            st.where_ = expr();
-        return st;
+        while (acceptKind(TokenKind.comma));
+        if (acceptKeyword(Keyword.where))
+            s.where = expr();
+        return s;
     }
 
-    TableRef tableRef() pure @safe
+    TableRef tableRef() @safe pure
     {
         TableRef r;
         r.name = expectName();
-        if (accept(Tok.kAs))
+        if (acceptKeyword(Keyword.as))
             r.alias_ = expectName();
-        else if (peek() == Tok.ident)
+        else if (peekName)
             r.alias_ = expectName();
         return r;
     }
 
-    ColumnRef columnRef() pure @safe
+    ColumnRef columnRef() @safe pure
     {
         ColumnRef c;
         c.name = expectName();
-        if (accept(Tok.dot))
+        if (acceptKind(TokenKind.dot))
         {
             c.qualifier = c.name;
             c.name = expectName();
@@ -184,304 +208,360 @@ private struct Parser
         return c;
     }
 
-    SelectStmt select() @safe
+    Stmt select() @safe pure
     {
-        pos++;
-        auto st = new SelectStmt;
+        auto s = new Stmt(StmtKind.select);
         do
         {
-            SelectItem it;
-            if (accept(Tok.star))
-                it.star = true;
+            SelectItem item;
+            if (acceptKind(TokenKind.star))
+                item.star = true;
             else
             {
-                it.expr = expr();
-                if (accept(Tok.kAs))
-                    it.alias_ = expectName();
-                else if (peek() == Tok.ident)
-                    it.alias_ = expectName();
+                item.expr = expr();
+                if (acceptKeyword(Keyword.as))
+                    item.alias_ = expectName();
+                else if (peekName)
+                    item.alias_ = expectName();
             }
-            st.items ~= it;
+            s.items ~= item;
         }
-        while (accept(Tok.comma));
+        while (acceptKind(TokenKind.comma));
 
-        if (accept(Tok.kFrom))
+        if (acceptKeyword(Keyword.from))
         {
-            st.from ~= tableRef();
-            if (accept(Tok.comma))
-                st.from ~= tableRef();
-            else if (peek() == Tok.kJoin || peek() == Tok.kInner)
+            s.from ~= tableRef();
+            if (acceptKind(TokenKind.comma))
+                s.from ~= tableRef();
+            else if (peekKeyword(Keyword.inner) || peekKeyword(Keyword.join))
             {
-                if (accept(Tok.kInner))
-                    expect(Tok.kJoin);
-                else
-                    pos++;
-                st.from ~= tableRef();
-                expect(Tok.kOn);
-                st.on = expr();
+                acceptKeyword(Keyword.inner);
+                expectKeyword(Keyword.join);
+                s.from ~= tableRef();
+                expectKeyword(Keyword.on);
+                s.joinOn = expr();
             }
         }
-        if (accept(Tok.kWhere))
-            st.where_ = expr();
-        if (accept(Tok.kGroup))
+        if (acceptKeyword(Keyword.where))
+            s.where = expr();
+        if (acceptKeyword(Keyword.group))
         {
-            expect(Tok.kBy);
+            expectKeyword(Keyword.by);
             do
-                st.groupBy ~= columnRef();
-            while (accept(Tok.comma));
+                s.groupBy ~= columnRef();
+            while (acceptKind(TokenKind.comma));
+            if (acceptKeyword(Keyword.having))
+                s.having = expr();
         }
-        if (accept(Tok.kHaving))
+        else if (peekKeyword(Keyword.having))
+            fail("syntax error: HAVING requires GROUP BY");
+        if (acceptKeyword(Keyword.order))
         {
-            if (st.groupBy.length == 0)
-                fail("HAVING requires GROUP BY");
-            st.having = expr();
-        }
-        if (accept(Tok.kOrder))
-        {
-            expect(Tok.kBy);
+            expectKeyword(Keyword.by);
             do
             {
                 OrderTerm t;
                 t.expr = expr();
-                if (accept(Tok.kDesc))
-                    t.desc = true;
+                if (acceptKeyword(Keyword.desc))
+                    t.descending = true;
                 else
-                    accept(Tok.kAsc);
-                st.orderBy ~= t;
+                    acceptKeyword(Keyword.asc);
+                s.orderBy ~= t;
             }
-            while (accept(Tok.comma));
+            while (acceptKind(TokenKind.comma));
         }
-        if (accept(Tok.kLimit))
+        if (acceptKeyword(Keyword.limit))
         {
-            st.hasLimit = true;
-            st.limit = expectInteger();
-            if (accept(Tok.kOffset))
-                st.offset = expectInteger();
+            s.hasLimit = true;
+            s.limit = expectInteger();
+            if (acceptKeyword(Keyword.offset))
+                s.offset = expectInteger();
         }
-        return st;
+        return s;
     }
 
-    // ---- expressions ----
+    // --- expressions ---
 
-    static Expr bin(BinOp op, Expr l, Expr r) pure @safe
+    static Expr binary(BinOp op, Expr l, Expr r) @safe pure nothrow
     {
-        auto e = new Expr;
-        e.kind = ExprKind.binary;
+        auto e = new Expr(ExprKind.binary);
         e.op = op;
         e.lhs = l;
         e.rhs = r;
         return e;
     }
 
-    static Expr unary(ExprKind k, Expr operand) pure @safe
-    {
-        auto e = new Expr;
-        e.kind = k;
-        e.lhs = operand;
-        return e;
-    }
-
-    Expr expr() pure @safe
+    Expr expr() @safe pure
     {
         auto l = andExpr();
-        while (accept(Tok.kOr))
-            l = bin(BinOp.or, l, andExpr());
+        while (acceptKeyword(Keyword.or))
+            l = binary(BinOp.or, l, andExpr());
         return l;
     }
 
-    Expr andExpr() pure @safe
+    Expr andExpr() @safe pure
     {
         auto l = notExpr();
-        while (accept(Tok.kAnd))
-            l = bin(BinOp.and, l, notExpr());
+        while (acceptKeyword(Keyword.and))
+            l = binary(BinOp.and, l, notExpr());
         return l;
     }
 
-    Expr notExpr() pure @safe
+    Expr notExpr() @safe pure
     {
-        if (accept(Tok.kNot))
-            return unary(ExprKind.not, notExpr());
+        if (acceptKeyword(Keyword.not))
+        {
+            auto e = new Expr(ExprKind.not);
+            e.lhs = notExpr();
+            return e;
+        }
         return eqExpr();
     }
 
-    Expr eqExpr() pure @safe
+    Expr eqExpr() @safe pure
     {
         auto l = relExpr();
         for (;;)
         {
-            switch (peek())
+            BinOp op;
+            if (acceptKind(TokenKind.eq))
+                op = BinOp.eq;
+            else if (acceptKind(TokenKind.ne))
+                op = BinOp.ne;
+            else if (peekKeyword(Keyword.is_))
             {
-            case Tok.eq:
-                pos++;
-                l = bin(BinOp.eq, l, relExpr());
-                break;
-            case Tok.ne:
-                pos++;
-                l = bin(BinOp.ne, l, relExpr());
-                break;
-            case Tok.kIs:
-                pos++;
-                if (accept(Tok.kNot))
+                ++pos;
+                immutable negated = acceptKeyword(Keyword.not);
+                expectKeyword(Keyword.null_);
+                auto e = new Expr(negated ? ExprKind.isNotNull : ExprKind.isNull);
+                e.lhs = l;
+                l = e;
+                continue;
+            }
+            else if (peekKeyword(Keyword.like) || (peekKeyword(Keyword.not) && peekKeyword(Keyword.like, 1)))
+            {
+                immutable negated = acceptKeyword(Keyword.not);
+                expectKeyword(Keyword.like);
+                auto e = new Expr(ExprKind.like);
+                e.lhs = l;
+                e.rhs = relExpr();
+                if (negated)
                 {
-                    expect(Tok.kNull);
-                    l = unary(ExprKind.isNotNull, l);
+                    auto n = new Expr(ExprKind.not);
+                    n.lhs = e;
+                    l = n;
                 }
                 else
-                {
-                    expect(Tok.kNull);
-                    l = unary(ExprKind.isNull, l);
-                }
-                break;
-            case Tok.kLike:
-                pos++;
-                l = bin(BinOp.like, l, relExpr());
-                break;
-            case Tok.kNot:
-                pos++;
-                expect(Tok.kLike);
-                l = unary(ExprKind.not, bin(BinOp.like, l, relExpr()));
-                break;
-            default:
-                return l;
+                    l = e;
+                continue;
             }
+            else
+                return l;
+            l = binary(op, l, relExpr());
         }
     }
 
-    Expr relExpr() pure @safe
+    Expr relExpr() @safe pure
     {
         auto l = addExpr();
         for (;;)
         {
             BinOp op;
-            switch (peek())
-            {
-            case Tok.lt:
+            if (acceptKind(TokenKind.lt))
                 op = BinOp.lt;
-                break;
-            case Tok.le:
+            else if (acceptKind(TokenKind.le))
                 op = BinOp.le;
-                break;
-            case Tok.gt:
+            else if (acceptKind(TokenKind.gt))
                 op = BinOp.gt;
-                break;
-            case Tok.ge:
+            else if (acceptKind(TokenKind.ge))
                 op = BinOp.ge;
-                break;
-            default:
+            else
                 return l;
-            }
-            pos++;
-            l = bin(op, l, addExpr());
+            l = binary(op, l, addExpr());
         }
     }
 
-    Expr addExpr() pure @safe
+    Expr addExpr() @safe pure
     {
         auto l = mulExpr();
         for (;;)
         {
-            if (accept(Tok.plus))
-                l = bin(BinOp.add, l, mulExpr());
-            else if (accept(Tok.minus))
-                l = bin(BinOp.sub, l, mulExpr());
+            BinOp op;
+            if (acceptKind(TokenKind.plus))
+                op = BinOp.add;
+            else if (acceptKind(TokenKind.minus))
+                op = BinOp.sub;
             else
                 return l;
+            l = binary(op, l, mulExpr());
         }
     }
 
-    Expr mulExpr() pure @safe
+    Expr mulExpr() @safe pure
     {
-        auto l = unaryExpr();
+        auto l = unary();
         for (;;)
         {
-            if (accept(Tok.star))
-                l = bin(BinOp.mul, l, unaryExpr());
-            else if (accept(Tok.slash))
-                l = bin(BinOp.div, l, unaryExpr());
-            else if (accept(Tok.percent))
-                l = bin(BinOp.mod, l, unaryExpr());
+            BinOp op;
+            if (acceptKind(TokenKind.star))
+                op = BinOp.mul;
+            else if (acceptKind(TokenKind.slash))
+                op = BinOp.div;
+            else if (acceptKind(TokenKind.percent))
+                op = BinOp.mod;
             else
                 return l;
+            l = binary(op, l, unary());
         }
     }
 
-    Expr unaryExpr() pure @safe
+    Expr unary() @safe pure
     {
-        if (accept(Tok.minus))
-            return unary(ExprKind.neg, unaryExpr());
+        if (acceptKind(TokenKind.minus))
+        {
+            auto e = new Expr(ExprKind.negate);
+            e.lhs = unary();
+            return e;
+        }
         return primary();
     }
 
-    Expr primary() pure @safe
+    static Expr literal(Value v) @safe pure nothrow
     {
-        auto e = new Expr;
-        switch (peek())
+        auto e = new Expr(ExprKind.literal);
+        e.value = v;
+        return e;
+    }
+
+    Expr primary() @safe pure
+    {
+        if (atEnd)
+            fail("syntax error: unexpected end of statement");
+        immutable t = toks[pos];
+        switch (t.kind)
         {
-        case Tok.integer:
-            e.kind = ExprKind.intLit;
-            e.intValue = toks[pos++].value;
+        case TokenKind.integer:
+            ++pos;
+            return literal(Value.integer(t.value));
+        case TokenKind.string_:
+            ++pos;
+            return literal(Value.text(t.text));
+        case TokenKind.lparen:
+            ++pos;
+            auto e = expr();
+            expectKind(TokenKind.rparen);
             return e;
-        case Tok.string_:
-            e.kind = ExprKind.strLit;
-            e.text = toks[pos++].text;
-            return e;
-        case Tok.kNull:
-            pos++;
-            e.kind = ExprKind.nullLit;
-            return e;
-        case Tok.lparen:
-            pos++;
-            auto inner = expr();
-            expect(Tok.rparen);
-            return inner;
-        case Tok.ident:
-            immutable name = toks[pos++].text;
-            if (peek() == Tok.lparen)
-                return aggregate(name);
-            e.kind = ExprKind.column;
-            if (accept(Tok.dot))
+        case TokenKind.ident:
+            if (t.keyword == Keyword.null_)
             {
-                e.qualifier = name;
-                e.text = expectName();
+                ++pos;
+                return literal(Value.null_);
             }
-            else
-                e.text = name;
+            if (t.keyword != Keyword.none)
+                fail("syntax error: unexpected keyword");
+            if (peekKind(TokenKind.lparen, 1))
+                return aggregate();
+            auto e = new Expr(ExprKind.column);
+            auto c = columnRef();
+            e.qualifier = c.qualifier;
+            e.name = c.name;
             return e;
         default:
-            fail("syntax error: expected an expression");
+            fail("syntax error: unexpected token");
         }
     }
 
-    Expr aggregate(string name) pure @safe
+    Expr aggregate() @safe pure
     {
-        auto e = new Expr;
-        e.kind = ExprKind.aggregate;
-        switch (name)
+        auto e = new Expr(ExprKind.aggregate);
+        switch (toks[pos].text)
         {
-        case "count":
-            e.fn = AggFn.count;
-            break;
-        case "sum":
-            e.fn = AggFn.sum;
-            break;
-        case "min":
-            e.fn = AggFn.min;
-            break;
-        case "max":
-            e.fn = AggFn.max;
-            break;
-        case "avg":
-            e.fn = AggFn.avg;
-            break;
+        case "count": e.func = AggFunc.count; break;
+        case "sum": e.func = AggFunc.sum; break;
+        case "min": e.func = AggFunc.min; break;
+        case "max": e.func = AggFunc.max; break;
+        case "avg": e.func = AggFunc.avg; break;
         default:
             fail("syntax error: unknown function");
         }
-        expect(Tok.lparen);
-        if (e.fn == AggFn.count && accept(Tok.star))
+        pos += 2; // name and '('
+        if (e.func == AggFunc.count && acceptKind(TokenKind.star))
             e.star = true;
         else
             e.lhs = expr();
-        expect(Tok.rparen);
+        expectKind(TokenKind.rparen);
         return e;
     }
+}
+
+version (unittest)
+{
+    private bool parses(string sql) @safe
+    {
+        auto stmts = splitStatements(sql);
+        if (stmts.length != 1)
+            return false;
+        try
+        {
+            parseStatement(stmts[0]);
+            return true;
+        }
+        catch (SqlError)
+            return false;
+    }
+}
+
+@("accepts every statement form of the dialect")
+unittest
+{
+    assert(parses("CREATE TABLE t (a INTEGER, b TEXT)"));
+    assert(parses("INSERT INTO t VALUES (1, 'x'), (2, NULL)"));
+    assert(parses("DELETE FROM t WHERE a = 1"));
+    assert(parses("UPDATE t SET a = 1, b = 'y' WHERE a IS NOT NULL"));
+    assert(parses("SELECT * FROM t"));
+    assert(parses("SELECT 1 + 1"));
+    assert(parses("SELECT a x, b AS y, COUNT(*) FROM t u, v WHERE a NOT LIKE 'x%' GROUP BY a, u.b HAVING count (a) > 1 ORDER BY 1 DESC, x LIMIT 3 OFFSET 2"));
+    assert(parses("SELECT * FROM t INNER JOIN u ON t.a = u.a"));
+    assert(parses("SELECT * FROM t JOIN u v ON t.a = v.a"));
+    assert(parses("SELECT count FROM t"));
+}
+
+@("rejects unsupported or malformed SQL")
+unittest
+{
+    assert(!parses("DROP TABLE t"));
+    assert(!parses("CREATE TABLE t ()"));
+    assert(!parses("CREATE TABLE t (a REAL)"));
+    assert(!parses("CREATE TABLE t (a)"));
+    assert(!parses("CREATE TABLE t (text TEXT)"));
+    assert(!parses("INSERT INTO t (a) VALUES (1)"));
+    assert(!parses("SELECT a AS left FROM t"));
+    assert(!parses("SELECT * FROM t LEFT JOIN u ON 1"));
+    assert(!parses("SELECT * FROM a, b, c"));
+    assert(!parses("SELECT a FROM t WHERE a IN (1)"));
+    assert(!parses("SELECT a FROM t WHERE a BETWEEN 1 AND 2"));
+    assert(!parses("SELECT 'a' || 'b'"));
+    assert(!parses("SELECT 1.5"));
+    assert(!parses("SELECT a FROM t HAVING a > 1"));
+    assert(!parses("SELECT a FROM t GROUP BY a + 1"));
+    assert(!parses("SELECT a FROM t LIMIT -1"));
+    assert(!parses("SELECT a FROM t OFFSET 1"));
+    assert(!parses("SELECT foo(a) FROM t"));
+    assert(!parses("SELECT SUM(*) FROM t"));
+    assert(!parses("SELECT * AS x FROM t"));
+    assert(!parses("SELECT 'unterminated"));
+}
+
+@("operator precedence follows the grammar")
+unittest
+{
+    auto stmts = splitStatements("SELECT NOT a = 1, a + 1 IS NULL, 1 < 2 = 1, -5 % 3, 1 + 2 * 3");
+    auto s = parseStatement(stmts[0]);
+    assert(s.items[0].expr.kind == ExprKind.not);
+    assert(s.items[0].expr.lhs.op == BinOp.eq);
+    assert(s.items[1].expr.kind == ExprKind.isNull);
+    assert(s.items[1].expr.lhs.op == BinOp.add);
+    assert(s.items[2].expr.op == BinOp.eq && s.items[2].expr.lhs.op == BinOp.lt);
+    assert(s.items[3].expr.op == BinOp.mod && s.items[3].expr.lhs.kind == ExprKind.negate);
+    assert(s.items[4].expr.op == BinOp.add && s.items[4].expr.rhs.op == BinOp.mul);
 }

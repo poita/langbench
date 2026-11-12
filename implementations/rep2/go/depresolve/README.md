@@ -1,96 +1,93 @@
 # depresolve
 
-A deterministic package dependency resolver, as a Go library and a small
-command-line tool. Given a registry (every version of every package with its
-requirements) and a root manifest, it picks one version for every needed
-package so that all requirements hold. The result is defined as the first
-solution of a fixed search: depth-first in requirement order, newest candidate
-version first, with chronological backtracking. Semantic versions are
-`MAJOR.MINOR.PATCH`; ranges are `*`, exact, `^`, `~`, and one to three
-`<`, `<=`, `>`, `>=` comparators (npm semantics).
+A deterministic package dependency resolver written in Go, with no
+dependencies outside the standard library.
 
-Standard library only; requires Go 1.27.
+Given a registry (every version of every package, each with its
+requirements) and a root manifest, `depresolve` picks one version of every
+package that is needed so that all requirements hold. The answer is defined
+as the **first** solution of a depth-first search that tries versions newest
+first and backtracks chronologically, so any two runs agree. If there is no
+solution it reports `unsatisfiable`.
 
-## Build and test
+The search is iterative (no deep recursion), does not copy state at choice
+points (choices are undone through a stack; pending requirements are shared),
+and finds each requirement's candidate versions by binary search once, before
+the search starts.
+
+## Layout
+
+| Path | Contents |
+|---|---|
+| `version.go` | `Version`, numeric comparison, parsing |
+| `rangespec.go` | `Range`: `*`, exact, `^`, `~` and comparator ranges |
+| `registry.go` | `Registry`, `Requirement` |
+| `parse.go` | reader for the text format |
+| `resolve.go` | `Registry.Resolve`, the search |
+| `cmd/depresolve` | the command-line tool |
+
+## Build
+
+Requires Go 1.27 or newer.
 
 ```sh
-./build.sh          # builds bin/depresolve
-go test ./...       # unit tests
-./run.sh < input    # runs the built tool
+./build.sh          # produces ./bin/depresolve
+go test ./...       # runs the tests
 ```
 
-## Command line
+## Command-line use
 
-`depresolve` reads the whole problem on stdin:
-
-```
-a 1.0.0: c ^1.0.0
-b 1.0.0: c ~1.2.0
-c 1.1.0:
-c 1.2.5:
-c 1.3.0:
-root: a *, b *
-```
-
-Zero or more `name version: requirements` lines, then one `root: requirements`
-line. Requirements are `name range` separated by `, `. It prints one
-`name version` line per chosen package, sorted by name (byte order):
+`depresolve` reads the whole input on stdin and writes the result to stdout
+(`./run.sh` runs the built binary from anywhere).
 
 ```
+$ printf 'a 1.0.0: c ^1.0.0\nb 1.0.0: c ~1.2.0\nc 1.1.0:\nc 1.2.5:\nc 1.3.0:\nroot: a *, b *\n' | ./run.sh
 a 1.0.0
 b 1.0.0
 c 1.2.5
 ```
 
-or the single line `unsatisfiable`. Both exit with status 0. Malformed input
-prints a diagnostic on stderr and exits with status 2.
+Input is zero or more registry lines `name X.Y.Z: req, req` followed by one
+root line `root: req, req`. A requirement is `name range`, where range is
+`*`, `X.Y.Z`, `^X.Y.Z`, `~X.Y.Z` or up to three comparators such as
+`>=1.0.0 <2.0.0` (npm caret/tilde semantics, no prereleases). Output is one
+`name version` line per chosen package sorted by name, or the single line
+`unsatisfiable`. Exit status is 0 in both cases; malformed input prints a
+message to stderr and exits 1.
 
-## Library
+## Library use
 
 ```go
-import "github.com/example/depresolve"
+package main
 
-problem, err := depresolve.Parse(os.Stdin) // or build a Registry by hand
-if err != nil { ... }
-res, err := problem.Resolve()
-if errors.Is(err, depresolve.ErrUnsatisfiable) {
-	fmt.Println("no solution")
-}
-for _, p := range res {
-	fmt.Println(p.Name, p.Version)
+import (
+	"errors"
+	"fmt"
+
+	"github.com/peteralexander/depresolve"
+)
+
+func main() {
+	reg := depresolve.NewRegistry()
+	reg.Add("app-lib", depresolve.MustParseVersion("1.0.0"),
+		depresolve.MustParseRequirements("json ^1.0.0"))
+	reg.Add("json", depresolve.MustParseVersion("1.2.0"), nil)
+	reg.Add("json", depresolve.MustParseVersion("1.10.0"), nil)
+	reg.Add("json", depresolve.MustParseVersion("2.0.0"), nil)
+
+	root, err := depresolve.ParseRequirements("app-lib *")
+	if err != nil {
+		panic(err)
+	}
+	sol, err := reg.Resolve(root)
+	if errors.Is(err, depresolve.ErrUnsatisfiable) {
+		fmt.Println("no solution")
+		return
+	}
+	for _, p := range sol {
+		fmt.Println(p.Name, p.Version) // app-lib 1.0.0, then json 1.10.0
+	}
 }
 ```
 
-Building the registry programmatically:
-
-```go
-reg := depresolve.NewRegistry()
-reg.Add("lib", depresolve.MustParseVersion("1.4.0"), []depresolve.Requirement{
-	{Name: "util", Range: depresolve.MustParseRange("^2.0.0")},
-})
-reg.Add("util", depresolve.MustParseVersion("2.1.0"), nil)
-res, err := reg.Resolve([]depresolve.Requirement{
-	{Name: "lib", Range: depresolve.AnyRange()},
-})
-```
-
-### Layout
-
-| file | responsibility |
-|---|---|
-| `version.go` | `Version`, numeric comparison, packed integer `Key` |
-| `range.go` | `Range`, compiled to one half-open key interval |
-| `registry.go` | `Registry`, `Requirement`; names interned to dense ids |
-| `parse.go` | text format: `Parse`, `Problem`, `ParseError` |
-| `resolve.go` | the search and `Resolution` |
-| `cmd/depresolve` | the command-line tool |
-
-### Implementation notes
-
-Versions pack into one `uint64` (21 bits per component), so a range is two
-integer comparisons. Each package's versions are sorted newest first and every
-requirement is converted once to a window of candidate indices (two binary
-searches). The search is iterative: a stack of choice-point frames, a `chosen`
-array indexed by package id, and the pending requirements as a persistent
-linked list in an arena that is truncated on backtracking. Nothing is copied
-per step and the Go call stack does not grow with dependency depth.
+Registries can also be read from the text format with `depresolve.Parse`.

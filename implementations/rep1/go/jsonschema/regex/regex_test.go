@@ -1,129 +1,125 @@
 package regex
 
-import "testing"
+import (
+	"strings"
+	"testing"
+	"time"
+)
 
-func TestMatchTable(t *testing.T) {
+func TestMatch(t *testing.T) {
 	tests := []struct {
-		pat, in string
-		want    bool
+		pat, s string
+		want   bool
 	}{
-		// literals and search semantics
+		// Search, not full match.
 		{"bar", "foobarbaz", true},
-		{"bar", "foo", false},
-		{"", "anything", true},
+		{"bar", "foobaz", false},
 		{"", "", true},
-		{"^abc$", "abc", true},
-		{"^abc$", "abcd", false},
+		{"", "abc", true},
+		// Anchors: ^ and $ are string anchors only.
+		{"^a$", "a", true},
 		{"^a$", "a\n", false},
 		{"^a", "ba", false},
 		{"a$", "ab", false},
 		{"^$", "", true},
-		// alternation and groups
-		{"^(a|b)c$", "bc", true},
-		{"^(?:a|bc)d$", "bcd", true},
-		{"^(a|ab)(c|bcd)$", "abcd", true},
-		{"a|", "zzz", true},
-		{"^(|a)$", "a", true},
-		// quantifiers
+		{"^$", "\n", false},
+		{"^(a|b)$", "b", true},
+		{"a|^b", "cb", false},
+		{"a|^b", "bc", true},
+		// Alternation, groups.
+		{"^(?:ab|cd)+$", "abcdab", true},
+		{"^(ab|cd)+$", "abcdabx", false},
+		{"^(a|ab)(c|bcd)(d*)$", "abcd", true},
+		// Quantifiers.
 		{"^a*$", "", true},
 		{"^a+$", "", false},
-		{"^a?b$", "b", true},
-		{"^a{3}$", "aaa", true},
-		{"^a{3}$", "aa", false},
-		{"^a{2,}$", "aaaaa", true},
+		{"^a?$", "aa", false},
+		{"^a{2}$", "aa", true},
+		{"^a{2}$", "aaa", false},
+		{"^a{2,}$", "aaaa", true},
+		{"^a{2,}$", "a", false},
 		{"^a{2,3}$", "aaaa", false},
-		{"^a{2,3}$", "aa", true},
-		{"^a{,3}$", "a{,3}", true},
-		{"^a{x}$", "a{x}", true},
+		{"^a{2,3}$", "aaa", true},
+		{"^a{0}$", "", true},
+		{"^a{0,2}b$", "aab", true},
+		{"^a*?b$", "aab", true},
+		{"^(?:ab){2,3}$", "ababab", true},
+		{"^(?:ab){2,3}$", "ab", false},
+		// A '{' that is not a quantifier is literal.
+		{"a{", "a{", true},
+		{"a{x}", "a{x}", true},
+		{"a{1,x}", "a{1,x}", true},
+		{"{", "{", true},
 		{"a{1", "a{1", true},
-		{"^a+?b$", "aab", true},
-		{"^(a*)*$", "aaaa", true},
-		{"^(a*)*b$", "aaaac", false},
-		{"^(a+)+$", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", false},
-		{"^(x+x+)+y$", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", false},
-		// dot
-		{"^.$", "x", true},
+		{"}", "}", true},
+		{"]", "]", true},
+		// Dot.
+		{"^.$", "é", true},
+		{"^.$", "\U0001F4A9", true},
 		{"^.$", "\n", false},
 		{"^.$", "\r", false},
 		{"^.$", "\u2028", false},
 		{"^.$", "\u2029", false},
 		{"^.$", "\u2029", false},
-		{"^.$", "💩", true},
-		{"^.$", "é", true},
-		{"^..$", "💩", false},
-		// classes
-		{"^[abc]+$", "abcabc", true},
-		{"^[^abc]+$", "xyz", true},
-		{"^[^abc]+$", "xay", false},
-		{"^[a-c]$", "b", true},
-		{"^[a-c]$", "d", false},
-		{"^[a-]$", "-", true},
-		{"^[-a]$", "-", true},
-		{`^[a\-z]$`, "-", true},
-		{`^[a\-z]$`, "b", false},
-		{"^[]a]$", "a", false},
-		{"[]", "a", false},
-		{"[^]", "a", true},
-		{`^[\d.]+$`, "1.5", true},
-		{`^[\w-]+$`, "a-b_c", true},
-		{`^[\s\S]$`, "\n", true},
-		{`^[^\d]$`, "5", false},
-		{`^[\D]$`, "x", true},
-		{`^[\b]$`, "\b", true},
-		{`^[à-ÿ]$`, "é", true},
-		{`^[a-\d]$`, "-", true},
-		{"^[😀-😎]$", "😁", true},
-		{`^[😀-😎]$`, "😁", true},
-		// escapes
-		{`^\d+$`, "0123", true},
-		{`^\d+$`, "01a", false},
-		{`^\D+$`, "abc", true},
-		{`^\w+$`, "ab_9", true},
-		{`^\w+$`, "é", false},
-		{`^\W$`, "é", true},
-		{`^\s$`, "\u00a0", true},
-		{`^\s$`, "\ufeff", true},
-		{`^\s$`, "\u3000", true},
-		{`^\s$`, "x", false},
-		{`^\S+$`, "abc", true},
-		{`^\n\r\t\f\v\0$`, "\n\r\t\f\v\x00", true},
-		{`^\x41B$`, "AB", true},
-		{`^💩$`, "💩", true},
-		{`^\cJ$`, "\n", true},
-		{`^\cj$`, "\n", true},
-		{`^\.\*\\\[$`, `.*\[`, true},
-		{`^\/\-$`, "/-", true},
-		{`^a\.b$`, "axb", false},
-		{`^\x4$`, "x4", true},
-		// word boundaries
+		{"^.$", "\u0085", true},
+		{"^..$", "\U0001F4A9", false},
+		// Word boundaries are ASCII-only.
 		{`\bcat\b`, "a cat sat", true},
 		{`\bcat\b`, "concat", false},
 		{`\bcat\b`, "écat ", true},
 		{`\Bcat`, "concat", true},
 		{`\Bcat`, "cat", false},
-		{`^\b$`, "", false},
-		{`^\B$`, "", true},
-		// unicode
-		{"^é$", "é", true},
-		{"^日本$", "日本", true},
-		{"^.{2}$", "日本", true},
-		{"^.{1}$", "💩", true},
-		// literal braces and brackets
-		{"^}$", "}", true},
-		{"^]$", "]", true},
-		{"^{$", "{", true},
-		{"^a{1,2}{$", "a{", true},
-		// counted repetition of groups
-		{"^(ab){2}$", "abab", true},
-		{"^(ab){2}$", "ab", false},
-		{"^(a|b){2,3}c$", "abc", true},
-		// typical schema patterns
-		{`^[a-z]+@[a-z]+\.com$`, "bob@example.com", true},
-		{`^\d{3}-\d{4}$`, "555-1234", true},
-		{`^\d{3}-\d{4}$`, "5555-1234", false},
-		{`^(\([0-9]{3}\))?[0-9]{3}-[0-9]{4}$`, "(555)555-1234", true},
-		{`^[^#]*#?$`, "http://x#", true},
-		{`^[a-zA-Z_$][a-zA-Z0-9_$]*$`, "$a1", true},
+		{`\b`, "", false},
+		{`\B`, "", true},
+		{`^\b`, "a", true},
+		{`a\b$`, "a", true},
+		// Classes.
+		{"^[abc]+$", "abcabc", true},
+		{"^[a-c]+$", "abd", false},
+		{"^[^a-c]+$", "xyz", true},
+		{"^[^a-c]+$", "xaz", false},
+		{"^[a-]+$", "a-a", true},
+		{"^[-a]+$", "a-a", true},
+		{`^[\-a]+$`, "a-", true},
+		{`^[a\]]+$`, "a]", true},
+		{`^[\d-x]+$`, "1-x", true},
+		{`^[\w.]+$`, "a.b_1", true},
+		{`^[\w.]+$`, "a b", false},
+		{`^[\s]+$`, " \t\n \u3000\ufeff", true},
+		{`^[\S]+$`, "ab", true},
+		{`^[\D]+$`, "ab1", false},
+		{`^[\W]+$`, "!? ", true},
+		{`[\b]`, "\b", true},
+		{`[\b]`, "b", false},
+		{"[]", "a", false},
+		{"[^]", "a", true},
+		{"^[à-ÿ]+$", "éà", true},
+		{"^[\U0001F300-\U0001F6FF]$", "\U0001F4A9", true},
+		{"^[^a]$", "\U0001F4A9", true},
+		// Escapes.
+		{`^\d+$`, "0123", true},
+		{`^\d+$`, "١٢٣", false}, // only ASCII digits
+		{`^\D$`, "a", true},
+		{`^\w+$`, "aZ_9", true},
+		{`^\w+$`, "é", false},
+		{`^\W$`, "é", true},
+		{`^\s$`, " ", true},
+		{`^\s$`, "\u200b", false},
+		{`^\S$`, "a", true},
+		{`^\n\r\t\f\v\0$`, "\n\r\t\f\v\x00", true},
+		{`^\x41B$`, "AB", true},
+		{`^💩$`, "\U0001F4A9", true},
+		{`^é$`, "é", true},
+		{`^\cJ$`, "\n", true},
+		{`^\ca$`, "\x01", true},
+		{`^\.\\\*\[\/\-\$$`, `.\*[/-$`, true},
+		{`^\a$`, "a", true},
+		// Pathological patterns stay fast and correct.
+		{"^(a*)*$", "aaaa", true},
+		{"^(a*)*b$", "aaaa", false},
+		{"^(?:a?){3}a{3}$", "aaa", true},
+		{"(?:)*", "x", true},
+		{"^(?:a|)+$", "aaa", true},
 	}
 	for _, tc := range tests {
 		re, err := Compile(tc.pat)
@@ -131,69 +127,82 @@ func TestMatchTable(t *testing.T) {
 			t.Errorf("Compile(%q): %v", tc.pat, err)
 			continue
 		}
-		if got := re.MatchString(tc.in); got != tc.want {
-			t.Errorf("Compile(%q).MatchString(%q) = %v, want %v", tc.pat, tc.in, got, tc.want)
+		if got := re.MatchString(tc.s); got != tc.want {
+			t.Errorf("%q.MatchString(%q) = %v, want %v", tc.pat, tc.s, got, tc.want)
 		}
 	}
 }
 
 func TestSyntaxErrors(t *testing.T) {
-	for _, pat := range []string{"(", "(a", "a)", "[a", "*a", "+", "?", "a**", "(?=a)", "(?<n>a)", "[b-a]", "a{3,2}", `\`, "a{99999999}"} {
-		if _, err := Compile(pat); err == nil {
-			t.Errorf("Compile(%q) succeeded, want error", pat)
-		} else if _, ok := err.(*SyntaxError); !ok {
-			t.Errorf("Compile(%q) error type %T", pat, err)
+	for _, p := range []string{"(", ")", "a)", "[a", "*", "+a", "?", "a**", `\`, "(?=a)", "(?!a)", "(?<n>a)", `(a)\1`, "[b-a]", "a{3,2}", "{2}"} {
+		if _, err := Compile(p); err == nil {
+			t.Errorf("Compile(%q) should fail", p)
 		}
 	}
 }
 
-func TestMatchesAtEveryStart(t *testing.T) {
-	re := MustCompile(`b+c`)
-	if !re.MatchString("aaabbbc") || re.MatchString("aaabbb") {
-		t.Error("unanchored search broken")
+func TestLiteralFastPath(t *testing.T) {
+	re := MustCompile("abc")
+	if !re.isLit {
+		t.Error("abc should be recognised as a literal")
 	}
-	if re.String() != `b+c` {
-		t.Error("String()")
+	if re := MustCompile(`a\.b`); !re.isLit || !re.MatchString("xa.by") || re.MatchString("axb") {
+		t.Error(`a\.b literal handling`)
 	}
-}
-
-func TestLongSubjectIsLinear(t *testing.T) {
-	subject := make([]byte, 50000)
-	for i := range subject {
-		subject[i] = 'a'
-	}
-	if MustCompile(`(a|aa)+$`).MatchString(string(subject) + "b") {
-		t.Error("should not match")
-	}
-	if !MustCompile(`^(a*)*$`).MatchString(string(subject)) {
-		t.Error("should match")
+	if MustCompile("a|b").isLit {
+		t.Error("a|b is not a literal")
 	}
 }
 
-func TestMustCompilePanics(t *testing.T) {
-	defer func() {
-		if recover() == nil {
-			t.Error("MustCompile did not panic")
+// Matching must be O(P*L): a classic exponential-backtracking input must
+// finish instantly.
+func TestNoExponentialBlowup(t *testing.T) {
+	subject := strings.Repeat("a", 5000) + "!"
+	for _, p := range []string{`^(a+)+$`, `^(a|aa)+$`, `^(a*)*$`, `(x+x+)+y`, `^(?:a{1,50}){1,50}$`} {
+		re := MustCompile(p)
+		start := time.Now()
+		re.MatchString(subject)
+		if d := time.Since(start); d > 5*time.Second {
+			t.Errorf("%q took %v", p, d)
 		}
-	}()
-	MustCompile("(")
+	}
+}
+
+func TestCountedRepetitionLimit(t *testing.T) {
+	if _, err := Compile(`(?:(?:a{1000}){1000}){1000}`); err == nil {
+		t.Error("enormous expansion should be rejected")
+	}
+	re := MustCompile(`^a{100,200}$`)
+	if !re.MatchString(strings.Repeat("a", 150)) || re.MatchString(strings.Repeat("a", 99)) || re.MatchString(strings.Repeat("a", 201)) {
+		t.Error("a{100,200} wrong")
+	}
 }
 
 func TestConcurrentUse(t *testing.T) {
-	re := MustCompile(`^(ab|cd)+$`)
+	re := MustCompile(`^(?:ab)+c$`)
 	done := make(chan bool)
 	for i := 0; i < 8; i++ {
 		go func() {
 			ok := true
 			for j := 0; j < 200; j++ {
-				ok = ok && re.MatchString("abcdab") && !re.MatchString("abc")
+				ok = ok && re.MatchString("ababababc") && !re.MatchString("ababab")
 			}
 			done <- ok
 		}()
 	}
 	for i := 0; i < 8; i++ {
 		if !<-done {
-			t.Error("concurrent mismatch")
+			t.Fatal("concurrent matching gave a wrong answer")
+		}
+	}
+}
+
+func TestCharsetNegate(t *testing.T) {
+	cs := (&charset{r: []rune{'b', 'd', 'x', 'x'}}).normalize()
+	neg := cs.negate()
+	for r, want := range map[rune]bool{'a': true, 'b': false, 'c': false, 'd': false, 'e': true, 'x': false, 'y': true, maxRune: true, 0: true} {
+		if neg.contains(r) != want {
+			t.Errorf("negated contains(%q) = %v", r, !want)
 		}
 	}
 }

@@ -1,4 +1,3 @@
 #!/bin/sh
-# Run the scheme CLI: program on stdin, output on stdout.
-dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/bin/scheme" "$@"
+# Run the interpreter: Scheme program on stdin, results on stdout.
+exec "$(dirname "$0")/bin/scheme" "$@"

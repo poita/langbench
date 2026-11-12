@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the inflate command-line tool (release mode, LDC).
+# Build the inflate-cli executable (bin/inflate-cli). Works from any directory.
 set -e
 cd "$(dirname "$0")"
-exec dub build -b release --compiler=ldc2 --quiet
+dub build -b release --compiler=ldc2 :cli

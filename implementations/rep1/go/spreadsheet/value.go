@@ -1,93 +1,89 @@
 package spreadsheet
 
-import "example.com/spreadsheet/numfmt"
-
-// Kind is the type of a Value.
+// Kind classifies a Value.
 type Kind uint8
 
-// Value kinds.
+// The kinds of value.
 const (
-	Empty  Kind = iota // no content
-	Number             // a finite float64
-	String             // a string
-	Error              // one of the error codes
+	// KindEmpty is the value of a cell that has no content.
+	KindEmpty Kind = iota
+	// KindNumber is a finite IEEE-754 double.
+	KindNumber
+	// KindString is a text value.
+	KindString
+	// KindError is one of the ErrorCode errors.
+	KindError
 )
 
-// ErrCode identifies a spreadsheet error.
-type ErrCode uint8
+// ErrorCode identifies a spreadsheet error.
+type ErrorCode uint8
 
-// Error codes.
+// The error codes a cell can evaluate to.
 const (
-	ErrNone  ErrCode = iota
-	ErrDiv0          // #DIV/0!
-	ErrRef           // #REF!
-	ErrCycle         // #CYCLE!
-	ErrValue         // #VALUE!
+	ErrNone  ErrorCode = iota
+	ErrDiv0            // #DIV/0!
+	ErrRef             // #REF!
+	ErrCycle           // #CYCLE!
+	ErrValue           // #VALUE!
 )
 
-var errText = [...]string{"", "#DIV/0!", "#REF!", "#CYCLE!", "#VALUE!"}
-
-// String returns the error's display text, such as "#DIV/0!".
-func (c ErrCode) String() string { return errText[c] }
-
-// Value is the value of a cell: empty, a number, a string or an error.
-// The zero Value is empty.
-type Value struct {
-	kind Kind
-	err  ErrCode
-	num  float64
-	str  string
-}
-
-// NumberValue returns a number Value. A negative zero is normalised to zero.
-func NumberValue(f float64) Value {
-	if f == 0 {
-		f = 0
-	}
-	return Value{kind: Number, num: f}
-}
-
-// StringValue returns a string Value.
-func StringValue(s string) Value { return Value{kind: String, str: s} }
-
-// ErrorValue returns an error Value.
-func ErrorValue(c ErrCode) Value { return Value{kind: Error, err: c} }
-
-// Kind reports the kind of v.
-func (v Value) Kind() Kind { return v.kind }
-
-// Number returns the number held by v (0 unless v.Kind() == Number).
-func (v Value) Number() float64 { return v.num }
-
-// Str returns the string held by v ("" unless v.Kind() == String).
-func (v Value) Str() string { return v.str }
-
-// Err returns the error code held by v (ErrNone unless v.Kind() == Error).
-func (v Value) Err() ErrCode { return v.err }
-
-// String returns the displayed form of v: strings without quotes, errors as
-// their code, numbers per package numfmt, and "" for an empty value.
-func (v Value) String() string {
-	switch v.kind {
-	case Number:
-		return numfmt.Format(v.num)
-	case String:
-		return v.str
-	case Error:
-		return v.err.String()
+// String returns the displayed form of the error code.
+func (e ErrorCode) String() string {
+	switch e {
+	case ErrDiv0:
+		return "#DIV/0!"
+	case ErrRef:
+		return "#REF!"
+	case ErrCycle:
+		return "#CYCLE!"
+	case ErrValue:
+		return "#VALUE!"
 	}
 	return ""
 }
 
-// AppendTo appends the displayed form of v to dst.
-func (v Value) AppendTo(dst []byte) []byte {
+// Value is the result of evaluating a cell. The zero Value is empty.
+type Value struct {
+	kind Kind
+	num  float64
+	str  string
+	err  ErrorCode
+}
+
+// Number returns a number Value.
+func Number(f float64) Value { return Value{kind: KindNumber, num: f} }
+
+// String returns a string Value.
+func String(s string) Value { return Value{kind: KindString, str: s} }
+
+// Error returns an error Value.
+func Error(e ErrorCode) Value { return Value{kind: KindError, err: e} }
+
+// Kind reports the kind of the value.
+func (v Value) Kind() Kind { return v.kind }
+
+// IsEmpty reports whether the value is empty.
+func (v Value) IsEmpty() bool { return v.kind == KindEmpty }
+
+// Num returns the number held by a KindNumber value, else 0.
+func (v Value) Num() float64 { return v.num }
+
+// Text returns the string held by a KindString value, else "".
+func (v Value) Text() string { return v.str }
+
+// Err returns the error code of a KindError value, else ErrNone.
+func (v Value) Err() ErrorCode { return v.err }
+
+// String returns the displayed form of the value: the string itself, the
+// error code, the formatted number (see FormatNumber), or "" when empty.
+func (v Value) String() string {
 	switch v.kind {
-	case Number:
-		return numfmt.Append(dst, v.num)
-	case String:
-		return append(dst, v.str...)
-	case Error:
-		return append(dst, v.err.String()...)
+	case KindNumber:
+		return FormatNumber(v.num)
+	case KindString:
+		return v.str
+	case KindError:
+		return v.err.String()
 	}
-	return dst
+	return ""
 }

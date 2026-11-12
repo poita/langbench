@@ -1,26 +1,53 @@
-// Package diag defines the single error type used by every stage of the
-// typesetter that can reject its input: a file name, a 1-based line and
-// column, and one of the error codes listed in the specification.
+// Package diag defines the single error type used to report an invalid
+// settings file or document, together with the error codes.
 package diag
 
 import "fmt"
 
-// Error is a located input error. Only the first error found is ever
-// reported.
+// Error codes reported in error.txt.
+const (
+	MissingDocument    = "missing-document"
+	BadSyntax          = "bad-syntax"
+	UnknownSetting     = "unknown-setting"
+	DuplicateSetting   = "duplicate-setting"
+	BadLength          = "bad-length"
+	BadInteger         = "bad-integer"
+	BadBoolean         = "bad-boolean"
+	BadEnum            = "bad-enum"
+	UnknownFont        = "unknown-font"
+	UnknownPatterns    = "unknown-patterns"
+	BadValue           = "bad-value"
+	BadEscape          = "bad-escape"
+	UnknownPlaceholder = "unknown-placeholder"
+	StrayBrace         = "stray-brace"
+	UnknownBlock       = "unknown-block"
+	BlockNotAllowed    = "block-not-allowed"
+	DuplicateTOC       = "duplicate-toc"
+	UnexpectedEnd      = "unexpected-end"
+	MissingEnd         = "missing-end"
+	BadAttribute       = "bad-attribute"
+	MissingAttribute   = "missing-attribute"
+	BadAttributeValue  = "bad-attribute-value"
+	CellCount          = "cell-count"
+	TextNotAllowed     = "text-not-allowed"
+	UnknownMeta        = "unknown-meta"
+	DuplicateMeta      = "duplicate-meta"
+	UnknownInline      = "unknown-inline"
+	UnclosedInline     = "unclosed-inline"
+	NestedFootnote     = "nested-footnote"
+	FootnoteNotAllowed = "footnote-not-allowed"
+)
+
+// Error is a located input error. Line and Col are 1-based; Col counts
+// Unicode scalar values.
 type Error struct {
-	File string // "settings.cfg", "document.cdx" or "-"
-	Line int    // 1-based line number (0 for missing-document)
-	Col  int    // 1-based column in Unicode scalar values
-	Code string // e.g. "bad-length"
+	File string
+	Line int
+	Col  int
+	Code string
 }
 
-// Error implements the error interface and renders the canonical
-// "<file>:<line>:<col>: <code>" form written to error.txt.
+// Error formats the error as "<file>:<line>:<col>: <code>".
 func (e *Error) Error() string {
 	return fmt.Sprintf("%s:%d:%d: %s", e.File, e.Line, e.Col, e.Code)
-}
-
-// New returns a new located error.
-func New(file string, line, col int, code string) *Error {
-	return &Error{File: file, Line: line, Col: col, Code: code}
 }

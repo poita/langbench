@@ -2,82 +2,79 @@ package sitegen
 
 import "strings"
 
-const epoch = "1970-01-01T00:00:00Z"
+// xmlText escapes s for use as XML character data.
+func xmlText(s string) string {
+	s = strings.ReplaceAll(s, "&", "&amp;")
+	s = strings.ReplaceAll(s, "<", "&lt;")
+	return strings.ReplaceAll(s, ">", "&gt;")
+}
 
-// feed renders the Atom feed: one entry for each of the first
-// posts_per_page published posts. contents holds the HTML of each post,
-// parallel to s.Posts.
-func (s *Site) feed(contents []string) []byte {
-	cfg := &s.Config
-	var sb strings.Builder
-	updated := epoch
+// xmlAttr escapes s for use inside a double-quoted XML attribute.
+func xmlAttr(s string) string {
+	return strings.ReplaceAll(xmlText(s), `"`, "&quot;")
+}
+
+// Feed renders the Atom feed of the site: the newest PostsPerPage posts, in
+// canonical order. The feed's update time is the date of the newest post (or
+// the epoch for a site without posts), so the output never depends on the
+// clock.
+func (s *Site) Feed() string {
+	var b strings.Builder
+	updated := "1970-01-01T00:00:00Z"
 	if len(s.Posts) > 0 {
 		updated = s.Posts[0].Date + "T00:00:00Z"
 	}
-	sb.WriteString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-	sb.WriteString("<feed xmlns=\"http://www.w3.org/2005/Atom\">\n")
-	sb.WriteString("  <title>")
-	escapeText(&sb, cfg.Title)
-	sb.WriteString("</title>\n  <id>")
-	escapeText(&sb, cfg.BaseURL+"/")
-	sb.WriteString("</id>\n  <updated>" + updated + "</updated>\n")
-	sb.WriteString("  <link href=\"")
-	escapeAttr(&sb, cfg.BaseURL+"/")
-	sb.WriteString("\" rel=\"alternate\"/>\n  <link href=\"")
-	escapeAttr(&sb, cfg.BaseURL+"/feed.xml")
-	sb.WriteString("\" rel=\"self\"/>\n  <author>\n    <name>")
-	escapeText(&sb, cfg.Author)
-	sb.WriteString("</name>\n  </author>\n")
-	n := len(s.Posts)
-	if n > cfg.PostsPerPage {
-		n = cfg.PostsPerPage
+	home := s.BaseURL + "/"
+	b.WriteString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+	b.WriteString("<feed xmlns=\"http://www.w3.org/2005/Atom\">\n")
+	b.WriteString("  <title>" + xmlText(s.Title) + "</title>\n")
+	b.WriteString("  <id>" + xmlText(home) + "</id>\n")
+	b.WriteString("  <updated>" + updated + "</updated>\n")
+	b.WriteString("  <link href=\"" + xmlAttr(home) + "\" rel=\"alternate\"/>\n")
+	b.WriteString("  <link href=\"" + xmlAttr(s.BaseURL+"/feed.xml") + "\" rel=\"self\"/>\n")
+	b.WriteString("  <author>\n")
+	b.WriteString("    <name>" + xmlText(s.Author) + "</name>\n")
+	b.WriteString("  </author>\n")
+	for _, p := range s.Posts[:min(len(s.Posts), s.PostsPerPage)] {
+		b.WriteString("  <entry>\n")
+		b.WriteString("    <title>" + xmlText(p.Title) + "</title>\n")
+		b.WriteString("    <id>" + xmlText(p.Permalink) + "</id>\n")
+		b.WriteString("    <updated>" + p.Date + "T00:00:00Z</updated>\n")
+		b.WriteString("    <link href=\"" + xmlAttr(p.Permalink) + "\" rel=\"alternate\"/>\n")
+		b.WriteString("    <content type=\"html\">" + xmlText(p.Content) + "</content>\n")
+		b.WriteString("  </entry>\n")
 	}
-	for i := 0; i < n; i++ {
-		p := s.Posts[i]
-		permalink := cfg.BaseURL + p.URL
-		sb.WriteString("  <entry>\n    <title>")
-		escapeText(&sb, p.Title)
-		sb.WriteString("</title>\n    <id>")
-		escapeText(&sb, permalink)
-		sb.WriteString("</id>\n    <updated>" + p.Date + "T00:00:00Z</updated>\n    <link href=\"")
-		escapeAttr(&sb, permalink)
-		sb.WriteString("\" rel=\"alternate\"/>\n    <content type=\"html\">")
-		escapeText(&sb, contents[i])
-		sb.WriteString("</content>\n  </entry>\n")
-	}
-	sb.WriteString("</feed>\n")
-	return []byte(sb.String())
+	b.WriteString("</feed>\n")
+	return b.String()
 }
 
-// sitemap renders sitemap.xml: the index pages, the posts (with lastmod),
-// the pages, the tag index and every tag.
-func (s *Site) sitemap(totalPages int) []byte {
-	base := s.Config.BaseURL
-	var sb strings.Builder
-	sb.WriteString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
-	sb.WriteString("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
+// Sitemap renders sitemap.xml: the index pages, the posts (with their dates
+// as lastmod), the pages, the tag index and the tags, in that order.
+func (s *Site) Sitemap() string {
+	var b strings.Builder
 	url := func(loc, lastmod string) {
-		sb.WriteString("  <url>\n    <loc>")
-		escapeText(&sb, loc)
-		sb.WriteString("</loc>\n")
+		b.WriteString("  <url>\n")
+		b.WriteString("    <loc>" + xmlText(loc) + "</loc>\n")
 		if lastmod != "" {
-			sb.WriteString("    <lastmod>" + lastmod + "</lastmod>\n")
+			b.WriteString("    <lastmod>" + lastmod + "</lastmod>\n")
 		}
-		sb.WriteString("  </url>\n")
+		b.WriteString("  </url>\n")
 	}
-	for n := 1; n <= totalPages; n++ {
-		url(base+indexURL(n), "")
+	b.WriteString("<?xml version=\"1.0\" encoding=\"utf-8\"?>\n")
+	b.WriteString("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n")
+	for n := 1; n <= s.TotalPages(); n++ {
+		url(s.BaseURL+indexURL(n), "")
 	}
 	for _, p := range s.Posts {
-		url(base+p.URL, p.Date)
+		url(p.Permalink, p.Date)
 	}
-	for _, p := range s.Pages {
-		url(base+p.URL, "")
+	for _, pg := range s.Pages {
+		url(pg.Permalink, "")
 	}
-	url(base+"/tags/", "")
+	url(s.BaseURL+"/tags/", "")
 	for _, t := range s.Tags {
-		url(base+t.URL, "")
+		url(s.BaseURL+t.URL, "")
 	}
-	sb.WriteString("</urlset>\n")
-	return []byte(sb.String())
+	b.WriteString("</urlset>\n")
+	return b.String()
 }

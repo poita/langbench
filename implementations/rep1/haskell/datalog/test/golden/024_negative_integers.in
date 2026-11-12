@@ -1,0 +1,10 @@
+v(-5). v(-1). v(0). v(1). v(-1000000000). v(1000000000). v(neg).
+neg(X) :- v(X), X < 0.
+nonneg(X) :- v(X), X >= 0.
+between(X) :- v(X), -5 < X, X < 1.
+pair(X, Y) :- v(X), v(Y), X < Y, Y < -1.
+?- neg(X).
+?- nonneg(X).
+?- between(X).
+?- pair(X, Y).
+?- v(-1).

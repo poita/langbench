@@ -1,0 +1,25 @@
+reach(2)
+reach(3)
+-- 2
+unreachable(1)
+unreachable(4)
+unreachable(5)
+unreachable(6)
+unreachable(7)
+-- 5
+chain(4, 4)
+chain(4, 5)
+chain(4, 6)
+chain(4, 7)
+chain(5, 4)
+chain(5, 5)
+chain(5, 6)
+chain(5, 7)
+chain(6, 4)
+chain(6, 5)
+chain(6, 6)
+chain(6, 7)
+-- 12
+lonely(1)
+lonely(7)
+-- 2

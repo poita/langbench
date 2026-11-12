@@ -1,13 +1,14 @@
-/// Column type affinity and the conversion of query literals (SPEC Part 3).
+/// Column type affinity (SPEC §2.3) and its application to query literals
+/// (SPEC Part 3).
 module sqlitefile.affinity;
 
-import core.stdc.stdlib : strtod;
-import sqlitefile.output;
+import sqlitefile.numeric;
+import sqlitefile.render : formatValue;
 import sqlitefile.value;
 
 @safe:
 
-/// A column's type affinity.
+/// The five column affinities.
 enum Affinity : ubyte
 {
     integer,
@@ -17,19 +18,19 @@ enum Affinity : ubyte
     numeric,
 }
 
-private bool containsCI(string hay, string needle) pure nothrow @nogc
+private bool containsCI(const(char)[] hay, string needle) pure nothrow @nogc
 {
     if (needle.length > hay.length)
         return false;
-    foreach (i; 0 .. hay.length - needle.length + 1)
+    foreach (s; 0 .. hay.length - needle.length + 1)
     {
         bool ok = true;
-        foreach (j; 0 .. needle.length)
+        foreach (k, c; needle)
         {
-            char c = hay[i + j];
-            if (c >= 'a' && c <= 'z')
-                c = cast(char)(c - 32);
-            if (c != needle[j])
+            char h = hay[s + k];
+            if (h >= 'a' && h <= 'z')
+                h = cast(char)(h - 32);
+            if (h != c)
             {
                 ok = false;
                 break;
@@ -41,139 +42,76 @@ private bool containsCI(string hay, string needle) pure nothrow @nogc
     return false;
 }
 
-/// Derives the affinity from a declared type using SQLite's five rules, in order.
-Affinity affinityOf(string declaredType) pure nothrow @nogc
+/// Derives the affinity from a declared type name using SQLite's five rules,
+/// applied in order.
+Affinity affinityOf(const(char)[] declaredType) pure nothrow @nogc
 {
     if (containsCI(declaredType, "INT"))
         return Affinity.integer;
     if (containsCI(declaredType, "CHAR") || containsCI(declaredType, "CLOB")
-        || containsCI(declaredType, "TEXT"))
+            || containsCI(declaredType, "TEXT"))
         return Affinity.text;
     if (declaredType.length == 0 || containsCI(declaredType, "BLOB"))
         return Affinity.blob;
     if (containsCI(declaredType, "REAL") || containsCI(declaredType, "FLOA")
-        || containsCI(declaredType, "DOUB"))
+            || containsCI(declaredType, "DOUB"))
         return Affinity.real_;
     return Affinity.numeric;
 }
 
-/// Converts decimal text to a double with the C library's correctly rounded `strtod`.
-double parseDouble(const(char)[] s) @trusted nothrow
+/// Converts a query literal according to the affinity of the column it is
+/// compared with. Column values themselves are never converted.
+Value applyAffinity(Value literal, Affinity aff)
 {
-    char[] z = new char[s.length + 1];
-    z[0 .. s.length] = s[];
-    z[s.length] = 0;
-    return strtod(z.ptr, null);
-}
-
-private bool isDigit(char c) pure nothrow @nogc
-{
-    return c >= '0' && c <= '9';
-}
-
-/// Tries to read `text` as a numeric constant (SPEC §3): optional surrounding
-/// spaces and tabs, `[+-]? (digits [. digits?] | . digits) ([eE][+-]?digits)?`.
-/// On success `result` is an INTEGER (no point/exponent and fits in 64 bits)
-/// or a REAL.
-bool parseNumericConstant(const(char)[] text, out Value result) nothrow
-{
-    size_t b = 0, e = text.length;
-    while (b < e && (text[b] == ' ' || text[b] == '\t'))
-        b++;
-    while (e > b && (text[e - 1] == ' ' || text[e - 1] == '\t'))
-        e--;
-    auto s = text[b .. e];
-    size_t i = 0;
-    bool neg = false;
-    if (i < s.length && (s[i] == '+' || s[i] == '-'))
-        neg = s[i++] == '-';
-    immutable intStart = i;
-    while (i < s.length && isDigit(s[i]))
-        i++;
-    immutable intDigits = i - intStart;
-    bool isReal = false;
-    size_t fracDigits = 0;
-    if (i < s.length && s[i] == '.')
-    {
-        isReal = true;
-        i++;
-        immutable fs = i;
-        while (i < s.length && isDigit(s[i]))
-            i++;
-        fracDigits = i - fs;
-    }
-    if (intDigits == 0 && fracDigits == 0)
-        return false;
-    if (i < s.length && (s[i] == 'e' || s[i] == 'E'))
-    {
-        isReal = true;
-        i++;
-        if (i < s.length && (s[i] == '+' || s[i] == '-'))
-            i++;
-        immutable es = i;
-        while (i < s.length && isDigit(s[i]))
-            i++;
-        if (i == es)
-            return false;
-    }
-    if (i != s.length)
-        return false;
-    if (!isReal)
-    {
-        ulong mag = 0;
-        bool overflow = false;
-        foreach (c; s[intStart .. $])
-        {
-            immutable d = c - '0';
-            if (mag > (ulong.max - d) / 10)
-            {
-                overflow = true;
-                break;
-            }
-            mag = mag * 10 + d;
-        }
-        if (!overflow)
-        {
-            if (!neg && mag <= long.max)
-            {
-                result = Value.makeInt(cast(long) mag);
-                return true;
-            }
-            if (neg && mag <= cast(ulong) long.max + 1)
-            {
-                result = Value.makeInt(cast(long)(0UL - mag));
-                return true;
-            }
-        }
-    }
-    result = Value.makeReal(parseDouble(s));
-    return true;
-}
-
-/// Applies a column's affinity to a query literal before comparison (SPEC §3).
-Value applyAffinity(Value lit, Affinity aff) nothrow
-{
-    switch (aff)
+    final switch (aff)
     {
     case Affinity.text:
-        if (lit.kind == ValueKind.integer || lit.kind == ValueKind.real_)
-        {
-            OutBuf o;
-            appendValue(o, lit);
-            return Value.makeText(o.data.idup);
-        }
-        return lit;
+        if (literal.isNumber)
+            return Value.fromText(formatValue(literal));
+        return literal;
     case Affinity.integer:
     case Affinity.real_:
     case Affinity.numeric:
-        if (lit.kind == ValueKind.text)
+        if (literal.type == ValueType.text)
         {
-            Value num;
-            if (parseNumericConstant(cast(const(char)[]) lit.bytes, num))
-                return num;
+            Value n;
+            if (textToNumber(cast(const(char)[]) literal.bytes, n))
+                return n;
         }
-        return lit;
-    default:
-        return lit;
+        return literal;
+    case Affinity.blob:
+        return literal;
     }
+}
+
+unittest
+{
+    assert(affinityOf("INTEGER") == Affinity.integer);
+    assert(affinityOf("NVARCHAR(160)") == Affinity.text);
+    assert(affinityOf("NUMERIC(10,2)") == Affinity.numeric);
+    assert(affinityOf("") == Affinity.blob);
+    assert(affinityOf("POINT") == Affinity.integer);
+    assert(affinityOf("FLOATING POINT") == Affinity.integer);
+    assert(affinityOf("STRING") == Affinity.numeric);
+    assert(affinityOf("INTEGER TEXT") == Affinity.integer);
+    assert(affinityOf("CHARFLOAT") == Affinity.text);
+    assert(affinityOf("BLOB REAL") == Affinity.blob);
+    assert(affinityOf("double precision") == Affinity.real_);
+    assert(affinityOf("DATETIME") == Affinity.numeric);
+}
+
+unittest
+{
+    auto t = Value.fromText("12");
+    assert(applyAffinity(t, Affinity.integer).i == 12);
+    assert(applyAffinity(t, Affinity.numeric).type == ValueType.integer);
+    assert(applyAffinity(t, Affinity.blob).type == ValueType.text);
+    assert(applyAffinity(Value.fromText("5 x"), Affinity.integer).type == ValueType.text);
+    assert(applyAffinity(Value.fromText("1.5"), Affinity.real_).r == 1.5);
+    auto s = applyAffinity(Value.fromInt(7), Affinity.text);
+    assert(s.type == ValueType.text && s.bytes == cast(const(ubyte)[]) "7");
+    s = applyAffinity(Value.fromReal(2.0), Affinity.text);
+    assert(s.bytes == cast(const(ubyte)[]) "2.0");
+    assert(applyAffinity(Value.makeNull(), Affinity.text).isNull);
+    assert(applyAffinity(Value.fromBlob([cast(ubyte) 1]), Affinity.integer).type == ValueType.blob);
 }

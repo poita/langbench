@@ -6,24 +6,37 @@ module sqlitefile.errors;
 /// Base class of every exception thrown by this library.
 class SqliteFileException : Exception
 {
+    ///
     this(string msg, string file = __FILE__, size_t line = __LINE__) pure nothrow @nogc
     {
         super(msg, file, line);
     }
 }
 
-/// The database file is malformed or uses a feature this reader does not support.
+/// The database file is malformed (truncated, bad page number, corrupt cell…).
 class FormatException : SqliteFileException
 {
+    ///
     this(string msg, string file = __FILE__, size_t line = __LINE__) pure nothrow @nogc
     {
         super(msg, file, line);
     }
 }
 
-/// A query could not be parsed or refers to something that does not exist.
+/// A `CREATE TABLE` / `CREATE INDEX` statement could not be understood.
+class SchemaException : SqliteFileException
+{
+    ///
+    this(string msg, string file = __FILE__, size_t line = __LINE__) pure nothrow @nogc
+    {
+        super(msg, file, line);
+    }
+}
+
+/// A query is malformed or refers to something that does not exist.
 class QueryException : SqliteFileException
 {
+    ///
     this(string msg, string file = __FILE__, size_t line = __LINE__) pure nothrow @nogc
     {
         super(msg, file, line);

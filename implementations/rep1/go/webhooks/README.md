@@ -1,114 +1,97 @@
 # webhooks
 
-A small, dependency-free Go library implementing the
-[Standard Webhooks](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md)
-signature scheme, with its cryptographic primitives written from scratch
-(SHA-256, HMAC-SHA-256 and Base64 — no `crypto/*`, `hash/*` or `encoding/*`
-packages are used), plus a deterministic webhook delivery simulator and a
-command-line driver.
-
-Only the Go standard library is used (and only for things like `math/bits`,
-`strconv` and `io`).
+A small Go library for the [Standard Webhooks](https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md)
+signature scheme, plus a deterministic delivery simulator and a line-oriented
+command-line tool. SHA-256, HMAC-SHA-256 and Base64 are implemented from
+scratch; the standard library's hash, MAC and Base64 packages are not used
+(`encoding/hex` appears only in tests). It has no dependencies beyond the Go
+standard library.
 
 ## Layout
 
-| package | responsibility |
+| package | role |
 |---|---|
-| `sha256` | incremental SHA-256 (FIPS 180-4) |
-| `hmac` | HMAC-SHA-256 with precomputed key state |
-| `b64` | standard / URL-safe Base64 encoding, strict-but-flexible decoding |
-| `hexfield` | the protocol's hex fields (`-` is the empty string) |
-| `signature` | secrets (`whsec_…`), `Sign`, `Verify` |
-| `sim` | retrying delivery simulator on a virtual clock |
-| `commands` | the line-oriented command protocol, built on all of the above |
-| `cmd/webhooks` | the thin command-line tool around `commands` |
+| `example.com/webhooks/sha256` | SHA-256 (FIPS 180-4), one-shot and streaming |
+| `example.com/webhooks/hmac` | HMAC-SHA-256 (RFC 2104), constant-time `Equal` |
+| `example.com/webhooks/b64` | standard (padded) and URL-safe (unpadded) Base64, strict decoder |
+| `example.com/webhooks` | secrets, signing, verification with key rotation |
+| `example.com/webhooks/simulate` | retry/delivery simulator (binary-heap scheduler) |
+| `example.com/webhooks/protocol` | the CLI command language, as a reusable `Run(io.Reader, io.Writer)` |
+| `cmd/webhooks` | the thin `main` over `protocol` |
 
-## Build
-
-Requires Go 1.27 or newer.
-
-```sh
-./build.sh          # writes ./bin/webhooks
-go test ./...       # unit tests
-```
-
-## Command-line use
-
-`webhooks` (or `./run.sh`) reads commands, one per line, from stdin and writes
-one result per command to stdout. The exit status is always 0; malformed input
-produces the single word `error`. Byte strings are lowercase hex, with `-`
-standing for the empty string.
+## Build and test
 
 ```
-$ printf 'sha256 616263\nb64enc 666f6f\nsecret whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw\n' | ./run.sh
-ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad
-Zm9v
-31f290f6bf06298aab4f08d43c3f082cf648a362da2da4b0
+./build.sh          # produces bin/webhooks
+go test ./...
 ```
+
+Requires Go 1.27+.
+
+## CLI
+
+`./run.sh` reads commands from stdin, one per line, and writes one result per
+command to stdout. It always exits 0; a malformed command prints `error`.
+Binary and free-form arguments are lowercase hex, with `-` for the empty
+string.
 
 | command | output |
 |---|---|
-| `sha256 <hex>` | digest, hex |
-| `hmac <key-hex> <msg-hex>` | MAC, hex |
+| `sha256 <hex>` | digest in hex |
+| `hmac <key-hex> <msg-hex>` | MAC in hex |
 | `b64enc <hex>` / `b64urlenc <hex>` | padded standard / unpadded URL-safe Base64 (`-` if empty) |
-| `b64dec <text-hex>` | decoded bytes as hex, or `error` |
-| `secret <secret>` | the raw key as hex |
-| `sign <secrets> <id> <ts> <payload-hex>` | the `webhook-signature` header |
+| `b64dec <text-hex>` | decoded bytes in hex, or `error` |
+| `secret <secret>` | raw key in hex, or `error` |
+| `sign <secrets> <id> <ts> <payload-hex>` | `webhook-signature` header value |
 | `verify <secrets> <id> <ts> <now> <header-hex> <payload-hex>` | `ok <secret> <token>` or `fail <reason>` |
-| `simulate` | a block of `endpoint …` / `event …` lines closed by `end`; prints the attempt log and delivery summary |
+| `simulate` | a block of `endpoint …` / `event …` lines ended by `end`; prints `sim A D`, the attempts, then the deliveries |
 
-The complete grammar, error rules and simulator semantics are in the problem's
-`SPEC.md`.
+`<secrets>` is a comma-separated list of up to 16 secrets (`whsec_` prefix
+optional). Failure reasons: `missing-signature`, `invalid-timestamp`,
+`timestamp-too-old`, `timestamp-too-new`, `no-match`.
+
+```
+$ printf 'sign whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw msg_p5jXN8AQM9LWM0D4loKWxJek 1614265330 7b2274657374223a20323433323233323331347d\n' | ./run.sh
+v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=
+```
+
+### Simulator blocks
+
+```
+simulate
+endpoint ep_a whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw * 500,timeout,200
+endpoint ep_b whsec_c2VjcmV0,whsec_b3RoZXI user.created 200
+event msg_1 1700000000 user.created 7b7d
+end
+```
+
+Each endpoint has a filter (`*` or event types) and a script of responses
+(status codes or `timeout`) consumed one per attempt, the last one repeating.
+A delivery makes up to 8 attempts at `t, t+5, t+305, t+2105, t+9305, t+27305,
+t+63305, t+99305`; a 2xx response delivers it, 410 fails it and disables its
+endpoint, and anything else is retried. See `testdata/simulate_example.*` for
+a full input and output.
 
 ## Library example
 
 ```go
-package main
+key, _ := webhooks.ParseSecret("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw")
+body := []byte(`{"test": 2432232314}`)
 
-import (
-	"fmt"
+header := webhooks.SignHeader([][]byte{key}, "msg_p5jXN8AQM9LWM0D4loKWxJek", "1614265330", body)
+// v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=
 
-	"example.com/webhooks/signature"
-)
-
-func main() {
-	secret, err := signature.ParseSecret("whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw")
-	if err != nil {
-		panic(err)
-	}
-	secrets := []*signature.Secret{secret}
-	body := []byte(`{"test": 2432232314}`)
-
-	header := signature.Sign(secrets, "msg_p5jXN8AQM9LWM0D4loKWxJek", "1614265330", body)
-	fmt.Println(header) // v1,g0hM9SsE+OTPJTGt/tmIKtSyZlE3uFJELVlNIOLJ1OE=
-
-	m, err := signature.Verify(secrets, "msg_p5jXN8AQM9LWM0D4loKWxJek", "1614265330",
-		header, body, 1614265400)
-	fmt.Println(m, err) // {0 0} <nil>
-
-	_, err = signature.Verify(secrets, "msg_p5jXN8AQM9LWM0D4loKWxJek", "1614265330",
-		header, body, 1614266000)
-	fmt.Println(err) // timestamp-too-old
-}
+m, err := webhooks.Verify([][]byte{key}, "msg_p5jXN8AQM9LWM0D4loKWxJek", "1614265330", header, body, time.Now().Unix())
+// m.Secret, m.Token identify the matching key and header token;
+// err is one of webhooks.ErrTimestampTooOld, ErrNoMatch, ...
 ```
 
-Simulating deliveries:
+Running the simulator directly:
 
 ```go
-ep := sim.Endpoint{ID: "ep", Secrets: secrets, Wildcard: true,
-	Script: []sim.Response{500, sim.Timeout, 200}}
-ev, _ := sim.NewEvent("msg_1", "1700000000", "user.created", []byte("{}"))
-result := sim.Run([]sim.Endpoint{ep}, []sim.Event{ev})
-os.Stdout.Write(result.AppendReport(nil))
+res := simulate.Run(simulate.Config{
+	Endpoints: []simulate.Endpoint{{ID: "a", Keys: [][]byte{key}, Script: []simulate.Response{{Code: 500}, {Code: 200}}}},
+	Events:    []simulate.Event{{ID: "e1", Timestamp: "1700000000", Time: 1700000000, Type: "x", Payload: body}},
+})
+for _, a := range res.Attempts { fmt.Println(a.Time, a.Outcome, a.Code) }
 ```
-
-## Design notes
-
-* SHA-256 and HMAC hashers are plain values; an HMAC `Key` stores the hasher
-  states after the ipad/opad blocks, so each MAC copies them rather than
-  rehashing the key. The signed content (`id.ts.body`) is streamed, never
-  concatenated.
-* `Verify` decodes each header token once and computes one MAC per secret.
-* The simulator keeps `(time, delivery)` pairs in a hand-written binary
-  min-heap, signs each delivery once at creation, and writes its report into a
-  single append buffer.

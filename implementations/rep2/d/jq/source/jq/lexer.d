@@ -1,218 +1,151 @@
-/**
- * Tokeniser for jq filters.
- */
+/// Tokenizer for the filter language.
 module jq.lexer;
 
-import jq.json : readJsonString, scanNumber, JsonException;
+import jq.errors : FilterSyntaxError, JsonException;
+import jq.json : unescapeJsonString, tryParseNumber;
 
-/// Thrown when a filter cannot be parsed.
-class ParseException : Exception
+/// Token categories.
+enum TokKind : ubyte
 {
-    ///
-    this(string msg, size_t offset = 0, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
-    {
-        super(msg, file, line);
-        this.offset = offset;
-    }
-
-    /// Byte offset in the filter text.
-    size_t offset;
-}
-
-/// Token kinds.
-enum Tok : ubyte
-{
-    eof,
-    dot, /// `.` not directly followed by an identifier
-    field, /// `.name`
+    number,
+    string,
     ident, /// identifiers and keywords
-    num,
-    str,
-    var, /// `$name`
-    lparen,
-    rparen,
-    lbracket,
-    rbracket,
-    lbrace,
-    rbrace,
-    comma,
-    pipe,
-    colon,
-    semi,
-    question,
-    plus,
-    minus,
-    star,
-    slash,
-    percent,
-    eq,
-    ne,
-    lt,
-    le,
-    gt,
-    ge,
+    variable, /// `$name` (text is the name without `$`)
+    punct, /// operators and punctuation (text is the symbol)
+    eof,
 }
 
-/// A lexical token.
+/// A token.
 struct Token
 {
-    Tok kind;
-    /// Identifier, field or variable name, or the decoded string literal.
+    TokKind kind;
     string text;
     double num;
     size_t pos;
 }
 
-private bool isIdentStart(char c) pure nothrow @nogc @safe
+private bool isIdentStart(char c) @safe pure nothrow @nogc
 {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-private bool isDigit(char c) pure nothrow @nogc @safe
+private bool isDigit(char c) @safe pure nothrow @nogc
 {
     return c >= '0' && c <= '9';
 }
 
-/// Split `src` into tokens (the last one is always `Tok.eof`).
-Token[] tokenize(string src) @trusted
+/// Splits a filter program into tokens (the last token is always `eof`).
+Token[] tokenize(string src)
 {
     Token[] toks;
     size_t i = 0;
-    immutable n = src.length;
-
-    string readIdent()
+    while (i < src.length)
     {
-        immutable st = i;
-        while (i < n && (isIdentStart(src[i]) || isDigit(src[i])))
-            ++i;
-        return src[st .. i];
-    }
-
-    while (true)
-    {
-        while (i < n && (src[i] == ' ' || src[i] == '\t' || src[i] == '\r' || src[i] == '\n'))
-            ++i;
-        if (i >= n)
-            break;
         immutable c = src[i];
-        immutable start = i;
-        void simple(Tok k, size_t len = 1)
+        if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
         {
-            toks ~= Token(k, null, 0, start);
-            i += len;
+            i++;
+            continue;
         }
-
-        immutable c2 = i + 1 < n ? src[i + 1] : '\0';
-        if (c == '.')
+        immutable start = i;
+        if (isDigit(c))
         {
-            if (isIdentStart(c2))
+            while (i < src.length && isDigit(src[i]))
+                i++;
+            if (i + 1 < src.length && src[i] == '.' && isDigit(src[i + 1]))
             {
-                ++i;
-                toks ~= Token(Tok.field, readIdent(), 0, start);
+                i++;
+                while (i < src.length && isDigit(src[i]))
+                    i++;
             }
-            else
-                simple(Tok.dot);
+            double d;
+            if (!tryParseNumber(src[start .. i], d))
+            {
+                // e.g. leading zeros: fall back to plain conversion
+                import std.conv : to;
+
+                d = src[start .. i].to!double;
+            }
+            toks ~= Token(TokKind.number, src[start .. i], d, start);
         }
         else if (isIdentStart(c))
-            toks ~= Token(Tok.ident, readIdent(), 0, start);
-        else if (isDigit(c))
         {
-            double d;
-            if (!scanNumber(src, i, d))
-                throw new ParseException("bad number", start);
-            toks ~= Token(Tok.num, null, d, start);
-        }
-        else if (c == '"')
-        {
-            try
-                toks ~= Token(Tok.str, readJsonString(src, i), 0, start);
-            catch (JsonException e)
-                throw new ParseException(e.msg, start);
+            while (i < src.length && (isIdentStart(src[i]) || isDigit(src[i])))
+                i++;
+            toks ~= Token(TokKind.ident, src[start .. i], 0, start);
         }
         else if (c == '$')
         {
-            ++i;
-            if (i >= n || !isIdentStart(src[i]))
-                throw new ParseException("bad variable name", start);
-            toks ~= Token(Tok.var, readIdent(), 0, start);
+            i++;
+            immutable ns = i;
+            while (i < src.length && (isIdentStart(src[i]) || isDigit(src[i])))
+                i++;
+            if (i == ns)
+                throw new FilterSyntaxError("expected variable name after '$'");
+            toks ~= Token(TokKind.variable, src[ns .. i], 0, start);
+        }
+        else if (c == '"')
+        {
+            i++;
+            bool escaped = false;
+            while (true)
+            {
+                if (i >= src.length)
+                    throw new FilterSyntaxError("unterminated string literal");
+                if (src[i] == '"')
+                    break;
+                if (src[i] == '\\')
+                {
+                    escaped = true;
+                    i++;
+                }
+                i++;
+            }
+            auto body_ = src[start + 1 .. i];
+            i++;
+            string text;
+            try
+                text = escaped ? unescapeJsonString(body_) : body_;
+            catch (JsonException e)
+                throw new FilterSyntaxError("bad string literal: " ~ e.msg);
+            toks ~= Token(TokKind.string, text, 0, start);
         }
         else
-            switch (c)
+        {
+            string p;
+            if (i + 1 < src.length)
             {
-            case '(':
-                simple(Tok.lparen);
-                break;
-            case ')':
-                simple(Tok.rparen);
-                break;
-            case '[':
-                simple(Tok.lbracket);
-                break;
-            case ']':
-                simple(Tok.rbracket);
-                break;
-            case '{':
-                simple(Tok.lbrace);
-                break;
-            case '}':
-                simple(Tok.rbrace);
-                break;
-            case ',':
-                simple(Tok.comma);
-                break;
-            case '|':
-                simple(Tok.pipe);
-                break;
-            case ':':
-                simple(Tok.colon);
-                break;
-            case ';':
-                simple(Tok.semi);
-                break;
-            case '?':
-                simple(Tok.question);
-                break;
-            case '+':
-                simple(Tok.plus);
-                break;
-            case '-':
-                simple(Tok.minus);
-                break;
-            case '*':
-                simple(Tok.star);
-                break;
-            case '/':
-                simple(Tok.slash);
-                break;
-            case '%':
-                simple(Tok.percent);
-                break;
-            case '=':
-                if (c2 != '=')
-                    throw new ParseException("unexpected '='", start);
-                simple(Tok.eq, 2);
-                break;
-            case '!':
-                if (c2 != '=')
-                    throw new ParseException("unexpected '!'", start);
-                simple(Tok.ne, 2);
-                break;
-            case '<':
-                if (c2 == '=')
-                    simple(Tok.le, 2);
-                else
-                    simple(Tok.lt);
-                break;
-            case '>':
-                if (c2 == '=')
-                    simple(Tok.ge, 2);
-                else
-                    simple(Tok.gt);
-                break;
-            default:
-                throw new ParseException("unexpected character", start);
+                auto two = src[i .. i + 2];
+                if (two == "==" || two == "!=" || two == "<=" || two == ">=")
+                    p = two;
             }
+            if (p.length == 0)
+            {
+                switch (c)
+                {
+                case '.', ',', '|', '(', ')', '[', ']', '{', '}', ':', ';', '?',
+                        '+', '-', '*', '/', '%', '<', '>':
+                        p = src[i .. i + 1];
+                    break;
+                default:
+                    throw new FilterSyntaxError("unexpected character '" ~ c ~ "'");
+                }
+            }
+            i += p.length;
+            toks ~= Token(TokKind.punct, p, 0, start);
+        }
     }
-    toks ~= Token(Tok.eof, null, 0, n);
+    toks ~= Token(TokKind.eof, "", 0, src.length);
     return toks;
+}
+
+unittest
+{
+    auto t = tokenize(`.a[0] | "x\ty" >= $v1 , 1.5`);
+    string[] texts;
+    foreach (x; t)
+        texts ~= x.text;
+    assert(texts == [".", "a", "[", "0", "]", "|", "x\ty", ">=", "v1", ",", "1.5", ""]);
+    assert(t[$ - 2].num == 1.5);
+    assert(t[$ - 1].kind == TokKind.eof);
 }

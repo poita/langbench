@@ -1,0 +1,12 @@
+{
+  "items": [
+    1,
+    2
+  ]
+}
+--
+=== main
+{% extends "base" %}{% block outer %}C-outer[{{ super() }}]{% endblock %}{% block inner %}C-inner({{ super() }}){% endblock %}{% block deep %}C-deep{% endblock %}
+=== base
+<{% block outer %}B-outer{{ "{" }}{% block inner %}B-inner<{% block deep %}B-deep{% endblock %}>{% endblock %}{{ "}" }}{% endblock %}>
+{% block alone %}only in base{% endblock %} {% for i in items %}{{ i }}{% endfor %}

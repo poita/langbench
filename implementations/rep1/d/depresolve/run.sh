@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run depresolve: reads a registry + root manifest on stdin, writes the resolution on stdout.
-exec "$(cd "$(dirname "$0")" && pwd)/bin/depresolve" "$@"
+# Run depresolve: reads the registry + root manifest on stdin, writes the resolution on stdout.
+exec "$(dirname "$0")/depresolve" "$@"

@@ -1,114 +1,68 @@
-/// The compile-and-run pipeline: module stream in, program output (or one diagnostic) out.
+/// The compile-and-run pipeline behind the command-line tool.
 module langvm.driver;
 
-import langvm.ast;
-import langvm.bytecode;
-import langvm.check;
-import langvm.compiler;
-import langvm.diag;
-import langvm.lexer;
-import langvm.parser;
-import langvm.resolve;
-import langvm.source;
-import langvm.stdlib;
-import langvm.vm;
-import langvm.world;
+import langvm.bytecode : Program;
+import langvm.checker : checkProgram;
+import langvm.compiler : compileProgram;
+import langvm.diag : CompileError;
+import langvm.lexer : Token, lex;
+import langvm.parser : parseModule;
+import langvm.ast : Item;
+import langvm.source : splitModules;
+import langvm.symbols : buildWorld;
+import langvm.vm : Panic, VM;
 
-/// A successfully compiled program, ready to run.
-final class Compiled
-{
-    /// The bytecode program.
-    Program program;
-    /// The semantic world (modules, declarations).
-    World world;
-}
+/// Where a program's output goes.
+alias Sink = void delegate(const(char)[]);
 
-/// How a run ended.
-enum Outcome
-{
-    /// `main` returned.
-    finished,
-    /// The program was rejected with a diagnostic.
-    compileError,
-    /// The program panicked at run time.
-    panicked,
-}
-
-/// The result of compiling and running a program.
-struct RunResult
-{
-    /// What happened.
-    Outcome outcome;
-    /// Exactly the bytes to write to stdout (program output, panic line, or diagnostic line).
-    string stdout;
-}
-
-/// Compiles a module stream.
-/// Throws: [CompileError] for the single diagnostic the specification prescribes.
-Compiled compile(string input)
+/// Compile a module stream to bytecode, following the passes of SPEC.md
+/// section 13.2. Throws `CompileError` for the first error found.
+Program compile(const(char)[] input)
 {
     auto mods = splitModules(input);
-    // pass 1: lexing, every module in stream order
-    Token[][] toks;
+    Token[][] tokens;
     foreach (m; mods)
-        toks ~= Lexer.lex(m.lines);
-    // pass 2: parsing
-    ModuleAst[] asts;
-    foreach (i, m; mods)
-        asts ~= Parser.parseModule(m.name, toks[i]);
-    // pass 3: items
-    auto world = buildWorld(asts);
-    // pass 4: bodies
-    new Checker(world).run();
-    auto c = new Compiled;
-    c.world = world;
-    c.program = new Compiler(world).compile();
-    return c;
+        tokens ~= lex(m);
+    Item[][] items;
+    foreach (t; tokens)
+        items ~= parseModule(t);
+    auto world = buildWorld(mods, items);
+    auto bodies = checkProgram(world);
+    return compileProgram(world, bodies);
 }
 
-/// Runs a compiled program. Program output (and a final panic line, if any) is returned.
-RunResult execute(Compiled c)
+/// Run a compiled program. Output goes to `sink`; a run-time panic appends
+/// the `panic: ...` line and returns normally.
+void execute(Program program, Sink sink)
 {
-    auto impls = builtinImplementations();
-    BuiltinFn[] table;
-    foreach (b; c.world.builtins)
-    {
-        auto p = b.name in impls;
-        assert(p !is null, "missing built-in " ~ b.name);
-        table ~= *p;
-    }
-    auto vm = new VM(c.program, table);
-    RunResult r;
+    auto vm = new VM(program, sink);
     try
-    {
-        vm.runMain();
-        r.outcome = Outcome.finished;
-    }
+        vm.run();
     catch (Panic p)
-    {
-        vm.writeText("panic: ");
-        vm.writeText(p.msg);
-        vm.writeText("\n");
-        r.outcome = Outcome.panicked;
-    }
-    r.stdout = cast(string) vm.written.idup;
-    return r;
+        sink("panic: " ~ p.msg ~ "\n");
 }
 
-/// Compiles and runs `input`; a rejected program yields its one diagnostic line.
-RunResult runSource(string input)
+/// Everything the tool does: compile `input` and run it, or report the single
+/// diagnostic line. The result is exactly what belongs on stdout.
+void interpret(const(char)[] input, Sink sink)
 {
-    Compiled c;
+    Program program;
     try
-    {
-        c = compile(input);
-    }
+        program = compile(input);
     catch (CompileError e)
     {
-        RunResult r;
-        r.outcome = Outcome.compileError;
-        r.stdout = e.msg ~ "\n";
-        return r;
+        sink(e.diagnostic() ~ "\n");
+        return;
     }
-    return execute(c);
+    execute(program, sink);
+}
+
+/// Like `interpret`, but collects the output into a string.
+string interpretToString(const(char)[] input)
+{
+    import std.array : appender;
+
+    auto buf = appender!string();
+    interpret(input, (const(char)[] s) { buf.put(s); });
+    return buf.data;
 }

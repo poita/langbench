@@ -1,0 +1,10 @@
+{
+  "x": "X"
+}
+--
+=== main
+{% extends "mid" %}{% macro cm() %}c:{{ pv }}{{ mv }}{{ x }}{% endmacro %}{% block b %}{{ cm() }} {{ mm() }} {{ super() }}{% endblock %}
+=== mid
+{% extends "base" %}{% macro mm() %}m:{{ pv }}{% endmacro %}{% set mv = "MV" %}{% block b %}{{ mm() }}{{ super() }}{% endblock %}
+=== base
+{% set pv = "PV" %}[{% block b %}{{ pv }}{% endblock %}]

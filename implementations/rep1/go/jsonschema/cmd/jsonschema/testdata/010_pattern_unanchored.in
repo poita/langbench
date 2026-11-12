@@ -1,0 +1,32 @@
+{
+  "schema": {
+    "patternProperties": {
+      "o": {
+        "type": "integer"
+      }
+    },
+    "additionalProperties": {
+      "type": "string"
+    }
+  },
+  "tests": [
+    {
+      "description": "foo matches o anywhere",
+      "data": {
+        "foo": 1
+      }
+    },
+    {
+      "description": "foo with a string value",
+      "data": {
+        "foo": "1"
+      }
+    },
+    {
+      "description": "bar has no o",
+      "data": {
+        "bar": "1"
+      }
+    }
+  ]
+}

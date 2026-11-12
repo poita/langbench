@@ -1,39 +1,9 @@
-/**
- * Abstract syntax tree of a jq filter.
- *
- * Nodes are plain `Node` objects tagged with a $(LREF NodeKind); the meaning of
- * the generic child fields `a`, `b` and `c` is documented per kind below.
- */
+/// Syntax tree of a filter program.
 module jq.ast;
 
-import jq.value;
+import jq.value : Value;
 
-/// What a $(LREF Node) is.
-enum NodeKind : ubyte
-{
-    identity, /// `.`
-    literal, /// constant in `lit`
-    variable, /// `$x`; `depth` = number of bindings between use and definition
-    field, /// `a.name` (`name` is the key); `opt` for `.name?`
-    index, /// `a[b]`; `opt` for `?`
-    slice, /// `a[b:c]`; `b` / `c` may be null; `opt` for `?`
-    iterate, /// `a[]`; `opt` for `?`
-    tryOp, /// `try a` (the postfix `?` after a non-path term)
-    neg, /// `-a`
-    binary, /// `a op b` with `op` an arithmetic or comparison operator
-    and, /// `a and b`
-    or, /// `a or b`
-    pipe, /// `a | b`
-    comma, /// `a , b`
-    collect, /// `[a]`; `a` null for `[]`
-    object, /// `{...}`, see `entries`
-    ifElse, /// `if a then b else c end` (`c` is never null)
-    asBind, /// `a as $x | b`
-    reduce, /// `reduce a as $x (b; c)`
-    call, /// builtin `fn` with `args`
-}
-
-/// Binary operators.
+/// Binary operators with the "right operand is the outer loop" evaluation order.
 enum BinOp : ubyte
 {
     add,
@@ -49,11 +19,12 @@ enum BinOp : ubyte
     ge,
 }
 
-/// Builtin functions.
+/// Builtin functions of the supported subset.
 enum Builtin : ubyte
 {
     empty,
-    error,
+    error0,
+    error1,
     not,
     length,
     keys,
@@ -73,109 +44,49 @@ enum Builtin : ubyte
     tonumber,
 }
 
-/// One entry of an object construction.
-struct ObjEntry
+/// Node kinds.
+enum NodeKind : ubyte
 {
-    /// Computed key expression, or null if the key is the literal `litKey`.
-    Node key;
-    JStr litKey;
-    /// The value expression.
-    Node val;
+    identity, /// `.`
+    literal, /// constant `lit`
+    variable, /// `$name`
+    pipe, /// `a | b`
+    comma, /// `a , b`
+    binary, /// `a op b`
+    and, /// `a and b`
+    or, /// `a or b`
+    neg, /// `-a`
+    index, /// `a[b]` / `a.name`; `optional` marks `?` on this suffix
+    slice, /// `a[b:c]` (b or c may be null); `optional` as above
+    iterate, /// `a[]`; `optional` as above
+    try_, /// `a?` as try
+    array, /// `[a]` (a may be null)
+    object, /// `{k: v, ...}` with `keys` and `values`
+    if_, /// `if a then b else c end` (c may be null = identity)
+    as, /// `a as $name | b`
+    reduce, /// `reduce a as $name (b; c)`
+    call, /// builtin `fn` applied to `args`
 }
 
-/// An AST node.
+/// A node of the syntax tree. Which fields are used depends on `kind`.
 final class Node
 {
     NodeKind kind;
-    /// True if the node always yields exactly one output or an error and
-    /// needs no generator machinery (set by $(LREF finish)).
-    bool simple;
-    /// Path suffixes: errors of this one operation are skipped (`?`).
-    bool opt;
     BinOp op;
     Builtin fn;
+    bool optional;
     Node a, b, c;
-    Node[] args;
-    Value lit;
-    JStr name;
-    int depth;
-    ObjEntry[] entries;
-    /// Object construction whose keys are all distinct literals.
-    bool distinctLiteralKeys;
+    Node[] args; /// builtin arguments
+    Node[] keys; /// object entry keys
+    Node[] values; /// object entry values
+    string name; /// variable name
+    Value lit; /// literal value
 
-    this(NodeKind k)
+    this(NodeKind kind, Node a = null, Node b = null, Node c = null)
     {
-        kind = k;
+        this.kind = kind;
+        this.a = a;
+        this.b = b;
+        this.c = c;
     }
-}
-
-/// Builtins that take no arguments and produce exactly one output from `.`.
-bool isPureNullary(Builtin f) pure nothrow @nogc @safe
-{
-    switch (f)
-    {
-    case Builtin.not:
-    case Builtin.length:
-    case Builtin.keys:
-    case Builtin.type:
-    case Builtin.add:
-    case Builtin.sort:
-    case Builtin.unique:
-    case Builtin.reverse:
-    case Builtin.min:
-    case Builtin.max:
-    case Builtin.tostring:
-    case Builtin.tonumber:
-        return true;
-    default:
-        return false;
-    }
-}
-
-/// Compute the `simple` flag of a freshly built node (children must already be finished) and return it.
-Node finish(Node n)
-{
-    static bool s(Node x)
-    {
-        return x !is null && x.simple;
-    }
-
-    final switch (n.kind)
-    {
-    case NodeKind.identity:
-    case NodeKind.literal:
-    case NodeKind.variable:
-        n.simple = true;
-        break;
-    case NodeKind.field:
-    case NodeKind.neg:
-        n.simple = !n.opt && s(n.a);
-        break;
-    case NodeKind.index:
-        n.simple = !n.opt && s(n.a) && s(n.b);
-        break;
-    case NodeKind.binary:
-    case NodeKind.and:
-    case NodeKind.or:
-    case NodeKind.pipe:
-        n.simple = s(n.a) && s(n.b);
-        break;
-    case NodeKind.ifElse:
-        n.simple = s(n.a) && s(n.b) && s(n.c);
-        break;
-    case NodeKind.call:
-        n.simple = n.args.length == 0 && isPureNullary(n.fn);
-        break;
-    case NodeKind.slice:
-    case NodeKind.iterate:
-    case NodeKind.tryOp:
-    case NodeKind.comma:
-    case NodeKind.collect:
-    case NodeKind.object:
-    case NodeKind.asBind:
-    case NodeKind.reduce:
-        n.simple = false;
-        break;
-    }
-    return n;
 }

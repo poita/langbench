@@ -1,0 +1,17 @@
+[package]
+name = "sqlitefile"
+version = "0.1.0"
+edition = "2021"
+description = "A from-scratch reader for SQLite 3 database files with a tiny query evaluator"
+license = "MIT"
+readme = "README.md"
+keywords = ["sqlite", "database", "btree", "file-format"]
+categories = ["database", "parser-implementations"]
+
+[lib]
+name = "sqlitefile"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sqlitefile"
+path = "src/bin/sqlitefile.rs"

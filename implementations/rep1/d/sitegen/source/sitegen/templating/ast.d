@@ -1,107 +1,140 @@
-/// Syntax tree of a parsed template.
+/**
+ * The syntax tree of a parsed template.
+ */
 module sitegen.templating.ast;
 
-import sitegen.templating.value;
-
-/// Expression node kinds.
+/// The kinds of expression node.
 enum ExprKind : ubyte
 {
-    literal,
+    intLit,
+    floatLit,
+    strLit,
+    boolLit,
+    noneLit,
     name,
-    attr,
-    index,
-    call,
-    filter,
-    isDefined,
+    list,
     neg,
     not,
     binary,
-    compare,
     and,
     or,
-    list,
+    compare,
+    filter,
+    isDefined,
+    attr,
+    index,
+    call,
 }
 
-/// Binary arithmetic operators, resolved at parse time.
+/// Binary arithmetic operators.
 enum BinOp : ubyte
 {
-    add, sub, mul, div, floorDiv, mod, pow, concat,
+    add,
+    sub,
+    mul,
+    div,
+    floorDiv,
+    mod,
+    pow,
+    concat,
 }
 
 /// Comparison operators.
 enum CmpOp : ubyte
 {
-    eq, ne, lt, le, gt, ge, in_, notIn,
+    eq,
+    ne,
+    lt,
+    le,
+    gt,
+    ge,
+    in_,
+    notIn,
 }
 
-/// The built-in filters; `unknown` is reported after the whole template parsed.
-enum FilterId : ubyte
-{
-    upper, lower, trim, escape, replace, length, int_, join,
-    first, last, reverse, sort, default_, unknown,
-}
-
-/// An expression. One class with a kind tag keeps evaluation to one switch.
+/// An expression node.  Which fields are used depends on `kind`.
 final class Expr
 {
     ExprKind kind;
-    Value lit; /// literal value
-    string name; /// variable name, attribute key or filter name
-    Expr a, b; /// operands (callee / subject / left / right)
-    Expr[] args; /// call arguments, list items, further compare operands
-    string[] kwNames; /// keyword argument names of a call
-    Expr[] kwArgs; /// keyword argument values of a call
-    BinOp bop;
+    long ival;
+    double fval;
+    /// String literal, name, attribute name or filter name.
+    string str;
+    bool flag;
+    BinOp binOp;
+    /// `neg`, `not`, `filter` input, `isDefined` operand, `attr`/`index`
+    /// base, `call` callee, and the left side of `and`/`or`/`binary`.
+    Expr a;
+    /// The right side of `and`/`or`/`binary`, and the key of `index`.
+    Expr b;
+    /// List elements, call or filter arguments, comparison operands.
+    Expr[] args;
+    /// Keyword arguments of a call.
+    string[] kwNames;
+    Expr[] kwValues;
+    /// Comparison operators between the operands in `args`.
     CmpOp[] cmpOps;
-    FilterId filter;
-    bool negate; /// `is not defined`
-    bool isRangeName; /// a name that falls back to the built-in `range`
-    bool isSuperName;
 
-    this(ExprKind kind) pure nothrow @safe @nogc
+    this(ExprKind kind)
     {
         this.kind = kind;
     }
 }
 
-/// Statement node kinds.
-enum StmtKind : ubyte
+/// The kinds of statement node.
+enum NodeKind : ubyte
 {
     text,
     print,
     if_,
     for_,
     set,
-    macroDef,
+    macro_,
     include,
     extends,
     block,
 }
 
-/// A template statement (including literal text and `{{ }}` prints).
-final class Stmt
+/// A macro parameter.
+struct Param
 {
-    StmtKind kind;
-    string text; /// literal text
-    Expr expr; /// print / set / include / extends / for-iterable
-    Expr[] conds; /// `if` / `elif` conditions
-    Stmt[][] bodies; /// bodies matching `conds`
-    Stmt[] body_; /// for / macro / block body
-    Stmt[] elseBody; /// `else` branch of if / for
-    string name; /// set / for variable / macro / block name
-    string[] params; /// macro parameters
-    Expr[] defaults; /// macro parameter defaults (null when none)
+    string name;
+    /// The default value expression, or `null`.
+    Expr defaultValue;
+}
 
-    this(StmtKind kind) pure nothrow @safe @nogc
+/// A statement node.  Which fields are used depends on `kind`.
+final class Node
+{
+    NodeKind kind;
+    /// Text of a `text` node.
+    string text;
+    /// The expression of `print`, `set`, `for`, `include` and `extends`.
+    Expr expr;
+    /// The variable of `set` and `for`, the name of a `macro` or `block`.
+    string name;
+    /// The bodies of an `if` (one per condition) .
+    Node[][] bodies;
+    /// The conditions of an `if`.
+    Expr[] conds;
+    /// The body of `for`, `macro` and `block`.
+    Node[] body_;
+    /// The `else` body of `if` and `for`.
+    Node[] elseBody;
+    /// The parameters of a macro.
+    Param[] params;
+
+    this(NodeKind kind)
     {
         this.kind = kind;
     }
 }
 
-/// A parsed and checked template.
+/// A parsed template.
 final class Template
 {
     string name;
-    Stmt[] body_;
-    Stmt[] blocks; /// every `block` statement, in source order
+    Node[] body_;
+    /// Every `block` of the template, by name.
+    Node[string] blocks;
 }

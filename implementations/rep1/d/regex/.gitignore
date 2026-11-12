@@ -1,7 +1,6 @@
 .dub/
 bin/
-*.o
 *.a
-*.lst
+*.o
+*-test-*
 dub.selections.json
-regexvm-test-*

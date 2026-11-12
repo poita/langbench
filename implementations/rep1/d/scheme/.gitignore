@@ -1,6 +1,5 @@
 .dub/
 bin/
-*.o
 *.a
+*.o
 dub.selections.json
-scheme-test-*

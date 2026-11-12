@@ -1,15 +1,19 @@
-/++
-Board state: bitboards plus a mailbox, FEN parsing/printing and in-place
-make/unmake of moves.
-+/
+/**
+ * Chess position: piece placement, side to move, castling rights and en
+ * passant square, with FEN parsing/formatting and move application.
+ *
+ * The halfmove clock and fullmove number are not tracked: the problem this
+ * library serves has no fifty-move or repetition rules.
+ */
 module chessperft.position;
 
+import std.array : split;
+import std.conv : to;
+import std.exception : enforce;
 import chessperft.bitboard;
-import chessperft.move;
-import chessperft.tables;
 import chessperft.types;
 
-/// Thrown by FEN parsing when the text is not a valid position description.
+/// Thrown by `Position.fromFen` when a FEN record is malformed.
 class FenException : Exception
 {
     this(string msg, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
@@ -18,157 +22,212 @@ class FenException : Exception
     }
 }
 
-/++
-Information needed to take back a move.
+/// FEN of the standard initial position.
+enum string startFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
-The captured piece's square is implied by the move (the destination, or the
-square behind it for en passant).
-+/
-struct Undo
-{
-    Piece captured = noPiece; /// Piece removed by the move, or `noPiece`.
-    ubyte castling; /// Castling rights before the move.
-    ubyte epSquare; /// En passant square before the move (`noSquare` if none).
-}
-
-private immutable ubyte[64] castlingMask = buildCastlingMask();
-
-private ubyte[64] buildCastlingMask() pure nothrow @safe
-{
-    ubyte[64] m;
-    m[] = allCastling;
-    m[a1] &= ~whiteQueenside;
-    m[e1] &= ~(whiteKingside | whiteQueenside);
-    m[h1] &= ~whiteKingside;
-    m[a8] &= ~blackQueenside;
-    m[e8] &= ~(blackKingside | blackQueenside);
-    m[h8] &= ~blackKingside;
-    return m;
-}
-
-/++
-A chess position.
-
-Pieces are stored once per type, once per colour and in a 64-entry mailbox.
-Squares are numbered `rank * 8 + file`. Moves are applied in place with
-`makeMove` and reverted with `unmakeMove`; no position copies are needed.
-
-The halfmove clock and fullmove number are not tracked: this library has no
-fifty-move, repetition or insufficient-material rules.
-+/
+/**
+ * A chess position. It is a small value type, so a copy is a cheap way of
+ * "making" a move: `auto next = pos; next.play(m);`.
+ */
 struct Position
 {
-    Bitboard[6] byType; /// Pieces of each `PieceType`, both colours.
-    Bitboard[2] byColor; /// Pieces of each `Color`.
-    Bitboard occupied; /// All pieces.
-    Piece[64] board = noPiece; /// Mailbox: the piece on each square.
-    Color sideToMove = Color.white; /// Player to move.
-    ubyte castling; /// Castling rights, an OR of `whiteKingside` etc.
-    ubyte epSquare = noSquare; /// En passant target square, or `noSquare`.
+    /// Occupancy of each piece type (both colours), indexed by `PieceType`.
+    Bitboard[6] pieces;
+    /// Occupancy of each colour, indexed by `Color`.
+    Bitboard[2] colors;
+    /// Piece type on each square (`PieceType.none` when empty).
+    PieceType[64] board = PieceType.none;
+    /// Side to move.
+    Color side = Color.white;
+    /// Combination of `CastlingRight` flags.
+    ubyte castling;
+    /// En passant target square, or `noSquare`.
+    Square epSquare = noSquare;
 
-    /// The standard starting position.
-    static Position startPosition()
+    /// All occupied squares.
+    Bitboard occupied() const @safe pure nothrow @nogc
     {
-        return fromFen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+        return colors[0] | colors[1];
     }
 
-    /++
-    Parse a FEN record. The halfmove and fullmove fields are optional and
-    ignored.
-    Throws: `FenException` if the text is malformed.
-    +/
-    static Position fromFen(const(char)[] fen)
+    /// Squares of the pieces of type `pt` and colour `c`.
+    Bitboard pieceSet(PieceType pt, Color c) const @safe pure nothrow @nogc
     {
-        const(char)[][6] f;
-        size_t n = 0, start = 0;
-        foreach (i; 0 .. fen.length + 1)
-            if (i == fen.length || fen[i] == ' ')
-            {
-                if (i > start)
-                {
-                    if (n == 6)
-                        throw new FenException("too many FEN fields");
-                    f[n++] = fen[start .. i];
-                }
-                start = i + 1;
-            }
-        if (n < 4)
-            throw new FenException("FEN needs at least 4 fields");
-        return fromFields(f[0], f[1], f[2], f[3]);
+        return pieces[pt] & colors[c];
     }
 
-    /++
-    Build a position from the four meaningful FEN fields.
-    Throws: `FenException` if any field is malformed.
-    +/
-    static Position fromFields(const(char)[] placement, const(char)[] side,
-            const(char)[] castlingField, const(char)[] ep)
+    /// Square of the king of colour `c`. The position must contain one.
+    int kingSquare(Color c) const @safe pure nothrow @nogc
     {
-        Position p;
-        int rank = 7, file = 0;
-        foreach (ch; placement)
+        return lsb(pieces[PieceType.king] & colors[c]);
+    }
+
+    /// The colour of the piece on `sq`; only meaningful on occupied squares.
+    Color colorAt(int sq) const @safe pure nothrow @nogc
+    {
+        return (colors[Color.black] & bit(sq)) ? Color.black : Color.white;
+    }
+
+    private void put(Color c, PieceType pt, int sq) @safe pure nothrow @nogc
+    {
+        const b = bit(sq);
+        pieces[pt] |= b;
+        colors[c] |= b;
+        board[sq] = pt;
+    }
+
+    private void remove(Color c, PieceType pt, int sq) @safe pure nothrow @nogc
+    {
+        const b = ~bit(sq);
+        pieces[pt] &= b;
+        colors[c] &= b;
+        board[sq] = PieceType.none;
+    }
+
+    /// Whether `sq` is attacked by any piece of colour `by`, given occupancy `occ`.
+    bool isAttacked(int sq, Color by, Bitboard occ) const @safe pure nothrow @nogc
+    {
+        const theirs = colors[by];
+        if (pawnAttacks(opposite(by), sq) & pieces[PieceType.pawn] & theirs)
+            return true;
+        if (knightAttacks(sq) & pieces[PieceType.knight] & theirs)
+            return true;
+        if (kingAttacks(sq) & pieces[PieceType.king] & theirs)
+            return true;
+        const diag = (pieces[PieceType.bishop] | pieces[PieceType.queen]) & theirs;
+        if (diag && (bishopAttacks(sq, occ) & diag))
+            return true;
+        const orth = (pieces[PieceType.rook] | pieces[PieceType.queen]) & theirs;
+        return orth && (rookAttacks(sq, occ) & orth);
+    }
+
+    /// All pieces of either colour attacking `sq` given occupancy `occ`.
+    Bitboard attackersTo(int sq, Bitboard occ) const @safe pure nothrow @nogc
+    {
+        return (pawnAttacks(Color.black, sq) & pieces[PieceType.pawn] & colors[Color.white])
+            | (pawnAttacks(Color.white, sq) & pieces[PieceType.pawn] & colors[Color.black])
+            | (knightAttacks(sq) & pieces[PieceType.knight])
+            | (kingAttacks(sq) & pieces[PieceType.king])
+            | (bishopAttacks(sq, occ) & (pieces[PieceType.bishop] | pieces[PieceType.queen]))
+            | (rookAttacks(sq, occ) & (pieces[PieceType.rook] | pieces[PieceType.queen]));
+    }
+
+    /// Whether the side to move is in check.
+    bool inCheck() const @safe pure nothrow @nogc
+    {
+        return isAttacked(kingSquare(side), opposite(side), occupied);
+    }
+
+    /**
+     * Plays `m` (assumed pseudo-legal for the side to move) in place: moves
+     * pieces, handles captures, en passant, castling and promotion, updates
+     * castling rights and the en passant square, and passes the turn.
+     */
+    void play(Move m) @safe pure nothrow @nogc
+    {
+        const us = side, them = opposite(us);
+        const mover = board[m.from];
+        const captured = board[m.to];
+
+        if (captured != PieceType.none)
+            remove(them, captured, m.to);
+        else if (mover == PieceType.pawn && m.to == epSquare && fileOf(m.from) != fileOf(m.to))
+            remove(them, PieceType.pawn, us == Color.white ? m.to - 8 : m.to + 8);
+
+        remove(us, mover, m.from);
+        put(us, m.promotion != PieceType.none ? m.promotion : mover, m.to);
+
+        if (mover == PieceType.king && (m.to - m.from == 2 || m.from - m.to == 2))
         {
-            if (ch == '/')
+            const kingside = m.to > m.from;
+            const rookFrom = kingside ? m.to + 1 : m.to - 2;
+            const rookTo = kingside ? m.to - 1 : m.to + 1;
+            remove(us, PieceType.rook, rookFrom);
+            put(us, PieceType.rook, rookTo);
+        }
+
+        castling &= castlingMask[m.from] & castlingMask[m.to];
+        epSquare = noSquare;
+        if (mover == PieceType.pawn && (m.to - m.from == 16 || m.from - m.to == 16))
+            epSquare = cast(Square)((m.from + m.to) / 2);
+        side = them;
+    }
+
+    /**
+     * Parses a FEN record. The halfmove and fullmove fields are optional and
+     * ignored.
+     * Throws: `FenException` if the record is malformed.
+     */
+    static Position fromFen(const(char)[] fen) @safe
+    {
+        const fields = fen.idup.split(' ');
+        if (fields.length < 4)
+            throw new FenException("FEN needs at least 4 fields: " ~ fen.idup);
+        Position pos;
+
+        const ranks = fields[0].split('/');
+        if (ranks.length != 8)
+            throw new FenException("FEN placement needs 8 ranks: " ~ fen.idup);
+        foreach (i, rankStr; ranks)
+        {
+            const rank = 7 - cast(int) i;
+            int file = 0;
+            foreach (ch; rankStr)
             {
-                if (file != 8 || rank == 0)
-                    throw new FenException("bad rank layout in FEN placement");
-                rank--;
-                file = 0;
-            }
-            else if (ch >= '1' && ch <= '8')
-            {
-                file += ch - '0';
-                if (file > 8)
-                    throw new FenException("rank overflows in FEN placement");
-            }
-            else
-            {
-                immutable idx = "PNBRQKpnbrqk".indexOfChar(ch);
-                if (idx < 0 || file > 7)
-                    throw new FenException("bad piece in FEN placement");
-                p.put(rank * 8 + file, makePiece(idx < 6 ? Color.white : Color.black,
-                        cast(PieceType)(idx % 6)));
+                if (ch >= '1' && ch <= '8')
+                {
+                    file += ch - '0';
+                    continue;
+                }
+                if (file > 7)
+                    throw new FenException("rank too long: " ~ rankStr);
+                const c = (ch >= 'a' && ch <= 'z') ? Color.black : Color.white;
+                const pt = pieceFromChar(ch);
+                if (pt == PieceType.none)
+                    throw new FenException("invalid piece: " ~ ch.to!string);
+                pos.put(c, pt, makeSquare(file, rank));
                 file++;
             }
+            if (file != 8)
+                throw new FenException("rank does not have 8 squares: " ~ rankStr);
         }
-        if (rank != 0 || file != 8)
-            throw new FenException("FEN placement must describe 8 ranks of 8 files");
-        foreach (c; [Color.white, Color.black])
-            if (count(p.byType[PieceType.king] & p.byColor[c]) != 1)
-                throw new FenException("each side needs exactly one king");
 
-        if (side == "w")
-            p.sideToMove = Color.white;
-        else if (side == "b")
-            p.sideToMove = Color.black;
+        if (fields[1] == "w")
+            pos.side = Color.white;
+        else if (fields[1] == "b")
+            pos.side = Color.black;
         else
-            throw new FenException("bad side to move");
+            throw new FenException("invalid side to move: " ~ fields[1]);
 
-        if (castlingField != "-")
-        {
-            if (castlingField.length == 0)
-                throw new FenException("empty castling field");
-            foreach (ch; castlingField)
+        if (fields[2] != "-")
+            foreach (ch; fields[2])
             {
-                immutable idx = "KQkq".indexOfChar(ch);
-                if (idx < 0)
-                    throw new FenException("bad castling field");
-                p.castling |= cast(ubyte)(1 << idx);
+                switch (ch)
+                {
+                case 'K': pos.castling |= CastlingRight.whiteKingside; break;
+                case 'Q': pos.castling |= CastlingRight.whiteQueenside; break;
+                case 'k': pos.castling |= CastlingRight.blackKingside; break;
+                case 'q': pos.castling |= CastlingRight.blackQueenside; break;
+                default: throw new FenException("invalid castling field: " ~ fields[2]);
+                }
             }
+
+        if (fields[3] != "-")
+        {
+            try
+                pos.epSquare = parseSquare(fields[3]);
+            catch (Exception e)
+                throw new FenException("invalid en passant square: " ~ fields[3]);
         }
 
-        if (ep != "-")
-        {
-            immutable sq = squareFromName(ep);
-            if (sq < 0)
-                throw new FenException("bad en passant square");
-            p.epSquare = cast(ubyte) sq;
-        }
-        return p;
+        foreach (c; [Color.white, Color.black])
+            if (popCount(pos.pieceSet(PieceType.king, c)) != 1)
+                throw new FenException("each side needs exactly one king");
+        return pos;
     }
 
-    /// FEN text of the position, with halfmove clock 0 and fullmove number 1.
-    string toFen() const
+    /// Formats the position as FEN, with halfmove clock 0 and fullmove number 1.
+    string toFen() const @safe
     {
         string s;
         foreach_reverse (rank; 0 .. 8)
@@ -176,195 +235,151 @@ struct Position
             int empty = 0;
             foreach (file; 0 .. 8)
             {
-                immutable pc = board[rank * 8 + file];
-                if (pc == noPiece)
+                const sq = makeSquare(file, rank);
+                if (board[sq] == PieceType.none)
                 {
                     empty++;
                     continue;
                 }
                 if (empty)
+                {
                     s ~= cast(char)('0' + empty);
-                empty = 0;
-                s ~= "PNBRQKpnbrqk"[typeOf(pc) + 6 * colorOf(pc)];
+                    empty = 0;
+                }
+                s ~= pieceChar(board[sq], colorAt(sq));
             }
             if (empty)
                 s ~= cast(char)('0' + empty);
             if (rank)
                 s ~= '/';
         }
-        s ~= sideToMove == Color.white ? " w " : " b ";
+        s ~= side == Color.white ? " w " : " b ";
         if (castling == 0)
             s ~= '-';
         else
-            foreach (i, ch; "KQkq")
-                if (castling & (1 << i))
-                    s ~= ch;
+        {
+            if (castling & CastlingRight.whiteKingside) s ~= 'K';
+            if (castling & CastlingRight.whiteQueenside) s ~= 'Q';
+            if (castling & CastlingRight.blackKingside) s ~= 'k';
+            if (castling & CastlingRight.blackQueenside) s ~= 'q';
+        }
         s ~= ' ';
         s ~= epSquare == noSquare ? "-" : squareName(epSquare);
         return s ~ " 0 1";
     }
+}
 
-    /// Bitboard of the pieces of type `t` belonging to `c`.
-    pragma(inline, true)
-    Bitboard pieces(PieceType t, Color c) const @safe pure nothrow @nogc
+/// Castling rights that survive a move touching each square (as origin or destination).
+private immutable ubyte[64] castlingMask = () {
+    ubyte[64] m;
+    m[] = CastlingRight.all;
+    m[makeSquare(4, 0)] &= ~(CastlingRight.whiteKingside | CastlingRight.whiteQueenside);
+    m[makeSquare(0, 0)] &= ~CastlingRight.whiteQueenside;
+    m[makeSquare(7, 0)] &= ~CastlingRight.whiteKingside;
+    m[makeSquare(4, 7)] &= ~(CastlingRight.blackKingside | CastlingRight.blackQueenside);
+    m[makeSquare(0, 7)] &= ~CastlingRight.blackQueenside;
+    m[makeSquare(7, 7)] &= ~CastlingRight.blackKingside;
+    return m;
+}();
+
+private PieceType pieceFromChar(char ch) @safe pure nothrow @nogc
+{
+    switch (ch)
     {
-        return byType[t] & byColor[c];
-    }
-
-    /// Square of the king of colour `c`.
-    pragma(inline, true)
-    int kingSquare(Color c) const @safe pure nothrow @nogc
-    {
-        return lsb(byType[PieceType.king] & byColor[c]);
-    }
-
-    /++
-    Whether `sq` is attacked by any piece of colour `by`, given the occupancy
-    `occ`. Pieces in `ignore` are treated as absent attackers (the blockers
-    themselves must be removed from `occ` by the caller).
-    +/
-    bool isAttacked(int sq, Color by, Bitboard occ, Bitboard ignore = 0) const @trusted pure nothrow @nogc
-    {
-        immutable Bitboard theirs = byColor[by] & ~ignore;
-        if (pawnAttacks[opposite(by)][sq] & byType[PieceType.pawn] & theirs)
-            return true;
-        if (knightAttacks[sq] & byType[PieceType.knight] & theirs)
-            return true;
-        if (kingAttacks[sq] & byType[PieceType.king] & theirs)
-            return true;
-        immutable Bitboard diag = (byType[PieceType.bishop] | byType[PieceType.queen]) & theirs;
-        if (diag && (bishopAttacks(sq, occ) & diag))
-            return true;
-        immutable Bitboard orth = (byType[PieceType.rook] | byType[PieceType.queen]) & theirs;
-        return orth && (rookAttacks(sq, occ) & orth);
-    }
-
-    /// Whether the side to move is in check.
-    bool inCheck() const @safe pure nothrow @nogc
-    {
-        return isAttacked(kingSquare(sideToMove), opposite(sideToMove), occupied);
-    }
-
-    /// Place `pc` on the empty square `sq`.
-    pragma(inline, true)
-    void put(int sq, Piece pc) @safe pure nothrow @nogc
-    {
-        immutable b = bit(sq);
-        byType[pc & 7] |= b;
-        byColor[pc >> 3] |= b;
-        occupied |= b;
-        board[sq] = pc;
-    }
-
-    /// Remove the piece from the occupied square `sq`.
-    pragma(inline, true)
-    void remove(int sq) @safe pure nothrow @nogc
-    {
-        immutable b = bit(sq);
-        immutable pc = board[sq];
-        byType[pc & 7] ^= b;
-        byColor[pc >> 3] ^= b;
-        occupied ^= b;
-        board[sq] = noPiece;
-    }
-
-    /// Move the piece on `from` to the empty square `to`.
-    pragma(inline, true)
-    void relocate(int from, int to) @safe pure nothrow @nogc
-    {
-        immutable b = bit(from) | bit(to);
-        immutable pc = board[from];
-        byType[pc & 7] ^= b;
-        byColor[pc >> 3] ^= b;
-        occupied ^= b;
-        board[from] = noPiece;
-        board[to] = pc;
-    }
-
-    /++
-    Play a legal (or at least pseudo-legal) move in place.
-    Returns: the record needed by `unmakeMove`.
-    +/
-    Undo makeMove(Move m) @safe pure nothrow @nogc
-    {
-        immutable from = m.from, to = m.to, flag = m.flag;
-        immutable us = sideToMove;
-        Undo u;
-        u.castling = castling;
-        u.epSquare = epSquare;
-        epSquare = noSquare;
-
-        if (flag == MoveFlag.enPassant)
-        {
-            immutable capSq = us == Color.white ? to - 8 : to + 8;
-            u.captured = board[capSq];
-            remove(capSq);
-        }
-        else if (board[to] != noPiece)
-        {
-            u.captured = board[to];
-            remove(to);
-        }
-
-        if (flag >= MoveFlag.promoteKnight)
-        {
-            remove(from);
-            put(to, makePiece(us, m.promotionType));
-        }
-        else
-        {
-            relocate(from, to);
-            if (flag == MoveFlag.doublePush)
-                epSquare = cast(ubyte)((from + to) >> 1);
-            else if (flag == MoveFlag.castle)
-            {
-                if (to > from)
-                    relocate(to + 1, to - 1);
-                else
-                    relocate(to - 2, to + 1);
-            }
-        }
-
-        castling &= castlingMask[from] & castlingMask[to];
-        sideToMove = opposite(us);
-        return u;
-    }
-
-    /// Take back `m`, which must be the last move played, given its `Undo`.
-    void unmakeMove(Move m, Undo u) @safe pure nothrow @nogc
-    {
-        immutable from = m.from, to = m.to, flag = m.flag;
-        immutable us = opposite(sideToMove);
-        sideToMove = us;
-        castling = u.castling;
-        epSquare = u.epSquare;
-
-        if (flag >= MoveFlag.promoteKnight)
-        {
-            remove(to);
-            put(from, makePiece(us, PieceType.pawn));
-        }
-        else
-        {
-            relocate(to, from);
-            if (flag == MoveFlag.castle)
-            {
-                if (to > from)
-                    relocate(to - 1, to + 1);
-                else
-                    relocate(to + 1, to - 2);
-            }
-        }
-
-        if (u.captured != noPiece)
-            put(flag == MoveFlag.enPassant ? (us == Color.white ? to - 8 : to + 8) : to, u.captured);
+    case 'P': case 'p': return PieceType.pawn;
+    case 'N': case 'n': return PieceType.knight;
+    case 'B': case 'b': return PieceType.bishop;
+    case 'R': case 'r': return PieceType.rook;
+    case 'Q': case 'q': return PieceType.queen;
+    case 'K': case 'k': return PieceType.king;
+    default: return PieceType.none;
     }
 }
 
-private int indexOfChar(string s, char c) @safe pure nothrow @nogc
+private char pieceChar(PieceType pt, Color c) @safe pure nothrow @nogc
 {
-    foreach (i, ch; s)
-        if (ch == c)
-            return cast(int) i;
-    return -1;
+    static immutable string white = "PNBRQK";
+    static immutable string black = "pnbrqk";
+    return c == Color.white ? white[pt] : black[pt];
+}
+
+@safe unittest
+{
+    import std.exception : assertThrown;
+
+    const p = Position.fromFen(startFen);
+    assert(p.toFen == startFen);
+    assert(p.side == Color.white);
+    assert(p.castling == CastlingRight.all);
+    assert(p.epSquare == noSquare);
+    assert(popCount(p.occupied) == 32);
+    assert(p.kingSquare(Color.white) == parseSquare("e1"));
+    assert(p.kingSquare(Color.black) == parseSquare("e8"));
+    assert(!p.inCheck);
+
+    // Halfmove/fullmove are optional on input.
+    assert(Position.fromFen("8/8/8/8/8/8/8/K6k b - -").side == Color.black);
+
+    assertThrown!FenException(Position.fromFen("8/8/8/8/8/8/8 w - -"));
+    assertThrown!FenException(Position.fromFen("8/8/8/8/8/8/8/K7 w - -"));
+    assertThrown!FenException(Position.fromFen("8/8/8/8/8/8/8/K6k x - -"));
+    assertThrown!FenException(Position.fromFen("8/8/8/8/8/8/8/K6k w X -"));
+    assertThrown!FenException(Position.fromFen("8/8/8/8/8/8/8/K6k w - z9"));
+    assertThrown!FenException(Position.fromFen("8/8/8/8/8/8/8/K6x w - -"));
+    assertThrown!FenException(Position.fromFen("8/8/8/8/8/8/8/K6k"));
+}
+
+@safe unittest
+{
+    // Double push sets the en passant square; the next move clears it.
+    auto p = Position.fromFen(startFen);
+    p.play(Move.fromUci("e2e4"));
+    assert(p.toFen == "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+    p.play(Move.fromUci("g8f6"));
+    assert(p.epSquare == noSquare);
+    assert(p.side == Color.white);
+}
+
+@safe unittest
+{
+    // En passant removes the captured pawn.
+    auto p = Position.fromFen("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1");
+    p.play(Move.fromUci("e5d6"));
+    assert(p.toFen == "4k3/8/3P4/8/8/8/8/4K3 b - - 0 1");
+}
+
+@safe unittest
+{
+    // Castling moves the rook and removes rights; rook capture removes a right.
+    auto p = Position.fromFen("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");
+    auto q = p;
+    q.play(Move.fromUci("e1g1"));
+    assert(q.toFen == "r3k2r/8/8/8/8/8/8/R4RK1 b kq - 0 1");
+    q = p;
+    q.play(Move.fromUci("e1c1"));
+    assert(q.toFen == "r3k2r/8/8/8/8/8/8/2KR3R b kq - 0 1");
+    q = p;
+    q.play(Move.fromUci("a1a8"));
+    assert(q.toFen == "R3k2r/8/8/8/8/8/8/4K2R b Kk - 0 1");
+    q = p;
+    q.play(Move.fromUci("h1h8"));
+    assert(q.castling == (CastlingRight.whiteQueenside | CastlingRight.blackQueenside));
+}
+
+@safe unittest
+{
+    // Promotion, including with capture on a corner square.
+    auto p = Position.fromFen("r3k3/1P6/8/8/8/8/8/4K3 w q - 0 1");
+    p.play(Move.fromUci("b7a8q"));
+    assert(p.toFen == "Q3k3/8/8/8/8/8/8/4K3 b - - 0 1");
+}
+
+@safe unittest
+{
+    // Attack queries; sliders see through a vacated square.
+    const p = Position.fromFen("4k3/8/8/8/8/8/4r3/4K3 w - - 0 1");
+    assert(p.inCheck);
+    assert(p.isAttacked(parseSquare("e1"), Color.black, p.occupied));
+    assert(!p.isAttacked(parseSquare("a1"), Color.black, p.occupied));
+    assert(popCount(p.attackersTo(parseSquare("e1"), p.occupied)) == 1);
 }

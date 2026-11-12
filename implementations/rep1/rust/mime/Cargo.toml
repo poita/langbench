@@ -1,0 +1,17 @@
+[package]
+name = "mime"
+version = "0.1.0"
+edition = "2021"
+description = "A from-scratch MIME email parser that dumps messages and attachments from mbox files and .eml directories"
+license = "MIT"
+readme = "README.md"
+keywords = ["mime", "email", "mbox", "rfc5322", "parser"]
+categories = ["email", "parser-implementations"]
+
+[lib]
+name = "mime"
+path = "src/lib.rs"
+
+[[bin]]
+name = "mime"
+path = "src/main.rs"

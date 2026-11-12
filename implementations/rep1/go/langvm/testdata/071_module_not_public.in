@@ -1,0 +1,6 @@
+@module main
+use o;
+fn f(x: o::S) {}
+fn main() {}
+@module o
+struct S { a: Int }

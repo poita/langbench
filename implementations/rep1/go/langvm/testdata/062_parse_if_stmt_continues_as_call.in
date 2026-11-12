@@ -1,0 +1,7 @@
+@module main
+fn f() {}
+fn main() {
+    let c = true;
+    if c { f() } else { f() }
+    (1, 2);
+}

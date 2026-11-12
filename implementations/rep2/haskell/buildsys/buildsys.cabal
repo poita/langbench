@@ -1,0 +1,88 @@
+cabal-version:      3.0
+name:               buildsys
+version:            0.1.0.0
+synopsis:           Kiln, a deterministic incremental build system simulator
+description:
+  Kiln reads a workspace of build files written in the Kiln Build Language
+  (KBL), evaluates them into a graph of build steps, and runs the out-of-date
+  steps on a simulated pool of workers against a virtual file system.
+  The library exposes every stage (lexer, parser, evaluator, graph, scheduler,
+  state file) and a session driver; the @buildsys@ executable is a thin
+  command-line wrapper around it.
+license:            NONE
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+category:           Development, Build
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  default-extensions: OverloadedStrings LambdaCase MultiWayIf
+  ghc-options:      -Wall -Wno-name-shadowing -Wno-unused-do-bind
+  build-depends:    base >=4.18 && <5
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Kiln
+    Kiln.Build
+    Kiln.Command
+    Kiln.Error
+    Kiln.Eval
+    Kiln.Glob
+    Kiln.Graph
+    Kiln.Hash
+    Kiln.Lexer
+    Kiln.Parser
+    Kiln.Scheduler
+    Kiln.Session
+    Kiln.State
+    Kiln.Step
+    Kiln.Text
+    Kiln.Syntax
+    Kiln.Value
+    Kiln.Workspace
+    Kiln.Workspace.IO
+  other-modules:
+    Kiln.Builtins
+  build-depends:
+    array      >=0.5 && <0.6,
+    bytestring >=0.11 && <0.13,
+    containers >=0.6 && <0.9,
+    directory  >=1.3 && <1.4,
+    filepath   >=1.4 && <1.6,
+    mtl        >=2.3 && <2.4
+
+executable buildsys
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+  build-depends:
+    buildsys,
+    bytestring,
+    directory,
+    filepath
+
+test-suite buildsys-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Support
+    GlobSpec
+    LexerParserSpec
+    EvalSpec
+    CommandSpec
+    StateSpec
+    BuildSpec
+    SessionSpec
+  build-depends:
+    buildsys,
+    bytestring,
+    containers,
+    hspec      >=2.10,
+    QuickCheck >=2.14

@@ -2,5 +2,7 @@
 chess-perft
 *.o
 *.a
-*-test-*
+*.lst
 dub.selections.json
+__test__*
+chess-perft-test-*

@@ -1,0 +1,17 @@
+layout 1
+pages 2
+page 1 1 200000 120000 20000 20000 160000 80000
+  text body serif 10000 38000 27310 20230 "Text."
+page 2 2 200000 120000 20000 20000 160000 80000
+  box float 60000 20000 80000 20000
+  text float serif 9000 61235 50579 23571 "Figure"
+  text float serif 9000 87092 50579 6705 "1."
+  text float serif 9000 97797 50579 6597 "A"
+  text float serif 9000 106680 50579 32085 "narrower"
+  text float serif 9000 68932 61579 26271 "caption"
+  text float serif 9000 97489 61579 13608 "that"
+  text float serif 9000 113383 61579 17685 "must"
+  text float serif 9000 63950 72579 17856 "wrap"
+  text float serif 9000 84092 72579 20610 "under"
+  text float serif 9000 106988 72579 11133 "the"
+  text float serif 9000 120407 72579 15642 "box."

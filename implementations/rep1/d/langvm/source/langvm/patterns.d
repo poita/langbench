@@ -1,378 +1,356 @@
-/// Pattern usefulness, exhaustiveness and reachability (section 12.4 of the language specification).
+/// Match usefulness, exhaustiveness and reachability (SPEC.md section 12.4).
 module langvm.patterns;
 
 import langvm.ast;
-import langvm.model;
+import langvm.types;
 
-private enum CK : ubyte
+/// The identity of a pattern constructor.
+struct CtorKey
 {
-    variant, boolLit, intLit, charLit, strLit, tuple, strukt, list,
-}
+    /// 0: variant / bool / tuple / struct (`i` is the index); 1: int literal;
+    /// 2: char literal; 3: str literal; 4: list (not used as a key).
+    int kind;
+    long i;
+    dstring s;
 
-private struct Ctor
-{
-    CK kind;
-    long iv;
-    dstring sv;
-    int idx; // variant index
-}
-
-private bool ctorEq(in Ctor a, in Ctor b)
-{
-    if (a.kind != b.kind)
-        return false;
-    final switch (a.kind)
+    bool opEquals(const CtorKey o) const
     {
-    case CK.variant:
-        return a.idx == b.idx;
-    case CK.boolLit, CK.intLit, CK.charLit:
-        return a.iv == b.iv;
-    case CK.strLit:
-        return a.sv == b.sv;
-    case CK.tuple, CK.strukt:
-        return true;
-    case CK.list:
-        return false; // lists use their own rule
+        return kind == o.kind && i == o.i && s == o.s;
     }
 }
 
-/// A deconstructed pattern: a wildcard or a constructor applied to sub-patterns.
-private final class DP
+/// A pattern reduced to what the usefulness algorithm needs.
+final class Cp
 {
     bool wild;
-    Ctor ctor;
-    /// For list patterns: number of element patterns and whether a rest is present.
+    CtorKey ck;
+    Cp[] subs;
+    /// List patterns: whether a `..` rest was written.
     bool open;
-    DP[] subs;
+    bool isList;
 }
 
-private DP wildDP()
+private Cp wildCp()
 {
-    auto d = new DP;
-    d.wild = true;
-    return d;
+    auto c = new Cp();
+    c.wild = true;
+    return c;
 }
 
-private DP convert(Pat p, Type t)
+/// Convert a checked pattern.
+Cp toCp(Pattern p)
 {
-    t = prune(t);
-    if (auto w = cast(WildPat) p)
-        return wildDP();
-    if (auto ip = cast(IdentPat) p)
+    auto c = new Cp();
+    final switch (p.kind)
     {
-        if (ip.enumDecl is null)
-            return wildDP();
-        auto d = new DP;
-        d.ctor = Ctor(CK.variant, 0, null, ip.variantIdx);
-        return d;
+    case PatK.wild, PatK.bind:
+        c.wild = true;
+        break;
+    case PatK.float_:
+        c.wild = true; // never reaches here: float patterns are rejected earlier
+        break;
+    case PatK.int_:
+        c.ck = CtorKey(1, p.ival);
+        break;
+    case PatK.char_:
+        c.ck = CtorKey(2, p.ival);
+        break;
+    case PatK.str:
+        c.ck = CtorKey(3, 0, p.sval);
+        break;
+    case PatK.bool_:
+        c.ck = CtorKey(0, p.ival);
+        break;
+    case PatK.tuple:
+        c.ck = CtorKey(0, 0);
+        foreach (s; p.subs)
+            c.subs ~= toCp(s);
+        break;
+    case PatK.variant:
+        c.ck = CtorKey(0, p.variant.index);
+        foreach (s; p.subs)
+            c.subs ~= toCp(s);
+        break;
+    case PatK.struct_:
+        c.ck = CtorKey(0, 0);
+        c.subs = new Cp[p.decl.fields.length];
+        foreach (ref s; c.subs)
+            s = wildCp();
+        foreach (f; p.fields)
+            if (f.pat !is null)
+                c.subs[f.fieldIdx] = toCp(f.pat);
+        break;
+    case PatK.list:
+        c.isList = true;
+        c.open = p.hasRest;
+        foreach (s; p.subs)
+            c.subs ~= toCp(s);
+        break;
     }
-    if (auto lp = cast(LitPat) p)
-    {
-        auto d = new DP;
-        final switch (lp.kind)
-        {
-        case LitPat.Kind.int_:
-            d.ctor = Ctor(CK.intLit, lp.iv);
-            break;
-        case LitPat.Kind.char_:
-            d.ctor = Ctor(CK.charLit, lp.iv);
-            break;
-        case LitPat.Kind.bool_:
-            d.ctor = Ctor(CK.boolLit, lp.iv);
-            break;
-        case LitPat.Kind.str:
-            d.ctor = Ctor(CK.strLit, 0, lp.sv);
-            break;
-        case LitPat.Kind.float_:
-            return wildDP();
-        }
-        return d;
-    }
-    if (auto tp = cast(TuplePat) p)
-    {
-        auto d = new DP;
-        d.ctor.kind = CK.tuple;
-        foreach (i, s; tp.subs)
-            d.subs ~= convert(s, t.args[i]);
-        return d;
-    }
-    if (auto lp = cast(ListPat) p)
-    {
-        auto d = new DP;
-        d.ctor.kind = CK.list;
-        d.open = lp.hasRest;
-        foreach (s; lp.subs)
-            d.subs ~= convert(s, t.args[0]);
-        return d;
-    }
-    if (auto sp = cast(StructPat) p)
-    {
-        auto d = new DP;
-        d.ctor.kind = CK.strukt;
-        auto decl = sp.decl;
-        d.subs = new DP[decl.fields.length];
-        foreach (ref x; d.subs)
-            x = wildDP();
-        foreach (fp; sp.fields)
-        {
-            auto ft = subst(decl.fields[fp.fieldIdx].ty, decl.tparams, t.args);
-            d.subs[fp.fieldIdx] = convert(fp.sub, ft);
-        }
-        return d;
-    }
-    if (auto vp = cast(VariantPat) p)
-    {
-        auto d = new DP;
-        d.ctor = Ctor(CK.variant, 0, null, vp.variantIdx);
-        auto pts = vp.enumDecl.variants[vp.variantIdx].payload;
-        foreach (i, s; vp.subs)
-            d.subs ~= convert(s, subst(pts[i], vp.enumDecl.tparams, t.args));
-        return d;
-    }
-    assert(0);
+    return c;
 }
 
-private int arityOf(in Ctor c, Type t)
+private Cp[] wilds(size_t n)
+{
+    auto r = new Cp[n];
+    foreach (ref x; r)
+        x = wildCp();
+    return r;
+}
+
+/// The constructors of a finite type: arity and sub-column types of constructor `i`.
+private struct Finite
+{
+    size_t count;
+    Type[] delegate(long) sub;
+}
+
+private bool finiteInfo(Type t, out Finite f)
 {
     t = prune(t);
-    final switch (c.kind)
+    switch (t.kind)
     {
-    case CK.variant:
-        return cast(int) t.decl.variants[c.idx].payload.length;
-    case CK.tuple:
-        return cast(int) t.args.length;
-    case CK.strukt:
-        return cast(int) t.decl.fields.length;
-    case CK.boolLit, CK.intLit, CK.charLit, CK.strLit, CK.list:
-        return 0;
-    }
-}
-
-private Type[] subTypes(in Ctor c, Type t)
-{
-    t = prune(t);
-    switch (c.kind)
-    {
-    case CK.variant:
-        {
-            Type[] r;
-            foreach (pt; t.decl.variants[c.idx].payload)
-                r ~= subst(pt, t.decl.tparams, t.args);
-            return r;
-        }
-    case CK.tuple:
-        return t.args.dup;
-    case CK.strukt:
-        {
-            Type[] r;
-            foreach (f; t.decl.fields)
-                r ~= subst(f.ty, t.decl.tparams, t.args);
-            return r;
-        }
-    default:
-        return null;
-    }
-}
-
-private bool specRow(in Ctor c, int arity, DP[] row, out DP[] result)
-{
-    auto h = row[0];
-    if (h.wild)
-    {
-        DP[] r;
-        r.reserve(arity + row.length - 1);
-        foreach (_; 0 .. arity)
-            r ~= wildDP();
-        r ~= row[1 .. $];
-        result = r;
+    case TK.bool_:
+        f = Finite(2, (long _) => cast(Type[]) null);
         return true;
-    }
-    if (!ctorEq(h.ctor, c))
+    case TK.unit:
+        f = Finite(1, (long _) => cast(Type[]) null);
+        return true;
+    case TK.tuple:
+        f = Finite(1, (long _) => t.args);
+        return true;
+    case TK.named:
+        auto d = t.decl;
+        if (d.isEnum)
+        {
+            f = Finite(d.variants.length, (long i) {
+                Type[] r;
+                foreach (p; d.variants[cast(size_t) i].payload)
+                    r ~= subst(p, d.tparams, t.args);
+                return r;
+            });
+        }
+        else
+        {
+            f = Finite(1, (long _) {
+                Type[] r;
+                foreach (fl; d.fields)
+                    r ~= subst(fl.type, d.tparams, t.args);
+                return r;
+            });
+        }
+        return true;
+    default:
         return false;
-    result = h.subs ~ row[1 .. $];
-    return true;
+    }
 }
 
-private DP[][] specMatrix(in Ctor c, int arity, DP[][] rows)
+private Cp[][] specialize(Cp[][] rows, CtorKey c, size_t arity)
 {
-    DP[][] r;
+    Cp[][] r;
     foreach (row; rows)
     {
-        DP[] s;
-        if (specRow(c, arity, row, s))
-            r ~= s;
+        auto p = row[0];
+        if (p.wild)
+            r ~= wilds(arity) ~ row[1 .. $];
+        else if (p.ck == c)
+            r ~= p.subs ~ row[1 .. $];
     }
     return r;
 }
 
-private bool specListRow(int k, DP[] row, out DP[] result)
-{
-    auto h = row[0];
-    if (h.wild)
-    {
-        DP[] r;
-        foreach (_; 0 .. k)
-            r ~= wildDP();
-        r ~= row[1 .. $];
-        result = r;
-        return true;
-    }
-    int n = cast(int) h.subs.length;
-    if (h.open ? n > k : n != k)
-        return false;
-    DP[] r = h.subs.dup;
-    foreach (_; n .. k)
-        r ~= wildDP();
-    r ~= row[1 .. $];
-    result = r;
-    return true;
-}
-
-/// True if there is a value matched by `q` and by no row of `rows`.
-private bool useful(DP[][] rows, DP[] q, Type[] types)
+/// `U(P, q)`: is the row `q` useful against the matrix `rows`?
+bool useful(Cp[][] rows, Cp[] q, Type[] tys)
 {
     if (q.length == 0)
         return rows.length == 0;
-    auto t1 = prune(types[0]);
-    auto rest = types[1 .. $];
-    if (t1.k == TK.list)
-    {
-        int lmax = 0;
-        foreach (r; rows)
-            if (!r[0].wild && cast(int) r[0].subs.length > lmax)
-                lmax = cast(int) r[0].subs.length;
-        if (!q[0].wild && cast(int) q[0].subs.length > lmax)
-            lmax = cast(int) q[0].subs.length;
-        foreach (k; 0 .. lmax + 2)
-        {
-            if (!q[0].wild)
-            {
-                int n = cast(int) q[0].subs.length;
-                if (q[0].open ? k < n : k != n)
-                    continue;
-            }
-            DP[][] sm;
-            foreach (r; rows)
-            {
-                DP[] s;
-                if (specListRow(k, r, s))
-                    sm ~= s;
-            }
-            DP[] sq;
-            specListRow(k, q, sq);
-            Type[] nt;
-            foreach (_; 0 .. k)
-                nt ~= t1.args[0];
-            nt ~= rest;
-            if (useful(sm, sq, nt))
-                return true;
-        }
-        return false;
-    }
+    auto t1 = prune(tys[0]);
+    if (t1.kind == TK.list)
+        return usefulList(rows, q, tys, t1.args[0]);
     if (!q[0].wild)
     {
-        auto c = q[0].ctor;
-        int ar = arityOf(c, t1);
-        DP[] sq;
-        specRow(c, ar, q, sq);
-        return useful(specMatrix(c, ar, rows), sq, subTypes(c, t1) ~ rest);
+        Type[] sub = subColumns(t1, q[0].ck);
+        return useful(specialize(rows, q[0].ck, q[0].subs.length), q[0].subs ~ q[1 .. $],
+            sub ~ tys[1 .. $]);
     }
-    // wildcard: compute the used constructor set
-    Ctor[] used;
-    foreach (r; rows)
+    // q[0] is a wildcard
+    Finite fin;
+    if (finiteInfo(t1, fin))
     {
-        if (r[0].wild)
-            continue;
-        bool seen = false;
-        foreach (u; used)
-            if (ctorEq(u, r[0].ctor))
-                seen = true;
-        if (!seen)
-            used ~= r[0].ctor;
-    }
-    Ctor[] all;
-    bool finite = false;
-    switch (t1.k)
-    {
-    case TK.bool_:
-        finite = true;
-        all = [Ctor(CK.boolLit, 0), Ctor(CK.boolLit, 1)];
-        break;
-    case TK.tuple:
-        finite = true;
-        all = [Ctor(CK.tuple)];
-        break;
-    case TK.named:
-        finite = true;
-        if (t1.decl.isEnum)
-        {
-            foreach (i; 0 .. t1.decl.variants.length)
-                all ~= Ctor(CK.variant, 0, null, cast(int) i);
-        }
-        else
-            all = [Ctor(CK.strukt)];
-        break;
-    default:
-        break;
-    }
-    bool covers = finite;
-    if (finite)
-    {
-        foreach (c; all)
-        {
-            bool found = false;
-            foreach (u; used)
-                if (ctorEq(u, c))
-                    found = true;
-            if (!found)
+        CtorKey[] used;
+        foreach (row; rows)
+            if (!row[0].wild)
             {
-                covers = false;
-                break;
+                bool seen = false;
+                foreach (u; used)
+                    seen |= u == row[0].ck;
+                if (!seen)
+                    used ~= row[0].ck;
             }
-        }
-    }
-    if (covers)
-    {
-        foreach (c; all)
+        if (used.length == fin.count)
         {
-            int ar = arityOf(c, t1);
-            DP[] sq;
-            specRow(c, ar, q, sq);
-            if (useful(specMatrix(c, ar, rows), sq, subTypes(c, t1) ~ rest))
-                return true;
+            foreach (c; used)
+            {
+                auto sub = fin.sub(c.i);
+                if (useful(specialize(rows, c, sub.length), wilds(sub.length) ~ q[1 .. $],
+                        sub ~ tys[1 .. $]))
+                    return true;
+            }
+            return false;
         }
-        return false;
     }
-    DP[][] def;
-    foreach (r; rows)
-        if (r[0].wild)
-            def ~= r[1 .. $];
-    return useful(def, q[1 .. $], rest);
+    Cp[][] def;
+    foreach (row; rows)
+        if (row[0].wild)
+            def ~= row[1 .. $];
+    return useful(def, q[1 .. $], tys[1 .. $]);
 }
 
-/// Result of analysing the arms of a `match`.
-struct MatchAnalysis
+private Type[] subColumns(Type t, CtorKey c)
 {
-    /// Index of the first unreachable arm, or -1.
-    int unreachableArm = -1;
-    /// Whether the unguarded arms cover the scrutinee type.
-    bool exhaustive;
+    Finite fin;
+    if (finiteInfo(t, fin))
+        return fin.sub(c.i);
+    return null; // literal constructors have arity 0
 }
 
-/// Analyses the arms of a match on a scrutinee of type `scrut`.
-/// Every arm's pattern must already have been type-checked (and annotated).
-MatchAnalysis analyseMatch(Type scrut, MatchArm[] arms)
+private bool usefulList(Cp[][] rows, Cp[] q, Type[] tys, Type elem)
 {
-    MatchAnalysis res;
-    DP[][] prior;
-    foreach (i, arm; arms)
+    size_t lmax = 0;
+    foreach (row; rows)
+        if (!row[0].wild && row[0].subs.length > lmax)
+            lmax = row[0].subs.length;
+    if (!q[0].wild && q[0].subs.length > lmax)
+        lmax = q[0].subs.length;
+
+    Cp[] expand(Cp p, size_t k, out bool ok)
     {
-        auto dp = convert(arm.pat, scrut);
-        if (res.unreachableArm < 0 && !useful(prior, [dp], [scrut]))
-            res.unreachableArm = cast(int) i;
-        if (arm.guard is null)
-            prior ~= [dp];
+        ok = true;
+        if (p.wild)
+            return wilds(k);
+        const n = p.subs.length;
+        if (p.open)
+        {
+            if (n > k)
+            {
+                ok = false;
+                return null;
+            }
+            return p.subs ~ wilds(k - n);
+        }
+        if (n != k)
+        {
+            ok = false;
+            return null;
+        }
+        return p.subs;
     }
-    res.exhaustive = !useful(prior, [wildDP()], [scrut]);
-    return res;
+
+    foreach (k; 0 .. lmax + 2)
+    {
+        bool qok;
+        auto qk = expand(q[0], k, qok);
+        if (!qok)
+            continue;
+        Cp[][] rk;
+        foreach (row; rows)
+        {
+            bool ok;
+            auto e = expand(row[0], k, ok);
+            if (ok)
+                rk ~= e ~ row[1 .. $];
+        }
+        Type[] cols = new Type[k];
+        foreach (ref c; cols)
+            c = elem;
+        if (useful(rk, qk ~ q[1 .. $], cols ~ tys[1 .. $]))
+            return true;
+    }
+    return false;
+}
+
+/// Index of the first unreachable arm, or -1.
+int firstUnreachable(Type scrut, Pattern[] pats, const bool[] guarded)
+{
+    Cp[][] prior;
+    foreach (i, p; pats)
+    {
+        auto c = toCp(p);
+        if (!useful(prior, [c], [scrut]))
+            return cast(int) i;
+        if (!guarded[i])
+            prior ~= [c];
+    }
+    return -1;
+}
+
+/// Do the unguarded arms cover every value of `scrut`?
+bool isExhaustive(Type scrut, Pattern[] pats, const bool[] guarded)
+{
+    Cp[][] rows;
+    foreach (i, p; pats)
+        if (!guarded[i])
+            rows ~= [toCp(p)];
+    return !useful(rows, [wildCp()], [scrut]);
+}
+
+unittest
+{
+    // enum Tri { A, B, C(Int) }
+    auto tri = new TypeDecl();
+    tri.name = "Tri";
+    tri.isEnum = true;
+    foreach (i, n; ["A", "B", "C"])
+    {
+        auto v = new VariantInfo();
+        v.name = n;
+        v.decl = tri;
+        v.index = cast(int) i;
+        if (i == 2)
+            v.payload = [tInt];
+        tri.variants ~= v;
+    }
+    auto ty = mkNamed(tri, []);
+    Cp variant(int i, Cp[] subs = null)
+    {
+        auto c = new Cp();
+        c.ck = CtorKey(0, i);
+        c.subs = subs;
+        return c;
+    }
+    Cp lit(long v)
+    {
+        auto c = new Cp();
+        c.ck = CtorKey(1, v);
+        return c;
+    }
+    auto w = wildCp();
+
+    // A, B, C(_) covers everything; dropping B does not
+    assert(!useful([[variant(0)], [variant(1)], [variant(2, [w])]], [w], [ty]));
+    assert(useful([[variant(0)], [variant(2, [w])]], [w], [ty]));
+    // C(0) then C(_) is exhaustive together with A and B, and C(_) after C(0) is reachable
+    assert(!useful([[variant(0)], [variant(1)], [variant(2, [lit(0)])], [variant(2, [w])]], [w], [ty]));
+    assert(useful([[variant(2, [lit(0)])]], [variant(2, [w])], [ty]));
+    // a wildcard row makes a later variant unreachable
+    assert(!useful([[w]], [variant(0)], [ty]));
+}
+
+unittest
+{
+    // lists: [], [a], [a, b, ..] together cover every length
+    auto lt = mkList(tInt);
+    Cp list(size_t n, bool open)
+    {
+        auto c = new Cp();
+        c.isList = true;
+        c.open = open;
+        foreach (_; 0 .. n)
+            c.subs ~= wildCp();
+        return c;
+    }
+    auto w = wildCp();
+    assert(!useful([[list(0, false)], [list(1, false)], [list(2, true)]], [w], [lt]));
+    assert(useful([[list(0, false)], [list(2, true)]], [w], [lt]));
+    assert(!useful([[list(1, true)]], [list(2, false)], [lt]));
 }

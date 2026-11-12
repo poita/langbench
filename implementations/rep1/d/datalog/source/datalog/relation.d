@@ -1,266 +1,234 @@
-/// Relations: append-only tuple storage with a hash set and lazily built hash indexes.
+/// Storage for the tuples of one predicate, with hash indexes.
 module datalog.relation;
 
-/// A constant id (rank in the total order of constants).
-alias Value = uint;
+/// Marks the end of a bucket chain / an empty hash slot.
+enum uint none = uint.max;
 
-/// Sentinel position meaning "none".
-enum uint noPos = uint.max;
+/// Hashes one more value into a running hash. Start from `hashSeed`.
+enum ulong hashSeed = 0xcbf29ce484222325UL;
 
-private enum ulong mixMul = 0x9E3779B97F4A7C15UL;
-
-/// Hash a sequence of values.
-size_t hashValues(const(Value)[] values) pure nothrow @nogc @safe
+ulong mixHash(ulong h, uint value) @safe pure nothrow @nogc
 {
-    ulong h = 0x243F6A8885A308D3UL;
-    foreach (v; values)
-        h = (h ^ v) * mixMul;
-    return cast(size_t)(h ^ (h >> 32));
+    h = (h ^ value) * 0x9E3779B97F4A7C15UL;
+    return h ^ (h >> 32);
 }
 
-private size_t hashColumns(const(Value)[] tuple, const(uint)[] columns) pure nothrow @nogc @safe
-{
-    ulong h = 0x243F6A8885A308D3UL;
-    foreach (c; columns)
-        h = (h ^ tuple[c]) * mixMul;
-    return cast(size_t)(h ^ (h >> 32));
-}
-
-/// A set of tuples of fixed arity, stored contiguously in insertion order.
+/// A hash index over a subset of the columns of a `Relation`.
 ///
-/// A tuple's position is stable, so "the tuples added since position `k`" is
-/// the position range `[k, length)`. Membership is answered by an open
-/// addressing hash set over the tuple positions.
+/// Rows are chained per bucket (`heads` / `next`, newest first). A bucket may
+/// hold rows with different keys, so lookups must re-check the key columns.
+struct Index
+{
+    uint mask; /// bit i set when column i is part of the key
+    ubyte[] cols; /// key columns, ascending
+    uint[] heads; /// bucket -> newest row in the bucket, or `none`
+    uint[] next; /// row -> next older row in the same bucket, or `none`
+    size_t indexed; /// rows `[0, indexed)` are in the index
+}
+
+/// A set of fixed-arity tuples of constant ranks.
+///
+/// Tuples are stored row-major in insertion order, so a row number is also an
+/// age: the rows added by one evaluation round form a contiguous range. A
+/// hash table over whole rows rejects duplicates. Indexes are created on demand
+/// by `indexFor` and are brought up to date incrementally by `syncIndexes`, so
+/// each row is added to each index exactly once however many rounds there are.
 final class Relation
 {
-    /// Number of components of each tuple.
+    /// Number of columns.
     immutable uint arity;
-    /// Flat tuple storage, `arity` values per tuple.
-    Value[] data;
+    /// Row-major tuple storage; row `r` is `data[r*arity .. (r+1)*arity]`.
+    uint[] data;
+    /// Number of rows.
+    size_t count;
+    /// The indexes created so far.
+    Index[] indexes;
 
-    private size_t count;
-    private uint[] slots;
-    private size_t slotMask;
-    private Index[] indexes;
+    private uint[] table; // open-addressing set of row numbers
 
-    this(uint arity) pure nothrow @safe
+    this(uint arity) @safe pure nothrow
     {
         this.arity = arity;
-        slots = new uint[16];
-        slots[] = noPos;
-        slotMask = 15;
+        table = new uint[16];
+        table[] = none;
     }
 
-    /// Number of tuples.
-    size_t length() const pure nothrow @nogc @safe
+    /// The `r`-th row.
+    const(uint)[] row(size_t r) const @safe pure nothrow @nogc
     {
-        return count;
+        return data[r * arity .. (r + 1) * arity];
     }
 
-    /// The tuple at position `pos`.
-    const(Value)[] opIndex(size_t pos) const pure nothrow @nogc @safe
+    private ulong hashRow(scope const(uint)[] t) const @safe pure nothrow @nogc
     {
-        return data[pos * arity .. (pos + 1) * arity];
+        ulong h = hashSeed;
+        foreach (v; t)
+            h = mixHash(h, v);
+        return h;
     }
 
-    /// Is `tuple` in the relation?
-    bool contains(const(Value)[] tuple) const pure nothrow @nogc @safe
+    /// Whether `tuple` is in the relation.
+    bool contains(scope const(uint)[] tuple) const @safe pure nothrow @nogc
     {
-        size_t i = hashValues(tuple) & slotMask;
-        while (true)
+        return find(tuple, hashRow(tuple)) != none;
+    }
+
+    private uint find(scope const(uint)[] tuple, ulong h) const @safe pure nothrow @nogc
+    {
+        immutable m = table.length - 1;
+        for (size_t i = h & m;; i = (i + 1) & m)
         {
-            immutable s = slots[i];
-            if (s == noPos)
-                return false;
-            if (this[s] == tuple)
-                return true;
-            i = (i + 1) & slotMask;
+            immutable r = table[i];
+            if (r == none)
+                return none;
+            if (row(r) == tuple)
+                return r;
         }
     }
 
-    /// Add `tuple`; returns false if it was already present.
-    bool insert(const(Value)[] tuple) nothrow @safe
+    /// Adds `tuple` unless present; returns whether it was new. The new row
+    /// is not visible through the indexes until `syncIndexes`.
+    bool insert(scope const(uint)[] tuple) @safe pure nothrow
+    in (tuple.length == arity)
     {
-        assert(tuple.length == arity);
-        if ((count + 1) * 2 > slots.length)
-            grow();
-        size_t i = hashValues(tuple) & slotMask;
-        while (true)
+        immutable h = hashRow(tuple);
+        immutable m = table.length - 1;
+        size_t i = h & m;
+        for (;; i = (i + 1) & m)
         {
-            immutable s = slots[i];
-            if (s == noPos)
+            immutable r = table[i];
+            if (r == none)
                 break;
-            if (this[s] == tuple)
+            if (row(r) == tuple)
                 return false;
-            i = (i + 1) & slotMask;
         }
-        slots[i] = cast(uint) count;
+        table[i] = cast(uint) count;
         data ~= tuple;
         ++count;
+        if (count * 2 > table.length)
+            growTable();
         return true;
     }
 
-    /// Get (creating if needed) the index keyed on the argument positions in
-    /// `keyMask` (bit `i` set = position `i` is part of the key).
-    Index index(uint keyMask) nothrow @safe
+    private void growTable() @safe pure nothrow
     {
-        if (auto idx = findIndex(keyMask))
-            return idx;
-        auto idx = new Index(this, keyMask);
-        indexes ~= idx;
-        return idx;
-    }
-
-    /// The index for `keyMask` if it exists, else null.
-    Index findIndex(uint keyMask) pure nothrow @nogc @safe
-    {
-        foreach (idx; indexes)
-            if (idx.keyMask == keyMask)
-                return idx;
-        return null;
-    }
-
-private:
-    void grow() nothrow @safe
-    {
-        auto newSlots = new uint[slots.length * 2];
-        newSlots[] = noPos;
-        immutable newMask = newSlots.length - 1;
-        foreach (p; 0 .. count)
+        auto bigger = new uint[table.length * 2];
+        bigger[] = none;
+        immutable m = bigger.length - 1;
+        foreach (r; 0 .. count)
         {
-            size_t i = hashValues(this[p]) & newMask;
-            while (newSlots[i] != noPos)
-                i = (i + 1) & newMask;
-            newSlots[i] = cast(uint) p;
+            size_t i = hashRow(row(r)) & m;
+            while (bigger[i] != none)
+                i = (i + 1) & m;
+            bigger[i] = cast(uint) r;
         }
-        slots = newSlots;
-        slotMask = newMask;
+        table = bigger;
+    }
+
+    /// Number (position in `indexes`) of the index on the columns in `mask`,
+    /// creating it if needed. `mask` must not be 0.
+    size_t indexFor(uint mask) @safe pure nothrow
+    in (mask != 0)
+    {
+        foreach (i, ref ix; indexes)
+            if (ix.mask == mask)
+                return i;
+        Index ix;
+        ix.mask = mask;
+        foreach (c; 0 .. arity)
+            if (mask & (1u << c))
+                ix.cols ~= cast(ubyte) c;
+        ix.heads = new uint[16];
+        ix.heads[] = none;
+        indexes ~= ix;
+        return indexes.length - 1;
+    }
+
+    /// Hash of the key columns of row `r` in index `ix`.
+    ulong keyHash(ref const Index ix, size_t r) const @safe pure nothrow @nogc
+    {
+        ulong h = hashSeed;
+        immutable base = r * arity;
+        foreach (c; ix.cols)
+            h = mixHash(h, data[base + c]);
+        return h;
+    }
+
+    /// Adds all rows not yet indexed to every index.
+    void syncIndexes() @safe pure nothrow
+    {
+        foreach (ref ix; indexes)
+        {
+            if (ix.indexed == count)
+                continue;
+            if (ix.next.length < count)
+                ix.next.length = count > ix.next.length * 2 ? count : ix.next.length * 2;
+            if (count > ix.heads.length)
+            {
+                size_t buckets = ix.heads.length;
+                while (buckets < count)
+                    buckets *= 2;
+                ix.heads = new uint[buckets];
+                ix.heads[] = none;
+                ix.indexed = 0; // rebuild: every row is re-chained below
+            }
+            immutable m = ix.heads.length - 1;
+            foreach (r; ix.indexed .. count)
+            {
+                immutable b = keyHash(ix, r) & m;
+                ix.next[r] = ix.heads[b];
+                ix.heads[b] = cast(uint) r;
+            }
+            ix.indexed = count;
+        }
     }
 }
 
-/// A hash index over a subset of a relation's argument positions.
-///
-/// Maps a key (the values at the key positions) to the ascending chain of
-/// positions of matching tuples. The index is extended incrementally with
-/// `update`; it is never rebuilt and must not be updated during a join.
-final class Index
+@safe pure unittest
 {
-    /// The indexed relation.
-    Relation relation;
-    /// Bit set of key positions.
-    immutable uint keyMask;
-    /// Key positions in ascending order.
-    immutable(uint)[] columns;
-    /// `next[p]` is the next position in `p`'s chain (`noPos` at the end).
-    uint[] next;
+    auto r = new Relation(2);
+    assert(r.insert([1, 2]));
+    assert(r.insert([2, 3]));
+    assert(!r.insert([1, 2]));
+    assert(r.count == 2);
+    assert(r.contains([2, 3]) && !r.contains([3, 2]));
+    assert(r.row(1) == [2, 3]);
+}
 
-    private static struct Entry
+@safe pure unittest
+{
+    // The membership table survives growth.
+    auto r = new Relation(2);
+    foreach (i; 0 .. 1000)
+        assert(r.insert([i, i * 7]));
+    foreach (i; 0 .. 1000)
     {
-        uint head = noPos;
-        uint tail = noPos;
+        assert(!r.insert([i, i * 7]));
+        assert(r.contains([i, i * 7]));
     }
+    assert(!r.contains([1, 1]));
+    assert(r.count == 1000);
+}
 
-    private Entry[] table;
-    private size_t used;
-    private size_t indexed;
+@safe pure unittest
+{
+    // An index finds all rows with a key, also across growth and incremental syncs.
+    auto r = new Relation(2);
+    immutable ix = r.indexFor(0b01);
+    assert(r.indexFor(0b01) == ix);
+    foreach (i; 0 .. 100)
+        r.insert([i % 10, i]);
+    r.syncIndexes();
+    foreach (i; 100 .. 5000)
+        r.insert([i % 10, i]);
+    r.syncIndexes();
+    r.syncIndexes(); // idempotent
 
-    this(Relation relation, uint keyMask) nothrow @safe
-    {
-        this.relation = relation;
-        this.keyMask = keyMask;
-        uint[] cols;
-        foreach (i; 0 .. relation.arity)
-            if (keyMask & (1u << i))
-                cols ~= i;
-        columns = cols.idup;
-        table = new Entry[16];
-    }
-
-    /// Index every tuple appended to the relation since the last call.
-    void update() nothrow @safe
-    {
-        immutable n = relation.length;
-        if (indexed == n)
-            return;
-        if (next.length < n)
-            next.length = n > 2 * next.length ? n : 2 * next.length;
-        foreach (p; indexed .. n)
-            add(cast(uint) p);
-        indexed = n;
-    }
-
-    /// First position whose key equals `key` (given in column order), or `noPos`.
-    uint first(const(Value)[] key) const pure nothrow @nogc @safe
-    {
-        immutable mask = table.length - 1;
-        size_t i = hashValues(key) & mask;
-        while (true)
-        {
-            immutable head = table[i].head;
-            if (head == noPos)
-                return noPos;
-            if (keyMatches(relation[head], key))
-                return head;
-            i = (i + 1) & mask;
-        }
-    }
-
-private:
-    bool keyMatches(const(Value)[] tuple, const(Value)[] key) const pure nothrow @nogc @safe
-    {
-        foreach (j, c; columns)
-            if (tuple[c] != key[j])
-                return false;
-        return true;
-    }
-
-    bool sameKey(const(Value)[] a, const(Value)[] b) const pure nothrow @nogc @safe
-    {
-        foreach (c; columns)
-            if (a[c] != b[c])
-                return false;
-        return true;
-    }
-
-    void add(uint p) nothrow @safe
-    {
-        if ((used + 1) * 2 > table.length)
-            grow();
-        immutable mask = table.length - 1;
-        auto t = relation[p];
-        size_t i = hashColumns(t, columns) & mask;
-        next[p] = noPos;
-        while (true)
-        {
-            if (table[i].head == noPos)
-            {
-                table[i] = Entry(p, p);
-                ++used;
-                return;
-            }
-            if (sameKey(relation[table[i].head], t))
-            {
-                next[table[i].tail] = p;
-                table[i].tail = p;
-                return;
-            }
-            i = (i + 1) & mask;
-        }
-    }
-
-    void grow() nothrow @safe
-    {
-        auto newTable = new Entry[table.length * 2];
-        immutable mask = newTable.length - 1;
-        foreach (ref e; table)
-        {
-            if (e.head == noPos)
-                continue;
-            size_t i = hashColumns(relation[e.head], columns) & mask;
-            while (newTable[i].head != noPos)
-                i = (i + 1) & mask;
-            newTable[i] = e;
-        }
-        table = newTable;
-    }
+    size_t found;
+    ulong h = mixHash(hashSeed, 3);
+    auto index = &r.indexes[ix];
+    for (auto row = index.heads[h & (index.heads.length - 1)]; row != none; row = index.next[row])
+        if (r.row(row)[0] == 3)
+            ++found;
+    assert(found == 500);
 }

@@ -1,0 +1,52 @@
+{
+  "items": [
+    1,
+    2,
+    3
+  ],
+  "flag": true
+}
+--
+=== main
+A
+  {%- if flag %}
+  yes
+  {%- endif %}
+B
+{% for i in items -%}
+  {{ i }}
+{%- endfor %}
+C
+{% for i in items %}
+  {{- i }}
+{% endfor %}
+D
+  {%- set x = 1 -%}  
+  E{{ x }}
+F {{- " tight " -}} G
+H	
+	{{- "I" }}
+
+
+{%- if true -%}
+
+
+J
+
+{%- endif -%}
+
+K
+{% if flag -%}   L   {%- endif %}
+{%- if flag %}M{% endif -%}
+
+  N
+{# comment #}
+O
+  {#- stripped -#}  
+P
+{{ "Q" -}}
+
+
+{{- "R" }}  
+  {%- for i in [1] -%}  S  {%- endfor -%}  T
+END

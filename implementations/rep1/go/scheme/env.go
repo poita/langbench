@@ -1,60 +1,67 @@
 package scheme
 
-// Frame is a heap environment frame: a parent pointer plus parallel slices of
-// symbol ids and values. The id slice is often shared with a procedure
-// descriptor and has capacity == length, so the first append (a `define`)
-// copies it. The global environment is not a Frame (it is the nil parent).
-type Frame struct {
-	parent *Frame
-	ids    []int32
+// Env is an environment frame. Local frames hold a few parallel
+// symbol/value slices searched linearly; the root frame holds the global
+// bindings in a map.
+type Env struct {
+	parent *Env
+	syms   []*Symbol
 	vals   []Value
+	global map[*Symbol]Value
 }
 
-// lookup finds the value of symbol id: innermost frame first, then globals.
-func (in *Interp) lookup(id int32, env *Frame) Value {
-	for f := env; f != nil; f = f.parent {
-		for i, x := range f.ids {
-			if x == id {
-				return f.vals[i]
+func newGlobalEnv() *Env {
+	return &Env{global: make(map[*Symbol]Value)}
+}
+
+// lookup finds the innermost binding of s.
+func (e *Env) lookup(s *Symbol) (Value, bool) {
+	for f := e; f != nil; f = f.parent {
+		if f.global != nil {
+			v, ok := f.global[s]
+			return v, ok
+		}
+		for i, x := range f.syms {
+			if x == s {
+				return f.vals[i], true
 			}
 		}
 	}
-	v := in.globals[id]
-	if v.t == tUnbound {
-		throw(ErrUnboundVariable)
-	}
-	return v
+	return nil, false
 }
 
-// assign implements set!: it updates the nearest enclosing binding.
-func (in *Interp) assign(id int32, env *Frame, v Value) {
-	for f := env; f != nil; f = f.parent {
-		for i, x := range f.ids {
-			if x == id {
-				f.vals[i] = v
-				return
-			}
-		}
-	}
-	if in.globals[id].t == tUnbound {
-		throw(ErrUnboundVariable)
-	}
-	in.globals[id] = v
-}
-
-// define binds id in the innermost frame (the global frame when env is nil),
-// replacing an existing binding of the same name in that frame.
-func (in *Interp) define(id int32, env *Frame, v Value) {
-	if env == nil {
-		in.globals[id] = v
+// define binds s in this very frame, replacing an existing binding there.
+func (e *Env) define(s *Symbol, v Value) {
+	if e.global != nil {
+		e.global[s] = v
 		return
 	}
-	for i, x := range env.ids {
-		if x == id {
-			env.vals[i] = v
+	for i, x := range e.syms {
+		if x == s {
+			e.vals[i] = v
 			return
 		}
 	}
-	env.ids = append(env.ids, id)
-	env.vals = append(env.vals, v)
+	e.syms = append(e.syms, s)
+	e.vals = append(e.vals, v)
+}
+
+// set assigns to the nearest existing binding of s.
+func (e *Env) set(s *Symbol, v Value) bool {
+	for f := e; f != nil; f = f.parent {
+		if f.global != nil {
+			if _, ok := f.global[s]; ok {
+				f.global[s] = v
+				return true
+			}
+			return false
+		}
+		for i, x := range f.syms {
+			if x == s {
+				f.vals[i] = v
+				return true
+			}
+		}
+	}
+	return false
 }

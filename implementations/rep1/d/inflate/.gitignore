@@ -1,6 +1,8 @@
 .dub/
 bin/
-*.o
+lib/
+cli/.dub/
 *.a
-*.lst
+*.o
 dub.selections.json
+cli/dub.selections.json

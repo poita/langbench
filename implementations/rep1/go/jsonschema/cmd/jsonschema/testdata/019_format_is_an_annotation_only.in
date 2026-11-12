@@ -1,0 +1,20 @@
+{
+  "schema": {
+    "type": "string",
+    "format": "ipv4"
+  },
+  "tests": [
+    {
+      "description": "a valid address",
+      "data": "10.0.0.1"
+    },
+    {
+      "description": "not an address at all",
+      "data": "nope"
+    },
+    {
+      "description": "not a string",
+      "data": 7
+    }
+  ]
+}

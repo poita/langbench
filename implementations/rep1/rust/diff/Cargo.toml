@@ -1,0 +1,19 @@
+[package]
+name = "linediff"
+version = "0.1.0"
+edition = "2021"
+description = "Minimal line diff (Myers, linear space) and patch, as a library and a command-line tool"
+license = "MIT"
+readme = "README.md"
+keywords = ["diff", "patch", "myers", "lcs"]
+categories = ["algorithms", "text-processing"]
+
+[lib]
+name = "linediff"
+path = "src/lib.rs"
+
+[[bin]]
+name = "linediff"
+path = "src/main.rs"
+
+[dependencies]

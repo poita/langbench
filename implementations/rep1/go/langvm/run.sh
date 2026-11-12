@@ -1,3 +1,4 @@
 #!/bin/sh
-# Run langvm: reads a Vellum module stream on stdin, writes the result to stdout.
-exec "$(dirname "$0")/bin/langvm" "$@"
+# Runs langvm: Vellum program on stdin, output on stdout. Works from any directory.
+dir=$(cd "$(dirname "$0")" && pwd)
+exec "$dir/bin/langvm" "$@"

@@ -1,27 +1,34 @@
 // Command sat reads a DIMACS CNF formula on standard input and prints
-// "SAT" followed by a model line, or "UNSAT".
+// "UNSAT", or "SAT" followed by a satisfying assignment, on standard output.
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/example/sat"
+	"example.com/sat/dimacs"
 )
 
-func main() {
-	if err := run(os.Stdin, os.Stdout); err != nil {
-		fmt.Fprintln(os.Stderr, "sat:", err)
-		os.Exit(1)
-	}
-}
-
 func run(in io.Reader, out io.Writer) error {
-	cnf, err := sat.ParseDIMACS(in)
+	f, err := dimacs.Parse(in)
 	if err != nil {
 		return err
 	}
-	st, model := sat.Solve(cnf)
-	return sat.WriteResult(out, st, model)
+	s := f.Solver()
+	res := s.Solve()
+	return dimacs.WriteResult(out, res, s.Model())
+}
+
+func main() {
+	w := bufio.NewWriter(os.Stdout)
+	err := run(bufio.NewReader(os.Stdin), w)
+	if err == nil {
+		err = w.Flush()
+	}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "sat:", err)
+		os.Exit(1)
+	}
 }

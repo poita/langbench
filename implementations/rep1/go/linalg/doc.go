@@ -1,23 +1,18 @@
 // Package linalg is a small dense real linear algebra library written from
-// scratch on top of the Go standard library (no BLAS/LAPACK-style routines
-// are used).
+// scratch on top of the Go standard library only.
 //
-// Matrices are held in the flat row-major Matrix type. The package provides
+// It provides a row-major [Matrix] type, elementwise operations, products and
+// norms (matrix.go), LU factorisation with partial pivoting together with
+// determinant, solve and inverse (lu.go), Householder QR and least squares
+// (qr.go), Cholesky (chol.go), the cyclic Jacobi symmetric eigensolver
+// (eig.go) and the one-sided Jacobi SVD with the condition number (svd.go).
 //
-//   - elementwise and product operations: Add, Mul, Transpose;
-//   - norms: Norm1, NormInf, NormFro;
-//   - LU factorisation with partial pivoting (NewLU), Det, Solve, Inverse;
-//   - Householder QR (QR) and least squares (LeastSquares);
-//   - Cholesky factorisation (Cholesky);
-//   - the symmetric eigenproblem by cyclic Jacobi (EigSym);
-//   - the SVD by one-sided Jacobi (SVD, SingularValues, Cond).
+// The algorithms are the classical O(n³) ones. Every sum is a single running
+// sum in a fixed, documented order, and products are wrapped in explicit
+// float64 conversions so the compiler never fuses a multiply and an add into
+// an FMA: results are bit-for-bit reproducible across platforms.
 //
-// All floating-point work follows a fixed operation order (documented on each
-// function), so results are reproducible and match the reference algorithms
-// digit for digit up to platform fused-multiply-add behaviour.
-//
-// Failures are reported as one of the sentinel errors (ErrDimensionMismatch,
-// ErrNotSquare, ErrNotSymmetric, ErrNotPositiveDefinite, ErrSingular), whose
-// Error text is the stable machine-readable code. Matrix Market input and
-// output live in the sub-package linalg/mmio.
+// Failures that depend on the data (shape mismatches, singular matrices, ...)
+// are reported as the sentinel errors declared in errors.go; use [errors.Is]
+// to test for them or [ErrorCode] to obtain their stable string name.
 package linalg

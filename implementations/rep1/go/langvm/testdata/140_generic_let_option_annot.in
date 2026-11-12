@@ -1,0 +1,9 @@
+@module main
+fn main() {
+    let x: Option<Int> = None;
+    print(showBool(isNone(x)));
+    let ys: [Int] = [];
+    print(showInt(listLen(ys)));
+    let m: #[Str: Int] = #[];
+    print(showInt(mapLen(m)));
+}

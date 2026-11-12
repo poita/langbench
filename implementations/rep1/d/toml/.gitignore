@@ -1,5 +1,6 @@
 .dub/
 bin/
-*.o
 *.a
+*.o
+toml-test-*
 dub.selections.json

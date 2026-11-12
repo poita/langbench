@@ -1,232 +1,271 @@
 package engine_test
 
 import (
+	"bytes"
+	"errors"
 	"strings"
 	"testing"
 
-	"cardgame/cards"
-	"cardgame/engine"
-	"cardgame/match"
+	"github.com/spiremark/cardgame/cards"
+	"github.com/spiremark/cardgame/engine"
 )
 
-const testDB = `
-(card TST-001 (name "Bolt") (type rite) (cost 1) (keywords swift)
-  (resolve (targets (any)) (damage 2 (t 1))))
-(card TST-002 (name "Grunt") (type unit) (cost 1) (body 2 2) (tags grunt))
-(card TST-003 (name "Wall") (type unit) (cost 2) (body 0 4) (keywords (plating 1)))
-(card TST-004 (name "Banner") (type relic) (cost 2) (aura (modify 1 1 (units yours))))
-(card TST-005 (name "Seer") (type unit) (cost 2) (body 1 1) (on arrive (draw 1 you)))
-(card TST-006 (name "Execute") (type rite) (cost 1) (resolve (targets (unit)) (destroy (t 1))))
-(card TST-007 (name "Tough") (type unit) (cost 1) (body 1 1) (keywords tenacity))
-(card TST-008 (name "Ghost") (type unit) (cost 1) (body 1 1) (keywords spectral))
-(card TST-009 (name "Duelist") (type unit) (cost 1) (body 2 1) (keywords riposte))
-(card TST-010 (name "Thief") (type rite) (cost 1) (resolve (targets (unit (enemy))) (control (t 1))))
-(card TST-011 (name "Pinger") (type unit) (cost 1) (body 1 3)
-  (act (cost (ember 1) (exhaust)) (targets (unit)) (damage 1 (t 1))))
-(card TST-012 (name "Mourner") (type unit) (cost 1) (body 1 1) (on ally-dies (spire 1 you)))
-`
-
-func newGame(t *testing.T, setup ...string) *engine.Game {
+func newGame(t *testing.T, mutate func(*engine.Config)) (*engine.Game, *bytes.Buffer) {
 	t.Helper()
-	db, err := cards.Parse([]byte(testDB))
+	db, err := cards.Load("../testdata/mini.spire")
 	if err != nil {
 		t.Fatal(err)
 	}
-	src := "CARDS inline\nSEED 1\nOPENING 0\nSHUFFLE off\nSPIRE 10\n" + strings.Join(setup, "\n") + "\nSTART\n"
-	f, err := match.ParseFile(src)
+	cfg := engine.DefaultConfig()
+	cfg.Spire, cfg.Opening, cfg.Shuffle = 10, 0, false
+	cfg.Deck[engine.A] = []engine.CardCount{{ID: "CIN-001", Count: 3}}
+	cfg.Deck[engine.B] = []engine.CardCount{{ID: "CIN-001", Count: 3}}
+	if mutate != nil {
+		mutate(&cfg)
+	}
+	var out bytes.Buffer
+	g, err := engine.New(cfg, db, &out)
 	if err != nil {
 		t.Fatal(err)
 	}
-	g, err := engine.New(db, f.Setup)
-	if err != nil {
-		t.Fatal(err)
-	}
-	return g
+	return g, &out
 }
 
-// play feeds script lines to the game and returns the output so far.
-func play(t *testing.T, g *engine.Game, lines ...string) string {
-	t.Helper()
-	for i, ln := range lines {
-		cmd, err := match.ParseCommand(ln)
-		if err != nil {
-			g.Reject(i+1, "bad-syntax")
-			continue
-		}
-		g.Exec(cmd, i+1)
+func pass(p engine.Player) engine.Action { return engine.Action{Kind: engine.ActPass, Player: p} }
+
+func kindOf(err error) string {
+	var ae *engine.ActionError
+	if errors.As(err, &ae) {
+		return ae.Kind
 	}
-	return string(g.Output())
+	return "<" + errOrNil(err) + ">"
 }
 
-func mustContain(t *testing.T, out string, want ...string) {
-	t.Helper()
-	for _, w := range want {
-		if !strings.Contains(out, w) {
-			t.Errorf("output lacks %q:\n%s", w, out)
-		}
+func errOrNil(err error) string {
+	if err == nil {
+		return "nil"
+	}
+	return err.Error()
+}
+
+func TestSetupReachesFirstDecision(t *testing.T) {
+	g, out := newGame(t, nil)
+	if p, k := g.Decision(); p != engine.A || k != engine.DecPriority {
+		t.Fatalf("decision %v %v", p, k)
+	}
+	if g.Phase() != "main1" || g.Turn() != 1 {
+		t.Fatalf("phase %s turn %d", g.Phase(), g.Turn())
+	}
+	want := "1 GAME-START A\n2 TURN 1 A\n3 PHASE dawn\n4 EMBER A 1 1\n5 EMBER B 0 0\n6 PHASE draw\n7 PHASE main1\n"
+	if out.String() != want {
+		t.Errorf("events:\n%s", out.String())
 	}
 }
 
 func TestUnknownCard(t *testing.T) {
-	db, _ := cards.Parse([]byte(testDB))
-	f, _ := match.ParseFile("CARDS x\nSEED 1\nDECK A ZZZ-999\nSTART\n")
-	if _, err := engine.New(db, f.Setup); err != engine.ErrUnknownCard {
+	db, _ := cards.Load("../testdata/mini.spire")
+	cfg := engine.DefaultConfig()
+	cfg.Hand[engine.A] = []engine.CardCount{{ID: "ZZZ-999", Count: 1}}
+	if _, err := engine.New(cfg, db, &bytes.Buffer{}); !errors.Is(err, engine.ErrUnknownCard) {
 		t.Fatalf("got %v", err)
 	}
 }
 
-func TestSetupEventsAndDump(t *testing.T) {
-	g := newGame(t, "DECK A TST-002*2", "HAND A TST-001", "FIELD B TST-003")
-	out := play(t, g, "DUMP")
-	mustContain(t, out,
-		"1 GAME-START A\n2 TURN 1 A\n3 PHASE dawn\n4 EMBER A 1 1\n5 EMBER B 0 0\n6 PHASE draw\n7 PHASE main1\n",
-		"turn 1 active A phase main1 decision A priority",
-		"player A spire 10 ember 1 cap 1 vault 2 hand 1 ash 0 rift 0",
-		"hand A 1 #3 TST-001",
-		"field B #4 TST-003 0/4 w0 c0 ready - kw plating:1")
-}
-
-func TestBoltKillsAndTriggers(t *testing.T) {
-	g := newGame(t, "CAP A 3", "HAND A TST-001", "FIELD A TST-012", "FIELD B TST-002")
-	out := play(t, g, "A PLAY 1 #3", "A PASS", "B PASS")
-	mustContain(t, out,
-		"PLAY A ~1 #1 TST-001 #3", "PAY A ember 1", "RESOLVE ~1", "DAMAGE #1 #3 2",
-		"SPENT #1 TST-001", "DESTROY #3 TST-002")
-}
-
-func TestPlatingAndShieldPrevention(t *testing.T) {
-	g := newGame(t, "CAP A 3", "HAND A TST-001", "FIELD B TST-003")
-	out := play(t, g, "A PLAY 1 #2", "A PASS", "B PASS")
-	mustContain(t, out, "PREVENT #2 1", "DAMAGE #1 #2 1")
-}
-
-func TestTenacityReplacesDestruction(t *testing.T) {
-	g := newGame(t, "CAP A 4", "HAND A TST-006 TST-006", "FIELD B TST-007")
-	out := play(t, g, "A PLAY 1 #3", "A PASS", "B PASS", "A PLAY 1 #3", "A PASS", "B PASS")
-	if strings.Count(out, "TENACITY #3") != 1 || strings.Count(out, "DESTROY #3") != 1 {
-		t.Errorf("tenacity should replace exactly one destruction:\n%s", out)
+func TestRejectedActionsChangeNothing(t *testing.T) {
+	g, out := newGame(t, func(c *engine.Config) {
+		c.Hand[engine.A] = []engine.CardCount{{ID: "CIN-003", Count: 1}, {ID: "CIN-016", Count: 1}}
+	})
+	before := out.String()
+	cases := []struct {
+		name string
+		act  engine.Action
+		want string
+	}{
+		{"wrong player", pass(engine.B), "not-your-turn"},
+		{"attack at priority", engine.Action{Kind: engine.ActAttack, Player: engine.A}, "wrong-decision"},
+		{"block at priority", engine.Action{Kind: engine.ActBlock, Player: engine.A}, "wrong-decision"},
+		{"no such card", engine.Action{Kind: engine.ActPlay, Player: engine.A, Pos: 9}, "no-such-card"},
+		{"target count", engine.Action{Kind: engine.ActPlay, Player: engine.A, Pos: 1}, "bad-target-count"},
+		{"illegal target", engine.Action{Kind: engine.ActPlay, Player: engine.A, Pos: 1,
+			Targets: []engine.TargetRef{{Kind: engine.RefObject, ID: 99}}}, "illegal-target"},
+		{"cannot afford", engine.Action{Kind: engine.ActPlay, Player: engine.A, Pos: 2}, "cannot-afford"},
+		{"no such object", engine.Action{Kind: engine.ActAct, Player: engine.A, Object: 1, Index: 1}, "no-such-object"},
 	}
-	if strings.Index(out, "TENACITY") > strings.Index(out, "DESTROY") {
-		t.Errorf("tenacity must come first:\n%s", out)
-	}
-}
-
-func TestAuraDerivation(t *testing.T) {
-	g := newGame(t, "FIELD A TST-004 TST-002", "FIELD B TST-002")
-	out := play(t, g, "DUMP")
-	mustContain(t, out,
-		"field A #2 TST-002 3/3", "field B #3 TST-002 2/2",
-		"effect 1 ts2 A aura modify 1 1 on #2")
-}
-
-func TestSpectralProtectsFromEnemyTargets(t *testing.T) {
-	g := newGame(t, "CAP A 3", "HAND A TST-006", "FIELD B TST-008")
-	out := play(t, g, "A PLAY 1 #2", "LEGAL")
-	mustContain(t, out, "ERR 1 illegal-target", "LEGAL BEGIN A priority\nPASS\nLEGAL END")
-}
-
-func TestControlChangeTurnsUnitAround(t *testing.T) {
-	g := newGame(t, "CAP A 3", "HAND A TST-010", "FIELD B TST-002")
-	out := play(t, g, "A PLAY 1 #2", "A PASS", "B PASS", "DUMP")
-	mustContain(t, out, "CONTROL #2 A", "field A #2 TST-002 2/2 w0 c0 ready settling kw -",
-		"effect 1 ts2 A turn control A on #2")
-}
-
-func TestActivatedAbility(t *testing.T) {
-	g := newGame(t, "CAP A 3", "FIELD A TST-011", "FIELD B TST-002")
-	out := play(t, g, "A ACT #1 1 #2", "A PASS", "B PASS")
-	mustContain(t, out, "ACTIVATE A ~1 #1 1 #2", "PAY A ember 1", "EXHAUST #1", "DAMAGE #1 #2 1")
-	out = play(t, g, "A ACT #1 1 #2")
-	mustContain(t, out, "cost-unpayable")
-}
-
-func TestErrorKinds(t *testing.T) {
-	g := newGame(t, "HAND A TST-002 TST-001")
-	out := play(t, g,
-		"X PASS", "B PASS", "A BLOCK", "A PLAY 9", "A PLAY 1 A", "A PLAY 2", "A ACT #7 1", "A PLAY 2 #99")
-	for i, want := range []string{"bad-syntax", "not-your-turn", "wrong-decision", "no-such-card",
-		"bad-target-count", "bad-target-count", "no-such-object"} {
-		if !strings.Contains(out, "ERR "+itoa(i+1)+" "+want) {
-			t.Errorf("missing ERR %d %s in\n%s", i+1, want, out)
+	for _, tc := range cases {
+		if got := kindOf(g.Do(tc.act)); got != tc.want {
+			t.Errorf("%s: got %s want %s", tc.name, got, tc.want)
 		}
 	}
-	mustContain(t, out, "ERR 8 illegal-target")
-}
-
-func itoa(n int) string { return string(rune('0' + n)) }
-
-func TestCombatRiposteAndDamage(t *testing.T) {
-	g := newGame(t, "FIELD A TST-009", "FIELD B TST-002")
-	out := play(t, g, "A PASS", "B PASS", "A ATTACK #1", "A PASS", "B PASS", "B BLOCK #2:#1", "A PASS", "B PASS")
-	mustContain(t, out, "PHASE clash-riposte", "DAMAGE #1 #2 2", "DESTROY #2 TST-002")
-	out = string(g.Output())
-	if strings.Contains(out, "DAMAGE #2 #1") {
-		t.Errorf("the dead blocker must not deal damage:\n%s", out)
-	}
-	out = play(t, g, "A PASS", "B PASS")
-	mustContain(t, out, "PHASE clash-damage")
-}
-
-func TestLegalAttackersAndBlockers(t *testing.T) {
-	g := newGame(t, "FIELD A TST-002", "FIELD B TST-002")
-	out := play(t, g, "A PASS", "B PASS", "LEGAL", "A ATTACK #1", "A PASS", "B PASS", "LEGAL")
-	mustContain(t, out, "LEGAL BEGIN A attackers\nCANATTACK #1\nLEGAL END",
-		"LEGAL BEGIN B blockers\nCANBLOCK #2 #1\nLEGAL END")
-}
-
-func TestEmptyVaultLoses(t *testing.T) {
-	g := newGame(t, "DECK A TST-002")
-	// The turn-1 first player skips the draw; pass to B, whose draw finds an empty vault.
-	var lines []string
-	for i := 0; i < 3; i++ {
-		lines = append(lines, "A PASS", "B PASS")
-	}
-	lines = append(lines, "A ATTACK", "A PASS", "B PASS", "A PASS", "B PASS", "A PASS", "B PASS")
-	out := play(t, g, lines...)
-	mustContain(t, out, "DRAW-EMPTY B", "LOSE B vault", "RESULT A vault")
-	if !g.Over() {
-		t.Error("match should be over")
+	if out.String() != before {
+		t.Errorf("rejected actions emitted events:\n%s", out.String()[len(before):])
 	}
 }
 
-func TestConcedeAndGameOver(t *testing.T) {
-	g := newGame(t)
-	out := play(t, g, "A CONCEDE", "A PASS", "DUMP")
-	mustContain(t, out, "LOSE A concede", "RESULT B concede", "ERR 2 game-over",
-		"decision - over", "result B concede")
+func TestPlayRiteAndResolve(t *testing.T) {
+	g, out := newGame(t, func(c *engine.Config) {
+		c.Hand[engine.A] = []engine.CardCount{{ID: "CIN-003", Count: 1}}
+	})
+	start := out.Len()
+	play := engine.Action{Kind: engine.ActPlay, Player: engine.A, Pos: 1,
+		Targets: []engine.TargetRef{{Kind: engine.RefPlayer, Player: engine.B}}}
+	for _, a := range []engine.Action{play, pass(engine.A), pass(engine.B)} {
+		if err := g.Do(a); err != nil {
+			t.Fatal(err)
+		}
+	}
+	want := "8 PLAY A ~1 #4 CIN-003 B\n9 PAY A ember 1\n10 PASS A\n11 PASS B\n12 RESOLVE ~1\n" +
+		"13 DAMAGE #4 B 2\n14 SPIRE B -2 8\n15 SPENT #4 CIN-003\n"
+	if got := out.String()[start:]; got != want {
+		t.Errorf("events:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestConcede(t *testing.T) {
+	g, out := newGame(t, nil)
+	if err := g.Do(engine.Action{Kind: engine.ActConcede, Player: engine.A}); err != nil {
+		t.Fatal(err)
+	}
+	r := g.Result()
+	if !r.Over || r.Winner != "B" || r.Reason != "concede" {
+		t.Fatalf("result %+v", r)
+	}
+	if !strings.HasSuffix(out.String(), "8 LOSE A concede\n9 RESULT B concede\n") {
+		t.Errorf("events:\n%s", out.String())
+	}
+	if got := kindOf(g.Do(pass(engine.A))); got != "game-over" {
+		t.Errorf("after the end: %s", got)
+	}
+	var legal bytes.Buffer
+	g.Legal(&legal)
+	if legal.String() != "LEGAL BEGIN - over\nLEGAL END\n" {
+		t.Errorf("legal after end: %q", legal.String())
+	}
+	g.Finish() // must not add a second RESULT line
+	if strings.Count(out.String(), "RESULT") != 1 {
+		t.Error("exactly one RESULT line expected")
+	}
 }
 
 func TestTurnLimitDraw(t *testing.T) {
-	g := newGame(t, "TURNLIMIT 1", "DECK A TST-002*3", "DECK B TST-002*3")
-	lines := []string{"A PASS", "B PASS", "A ATTACK", "A PASS", "B PASS", "A PASS", "B PASS", "A PASS", "B PASS"}
-	out := play(t, g, append(lines, "DUMP")...)
-	mustContain(t, out, "RESULT draw turn-limit", "turn 2 active B phase dusk-cleanup decision - over")
-}
-
-func TestTraceStatePrintsAfterAcceptedActions(t *testing.T) {
-	g := newGame(t, "TRACE state")
-	out := play(t, g, "A PASS", "A PASS", "X")
-	if strings.Count(out, "STATE BEGIN") != 1 {
-		t.Errorf("want exactly one trace block:\n%s", out)
+	g, out := newGame(t, func(c *engine.Config) { c.TurnLimit = 1 })
+	for i := 0; i < 40 && !g.Result().Over; i++ {
+		p, k := g.Decision()
+		var err error
+		switch k {
+		case engine.DecAttackers:
+			err = g.Do(engine.Action{Kind: engine.ActAttack, Player: p})
+		default:
+			err = g.Do(pass(p))
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	r := g.Result()
+	if !r.Over || r.Winner != "draw" || r.Reason != "turn-limit" {
+		t.Fatalf("result %+v\n%s", r, out.String())
+	}
+	var dump bytes.Buffer
+	g.Dump(&dump)
+	if !strings.Contains(dump.String(), "turn 2 active B phase dusk-cleanup decision - over") {
+		t.Errorf("dump:\n%s", dump.String())
 	}
 }
 
-func TestCardDirective(t *testing.T) {
-	g := newGame(t)
-	out := play(t, g, "CARD TST-001", "CARD NOPE-1")
-	mustContain(t, out, "CARD BEGIN TST-001\nname Bolt\ntype rite\ncost 1\ntags -\nkeywords swift\n"+
-		"ability 1 resolve (targets (any)) (damage 2 (t 1))\nCARD END",
-		"CARD BEGIN NOPE-1\nunknown\nCARD END")
+func TestVaultLossAtSetup(t *testing.T) {
+	_, out := newGame(t, func(c *engine.Config) {
+		c.Opening = 5
+		c.Deck[engine.A] = []engine.CardCount{{ID: "CIN-001", Count: 2}}
+		c.Deck[engine.B] = []engine.CardCount{{ID: "CIN-001", Count: 9}}
+	})
+	if !strings.Contains(out.String(), "DRAW-EMPTY A") || !strings.Contains(out.String(), "RESULT B vault") {
+		t.Errorf("events:\n%s", out.String())
+	}
+	if strings.Contains(out.String(), "TURN 1") {
+		t.Error("the match ended before turn 1 began")
+	}
 }
 
 func TestDeterministicShuffle(t *testing.T) {
-	db, _ := cards.Parse([]byte(testDB))
-	f, _ := match.ParseFile("CARDS x\nSEED 7\nOPENING 0\nDECK A TST-001 TST-002 TST-003 TST-004 TST-005 TST-006 TST-007 TST-008\nSTART\nVAULT\n")
-	g, err := engine.New(db, f.Setup)
-	if err != nil {
+	mutate := func(c *engine.Config) { c.Shuffle, c.Seed = true, 7 }
+	_, a := newGame(t, mutate)
+	_, b := newGame(t, mutate)
+	if a.String() != b.String() || !strings.Contains(a.String(), "SHUFFLE A") {
+		t.Error("same seed must give identical output")
+	}
+}
+
+func TestLegalAttackersAndBlockers(t *testing.T) {
+	g, _ := newGame(t, func(c *engine.Config) {
+		c.Field[engine.A] = []engine.CardCount{{ID: "TOK-001", Count: 1}}
+		c.Field[engine.B] = []engine.CardCount{{ID: "TOK-005", Count: 1}}
+	})
+	for _, a := range []engine.Action{pass(engine.A), pass(engine.B)} {
+		if err := g.Do(a); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if got := g.LegalActions(); len(got) != 1 || got[0] != "CANATTACK #4" {
+		t.Fatalf("attackers: %v", got)
+	}
+	if got := kindOf(g.Do(engine.Action{Kind: engine.ActAttack, Player: engine.A, Attackers: []uint64{4, 4}})); got != "duplicate-attacker" {
+		t.Errorf("got %s", got)
+	}
+	if got := kindOf(g.Do(engine.Action{Kind: engine.ActAttack, Player: engine.A, Attackers: []uint64{8}})); got != "illegal-attacker" {
+		t.Errorf("got %s", got)
+	}
+	if err := g.Do(engine.Action{Kind: engine.ActAttack, Player: engine.A, Attackers: []uint64{4}}); err != nil {
 		t.Fatal(err)
 	}
-	cmd, _ := match.ParseCommand("VAULT")
-	g.Exec(cmd, 1)
-	mustContain(t, string(g.Output()), "vault A 1 #6 TST-006", "vault A 2 #8 TST-008", "vault A 3 #5 TST-005")
+	g.Do(pass(engine.A))
+	g.Do(pass(engine.B))
+	if p, k := g.Decision(); p != engine.B || k != engine.DecBlockers {
+		t.Fatalf("decision %v %v", p, k)
+	}
+	if got := g.LegalActions(); len(got) != 1 || got[0] != "CANBLOCK #8 #4" {
+		t.Fatalf("blockers: %v", got)
+	}
+	if got := kindOf(g.Do(engine.Action{Kind: engine.ActBlock, Player: engine.B,
+		Blocks: []engine.BlockPair{{Blocker: 8, Attacker: 4}, {Blocker: 8, Attacker: 4}}})); got != "duplicate-blocker" {
+		t.Errorf("got %s", got)
+	}
+	if err := g.Do(engine.Action{Kind: engine.ActBlock, Player: engine.B,
+		Blocks: []engine.BlockPair{{Blocker: 8, Attacker: 4}}}); err != nil {
+		t.Fatal(err)
+	}
+	var dump bytes.Buffer
+	g.Dump(&dump)
+	for _, want := range []string{"field A #4 TOK-001 1/1 w0 c0 exhausted attacking,blocked kw -", "field B #8 TOK-005 1/1 w0 c0 ready blocking kw venom"} {
+		if !strings.Contains(dump.String(), want) {
+			t.Errorf("dump lacks %q:\n%s", want, dump.String())
+		}
+	}
+}
+
+func TestNegateAndChainedTargets(t *testing.T) {
+	g, out := newGame(t, func(c *engine.Config) {
+		c.Cap = [2]int{3, 3}
+		c.Hand[engine.A] = []engine.CardCount{{ID: "CIN-003", Count: 1}}
+		c.Hand[engine.B] = []engine.CardCount{{ID: "TID-004", Count: 1}}
+	})
+	acts := []engine.Action{
+		{Kind: engine.ActPlay, Player: engine.A, Pos: 1, Targets: []engine.TargetRef{{Kind: engine.RefPlayer, Player: engine.B}}},
+		pass(engine.A),
+		{Kind: engine.ActPlay, Player: engine.B, Pos: 1, Targets: []engine.TargetRef{{Kind: engine.RefEntry, ID: 1}}},
+		pass(engine.B),
+		pass(engine.A),
+	}
+	for _, a := range acts {
+		if err := g.Do(a); err != nil {
+			t.Fatalf("%+v: %v", a, err)
+		}
+	}
+	for _, want := range []string{"RESOLVE ~2", "NEGATE ~1", "SPENT #4 CIN-003", "SPENT #8 TID-004"} {
+		if !strings.Contains(out.String(), want) {
+			t.Errorf("missing %q:\n%s", want, out.String())
+		}
+	}
+	if strings.Contains(out.String(), "DAMAGE") {
+		t.Error("negated bolt must not deal damage")
+	}
 }

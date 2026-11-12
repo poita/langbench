@@ -1,0 +1,12 @@
+{
+  "items": [
+    "a",
+    "b"
+  ],
+  "cv": "ctx"
+}
+--
+=== main
+{% extends "base" %}{% block item %}{{ v }}{{ i is defined }}{{ super() }}{% endblock %}{% block note %}{% set v2 = "block-local" %}{{ v2 }}{% block subnote %}{{ v2 is defined }}{% endblock %}{% endblock %}
+=== base
+{% block note %}{% endblock %}|{% set v = "top" ~ cv %}{% block item %}{{ v }}{% endblock %}|{% block subnote %}base-sub{% endblock %}|{{ v2 is defined }}

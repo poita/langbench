@@ -1,23 +1,19 @@
 // Command bigint evaluates arbitrary-precision integer queries.
 //
-// It reads queries of the form "<a> <op> <b>" from standard input, one per
-// line, and writes one result line per query to standard output. See the
-// README for the full format.
+// It reads one query per line from standard input, in the form "<a> <op> <b>"
+// with op one of + - * / % ^ cmp, and prints one result line per query to
+// standard output ("error" for division by zero or a negative exponent).
 package main
 
 import (
 	"fmt"
-	"io"
 	"os"
+
+	"example.com/bigint/internal/query"
 )
 
 func main() {
-	in, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "bigint:", err)
-		os.Exit(1)
-	}
-	if _, err := os.Stdout.Write(Process(in)); err != nil {
+	if err := query.Run(os.Stdin, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "bigint:", err)
 		os.Exit(1)
 	}

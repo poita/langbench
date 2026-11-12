@@ -1,85 +1,119 @@
 # scheme
 
-A small Scheme interpreter written in D, packaged as a reusable library plus a
-thin command-line tool. It supports arbitrary-precision integers (a
-hand-written bignum, no library code), proper tail calls, closures, `define`
-anywhere in a body, named `let`, and a small set of primitives. It depends only
-on the D standard library and runtime.
+A small Scheme interpreter written in D: a reusable library (`scheme`) and a
+thin command-line tool on top of it.
+
+It implements a deliberately small Scheme subset: arbitrary-precision
+integers (the bignum code is written from scratch, with schoolbook
+multiplication and Knuth's Algorithm D), strings, symbols, pairs, closures,
+`define`/`set!`/`lambda`/`let`/`let*`/`letrec`/named `let`/`begin`/`cond`/`and`/`or`,
+proper tail calls and a fixed set of primitives. Runtime errors are reported
+as `error: <category>` on the output.
 
 ## Design
 
-Source text is parsed by a recursive-descent `Reader` into datums. Each
-top-level datum is compiled once by `Compiler` into a tree of `Node`s, which a
-single trampolined evaluation loop (`Interpreter`) executes. Tail positions
-replace the current node and environment instead of recursing, so tail loops
-run in constant stack. Values are 16-byte tagged structs with unboxed fixnums;
-integers that overflow a `long` become sign-magnitude bignums in base 2^32
-(schoolbook multiplication, Knuth Algorithm D division). Environments are
-heap frames of `(symbol id, value)` slots; globals are an array indexed by
-symbol id. All output goes to one in-memory buffer.
+* **Reader** (`scheme.reader`): recursive-descent parser producing datums,
+  with interned symbols.
+* **Analyzer** (`scheme.analyzer`, `scheme.ast`): every form, including every
+  `lambda` body, is converted once into a tree of `Node`s; `cond`, `let*` and
+  friends are lowered there.
+* **Evaluator** (`scheme.evaluator`): tail calls are a loop (trampoline), so
+  tail loops run in constant host stack. Variables are looked up by name,
+  innermost frame first, then in the global environment.
+* **Numbers** (`scheme.bignum`, `scheme.numeric`): machine words with overflow
+  checks that spill into a `BigNum`; schoolbook multiplication, Algorithm D
+  division, decimal output by repeated division by 10^9.
+* **Primitives** (`scheme.primitives`), **printer** (`scheme.printer`),
+  **values** (`scheme.value`, `scheme.environment`, `scheme.output`).
+* `scheme.interpreter` is the entry point: `Interpreter`, `runToString`,
+  `withLargeStack`.
 
-| module | responsibility |
-|---|---|
-| `scheme.bignum` | arbitrary-precision `BigInt` |
-| `scheme.value` | tagged `Value`, `Pair`, strings |
-| `scheme.numeric` | integer arithmetic on `Value`s (fixnum fast path, promotion) |
-| `scheme.symbols` | symbol interning, ids of the special-form names |
-| `scheme.reader` | text to datums |
-| `scheme.compiler`, `scheme.node` | datums to node trees; frames and closures |
-| `scheme.primitives` | built-in procedures |
-| `scheme.interp` | the evaluator, `Interpreter` |
-| `scheme.printer`, `scheme.output` | `write`/`display` text and the output buffer |
-| `scheme.errors` | `SchemeError` and its categories |
-| `scheme` (`package.d`) | public import of the above and `runProgram` |
+Non-tail recursion nests on the host stack. The command-line tool runs the
+interpreter on a thread with a 1 GiB stack (`withLargeStack`), so recursion
+10,000 deep (and far beyond) works.
 
-## Build
+## Building
 
-Requires LDC and dub (developed with LDC 1.41.0 and dub 1.40.0).
+Requires LDC 1.41 and dub 1.40.
 
 ```
-./build.sh          # runs: dub build -b release --compiler=ldc2 --config=cli
-dub test --compiler=ldc2
+dub build -b release --compiler=ldc2     # produces bin/scheme
+./build.sh                               # the same, from any directory
+dub test --compiler=ldc2                 # unit and black-box tests
 ```
 
-This produces `bin/scheme`. Unit tests live in `tests/`, separate from the
-library sources in `source/`.
+## Command-line usage
 
-## Command-line use
-
-The program is read from standard input, the output is written to standard
-output, and the exit code is always 0. Each top-level form's value is printed
-(unless void), `display`/`newline` output is interleaved, and a runtime error
-prints `error: <category>` and stops evaluation (`unbound-variable`,
-`type-error`, `arity-error`, `division-by-zero`, `user-error`).
+The program reads a Scheme program from standard input and writes to standard
+output; it takes no arguments and always exits with status 0.
 
 ```
-$ echo '(define (fact n) (if (= n 0) 1 (* n (fact (- n 1))))) (fact 30) (display "hi")' | ./run.sh
-265252859812191058636308480000000
-hi
+$ cat prog.scm
+(define (fact n) (if (= n 0) 1 (* n (fact (- n 1)))))
+(fact 25)
+(display "done") (newline)
+'(1 "two" (3 . 4) #t)
+(car '())
+$ ./run.sh < prog.scm
+15511210043330985984000000
+done
+(1 "two" (3 . 4) #t)
+error: type-error
 ```
 
-## Library use
+The write form of every non-void top-level value is printed on its own line;
+`display` and `newline` write immediately. On a runtime error the line
+`error: <category>` is appended and evaluation stops. The categories are
+`unbound-variable`, `type-error`, `arity-error`, `division-by-zero` and
+`user-error`. (A malformed program, which the specification does not cover,
+yields `error: syntax-error`.)
 
-Add the package as a dub dependency (`"scheme": {"path": "../scheme"}`, using
-the `library` configuration) and import `scheme`:
+## Library usage
+
+Add the package as a dependency (`dependency "scheme" path="..."` with
+`subConfiguration "scheme" "library"`) and:
 
 ```d
-import std.stdio : write;
+import std.stdio;
 import scheme;
 
 void main()
 {
-    // One-shot:
-    write(runProgram(`(display "sum: ") (+ 1 2)`));    // sum: 3
-
-    // Keep state between calls:
+    // Collect output in memory...
     auto interp = new Interpreter;
-    interp.run("(define (sq x) (* x x))");
-    write(interp.run("(sq 123456789012)"));            // 15241578753153483936144
+    interp.run(`(define (sq x) (* x x)) (display (sq 12)) (newline) (sq 100000000000)`);
+    write(interp.takeOutput());      // "144\n" then "10000000000000000000000\n"
+
+    // ...or evaluate and inspect values directly.
+    Value v = interp.eval("(list 1 \"two\" 'three)");
+    writeln(toWriteString(v));       // (1 "two" three)
+
+    // Runtime errors surface as exceptions from eval().
+    try interp.eval("(car 5)");
+    catch (SchemeError e) writeln(categoryName(e.kind)); // type-error
+
+    // Stream output to your own sink, and give deep recursion a big stack.
+    auto streaming = new Interpreter((const(char)[] chunk) { stdout.rawWrite(chunk); });
+    withLargeStack({ streaming.run("(display \"hello\")"); });
 }
 ```
 
-`Interpreter.run` returns everything written so far including the final
-`error: ...` line if the program failed; it does not throw for Scheme errors.
-Non-tail recursion uses the host stack, so `run` evaluates on a helper thread
-with a 256 MB stack (`runHere` uses the caller's stack instead).
+`Interpreter.run` follows the command-line contract (printing results and the
+`error:` line); `Interpreter.eval` returns the last value and throws
+`SchemeError` / `SyntaxError` instead. Definitions persist across calls.
+
+## Layout
+
+```
+dub.sdl            package manifest (configurations: application, library, unittest)
+source/app.d       the command-line tool
+source/scheme/     the library
+tests/             black-box tests (whole Scheme programs); unit tests are in source/
+build.sh run.sh    build and run scripts
+```
+
+## Tests
+
+Tests use D's built-in `unittest` blocks (no external framework): unit tests
+sit beside the code they test, and `tests/conformance.d` runs whole programs
+through the interpreter and checks their output against the specification.

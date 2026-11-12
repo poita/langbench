@@ -1,6 +1,5 @@
 #!/bin/sh
-# Build the softfloat CLI (release mode, LDC).
+# Build the softfloat command-line tool (bin/softfloat).
 set -e
-dir=$(cd "$(dirname "$0")" && pwd)
-cd "$dir"
+cd "$(dirname "$0")"
 exec dub build -b release --compiler=ldc2 --quiet

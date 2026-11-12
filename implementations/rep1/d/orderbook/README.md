@@ -1,52 +1,39 @@
 # orderbook
 
 A single-instrument limit order book matching engine with price-time priority,
-written in D. It ships as a small library (`orderbook`) and a thin
-command-line tool that reads order commands on stdin and prints the resulting
-events on stdout. `LIMIT` (GTC/IOC/FOK), `MARKET`, `CANCEL`, `REPLACE` and
-`BOOK` are supported; all quantities are 64-bit.
+written in D. It is a small library (`orderbook`) plus a command-line tool that
+reads order commands on stdin and prints the resulting events on stdout.
+
+Supported orders: limit (rest / `IOC` / `FOK`), market, cancel, replace
+(priority-preserving when only the quantity decreases), and a `BOOK` snapshot.
+All quantities and sums are 64-bit.
 
 ## Design
 
-The input is parsed in one pass into a flat command array (order ids stay as
-slices of the input buffer). All prices are collected, sorted and ranked, so
-each side of the book is a dense array of price levels indexed by rank, with a
-segment tree on top that finds the best level, sums crossing liquidity (for
-FOK) and walks non-empty levels (for `BOOK`) in O(log P). Resting orders live
-in an arena with intrusive FIFO links per level, and a hash map finds them by
-id. Matching, cancelling and replacing are O(1) plus a tree refresh per level.
+* Orders sit in one pooled array and are linked into per-price FIFO queues by
+  index, so cancelling or re-pricing from the middle of a queue is O(1).
+* Each side keeps its price levels in a red-black tree (best price first), so
+  finding the best level and removing an emptied one is O(log P).
+* Every level stores its total quantity and order count, so FOK checks and
+  `BOOK` lines never sum orders.
+* A hash map from id to order serves `CANCEL` and `REPLACE`.
 
-| Module                | Responsibility                                   |
-|-----------------------|--------------------------------------------------|
-| `orderbook.types`     | `Side`, `Tif`, `CmdKind`, `Command`              |
-| `orderbook.parser`    | hand-written text command parser                 |
-| `orderbook.pricetable`| price compression (price <-> rank)              |
-| `orderbook.leveltree` | segment tree over price levels                   |
-| `orderbook.idmap`     | open-addressing hash map from id bytes to index  |
-| `orderbook.outbuf`    | output buffer with integer formatting            |
-| `orderbook.book`      | `Book`, the matching engine                      |
-| `orderbook.driver`    | `processStream`: whole text input to text output |
+## Build
 
-## Build and test
-
-Requires LDC 1.41.0 and dub 1.40.0.
+Requires LDC and dub (tested with LDC 1.41.0, dub 1.40.0):
 
 ```
-./build.sh                                  # dub build -b release --compiler=ldc2
-dub test --compiler=ldc2                    # unit tests (in tests/)
-python3 ../run_tests.py orderbook -- orderbook/run.sh   # from the parent dir
+./build.sh          # dub build -b release --compiler=ldc2 --config=cli  ->  bin/orderbook
+dub test --compiler=ldc2
 ```
 
-`dub build` produces the `orderbook` executable; the `library` configuration
-builds only the library (`dub build --config=library`).
-
-## Command-line usage
+## Command-line tool
 
 ```
-./run.sh < commands.txt > events.txt
+./run.sh < commands.txt
 ```
 
-Input is a count line `N` followed by `N` command lines:
+Input: a first line `N`, then `N` command lines:
 
 ```
 LIMIT <id> <BUY|SELL> <price> <qty> [IOC|FOK]
@@ -56,43 +43,65 @@ REPLACE <id> <price> <qty>
 BOOK
 ```
 
-Output events are `TRADE`, `REST`, `CANCEL`, `REJECT`, `FILLED`, `BID`, `ASK`
-and `--`, one per line. Example:
+Output: one event per line (`TRADE`, `REST`, `CANCEL`, `REJECT`, `FILLED`,
+`BID`, `ASK`, `--`); the exact format and semantics are defined in the problem
+specification. Exit status is 0, or 1 (with a message on stderr) if the input
+is malformed.
 
 ```
-$ printf '3\nLIMIT s1 SELL 101 5\nLIMIT b1 BUY 102 3\nBOOK\n' | ./run.sh
+$ printf '4\nLIMIT s1 SELL 101 5\nLIMIT b1 BUY 102 8\nBOOK\nCANCEL b1\n' | ./run.sh
 REST s1
-TRADE b1 s1 101 3
-FILLED b1
-ASK 101 2 1
+TRADE b1 s1 101 5
+FILLED s1
+REST b1
+BID 102 3 1
 --
+CANCEL b1 3
 ```
 
-The exact format and rules are specified in `../problems/orderbook/SPEC.md`.
+## Library
 
-## Library example
+Modules (`import orderbook;` imports all of them):
 
-A `Book` is created for a fixed set of prices (a `PriceTable`); order ids are
-borrowed slices and must outlive the orders they name. Events are appended to
-an `OutBuf`.
+| module              | contents                                                     |
+|---------------------|--------------------------------------------------------------|
+| `orderbook.types`   | `Side`, `TimeInForce`, `Price`, `Qty`, `Event`, `EventKind`  |
+| `orderbook.book`    | `OrderBook`: `limit`, `market`, `cancel`, `replace`, `snapshot` |
+| `orderbook.command` | `parseCommand`, `execute`, `processStream` (text protocol)   |
+| `orderbook.format`  | `writeEvent`, `formatEvent`, `BufferedWriter`, `TextSink`    |
+
+Every `OrderBook` operation reports its results by calling `put(Event)` on an
+output range you pass in. Ids are `string`s the book keeps while an order
+rests, so pass immutable data.
 
 ```d
+import std.array : appender;
+import std.stdio : writeln;
 import orderbook;
-import std.stdio : write;
 
 void main()
 {
-    auto book = Book(PriceTable.from([100, 101, 102]));
-    OutBuf out_;
+    auto book = new OrderBook;
+    auto events = appender!(Event[]);
 
-    book.limit("s1", Side.sell, 101, 5, Tif.gtc, out_);
-    book.limit("b1", Side.buy, 102, 3, Tif.gtc, out_);
-    book.replace("s1", 101, 1, out_);   // keeps queue priority
-    book.printBook(out_);
+    book.limit("ask1", Side.sell, 101, 5, TimeInForce.gtc, events);
+    book.limit("bid1", Side.buy, 102, 8, TimeInForce.gtc, events);
+    book.snapshot(events);
 
-    write(cast(const(char)[]) out_.data);
+    foreach (e; events[])
+        writeln(e);   // REST ask1 / TRADE bid1 ask1 101 5 / FILLED ask1 / REST bid1 / BID 102 3 1 / --
 }
 ```
 
-To process a textual stream directly, use `processStream(input, output)` (or
-`processToString`) from `orderbook.driver`.
+To depend on it from another dub project:
+
+```
+dependency "orderbook" path="../orderbook"
+```
+
+## Tests
+
+`dub test --compiler=ldc2` runs the standard D `unittest` blocks: per-module
+unit tests, the worked examples of the specification (`tests/examples.d`), and
+a differential test against a naive reference implementation on random command
+streams (`tests/model.d`).

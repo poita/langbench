@@ -1,111 +1,116 @@
-/// The sixteen built-in commands and their pure, in-process execution.
+/**
+ * The sixteen built-in commands and their execution against the virtual file system.
+ */
 module kiln.commands;
 
-import std.algorithm.sorting : sort;
-
-import kiln.bytes;
 import kiln.errors;
-import kiln.paths : isWorkspacePath;
+import kiln.hash : toHex16;
+import kiln.step;
+import kiln.text;
 import kiln.value;
 import kiln.vfs;
-import kiln.hash : toHex16;
-
-/// Identifier of a built-in command.
-enum CmdId : ubyte
-{
-    write,
-    copy,
-    concat,
-    upper,
-    lower,
-    grep,
-    replace,
-    sort_lines,
-    reverse_lines,
-    dedup,
-    number,
-    indent,
-    wrap,
-    count_lines,
-    hash,
-    preprocess
-}
 
 /// Static description of a command.
-struct CmdInfo
+struct CommandSpec
 {
+    ///
     string name;
-    CmdId id;
-    string sig; /// argument kinds: `s` = str, `i` = int
-    int minIn; /// minimum file inputs
-    int maxIn; /// maximum file inputs (-1 = unbounded)
-    bool depfile; /// whether the command requires a depfile
-    long cost; /// default cost
+    /// Argument types: `str` or `int`.
+    Value.Type[] args;
+    /// Minimum and maximum number of file inputs (`maxInputs == size_t.max` means unbounded).
+    size_t minInputs, maxInputs;
+    /// Whether the command requires (and only allows) a `depfile`.
+    bool usesDepfile;
+    /// Cost when the step has no `cost` field.
+    long defaultCost;
 }
 
-private immutable CmdInfo[] cmdTable = [
-    CmdInfo("write", CmdId.write, "s", 0, 0, false, 1),
-    CmdInfo("copy", CmdId.copy, "", 1, 1, false, 1),
-    CmdInfo("concat", CmdId.concat, "", 1, -1, false, 2),
-    CmdInfo("upper", CmdId.upper, "", 1, 1, false, 2),
-    CmdInfo("lower", CmdId.lower, "", 1, 1, false, 2),
-    CmdInfo("grep", CmdId.grep, "s", 1, 1, false, 3),
-    CmdInfo("replace", CmdId.replace, "ss", 1, 1, false, 3),
-    CmdInfo("sort_lines", CmdId.sort_lines, "", 1, 1, false, 4),
-    CmdInfo("reverse_lines", CmdId.reverse_lines, "", 1, 1, false, 2),
-    CmdInfo("dedup", CmdId.dedup, "", 1, 1, false, 3),
-    CmdInfo("number", CmdId.number, "", 1, 1, false, 2),
-    CmdInfo("indent", CmdId.indent, "i", 1, 1, false, 2),
-    CmdInfo("wrap", CmdId.wrap, "ss", 1, 1, false, 1),
-    CmdInfo("count_lines", CmdId.count_lines, "", 1, -1, false, 2),
-    CmdInfo("hash", CmdId.hash, "", 1, -1, false, 3),
-    CmdInfo("preprocess", CmdId.preprocess, "", 1, 1, true, 6),
-];
+private __gshared CommandSpec[string] specs;
 
-private immutable(CmdInfo)*[string] cmdByName;
+/// Looks up a command by name; null if unknown.
+const(CommandSpec)* findCommand(const(char)[] name)
+{
+    auto p = name in specs;
+    return p ? p : null;
+}
+
+/// Names of all commands.
+string[] commandNames()
+{
+    return specs.keys;
+}
 
 shared static this()
 {
-    foreach (ref c; cmdTable)
-        cmdByName[c.name] = &c;
-}
-
-/// Looks up a command by name; null if there is none.
-const(CmdInfo)* findCommand(const(char)[] name) @safe
-{
-    if (auto p = name in cmdByName)
-        return *p;
-    return null;
-}
-
-/// The outcome of executing one command.
-struct ExecResult
-{
-    bool ok;
-    KilnError error; /// set when `ok` is false
-    string[] outputs; /// content for each declared output, then the depfile
-    string[] deps; /// discovered dependencies, sorted (only `preprocess`)
-}
-
-private string mapAscii(string s, bool toUpper) pure @safe
-{
-    char[] r = new char[s.length];
-    foreach (i; 0 .. s.length)
+    alias T = Value.Type;
+    enum N = size_t.max;
+    void add(string name, Value.Type[] args, size_t lo, size_t hi, long cost, bool dep = false)
     {
-        char c = s[i];
-        if (toUpper)
-        {
-            if (c >= 'a' && c <= 'z')
-                c = cast(char)(c - 32);
-        }
-        else if (c >= 'A' && c <= 'Z')
-            c = cast(char)(c + 32);
-        r[i] = c;
+        specs[name] = CommandSpec(name, args, lo, hi, dep, cost);
     }
-    return (() @trusted => cast(string) r)();
+
+    add("write", [T.str], 0, 0, 1);
+    add("copy", [], 1, 1, 1);
+    add("concat", [], 1, N, 2);
+    add("upper", [], 1, 1, 2);
+    add("lower", [], 1, 1, 2);
+    add("grep", [T.str], 1, 1, 3);
+    add("replace", [T.str, T.str], 1, 1, 3);
+    add("sort_lines", [], 1, 1, 4);
+    add("reverse_lines", [], 1, 1, 2);
+    add("dedup", [], 1, 1, 3);
+    add("number", [], 1, 1, 2);
+    add("indent", [T.integer], 1, 1, 2);
+    add("wrap", [T.str, T.str], 1, 1, 1);
+    add("count_lines", [], 1, N, 2);
+    add("hash", [], 1, N, 3);
+    add("preprocess", [], 1, 1, 6, true);
 }
 
-private string joinLines(const(string)[] lines) pure @safe
+/// The result of running a command: everything it reads and everything it will write.
+final class Execution
+{
+    /// The execution error, or null on success.
+    KilnError error;
+    /// Contents for `Step.fullOuts`, in the same order.
+    string[] outputs;
+    /// Hashes of the file inputs as read, in `fileInputs` order.
+    ulong[] inputHashes;
+    /// Discovered dependency paths (sorted) and the hashes of the content read.
+    string[] deps;
+    ///
+    ulong[] depHashes;
+}
+
+/// Runs `step`'s command, reading from `fs` (nothing is written to it).
+Execution executeCommand(Step step, Vfs fs)
+{
+    auto ex = new Execution;
+    string[] inputs;
+    foreach (p; step.fileInputs)
+    {
+        auto f = fs.get(p);
+        inputs ~= f is null ? "" : f.content;
+        ex.inputHashes ~= f is null ? (new FileEntry("")).hash : f.hash;
+    }
+    string result;
+    string depfile;
+    try
+    {
+        result = runCommandBody(step, fs, inputs, ex, depfile);
+    }
+    catch (KilnError e)
+    {
+        ex.error = e;
+        return ex;
+    }
+    ex.outputs = [result];
+    if (step.hasDepfile)
+        ex.outputs ~= depfile;
+    return ex;
+}
+
+private string linesOut(const(string)[] lines) @safe pure nothrow
 {
     size_t total = 0;
     foreach (l; lines)
@@ -120,209 +125,260 @@ private string joinLines(const(string)[] lines) pure @safe
     return (() @trusted => cast(string) r)();
 }
 
-/// Executes command `info` with arguments `args`.
-///
-/// `inPaths`/`inContents` are the file inputs in declared order, read at the
-/// step's start time. `vfs` is consulted only by `preprocess`, for the files it
-/// pulls in. Pure with respect to the workspace: nothing is written.
-ExecResult executeCommand(const(CmdInfo)* info, const(Value)[] args, const(string)[] inPaths,
-        const(string)[] inContents, Vfs vfs) @safe
+private string runCommandBody(Step step, Vfs fs, string[] inputs, Execution ex, out string depfile)
 {
-    ExecResult r;
-    r.ok = true;
-    final switch (info.id)
-    {
-    case CmdId.write:
-        r.outputs = [args[0].s];
-        break;
-    case CmdId.copy:
-        r.outputs = [inContents[0]];
-        break;
-    case CmdId.concat:
-        {
-            char[] b;
-            foreach (c; inContents)
-                b ~= c;
-            r.outputs = [(() @trusted => cast(string) b)()];
-            break;
-        }
-    case CmdId.upper:
-        r.outputs = [mapAscii(inContents[0], true)];
-        break;
-    case CmdId.lower:
-        r.outputs = [mapAscii(inContents[0], false)];
-        break;
-    case CmdId.grep:
-        {
-            string[] keep;
-            foreach (l; splitLines(inContents[0]))
-                if (containsBytes(l, args[0].s))
-                    keep ~= l;
-            r.outputs = [joinLines(keep)];
-            break;
-        }
-    case CmdId.replace:
-        r.outputs = [replaceAll(inContents[0], args[0].s, args[1].s)];
-        break;
-    case CmdId.sort_lines:
-        {
-            auto ls = splitLines(inContents[0]);
-            ls.sort();
-            r.outputs = [joinLines(ls)];
-            break;
-        }
-    case CmdId.reverse_lines:
-        {
-            auto ls = splitLines(inContents[0]);
-            foreach (i; 0 .. ls.length / 2)
-            {
-                auto t = ls[i];
-                ls[i] = ls[ls.length - 1 - i];
-                ls[ls.length - 1 - i] = t;
-            }
-            r.outputs = [joinLines(ls)];
-            break;
-        }
-    case CmdId.dedup:
-        {
-            bool[string] seen;
-            string[] keep;
-            foreach (l; splitLines(inContents[0]))
-                if (l !in seen)
-                {
-                    seen[l] = true;
-                    keep ~= l;
-                }
-            r.outputs = [joinLines(keep)];
-            break;
-        }
-    case CmdId.number:
-        {
-            char[] b;
-            foreach (i, l; splitLines(inContents[0]))
-            {
-                b ~= decimal(cast(long) i + 1);
-                b ~= ": ";
-                b ~= l;
-                b ~= '\n';
-            }
-            r.outputs = [(() @trusted => cast(string) b)()];
-            break;
-        }
-    case CmdId.indent:
-        {
-            char[] b;
-            const n = args[0].num;
-            foreach (l; splitLines(inContents[0]))
-            {
-                foreach (_; 0 .. n)
-                    b ~= ' ';
-                b ~= l;
-                b ~= '\n';
-            }
-            r.outputs = [(() @trusted => cast(string) b)()];
-            break;
-        }
-    case CmdId.wrap:
-        r.outputs = [args[0].s ~ inContents[0] ~ args[1].s];
-        break;
-    case CmdId.count_lines:
-        {
-            char[] b;
-            long total = 0;
-            foreach (i, c; inContents)
-            {
-                long n = 0;
-                foreach (ch; c)
-                    if (ch == '\n')
-                        ++n;
-                if (c.length && c[$ - 1] != '\n')
-                    ++n;
-                total += n;
-                b ~= decimal(n);
-                b ~= ' ';
-                b ~= inPaths[i];
-                b ~= '\n';
-            }
-            b ~= decimal(total);
-            b ~= " total\n";
-            r.outputs = [(() @trusted => cast(string) b)()];
-            break;
-        }
-    case CmdId.hash:
-        {
-            import kiln.hash : fnv1a;
+    import std.algorithm.sorting : sort;
+    import std.conv : to;
 
-            char[] b;
-            foreach (i, c; inContents)
-            {
-                b ~= toHex16(fnv1a(c));
-                b ~= ' ';
-                b ~= inPaths[i];
-                b ~= '\n';
-            }
-            r.outputs = [(() @trusted => cast(string) b)()];
-            break;
-        }
-    case CmdId.preprocess:
-        preprocess(r, inPaths[0], inContents[0], vfs);
-        break;
+    const args = step.cmdArgs;
+    switch (step.cmdName)
+    {
+    case "write":
+        return args[0].text;
+    case "copy":
+        return inputs[0];
+    case "concat":
+    {
+        string r;
+        foreach (c; inputs)
+            r ~= c;
+        return r;
     }
-    return r;
+    case "upper":
+    case "lower":
+    {
+        const up = step.cmdName == "upper";
+        char[] r = inputs[0].dup;
+        foreach (ref c; r)
+        {
+            if (up && c >= 'a' && c <= 'z')
+                c -= 32;
+            else if (!up && c >= 'A' && c <= 'Z')
+                c += 32;
+        }
+        return (() @trusted => cast(string) r)();
+    }
+    case "grep":
+    {
+        string[] keep;
+        foreach (l; splitLines(inputs[0]))
+            if (containsBytes(l, args[0].text))
+                keep ~= l;
+        return linesOut(keep);
+    }
+    case "replace":
+        return replaceAllBytes(inputs[0], args[0].text, args[1].text);
+    case "sort_lines":
+    {
+        auto lines = splitLines(inputs[0]);
+        lines.sort!((a, b) => cmpBytes(a, b) < 0);
+        return linesOut(lines);
+    }
+    case "reverse_lines":
+    {
+        auto lines = splitLines(inputs[0]);
+        foreach (i; 0 .. lines.length / 2)
+        {
+            const t = lines[i];
+            lines[i] = lines[$ - 1 - i];
+            lines[$ - 1 - i] = t;
+        }
+        return linesOut(lines);
+    }
+    case "dedup":
+    {
+        bool[string] seen;
+        string[] keep;
+        foreach (l; splitLines(inputs[0]))
+        {
+            if (l !in seen)
+            {
+                seen[l] = true;
+                keep ~= l;
+            }
+        }
+        return linesOut(keep);
+    }
+    case "number":
+    {
+        string[] out_;
+        foreach (i, l; splitLines(inputs[0]))
+            out_ ~= (i + 1).to!string ~ ": " ~ l;
+        return linesOut(out_);
+    }
+    case "indent":
+    {
+        const pad = replicateSpaces(cast(size_t) args[0].num);
+        string[] out_;
+        foreach (l; splitLines(inputs[0]))
+            out_ ~= pad ~ l;
+        return linesOut(out_);
+    }
+    case "wrap":
+        return args[0].text ~ inputs[0] ~ args[1].text;
+    case "count_lines":
+    {
+        string[] out_;
+        size_t total = 0;
+        foreach (i, c; inputs)
+        {
+            const n = countLines(c);
+            total += n;
+            out_ ~= n.to!string ~ " " ~ step.fileInputs[i];
+        }
+        out_ ~= total.to!string ~ " total";
+        return linesOut(out_);
+    }
+    case "hash":
+    {
+        string[] out_;
+        foreach (i, h; ex.inputHashes)
+            out_ ~= toHex16(h) ~ " " ~ step.fileInputs[i];
+        return linesOut(out_);
+    }
+    case "preprocess":
+    {
+        auto pp = new Preprocessor(fs);
+        const result = pp.run(step.fileInputs[0], inputs[0]);
+        auto deps = pp.discovered.keys;
+        deps.sort!((a, b) => cmpBytes(a, b) < 0);
+        string d = "kiln-deps 1\n";
+        foreach (p; deps)
+        {
+            d ~= "need " ~ p ~ "\n";
+            ex.deps ~= p;
+            ex.depHashes ~= fs.get(p).hash;
+        }
+        depfile = d;
+        return result;
+    }
+    default:
+        assert(false, "unknown command " ~ step.cmdName);
+    }
 }
 
-private void preprocess(ref ExecResult r, string primary, string primaryContent, Vfs vfs) @safe
+private string replicateSpaces(size_t n) @safe pure nothrow
 {
-    char[] outBuf;
-    bool[string] found;
-    string[] stack = [primary];
+    auto r = new char[n];
+    r[] = ' ';
+    return (() @trusted => cast(string) r)();
+}
 
-    void expand(string p, string content)
+/// `@need` expansion for the `preprocess` command.
+private final class Preprocessor
+{
+    Vfs fs;
+    bool[string] discovered;
+    private bool[string] onStack;
+    private char[] output;
+
+    this(Vfs fs) { this.fs = fs; }
+
+    string run(string path, string content)
     {
+        expand(path, content);
+        return (() @trusted => cast(string) output)();
+    }
+
+    private void expand(string path, string content)
+    {
+        onStack[path] = true;
         foreach (line; splitLines(content))
         {
-            if (line.length > 6 && line[0 .. 6] == "@need ")
+            if (startsWithBytes(line, "@need ") && line.length > 6)
             {
                 const q = line[6 .. $];
                 if (!isWorkspacePath(q))
                     throw new KilnError("E_NEED_PATH", q);
-                if (!vfs.exists(q))
-                    throw new KilnError("E_NEED_MISSING", q ~ " needed by " ~ p);
-                foreach (s; stack)
-                    if (s == q)
-                        throw new KilnError("E_NEED_CYCLE", q);
-                found[q] = true;
-                stack ~= q;
-                expand(q, vfs.content(q));
-                stack.length = stack.length - 1;
+                auto f = fs.get(q);
+                if (f is null)
+                    throw new KilnError("E_NEED_MISSING", q ~ " needed by " ~ path);
+                if (q in onStack)
+                    throw new KilnError("E_NEED_CYCLE", q);
+                discovered[q] = true;
+                expand(q, f.content);
             }
             else
             {
-                outBuf ~= line;
-                outBuf ~= '\n';
+                output ~= line;
+                output ~= '\n';
             }
         }
+        onStack.remove(path);
+    }
+}
+
+version (unittest)
+{
+    private Step mk(string cmd, string[] ins, Value[] args = [], bool dep = false)
+    {
+        auto s = new Step;
+        s.cmdName = cmd;
+        s.cmdArgs = args;
+        s.fileInputs = ins;
+        s.outs = ["out/o"];
+        s.fullOuts = dep ? ["out/o", "out/o.d"] : ["out/o"];
+        s.hasDepfile = dep;
+        return s;
     }
 
-    try
+    private string run(string cmd, string input, Value[] args = [])
     {
-        expand(primary, primaryContent);
+        auto fs = new Vfs;
+        fs.write("in", input);
+        auto ex = executeCommand(mk(cmd, ["in"], args), fs);
+        assert(ex.error is null);
+        return ex.outputs[0];
     }
-    catch (KilnError e)
-    {
-        r.ok = false;
-        r.error = e;
-        return;
-    }
-    auto deps = found.keys;
-    deps.sort();
-    char[] dep = "kiln-deps 1\n".dup;
-    foreach (d; deps)
-    {
-        dep ~= "need ";
-        dep ~= d;
-        dep ~= '\n';
-    }
-    r.outputs = [(() @trusted => cast(string) outBuf)(), (() @trusted => cast(string) dep)()];
-    r.deps = deps;
+}
+
+unittest
+{
+    assert(commandNames().length == 16);
+    assert(run("upper", "aé1\n") == "Aé1\n");
+    assert(run("lower", "ABC") == "abc");
+    assert(run("grep", "ab\ncd\nxab\n", [Value.ofStr("ab")]) == "ab\nxab\n");
+    assert(run("grep", "a\nb", [Value.ofStr("")]) == "a\nb\n");
+    assert(run("replace", "aaa", [Value.ofStr("aa"), Value.ofStr("b")]) == "ba");
+    assert(run("sort_lines", "b\na\nc") == "a\nb\nc\n");
+    assert(run("reverse_lines", "a\nb\nc\n") == "c\nb\na\n");
+    assert(run("dedup", "a\nb\na\n") == "a\nb\n");
+    assert(run("number", "a\nb\nc\n") == "1: a\n2: b\n3: c\n");
+    assert(run("indent", "a\n\n", [Value.ofInt(2)]) == "  a\n  \n");
+    assert(run("wrap", "x", [Value.ofStr("<"), Value.ofStr(">")]) == "<x>");
+    assert(run("copy", "") == "");
+}
+
+unittest
+{
+    auto fs = new Vfs;
+    fs.write("src/a.txt", "x\ny\n");
+    fs.write("src/b.txt", "");
+    auto ex = executeCommand(mk("count_lines", ["src/a.txt", "src/b.txt"]), fs);
+    assert(ex.outputs[0] == "2 src/a.txt\n0 src/b.txt\n2 total\n");
+    ex = executeCommand(mk("hash", ["src/b.txt", "src/b.txt"]), fs);
+    assert(ex.outputs[0] == "cbf29ce484222325 src/b.txt\ncbf29ce484222325 src/b.txt\n");
+}
+
+unittest
+{
+    auto fs = new Vfs;
+    fs.write("src/main.txt", "title\n@need src/part.txt\nend\n");
+    fs.write("src/part.txt", "PART-A\n@need src/deep.txt\n");
+    fs.write("src/deep.txt", "DEEP\n");
+    auto ex = executeCommand(mk("preprocess", ["src/main.txt"], [], true), fs);
+    assert(ex.error is null);
+    assert(ex.outputs[0] == "title\nPART-A\nDEEP\nend\n");
+    assert(ex.outputs[1] == "kiln-deps 1\nneed src/deep.txt\nneed src/part.txt\n");
+    assert(ex.deps == ["src/deep.txt", "src/part.txt"]);
+
+    fs.write("src/main.txt", "@need src/gone.txt\n");
+    ex = executeCommand(mk("preprocess", ["src/main.txt"], [], true), fs);
+    assert(ex.error !is null && ex.error.msg == "E_NEED_MISSING src/gone.txt needed by src/main.txt");
+    fs.write("src/main.txt", "@need a b\n");
+    ex = executeCommand(mk("preprocess", ["src/main.txt"], [], true), fs);
+    assert(ex.error.msg == "E_NEED_PATH a b");
+    fs.write("src/main.txt", "@need src/main.txt\n");
+    ex = executeCommand(mk("preprocess", ["src/main.txt"], [], true), fs);
+    assert(ex.error.msg == "E_NEED_CYCLE src/main.txt");
 }

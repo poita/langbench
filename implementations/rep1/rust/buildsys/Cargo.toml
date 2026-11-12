@@ -1,0 +1,17 @@
+[package]
+name = "buildsys"
+version = "0.1.0"
+edition = "2021"
+description = "Kiln: an incremental build system that simulates parallel builds over a virtual file system"
+license = "MIT"
+readme = "README.md"
+keywords = ["build-system", "incremental", "simulation"]
+categories = ["development-tools::build-utils"]
+
+[lib]
+name = "buildsys"
+path = "src/lib.rs"
+
+[[bin]]
+name = "buildsys"
+path = "src/main.rs"

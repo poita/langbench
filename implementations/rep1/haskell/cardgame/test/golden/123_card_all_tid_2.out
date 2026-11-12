@@ -1,0 +1,176 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN TID-021
+name Seer of Still Water
+type unit
+cost 4
+body 3/3
+tags tide,mage
+keywords -
+ability 1 on your-turn-end - (dig 2 ((type unit)) you)
+CARD END
+CARD BEGIN TID-022
+name Backwash
+type rite
+cost 2
+tags tide
+keywords swift
+ability 1 resolve (targets (unit)) (setbody 0 1 (t 1))
+CARD END
+CARD BEGIN TID-023
+name Drowned Scholar
+type unit
+cost 4
+body 2/5
+tags tide,undead
+keywords -
+ability 1 on enemy-arrive - (mill 1 foe)
+CARD END
+CARD BEGIN TID-024
+name Tide Shackles
+type relic
+cost 2
+tags tide
+keywords -
+ability 1 aura (grant shackled (units theirs (edge ge 4)))
+CARD END
+CARD BEGIN TID-025
+name Spindrift Dancer
+type unit
+cost 2
+body 2/2
+tags tide,spirit
+keywords siphon,vigil
+CARD END
+CARD BEGIN TID-026
+name Oracle of Depths
+type unit
+cost 5
+body 3/4
+tags tide,mage
+keywords -
+ability 1 on arrive - (draw 2 you) (discard 1 you)
+CARD END
+CARD BEGIN TID-027
+name Riptide Surge
+type rite
+cost 3
+tags tide
+keywords -
+ability 1 resolve - (each (units yours) (modify 1 1 that) (grant ghostwalk that))
+CARD END
+CARD BEGIN TID-028
+name Glasswater Ward
+type rite
+cost 1
+tags tide
+keywords swift
+ability 1 resolve - (shield 3 you)
+CARD END
+CARD BEGIN TID-029
+name Netcaster
+type unit
+cost 3
+body 2/3
+tags tide,scout
+keywords -
+ability 1 on blocks - (modify -1 0 it)
+CARD END
+CARD BEGIN TID-030
+name Tidal Lock
+type rite
+cost 2
+tags tide
+keywords -
+ability 1 resolve (targets (unit)) (grant shackled (t 1)) (grant siegework (t 1))
+CARD END
+CARD BEGIN TID-031
+name Barnacle Hulk
+type unit
+cost 4
+body 2/6
+tags tide,construct
+keywords siegework
+ability 1 aura (when (hand you ge 5) (modify 2 0 self))
+CARD END
+CARD BEGIN TID-032
+name Whisper of the Deep
+type rite
+cost 1
+tags tide
+keywords swift
+ability 1 resolve (targets (unit)) (grant spectral (t 1))
+CARD END
+CARD BEGIN TID-033
+name Leviathan Caller
+type unit
+cost 6
+body 4/5
+tags tide,giant
+keywords -
+ability 1 on your-turn-start - (summon TOK-002 1 you)
+CARD END
+CARD BEGIN TID-034
+name Ebb and Flow
+type rite
+cost 4
+tags tide
+keywords -
+ability 1 resolve - (draw 2 you) (bounce (units theirs (cost ge 4)))
+CARD END
+CARD BEGIN TID-035
+name Spiral Conduit
+type relic
+cost 4
+tags tide
+keywords -
+ability 1 aura (when (count (units yours) ge 3) (modify 1 1 (units yours)))
+CARD END
+CARD BEGIN TID-036
+name Mirrorfin
+type unit
+cost 3
+body 2/2
+tags tide,spirit
+keywords -
+ability 1 on arrive (targets (unit)) (setbody (edge self) (core self) (t 1))
+CARD END
+CARD BEGIN TID-037
+name Sunken Vault
+type relic
+cost 3
+tags tide
+keywords -
+ability 1 act (cost (ember 2) (once)) - (draw 1 you)
+CARD END
+CARD BEGIN TID-038
+name Hydromancer
+type unit
+cost 4
+body 3/3
+tags tide,mage
+keywords -
+ability 1 act (cost (ember 1) (exhaust)) (targets (unit)) (modify -1 -1 (t 1))
+CARD END
+CARD BEGIN TID-039
+name Crest Rider
+type unit
+cost 3
+body 3/2
+tags tide,runner
+keywords ghostwalk,vanguard
+CARD END
+CARD BEGIN TID-040
+name Full Fathom
+type rite
+cost 8
+tags tide
+keywords -
+ability 1 resolve - (exile (units theirs))
+CARD END
+8 RESULT pending none

@@ -1,0 +1,19 @@
+
+CREATE TABLE a (x INTEGER, s TEXT);
+CREATE TABLE b (y INTEGER, t TEXT);
+INSERT INTO a VALUES (3, 'c'), (1, 'a'), (2, 'b'), (1, 'aa'), (NULL, 'n');
+INSERT INTO b VALUES (1, 'p'), (2, 'q'), (1, 'r'), (3, 's'), (NULL, 'u');
+SELECT * FROM a, b;
+SELECT * FROM a, b WHERE x = y;
+SELECT s, t FROM a, b WHERE a.x = b.y AND t != 'p';
+SELECT * FROM b, a WHERE x = y;
+SELECT s, t FROM a, b WHERE x < y;
+SELECT s, t FROM a, b WHERE x + y = 3;
+SELECT s, t FROM a, b WHERE x IS NULL AND y IS NULL;
+SELECT a.s, b.t FROM a, b WHERE a.x = b.y ORDER BY b.t DESC, a.s;
+SELECT COUNT(*) FROM a, b;
+SELECT COUNT(*) FROM a, b WHERE x = y;
+SELECT s, t, x * 10 + y FROM a, b WHERE x = y ORDER BY 3, s, t;
+SELECT * FROM a, b WHERE x = y LIMIT 2 OFFSET 1;
+SELECT x, COUNT(*) FROM a, b WHERE x = y GROUP BY x;
+SELECT a.x, SUM(b.y) FROM a, b WHERE a.x >= b.y GROUP BY a.x;

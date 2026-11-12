@@ -1,0 +1,18 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+
+ :aliases
+ {;; clojure -X:test
+  :test {:extra-paths ["test"]
+         :extra-deps {org.clojure/test.check {:mvn/version "1.1.1"}
+                      io.github.cognitect-labs/test-runner
+                      {:git/url "https://github.com/cognitect-labs/test-runner.git"
+                       :git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}
+
+  ;; clojure -M:run < program.ml
+  :run {:main-opts ["-m" "typeinfer.main"]}
+
+  ;; Ahead-of-time compile the CLI into ./classes (used by build.sh/run.sh).
+  :aot {:extra-paths ["classes"]}}}

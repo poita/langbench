@@ -1,87 +1,87 @@
 # chip8
 
-A small, deterministic CHIP-8 interpreter written in D, split into a reusable
-library and a thin command-line tool. It runs a ROM for an exact number of
-instruction cycles (with an optional key schedule) and prints the 64x32 display
-plus the CPU state. Behaviour follows the project's `SPEC.md`: shifts in place,
-`FX55`/`FX65` leave `I` alone, sprites wrap, timers tick every 8th cycle, and
-`CXNN` uses a fixed-seed LCG.
-
-Only the D standard library (Phobos/druntime) is used.
-
-## Layout
-
-| Path | Purpose |
-|------|---------|
-| `source/chip8/machine.d` | `Machine` state and the `run` interpreter loop |
-| `source/chip8/font.d` | built-in hex font |
-| `source/chip8/input.d` | parser for the ROM / cycles / key-schedule text format |
-| `source/chip8/output.d` | `render`: the 34-line textual report |
-| `source/chip8/package.d` | `import chip8;` re-exports everything |
-| `app/main.d` | the command-line tool |
-| `tests/` | unit tests (separate from the library source) |
-
-The interpreter loop is a single function with the hot registers in locals, one
-`switch` on the top nibble, and the display held as 32 `ulong` row words so a
-sprite row is a rotate, an AND and an XOR.
+A deterministic CHIP-8 interpreter written in D: a reusable library plus a thin
+command-line tool. It follows a fully specified variant of the classic
+semantics (in-place shifts, `BNNN` with `V0`, wrapping sprites, a timer tick
+every 8 cycles, a specified LCG for `CXNN`), runs an exact number of cycles and
+prints the display and CPU state. Every opcode is fetched and decoded from
+memory on every cycle, so self-modifying programs work.
 
 ## Build
 
-Requires LDC and dub.
+Requires LDC 1.41+ and dub 1.40+.
 
-```
-./build.sh          # dub build -b release --compiler=ldc2 --config=cli
+```sh
+./build.sh          # same as: dub build -b release --compiler=ldc2
 dub test --compiler=ldc2
 ```
 
-This produces the `chip8` executable in this directory.
+This produces `bin/chip8`.
 
 ## Command-line usage
 
-The tool reads the program from stdin and writes the report to stdout:
+`chip8` takes no arguments. It reads three lines from stdin:
 
 ```
-<rom-hex>
-<cycles>
-<key-schedule>      (optional: "cycle:mask" events separated by spaces)
+<rom-hex>          ROM bytes, lowercase hex (1..3584 bytes), loaded at 0x200
+<cycles>           number of instruction cycles to run (0..4000000000)
+<key-schedule>     optional: space-separated <cycle>:<mask> events, mask = 4 hex digits
 ```
 
-```
-$ printf '60ff7001610180141208\n6\n' | ./run.sh
-................................................................
-... (32 display rows)
+and writes 34 lines to stdout: the 64x32 display (`#`/`.`), a
+`PC=.. I=.. SP=.. DT=.. ST=..` line, and a `V=..` line with the 16 registers.
+Malformed input exits with status 1 and a message on stderr.
+
+```sh
+$ printf '60ff7001610180141208\n6\n' | ./run.sh | tail -2
 PC=0208 I=0000 SP=0 DT=00 ST=00
 V=01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
 ```
 
-`mask` is four hex digits; bit `k` set means key `k` is held down from just
-before that cycle. Malformed input exits with status 2 and a message on stderr.
+## Library
 
-## Library example
+Modules (all re-exported by `import chip8;`):
+
+| Module | Responsibility |
+|--------|----------------|
+| `chip8.machine` | `Machine`: memory, registers, stack, timers, the interpreter loop |
+| `chip8.display` | `Display`: 64x32 XOR frame buffer with wrap-around |
+| `chip8.keys` | `KeySchedule`/`KeyEvent`: key state over time, O(1) per cycle |
+| `chip8.rng` | `Lcg`: the specified 32-bit linear congruential generator |
+| `chip8.font` | built-in font data and glyph addresses |
+| `chip8.input` | `parseProgram`: the textual input format |
+| `chip8.output` | `renderState`: the textual report |
+| `chip8.cli` | `simulate`: the whole CLI as a `string -> string` function |
+
+Example:
 
 ```d
-import std.stdio : write;
+import std.stdio;
 import chip8;
 
 void main()
 {
-    // V0 = 0xFF; V0 += 1; V1 = 1; V0 += V1; jump to self
-    auto program = parseProgram("60ff7001610180141208\n6\n");
+    // V0 = 5; I = font glyph for V0; draw it at (V1, V2) = (0, 0).
+    ubyte[] rom = [0x60, 0x05, 0xF0, 0x29, 0xD1, 0x25];
+    auto machine = Machine(rom);
+    auto keys = KeySchedule([KeyEvent(3, 0x0001)]); // key 0 held from cycle 3
+    machine.run(3, keys);                           // run exactly 3 cycles
 
-    auto machine = makeMachine(program.rom);
-    run(machine, program.cycles, program.events);
-
-    assert(machine.v[0] == 1);
-    write(render(machine));          // the same report the CLI prints
+    write(renderState(machine));                    // display + registers
+    writeln(machine.display[0, 0]);                 // true: glyph "5" starts with F0
 }
 ```
 
-`Machine` is a plain struct (memory, registers, stack, `pc`, `i`, timers,
-display rows), so you can also build one by hand, poke `mem`, call `run` with a
-`KeyEvent[]` schedule, and inspect any field afterwards. `run` numbers cycles
-from 0 on every call, so key-event cycles are relative to that call.
+To use it as a dependency, add `dependency "chip8" path="..."` to your
+`dub.sdl`; dub selects the `library` configuration automatically.
 
 ## Tests
 
-`dub test --compiler=ldc2` runs the unit tests in `tests/`. The end-to-end
-suite lives one directory up: `python3 run_tests.py chip8 -- chip8/run.sh`.
+Unit tests are D `unittest` blocks next to the code they test (the spec's
+worked examples are included); run them with `dub test --compiler=ldc2`.
+The end-to-end suite is run from the repository root with
+`python3 run_tests.py chip8 -- chip8/run.sh`.
+
+## License
+
+MIT

@@ -1,0 +1,29 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+ERR 14 not-your-turn
+ERR 15 not-your-turn
+ERR 16 not-your-turn
+ERR 17 wrong-decision
+ERR 18 wrong-decision
+ERR 19 not-your-turn
+8 PASS A
+ERR 21 not-your-turn
+9 PASS B
+10 PHASE clash-attack
+ERR 23 wrong-decision
+ERR 24 wrong-decision
+ERR 25 wrong-decision
+ERR 26 not-your-turn
+ERR 27 wrong-decision
+11 PHASE main2
+LEGAL BEGIN A priority
+PASS
+PLAY 1 CIN-003 A
+PLAY 1 CIN-003 B
+LEGAL END
+12 RESULT pending none

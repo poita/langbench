@@ -1,27 +1,23 @@
 name "textbuffer"
-description "Text buffer with multiple cursors, selections, undo and redo"
-authors "textbuffer authors"
+description "Text buffer with undo, redo and multiple cursors: the editing core of a text editor."
+authors "textbuffer contributors"
+copyright "Copyright © textbuffer contributors"
 license "MIT"
-copyright "Copyright (c) textbuffer authors"
-targetPath "bin"
+
 sourcePaths "source"
 importPaths "source"
+targetPath "bin"
 
-configuration "cli" {
+// The command-line tool (the default configuration, built by `dub build`).
+configuration "executable" {
     targetType "executable"
     targetName "textbuffer"
-    sourcePaths "source" "app"
-    mainSourceFile "app/main.d"
+    mainSourceFile "source/app.d"
 }
 
+// The reusable library without the CLI, for use as a dependency.
 configuration "library" {
     targetType "library"
     targetName "textbuffer"
-}
-
-configuration "unittest" {
-    targetType "library"
-    targetName "textbuffer-test"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
+    excludedSourceFiles "source/app.d"
 }

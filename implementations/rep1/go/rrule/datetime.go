@@ -1,92 +1,119 @@
 package rrule
 
 import (
-	"errors"
 	"fmt"
 )
 
-// DateTime is a floating local date and time (no time zone).
+// DateTime is a floating (zone-less) calendar date and time of day in the
+// proleptic Gregorian calendar.
 type DateTime struct {
 	Year, Month, Day     int
 	Hour, Minute, Second int
 }
 
-// ErrInvalidDateTime is returned for malformed or out-of-range date-times.
-var ErrInvalidDateTime = errors.New("rrule: invalid date-time")
-
-// Valid reports whether dt is a real calendar date-time with a year in
-// 1000–9999.
-func (dt DateTime) Valid() bool {
-	return dt.Year >= 1000 && dt.Year <= maxYear &&
-		dt.Month >= 1 && dt.Month <= 12 &&
-		dt.Day >= 1 && dt.Day <= DaysInMonth(dt.Year, dt.Month) &&
-		dt.Hour >= 0 && dt.Hour <= 23 &&
-		dt.Minute >= 0 && dt.Minute <= 59 &&
-		dt.Second >= 0 && dt.Second <= 59
+// Weekday returns the day of the week of the date.
+func (t DateTime) Weekday() Weekday {
+	return Weekday(weekdayOf(daysFromCivil(t.Year, t.Month, t.Day)))
 }
 
-// Weekday returns the day of the week of dt.
-func (dt DateTime) Weekday() Weekday { return DayOfWeek(dt.Year, dt.Month, dt.Day) }
+// Before reports whether t is chronologically before u.
+func (t DateTime) Before(u DateTime) bool { return t.ordinal() < u.ordinal() }
 
-// Compare returns -1, 0 or +1 as dt is before, equal to or after other.
-func (dt DateTime) Compare(other DateTime) int {
-	a, b := dt.key(), other.key()
-	switch {
-	case a < b:
-		return -1
-	case a > b:
-		return 1
-	}
-	return 0
+// ordinal returns seconds since 0001-01-01T00:00:00, a total order on
+// date-times.
+func (t DateTime) ordinal() int64 {
+	return int64(daysFromCivil(t.Year, t.Month, t.Day))*secondsPerDay + int64(t.timeOfDay())
 }
 
-// key is a single integer that orders date-times chronologically.
-func (dt DateTime) key() int {
-	return dayNumber(dt.Year, dt.Month, dt.Day)*86400 + dt.secondsOfDay()
+func (t DateTime) timeOfDay() int {
+	return t.Hour*3600 + t.Minute*60 + t.Second
 }
 
-func (dt DateTime) secondsOfDay() int {
-	return dt.Hour*3600 + dt.Minute*60 + dt.Second
+// Valid reports whether every field is in range and the date exists.
+func (t DateTime) Valid() bool {
+	return t.Year >= 1 && t.Year <= 9999 &&
+		t.Month >= 1 && t.Month <= 12 &&
+		t.Day >= 1 && t.Day <= DaysInMonth(t.Year, t.Month) &&
+		t.Hour >= 0 && t.Hour <= 23 &&
+		t.Minute >= 0 && t.Minute <= 59 &&
+		t.Second >= 0 && t.Second <= 59
 }
 
-// String formats dt as YYYYMMDDTHHMMSS.
-func (dt DateTime) String() string {
-	return string(appendStamp(make([]byte, 0, 15), dt.Year, dt.Month, dt.Day, dt.secondsOfDay()))
+// String formats t as YYYYMMDDTHHMMSS.
+func (t DateTime) String() string {
+	return string(t.AppendFormat(nil))
 }
 
-// ParseDateTime parses the form YYYYMMDDTHHMMSS.
+// AppendFormat appends the YYYYMMDDTHHMMSS form of t to b.
+func (t DateTime) AppendFormat(b []byte) []byte {
+	return appendFormat(b, t.Year, t.Month, t.Day, t.timeOfDay())
+}
+
+func appendFormat(b []byte, y, m, d, tod int) []byte {
+	return append(b,
+		byte('0'+y/1000%10), byte('0'+y/100%10), byte('0'+y/10%10), byte('0'+y%10),
+		byte('0'+m/10), byte('0'+m%10),
+		byte('0'+d/10), byte('0'+d%10),
+		'T',
+		byte('0'+tod/36000), byte('0'+tod/3600%10),
+		byte('0'+tod/600%6), byte('0'+tod/60%10),
+		byte('0'+tod/10%6), byte('0'+tod%10),
+	)
+}
+
+// ParseDateTime parses the YYYYMMDDTHHMMSS form.
 func ParseDateTime(s string) (DateTime, error) {
 	if len(s) != 15 || s[8] != 'T' {
-		return DateTime{}, fmt.Errorf("%w: %q", ErrInvalidDateTime, s)
+		return DateTime{}, fmt.Errorf("rrule: invalid date-time %q", s)
 	}
-	f := func(i, n int) int {
+	for i := 0; i < 15; i++ {
+		if i != 8 && (s[i] < '0' || s[i] > '9') {
+			return DateTime{}, fmt.Errorf("rrule: invalid date-time %q", s)
+		}
+	}
+	num := func(a, b int) int {
 		v := 0
-		for _, c := range []byte(s[i : i+n]) {
-			if c < '0' || c > '9' {
-				return -1
-			}
+		for _, c := range []byte(s[a:b]) {
 			v = v*10 + int(c-'0')
 		}
 		return v
 	}
-	dt := DateTime{f(0, 4), f(4, 2), f(6, 2), f(9, 2), f(11, 2), f(13, 2)}
-	if dt.Year < 0 || dt.Month < 0 || dt.Day < 0 || dt.Hour < 0 || dt.Minute < 0 || dt.Second < 0 || !dt.Valid() {
-		return DateTime{}, fmt.Errorf("%w: %q", ErrInvalidDateTime, s)
+	t := DateTime{num(0, 4), num(4, 6), num(6, 8), num(9, 11), num(11, 13), num(13, 15)}
+	if !t.Valid() {
+		return DateTime{}, fmt.Errorf("rrule: invalid date-time %q", s)
 	}
-	return dt, nil
+	return t, nil
 }
 
-// appendStamp appends "YYYYMMDDTHHMMSS" for the given date and seconds of day.
-func appendStamp(dst []byte, y, m, d, sec int) []byte {
-	h := sec / 3600
-	mi := sec / 60 % 60
-	s := sec % 60
-	return append(dst,
-		byte('0'+y/1000), byte('0'+y/100%10), byte('0'+y/10%10), byte('0'+y%10),
-		byte('0'+m/10), byte('0'+m%10),
-		byte('0'+d/10), byte('0'+d%10),
-		'T',
-		byte('0'+h/10), byte('0'+h%10),
-		byte('0'+mi/10), byte('0'+mi%10),
-		byte('0'+s/10), byte('0'+s%10))
+// Weekday is a day of the week, numbered Monday = 0 to Sunday = 6.
+type Weekday int
+
+// Days of the week.
+const (
+	Monday Weekday = iota
+	Tuesday
+	Wednesday
+	Thursday
+	Friday
+	Saturday
+	Sunday
+)
+
+var weekdayCodes = [7]string{"MO", "TU", "WE", "TH", "FR", "SA", "SU"}
+
+// String returns the two-letter RFC 5545 code (MO, TU, ...).
+func (w Weekday) String() string {
+	if w < 0 || w > 6 {
+		return fmt.Sprintf("Weekday(%d)", int(w))
+	}
+	return weekdayCodes[w]
+}
+
+func parseWeekday(s string) (Weekday, bool) {
+	for i, c := range weekdayCodes {
+		if c == s {
+			return Weekday(i), true
+		}
+	}
+	return 0, false
 }

@@ -1,0 +1,9 @@
+- : bool -> bool
+- : 'a * 'b -> 'a
+- : 'a * 'b -> 'b
+- : 'a list -> 'a
+- : 'a list -> 'a list
+- : 'a list -> bool
+- : ('a -> 'b) -> 'a list -> 'b list
+- : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
+- : 'a list -> int

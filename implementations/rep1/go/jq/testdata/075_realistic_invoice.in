@@ -1,0 +1,2 @@
+.items | (map(.price * .qty) | add), (.[0] | keys), map(select(.qty > 1) | .sku), (map(.qty) | add), (map(.price) | max)
+{"items":[{"sku":"A1","price":2.5,"qty":4},{"sku":"B2","price":10,"qty":1},{"sku":"C3","price":0.25,"qty":8}]}

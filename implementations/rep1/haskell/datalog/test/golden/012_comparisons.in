@@ -1,0 +1,27 @@
+n(1). n(2). n(3). n(-1). n(a). n(b). n(0).
+lt(X, Y) :- n(X), n(Y), X < Y.
+le(X, Y) :- n(X), n(Y), X <= Y.
+gt(X, Y) :- n(X), n(Y), X > Y.
+ge(X, Y) :- n(X), n(Y), X >= Y.
+eq(X, Y) :- n(X), n(Y), X = Y.
+ne(X, Y) :- n(X), n(Y), X != Y.
+c1(X) :- n(X), X < a.
+c2(X) :- n(X), a <= X.
+c3(X) :- n(X), X = 2.
+c4(X) :- n(X), X != b, X != 2.
+c5(X) :- n(X), 1 < 2.
+c6(X) :- n(X), 2 < 1.
+c7(X) :- n(X), X >= -1, X <= 1.
+?- lt(X, Y).
+?- le(X, Y).
+?- gt(X, Y).
+?- ge(X, Y).
+?- eq(X, Y).
+?- ne(X, Y).
+?- c1(X).
+?- c2(X).
+?- c3(X).
+?- c4(X).
+?- c5(X).
+?- c6(X).
+?- c7(X).

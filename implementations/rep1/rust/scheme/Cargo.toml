@@ -1,0 +1,18 @@
+[package]
+name = "scheme"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "An interpreter for a small Scheme subset with arbitrary-precision integers and proper tail calls"
+license = "MIT"
+readme = "README.md"
+keywords = ["scheme", "interpreter", "bignum"]
+categories = ["compilers"]
+
+[lib]
+name = "scheme"
+path = "src/lib.rs"
+
+[[bin]]
+name = "scheme"
+path = "src/main.rs"

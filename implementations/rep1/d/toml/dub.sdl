@@ -1,0 +1,19 @@
+name "toml"
+description "A TOML 1.0.0 parser and serializer with a tagged-JSON command-line tool"
+authors "toml authors"
+copyright "Copyright © toml authors"
+license "MIT"
+sourcePaths "source"
+importPaths "source"
+
+configuration "application" {
+    targetType "executable"
+    targetName "toml"
+    targetPath "bin"
+    mainSourceFile "source/app.d"
+}
+
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}

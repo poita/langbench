@@ -1,0 +1,45 @@
+{
+    "name": "gitrepo",
+    "description": "Read a git repository straight off disk: loose objects, packfiles, refs and revisions, with its own SHA-1 and DEFLATE.",
+    "authors": [
+        "gitrepo contributors"
+    ],
+    "license": "MIT",
+    "copyright": "Copyright \u00a9 gitrepo contributors",
+    "targetName": "gitrepo",
+    "targetPath": ".",
+    "sourcePaths": [
+        "source",
+        "app"
+    ],
+    "importPaths": [
+        "source"
+    ],
+    "configurations": [
+        {
+            "name": "cli",
+            "targetType": "executable",
+            "mainSourceFile": "app/main.d"
+        },
+        {
+            "name": "library",
+            "targetType": "library",
+            "targetName": "gitrepo-lib",
+            "excludedSourceFiles": [
+                "app/main.d"
+            ]
+        },
+        {
+            "name": "unittest",
+            "targetType": "library",
+            "targetName": "gitrepo-unittest",
+            "sourcePaths": [
+                "source",
+                "tests"
+            ],
+            "excludedSourceFiles": [
+                "app/main.d"
+            ]
+        }
+    ]
+}

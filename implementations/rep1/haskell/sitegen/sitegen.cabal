@@ -1,0 +1,89 @@
+cabal-version:      3.0
+name:               sitegen
+version:            0.1.0.0
+synopsis:           A small static site generator with its own Markdown, template and TOML engines
+description:
+  sitegen reads a site directory (configuration, Markdown content, Jinja-style
+  templates and static files) and writes a complete static website: pages,
+  posts, tag pages, pagination, an Atom feed and a sitemap.
+  .
+  The Markdown converter (a CommonMark subset), the template engine (a Jinja
+  subset) and the TOML-subset reader are implemented from scratch in this
+  package and are usable on their own through the library.
+category:           Web
+license:            MIT
+license-file:       LICENSE
+author:             sitegen contributors
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Sitegen
+    Sitegen.Toml
+    Sitegen.Markdown
+    Sitegen.Markdown.Types
+    Sitegen.Markdown.Escape
+    Sitegen.Markdown.Block
+    Sitegen.Markdown.Inline
+    Sitegen.Markdown.Html
+    Sitegen.Template
+    Sitegen.Template.Value
+    Sitegen.Template.Syntax
+    Sitegen.Template.Lexer
+    Sitegen.Template.Parser
+    Sitegen.Template.Ops
+    Sitegen.Template.Eval
+    Sitegen.Content
+    Sitegen.Site
+    Sitegen.Feed
+    Sitegen.Generate
+    Sitegen.Source
+  build-depends:
+    , array       >=0.5   && <0.6
+    , base        >=4.18  && <5
+    , bytestring  >=0.11  && <0.13
+    , containers  >=0.6   && <0.9
+    , directory   >=1.3   && <1.4
+    , filepath    >=1.4   && <1.6
+    , mtl         >=2.3   && <2.4
+    , text        >=2.0   && <2.2
+    , transformers >=0.6  && <0.7
+
+executable sitegen
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , sitegen
+    , text
+
+test-suite sitegen-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Sitegen.TomlSpec
+    Sitegen.MarkdownSpec
+    Sitegen.TemplateSpec
+    Sitegen.ContentSpec
+    Sitegen.SiteSpec
+    Sitegen.FeedSpec
+    Sitegen.GenerateSpec
+  build-depends:
+    , base
+    , containers
+    , hspec       >=2.10
+    , QuickCheck  >=2.14
+    , sitegen
+    , text

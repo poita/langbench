@@ -1,629 +1,366 @@
 /**
- * Game state: objects, zones, players, the Chain and the event log.
- *
- * This module holds data and trivial accessors only; the rules live in
- * `cardgame.derive`, `cardgame.actions`, `cardgame.effects` and
- * `cardgame.engine`.
+ * Game state: players, objects, zones, the Chain, continuous-effect records,
+ * counters and the event log. This module holds data and trivial mutators; the
+ * rules live in the other modules.
  */
 module cardgame.game;
 
-import std.algorithm : remove;
-import std.array : Appender, appender;
-
-import cardgame.cards;
-import cardgame.derive;
+import std.array : appender, Appender;
+import std.conv : to;
+import cardgame.database;
+import cardgame.model;
 import cardgame.rng;
 
-/// Turn phases and steps in order (SPEC 9).
-enum Phase : ubyte
+/// Match options from the setup block of the match file (section 4.1).
+struct Settings
 {
-    dawn,
-    draw,
-    main1,
-    clashAttack,
-    clashBlock,
-    clashRiposte,
-    clashDamage,
-    clashEnd,
-    main2,
-    duskTrigger,
-    duskDiscard,
-    duskCleanup,
-}
-
-/// Printed names of the phases.
-immutable string[12] phaseNames = [
-    "dawn", "draw", "main1", "clash-attack", "clash-block", "clash-riposte",
-    "clash-damage", "clash-end", "main2", "dusk-trigger", "dusk-discard",
-    "dusk-cleanup"
-];
-
-/// Where the turn machine goes next when it is not waiting for input.
-enum Step : ubyte
-{
-    turnStart,
-    dawn,
-    draw,
-    main1,
-    clashAttack,
-    clashBlock,
-    clashRiposte,
-    clashDamage,
-    clashEnd,
-    main2,
-    duskTrigger,
-    duskDiscard,
-    duskCleanup,
-    turnAdvance,
-}
-
-/// What kind of input the engine is waiting for (SPEC 10.2).
-enum DecKind : ubyte
-{
-    none,
-    priority,
-    attackers,
-    blockers,
-}
-
-/// Reasons a player can lose (SPEC 20).
-enum Loss : ubyte
-{
-    none,
-    spire,
-    vault,
-    concede,
-}
-
-/// Names of loss reasons.
-immutable string[4] lossNames = ["none", "spire", "vault", "concede"];
-
-/// Automatic block printed after every accepted action.
-enum TraceMode : ubyte
-{
-    none,
-    legal,
-    state,
-}
-
-/// Match configuration (SPEC 4.1).
-struct Config
-{
-    string cardsPath;
-    ulong seed;
-    int spire = 25;
+    long spire = 25;
     int opening = 5;
     int maxCap = 10;
     int handMax = 7;
     int turnLimit = 200;
-    int first = 0;
+    Player first = Player.A;
     bool shuffle = true;
-    TraceMode trace = TraceMode.none;
-    int[2] cap;
+    enum Trace : ubyte { none, legal, state }
+    Trace trace;
+    ulong seed;
+    long[2] startCap;
 }
 
-/// A rendered-target token: a player, an object, or a Chain entry.
-struct Target
-{
-    ubyte kind; // 0 player, 1 object, 2 Chain entry
-    int id;
-
-    static Target player(int p) @safe pure nothrow @nogc
-    {
-        return Target(0, p);
-    }
-
-    static Target object(int oid) @safe pure nothrow @nogc
-    {
-        return Target(1, oid);
-    }
-
-    static Target chain(int cid) @safe pure nothrow @nogc
-    {
-        return Target(2, cid);
-    }
-}
-
-/// Trigger subject (`it`): nothing, an object, or a player.
+/// Reference to something that can be a trigger subject.
 struct Subject
 {
-    ubyte kind; // 0 none, 1 object, 2 player
+    enum Kind : ubyte { none, obj, player }
+    Kind kind;
     int id;
 
-    static Subject obj(int oid) @safe pure nothrow @nogc
-    {
-        return Subject(1, oid);
-    }
-
-    static Subject player(int p) @safe pure nothrow @nogc
-    {
-        return Subject(2, p);
-    }
+    static Subject ofObj(int oid) { return Subject(Kind.obj, oid); }
+    static Subject ofPlayer(Player p) { return Subject(Kind.player, p); }
 }
 
-/// An object (card instance) of the match.
-struct Obj
+/// A target of an ability: a player, an object or a Chain entry.
+struct Target
 {
-    int card;
-    ubyte owner;
-    ZoneKind zone;
-    int ts;
-    /// Base controller while on the Field; last controller afterwards.
-    ubyte ctrl;
+    enum Kind : ubyte { player, obj, chain }
+    Kind kind;
+    int id;            /// player index, oid or cid
+    bool removed;      /// set when found illegal at resolution
 
-    // Field state (SPEC 7.5).
-    bool exhausted, doomed, attacking, blocking, blocked, tenUsed;
-    int wounds, counters, ward, since;
-    int blockTarget;
-    ulong onceMask;
-    int[] blockers;
+    static Target ofPlayer(Player p) { return Target(Kind.player, p, false); }
+    static Target ofObj(int oid) { return Target(Kind.obj, oid, false); }
+    static Target ofChain(int cid) { return Target(Kind.chain, cid, false); }
+}
 
-    // Derived characteristics (valid for Field objects when not stale).
-    ubyte cur;
+/// A card instance. Fields below the divider are only meaningful on the Field.
+final class Obj
+{
+    int oid;
+    Card card;
+    Player owner;
+    Zone zone;
+    long ts;            /// timestamp of the last entry to the Field (0 if never)
+    Player ctrl;        /// current controller (derived on the Field; last controller elsewhere)
+    Player baseCtrl;
+    // ---- Field state
+    bool exhausted;
+    int wounds;
+    int counters;
+    int ward;
+    bool doomed;
+    long since;
+    bool attacking, blocking, blockedFlag;
+    Obj[] blockers;     /// for an attacker, in canonical order
+    Obj blockedAttacker;
+    bool tenacityUsed;
+    int[] usedOnce;
+    // ---- derived
     bool stripped;
     long edge, core;
-    Kw[] kws;
-}
+    uint kwMask;
+    int platingSum;
 
-/// Kinds of continuous-effect record (SPEC 14.1).
-enum RecKind : ubyte
-{
-    modify,
-    setbody,
-    swapstats,
-    grant,
-    strip,
-    control,
-    cheaper,
-}
-
-/// Result of evaluating one aura static at the latest derivation.
-struct Leaf
-{
-    StKind kind;
-    bool active;
-    long a, b;
-    Kw kw;
-    long n;
-    Filter[] cardFilters;
-    int[] affected;
-}
-
-/// A continuous-effect record, discrete or aura.
-final class Rec
-{
-    int eid, ts, ctrl, src;
-    RecKind kind;
-    bool aura;
-    long a, b;
-    Kw kw;
-    long n;
-    /// Affected objects of a discrete record.
-    int[] affected;
-    /// Aura clause and its leaves from the latest derivation.
-    Ability ability;
-    Leaf[] leaves;
+    bool isUnit() const { return card.type == CardType.unit; }
+    bool has(Kw k) const { return (kwMask >> k) & 1; }
 }
 
 /// Kinds of Chain entry.
-enum EntryKind : ubyte
-{
-    rite,
-    unit,
-    relic,
-    ability,
-    trigger,
-}
+enum EntryKind : ubyte { rite, unit, relic, ability, trigger }
 
-/// Printed names of entry kinds.
-immutable string[5] entryKindNames = ["rite", "unit", "relic", "ability", "trigger"];
+/// A stored effect list of a delayed trigger.
+final class Delayed
+{
+    long ts;
+    Player ctrl;
+    When when;
+    Obj src;
+    Target[] targets;
+    TSpec[] specs;
+    Effect[] effects;
+}
 
 /// An entry on the Chain.
 final class Entry
 {
     int cid;
     EntryKind kind;
-    int ctrl;
-    int src;
-    int abil;
+    Player ctrl;
+    Obj src;
+    int abilityIndex;     /// 0 for a played card or a delayed trigger
     Target[] targets;
-    bool[] removed;
     TSpec[] specs;
-    /// Effects of a delayed trigger (abil == 0 and kind == trigger).
-    Effect[] delayedEffects;
     Subject it;
+    Effect[] delayedEffects;
+    bool delayed;
 }
 
-/// A delayed trigger waiting for its timing (SPEC 13.5).
-final class Delayed
+/// Kinds of continuous-effect record.
+enum RecKind : ubyte { modify, setbody, swapstats, grant, strip, control, cheaper }
+
+/// One evaluated static of a record (an aura clause may hold several).
+struct RecPart
 {
-    int ts, ctrl, src;
-    DelayWhen when;
-    Effect[] effects;
-    Target[] targets;
-    TSpec[] specs;
+    RecKind kind;
+    bool active;
+    long a, b;
+    KwSpec kw;
+    long cheaperBy;
+    Filter[] cardFilters;
+    Obj[] affected;
 }
 
-/// A collected trigger awaiting the next push.
+/// A continuous-effect record (section 14.1).
+final class Record
+{
+    int eid;
+    long ts;
+    Player ctrl;
+    Obj src;
+    bool aura;
+    // discrete
+    RecKind kind;
+    long a, b;
+    KwSpec kw;
+    int[] affected;
+    // aura
+    Ability ability;
+    RecPart[] parts;
+}
+
+/// A trigger waiting for the next push.
 struct Pending
 {
-    int side; // 0 when the controller is the active player, else 1
-    int ts, oid, abil;
-    int ctrl;
+    Obj src;
+    int abilityIndex;
+    Player ctrl;
+    long ts;
     Subject it;
-    Delayed delayed;
-    int seq;
+    Delayed delayed;    /// non-null for a delayed trigger
 }
 
-/// Renders as `#oid`.
-struct O
+/// A pile with O(1) push at either end and pop from the front (the Vault).
+struct Pile
 {
-    int v;
+    private Obj[] buf;
+    private size_t head;
+
+    size_t length() const { return buf.length - head; }
+    bool empty() const { return buf.length == head; }
+    Obj opIndex(size_t i) { return buf[head + i]; }
+    Obj[] items() { return buf[head .. $]; }
+    Obj front() { return buf[head]; }
+
+    void popFront()
+    {
+        buf[head] = null;
+        ++head;
+        if (head == buf.length) { buf.length = 0; head = 0; }
+        else if (head > 4096 && head * 2 > buf.length) { buf = buf[head .. $].dup; head = 0; }
+    }
+    void pushBack(Obj o) { buf ~= o; }
+    void removeObj(Obj o)
+    {
+        foreach (i; head .. buf.length)
+            if (buf[i] is o)
+            {
+                buf = buf[0 .. i] ~ buf[i + 1 .. $];
+                return;
+            }
+    }
 }
 
-/// Renders as `~cid`.
-struct Q
+/// Per-player state.
+final class PlayerState
 {
-    int v;
+    long spire;
+    long ember, cap, shield;
+    Pile vault;
+    Obj[] hand, ash, rift;
 }
 
-/// Renders as `A` or `B`.
-struct Pl
-{
-    int v;
-}
+/// Decision kinds (section 10.2).
+enum Decision : ubyte { priority, attackers, blockers, over }
 
-/// Renders with an explicit sign.
-struct Sg
+/// Thrown when the match ends, to unwind out of the rules code.
+final class MatchEnded : Exception
 {
-    long v;
+    this() { super("match ended"); }
 }
 
 /// The complete state of one match.
 final class Game
 {
-    CardDb db;
-    Config cfg;
-    Rng rng;
-
-    Appender!(char[]) outBuf;
-    int seq;
-
-    Obj[] objs;
-    int[][2] vault, hand, ash, rift;
-    int[] field;
-    Entry[] chain;
-    Rec[] recs;
+    Database db;
+    Settings cfg;
+    Obj[] objs;                 // index = oid
+    PlayerState[2] pl;
+    Obj[] field;                // in entry order == canonical order
+    Entry[] chain;              // bottom first
+    Record[] records;           // creation order
     Delayed[] delayed;
     Pending[] pending;
-    int pendingSeq;
-
-    int[2] spire, ember, cap, shield;
-    int turn = 1;
-    int active;
-    int first;
-    int nextOid = 1;
-    int nextCid = 1;
-    int nextEid = 1;
-    int nextTs = 1;
-
-    Phase phase = Phase.dawn;
-    Step next = Step.turnStart;
-    DecKind dec = DecKind.none;
-    int holder;
-    int passCount;
-    /// Units that dealt their combat damage in the riposte sub-step.
-    int[] riposters;
-
-    bool over;
-    Loss[2] loss;
-    bool turnLimitDraw;
-    string resultWinner = "";
-    string resultReason = "";
-
-    bool stale = true;
+    int nextOid = 1, nextCid = 1, nextEid = 1;
+    long nextTs = 1;
+    long turn = 1;
+    Player active;
+    string phase = "dawn";
+    Player decisionPlayer;
+    Decision decision = Decision.priority;
+    bool ended;
+    string[2] loss;             // first recorded losing reason, or null
+    string resultWinner = "pending", resultReason = "none";
+    Rng rng;
+    bool dirty = true;
     bool deriving;
-    /// Union of the `Dep` bits read by live aura records.
-    uint liveDeps;
+    bool quiet;                 // suppress trigger collection (opening hands)
 
-    this(CardDb db, Config cfg)
+    private int seq_;
+    private Appender!string out_;
+
+    this(Database db, Settings cfg)
     {
         this.db = db;
         this.cfg = cfg;
-        objs = new Obj[](1);
-        outBuf = appender!(char[])();
-        outBuf.reserve(1 << 16);
-        first = cfg.first;
-        active = cfg.first;
-        spire[] = cfg.spire;
-        cap = cfg.cap;
+        objs = [null];
+        foreach (ref p; pl) p = new PlayerState;
+        out_ = appender!string();
     }
 
-    /// Mark derived characteristics out of date (structural change).
-    void touch() @safe pure nothrow @nogc
+    /// Everything printed so far.
+    string output() { return out_.data; }
+
+    /// Append raw text (blocks and ERR lines; these do not consume sequence numbers).
+    void rawLine(const(char)[] s) { out_ ~= s; out_ ~= '\n'; }
+
+    /// Emit an event line: sequence number, name and fields.
+    void emit(T...)(string name, T fields)
     {
-        stale = true;
+        out_ ~= (++seq_).to!string;
+        out_ ~= ' ';
+        out_ ~= name;
+        foreach (f; fields)
+        {
+            out_ ~= ' ';
+            static if (is(typeof(f) : const(char)[])) out_ ~= f;
+            else out_ ~= f.to!string;
+        }
+        out_ ~= '\n';
     }
 
-    /// Mark derived characteristics out of date only if a live aura reads `bits`.
-    void touchDep(uint bits) @safe pure nothrow @nogc
+    /// Emit a pre-formatted event line (everything after the sequence number).
+    void rawEvent(string rest)
     {
-        if (liveDeps & bits)
-            stale = true;
+        out_ ~= (++seq_).to!string;
+        out_ ~= ' ';
+        out_ ~= rest;
+        out_ ~= '\n';
     }
 
-    /// The card of an object.
-    Card cardOf(int oid) @safe pure nothrow
+    long takeTs() { return nextTs++; }
+
+    Obj obj(long oid) { return oid > 0 && oid < objs.length ? objs[cast(size_t) oid] : null; }
+
+    Entry entryByCid(long cid)
     {
-        return db.cards[objs[oid].card];
+        foreach (e; chain) if (e.cid == cid) return e;
+        return null;
     }
 
-    /// Allocate a new object of the given card owned by `owner`.
-    int newObject(int cardIdx, int owner)
+    ref PlayerState P(Player p) { return pl[p]; }
+
+    // ---- rendering
+    static string r(const Obj o) { return "#" ~ o.oid.to!string; }
+    static string r(Player p) { return p == Player.A ? "A" : "B"; }
+    static string signed(long n) { return n >= 0 ? "+" ~ n.to!string : n.to!string; }
+
+    string render(in Target t) const
     {
-        Obj o;
-        o.card = cardIdx;
-        o.owner = cast(ubyte) owner;
-        o.ctrl = cast(ubyte) owner;
-        o.cur = cast(ubyte) owner;
-        o.zone = ZoneKind.none;
+        final switch (t.kind)
+        {
+        case Target.Kind.player: return t.id == 0 ? "A" : "B";
+        case Target.Kind.obj: return "#" ~ t.id.to!string;
+        case Target.Kind.chain: return "~" ~ t.id.to!string;
+        }
+    }
+
+    // ---- zone plumbing
+
+    /// Create a fresh object of `card` owned by `owner`, not yet in any zone.
+    Obj createObj(Card card, Player owner)
+    {
+        auto o = new Obj;
+        o.oid = nextOid++;
+        o.card = card;
+        o.owner = owner;
+        o.ctrl = owner;
+        o.baseCtrl = owner;
+        o.zone = Zone.none;
         objs ~= o;
-        return nextOid++;
+        return o;
     }
 
-    /// Fresh timestamp.
-    int takeTs() @safe pure nothrow @nogc
+    /// Remove `o` from whichever container holds it.
+    void unplace(Obj o)
     {
-        return nextTs++;
-    }
-
-    /// Current controller (Field) or last controller (elsewhere).
-    int ctl(int oid)
-    {
-        if (objs[oid].zone == ZoneKind.field)
+        final switch (o.zone)
         {
-            ensureDerived(this);
-            return objs[oid].cur;
+        case Zone.none: case Zone.chain: break;
+        case Zone.vault: pl[o.owner].vault.removeObj(o); break;
+        case Zone.hand: removeFrom(pl[o.owner].hand, o); break;
+        case Zone.ash: removeFrom(pl[o.owner].ash, o); break;
+        case Zone.rift: removeFrom(pl[o.owner].rift, o); break;
+        case Zone.field: removeFrom(field, o); break;
         }
-        return objs[oid].ctrl;
+        o.zone = Zone.none;
+        dirty = true;
     }
 
-    /// True when the object is on the Field.
-    bool onField(int oid) const @safe pure nothrow @nogc
+    /// Append `o` to the end of the owner's zone `z` (not the Field; see `rules`).
+    void place(Obj o, Zone z)
     {
-        return oid > 0 && oid < objs.length && objs[oid].zone == ZoneKind.field;
-    }
-
-    /// Does the object exist?
-    bool exists(long oid) const @safe pure nothrow @nogc
-    {
-        return oid > 0 && oid < objs.length;
-    }
-
-    /// Current edge of an object (printed outside the Field).
-    long edgeOf(int oid)
-    {
-        if (objs[oid].zone == ZoneKind.field)
+        o.zone = z;
+        final switch (z)
         {
-            ensureDerived(this);
-            return objs[oid].edge;
+        case Zone.vault: pl[o.owner].vault.pushBack(o); break;
+        case Zone.hand: pl[o.owner].hand ~= o; break;
+        case Zone.ash: pl[o.owner].ash ~= o; break;
+        case Zone.rift: pl[o.owner].rift ~= o; break;
+        case Zone.field: field ~= o; break;
+        case Zone.chain: case Zone.none: break;
         }
-        return cardOf(oid).edge;
+        dirty = true;
     }
 
-    /// Current core of an object (printed outside the Field).
-    long coreOf(int oid)
+    /// Move to the end of the owner's zone `z`.
+    void move(Obj o, Zone z) { unplace(o); place(o, z); }
+
+    private static void removeFrom(ref Obj[] a, Obj o)
     {
-        if (objs[oid].zone == ZoneKind.field)
-        {
-            ensureDerived(this);
-            return objs[oid].core;
-        }
-        return cardOf(oid).core;
-    }
-
-    /// Base edge: printed edge plus charge counters.
-    long baseEdge(int oid)
-    {
-        return cardOf(oid).edge + objs[oid].counters;
-    }
-
-    /// Base core: printed core plus charge counters.
-    long baseCore(int oid)
-    {
-        return cardOf(oid).core + objs[oid].counters;
-    }
-
-    /// Does the object currently have keyword `k`?
-    bool hasKw(int oid, Keyword k)
-    {
-        if (objs[oid].zone == ZoneKind.field)
-        {
-            ensureDerived(this);
-            foreach (w; objs[oid].kws)
-                if (w.kind == k)
-                    return true;
-            return false;
-        }
-        return cardOf(oid).hasKeyword(k);
-    }
-
-    /// Sum of the `plating` values among the current keywords.
-    long plating(int oid)
-    {
-        long s = 0;
-        if (objs[oid].zone == ZoneKind.field)
-        {
-            ensureDerived(this);
-            foreach (w; objs[oid].kws)
-                if (w.kind == Keyword.plating)
-                    s += w.value;
-        }
-        else
-            foreach (w; cardOf(oid).keywords)
-                if (w.kind == Keyword.plating)
-                    s += w.value;
-        return s;
-    }
-
-    /// Are the object's abilities removed by `strip`? Only meaningful on the Field.
-    bool isStripped(int oid)
-    {
-        if (objs[oid].zone != ZoneKind.field)
-            return false;
-        ensureDerived(this);
-        return objs[oid].stripped;
-    }
-
-    /// Is the object on the Field and Settling (SPEC 16.1)?
-    bool isSettling(int oid) const @safe pure nothrow @nogc
-    {
-        return objs[oid].zone == ZoneKind.field && objs[oid].since >= turn;
-    }
-
-    /// Opponent of a player.
-    static int other(int p) @safe pure nothrow @nogc
-    {
-        return 1 - p;
-    }
-
-    /// Canonical object order comparison: ascending (timestamp, oid).
-    bool canonLess(int a, int b) const @safe pure nothrow @nogc
-    {
-        if (objs[a].ts != objs[b].ts)
-            return objs[a].ts < objs[b].ts;
-        return a < b;
-    }
-
-    // ------------------------------------------------------------- output
-
-    private void putNum(long v)
-    {
-        if (v < 0)
-        {
-            outBuf.put('-');
-            putUnsigned(cast(ulong)(0 - cast(ulong) v));
-        }
-        else
-            putUnsigned(cast(ulong) v);
-    }
-
-    private void putUnsigned(ulong v)
-    {
-        char[20] buf;
-        size_t i = buf.length;
-        do
-        {
-            buf[--i] = cast(char)('0' + v % 10);
-            v /= 10;
-        }
-        while (v);
-        outBuf.put(buf[i .. $]);
-    }
-
-    private void putArg(T)(T arg)
-    {
-        import std.traits : Unqual;
-
-        alias U = Unqual!T;
-        U a = arg;
-        static if (is(U == string) || is(U == char[]) || is(U == const(char)[]))
-            outBuf.put(a);
-        else static if (is(U == O))
-        {
-            outBuf.put('#');
-            putNum(a.v);
-        }
-        else static if (is(U == Q))
-        {
-            outBuf.put('~');
-            putNum(a.v);
-        }
-        else static if (is(U == Pl))
-            outBuf.put(a.v == 0 ? 'A' : 'B');
-        else static if (is(U == Sg))
-        {
-            if (a.v >= 0)
-                outBuf.put('+');
-            putNum(a.v);
-        }
-        else static if (is(U == Target))
-        {
-            final switch (a.kind)
+        foreach (i, x; a)
+            if (x is o)
             {
-            case 0:
-                outBuf.put(a.id == 0 ? 'A' : 'B');
-                break;
-            case 1:
-                outBuf.put('#');
-                putNum(a.id);
-                break;
-            case 2:
-                outBuf.put('~');
-                putNum(a.id);
-                break;
+                foreach (j; i + 1 .. a.length) a[j - 1] = a[j];
+                a.length = a.length - 1;
+                return;
             }
-        }
-        else
-            putNum(a);
     }
-
-    /// Emit one numbered event line.
-    void ev(A...)(string name, A args)
-    {
-        seq++;
-        putNum(seq);
-        outBuf.put(' ');
-        outBuf.put(name);
-        foreach (a; args)
-        {
-            static if (is(typeof(a) == Target[]))
-            {
-                foreach (t; a)
-                {
-                    outBuf.put(' ');
-                    putArg(t);
-                }
-            }
-            else
-            {
-                outBuf.put(' ');
-                putArg(a);
-            }
-        }
-        outBuf.put('\n');
-    }
-
-    /// Emit a raw (unnumbered) line.
-    void raw(const(char)[] line)
-    {
-        outBuf.put(line);
-        outBuf.put('\n');
-    }
-
-    /// Everything written so far.
-    string output()
-    {
-        return outBuf.data.idup;
-    }
-}
-
-/// Remove the first occurrence of `v` from `arr`, preserving order.
-void removeValue(ref int[] arr, int v)
-{
-    foreach (i, x; arr)
-        if (x == v)
-        {
-            if (i == 0)
-                arr = arr[1 .. $];
-            else
-                arr = arr.remove(i);
-            return;
-        }
-}
-
-/// Letter of a player.
-char playerLetter(int p) @safe pure nothrow @nogc
-{
-    return p == 0 ? 'A' : 'B';
 }

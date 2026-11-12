@@ -2,66 +2,68 @@ package regex
 
 import (
 	"fmt"
-	"sort"
+	"unicode/utf8"
 )
 
-const maxRune = 0x10FFFF
-
-// rng is an inclusive code point range.
-type rng struct{ lo, hi rune }
-
-type nodeKind uint8
-
-const (
-	nEmpty nodeKind = iota
-	nChar
-	nAny
-	nClass
-	nBol
-	nEol
-	nWordB
-	nNotWordB
-	nConcat
-	nAlt
-	nRepeat
-)
-
-// node is a regex syntax tree node.
-type node struct {
-	kind     nodeKind
-	r        rune  // nChar
-	ranges   []rng // nClass (sorted, merged)
-	neg      bool  // nClass: negated
-	subs     []*node
-	min, max int // nRepeat; max < 0 means unbounded
-}
-
-// SyntaxError reports an invalid pattern.
+// SyntaxError reports a pattern that is not in the supported subset.
 type SyntaxError struct {
 	Pattern string
 	Msg     string
 }
 
 func (e *SyntaxError) Error() string {
-	return fmt.Sprintf("regex: %s in %q", e.Msg, e.Pattern)
+	return fmt.Sprintf("regex: invalid pattern %q: %s", e.Pattern, e.Msg)
 }
 
-// maxRepeat bounds counted repetition so that expansion stays tractable.
-const maxRepeat = 100000
+type nodeKind uint8
+
+const (
+	nEmpty nodeKind = iota
+	nRune
+	nSet
+	nCat
+	nAlt
+	nRepeat
+	nAssert
+)
+
+type assertKind uint8
+
+const (
+	aBegin assertKind = iota
+	aEnd
+	aWordB
+	aNotWordB
+)
+
+type node struct {
+	kind     nodeKind
+	r        rune
+	set      *charset
+	subs     []*node
+	min, max int // repeat bounds; max < 0 means unbounded
+	assert   assertKind
+}
 
 type parser struct {
 	pat  string
 	src  []rune
 	pos  int
-	errs *SyntaxError
+	errs string
 }
 
+type parseError string
+
 func parse(pattern string) (n *node, err error) {
-	p := &parser{pat: pattern, src: []rune(pattern)}
+	p := &parser{pat: pattern}
+	if !utf8.ValidString(pattern) {
+		return nil, &SyntaxError{pattern, "pattern is not valid UTF-8"}
+	}
+	p.src = []rune(pattern)
 	defer func() {
 		if r := recover(); r != nil {
-			if se, ok := r.(*SyntaxError); ok {
-				n, err = nil, se
+			if pe, ok := r.(parseError); ok {
+				n, err = nil, &SyntaxError{pattern, string(pe)}
 				return
 			}
 			panic(r)
@@ -74,9 +76,7 @@ func parse(pattern string) (n *node, err error) {
 	return n, nil
 }
 
-func (p *parser) fail(msg string) {
-	panic(&SyntaxError{Pattern: p.pat, Msg: msg})
-}
+func (p *parser) fail(msg string) { panic(parseError(msg)) }
 
 func (p *parser) more() bool { return p.pos < len(p.src) }
 
@@ -112,30 +112,12 @@ func (p *parser) concat() *node {
 	case 1:
 		return items[0]
 	}
-	return &node{kind: nConcat, subs: items}
+	return &node{kind: nCat, subs: items}
 }
 
 func (p *parser) term() *node {
 	atom := p.atom()
-	if !p.more() {
-		return atom
-	}
-	min, max, ok := 0, 0, true
-	switch p.peek() {
-	case '*':
-		min, max = 0, -1
-		p.pos++
-	case '+':
-		min, max = 1, -1
-		p.pos++
-	case '?':
-		min, max = 0, 1
-		p.pos++
-	case '{':
-		min, max, ok = p.braceQuantifier()
-	default:
-		ok = false
-	}
+	min, max, ok := p.quantifier()
 	if !ok {
 		return atom
 	}
@@ -143,54 +125,77 @@ func (p *parser) term() *node {
 	return &node{kind: nRepeat, subs: []*node{atom}, min: min, max: max}
 }
 
-// braceQuantifier parses {n}, {n,} or {n,m} at the current '{'. If the text is
-// not a well-formed quantifier, nothing is consumed and ok is false.
-func (p *parser) braceQuantifier() (min, max int, ok bool) {
-	i := p.pos + 1
-	num := func() (int, bool) {
-		start, v := i, 0
-		for i < len(p.src) && p.src[i] >= '0' && p.src[i] <= '9' {
-			if v < maxRepeat*10 {
-				v = v*10 + int(p.src[i]-'0')
-			}
-			i++
-		}
-		return v, i > start
+// quantifier parses an optional quantifier. A '{' that does not begin a
+// well-formed quantifier is left in place to be read as a literal.
+func (p *parser) quantifier() (min, max int, ok bool) {
+	if !p.more() {
+		return
 	}
-	lo, okLo := num()
-	if !okLo {
+	switch p.peek() {
+	case '*':
+		p.pos++
+		return 0, -1, true
+	case '+':
+		p.pos++
+		return 1, -1, true
+	case '?':
+		p.pos++
+		return 0, 1, true
+	case '{':
+		save := p.pos
+		min, max, ok = p.braces()
+		if !ok {
+			p.pos = save
+		}
+		return
+	}
+	return
+}
+
+// braces parses {n}, {n,} or {n,m} at the current '{'.
+func (p *parser) braces() (min, max int, ok bool) {
+	p.pos++ // {
+	min, ok = p.number()
+	if !ok {
+		return
+	}
+	max = min
+	if p.eat(',') {
+		if p.more() && p.peek() == '}' {
+			max = -1
+		} else if max, ok = p.number(); !ok {
+			return
+		}
+	}
+	if !p.eat('}') {
 		return 0, 0, false
 	}
-	hi := lo
-	if i < len(p.src) && p.src[i] == ',' {
-		i++
-		var okHi bool
-		hi, okHi = num()
-		if !okHi {
-			hi = -1
-		}
-	}
-	if i >= len(p.src) || p.src[i] != '}' {
-		return 0, 0, false
-	}
-	if lo > maxRepeat || hi > maxRepeat {
-		p.fail("repetition count too large")
-	}
-	if hi >= 0 && hi < lo {
+	if max >= 0 && max < min {
 		p.fail("numbers out of order in {} quantifier")
 	}
-	p.pos = i + 1
-	return lo, hi, true
+	return min, max, true
+}
+
+func (p *parser) number() (int, bool) {
+	start := p.pos
+	n := 0
+	for p.more() && p.peek() >= '0' && p.peek() <= '9' {
+		if n < 1<<24 {
+			n = n*10 + int(p.peek()-'0')
+		}
+		p.pos++
+	}
+	return n, p.pos > start
 }
 
 func (p *parser) atom() *node {
-	c := p.src[p.pos]
+	c := p.peek()
 	p.pos++
 	switch c {
 	case '(':
 		if p.eat('?') {
 			if !p.eat(':') {
-				p.fail("unsupported group syntax")
+				p.fail("unsupported group syntax (only (?:...) is allowed)")
 			}
 		}
 		n := p.alt()
@@ -201,60 +206,68 @@ func (p *parser) atom() *node {
 	case '[':
 		return p.class()
 	case '.':
-		return &node{kind: nAny}
+		return &node{kind: nSet, set: dotSet}
 	case '^':
-		return &node{kind: nBol}
+		return &node{kind: nAssert, assert: aBegin}
 	case '$':
-		return &node{kind: nEol}
+		return &node{kind: nAssert, assert: aEnd}
 	case '*', '+', '?':
 		p.fail("nothing to repeat")
+	case '{':
+		// Reached only when the '{' did not follow an atom: a quantifier here
+		// has nothing to repeat; anything else is a literal brace.
+		p.pos--
+		save := p.pos
+		if _, _, ok := p.braces(); ok {
+			p.fail("nothing to repeat")
+		}
+		p.pos = save + 1
+		return &node{kind: nRune, r: '{'}
 	case '\\':
 		return p.escape()
 	}
-	return &node{kind: nChar, r: c}
+	return &node{kind: nRune, r: c}
 }
 
-// escape parses the escape following a backslash outside a character class.
+// escape parses an escape outside a character class (the backslash has been read).
 func (p *parser) escape() *node {
 	if !p.more() {
 		p.fail("trailing backslash")
 	}
-	switch c := p.peek(); c {
+	c := p.peek()
+	switch c {
 	case 'b':
 		p.pos++
-		return &node{kind: nWordB}
+		return &node{kind: nAssert, assert: aWordB}
 	case 'B':
 		p.pos++
-		return &node{kind: nNotWordB}
+		return &node{kind: nAssert, assert: aNotWordB}
 	}
-	r, set := p.classEscape(false)
+	r, set := p.escapeAtom(false)
 	if set != nil {
-		return &node{kind: nClass, ranges: set}
+		return &node{kind: nSet, set: set}
 	}
-	return &node{kind: nChar, r: r}
+	return &node{kind: nRune, r: r}
 }
 
-// classEscape parses an escape (the backslash is already consumed). It
-// returns either a single code point or, for \d \D \w \W \s \S, a range set.
-func (p *parser) classEscape(inClass bool) (rune, []rng) {
-	if !p.more() {
-		p.fail("trailing backslash")
-	}
-	c := p.src[p.pos]
+// escapeAtom parses the escape after a backslash (not yet consumed), returning
+// either a single code point or a class escape set.
+func (p *parser) escapeAtom(inClass bool) (rune, *charset) {
+	c := p.peek()
 	p.pos++
 	switch c {
 	case 'd':
 		return 0, digitSet
 	case 'D':
-		return 0, negate(digitSet)
+		return 0, digitSet.negate()
 	case 'w':
 		return 0, wordSet
 	case 'W':
-		return 0, negate(wordSet)
+		return 0, wordSet.negate()
 	case 's':
 		return 0, spaceSet
 	case 'S':
-		return 0, negate(spaceSet)
+		return 0, spaceSet.negate()
 	case 'n':
 		return '\n', nil
 	case 'r':
@@ -265,46 +278,50 @@ func (p *parser) classEscape(inClass bool) (rune, []rng) {
 		return '\f', nil
 	case 'v':
 		return '\v', nil
-	case '0':
-		return 0, nil
 	case 'b':
 		if inClass {
 			return '\b', nil
 		}
+	case '0':
+		return 0, nil
 	case 'x':
-		if r, ok := p.hexDigits(2); ok {
+		if r, ok := p.hex(2); ok {
 			return r, nil
 		}
+		return 'x', nil
 	case 'u':
-		if r, ok := p.hexDigits(4); ok {
-			if r >= 0xD800 && r < 0xDC00 && p.pos+1 < len(p.src) && p.src[p.pos] == '\\' && p.src[p.pos+1] == 'u' {
-				save := p.pos
-				p.pos += 2
-				if lo, ok := p.hexDigits(4); ok && lo >= 0xDC00 && lo < 0xE000 {
-					return 0x10000 + (r-0xD800)<<10 + (lo - 0xDC00), nil
-				}
-				p.pos = save
-			}
-			return r, nil
+		r, ok := p.hex(4)
+		if !ok {
+			return 'u', nil
 		}
+		if r >= 0xD800 && r < 0xDC00 && p.pos+1 < len(p.src) && p.src[p.pos] == '\\' && p.src[p.pos+1] == 'u' {
+			save := p.pos
+			p.pos += 2
+			if r2, ok := p.hex(4); ok && r2 >= 0xDC00 && r2 < 0xE000 {
+				return 0x10000 + (r-0xD800)<<10 + (r2 - 0xDC00), nil
+			}
+			p.pos = save
+		}
+		return r, nil
 	case 'c':
 		if p.more() {
 			l := p.peek()
-			if (l >= 'a' && l <= 'z') || (l >= 'A' && l <= 'Z') {
+			if l >= 'a' && l <= 'z' || l >= 'A' && l <= 'Z' {
 				p.pos++
 				return l % 32, nil
 			}
 		}
-		// Annex B: "\c" not followed by a letter is a literal backslash,
-		// and the 'c' is read again as an ordinary character.
-		p.pos--
+		p.pos-- // "\c" not followed by a letter: a literal backslash
 		return '\\', nil
 	}
-	// Identity escape (including unknown alphanumeric escapes).
+	if c >= '1' && c <= '9' {
+		p.fail("backreferences are not supported")
+	}
+	// Identity escape: '\.' etc. mean the character itself.
 	return c, nil
 }
 
-func (p *parser) hexDigits(n int) (rune, bool) {
+func (p *parser) hex(n int) (rune, bool) {
 	if p.pos+n > len(p.src) {
 		return 0, false
 	}
@@ -328,11 +345,10 @@ func (p *parser) hexDigits(n int) (rune, bool) {
 	return r, true
 }
 
-// class parses a character class; the '[' is already consumed.
+// class parses a character class (the '[' has been read).
 func (p *parser) class() *node {
-	n := &node{kind: nClass}
-	n.neg = p.eat('^')
-	var rs []rng
+	negated := p.eat('^')
+	set := &charset{}
 	for {
 		if !p.more() {
 			p.fail("missing ']'")
@@ -341,82 +357,46 @@ func (p *parser) class() *node {
 			break
 		}
 		lo, loSet := p.classAtom()
-		if loSet == nil && p.more() && p.peek() == '-' && p.pos+1 < len(p.src) && p.src[p.pos+1] != ']' {
+		if loSet != nil {
+			set.addSet(loSet)
+			continue
+		}
+		// A range "lo-hi" needs a '-' that is not the last character.
+		if p.pos+1 < len(p.src) && p.peek() == '-' && p.src[p.pos+1] != ']' {
 			save := p.pos
-			p.pos++ // '-'
+			p.pos++
 			hi, hiSet := p.classAtom()
-			if hiSet == nil {
-				if hi < lo {
-					p.fail("range out of order in character class")
-				}
-				rs = append(rs, rng{lo, hi})
+			if hiSet != nil {
+				// "[a-\d]": the '-' is literal.
+				set.add(lo, lo)
+				set.add('-', '-')
+				set.addSet(hiSet)
 				continue
 			}
-			// "a-\d": the hyphen is literal.
-			p.pos = save
+			_ = save
+			if hi < lo {
+				p.fail("range out of order in character class")
+			}
+			set.add(lo, hi)
+			continue
 		}
-		if loSet != nil {
-			rs = append(rs, loSet...)
-		} else {
-			rs = append(rs, rng{lo, lo})
-		}
+		set.add(lo, lo)
 	}
-	n.ranges = normalize(rs)
-	return n
+	set.normalize()
+	if negated {
+		set = set.negate()
+	}
+	return &node{kind: nSet, set: set}
 }
 
-func (p *parser) classAtom() (rune, []rng) {
-	c := p.src[p.pos]
+func (p *parser) classAtom() (rune, *charset) {
+	c := p.peek()
 	p.pos++
 	if c == '\\' {
-		return p.classEscape(true)
+		if !p.more() {
+			p.fail("trailing backslash")
+		}
+		return p.escapeAtom(true)
 	}
 	return c, nil
 }
-
-// normalize sorts and merges overlapping or adjacent ranges.
-func normalize(rs []rng) []rng {
-	if len(rs) < 2 {
-		return rs
-	}
-	sorted := append([]rng(nil), rs...)
-	sort.Slice(sorted, func(i, j int) bool { return sorted[i].lo < sorted[j].lo })
-	out := sorted[:1]
-	for _, r := range sorted[1:] {
-		last := &out[len(out)-1]
-		if r.lo <= last.hi+1 {
-			if r.hi > last.hi {
-				last.hi = r.hi
-			}
-			continue
-		}
-		out = append(out, r)
-	}
-	return out
-}
-
-// negate returns the complement of a normalized range set.
-func negate(rs []rng) []rng {
-	var out []rng
-	next := rune(0)
-	for _, r := range rs {
-		if r.lo > next {
-			out = append(out, rng{next, r.lo - 1})
-		}
-		next = r.hi + 1
-	}
-	if next <= maxRune {
-		out = append(out, rng{next, maxRune})
-	}
-	return out
-}
-
-var (
-	digitSet = []rng{{'0', '9'}}
-	wordSet  = []rng{{'0', '9'}, {'A', 'Z'}, {'_', '_'}, {'a', 'z'}}
-	spaceSet = []rng{
-		{0x09, 0x0D}, {0x20, 0x20}, {0xA0, 0xA0}, {0x1680, 0x1680},
-		{0x2000, 0x200A}, {0x2028, 0x2029}, {0x202F, 0x202F},
-		{0x205F, 0x205F}, {0x3000, 0x3000}, {0xFEFF, 0xFEFF},
-	}
-)

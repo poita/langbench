@@ -1,59 +1,66 @@
 # datalog
 
-A Datalog engine with stratified negation, written in Go using only the
-standard library. It reads a program (facts, rules and queries), checks that it
-is safe and stratifiable, computes its perfect model with semi-naive bottom-up
-evaluation, and answers the queries.
+A small Datalog engine in Go with **stratified negation**, integer and symbol
+constants, and comparison built-ins. It is a reusable library plus a thin
+command-line tool, and uses only the Go standard library.
 
-## Features
-
-- Facts, rules, `not` atoms, and the comparisons `< <= > >= = !=`
-  over a total order of constants (integers numerically, then identifiers
-  bytewise).
-- Safety and stratification checks (`ErrUnsafe`, `ErrNotStratifiable`).
-- Semi-naive evaluation per strongly connected component, with non-linear
-  recursion, interned integer constants, a hash set per relation and lazily
-  built hash indexes extended incrementally.
+Evaluation is bottom-up and **semi-naive**: the predicate dependency graph is
+split into strongly connected components (Tarjan), which are evaluated in
+dependency order. Each recursive component runs to a fixpoint in rounds, where
+every rule gets one variant per recursive body atom that reads that atom from
+the previous round's new tuples. Relations are flat tuple stores with hash
+sets for deduplication and incrementally maintained hash indexes, one per
+access pattern; rules are compiled to indexed nested-loop join plans (delta
+atom first, then the atom with the most bound arguments).
 
 ## Build
 
-```sh
-./build.sh        # produces bin/datalog (go build ./cmd/datalog)
-go test ./...     # unit tests
+Requires Go 1.27 or newer.
+
+```
+./build.sh            # writes bin/datalog
+go test ./...         # runs the test suite
 ```
 
-Requires Go 1.27 or newer; there are no dependencies.
+`run.sh` runs the built binary (`./run.sh < program.dl`).
 
-## Command-line use
+## Command line
 
-`datalog` reads one program on standard input and writes the answers to
-standard output (`run.sh` is a thin wrapper around the binary):
+```
+datalog < program.dl
+```
 
-```sh
-$ cat prog.dl
+The whole of standard input is one program of facts, rules and queries:
+
+```
 edge(1, 2). edge(2, 3). edge(3, 1). edge(3, 4).
 path(X, Y) :- edge(X, Y).
 path(X, Z) :- edge(X, Y), path(Y, Z).
-?- path(4, X).
-?- path(X, X).
-$ ./run.sh < prog.dl
--- 0
-path(1, 1)
-path(2, 2)
-path(3, 3)
--- 3
+unreachable(X) :- node(X), not path(1, X).     % negation
+?- path(1, X).
 ```
 
-For each query the matching tuples are printed in ascending order, one
-`pred(v1, v2, ...)` per line, followed by `-- N` with the count. Queries are
-answered in program order after the whole program has been evaluated.
+For each query the tool prints the matching tuples, one per line in ascending
+order, followed by `-- N` with their count. Queries are answered in input
+order after the whole program has been evaluated.
 
-If a rule is unsafe (a head, negated or comparison variable does not occur in a
-positive body atom) or the program is not stratifiable (a dependency cycle
-contains a negation), the only output is `error`, with exit status 0. Malformed
-input is reported on standard error with exit status 2.
+If a rule is *unsafe* (a variable in the head, a negated atom or a comparison
+that does not occur in a positive body atom) or the program is not
+*stratifiable* (negation on a recursive cycle), the only output is `error`.
+Both exit with status 0; the reason is written to standard error. A syntax
+error is reported on standard error with exit status 1.
 
-## Library use
+### Language
+
+* Constants are integers (`-12`, `0`) or identifiers (`alice`, `n_1`);
+  variables start with an upper-case letter; `_` is an anonymous variable.
+* A predicate is identified by name *and* arity.
+* Body literals: `p(...)`, `not p(...)`, and comparisons `= != < <= > >=`.
+  Integers sort before identifiers; integers compare numerically, identifiers
+  bytewise. Comparisons never bind variables.
+* `%` starts a comment to end of line. Queries are written `?- p(X, a).`
+
+## Library
 
 ```go
 package main
@@ -62,43 +69,45 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/example/datalog"
+	"example.com/datalog"
 )
 
 func main() {
-	prog, err := datalog.Parse([]byte(`
+	prog, err := datalog.Parse(`
 		parent(tom, bob). parent(bob, ann).
 		anc(X, Y) :- parent(X, Y).
-		anc(X, Z) :- parent(X, Y), anc(Y, Z).
-		?- anc(tom, X).`))
-	if err != nil {
-		panic(err) // *datalog.SyntaxError
-	}
-	model, err := datalog.Evaluate(prog) // datalog.ErrUnsafe / ErrNotStratifiable
+		anc(X, Z) :- parent(X, Y), anc(Y, Z).`)
 	if err != nil {
 		panic(err)
 	}
-
-	// Programmatic access ...
-	for _, t := range model.Relation("anc", 2) {
-		fmt.Println(t[0], "is an ancestor of", t[1])
+	model, err := datalog.Evaluate(prog) // safety + stratification checks
+	if err != nil {
+		panic(err) // *datalog.UnsafeError or *datalog.NotStratifiableError
 	}
-	// ... or the textual output of the CLI.
-	model.WriteAnswers(os.Stdout)
+	query, _ := datalog.Parse("?- anc(tom, X).")
+	for _, t := range model.Query(query.Queries[0]) {
+		fmt.Println(t.Format("anc")) // anc(tom, ann), anc(tom, bob)
+	}
+
+	// Or do everything for a source text, in the CLI's output format:
+	results, _ := datalog.Run("p(1). ?- p(X).")
+	datalog.WriteResults(os.Stdout, results)
 }
 ```
 
-`datalog.Solve(src, w)` / `SolveString` do parse + evaluate + `WriteAnswers` in
-one call.
+### Packages
 
-## Layout
+| package                    | responsibility                                              |
+|----------------------------|-------------------------------------------------------------|
+| `example.com/datalog`      | public API: `Parse`, `Evaluate`, `Model.Query`, `Run`       |
+| `.../ast`                  | constants and their total order, terms, atoms, rules        |
+| `.../parser`               | lexer and recursive-descent parser                          |
+| `.../analysis`             | safety check, dependency graph, SCCs / stratification       |
+| `.../engine`               | relations, indexes, join planning, semi-naive evaluation    |
+| `.../cmd/datalog`          | the command-line tool                                       |
 
-| file | responsibility |
-|------|----------------|
-| `lexer.go`, `parser.go`, `ast.go` | tokens, parser, program representation; constants are renumbered so id order is the constant order |
-| `check.go` | safety, dependency graph, Tarjan SCCs, stratification |
-| `relation.go` | append-only tuple store, hash set, incremental hash indexes |
-| `plan.go` | compiles a rule into a join plan (delta atom first, then most-bound atom; filters attached as early as possible) |
-| `eval.go` | per-component evaluation; semi-naive rounds with round-start snapshots |
-| `query.go` | query matching, sorting, output formatting, `Solve` |
-| `cmd/datalog` | the command-line tool |
+## Tests
+
+`go test ./...` runs unit tests for each package, golden tests
+(`testdata/*.in` / `.out`), a CLI test, and a randomized cross-check of the
+engine against a naive evaluator.

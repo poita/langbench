@@ -5,7 +5,7 @@ import (
 	"example.com/jsonschema/regex"
 )
 
-// Bits of node.typeMask.
+// Bits of node.types, one per type name accepted by the "type" keyword.
 const (
 	tNull uint8 = 1 << iota
 	tBoolean
@@ -14,26 +14,78 @@ const (
 	tNumber
 	tString
 	tInteger
-
-	// tNone marks a type keyword that names no known type: nothing matches.
-	tNone uint8 = 0x80
 )
 
-// count is an optional non-negative integer keyword value.
-type count struct {
-	set bool
-	v   int64
+// node is a compiled schema object (or boolean schema). All keyword values are
+// decoded once at compile time; nodes are immutable afterwards, so a compiled
+// Schema can be used from many goroutines at once.
+type node struct {
+	isBool  bool // boolean schema; boolVal is its verdict
+	boolVal bool
+
+	base int32 // base URI id, used for the dynamic scope
+
+	// Any type.
+	types    uint8 // 0: no "type" keyword
+	hasEnum  bool
+	enum     []jsonvalue.Value
+	hasConst bool
+	constVal jsonvalue.Value
+
+	// Numbers.
+	multipleOf *jsonvalue.Number
+	maximum    *jsonvalue.Number
+	minimum    *jsonvalue.Number
+	exMaximum  *jsonvalue.Number
+	exMinimum  *jsonvalue.Number
+
+	// Strings; length bounds are -1 when absent.
+	maxLength int
+	minLength int
+	pattern   *regex.Regexp
+
+	// Arrays.
+	maxItems    int
+	minItems    int
+	uniqueItems bool
+	prefixItems []*node
+	items       *node
+	contains    *node
+	minContains int // default 1
+	maxContains int // -1 when absent
+
+	// Objects.
+	maxProperties int
+	minProperties int
+	required      []string
+	depRequired   []depRequired
+	props         map[string]*node
+	propList      []namedNode
+	patProps      []patternProp
+	additional    *node
+	propertyNames *node
+	depSchemas    []namedNode
+
+	// In-place applicators.
+	allOf, anyOf, oneOf []*node
+	not                 *node
+	ifNode              *node
+	thenNode, elseNode  *node
+	unevalItems         *node
+	unevalProps         *node
+
+	ref    *ref
+	dynRef *ref
 }
 
-// pattern is a compiled regular expression, or the error that prevented it.
-type pattern struct {
-	re  *regex.Regexp
-	err error
+type namedNode struct {
+	name string
+	node *node
 }
 
 type patternProp struct {
-	pat   *pattern
-	child *node
+	re   *regex.Regexp
+	node *node
 }
 
 type depRequired struct {
@@ -41,61 +93,16 @@ type depRequired struct {
 	names []string
 }
 
-type depSchema struct {
-	name  string
-	child *node
+// ref is a compiled $ref or $dynamicRef.
+type ref struct {
+	text    string // the reference as written, for diagnostics
+	target  *node  // static target; nil if it could not be resolved
+	err     string // why it could not be resolved
+	dynamic bool   // $dynamicRef whose fragment names a dynamic anchor
+	name    string // the anchor name when dynamic
 }
 
-// node is one compiled schema (a boolean or an object). It records only the
-// keywords that are present, already decoded into evaluation-ready form.
-type node struct {
-	isBool  bool
-	boolVal bool
-	base    int // interned base URI
-
-	typeMask uint8
-	enum     []jsonvalue.Value
-	hasEnum  bool
-	constVal *jsonvalue.Value
-
-	multipleOf, maximum, minimum, exclusiveMax, exclusiveMin *jsonvalue.Number
-
-	maxLength, minLength         count
-	maxItems, minItems           count
-	maxProperties, minProperties count
-	maxContains, minContains     count
-	pattern                      *pattern
-	uniqueItems                  bool
-	required                     []string
-	dependentRequired            []depRequired
-
-	prefixItems []*node
-	items       *node
-	contains    *node
-
-	properties           map[string]*node
-	patternProperties    []patternProp
-	additionalProperties *node
-	propertyNames        *node
-	dependentSchemas     []depSchema
-
-	allOf, anyOf, oneOf []*node
-	not                 *node
-	ifNode              *node
-	thenNode, elseNode  *node
-
-	unevaluatedItems      *node
-	unevaluatedProperties *node
-	hasUneval             bool
-
-	// References, filled in by the resolution pass.
-	hasRef    bool
-	ref       *node
-	refStr    string
-	refErr    error
-	hasDynRef bool
-	dynRef    *node
-	dynRefStr string
-	dynRefErr error
-	dynName   int // interned anchor name when the $dynamicRef is dynamic, else -1
-}
+var (
+	trueNode  = &node{isBool: true, boolVal: true}
+	falseNode = &node{isBool: true, boolVal: false}
+)

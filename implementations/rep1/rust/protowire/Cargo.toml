@@ -1,0 +1,18 @@
+[package]
+name = "protowire"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "A schema-driven Protocol Buffers wire-format codec with a canonical text form"
+license = "MIT"
+readme = "README.md"
+keywords = ["protobuf", "wire-format", "codec"]
+categories = ["encoding", "command-line-utilities"]
+
+[lib]
+name = "protowire"
+path = "src/lib.rs"
+
+[[bin]]
+name = "protowire"
+path = "src/main.rs"

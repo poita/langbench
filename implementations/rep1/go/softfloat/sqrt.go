@@ -1,49 +1,50 @@
 package softfloat
 
-import "math/bits"
-
-// sqrtShift is the (even) number of bits the radicand is scaled left by so
-// that the integer root has at least 30 significant bits.
-const sqrtShift = 36
-
-// Sqrt returns the square root of a. The square root of a negative number
-// (including -infinity) is NaN; sqrt(-0) = -0.
+// Sqrt returns the square root of a.
 func Sqrt(a uint32) uint32 {
 	switch {
 	case IsNaN(a):
 		return QNaN
 	case IsZero(a):
-		return a
+		return a // sqrt(+-0) = +-0
 	case a&signMask != 0:
-		return QNaN
+		return QNaN // negative, including -inf
 	case IsInf(a):
 		return a
 	}
-	m, e := unpackNorm(a)
-	if e&1 != 0 { // make the exponent even
-		m <<= 1
-		e--
+
+	m, e := unpack(a).normalize()
+	// value = m * 2^(e-23). Scale the integer m so that the remaining
+	// exponent t is even and M = m<<n is below 2^63.
+	t := e - 23 - 38
+	n := uint(38)
+	if t&1 != 0 {
+		t--
+		n++
 	}
-	n := m << sqrtShift // < 2^61
-	e -= sqrtShift
-	root, rem := isqrt(n)
-	return roundPack(0, root, e/2, rem != 0)
+	root, rem := isqrt(uint64(m) << n)
+	// sqrt(value) = (root + frac) * 2^(t/2) = sig * 2^(t/2-1).
+	sig := root << 1
+	if rem != 0 {
+		sig |= 1 // sticky
+	}
+	return roundPack(false, t/2-1, sig)
 }
 
-// isqrt returns floor(sqrt(n)) and n - floor(sqrt(n))^2 using the classic
-// digit-by-digit (restoring) method.
-func isqrt(n uint64) (root, rem uint64) {
-	if n == 0 {
-		return 0, 0
+// isqrt returns floor(sqrt(x)) and x - floor(sqrt(x))^2 using the restoring
+// digit-by-digit method: one result bit per step, at most 32 steps.
+func isqrt(x uint64) (root, rem uint64) {
+	bit := uint64(1) << 62
+	for bit > x {
+		bit >>= 2
 	}
-	bit := uint64(1) << uint((bits.Len64(n)-1)&^1) // highest power of 4 <= n
 	for ; bit != 0; bit >>= 2 {
-		if n >= root+bit {
-			n -= root + bit
+		if x >= root+bit {
+			x -= root + bit
 			root = root>>1 + bit
 		} else {
 			root >>= 1
 		}
 	}
-	return root, n
+	return root, x
 }

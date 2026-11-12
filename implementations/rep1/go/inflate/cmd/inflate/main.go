@@ -1,15 +1,12 @@
-// Command inflate reads a hex-encoded raw DEFLATE stream on standard input
-// and writes the decompressed bytes as hex on standard output, or the word
-// "error" if the stream is malformed.
-//
-// Usage:
-//
-//	echo 4b4c4a862000 | inflate
+// Command inflate reads a hex-encoded raw DEFLATE stream on stdin and writes
+// the decompressed bytes as hex on stdout, or the word "error" if the stream
+// is malformed. It always exits with status 0 unless I/O itself fails.
 package main
 
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"os"
 
@@ -18,39 +15,30 @@ import (
 
 func main() {
 	if err := run(os.Stdin, os.Stdout); err != nil {
-		os.Stderr.WriteString("inflate: " + err.Error() + "\n")
+		fmt.Fprintln(os.Stderr, "inflate:", err)
 		os.Exit(1)
 	}
 }
 
-// run implements the command: it reads all of in, decodes it and writes
-// exactly one line to out. Malformed streams are reported as "error" on out
-// and are not a failure of run; only I/O problems are returned.
+// run implements the command: stdin hex -> stdout hex or "error".
 func run(in io.Reader, out io.Writer) error {
 	text, err := io.ReadAll(in)
 	if err != nil {
 		return err
 	}
-	text = bytes.TrimSpace(text)
-
-	// Bad hex is outside the input contract; treat it as a malformed stream.
-	src := make([]byte, len(text)/2)
-	if _, herr := hex.Decode(src, text); herr != nil {
-		return writeAll(out, []byte("error\n"))
+	src := make([]byte, hex.DecodedLen(len(bytes.TrimSpace(text))))
+	if _, err := hex.Decode(src, bytes.TrimSpace(text)); err != nil {
+		_, err = io.WriteString(out, "error\n")
+		return err
 	}
-	res, derr := inflate.Decode(src)
-	if derr != nil {
-		return writeAll(out, []byte("error\n"))
+	data, err := inflate.Decode(src)
+	if err != nil {
+		_, err = io.WriteString(out, "error\n")
+		return err
 	}
-
-	// Encode into one buffer of 2*len+1 bytes and write it in one call.
-	line := make([]byte, 2*len(res)+1)
-	hex.Encode(line, res)
+	line := make([]byte, hex.EncodedLen(len(data))+1)
+	hex.Encode(line, data)
 	line[len(line)-1] = '\n'
-	return writeAll(out, line)
-}
-
-func writeAll(w io.Writer, b []byte) error {
-	_, err := w.Write(b)
+	_, err = out.Write(line)
 	return err
 }

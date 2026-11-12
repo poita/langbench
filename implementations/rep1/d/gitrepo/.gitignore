@@ -1,6 +1,8 @@
 .dub/
-/bin/
-/gitrepo-test
+/gitrepo
+/gitrepo-test-library
 *.o
 *.a
+docs/
 dub.selections.json
+/gitrepo-unittest

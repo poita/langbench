@@ -1,0 +1,16 @@
+@module main
+fn main() {
+    print(showInt(intMax() + 1));
+    print(showInt(intMin() - 1));
+    print(showInt(-7 / 2) ++ " " ++ showInt(-7 % 2));
+    print(showInt(divFloor(-7, 2)) ++ " " ++ showInt(modFloor(-7, 2)));
+    print(showInt(7 / -2) ++ " " ++ showInt(7 % -2));
+    print(showInt(intMin() / -1));
+    print(showIntRadix(255, 16) ++ " " ++ showIntRadix(-255, 2));
+    print(showInt(1 << 62) ++ " " ++ showInt(-16 >> 2));
+    print(showInt(0x0f & 0x1c) ++ " " ++ showInt(5 | 2) ++ " " ++ showInt(~0));
+    print(showInt(powI(3, 20)) ++ " " ++ showInt(gcdI(-84, 36)));
+    print(showInt(popCount(255)) ++ " " ++ showInt(clz(1)) ++ " " ++ showInt(ctz(8)));
+    print(showBool(parseInt("x") == None));
+    print(showInt(unwrapOr(parseInt("-0042"), 0)));
+}

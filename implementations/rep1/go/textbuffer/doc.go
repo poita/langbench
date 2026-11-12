@@ -3,28 +3,38 @@
 // insertion and deletion at every cursor, cursor movement with a remembered
 // goal column, and undo/redo.
 //
-// A [Buffer] holds the document and the cursors. All positions are
-// (line, column) pairs, 0-based; a column is a byte index into the line.
-// Lines are expected to contain printable ASCII only, so bytes and
-// characters coincide.
+// # Model
 //
-// # Cursors
+// A document is a sequence of one or more lines. Lines are joined by single
+// '\n' characters and the document has no trailing newline; an empty document
+// is one empty line. A [Position] is a zero-based (line, column) pair, where
+// the column is a byte index into the line. The package is intended for text
+// without tabs or multi-byte characters, so a column is also a character
+// index.
 //
-// Cursors are kept in cursor order (ascending range start). After every
-// mutating operation colliding cursors are merged, so the starts of the
-// cursors of a buffer are always distinct. Exactly one cursor is primary.
+// A [Cursor] has a head, an optional anchor (present when [Cursor.Selected]
+// is true), a primary flag and a goal column. A [Buffer] always holds at
+// least one cursor, exactly one of which is primary. Cursors are kept in
+// "cursor order" (ascending range start); cursors whose ranges collide are
+// merged after every command.
 //
-// # Editing and history
+// # Editing
 //
-// [Buffer.Insert], [Buffer.Delete] and [Buffer.DeleteForward] edit at every
-// cursor. Each one that changes the document is a single undo step, however
-// many cursors took part; [Buffer.Undo] and [Buffer.Redo] walk those steps.
+// [Buffer.Insert], [Buffer.Delete] and [Buffer.DeleteForward] apply one
+// replacement per cursor, in cursor order, and record a single undo entry
+// for the whole command. Each replacement costs O(ℓ+m) within a line (ℓ the
+// line length, m the text length), plus O(L) when lines are added or
+// removed. Cursors are mapped through the composed shift of the earlier
+// replacements in O(1) each, so a command costs O(C) cursor work for C
+// cursors. Undo entries store replacements and cursor sets, never copies of
+// the document.
 //
-// # Internals
+// # Example
 //
-// The document is a gap buffer of mutable line buffers (see lineStore), so a
-// multi-cursor edit that adds or removes lines moves each line slot at most
-// once. Multi-cursor edits map not-yet-processed cursors into the edited
-// document with a composed shift (see shift), making them linear in the
-// number of cursors.
+//	b := textbuffer.New("alpha\nbeta")
+//	b.AddCursor(1, 0)
+//	b.Insert("- ")
+//	fmt.Println(b.Text()) // "- alpha\n- beta"
+//	b.Undo()
+//	fmt.Println(b.Text()) // "alpha\nbeta"
 package textbuffer

@@ -1,69 +1,44 @@
 /**
  * A Datalog engine with stratified negation.
  *
- * The library parses a Datalog program, rejects unsafe or unstratifiable ones,
- * computes the perfect model by semi-naive bottom-up evaluation over interned
- * integer constants, and answers queries against the model.
- *
- * Modules:
- * $(UL
- *   $(LI `datalog.lexer`    – tokeniser)
- *   $(LI `datalog.ast`      – program representation and constant ordering)
- *   $(LI `datalog.parser`   – `parseProgram`)
- *   $(LI `datalog.analysis` – safety check and stratification)
- *   $(LI `datalog.relation` – tuple storage, hash set and hash indexes)
- *   $(LI `datalog.plan`     – join-plan compilation)
- *   $(LI `datalog.eval`     – `evaluate`, the semi-naive fixpoint, and `Model`)
- *   $(LI `datalog.query`    – `answer` and `renderAnswer`)
- * )
+ * The library parses a Datalog program, checks that it is safe and
+ * stratifiable, computes its perfect model by semi-naive bottom-up evaluation
+ * and answers queries.
  *
  * Example:
  * ---
  * import datalog;
  *
- * auto output = runProgram("edge(1,2). edge(2,3).\n"
- *     ~ "path(X,Y) :- edge(X,Y). path(X,Z) :- edge(X,Y), path(Y,Z).\n"
- *     ~ "?- path(1, X).");
- * assert(output == "path(1, 2)\npath(1, 3)\n-- 2\n");
+ * auto program = parseProgram(`
+ *     edge(1, 2). edge(2, 3).
+ *     path(X, Y) :- edge(X, Y).
+ *     path(X, Z) :- edge(X, Y), path(Y, Z).
+ *     ?- path(1, X).
+ * `);
+ * auto model = new Model(program);
+ * auto answer = model.answer(program.queries[0]);  // [[path-tuples as Constants]]
  * ---
+ *
+ * Or, to get the textual output of the command-line tool:
+ * ---
+ * string output = solve("edge(1, 2). ?- edge(X, Y).");
+ * ---
+ *
+ * Modules:
+ *  - `datalog.lexer`, `datalog.parser`: text to `datalog.ast.Program`
+ *  - `datalog.symbols`: constants, their total order, interning
+ *  - `datalog.analysis`: safety check and stratification
+ *  - `datalog.relation`: tuple storage with incremental hash indexes
+ *  - `datalog.plan`, `datalog.exec`: join plans and their execution
+ *  - `datalog.engine`: `Model`, the evaluator
+ *  - `datalog.driver`: program text in, query output text out
  */
 module datalog;
 
 public import datalog.analysis;
 public import datalog.ast;
+public import datalog.driver;
+public import datalog.engine;
 public import datalog.errors;
-public import datalog.eval;
-public import datalog.lexer;
 public import datalog.parser;
-public import datalog.plan : Plan, compilePlan;
-public import datalog.query;
-public import datalog.relation : Relation, Index, Value;
-
-/// Output printed for programs that are unsafe or not stratifiable.
-enum string errorOutput = "error\n";
-
-/**
- * Parse, check and evaluate `source`, then answer its queries.
- *
- * Returns the text the command-line tool prints: the answers to every query in
- * order, or `"error\n"` if the program is unsafe or not stratifiable.
- * Throws `ParseException` if `source` is not well formed.
- */
-string runProgram(string source) @safe
-{
-    import std.array : appender;
-
-    auto program = parseProgram(source);
-    Model model;
-    try
-        model = evaluate(program);
-    catch (UnsafeRuleException)
-        return errorOutput;
-    catch (StratificationException)
-        return errorOutput;
-
-    auto output = appender!string;
-    foreach (ref q; program.queries)
-        renderAnswer(model, q, output);
-    return output.data;
-}
+public import datalog.symbols;

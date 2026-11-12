@@ -1,99 +1,45 @@
-// Package svgraster renders a subset of SVG 1.1 to RGB images with
-// anti-aliasing, and encodes them as binary PPM.
+// Package svgraster renders a subset of SVG 1.1 to bitmap images.
 //
-// The renderer is written from scratch on top of the standard library only.
-// Its parts live in sub-packages: xmlmini (XML reading), svgparse (values),
-// svgpath (paths, arcs, flattening), stroke (stroke outlines), raster
-// (canvas, scan conversion, PPM) and render (the tree walk). This package
-// ties them together behind a small API.
+// It is a from-scratch rasteriser using only the Go standard library: a small
+// XML reader, path and shape handling, stroke outlining, an anti-aliasing
+// active-edge scanline filler and alpha compositing. The supported subset is
+// described in the README.
 //
-//	img, err := svgraster.Render(svgBytes, 256, 256)
+// The simplest use is Render, which turns SVG source into an image:
+//
+//	img, err := svgraster.Render(svgBytes, 128, 128)
 //	if err != nil { ... }
-//	os.WriteFile("out.ppm", img.PPM(), 0o644)
+//	err = img.WritePPM(w)
+//
+// The building blocks live in sub-packages: xmlmini (XML), svgparse (values),
+// path (path data and flattening), stroke (outlines), raster (scan
+// conversion and compositing) and render (the tree walk).
 package svgraster
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"svgraster/raster"
 	"svgraster/render"
 	"svgraster/xmlmini"
 )
 
-// Image is an opaque 8-bit RGB image.
-type Image struct {
-	Width, Height int
-	Pix           []byte // Width*Height*3 bytes, rows top to bottom
-}
+// MaxSize is the largest image dimension Render accepts.
+const MaxSize = 4096
 
-// PPM encodes the image as a binary P6 file.
-func (im *Image) PPM() []byte { return raster.EncodePPM(im.Width, im.Height, im.Pix) }
+// Image is an opaque 8-bit RGB image; see raster.Image.
+type Image = raster.Image
 
-// Renderer renders many documents while reusing scratch memory. It is not
-// safe for concurrent use.
-type Renderer struct{ r *render.Renderer }
-
-// NewRenderer returns a ready Renderer.
-func NewRenderer() *Renderer { return &Renderer{r: render.New()} }
-
-// Render parses svg and renders it at width x height pixels over a white
-// background. The view box (or width/height) is stretched to fill the image.
-func (rr *Renderer) Render(svg []byte, width, height int) (*Image, error) {
-	if width < 1 || height < 1 {
-		return nil, fmt.Errorf("svgraster: invalid size %dx%d", width, height)
+// Render rasterises the SVG document in src into a width x height image,
+// composited over an opaque white background. The document's view box is
+// stretched to fill the image.
+func Render(src []byte, width, height int) (*Image, error) {
+	if width < 1 || height < 1 || width > MaxSize || height > MaxSize {
+		return nil, fmt.Errorf("svgraster: invalid size %dx%d (each side must be 1..%d)", width, height, MaxSize)
 	}
-	root, err := xmlmini.Parse(svg)
+	root, err := xmlmini.Parse(src)
 	if err != nil {
 		return nil, err
 	}
-	canvas, err := rr.r.Render(root, width, height)
-	if err != nil {
-		return nil, err
-	}
-	return &Image{Width: width, Height: height, Pix: canvas.RGB()}, nil
-}
-
-// Render is a convenience wrapper that renders one document with a fresh
-// Renderer.
-func Render(svg []byte, width, height int) (*Image, error) {
-	return NewRenderer().Render(svg, width, height)
-}
-
-// Job is one line of a render list: render the SVG file Name at the given
-// size into Output.
-type Job struct {
-	Name          string // input file name, ends in ".svg"
-	Width, Height int
-	Output        string // output file name: Name without ".svg", plus ".ppm"
-}
-
-// ParseJobs parses the text of a render.txt file. Blank lines and lines whose
-// first non-space character is '#' are ignored; every other line must be
-// "NAME WIDTH HEIGHT".
-func ParseJobs(text string) ([]Job, error) {
-	var jobs []Job
-	for n, line := range strings.Split(text, "\n") {
-		line = strings.TrimSuffix(line, "\r")
-		t := strings.TrimSpace(line)
-		if t == "" || t[0] == '#' {
-			continue
-		}
-		f := strings.Fields(t)
-		if len(f) != 3 {
-			return nil, fmt.Errorf("line %d: expected NAME WIDTH HEIGHT", n+1)
-		}
-		w, err1 := strconv.Atoi(f[1])
-		h, err2 := strconv.Atoi(f[2])
-		if err1 != nil || err2 != nil || w < 1 || h < 1 || w > 4096 || h > 4096 {
-			return nil, fmt.Errorf("line %d: bad size %q %q", n+1, f[1], f[2])
-		}
-		name := f[0]
-		if strings.ContainsAny(name, "/\\") || !strings.HasSuffix(name, ".svg") {
-			return nil, fmt.Errorf("line %d: bad file name %q", n+1, name)
-		}
-		jobs = append(jobs, Job{Name: name, Width: w, Height: h, Output: strings.TrimSuffix(name, ".svg") + ".ppm"})
-	}
-	return jobs, nil
+	return render.Render(root, width, height).ToImage(), nil
 }

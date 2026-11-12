@@ -1,0 +1,18 @@
+[package]
+name = "commonmark"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "A small CommonMark (subset) to HTML converter modelled on cmark 0.31.2"
+license = "MIT"
+readme = "README.md"
+keywords = ["markdown", "commonmark", "html"]
+categories = ["text-processing", "command-line-utilities"]
+
+[lib]
+name = "commonmark"
+path = "src/lib.rs"
+
+[[bin]]
+name = "commonmark"
+path = "src/main.rs"

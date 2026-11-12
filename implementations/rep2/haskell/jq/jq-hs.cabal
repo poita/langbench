@@ -1,0 +1,67 @@
+cabal-version:      3.0
+name:               jq-hs
+version:            0.1.0.0
+synopsis:           A small jq-subset interpreter: library and command-line tool
+description:
+  A from-scratch implementation of a subset of the @jq@ filter language
+  (semantics of jq 1.7): a JSON parser and serializer, a filter parser and a
+  lazy, tree-walking interpreter with generator semantics. The package ships
+  a reusable library (@Jq@) and a thin command-line tool (@jq-hs@).
+license:            BSD-3-Clause
+author:             jq-hs authors
+maintainer:         peter.alexander.au@gmail.com
+category:           Text, JSON, Language
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: GHC2021
+  default-extensions: OverloadedStrings
+  ghc-options:      -Wall -Wno-name-shadowing -Wno-unused-do-bind
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Jq
+    Jq.Value
+    Jq.Number
+    Jq.Json.Parser
+    Jq.Json.Encoder
+    Jq.Syntax
+    Jq.Lexer
+    Jq.Parser
+    Jq.Stream
+    Jq.Ops
+    Jq.Builtins
+    Jq.Eval
+  build-depends:
+    , base        >=4.18 && <5
+    , bytestring
+    , containers
+    , text
+
+executable jq-hs
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , jq-hs
+    , text
+
+test-suite jq-hs-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , hspec
+    , jq-hs
+    , QuickCheck
+    , text

@@ -1,0 +1,65 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #21 DSK-016 #23
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 EXILE #23 NEU-011 field
+14 SPENT #21 DSK-016
+15 TRIGGER A ~2 #23 1
+16 PASS A
+17 PASS B
+18 RESOLVE ~2
+19 DRAW A #1 CIN-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 49 cap 51 vault 19 hand 2 ash 1 rift 1
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 0 rift 0
+hand A 1 #22 TID-040
+hand A 2 #1 CIN-001
+field B #44 TOK-001 2/2 w0 c0 ready - kw plating:1
+field B #45 NEU-011 4/3 w0 c0 ready - kw plating:1
+field B #46 LOM-039 -/- w0 c0 ready - kw -
+field B #47 DSK-024 4/4 w0 c0 ready - kw plating:1,tenacity
+ash A 1 #21 DSK-016
+rift A 1 #23 NEU-011
+effect 1 ts5 B aura modify 1 1 on #44,#45,#47
+effect 2 ts6 B aura grant plating:1 on #44,#45,#47
+STATE END
+20 PLAY A ~3 #22 TID-040
+21 PAY A ember 8
+22 PASS A
+23 PASS B
+24 RESOLVE ~3
+25 EXILE #44 TOK-001 field
+26 EXILE #45 NEU-011 field
+27 EXILE #47 DSK-024 field
+28 SPENT #22 TID-040
+29 TRIGGER B ~4 #45 1
+30 PASS A
+31 PASS B
+32 RESOLVE ~4
+33 DRAW B #24 TID-001
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 41 cap 51 vault 19 hand 1 ash 2 rift 1
+player B spire 40 ember 50 cap 50 vault 19 hand 1 ash 0 rift 3
+hand A 1 #1 CIN-001
+hand B 1 #24 TID-001
+field B #46 LOM-039 -/- w0 c0 ready - kw -
+ash A 1 #21 DSK-016
+ash A 2 #22 TID-040
+rift A 1 #23 NEU-011
+rift B 1 #44 TOK-001
+rift B 2 #45 NEU-011
+rift B 3 #47 DSK-024
+effect 1 ts5 B aura modify 1 1 on -
+effect 2 ts6 B aura grant plating:1 on -
+STATE END
+34 RESULT pending none

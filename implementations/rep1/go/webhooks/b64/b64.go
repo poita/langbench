@@ -1,9 +1,10 @@
-// Package b64 implements the Base64 dialect used by Standard Webhooks.
+// Package b64 implements standard and URL-safe Base64 from scratch.
 //
-// Encoding comes in two flavours: standard (padded, "+/") and URL-safe
-// (unpadded, "-_"). Decoding is a single lenient-but-strict routine that
-// accepts either alphabet (never mixed), requires padding, when present, to be
-// exactly what the encoder would emit, and ignores non-zero trailing bits.
+// Encoding follows RFC 4648: the standard alphabet is padded with '=', the
+// URL-safe alphabet is not. Decoding is deliberately lenient about the
+// alphabet (either one is accepted, but not both in the same string) and
+// strict about padding, which must be exactly what the encoder would emit.
+// Non-zero trailing bits in the last character are ignored.
 package b64
 
 import "errors"
@@ -16,118 +17,121 @@ const (
 // ErrInvalid is returned by Decode for any malformed input.
 var ErrInvalid = errors.New("b64: invalid base64")
 
-// Per-byte decode tables: value is the 6-bit value or -1; class is 1 for the
-// characters only in the standard alphabet ("+/"), 2 for those only in the
-// URL-safe one ("-_") and 0 for those in both.
-var (
-	value [256]int8
-	class [256]uint8
+// Character classes used while decoding.
+const (
+	clsBad  = 0xff
+	clsPlus = 0xfe // '+' or '/': standard alphabet only
+	clsDash = 0xfd // '-' or '_': URL-safe alphabet only
 )
 
-func init() {
-	for i := range value {
-		value[i] = -1
+// decodeTab maps a byte to its 6-bit value, or clsBad.
+var decodeTab = func() (t [256]byte) {
+	for i := range t {
+		t[i] = clsBad
 	}
 	for i := 0; i < 64; i++ {
-		value[stdAlphabet[i]] = int8(i)
-		value[urlAlphabet[i]] = int8(i)
+		t[stdAlphabet[i]] = byte(i)
+		t[urlAlphabet[i]] = byte(i)
 	}
-	class['+'], class['/'] = 1, 1
-	class['-'], class['_'] = 2, 2
-}
+	return
+}()
 
-func appendEncode(dst, src []byte, alphabet string, pad bool) []byte {
+func encode(src []byte, alphabet string, pad bool) string {
+	out := make([]byte, 0, (len(src)+2)/3*4)
 	i := 0
 	for ; i+3 <= len(src); i += 3 {
-		v := uint(src[i])<<16 | uint(src[i+1])<<8 | uint(src[i+2])
-		dst = append(dst, alphabet[v>>18], alphabet[v>>12&63], alphabet[v>>6&63], alphabet[v&63])
+		v := uint32(src[i])<<16 | uint32(src[i+1])<<8 | uint32(src[i+2])
+		out = append(out, alphabet[v>>18&63], alphabet[v>>12&63], alphabet[v>>6&63], alphabet[v&63])
 	}
 	switch len(src) - i {
 	case 1:
-		v := uint(src[i]) << 16
-		dst = append(dst, alphabet[v>>18], alphabet[v>>12&63])
+		v := uint32(src[i]) << 16
+		out = append(out, alphabet[v>>18&63], alphabet[v>>12&63])
 		if pad {
-			dst = append(dst, '=', '=')
+			out = append(out, '=', '=')
 		}
 	case 2:
-		v := uint(src[i])<<16 | uint(src[i+1])<<8
-		dst = append(dst, alphabet[v>>18], alphabet[v>>12&63], alphabet[v>>6&63])
+		v := uint32(src[i])<<16 | uint32(src[i+1])<<8
+		out = append(out, alphabet[v>>18&63], alphabet[v>>12&63], alphabet[v>>6&63])
 		if pad {
-			dst = append(dst, '=')
+			out = append(out, '=')
 		}
 	}
-	return dst
+	return string(out)
 }
 
-// AppendEncode appends the padded standard Base64 encoding of src to dst.
-func AppendEncode(dst, src []byte) []byte { return appendEncode(dst, src, stdAlphabet, true) }
-
-// AppendEncodeURL appends the unpadded URL-safe Base64 encoding of src to dst.
-func AppendEncodeURL(dst, src []byte) []byte { return appendEncode(dst, src, urlAlphabet, false) }
-
-// Encode returns the padded standard Base64 encoding of src.
-func Encode(src []byte) string {
-	return string(AppendEncode(make([]byte, 0, (len(src)+2)/3*4), src))
-}
+// EncodeStd returns the padded standard Base64 encoding of src.
+func EncodeStd(src []byte) string { return encode(src, stdAlphabet, true) }
 
 // EncodeURL returns the unpadded URL-safe Base64 encoding of src.
-func EncodeURL(src []byte) string {
-	return string(AppendEncodeURL(make([]byte, 0, (len(src)+2)/3*4), src))
-}
+func EncodeURL(src []byte) string { return encode(src, urlAlphabet, false) }
 
-// AppendDecode decodes s and appends the bytes to dst. On error dst is
-// returned unchanged along with ErrInvalid.
-func AppendDecode(dst []byte, s string) ([]byte, error) {
-	n := len(s)
-	pad := 0
-	for pad < n && s[n-1-pad] == '=' {
-		pad++
+// Decode decodes s, which may use either alphabet (but not both) and may
+// carry the canonical amount of '=' padding. The empty string decodes to an
+// empty, non-nil slice. Any violation yields ErrInvalid.
+func Decode(s string) ([]byte, error) {
+	end := len(s)
+	for end > 0 && s[end-1] == '=' {
+		end--
 	}
-	if pad > 2 {
-		return dst, ErrInvalid
-	}
-	body := s[:n-pad]
-	var seen uint8
-	for i := 0; i < len(body); i++ {
-		c := body[i]
-		if value[c] < 0 {
-			return dst, ErrInvalid
+	pad := len(s) - end
+	body := s[:end]
+	n := len(body)
+
+	var sawPlus, sawDash bool
+	for i := 0; i < n; i++ {
+		switch c := body[i]; c {
+		case '+', '/':
+			sawPlus = true
+		case '-', '_':
+			sawDash = true
+		default:
+			if decodeTab[c] == clsBad {
+				return nil, ErrInvalid
+			}
 		}
-		seen |= class[c]
 	}
-	if seen == 3 { // both "+/" and "-_" present
-		return dst, ErrInvalid
+	if sawPlus && sawDash {
+		return nil, ErrInvalid
 	}
-	rem := len(body) % 4
+	rem := n % 4
 	if rem == 1 {
-		return dst, ErrInvalid
+		return nil, ErrInvalid
 	}
 	if pad > 0 {
-		switch {
-		case rem == 0, rem == 3 && pad != 1, rem == 2 && pad != 2:
-			return dst, ErrInvalid
+		want := 0
+		switch rem {
+		case 3:
+			want = 1
+		case 2:
+			want = 2
+		}
+		if pad != want {
+			return nil, ErrInvalid
 		}
 	}
-	var acc uint32
-	nbits := 0
-	for i := 0; i < len(body); i++ {
-		acc = acc<<6 | uint32(value[body[i]])
-		nbits += 6
-		if nbits >= 8 {
-			nbits -= 8
-			dst = append(dst, byte(acc>>uint(nbits)))
-			acc &= 1<<uint(nbits) - 1
-		}
-	}
-	return dst, nil
-}
 
-// Decode decodes s, which may use either alphabet. It returns ErrInvalid if
-// s is malformed. The empty string decodes to an empty slice.
-func Decode(s string) ([]byte, error) {
-	out, err := AppendDecode(make([]byte, 0, len(s)/4*3+3), s)
-	if err != nil {
-		return nil, err
+	out := make([]byte, 0, n*6/8)
+	var acc uint32
+	bits := 0
+	for i := 0; i < n; i++ {
+		acc = acc<<6 | uint32(sextet(body[i]))
+		bits += 6
+		if bits >= 8 {
+			bits -= 8
+			out = append(out, byte(acc>>uint(bits)))
+			acc &= 1<<uint(bits) - 1
+		}
 	}
 	return out, nil
+}
+
+func sextet(c byte) byte {
+	switch c {
+	case '+', '-':
+		return 62
+	case '/', '_':
+		return 63
+	}
+	return decodeTab[c]
 }

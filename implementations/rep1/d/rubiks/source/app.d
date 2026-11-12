@@ -1,51 +1,40 @@
 /**
- * Command-line front end: reads one scramble per line from standard input and
- * prints one solution per line to standard output.
+ * Command-line tool: reads scrambles (one per line) on standard input and
+ * prints a solution for each on standard output.
  */
 module app;
 
-import std.array : appender;
 import std.stdio : stderr, stdin, stdout;
-
 import rubiks;
 
-int main()
+/// Reads everything from standard input.
+private char[] readAll()
 {
-    // Read all of standard input.
-    auto input = appender!(ubyte[]);
-    foreach (chunk; stdin.byChunk(1 << 16))
-        input.put(chunk);
-    const(char)[] text = cast(const(char)[]) input.data;
+    import std.array : appender;
 
-    // Split on '\n'.  A final newline terminates the last line rather than
-    // starting another (empty) one.
-    const(char)[][] lines;
-    size_t start = 0;
-    foreach (i, ch; text)
-        if (ch == '\n')
-        {
-            lines ~= text[start .. i];
-            start = i + 1;
-        }
-    if (start < text.length)
-        lines ~= text[start .. $];
+    auto buf = appender!(char[]);
+    foreach (chunk; stdin.byChunk(1 << 20))
+        buf.put(cast(const(char)[]) chunk);
+    return buf[];
+}
 
-    auto solver = new Solver;
-    auto output = appender!(char[]);
-    output.reserve(lines.length * 128);
-    foreach (n, line; lines)
+int main(string[] args)
+{
+    if (args.length > 1)
     {
-        try
-        {
-            writeMoves(output, solver.solve(line));
-        }
-        catch (Exception e)
-        {
-            stderr.writefln("rubiks: line %d: %s", n + 1, e.msg);
-            return 1;
-        }
-        output.put('\n');
+        stderr.writeln("usage: rubiks < scrambles.txt > solutions.txt");
+        return args[1] == "-h" || args[1] == "--help" ? 0 : 2;
     }
-    stdout.rawWrite(output.data);
+
+    try
+    {
+        auto lines = splitLines(readAll());
+        stdout.rawWrite(solveLines(new Solver, lines));
+    }
+    catch (MoveParseException e)
+    {
+        stderr.writeln("rubiks: ", e.msg);
+        return 1;
+    }
     return 0;
 }

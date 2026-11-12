@@ -1,113 +1,101 @@
 package textbuffer
 
 import (
-	"math/rand"
 	"strings"
 	"testing"
 )
 
 func docText(d *document) string {
-	var parts []string
-	for i := 0; i < d.lineCount(); i++ {
-		parts = append(parts, string(d.line(i)))
+	ls := make([]string, len(d.lines))
+	for i, l := range d.lines {
+		ls[i] = string(l)
 	}
-	return strings.Join(parts, "\n")
+	return strings.Join(ls, "\n")
 }
 
-func docFromText(s string) *document {
-	var lines [][]byte
-	for _, l := range strings.Split(s, "\n") {
-		lines = append(lines, []byte(l))
-	}
-	return newDocument(lines)
-}
-
-func offsetOf(text string, p Position) int {
-	off := 0
-	for i := 0; i < p.Line; i++ {
-		off += strings.IndexByte(text[off:], '\n') + 1
-	}
-	return off + p.Col
-}
-
-func positionOf(text string, off int) Position {
-	line := strings.Count(text[:off], "\n")
-	return Position{line, off - (strings.LastIndexByte(text[:off], '\n') + 1)}
-}
-
-func TestSpliceRandomMatchesStringModel(t *testing.T) {
-	rng := rand.New(rand.NewSource(7))
-	const alphabet = "ab \n\n"
-	randText := func(n int) string {
-		b := make([]byte, n)
-		for i := range b {
-			b[i] = alphabet[rng.Intn(len(alphabet))]
-		}
-		return string(b)
-	}
-	model := randText(30)
-	d := docFromText(model)
-	for step := 0; step < 3000; step++ {
-		s := rng.Intn(len(model) + 1)
-		e := min(len(model), s+rng.Intn(8))
-		ins := randText(rng.Intn(6))
-		sp, ep := positionOf(model, s), positionOf(model, e)
-		if got, want := string(d.extract(sp, ep)), model[s:e]; got != want {
-			t.Fatalf("extract = %q want %q", got, want)
-		}
-		end := d.splice(sp, ep, []byte(ins))
-		model = model[:s] + ins + model[e:]
-		if got := docText(d); got != model {
-			t.Fatalf("step %d: doc %q want %q", step, got, model)
-		}
-		if want := positionOf(model, s+len(ins)); end != want {
-			t.Fatalf("step %d: end %v want %v", step, end, want)
-		}
-		if endOf(sp, []byte(ins)) != end {
-			t.Fatalf("endOf disagrees with splice")
-		}
-		if offsetOf(model, end) != s+len(ins) {
-			t.Fatalf("offset helper broken")
-		}
-	}
-}
-
-func TestSpliceBytes(t *testing.T) {
-	cases := []struct {
-		line   string
-		a, b   int
-		text   string
-		expect string
+func TestDocumentReplace(t *testing.T) {
+	tests := []struct {
+		name       string
+		start, end Position
+		text       string
+		want       string
 	}{
-		{"hello", 2, 2, "XY", "heXYllo"},
-		{"hello", 1, 4, "", "ho"},
-		{"hello", 0, 5, "world!!", "world!!"},
-		{"", 0, 0, "x", "x"},
-		{"abc", 3, 3, "d", "abcd"},
+		{"insert in line", Position{1, 2}, Position{1, 2}, "XY", "abc\nbeXYta\ngamma"},
+		{"replace in line", Position{0, 1}, Position{0, 3}, "-", "a-\nbeta\ngamma"},
+		{"delete in line", Position{2, 0}, Position{2, 5}, "", "abc\nbeta\n"},
+		{"join lines", Position{0, 3}, Position{1, 0}, "", "abcbeta\ngamma"},
+		{"join across many", Position{0, 1}, Position{2, 2}, "", "amma"},
+		{"split line", Position{1, 2}, Position{1, 2}, "\n", "abc\nbe\nta\ngamma"},
+		{"insert two lines", Position{0, 1}, Position{0, 1}, "x\ny\nz", "ax\ny\nzbc\nbeta\ngamma"},
+		{"multiline over multiline", Position{0, 2}, Position{1, 2}, "1\n2", "ab1\n2ta\ngamma"},
+		{"trailing newline", Position{2, 5}, Position{2, 5}, "\n\n", "abc\nbeta\ngamma\n\n"},
+		{"replace everything", Position{0, 0}, Position{2, 5}, "q", "q"},
 	}
-	for _, c := range cases {
-		line := append(make([]byte, 0, 64), c.line...) // spare capacity: in place
-		if got := string(spliceBytes(line, c.a, c.b, []byte(c.text))); got != c.expect {
-			t.Errorf("in place %q: got %q want %q", c.line, got, c.expect)
-		}
-		line = []byte(c.line) // exact capacity: reallocates
-		if got := string(spliceBytes(line, c.a, c.b, []byte(c.text))); got != c.expect {
-			t.Errorf("realloc %q: got %q want %q", c.line, got, c.expect)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			d := newDocument([]string{"abc", "beta", "gamma"})
+			removed := d.slice(tc.start, tc.end)
+			d.replace(tc.start, tc.end, tc.text)
+			if got := docText(d); got != tc.want {
+				t.Fatalf("got %q, want %q", got, tc.want)
+			}
+			// Reverting restores the original document.
+			d.replace(tc.start, advance(tc.start, tc.text), removed)
+			if got := docText(d); got != "abc\nbeta\ngamma" {
+				t.Fatalf("revert gave %q", got)
+			}
+		})
+	}
+}
+
+func TestDocumentSlice(t *testing.T) {
+	d := newDocument([]string{"abc", "", "xyz"})
+	for _, tc := range []struct {
+		s, e Position
+		want string
+	}{
+		{Position{0, 1}, Position{0, 1}, ""},
+		{Position{0, 1}, Position{0, 3}, "bc"},
+		{Position{0, 1}, Position{1, 0}, "bc\n"},
+		{Position{0, 0}, Position{2, 3}, "abc\n\nxyz"},
+		{Position{0, 3}, Position{2, 1}, "\n\nx"},
+	} {
+		if got := d.slice(tc.s, tc.e); got != tc.want {
+			t.Errorf("slice(%v,%v) = %q, want %q", tc.s, tc.e, got, tc.want)
 		}
 	}
 }
 
-func TestShiftInverse(t *testing.T) {
-	sh := shift{a: Position{3, 5}, b: Position{1, 2}}
-	for _, p := range []Position{{3, 5}, {3, 9}, {4, 0}, {7, 3}} {
-		if got := sh.inverse(sh.forward(p)); got != p {
-			t.Errorf("inverse(forward(%v)) = %v", p, got)
+func TestDocumentLinesDoNotAlias(t *testing.T) {
+	// Lines share one backing array; growing one must not clobber the next.
+	d := newDocument([]string{"aa", "bb", "cc"})
+	d.replace(Position{0, 1}, Position{0, 1}, "XXXX")
+	d.replace(Position{1, 2}, Position{1, 2}, "YY")
+	if got := docText(d); got != "aXXXXa\nbbYY\ncc" {
+		t.Fatalf("got %q", got)
+	}
+}
+
+func TestClampAndAdvance(t *testing.T) {
+	d := newDocument([]string{"abc", "de"})
+	for _, tc := range []struct {
+		l, c int
+		want Position
+	}{
+		{0, 0, Position{0, 0}},
+		{0, 99, Position{0, 3}},
+		{99, 99, Position{1, 2}},
+		{1_000_000_000, 0, Position{1, 0}},
+		{-1, -1, Position{0, 0}},
+	} {
+		if got := d.clamp(tc.l, tc.c); got != tc.want {
+			t.Errorf("clamp(%d,%d) = %v, want %v", tc.l, tc.c, got, tc.want)
 		}
 	}
-	if got := sh.forward(Position{3, 9}); got != (Position{1, 6}) {
-		t.Errorf("same-line map = %v", got)
+	if got := advance(Position{1, 2}, "ab"); got != (Position{1, 4}) {
+		t.Errorf("advance single line = %v", got)
 	}
-	if got := sh.forward(Position{5, 4}); got != (Position{3, 4}) {
-		t.Errorf("later-line map = %v", got)
+	if got := advance(Position{1, 2}, "a\nbcd"); got != (Position{2, 3}) {
+		t.Errorf("advance multi line = %v", got)
 	}
 }

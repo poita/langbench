@@ -1,0 +1,76 @@
+{
+  "schema": {
+    "anyOf": [
+      {
+        "properties": {
+          "a": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "never"
+        ]
+      },
+      {
+        "properties": {
+          "b": {
+            "type": "integer"
+          }
+        }
+      }
+    ],
+    "oneOf": [
+      {
+        "properties": {
+          "c": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "never"
+        ]
+      },
+      {
+        "properties": {
+          "d": {
+            "type": "integer"
+          }
+        }
+      }
+    ],
+    "unevaluatedProperties": false
+  },
+  "tests": [
+    {
+      "description": "only the accepting branches evaluate anything",
+      "data": {
+        "b": 1,
+        "d": 2
+      }
+    },
+    {
+      "description": "a is named only by the rejected anyOf branch",
+      "data": {
+        "a": 1,
+        "b": 1,
+        "d": 2
+      }
+    },
+    {
+      "description": "c is named only by the rejected oneOf branch",
+      "data": {
+        "b": 1,
+        "c": 1,
+        "d": 2
+      }
+    },
+    {
+      "description": "e is named by nothing",
+      "data": {
+        "b": 1,
+        "d": 2,
+        "e": 3
+      }
+    }
+  ]
+}

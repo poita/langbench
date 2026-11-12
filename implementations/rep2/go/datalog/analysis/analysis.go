@@ -1,161 +1,172 @@
-// Package analysis performs the static checks that precede evaluation: rule
-// safety and stratification.
+// Package analysis performs the static checks on a program: rule safety and
+// stratifiability. Stratify also computes the evaluation order.
 package analysis
 
 import (
 	"errors"
 	"fmt"
 
-	"datalog/ast"
+	"example.com/datalog/ast"
 )
 
-// Sentinel errors returned (wrapped) by the checks.
-var (
-	// ErrUnsafe means some rule has a variable that no positive body atom binds.
-	ErrUnsafe = errors.New("unsafe rule")
-	// ErrNotStratifiable means a dependency cycle contains a negative edge.
-	ErrNotStratifiable = errors.New("program is not stratifiable")
-)
+// ErrUnsafe is wrapped by the error CheckSafety returns.
+var ErrUnsafe = errors.New("unsafe rule")
 
-// CheckSafety verifies that in every rule each variable occurring in the head,
-// in a negated atom or in a comparison also occurs in a positive body atom.
-// Facts are rules with an empty body, so a fact containing a variable fails.
-func CheckSafety(p *ast.Program) error {
-	for i := range p.Rules {
-		r := &p.Rules[i]
-		bound := make([]bool, r.NumVars)
-		for _, l := range r.Body {
-			if l.Kind == ast.Positive {
-				for _, t := range l.Atom.Args {
-					if t.IsVar {
-						bound[t.ID] = true
-					}
+// ErrNotStratifiable is wrapped by the error Stratify returns.
+var ErrNotStratifiable = errors.New("program is not stratifiable")
+
+// CheckSafety verifies that in every rule each variable occurring in the
+// head, in a negated atom or in a comparison also occurs in a positive body
+// atom. A fact is safe only if its head is ground.
+func CheckSafety(prog *ast.Program) error {
+	for _, r := range prog.Rules {
+		if err := checkRule(r); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func checkRule(r ast.Rule) error {
+	bound := map[string]bool{}
+	for _, l := range r.Body {
+		if l.Kind == ast.Positive {
+			for _, t := range l.Atom.Args {
+				if t.IsVar {
+					bound[t.Var] = true
 				}
 			}
 		}
-		check := func(t ast.Term) error {
-			if t.IsVar && !bound[t.ID] {
-				return fmt.Errorf("%w: rule %d (head %s): variable not bound by a positive body atom",
-					ErrUnsafe, i+1, p.Preds[r.Head.Pred])
-			}
-			return nil
+	}
+	need := func(t ast.Term) error {
+		if t.IsVar && !bound[t.Var] {
+			return fmt.Errorf("%w: variable %s in %q occurs in no positive body atom", ErrUnsafe, t, r)
 		}
-		for _, t := range r.Head.Args {
-			if err := check(t); err != nil {
+		return nil
+	}
+	for _, t := range r.Head.Args {
+		if err := need(t); err != nil {
+			return err
+		}
+	}
+	for _, l := range r.Body {
+		switch l.Kind {
+		case ast.Negative:
+			for _, t := range l.Atom.Args {
+				if err := need(t); err != nil {
+					return err
+				}
+			}
+		case ast.Comparison:
+			if err := need(l.Left); err != nil {
 				return err
 			}
-		}
-		for _, l := range r.Body {
-			switch l.Kind {
-			case ast.Negative:
-				for _, t := range l.Atom.Args {
-					if err := check(t); err != nil {
-						return err
-					}
-				}
-			case ast.Comparison:
-				if err := check(l.Left); err != nil {
-					return err
-				}
-				if err := check(l.Right); err != nil {
-					return err
-				}
+			if err := need(l.Right); err != nil {
+				return err
 			}
 		}
 	}
 	return nil
 }
 
-// Stratification is the result of Stratify: the strongly connected components
-// of the predicate dependency graph in evaluation order.
-type Stratification struct {
-	// Components lists the predicates of each component. A component only
-	// depends on components that appear earlier.
-	Components [][]int
-	// Comp maps a predicate id to the index of its component.
-	Comp []int
-	// Recursive reports whether a component contains a dependency cycle
-	// (several predicates, or one predicate that depends on itself).
-	Recursive []bool
-}
-
 // Stratify builds the predicate dependency graph, computes its strongly
-// connected components (Tarjan) and rejects the program when a negative edge
-// lies inside a component.
-func Stratify(p *ast.Program) (*Stratification, error) {
-	n := len(p.Preds)
-	// Edges run from a rule's head predicate to the predicates of its body
-	// atoms, so Tarjan emits dependencies before dependents.
-	adj := make([][]int, n)
-	type edge struct{ from, to int }
-	var negs []edge
-	selfLoop := make([]bool, n)
-	for _, r := range p.Rules {
-		h := r.Head.Pred
+// connected components with Tarjan's algorithm and returns them in
+// evaluation order: every component appears after all components it depends
+// on. The result contains every predicate mentioned anywhere in the program
+// (including query-only predicates). It returns ErrNotStratifiable (wrapped)
+// when a negative edge lies inside a component.
+func Stratify(prog *ast.Program) ([][]ast.PredID, error) {
+	index := map[ast.PredID]int{}
+	var preds []ast.PredID
+	node := func(a ast.Atom) int {
+		id := a.ID()
+		n, ok := index[id]
+		if !ok {
+			n = len(preds)
+			index[id] = n
+			preds = append(preds, id)
+		}
+		return n
+	}
+	type edge struct {
+		to  int
+		neg bool
+	}
+	var adj [][]edge
+	grow := func() {
+		for len(adj) < len(preds) {
+			adj = append(adj, nil)
+		}
+	}
+	for _, r := range prog.Rules {
+		h := node(r.Head)
 		for _, l := range r.Body {
 			if l.Kind == ast.Comparison {
 				continue
 			}
-			q := l.Atom.Pred
-			adj[h] = append(adj[h], q)
-			if q == h {
-				selfLoop[h] = true
-			}
-			if l.Kind == ast.Negative {
-				negs = append(negs, edge{h, q})
-			}
+			q := node(l.Atom)
+			grow()
+			// The head depends on the body predicate.
+			adj[h] = append(adj[h], edge{q, l.Kind == ast.Negative})
 		}
 	}
+	for _, q := range prog.Queries {
+		node(q)
+	}
+	grow()
 
-	s := &Stratification{Comp: make([]int, n)}
-	index := make([]int, n)
+	// Tarjan: components are emitted after everything they depend on.
+	n := len(preds)
+	idx := make([]int, n)
 	low := make([]int, n)
-	onStack := make([]bool, n)
-	for i := range index {
-		index[i] = -1
+	on := make([]bool, n)
+	comp := make([]int, n)
+	for i := range idx {
+		idx[i] = -1
 	}
 	var stack []int
+	var comps [][]ast.PredID
 	counter := 0
 	var visit func(v int)
 	visit = func(v int) {
-		index[v], low[v] = counter, counter
+		idx[v], low[v] = counter, counter
 		counter++
 		stack = append(stack, v)
-		onStack[v] = true
-		for _, w := range adj[v] {
-			if index[w] < 0 {
-				visit(w)
-				low[v] = min(low[v], low[w])
-			} else if onStack[w] {
-				low[v] = min(low[v], index[w])
+		on[v] = true
+		for _, e := range adj[v] {
+			if idx[e.to] < 0 {
+				visit(e.to)
+				low[v] = min(low[v], low[e.to])
+			} else if on[e.to] {
+				low[v] = min(low[v], idx[e.to])
 			}
 		}
-		if low[v] == index[v] {
-			var comp []int
+		if low[v] == idx[v] {
+			var c []ast.PredID
 			for {
 				w := stack[len(stack)-1]
 				stack = stack[:len(stack)-1]
-				onStack[w] = false
-				s.Comp[w] = len(s.Components)
-				comp = append(comp, w)
+				on[w] = false
+				comp[w] = len(comps)
+				c = append(c, preds[w])
 				if w == v {
 					break
 				}
 			}
-			s.Components = append(s.Components, comp)
-			s.Recursive = append(s.Recursive, len(comp) > 1 || selfLoop[v])
+			comps = append(comps, c)
 		}
 	}
 	for v := 0; v < n; v++ {
-		if index[v] < 0 {
+		if idx[v] < 0 {
 			visit(v)
 		}
 	}
-	for _, e := range negs {
-		if s.Comp[e.from] == s.Comp[e.to] {
-			return nil, fmt.Errorf("%w: %s depends negatively on %s within a cycle",
-				ErrNotStratifiable, p.Preds[e.from], p.Preds[e.to])
+	for v := 0; v < n; v++ {
+		for _, e := range adj[v] {
+			if e.neg && comp[v] == comp[e.to] {
+				return nil, fmt.Errorf("%w: %s depends negatively on %s within a cycle", ErrNotStratifiable, preds[v], preds[e.to])
+			}
 		}
 	}
-	return s, nil
+	return comps, nil
 }

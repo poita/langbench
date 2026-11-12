@@ -1,20 +1,25 @@
-/// Error type shared by every stage of the engine.
+/**
+ * Error type shared by every stage of the engine.
+ *
+ * A statement that fails — whether because it does not parse, refers to an
+ * unknown table or column, or violates any other rule of the dialect — is
+ * reported by throwing a $(LREF SqlError). The statement has no effect on the
+ * database.
+ */
 module minisql.errors;
 
-/// Thrown when a statement is rejected: a syntax error, an unknown table or
-/// column, an arity mismatch, and so on. A statement that throws has had no
-/// effect on the database.
-class SqlException : Exception
+/// Thrown for every syntax, binding or execution error of a statement.
+class SqlError : Exception
 {
-    /// Creates an exception carrying a human-readable description.
-    this(string msg, string file = __FILE__, size_t line = __LINE__) pure nothrow @safe
+    /// Creates an error with a human-readable description.
+    this(string msg, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
     {
         super(msg, file, line);
     }
 }
 
-/// Throws a `SqlException` with the given message.
-noreturn fail(string msg, string file = __FILE__, size_t line = __LINE__) pure @safe
+/// Throws a $(LREF SqlError) with `msg`.
+noreturn fail(string msg, string file = __FILE__, size_t line = __LINE__) @safe pure
 {
-    throw new SqlException(msg, file, line);
+    throw new SqlError(msg, file, line);
 }

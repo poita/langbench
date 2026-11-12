@@ -1,65 +1,78 @@
 # sqlitefile
 
-A small Go library and command-line tool that reads a SQLite 3 database file
-directly, byte by byte, and answers a handful of queries against it. It has no
-dependencies beyond the Go standard library and uses no SQLite library: the
-pager, B-tree walker, record decoder, `CREATE TABLE` / `CREATE INDEX` parser and
-query evaluator are all implemented here.
+A small, dependency-free Go library and command-line tool that reads a SQLite 3
+database file **directly, byte by byte** — no SQLite library, binding or driver —
+and answers a handful of queries against it.
 
-The database is read into memory once; pages are never copied, records are
-decoded lazily, and TEXT/BLOB values are views into the file image.
-
-Limitations: read-only; UTF-8 databases only; rowid tables only (no
-`WITHOUT ROWID`); no auto-vacuum pointer-map pages; no partial or expression
-indexes or non-`BINARY` collations; generated columns are not special-cased.
+It understands the on-disk format (pages, B-trees, varints, records, payload
+overflow chains), parses `CREATE TABLE` / `CREATE INDEX` statements from the
+schema, and runs a tiny query language. The database is opened read-only.
 
 ## Build
 
-```
-./build.sh          # builds bin/sqlitefile with `go build`
-go test ./...       # unit tests
-```
+Requires Go 1.27.1 and nothing else (standard library only).
 
-Requires Go 1.27 or newer.
-
-## Command-line use
-
-```
-./run.sh <input directory> <output directory>
+```sh
+./build.sh          # builds bin/sqlitefile
+go test ./...       # runs the unit and integration tests
 ```
 
-The input directory holds exactly one `*.sqlite` file and a `queries.txt` with
-one query per line. For the *n*-th query the tool writes `NNN.txt`
-(`001.txt`, `002.txt`, ...) into the (existing) output directory. A query that
-cannot be answered produces a file containing the single line `error`; the exit
-status is still 0.
+`build.sh` is `go build -o bin/sqlitefile ./cmd/sqlitefile` with the default
+optimisation settings; `run.sh` runs the resulting binary from any directory.
 
-Query forms (keywords are case-insensitive; the two dot commands are lower case):
+## Command-line tool
 
-| query | output |
+```
+sqlitefile <input directory> <output directory>
+```
+
+The input directory holds exactly one `*.sqlite` file and `queries.txt` with one
+query per line. For the *n*-th query the tool writes `NNN.txt` (zero-padded to
+three digits) into the existing output directory: one output line per result
+row, or the single line `error` if the query fails. The exit status is 0 even
+when individual queries fail; it is non-zero only for problems such as a missing
+`queries.txt` or an unwritable output directory.
+
+### Queries
+
+Keywords are case-insensitive; names are bare identifiers resolved
+case-insensitively.
+
+| query | result |
 |-------|--------|
-| `.tables` | user table names, sorted bytewise |
-| `.schema <table>` | `sql;` of every schema row whose `tbl_name` is the table, in schema order |
-| `COUNT <table>` | the row count |
-| `SELECT <cols or *> FROM <table> [WHERE <col> <op> <lit> [AND ...]] [ORDER BY <col> [ASC\|DESC]] [LIMIT <n>]` | tab-separated rows |
-| `INDEX <index> <literal>` | rows found through a single-column index, as `SELECT *` |
+| `.tables` | names of the user tables (not `sqlite_*`), bytewise sorted |
+| `.schema <table>` | the `CREATE` statements (table, indexes, triggers) of that table, each followed by `;` |
+| `COUNT <table>` | the number of rows |
+| `SELECT <cols\|*> FROM <table> [WHERE <cond> [AND <cond>]...] [ORDER BY <col> [ASC\|DESC]] [LIMIT n]` | rows, tab-separated |
+| `INDEX <index> <literal>` | rows whose indexed column equals the literal, found through the index B-tree |
 
-Operators are `= != < <= > >= IS` and `IS NOT`. Literals are numerals, `'strings'`,
-`X'hex'` blobs and `NULL`. `rowid` can be selected, filtered and sorted on.
-Values print as the `sqlite3` shell does: `NULL`, decimal integers, reals with
-`%.15g` (plus a forced `.0`), text as is, blobs as upper-case hex.
+A condition is `<column> <op> <literal>` with `<op>` one of `=` `!=` `<` `<=`
+`>` `>=` `IS` `IS NOT`. Literals are numbers (`42`, `-1.5e3`), strings
+(`'it''s'`), blobs (`X'00ff'`) and `NULL`. `rowid` names the row id. Values print as
+the `sqlite3` shell does in list mode: `NULL`, decimal integers, reals with
+15 significant digits (`1.0`, `0.1`, `1.0e+20`), text as is, blobs as upper-case hex.
 
-Example `queries.txt`:
+Example:
 
 ```
+$ cat in/queries.txt
 .tables
 SELECT name,height FROM people ORDER BY height DESC LIMIT 2
-SELECT name FROM people WHERE age IS NULL
 INDEX people_age 45
-COUNT people
+SELECT nope FROM people
+$ ./run.sh in out && head out/*.txt
+==> out/001.txt <==
+people
+==> out/002.txt <==
+Alan	1.8
+Grace	1.7
+==> out/003.txt <==
+2	Grace	45	1.7	NULL
+==> out/004.txt <==
+error
 ```
 
-## Library use
+## Library
 
 ```go
 package main
@@ -72,49 +85,53 @@ import (
 )
 
 func main() {
-	db, err := sqlitefile.Open("mini.sqlite")
+	db, err := sqlitefile.Open("people.sqlite")
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(db.Tables())
-
-	// Formatted output, exactly as the CLI prints it.
-	out, err := db.Exec("SELECT name, age FROM people WHERE age > 40 ORDER BY age DESC", nil)
+	lines, err := db.Exec("SELECT name FROM people WHERE age > 30 ORDER BY name DESC")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal(err) // malformed query, unknown table/column, ...
 	}
-	fmt.Print(string(out))
-
-	// Typed rows.
-	q, _ := sqlitefile.ParseQuery("SELECT name, height FROM people WHERE age IS NOT NULL")
-	res, err := db.Select(q)
-	if err != nil {
-		log.Fatal(err)
+	for _, l := range lines {
+		fmt.Println(l)
 	}
-	for _, row := range res.Rows {
-		fmt.Println(string(row[0].B), row[1].F)
-	}
-
-	// Point lookup through an index.
-	rows, _ := db.LookupIndex("people_age", sqlitefile.Int(45))
-	fmt.Println(len(rows.Rows))
 }
 ```
 
-## Layout
+### Packages
 
-| file | responsibility |
-|------|----------------|
-| `pager.go` | database header, page access, payload-overflow thresholds |
-| `btree.go` | table/index B-tree walks, rowid seek, index key search, overflow chains |
-| `record.go` | varints and lazy record (row) decoding |
-| `ddl.go` | tokenizer and `CREATE TABLE` / `CREATE INDEX` parsing, rowid alias |
-| `db.go` | opening a database, the schema catalog, `.tables`, `.schema`, `COUNT` |
-| `value.go` | values, ordering, type affinity |
-| `format.go` | printing values (`%.15g` reals, hex blobs) |
-| `query.go` | the query language parser |
-| `exec.go` | query planning and execution |
-| `cmd/sqlitefile` | the command-line tool |
+| package | responsibility |
+|---------|----------------|
+| `sqlitefile` | `Open`/`OpenBytes` a database and `Exec` query lines |
+| `sqlitefile/value` | storage classes, ordering (`Compare`), type affinity, output formatting |
+| `sqlitefile/record` | varints and the record (row) format |
+| `sqlitefile/btree` | pager, B-tree pages, overflow chains; table scan/count/seek and index search |
+| `sqlitefile/schema` | `CREATE TABLE`/`CREATE INDEX` parsing and the `sqlite_schema` catalog |
+| `sqlitefile/query` | parser for the query language |
 
-`DB` is immutable after `Open`, so it is safe for concurrent use. Values
-returned from the API may alias the database image and must not be modified.
+The lower-level packages are usable on their own, for example to walk a table
+B-tree with `btree.Pager.ScanTable` and decode rows with `record.Parse`.
+
+### Design
+
+- `SELECT` is a full in-order scan of the table B-tree; with `ORDER BY` all
+  matching rows are sorted (stably, so ties are in rowid order) before `LIMIT`.
+- `COUNT` sums the leaf pages' cell counts and decodes no records.
+- `INDEX` binary-searches the index B-tree (interior cells hold entries too),
+  walks only the run of equal keys, then fetches each row by rowid.
+- The only state kept between queries is the file image and the schema catalog.
+- Malformed database content yields errors (`btree.ErrCorrupt`), not panics.
+
+### Scope
+
+Supported: UTF-8 databases, rowid tables (not `WITHOUT ROWID`), reserved page
+space per page, any valid page size. Not supported: writing, UTF-16 databases, joins,
+expression or partial indexes, non-`BINARY` collations.
+
+## Tests
+
+`go test ./...` runs table-driven unit tests for every package, a hand-built
+B-tree image test (overflow chains, negative rowids, entries in interior index
+cells, cycle detection), and integration tests against the fixture databases in
+`testdata/` (regenerate with `testdata/gen.sh`, which needs the `sqlite3` shell).

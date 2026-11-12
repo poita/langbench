@@ -1,170 +1,126 @@
 # cardgame
 
-A rules engine and match-log simulator for **Spiremark**, an invented two-player
-duelling-card game, written in D using only the standard library (Phobos).
+`cardgame` is a deterministic rules engine for **Spiremark**, an invented
+two-player duelling-card game, written in D using only the standard library.
+It reads a *match file* (a setup block followed by a script of player actions
+and inspection directives), plays the match exactly as the rules specify, and
+prints a one-line-per-event log interleaved with the blocks the directives ask
+for. Card definitions are data, read at run time from an s-expression
+database; nothing about any card is compiled in.
 
-The program reads a *match file* (a setup block followed by a script of player
-actions and inspection directives), simulates the match exactly as the rules
-specify, and prints a deterministic log: one numbered line per rules event,
-interleaved with the blocks requested by the inspection directives. Cards are
-**data**: they are read at run time from an s-expression card database, and the
-engine interprets their abilities with a tree-walking evaluator.
-
-It is organised as a reusable library (`source/cardgame/`) with a thin
-command-line tool (`app/main.d`) on top.
-
-## Requirements
-
-* LDC 1.41.0 (`ldc2`) and dub 1.40.0 — other recent versions should work.
-* No third-party dependencies.
+The project is a reusable library (`source/cardgame/`) plus a thin
+command-line tool (`app/main.d`).
 
 ## Building
 
-```sh
-./build.sh                                  # or:
-dub build -b release --compiler=ldc2        # produces bin/cardgame
-```
-
-`build.sh` works from any directory. `run.sh` runs the built tool the same way.
-
-## Command-line usage
+Requires LDC (tested with 1.41.0) and dub (tested with 1.40.0).
 
 ```sh
-./run.sh < match.txt          # match file on stdin, log on stdout
+./build.sh                                # or: dub build -b release --compiler=ldc2
 ```
 
-The tool takes no arguments, reads the whole match file from standard input,
-writes the log to standard output, and exits with status 0 — including for
-every `FATAL` and `ERR` case. The card database named by the match file's
-`CARDS <path>` line is read from the file system, relative to the current
-directory.
+This produces `bin/cardgame`. `./run.sh` runs it from any directory.
 
-A match file looks like this:
+## Using the command line tool
+
+The tool takes no arguments. It reads the match file on stdin and writes the
+log to stdout; it always exits 0 (setup problems print a single `FATAL ...`
+line). The card database named by the `CARDS` line is resolved against the
+current working directory.
 
 ```
 CARDS data/cards.spire
 SEED 1
-SPIRE 10
+SPIRE 2
 OPENING 0
 SHUFFLE off
 DECK A CIN-001
 DECK B CIN-001
 HAND A CIN-003
-FIELD B TOK-001
 START
-A PLAY 1 #4
+A PLAY 1 B
 A PASS
 B PASS
-DUMP
+A PASS
 ```
 
-* **Setup lines** (before `START`): `CARDS`, `SEED`, `SPIRE`, `OPENING`,
-  `MAXCAP`, `HANDMAX`, `TURNLIMIT`, `FIRST`, `SHUFFLE`, `TRACE`, `CAP`, and the
-  zone lines `DECK`, `HAND`, `FIELD`, `ASH`, `RIFT` (entries are `CARD-ID` or
-  `CARD-ID*count`). A bad setup prints `FATAL bad-setup`, an invalid database
-  `FATAL bad-database`, and an unknown card id `FATAL unknown-card`.
-* **Actions** (after `START`): `<A|B> PASS`, `CONCEDE`, `PLAY <pos> [targets]`,
-  `ACT #<oid> <index> [targets]`, `ATTACK [#oid …]`, `BLOCK [#blocker:#attacker …]`.
-  A rejected action prints `ERR <line> <kind>` and has no other effect.
-* **Directives**: `DUMP` (full state), `LEGAL` (legal actions), `VAULT`
-  (library order), `CARD <id>` (canonical card description).
-* Lines starting with `#` and blank lines are comments.
+```sh
+./run.sh < match.txt
+```
 
-The log ends with `RESULT <winner> <reason>`, or `RESULT pending none` when the
-script ends before the match is decided. The complete rules, file formats and
-output formats are defined in `problems/cardgame/SPEC.md` of the surrounding
-repository.
+```
+1 GAME-START A
+2 TURN 1 A
+...
+12 RESOLVE ~1
+13 DAMAGE #2 B 2
+14 SPIRE B -2 0
+15 SPENT #2 CIN-003
+16 LOSE B spire
+17 RESULT A spire
+ERR 13 game-over
+```
 
-## Library overview
+Setup lines (`CARDS`, `SEED`, `SPIRE`, `OPENING`, `MAXCAP`, `HANDMAX`,
+`TURNLIMIT`, `FIRST`, `SHUFFLE`, `TRACE`, `CAP`, `DECK`, `HAND`, `FIELD`,
+`ASH`, `RIFT`, `START`) configure the match; script lines are player actions
+(`A PASS`, `B PLAY 2 #7`, `A ACT #4 1`, `A ATTACK #4`, `B BLOCK #9:#4`,
+`A CONCEDE`) and the directives `DUMP`, `LEGAL`, `VAULT` and `CARD <id>`. The
+complete rules, formats and error kinds are in the problem's `SPEC.md`.
 
-`import cardgame;` brings in the whole public API. The modules, by
-responsibility:
+## Layout
 
 | Module | Responsibility |
 | --- | --- |
-| `cardgame.sexpr` | tokenising/parsing s-expressions; canonical printing |
-| `cardgame.cards` | typed card model: `Card`, `Ability`, `Effect`, `Sel`, `Filter`, … |
-| `cardgame.parser` | database validation: `parseDatabase`, `DatabaseError` |
-| `cardgame.rng` | the specified 64-bit xorshift* generator and shuffle |
-| `cardgame.game` | game state (`Game`, `Obj`, `Entry`, …) and the event log |
-| `cardgame.derive` | the layer system: whole-board derivation of current characteristics |
-| `cardgame.eval` | selectors, filters, amounts, conditions, target legality/enumeration |
-| `cardgame.actions` | state-changing procedures (damage, destroy, draw, …) and trigger collection |
+| `cardgame.sexpr` | s-expression reader and canonical printer |
+| `cardgame.model` | typed cards, abilities, effects, selectors, filters |
+| `cardgame.database` | converts and validates a card database |
+| `cardgame.matchfile` | setup block and script-line parsing |
+| `cardgame.game` | game state: objects, zones, Chain, records, event log |
+| `cardgame.layers` | whole-board derivation of current characteristics |
+| `cardgame.select` | filters, selectors, amounts, conditions, targeting |
 | `cardgame.effects` | the effect interpreter |
-| `cardgame.engine` | Chain, priority, settling, state checks, turn machine, combat, player actions |
-| `cardgame.report` | `DUMP`, `LEGAL`, `VAULT`, `CARD` blocks |
-| `cardgame.match` | match-file parsing and the `simulate` entry point |
+| `cardgame.procs` | atomic state changes: damage, destroy, draw, ... |
+| `cardgame.triggers` | trigger collection and ordered pushing |
+| `cardgame.chain` | playing, activating and resolving Chain entries |
+| `cardgame.combat` | attack/block legality, declaration, combat damage |
+| `cardgame.settle` | state checks, `settle`, `drain`, match end |
+| `cardgame.engine` | the resumable engine (turn flow, priority) on a fiber |
+| `cardgame.legal`, `cardgame.dump` | `LEGAL`, `DUMP`, `VAULT`, `CARD` output |
+| `cardgame.session` | `runMatch`: the library entry point |
+| `cardgame.rng` | the xorshift* generator |
 
-### Example
+The engine simulates a match once: rules processing runs on a fiber that
+suspends at each decision point and resumes with the next validated action.
+Current characteristics are derived for the whole Field at once, and only when
+something they can depend on has changed.
+
+## Using the library
 
 ```d
+import cardgame.session : runMatch;
 import std.file : readText;
-import std.stdio : write, writeln;
-
-import cardgame;
+import std.stdio : write;
 
 void main()
 {
-    // 1. One call: simulate a whole match file and get the log back.
-    immutable match = "CARDS data/cards.spire\nSEED 1\nSPIRE 10\nOPENING 0\nSHUFFLE off\n"
-        ~ "HAND A CIN-003\nFIELD B TOK-001\nSTART\nA PLAY 1 #2\nA PASS\nB PASS\nDUMP\n";
-    write(simulate(match, path => readText(path)));
-
-    // 2. Inspect the card database directly.
-    auto db = parseDatabase(readText("data/cards.spire"));   // throws DatabaseError if invalid
-    auto bolt = db.find("CIN-003");
-    writeln(bolt.name, " costs ", bolt.cost, " and has ", bolt.abilities.length, " ability");
-
-    // 3. Reproduce the specified random-number stream.
-    auto rng = Rng(7);
-    writeln(rng.next());                                      // 15130880334998875822
+    immutable match = "CARDS cards.spire\nSEED 7\nOPENING 0\nSHUFFLE off\nSTART\nA PASS\nB PASS\n";
+    // The second argument tells the engine how to read the card database.
+    write(runMatch(match, (string path) => readText(path)));
 }
 ```
 
-`simulate(input, readFile)` takes the match-file text and a delegate that
-loads the database for a path (so a library user can serve databases from
-memory); it returns the complete log. Lower-level users can build a `Game`
-from a `CardDb` and a `Config`, and drive it with `engine.doPlay`, `doPass`,
-`doAct`, `doAttack`, `doBlock` and `doConcede`.
-
-## Design notes
-
-* **Typed card model.** The database is parsed once into enum-tagged trees;
-  nothing compares strings while a match runs.
-* **Resumable engine.** `advance` runs the turn machine to the next decision
-  point (priority, attackers, blockers) and returns; every accepted action
-  resumes it. The match is simulated exactly once.
-* **Objects in a dense array indexed by oid**; the Field is kept in canonical
-  `(timestamp, oid)` order by appending on entry and removing in place.
-* **Whole-board derivation** (SPEC 14.3) computes controllers, keywords, edge
-  and core for the Field in a single layered pass. The result is cached and
-  only invalidated by structural changes, or by changes of a kind that some
-  live aura actually reads (each aura carries a dependency bit mask computed at
-  load time).
-* Output is accumulated in one buffer and written at the end.
+`runMatch` returns exactly what the command-line tool prints. The lower-level
+pieces (`parseDatabase`, `parseSetup`, `buildGame`, `Engine`, `processLine`)
+are public too, for embedding the engine in a different front end.
 
 ## Tests
-
-Unit tests live in `tests/` (separate from the library sources) and cover the
-s-expression reader, the PRNG, the database validator, match-file handling and
-rules scenarios taken from the specification's worked examples:
 
 ```sh
 dub test --compiler=ldc2
 ```
 
-The end-to-end suite lives with the problem definition:
-
-```sh
-cd .. && cardgame/build.sh && python3 run_tests.py cardgame -- cardgame/run.sh
-```
-
-## Layout
-
-```
-dub.json            project manifest (configurations: cli, library, unittest)
-build.sh, run.sh    build and run wrappers
-app/main.d          command-line tool
-source/cardgame/    the library
-tests/              unit tests
-```
+The tests are D `unittest` blocks: unit tests for the reader, validator,
+generator and match-file parser, and golden scenarios (the worked examples of
+the specification, in `source/cardgame/scenarios.d`) that run whole matches
+against a small in-memory database.

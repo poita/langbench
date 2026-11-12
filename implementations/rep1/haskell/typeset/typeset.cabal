@@ -1,0 +1,68 @@
+cabal-version:      3.0
+name:               typeset
+version:            0.1.0.0
+synopsis:           Codexa typesetting engine: total-fit line breaking, hyphenation, pagination
+description:
+  A typesetting engine for Codexa documents: total-fit line breaking,
+  Liang hyphenation, footnotes, floating figures, a generated table of
+  contents and running headers, with exact integer arithmetic throughout.
+category:           Text
+build-type:         Simple
+extra-doc-files:    README.md
+extra-source-files: data/faces/*.cfm
+                    data/hyphen/*.chp
+                    test/golden/**/*.cdx
+                    test/golden/**/*.cfg
+                    test/golden/**/*.txt
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall -Wno-name-shadowing -Wno-unused-do-bind
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Typeset
+    , Typeset.Break
+    , Typeset.Error
+    , Typeset.Font
+    , Typeset.HList
+    , Typeset.Header
+    , Typeset.Hyphenation
+    , Typeset.Layout
+    , Typeset.Layout.Float
+    , Typeset.Layout.Monad
+    , Typeset.Layout.Table
+    , Typeset.Line
+    , Typeset.Output
+    , Typeset.Page
+    , Typeset.Parser
+    , Typeset.Parser.Inline
+    , Typeset.Settings
+    , Typeset.Syntax
+    , Typeset.Types
+    , Typeset.Units
+    , Typeset.Vertical
+  build-depends:    base, containers, array, filepath, directory
+
+executable typeset
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base, typeset, directory, filepath
+
+test-suite typeset-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Typeset.BreakSpec
+    , Typeset.GoldenSpec
+    , Typeset.HyphenationSpec
+    , Typeset.ParserSpec
+    , Typeset.SettingsSpec
+    , Typeset.TableSpec
+    , Typeset.UnitsSpec
+  build-depends:    base, typeset, containers, array, directory, filepath, hspec, QuickCheck

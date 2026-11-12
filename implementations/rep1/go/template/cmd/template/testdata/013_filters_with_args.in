@@ -1,0 +1,26 @@
+{
+  "l": [
+    1,
+    "two",
+    3.5,
+    true,
+    null
+  ],
+  "nested": [
+    [
+      1,
+      2
+    ],
+    [
+      3
+    ]
+  ],
+  "html": "<a href=\"x\">Tom & Jerry's</a>"
+}
+--
+=== main
+{{ l|join(", ") }}|{{ l|join }}|{{ nested|join(";") }}|{{ "abc"|join("-") }}|{{ [1, 2]|join(0) }}
+{{ missing|default("dflt") }}|{{ missing|default(5) + 1 }}|{{ l[0]|default("no") }}|{{ l[9]|default("oor") }}|[{{ missing|default }}]|{{ none|default("n") }}|{{ 0|default(1) }}
+{{ "aaa"|replace("a", "b") }} {{ "abcabc"|replace("bc", "X") }} {{ "aXbXc"|replace("X", "") }} {{ "a1b"|replace(1, 2) }} {{ 121|replace("1", "x") }} {{ "no match"|replace("z", "y") }}
+{{ "42"|int }} {{ " 7 "|int }} {{ "-3"|int }} {{ "+4"|int }} {{ "3.9"|int }} {{ "-3.9"|int }} {{ "abc"|int }} {{ ""|int }} {{ "1e2"|int }} {{ ".5"|int }} {{ "5."|int }} {{ 3.9|int }} {{ -3.9|int }} {{ true|int }} {{ 12|int }} {{ none|int }} {{ "12abc"|int }}
+{{ html|escape }} {{ 5|escape }} {{ "plain"|escape }}

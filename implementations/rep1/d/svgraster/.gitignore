@@ -1,5 +1,9 @@
 .dub/
-bin/
-*.o
+svgraster
 *.a
+*.o
+*.lst
+docs/
 dub.selections.json
+__test__*
+svgraster-test-*

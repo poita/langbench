@@ -1,148 +1,156 @@
 # sitegen
 
-A small static site generator written in D with nothing but the standard
-library. It reads a site directory (a TOML-subset configuration, Markdown
-content with front matter, Jinja-style templates and static files) and writes a
-complete website: index pages with pagination, posts, pages, tag pages, an Atom
-feed and a sitemap.
+A static site generator written in D. It reads a source directory — a TOML
+configuration, Markdown posts and pages, templates and static files — and
+writes a complete website: an index with pagination, one page per post and per
+page, tag pages, an Atom feed and a sitemap.
 
-The three languages involved are implemented from scratch, as modules of a
-reusable library:
+Everything the generator needs is implemented here, using only D's standard
+library:
 
-| Module | What it does |
-|--------|--------------|
-| `sitegen.markdown` | CommonMark-subset to HTML converter. It reproduces `cmark` 0.31.2 for the supported constructs: ATX/setext headings, paragraphs, block quotes, lists (tight/loose), code blocks, thematic breaks, emphasis, code spans, links, images, autolinks, escapes, entities and line breaks. Raw HTML and link reference definitions are not supported. |
-| `sitegen.templating` | Jinja2-subset template engine: `{{ }}`, `if`/`for`/`set`/`macro`/`include`/`extends`/`block` with `super()`, comments, whitespace control, 13 filters, shared-reference values and a parse cache. |
-| `sitegen.toml` | The TOML subset used by `site.toml` and front matter (strings, integers, booleans, string arrays). |
-| `sitegen.frontmatter`, `sitegen.model` | Splitting `+++` front matter, post/page/tag model, ordering, slugs, dates, excerpts. |
-| `sitegen.render`, `sitegen.feed`, `sitegen.xml` | Template values, page rendering, `feed.xml` and `sitemap.xml`. |
-| `sitegen.generator` | Reading a directory tree and writing the output tree (including `static/`). |
+* a **CommonMark-subset converter** (`sitegen.markdown`) whose output matches
+  `cmark` 0.31.2: block structure, delimiter-stack emphasis, links, images,
+  autolinks, code spans, entities and so on;
+* a **Jinja-style template engine** (`sitegen.templating`) with expressions,
+  filters, `if`/`for`/`set`/`macro`/`include`, and `extends`/`block`/`super()`
+  inheritance;
+* a reader for the **TOML subset** used by `site.toml` and front matter
+  (`sitegen.toml`, `sitegen.frontmatter`).
+
+The code is a library with a thin command-line tool on top.
 
 ## Building
 
-Requires LDC 1.41 and dub 1.40.
+Requires LDC (tested with 1.41.0) and dub (tested with 1.40.0).
 
 ```sh
-./build.sh            # dub build -b release --compiler=ldc2  ->  bin/sitegen
-dub test --compiler=ldc2   # unit tests
+dub build -b release --compiler=ldc2     # builds ./sitegen
+./build.sh                               # the same, from any directory
 ```
 
-`dub build -c library` builds only the library (`bin/libsitegen.a`).
+`dub build --config=library` builds only the library.
 
 ## Command line
 
+```
+sitegen <input directory> <output directory>
+```
+
+The output directory is created if it does not exist. The exit status is 0 on
+success; on failure a message is written to stderr and the status is non-zero.
+`run.sh` is a wrapper that locates the binary relative to itself:
+
 ```sh
-./run.sh <input directory> <output directory>
-# or
-bin/sitegen <input directory> <output directory>
+./run.sh my-site/ public/
 ```
 
-The input directory has this layout:
+### Input layout
 
 ```
-site.toml                  title, base_url, author, posts_per_page (+ any extra keys)
-content/posts/*.md         posts: front matter title, date (YYYY-MM-DD), slug, tags, draft
-content/pages/*.md         pages: front matter title, slug, draft
-templates/*.html           index.html, post.html, page.html, tag.html, tags.html (+ includes/bases)
-static/**                  copied verbatim
+site.toml                 title, base_url, author, posts_per_page (+ any other keys)
+content/posts/*.md        posts   (TOML front matter between +++ lines, then Markdown)
+content/pages/*.md        pages
+templates/*.html          index.html, post.html, page.html, tag.html, tags.html (+ partials)
+static/**                 copied verbatim
 ```
 
-The output directory receives `index.html`, `page/N/index.html`, `posts/<slug>/index.html`,
-`<page-slug>/index.html`, `tags/index.html`, `tags/<tag-slug>/index.html`, `feed.xml`,
-`sitemap.xml` and the static files. The exit code is 0 on success; on any error a
-message goes to stderr and the exit code is non-zero (1 for a bad site, 2 for bad usage).
+A post's front matter has `title` and `date` (`YYYY-MM-DD`) and optionally
+`slug`, `tags` and `draft`; a page has `title` and optionally `slug` and
+`draft`. Drafts are left out completely.
 
-Content file example:
-
-```
-+++
-title = "Hello, world"
-date = "2024-01-10"
-tags = ["Meta", "Web Development"]
-+++
-The **first** post.
-```
-
-Template example (`templates/index.html`):
+### Output layout
 
 ```
-{% for post in posts %}<h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
-{{ post.excerpt }}{% endfor %}
-{% if pagination.has_next %}<a href="{{ pagination.next_url }}">older</a>{% endif %}
+index.html, page/N/index.html        index pages (posts_per_page posts each)
+posts/<slug>/index.html              one per post
+<page-slug>/index.html               one per page
+tags/index.html, tags/<slug>/index.html
+feed.xml, sitemap.xml
+```
+
+plus every file under `static/`.
+
+### Templates
+
+Templates have the variables `site` (the parsed `site.toml`), `tags` and
+`pages` (lists of links), and per template `posts` and `pagination`
+(`index.html`), `post`, `page`, or `tag` and `posts`. A minimal `post.html`:
+
+```jinja
+{% extends "base.html" %}
+{% block body %}
+<h1>{{ post.title }}</h1>
+<p>{{ post.date_long }}{% for t in post.tags %} <a href="{{ t.url }}">{{ t.name }}</a>{% endfor %}</p>
+{{ post.content }}
+{% endblock %}
 ```
 
 ## Using the library
 
-Convert Markdown:
-
-```d
-import sitegen.markdown;
-
-void main()
-{
-    assert(markdownToHtml("# Hi\n\nSome *text*.\n") == "<h1>Hi</h1>\n<p>Some <em>text</em>.</p>\n");
-}
-```
-
-Render a template:
-
-```d
-import sitegen.templating;
-
-void main()
-{
-    auto engine = new Engine((string name, out string source) {
-        if (name != "page")
-            return false;
-        source = "{% for x in xs %}[{{ x|upper }}]{% endfor %}";
-        return true;
-    });
-    auto root = new Scope;
-    root.set("xs", Value.of([Value.of("a"), Value.of("b")]));
-    assert(engine.render("page", root) == "[A][B]");   // throws TemplateError on failure
-}
-```
-
-Generate a whole site in memory:
+Add the package to a dub project (`dependency "sitegen" path="..."` with
+`subConfiguration "sitegen" "library"`), then:
 
 ```d
 import sitegen;
 
 void main()
 {
-    SiteSource src;
-    src.siteToml = "title = \"T\"\nbase_url = \"https://example.com\"\nauthor = \"A\"\nposts_per_page = 5\n";
-    src.posts["hello.md"] = "+++\ntitle = \"Hello\"\ndate = \"2024-01-01\"\n+++\nHi!\n";
-    foreach (name; ["index", "post", "page", "tag", "tags"])
-        src.templates[name ~ ".html"] = "{{ site.title }}";
+    // Markdown on its own.
+    assert(markdownToHtml("Hello *world*") == "<p>Hello <em>world</em></p>\n");
 
-    foreach (file; renderSite(src))   // OutputFile(path, content)
-        { /* write file.content to file.path */ }
+    // The template engine on its own.
+    auto engine = new TemplateEngine;
+    engine.addTemplate("hello", "Hello {{ name|upper }}!");
+    Value[string] context;
+    context["name"] = Value.str("world");
+    assert(engine.render("hello", context) == "Hello WORLD!");
+
+    // A whole site, in memory.
+    SiteSource src;
+    src.config = "title = \"Blog\"\nbase_url = \"https://example.com\"\n"
+        ~ "author = \"Me\"\nposts_per_page = 5\n";
+    src.posts = [SourceFile("hi.md",
+        "+++\ntitle = \"Hi\"\ndate = \"2024-05-06\"\ntags = [\"News\"]\n+++\nHello *you*\n")];
+    src.templates = [
+        SourceFile("index.html", "{% for p in posts %}{{ p.title }}\n{% endfor %}"),
+        SourceFile("post.html", "{{ post.content }}"),
+        SourceFile("page.html", ""),
+        SourceFile("tag.html", ""),
+        SourceFile("tags.html", ""),
+    ];
+    foreach (file; generate(src))        // OutputFile(path, content)
+        writeFiles([file], "public");    // or write them yourself
 }
 ```
 
-or write a directory to disk with `generateSite(inputDir, outputDir)`.
+`generateSite(inputDir, outputDir)` does the whole job on the file system, as
+the command-line tool does.
 
-## Layout of the repository
+### Modules
 
+| Module | Responsibility |
+|--------|----------------|
+| `sitegen.toml` | TOML-subset parser (`parseToml`, `TomlDocument`) |
+| `sitegen.frontmatter` | splits a content file into front matter and body |
+| `sitegen.markdown` | `markdownToHtml`; block parser, inline parser and HTML renderer in `sitegen.markdown.*` |
+| `sitegen.templating` | `TemplateEngine`, `Value`, `Dict`, `TemplateException`; lexer, parser, interpreter and filters in `sitegen.templating.*` |
+| `sitegen.source` | reads a source directory into a `SiteSource` |
+| `sitegen.model` | `Site`, `Post`, `Page`, `Tag`: ordering, slugs, dates, excerpts, tag collection |
+| `sitegen.context` | builds the values handed to templates |
+| `sitegen.feed` | `renderFeed`, `renderSitemap` |
+| `sitegen.generator` | `generate`, `generateFiles`, `generateSite`, `writeFiles`, `copyStatic` |
+
+Each body and excerpt is converted to HTML once; post, page and tag objects
+are built once and shared by every page that shows them; tags are collected in
+O(K + T log T).
+
+## Tests
+
+```sh
+dub test --compiler=ldc2
 ```
-source/sitegen/   the library (one directory per sub-language)
-app/main.d        the command-line tool (a thin wrapper over generateSite)
-tests/            unit tests, one file per area (run by `dub test`)
-build.sh run.sh   build and run helpers
-```
 
-## Design notes
-
-* Single-threaded pipeline: load, build the model (each body converted once,
-  excerpts from the first block), build every template value once as a shared
-  immutable value, render each page, write each file with a single write.
-* Markdown follows the reference algorithm: line-driven block parser (open-block
-  chain, container starts, lazy continuation), delimiter stack with the
-  rule-of-3 and `openers_bottom` bounds, a bracket stack, and the code-span
-  backtick memo, so pathological inputs stay linear.
-* The template engine parses each template once (cached), resolves operators
-  and filters at parse time, shares strings/lists/dicts by reference and uses
-  small linearly searched scopes. Errors are exceptions (`TemplateError` with
-  an `ErrorKind`); unknown filters are reported only after the whole template has
-  parsed so syntax errors win.
+The tests are D `unittest` blocks next to the code they test, plus two
+conformance suites: `sitegen.markdown.conformance` (expected HTML produced by
+`cmark` 0.31.2) and `sitegen.templating.conformance` (expected output produced
+by Jinja2 3.1 with `StrictUndefined`).

@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block body %}{% for post in posts %}<h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+{{ post.excerpt }}{% endfor %}<p>page {{ pagination.number }} of {{ pagination.total_pages }}</p>
+{% if pagination.has_next %}<a href="{{ pagination.next_url }}">older</a>{% endif %}{% endblock %}

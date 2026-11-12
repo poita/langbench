@@ -1,0 +1,174 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+CARD BEGIN DSK-021
+name Umbral Stalker
+type unit
+cost 3
+body 3/2
+tags dusk,spirit
+keywords spectral
+CARD END
+CARD BEGIN DSK-022
+name Ossuary
+type relic
+cost 4
+tags dusk
+keywords -
+ability 1 aura (when (ash you ge 8) (modify 2 1 (units yours)))
+CARD END
+CARD BEGIN DSK-023
+name Entomb
+type rite
+cost 1
+tags dusk
+keywords -
+ability 1 resolve - (mill 3 you)
+CARD END
+CARD BEGIN DSK-024
+name Deathless Knight
+type unit
+cost 4
+body 3/3
+tags dusk,undead
+keywords tenacity
+CARD END
+CARD BEGIN DSK-025
+name Hex of Frailty
+type rite
+cost 2
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (setbody 1 1 (t 1))
+CARD END
+CARD BEGIN DSK-026
+name Reaper of Vows
+type unit
+cost 6
+body 5/5
+tags dusk,undead
+keywords pierce,siphon,venom
+CARD END
+CARD BEGIN DSK-027
+name Shriek
+type rite
+cost 1
+tags dusk
+keywords swift
+ability 1 resolve - (discard 2 foe)
+CARD END
+CARD BEGIN DSK-028
+name Grave Tide
+type rite
+cost 5
+tags dusk
+keywords -
+ability 1 resolve - (each (cards ash yours (type unit) (cost le 3)) (reanimate that))
+CARD END
+CARD BEGIN DSK-029
+name Cursed Idol
+type relic
+cost 2
+tags dusk
+keywords -
+ability 1 aura (grant shackled (units theirs (cost le 2)))
+CARD END
+CARD BEGIN DSK-030
+name Night Market
+type relic
+cost 3
+tags dusk
+keywords -
+ability 1 act (cost (ember 2) (discard 1)) - (draw 2 you)
+CARD END
+CARD BEGIN DSK-031
+name Wraithbind
+type rite
+cost 2
+tags dusk
+keywords swift
+ability 1 resolve (targets (unit)) (strip (t 1))
+CARD END
+CARD BEGIN DSK-032
+name Charnel Giant
+type unit
+cost 6
+body 6/5
+tags dusk,giant
+keywords -
+ability 1 on arrive (targets (unit (mine) (other))) (sacrifice (t 1)) (counters 2 self)
+CARD END
+CARD BEGIN DSK-033
+name Dusk Oracle
+type unit
+cost 4
+body 2/4
+tags dusk,mage
+keywords -
+ability 1 on your-turn-end - (mill 1 you) (spire -1 foe)
+CARD END
+CARD BEGIN DSK-034
+name Grasp of the Grave
+type rite
+cost 3
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (destroy (t 1)) (conjure TOK-008 1 you)
+CARD END
+CARD BEGIN DSK-035
+name Soulflame Rite
+type rite
+cost 4
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (damage (ash you) (t 1))
+CARD END
+CARD BEGIN DSK-036
+name Pall Bearer
+type unit
+cost 3
+body 2/4
+tags dusk,undead
+keywords -
+ability 1 on ally-dies - (spire 1 you)
+ability 2 on deals-damage - (spire 1 you)
+CARD END
+CARD BEGIN DSK-037
+name Lich's Bargain
+type rite
+cost 2
+tags dusk
+keywords -
+ability 1 resolve - (spire -5 you) (draw 3 you)
+CARD END
+CARD BEGIN DSK-038
+name Shadeweaver
+type unit
+cost 4
+body 3/3
+tags dusk,mage
+keywords -
+ability 1 aura (grant ghostwalk (units yours (tag undead)))
+CARD END
+CARD BEGIN DSK-039
+name Mortal Coil
+type rite
+cost 3
+tags dusk
+keywords -
+ability 1 resolve (targets (unit)) (swapstats (t 1)) (damage 2 (t 1))
+CARD END
+CARD BEGIN DSK-040
+name Dusk Ascendant
+type unit
+cost 7
+body 6/6
+tags dusk,undead
+keywords ghostwalk,venom
+ability 1 on arrive - (spire -3 foe)
+CARD END
+8 RESULT pending none

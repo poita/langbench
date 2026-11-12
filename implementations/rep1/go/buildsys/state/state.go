@@ -1,179 +1,209 @@
-// Package state reads and writes the .kiln-state file, the persisted record
-// of previously executed steps used for change detection.
+// Package state reads and writes the .kiln-state file and decides whether a
+// step is fresh with respect to it.
 package state
 
 import (
-	"bytes"
 	"sort"
+	"strings"
 
+	"buildsys/plan"
 	"buildsys/vfs"
 )
 
 // Header is the first line of every state file.
 const Header = "kiln-state 1"
 
-// PathHash is a workspace path with the hash of the content seen there.
+// PathHash is a workspace path with the hash of its content.
 type PathHash struct {
-	Path string
-	Hash uint64
+	Path, Hash string
 }
 
-// Entry records one executed step.
+// Entry records what is known about one previously executed step.
 type Entry struct {
-	Cmd string
+	Key string // primary output path
+	Cmd string // canonical command string
 	In  []PathHash
 	Dep []PathHash
 	Out []PathHash
 }
 
-// State maps a step's primary output path to its entry.
-type State map[string]*Entry
-
-// Parse reads a state file. Any deviation from the grammar yields an empty
-// State (ok is false), as does a missing trailing newline.
-func Parse(data []byte) (st State, ok bool) {
-	if len(data) == 0 || data[len(data)-1] != '\n' {
-		return State{}, false
-	}
-	st = State{}
-	pos := 0
-	next := func() ([]byte, bool) {
-		if pos >= len(data) {
-			return nil, false
-		}
-		i := bytes.IndexByte(data[pos:], '\n')
-		line := data[pos : pos+i]
-		pos += i + 1
-		return line, true
-	}
-	first, _ := next()
-	if string(first) != Header {
-		return State{}, false
-	}
-	for {
-		line, more := next()
-		if !more {
-			return st, true
-		}
-		key, rest, okk := splitKey(line)
-		if !okk || key != "step" || !vfs.IsPath(rest) {
-			return State{}, false
-		}
-		if _, dup := st[rest]; dup {
-			return State{}, false
-		}
-		e := &Entry{}
-		// cmd
-		line, more = next()
-		if !more {
-			return State{}, false
-		}
-		key, rest2, okk := splitKey(line)
-		if !okk || key != "cmd" || rest2 == "" {
-			return State{}, false
-		}
-		e.Cmd = rest2
-		// in*, dep*, out+ , end
-		phase := 0 // 0=in, 1=dep, 2=out
-		for done := false; !done; {
-			line, more = next()
-			if !more {
-				return State{}, false
-			}
-			if string(line) == "end" {
-				done = true
-				continue
-			}
-			k, r, okk := splitKey(line)
-			if !okk {
-				return State{}, false
-			}
-			ph, okp := parsePathHash(r)
-			if !okp {
-				return State{}, false
-			}
-			switch k {
-			case "in":
-				if phase > 0 {
-					return State{}, false
-				}
-				e.In = append(e.In, ph)
-			case "dep":
-				if phase > 1 {
-					return State{}, false
-				}
-				phase = 1
-				e.Dep = append(e.Dep, ph)
-			case "out":
-				phase = 2
-				e.Out = append(e.Out, ph)
-			default:
-				return State{}, false
-			}
-		}
-		if len(e.Out) == 0 || e.Out[0].Path != rest {
-			return State{}, false
-		}
-		st[rest] = e
-	}
+// State maps primary output paths to entries.
+type State struct {
+	entries map[string]*Entry
 }
 
-func splitKey(line []byte) (key, rest string, ok bool) {
-	i := bytes.IndexByte(line, ' ')
-	if i < 0 {
-		return "", "", false
-	}
-	return string(line[:i]), string(line[i+1:]), true
-}
+// New returns an empty state.
+func New() *State { return &State{entries: map[string]*Entry{}} }
 
-func parsePathHash(s string) (PathHash, bool) {
-	for i := 0; i < len(s); i++ {
-		if s[i] == ' ' {
-			h, ok := vfs.ParseHashHex(s[i+1:])
-			if !ok || !vfs.IsPath(s[:i]) {
-				return PathHash{}, false
-			}
-			return PathHash{Path: s[:i], Hash: h}, true
-		}
-	}
-	return PathHash{}, false
-}
+// Get returns the entry with the given key.
+func (s *State) Get(key string) *Entry { return s.entries[key] }
 
-// Marshal renders the state in canonical form: entries sorted by key.
-func (st State) Marshal() []byte {
-	keys := make([]string, 0, len(st))
-	for k := range st {
+// Put adds or replaces an entry.
+func (s *State) Put(e *Entry) { s.entries[e.Key] = e }
+
+// Delete removes the entry with the given key, if any.
+func (s *State) Delete(key string) { delete(s.entries, key) }
+
+// Len returns the number of entries.
+func (s *State) Len() int { return len(s.entries) }
+
+// Format renders the state file: entries sorted by key, every line terminated.
+func (s *State) Format() string {
+	keys := make([]string, 0, len(s.entries))
+	for k := range s.entries {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
-	var b []byte
-	b = append(b, Header...)
-	b = append(b, '\n')
-	line := func(kind string, ph PathHash) {
-		b = append(b, kind...)
-		b = append(b, ' ')
-		b = append(b, ph.Path...)
-		b = append(b, ' ')
-		b = vfs.AppendHashHex(b, ph.Hash)
-		b = append(b, '\n')
-	}
+	var b strings.Builder
+	b.WriteString(Header)
+	b.WriteByte('\n')
 	for _, k := range keys {
-		e := st[k]
-		b = append(b, "step "...)
-		b = append(b, k...)
-		b = append(b, "\ncmd "...)
-		b = append(b, e.Cmd...)
-		b = append(b, '\n')
-		for _, p := range e.In {
-			line("in", p)
+		e := s.entries[k]
+		b.WriteString("step " + e.Key + "\n")
+		b.WriteString("cmd " + e.Cmd + "\n")
+		for _, sec := range []struct {
+			tag  string
+			list []PathHash
+		}{{"in", e.In}, {"dep", e.Dep}, {"out", e.Out}} {
+			for _, ph := range sec.list {
+				b.WriteString(sec.tag + " " + ph.Path + " " + ph.Hash + "\n")
+			}
 		}
-		for _, p := range e.Dep {
-			line("dep", p)
-		}
-		for _, p := range e.Out {
-			line("out", p)
-		}
-		b = append(b, "end\n"...)
+		b.WriteString("end\n")
 	}
-	return b
+	return b.String()
+}
+
+func validHash(h string) bool {
+	if len(h) != 16 {
+		return false
+	}
+	for i := 0; i < len(h); i++ {
+		c := h[i]
+		if !(c >= '0' && c <= '9' || c >= 'a' && c <= 'f') {
+			return false
+		}
+	}
+	return true
+}
+
+func parsePathHash(rest string) (PathHash, bool) {
+	parts := strings.Split(rest, " ")
+	if len(parts) != 2 || !vfs.ValidPath(parts[0]) || !validHash(parts[1]) {
+		return PathHash{}, false
+	}
+	return PathHash{parts[0], parts[1]}, true
+}
+
+// Parse reads a state file. Any deviation from the format yields an empty
+// state, as does an empty or unterminated file.
+func Parse(content string) *State {
+	if !strings.HasSuffix(content, "\n") {
+		return New()
+	}
+	lines := strings.Split(content[:len(content)-1], "\n")
+	if lines[0] != Header {
+		return New()
+	}
+	st := New()
+	i := 1
+	for i < len(lines) {
+		key, ok := strings.CutPrefix(lines[i], "step ")
+		if !ok || !vfs.ValidPath(key) {
+			return New()
+		}
+		i++
+		e := &Entry{Key: key}
+		if i >= len(lines) {
+			return New()
+		}
+		cmd, ok := strings.CutPrefix(lines[i], "cmd ")
+		if !ok || cmd == "" {
+			return New()
+		}
+		e.Cmd = cmd
+		i++
+		for _, sec := range []struct {
+			tag string
+			dst *[]PathHash
+		}{{"in ", &e.In}, {"dep ", &e.Dep}, {"out ", &e.Out}} {
+			for i < len(lines) {
+				rest, ok := strings.CutPrefix(lines[i], sec.tag)
+				if !ok {
+					break
+				}
+				ph, ok := parsePathHash(rest)
+				if !ok {
+					return New()
+				}
+				*sec.dst = append(*sec.dst, ph)
+				i++
+			}
+		}
+		if len(e.Out) == 0 || e.Out[0].Path != key || i >= len(lines) || lines[i] != "end" {
+			return New()
+		}
+		i++
+		if st.entries[key] != nil {
+			return New()
+		}
+		st.entries[key] = e
+	}
+	return st
+}
+
+// Hasher gives the content hash of a workspace file.
+type Hasher interface {
+	Hash(path string) (string, bool)
+}
+
+func samePaths(rec []PathHash, want []string) bool {
+	if len(rec) != len(want) {
+		return false
+	}
+	for i := range rec {
+		if rec[i].Path != want[i] {
+			return false
+		}
+	}
+	return true
+}
+
+func matches(rec []PathHash, fs Hasher) bool {
+	for _, ph := range rec {
+		if h, ok := fs.Hash(ph.Path); !ok || h != ph.Hash {
+			return false
+		}
+	}
+	return true
+}
+
+// Fresh reports whether step needs no re-execution given its state entry e
+// (which may be nil) and the current workspace.
+func Fresh(e *Entry, step *plan.Step, fs Hasher) bool {
+	return e != nil &&
+		e.Cmd == step.Command &&
+		samePaths(e.Out, step.AllOutputs()) &&
+		samePaths(e.In, step.FileInputs) &&
+		matches(e.In, fs) && matches(e.Dep, fs) && matches(e.Out, fs)
+}
+
+// Capture builds the entry for a step that has just executed. discovered must
+// be sorted.
+func Capture(step *plan.Step, discovered []string, fs Hasher) *Entry {
+	hashes := func(paths []string) []PathHash {
+		var out []PathHash
+		for _, p := range paths {
+			h, _ := fs.Hash(p)
+			out = append(out, PathHash{p, h})
+		}
+		return out
+	}
+	return &Entry{
+		Key: step.Primary(),
+		Cmd: step.Command,
+		In:  hashes(step.FileInputs),
+		Dep: hashes(discovered),
+		Out: hashes(step.AllOutputs()),
+	}
 }

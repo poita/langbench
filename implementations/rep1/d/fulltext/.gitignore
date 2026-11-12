@@ -1,6 +1,6 @@
 .dub/
-bin/
-*.o
+/fulltext
 *.a
+*.o
 dub.selections.json
-fulltext-test
+__test__*

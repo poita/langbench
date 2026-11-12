@@ -1,6 +1,7 @@
-bin/
 .dub/
-*.o
+/rubiks
 *.a
+*.o
+*.lst
 dub.selections.json
 rubiks-test-*

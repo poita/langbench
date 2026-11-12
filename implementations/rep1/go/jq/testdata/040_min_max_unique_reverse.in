@@ -1,0 +1,2 @@
+[.[] | min], [.[] | max], [.[] | unique], [.[] | reverse], ([] | min, max, unique, reverse), (null | reverse), ([{"a":1,"b":2},{"b":2,"a":1}] | min, max, unique, (sort | .[0]))
+[[3,1,2],[[1],"a",null,{}],[1,"1",[1],1,null,1.5,{"a":1},{"a":1},1],["b","a","b"]]

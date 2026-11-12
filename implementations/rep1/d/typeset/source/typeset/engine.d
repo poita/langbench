@@ -1,191 +1,293 @@
-/// The top-level pipeline: validate settings and document, lay the document
-/// out, paginate, and produce `layout.txt` / `report.txt` or `error.txt`.
+/**
+ * The top-level pipeline: settings and document in, pages and report out.
+ */
 module typeset.engine;
 
-import std.file : exists, isFile, mkdirRecurse, readText, write;
+import std.conv : to;
+import std.file : exists, isFile, readText;
 import std.path : buildPath;
-import typeset.arith;
-import typeset.errors;
-import typeset.fonts;
-import typeset.hyphen;
-import typeset.layout;
-import typeset.markup;
-import typeset.output;
-import typeset.page;
-import typeset.settings;
 
-/// The files produced for one run. Exactly one of `error` or the pair
-/// `layout`/`report` is set.
+import typeset.compose;
+import typeset.errors;
+import typeset.hlist;
+import typeset.hyphenation;
+import typeset.layout;
+import typeset.line;
+import typeset.markup;
+import typeset.metrics;
+import typeset.paginate;
+import typeset.settings;
+import typeset.units;
+import typeset.vlist;
+
+/// Font metrics and hyphenation patterns shared by all documents.
+final class Resources
+{
+    FaceSet faces;
+    PatternSet english, minimal;
+
+    /// Loads `<dataDir>/faces/*.cfm` and `<dataDir>/hyphen/*.chp`.
+    static Resources load(string dataDir)
+    {
+        auto r = new Resources;
+        r.faces = FaceSet.load(dataDir);
+        r.english = PatternSet.load(dataDir, PatternId.english);
+        r.minimal = PatternSet.load(dataDir, PatternId.minimal);
+        return r;
+    }
+
+    PatternSet patterns(PatternId id)
+    {
+        return id == PatternId.english ? english : minimal;
+    }
+}
+
+/// The outcome of typesetting one document: either a layout and its report,
+/// or the single error that made the input invalid.
 struct Result
 {
-    bool ok; /// whether the input was valid
-    string error; /// contents of `error.txt` (when `!ok`)
-    string layout; /// contents of `layout.txt`
-    string report; /// contents of `report.txt`
-}
+    bool ok;
+    Diagnostic error; /// valid when `!ok`
+    Layout layout; /// valid when `ok`
+    Report report; /// valid when `ok`
 
-/// Provides the font and pattern data, loaded on demand.
-interface DataSource
-{
-    /// The nine faces.
-    FontSet fonts();
-    /// A pattern set.
-    PatternSet patterns(PatternsId id);
-}
-
-/// Loads data from a directory with `faces/` and `hyphen/` subdirectories.
-final class DirectoryData : DataSource
-{
-    private string dir;
-    private FontSet fs;
-    private PatternSet[2] ps;
-
-    this(string dataDir)
+    /// Contents of `error.txt` (including the newline).
+    string errorText() const
     {
-        dir = dataDir;
-    }
-
-    FontSet fonts()
-    {
-        if (fs is null)
-            fs = FontSet.load(dir);
-        return fs;
-    }
-
-    PatternSet patterns(PatternsId id)
-    {
-        if (ps[id] is null)
-            ps[id] = PatternSet.load(dir, id);
-        return ps[id];
+        return error.toString() ~ "\n";
     }
 }
 
-/// The contents of an input directory.
-struct Input
+/// Typesets `documentSource` (the text of `document.cdx`) with the settings
+/// in `settingsSource` (the text of `settings.cfg`, or null).
+Result typesetSources(Resources res, string documentSource, string settingsSource = null)
 {
-    string document; /// text of `document.cdx`
-    bool hasDocument; /// whether `document.cdx` exists
-    string settings; /// text of `settings.cfg`
-    bool hasSettings; /// whether `settings.cfg` exists
-}
-
-/// Typesets a document: validates the inputs, lays the document out and
-/// returns the output files' contents (or the error report).
-Result typesetDocument(const Input input, DataSource data)
-{
-    Result res;
-    if (!input.hasDocument)
-    {
-        res.error = Diagnostic("-", 0, 0, ErrorCode.missingDocument).toString() ~ "\n";
-        return res;
-    }
-    Settings settings;
-    Document doc;
+    Result result;
     try
     {
-        settings = input.hasSettings ? parseSettings(input.settings) : defaultSettings();
-        doc = parseDocument(input.document);
+        auto s = parseSettings(settingsSource);
+        auto doc = parseDocument(documentSource);
+        result = compose(res, s, doc);
+        result.ok = true;
     }
     catch (TypesetError e)
     {
-        res.error = e.diag.toString() ~ "\n";
-        return res;
+        result = Result.init;
+        result.ok = false;
+        result.error = e.diagnostic;
     }
-
-    auto fonts = data.fonts();
-    auto patterns = data.patterns(settings.hyphenPatterns);
-    auto layout = new Layout(&settings, fonts, patterns, doc);
-    layout.layoutBody();
-    auto pager = new Paginator(layout);
-    auto body_ = pager.paginate(layout.items, true);
-    PageInfo[] front;
-    if (doc.hasToc)
-    {
-        immutable pageStart = settings.pageStart;
-        auto tocItems = layout.layoutToc((int p) => toDecimal(pageStart + p - 1));
-        front = pager.paginate(tocItems, false);
-    }
-
-    // Output.
-    Buf lay;
-    lay.put("layout 1\npages ");
-    lay.putInt(front.length + body_.length);
-    lay.put('\n');
-    int index = 0;
-    foreach (ref group; [front, body_])
-        foreach (ref pi; group)
-        {
-            pager.renderHeaderFooter(pi, body_.length);
-            ++index;
-            lay.put("page ");
-            lay.putInt(index);
-            lay.put(' ');
-            lay.put(pi.label);
-            foreach (v; [settings.pageWidth, settings.pageHeight, settings.bodyX, settings.bodyY,
-                    settings.bodyWidth, settings.bodyHeight])
-            {
-                lay.put(' ');
-                lay.putInt(v);
-            }
-            lay.put('\n');
-            pi.page.render(lay);
-        }
-    res.layout = lay[].idup;
-
-    auto st = layout.store.stats;
-    Buf rep;
-    void kv(string k, long v)
-    {
-        rep.put(k);
-        rep.put(' ');
-        rep.putInt(v);
-        rep.put('\n');
-    }
-
-    rep.put("report 1\n");
-    kv("pages", front.length + body_.length);
-    kv("front-pages", front.length);
-    kv("body-pages", body_.length);
-    kv("lines", st.lines);
-    kv("paragraphs", doc.paragraphs);
-    kv("headings", doc.headings);
-    kv("tables", doc.tables);
-    kv("figures", doc.figures);
-    kv("footnotes", doc.footnotes.length);
-    kv("footnote-split-lines", st.splitLines);
-    kv("hyphenated-lines", st.hyphenated);
-    kv("overfull-lines", st.overfull);
-    kv("emergency-lists", st.emergency);
-    kv("total-demerits", st.demerits);
-    res.report = rep[].idup;
-    res.ok = true;
-    return res;
+    return result;
 }
 
-/// Runs the engine on an input directory and writes the result files into
-/// `outputDir` (created if missing). `dataDir` holds `faces/` and `hyphen/`.
-void typesetDirectory(string inputDir, string outputDir, string dataDir)
+/// Reads `document.cdx` and optional `settings.cfg` from `inputDir`.
+Result typesetDirectory(Resources res, string inputDir)
 {
     immutable docPath = buildPath(inputDir, "document.cdx");
-    immutable cfgPath = buildPath(inputDir, "settings.cfg");
-    Input input;
-    if (exists(docPath) && isFile(docPath))
+    if (!exists(docPath) || !isFile(docPath))
     {
-        input.document = readText(docPath);
-        input.hasDocument = true;
+        Result r;
+        r.error = Diagnostic("-", 0, 0, "missing-document");
+        return r;
     }
-    if (exists(cfgPath) && isFile(cfgPath))
+    immutable setPath = buildPath(inputDir, "settings.cfg");
+    string settings = null;
+    if (exists(setPath) && isFile(setPath))
+        settings = readText(setPath);
+    return typesetSources(res, readText(docPath), settings);
+}
+
+private Result compose(Resources res, ref const Settings s, Document doc)
+{
+    auto composer = new Composer(s, res.faces, res.patterns(s.hyphenPatterns), doc);
+    composer.composeBody();
+
+    long splitLines = 0;
+    PageSource bodySrc;
+    bodySrc.items = composer.body_.items;
+    bodySrc.lines = composer.lines;
+    bodySrc.rows = composer.rows;
+    bodySrc.figures = composer.figures;
+    bodySrc.noteLines = composer.noteLines;
+    auto bodyPages = paginate(bodySrc, s, splitLines);
+
+    foreach (pi, ref p; bodyPages)
+        foreach (id; p.headingStarts)
+            composer.headings[id].page = cast(int) pi + 1;
+
+    PageResult[] frontPages;
+    if (doc.toc !is null)
     {
-        input.settings = readText(cfgPath);
-        input.hasSettings = true;
+        string[] labels;
+        foreach (ref h; composer.headings)
+            labels ~= (s.pageStart + h.page - 1).to!string;
+        auto tocList = composer.composeToc(doc.toc, labels);
+        PageSource tocSrc;
+        tocSrc.items = tocList.items;
+        tocSrc.lines = composer.lines;
+        tocSrc.rows = composer.rows;
+        long ignored = 0;
+        frontPages = paginate(tocSrc, s, ignored);
     }
-    auto res = typesetDocument(input, new DirectoryData(dataDir));
-    mkdirRecurse(outputDir);
-    if (res.ok)
+
+    // assemble
+    Layout layout;
+    layout.pageWidth = s.pageWidth;
+    layout.pageHeight = s.pageHeight;
+    layout.bodyX = s.bodyX;
+    layout.bodyY = s.bodyY;
+    layout.bodyWidth = s.bodyWidth;
+    layout.bodyHeight = s.bodyHeight;
+
+    auto env = BuildEnv(res.faces, &s, res.patterns(s.hyphenPatterns));
+    foreach (m, ref p; frontPages)
     {
-        write(buildPath(outputDir, "layout.txt"), res.layout);
-        write(buildPath(outputDir, "report.txt"), res.report);
+        Page page;
+        page.label = roman(cast(long) m + 1);
+        page.items = p.items;
+        addHeaderFooter(page, env, s, doc, cast(long) m + 1, bodyPages.length, null, null);
+        layout.pages ~= page;
     }
-    else
-        write(buildPath(outputDir, "error.txt"), res.error);
+    dstring chapter, section;
+    foreach (m, ref p; bodyPages)
+    {
+        foreach (id; p.headingStarts)
+        {
+            const h = composer.headings[id];
+            dstring text = h.number.length ? h.number.to!dstring ~ " "d ~ h.plain : h.plain;
+            if (h.level == 1)
+                chapter = text;
+            else if (h.level == 2)
+                section = text;
+        }
+        immutable number = s.pageStart + cast(long) m;
+        Page page;
+        page.label = number.to!string;
+        page.items = p.items;
+        addHeaderFooter(page, env, s, doc, number, bodyPages.length, chapter, section);
+        layout.pages ~= page;
+    }
+    layout.sortItems();
+
+    Report r;
+    r.pages = layout.pages.length;
+    r.frontPages = frontPages.length;
+    r.bodyPages = bodyPages.length;
+    r.lines = composer.stats.lines;
+    r.paragraphs = composer.stats.paragraphs;
+    r.headings = composer.stats.headings;
+    r.tables = composer.stats.tables;
+    r.figures = composer.stats.figures;
+    r.footnotes = composer.stats.footnotes;
+    r.footnoteSplitLines = splitLines;
+    r.hyphenatedLines = composer.stats.hyphenatedLines;
+    r.overfullLines = composer.stats.overfullLines;
+    r.emergencyLists = composer.stats.emergencyLists;
+    r.totalDemerits = composer.stats.totalDemerits;
+
+    Result result;
+    result.layout = layout;
+    result.report = r;
+    return result;
+}
+
+private dstring substitute(const Template t, ref const Settings s, Document doc, string label, size_t bodyPages,
+    dstring chapter, dstring section)
+{
+    dstring r;
+    foreach (part; t)
+    {
+        if (!part.isPlaceholder)
+        {
+            r ~= part.literal;
+            continue;
+        }
+        final switch (part.placeholder)
+        {
+        case Placeholder.page:
+            r ~= label.to!dstring;
+            break;
+        case Placeholder.pages:
+            r ~= bodyPages.to!dstring;
+            break;
+        case Placeholder.title:
+            r ~= doc.title;
+            break;
+        case Placeholder.author:
+            r ~= doc.author;
+            break;
+        case Placeholder.date:
+            r ~= doc.date;
+            break;
+        case Placeholder.chapter:
+            r ~= chapter;
+            break;
+        case Placeholder.section:
+            r ~= section;
+            break;
+        }
+    }
+    return r;
+}
+
+private void addHeaderFooter(ref Page page, ref BuildEnv env, ref const Settings s, Document doc, long number,
+    size_t bodyPages, dstring chapter, dstring section)
+{
+    immutable even = number % 2 == 0;
+    const(Template)[6] slots = even
+        ? [s.headerLeftEven, s.headerCenterEven, s.headerRightEven, s.footerLeftEven, s.footerCenterEven,
+            s.footerRightEven] : [s.headerLeft, s.headerCenter, s.headerRight, s.footerLeft, s.footerCenter,
+            s.footerRight];
+    foreach (k, ref t; slots)
+    {
+        if (t.length == 0)
+            continue;
+        const text = substitute(t, s, doc, page.label, bodyPages, chapter, section);
+        auto style = ListStyle(s.headerFont, false, false, s.headerSize, true, false);
+        auto items = buildList(null, literalTokens(text), style, env);
+        long w = 0;
+        bool any = false;
+        foreach (ref it; items)
+        {
+            if (it.kind == Item.Kind.box)
+            {
+                w += it.width;
+                any = true;
+            }
+            else if (it.kind == Item.Kind.glue)
+                w += it.width;
+        }
+        if (!any)
+            continue;
+        long x;
+        immutable col = k % 3;
+        if (col == 0)
+            x = s.bodyX;
+        else if (col == 1)
+            x = s.bodyX + fdiv(s.bodyWidth - w, 2);
+        else
+            x = s.bodyX + s.bodyWidth - w;
+        immutable header = k < 3;
+        foreach (ref it; items)
+        {
+            if (it.kind == Item.Kind.box)
+            {
+                if (!it.rigid)
+                {
+                    PlacedItem p;
+                    p.region = header ? Region.header : Region.footer;
+                    p.kind = ItemKind.text;
+                    p.face = faceNames[it.face];
+                    p.size = it.size;
+                    p.x = x;
+                    p.y = header ? s.headerBaseline : s.footerBaseline;
+                    p.width = it.width;
+                    p.text = it.text.to!string;
+                    page.items ~= p;
+                }
+                x += it.width;
+            }
+            else if (it.kind == Item.Kind.glue)
+                x += it.width;
+        }
+    }
 }

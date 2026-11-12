@@ -1,21 +1,20 @@
-/++
-    A backtracking regular-expression engine for a defined subset of Perl
-    syntax, with leftmost, greedy, ordered-choice semantics and capture
-    group positions.
-
-    Modules:
-    $(UL
-      $(LI `regex.pattern` – the high-level `Regex` API)
-      $(LI `regex.parser`, `regex.ast`, `regex.charset` – pattern syntax tree)
-      $(LI `regex.analysis` – nullability, anchoring, first-character sets)
-      $(LI `regex.compiler`, `regex.program` – flat VM program)
-      $(LI `regex.vm` – the backtracking interpreter)
-      $(LI `regex.batch` – the batch input/output protocol of the CLI)
-    )
-+/
+/**
+ * A backtracking regular-expression engine for a defined subset of Perl-style
+ * syntax, plus a batch driver for the line-oriented input format used by the
+ * command-line tool.
+ *
+ * Modules:
+ * $(UL
+ *   $(LI $(MREF regex.regex)    – the `Regex` class and `Match` result)
+ *   $(LI $(MREF regex.batch)    – parsing batch input and formatting results)
+ *   $(LI $(MREF regex.parser)   – pattern → syntax tree)
+ *   $(LI $(MREF regex.ast)      – syntax tree)
+ *   $(LI $(MREF regex.compiler) – syntax tree → program)
+ *   $(LI $(MREF regex.vm)       – backtracking interpreter)
+ * )
+ */
 module regex;
 
-public import regex.exception;
-public import regex.pattern;
+public import regex.regex;
 public import regex.batch;
-public import regex.vm : Matcher;
+public import regex.exception;

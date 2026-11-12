@@ -1,0 +1,30 @@
+@module main
+fn fact(n: Int) -> Int {
+    if n <= 1 { return 1; }
+    n * fact(n - 1)
+}
+
+fn firstDivisor(n: Int) -> Int {
+    var d = 2;
+    while d * d <= n {
+        if n % d == 0 { return d; }
+        d = d + 1;
+    }
+    n
+}
+
+fn main() {
+    print(showInt(fact(10)));
+    for i in 2 .. 12 {
+        if i % 2 == 0 { continue; }
+        emit(showInt(firstDivisor(i)));
+        emit(" ");
+    }
+    print("");
+    var total = 0;
+    for x in [3, 1, 4, 1, 5, 9, 2, 6] {
+        if x == 9 { break; }
+        total = total + x;
+    }
+    print(showInt(total));
+}

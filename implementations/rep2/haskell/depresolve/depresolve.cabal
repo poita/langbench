@@ -1,0 +1,68 @@
+cabal-version:      3.0
+name:               depresolve
+version:            0.1.0.0
+synopsis:           Deterministic package dependency resolver (depth-first, newest first)
+description:
+  A library and command-line tool that resolves a package registry and a
+  root manifest into one version per needed package, using a fully specified
+  depth-first, newest-version-first search with chronological backtracking.
+  The search runs on an explicit stack with an undo trail, so it is not
+  limited by the call stack.
+category:           Development
+license:            MIT
+license-file:       LICENSE
+author:             depresolve contributors
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Depresolve
+    Depresolve.Version
+    Depresolve.Range
+    Depresolve.Types
+    Depresolve.Parse
+    Depresolve.Index
+    Depresolve.Resolve
+    Depresolve.Render
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.18 && <5
+    , bytestring  >=0.11 && <0.13
+    , containers  >=0.6 && <0.9
+
+executable depresolve
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , depresolve
+
+test-suite depresolve-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Depresolve.VersionSpec
+    Depresolve.RangeSpec
+    Depresolve.ParseSpec
+    Depresolve.ResolveSpec
+    Depresolve.Reference
+    Depresolve.Gen
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , depresolve
+    , hspec       >=2.10
+    , QuickCheck  >=2.14

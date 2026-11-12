@@ -1,0 +1,25 @@
+a : int
+error: unify
+- : int
+b : int list
+error: unbound
+error: occurs
+e : int * int list
+error: unbound
+error: unbound
+- : int * int list
+error: unify
+g : int
+error: unify
+- : int
+h : 'a -> 'a * int
+- : 'a -> 'a * int
+error: occurs
+error: occurs
+error: unbound
+i : 'a -> 'a
+- : 'a -> 'a
+error: unbound
+error: unbound
+error: occurs
+- : int

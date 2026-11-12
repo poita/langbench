@@ -1,37 +1,28 @@
-name "buildsys"
-description "Kiln: an incremental build system simulator with its own build language (KBL)"
-authors "buildsys authors"
-copyright "Copyright (c) buildsys authors"
+name "kiln"
+description "Kiln: an incremental build system with a deterministic parallel-scheduling simulation"
+authors "Kiln contributors"
+copyright "Copyright © 2026, Kiln contributors"
 license "MIT"
 
-# The command-line tool (default configuration for `dub build`).
+# The default configuration builds the `kiln` command-line tool; the
+# `library` configuration builds only the reusable engine (kiln.*).
 configuration "application" {
     targetType "executable"
-    targetName "buildsys"
+    targetName "kiln"
     sourcePaths "source" "app"
-    importPaths "source"
     mainSourceFile "app/main.d"
 }
 
-# Library only: no main().  Used by `dub test` and by downstream projects.
 configuration "library" {
     targetType "library"
     targetName "kiln"
     sourcePaths "source"
-    importPaths "source"
-    excludedSourceFiles "app/*"
 }
 
-# `dub test` runs the unit tests that live under tests/, kept apart from the
-# library source.
+# `dub test` runs the unit tests embedded in the library modules plus the
+# end-to-end session tests under tests/.
 configuration "unittest" {
     targetType "library"
-    targetName "buildsys-test"
+    targetName "kiln-unittest"
     sourcePaths "source" "tests"
-    importPaths "source" "tests"
-}
-
-buildType "release" {
-    buildOptions "releaseMode" "optimize" "inline"
-    dflags "-O3" "-boundscheck=off" platform="ldc"
 }

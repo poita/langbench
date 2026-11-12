@@ -1,199 +1,215 @@
-package value_test
+package value
 
 import (
 	"strings"
 	"testing"
-
-	"github.com/peter/jq/value"
 )
 
-func mustParse(t *testing.T, s string) value.Value {
-	t.Helper()
-	v, err := value.Parse(s)
-	if err != nil {
-		t.Fatalf("Parse(%q): %v", s, err)
-	}
-	return v
-}
-
-func TestParseRoundTrip(t *testing.T) {
+func TestParseAndMarshalRoundTrip(t *testing.T) {
 	cases := []string{
-		`null`, `true`, `false`, `0`, `-12`, `1.5`, `0.125`, `3086419725308.5`,
-		`1000000000000`, `""`, `"a b"`, `[]`, `{}`, `[1,[2,[3]]]`,
-		`{"b":1,"a":2,"c":{"x":[]}}`, `"é€😀"`, `"\u007f"`,
+		`null`, `true`, `false`, `0`, `-12`, `1.5`, `3086419725308.5`,
+		`"a\"b\\c\n\t"`, `"é😀"`, `[]`, `{}`, `[1,[2,[3]]]`,
+		`{"z":1,"a":{"y":[true,null],"b":"x"}}`,
 	}
-	for _, c := range cases {
-		if got := value.JSON(mustParse(t, c)); got != c {
-			t.Errorf("round trip of %s gave %s", c, got)
+	for _, in := range cases {
+		v, err := ParseString(in)
+		if err != nil {
+			t.Errorf("Parse(%s): %v", in, err)
+			continue
+		}
+		if got := String(v); got != in {
+			t.Errorf("round trip of %s gave %s", in, got)
 		}
 	}
 }
 
-func TestParseStringEscapes(t *testing.T) {
-	v := mustParse(t, `"\" \\ \/ \b \f \n \r \t é 😀 \u0001"`)
-	want := "\" \\ / \b \f \n \r \t é 😀 \x01"
-	if v.Str() != want {
-		t.Errorf("got %q, want %q", v.Str(), want)
+func TestParseEscapes(t *testing.T) {
+	v, err := ParseString(` "é😀\/\b\f\u001F" `)
+	if err != nil {
+		t.Fatal(err)
 	}
-	if got := value.JSON(v); got != `"\" \\ / \b \f \n \r \t é 😀 \u0001"` {
-		t.Errorf("serialised as %s", got)
+	if want := "é😀/\b\f\x1f"; v != want {
+		t.Errorf("got %q, want %q", v, want)
+	}
+	if got := String(v); got != `"é😀/\b\f\u001f"` {
+		t.Errorf("encoded %s", got)
 	}
 }
 
-func TestParseWhitespaceAndNumbers(t *testing.T) {
-	v := mustParse(t, " \t\r\n[ 1 ,\n 2.50 , -0.5 , 1e2, 12345678901234567 ] \n")
-	got := value.JSON(v)
-	if got != `[1,2.5,-0.5,100,12345678901234568]` {
-		t.Errorf("got %s", got)
+func TestEncodeEscapes(t *testing.T) {
+	got := String("\x00\x07\x1f\x7f</& ")
+	want := `"\u0000\u0007\u001f\u007f</&` + " " + `"`
+	if got != want {
+		t.Errorf("got %s want %s", got, want)
 	}
 }
 
 func TestParseErrors(t *testing.T) {
-	bad := []string{``, `[`, `[1,]`, `{"a"}`, `{"a":1,}`, `tru`, `01`, `1.`, `"abc`,
-		`"\x"`, `[1] 2`, `{1:2}`, "\"a\nb\""}
-	for _, s := range bad {
-		if _, err := value.Parse(s); err == nil {
-			t.Errorf("Parse(%q) succeeded, want error", s)
+	for _, in := range []string{``, `[1,]`, `{"a"}`, `01`, `1.`, `"abc`, `[1] x`, `tru`, `{"a":1,}`, `"\x"`, `-`} {
+		if _, err := ParseString(in); err == nil {
+			t.Errorf("Parse(%q) succeeded, want error", in)
 		}
 	}
 }
 
-func TestParseDeepNestingFails(t *testing.T) {
-	s := strings.Repeat("[", 20000) + strings.Repeat("]", 20000)
-	if _, err := value.Parse(s); err == nil {
-		t.Error("expected nesting error")
+func TestParseDeepNestingIsRejected(t *testing.T) {
+	in := strings.Repeat("[", maxDepth+10)
+	if _, err := ParseString(in); err == nil {
+		t.Error("expected an error for pathological nesting")
+	}
+}
+
+func TestNumberFormatting(t *testing.T) {
+	cases := map[float64]string{
+		0: "0", 3: "3", -12: "-12", 1e12: "1000000000000", 1.5: "1.5", 0.125: "0.125",
+		3086419725308.5: "3086419725308.5", 0.001: "0.001", 1e-7: "1e-07",
+		9007199254740991: "9007199254740991",
+	}
+	for f, want := range cases {
+		if got := FormatNumber(f); got != want {
+			t.Errorf("FormatNumber(%v) = %s, want %s", f, got, want)
+		}
 	}
 }
 
 func TestParseNumber(t *testing.T) {
-	for in, want := range map[string]float64{
-		"0": 0, "12": 12, "-2.5": -2.5, "3.25": 3.25, "0.1": 0.1,
-		"123456789.123456": 123456789.123456, "1e3": 1000, "1.5E-2": 0.015,
-		"9007199254740993": 9007199254740992,
-	} {
-		got, err := value.ParseNumber(in)
-		if err != nil || got != want {
-			t.Errorf("ParseNumber(%q) = %v, %v; want %v", in, got, err, want)
+	good := map[string]float64{"12": 12, "-2.5": -2.5, "3.25": 3.25, "0": 0, "1e2": 100}
+	for s, want := range good {
+		if got, ok := ParseNumber(s); !ok || got != want {
+			t.Errorf("ParseNumber(%q) = %v, %v", s, got, ok)
 		}
 	}
-	for _, in := range []string{"", " 1", "1 ", "abc", "1.", ".5", "+1", "007", "-", "0x10"} {
-		if _, err := value.ParseNumber(in); err == nil {
-			t.Errorf("ParseNumber(%q) succeeded", in)
+	for _, s := range []string{"", " 1", "1 ", "abc", "007", "+1", "nan", "0x10", "1_0", "."} {
+		if _, ok := ParseNumber(s); ok {
+			t.Errorf("ParseNumber(%q) succeeded", s)
 		}
 	}
 }
 
-func TestAppendNumber(t *testing.T) {
-	for f, want := range map[float64]string{
-		0: "0", 3: "3", -12: "-12", 1.5: "1.5", 0.125: "0.125",
-		1e12: "1000000000000", 0.001: "0.001", 3086419725308.5: "3086419725308.5",
-	} {
-		if got := string(value.AppendNumber(nil, f)); got != want {
-			t.Errorf("AppendNumber(%v) = %s, want %s", f, got, want)
+func TestCompareOrdering(t *testing.T) {
+	ordered := []string{
+		`null`, `false`, `true`, `-5`, `0`, `1.5`, `""`, `"a"`, `"ab"`, `"b"`, `"c"`, `"é"`,
+		`[]`, `[0]`, `[0,0]`, `[1]`, `{}`, `{"a":1}`, `{"a":2}`, `{"a":0,"b":0}`, `{"b":0}`,
+	}
+	var vals []Value
+	for _, s := range ordered {
+		v, err := ParseString(s)
+		if err != nil {
+			t.Fatal(err)
 		}
+		vals = append(vals, v)
 	}
-}
-
-func TestObjectOrderAndLookup(t *testing.T) {
-	v := mustParse(t, `{"z":1,"a":2,"m":3}`)
-	o := v.Object()
-	if got := strings.Join(o.SortedKeys(), ","); got != "a,m,z" {
-		t.Errorf("sorted keys %s", got)
-	}
-	if x, ok := o.Get("a"); !ok || x.Float() != 2 {
-		t.Errorf("Get(a) = %v, %v", x, ok)
-	}
-	if _, ok := o.Get("q"); ok {
-		t.Error("Get(q) found a key")
-	}
-	if value.JSON(v) != `{"z":1,"a":2,"m":3}` {
-		t.Errorf("order changed: %s", value.JSON(v))
-	}
-}
-
-func TestObjectBuilderSetKeepsPosition(t *testing.T) {
-	b := value.NewObjectBuilder(0)
-	b.Set("a", value.Number(1))
-	b.Set("b", value.Number(2))
-	b.Set("a", value.Number(3))
-	if got := value.JSON(b.Build()); got != `{"a":3,"b":2}` {
-		t.Errorf("got %s", got)
-	}
-}
-
-func TestObjectBuilderCopyDoesNotMutateSource(t *testing.T) {
-	src := mustParse(t, `{"a":1}`)
-	b := src.Object().Builder(1)
-	b.Set("a", value.Number(9))
-	b.Set("b", value.Number(2))
-	_ = b.Build()
-	if value.JSON(src) != `{"a":1}` {
-		t.Errorf("source mutated: %s", value.JSON(src))
-	}
-}
-
-func TestLargeObjectUsesIndex(t *testing.T) {
-	b := value.NewObjectBuilder(0)
-	for i := 0; i < 100; i++ {
-		b.Set(strings.Repeat("k", i+1), value.Number(float64(i)))
-	}
-	b.Set(strings.Repeat("k", 50), value.Number(-1))
-	o := b.Build().Object()
-	if o.Len() != 100 {
-		t.Fatalf("len %d", o.Len())
-	}
-	if x, _ := o.Get(strings.Repeat("k", 50)); x.Float() != -1 {
-		t.Errorf("replaced value = %v", x.Float())
-	}
-	if !o.Has(strings.Repeat("k", 100)) || o.Has("x") {
-		t.Error("Has wrong")
-	}
-	if o.Entries()[49].Key != strings.Repeat("k", 50) {
-		t.Error("position changed")
-	}
-}
-
-func TestCompareTypeOrder(t *testing.T) {
-	ordered := []string{`null`, `false`, `true`, `-1`, `0`, `2.5`, `""`, `"Z"`, `"a"`, `"ab"`, `"b"`, `"é"`,
-		`[]`, `[1]`, `[1,2]`, `[2]`, `{}`, `{"a":1}`, `{"a":2}`, `{"a":1,"b":0}`, `{"b":1}`}
-	for i := range ordered {
-		for j := range ordered {
-			a, b := mustParse(t, ordered[i]), mustParse(t, ordered[j])
-			got := value.Compare(a, b)
-			want := 0
-			if i < j {
-				want = -1
-			} else if i > j {
-				want = 1
-			}
-			if (got < 0) != (want < 0) || (got > 0) != (want > 0) {
-				t.Errorf("Compare(%s, %s) = %d, want sign %d", ordered[i], ordered[j], got, want)
+	for i := range vals {
+		for j := range vals {
+			want := cmpInt(i, j)
+			if got := Compare(vals[i], vals[j]); got != want {
+				t.Errorf("Compare(%s, %s) = %d, want %d", ordered[i], ordered[j], got, want)
 			}
 		}
 	}
 }
 
 func TestEqualIgnoresKeyOrder(t *testing.T) {
-	a := mustParse(t, `{"a":1,"b":[1,2]}`)
-	b := mustParse(t, `{"b":[1,2],"a":1}`)
-	if !value.Equal(a, b) {
+	a, _ := ParseString(`{"a":1,"b":[1,2]}`)
+	b, _ := ParseString(`{"b":[1,2],"a":1}`)
+	if !Equal(a, b) {
 		t.Error("objects with different key order should be equal")
 	}
-	if value.Equal(a, mustParse(t, `{"a":1,"b":[1,3]}`)) {
-		t.Error("different values compared equal")
+	if !Equal(1.0, 1.5-0.5) {
+		t.Error("1 should equal 1.5-0.5")
 	}
 }
 
-func TestScalarAccessors(t *testing.T) {
-	if value.Null.Truthy() || value.False.Truthy() {
-		t.Error("null/false are falsy")
+func TestObjectBuilderKeepsFirstPosition(t *testing.T) {
+	b := NewBuilder(0)
+	b.Set("a", 1.0)
+	b.Set("b", 2.0)
+	b.Set("a", 3.0)
+	if got := String(b.Build()); got != `{"a":3,"b":2}` {
+		t.Errorf("got %s", got)
 	}
-	for _, v := range []value.Value{value.Number(0), value.String(""), value.Array(nil), value.True} {
-		if !v.Truthy() {
-			t.Errorf("%s should be truthy", value.JSON(v))
+}
+
+func TestObjectManyKeysUsesIndex(t *testing.T) {
+	b := NewBuilder(0)
+	for i := 0; i < 100; i++ {
+		b.Set(String(float64(i)), float64(i))
+	}
+	b.Set("5", "five")
+	o := b.Build()
+	if o.Len() != 100 {
+		t.Fatalf("len = %d", o.Len())
+	}
+	if v, ok := o.Get("5"); !ok || v != "five" {
+		t.Errorf("Get(5) = %v, %v", v, ok)
+	}
+	if _, ok := o.Get("missing"); ok {
+		t.Error("unexpected key")
+	}
+	keys := o.SortedKeys()
+	for i := 1; i < len(keys); i++ {
+		if keys[i-1] >= keys[i] {
+			t.Fatalf("keys not sorted: %v", keys)
 		}
 	}
-	if value.Number(1).TypeName() != "number" || value.True.TypeName() != "boolean" {
-		t.Error("type names")
+}
+
+func TestMerge(t *testing.T) {
+	a, _ := ParseString(`{"z":1,"a":2}`)
+	b, _ := ParseString(`{"m":3,"z":9}`)
+	if got := String(Merge(a.(*Object), b.(*Object))); got != `{"z":9,"a":2,"m":3}` {
+		t.Errorf("Merge = %s", got)
+	}
+	if got := String(a); got != `{"z":1,"a":2}` {
+		t.Errorf("Merge mutated its operand: %s", got)
+	}
+	x, _ := ParseString(`{"a":{"b":1,"c":2},"d":1}`)
+	y, _ := ParseString(`{"a":{"b":5},"d":{"e":1}}`)
+	if got := String(DeepMerge(x.(*Object), y.(*Object))); got != `{"a":{"b":5,"c":2},"d":{"e":1}}` {
+		t.Errorf("DeepMerge = %s", got)
+	}
+}
+
+func TestMergeLargeObjects(t *testing.T) {
+	a := NewBuilder(0)
+	b := NewBuilder(0)
+	for i := 0; i < 50; i++ {
+		a.Set(String(float64(i)), float64(i))
+		b.Set(String(float64(i+25)), "b")
+	}
+	m := Merge(a.Build(), b.Build())
+	if m.Len() != 75 {
+		t.Fatalf("len = %d", m.Len())
+	}
+	if v, _ := m.Get("30"); v != "b" {
+		t.Errorf("m[30] = %v", v)
+	}
+	if v, _ := m.Get("10"); v != 10.0 {
+		t.Errorf("m[10] = %v", v)
+	}
+}
+
+func TestSortIsStable(t *testing.T) {
+	keys := []Value{1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, 0.0}
+	perm := SortedOrder(keys)
+	want := []int{1, 3, 5, 7, 9, 11, 0, 2, 4, 6, 8, 10}
+	for i := range want {
+		if perm[i] != want[i] {
+			t.Fatalf("perm = %v, want %v", perm, want)
+		}
+	}
+}
+
+func TestSortComparisonCount(t *testing.T) {
+	n := 4096
+	vals := make([]Value, n)
+	for i := range vals {
+		vals[i] = float64((i * 7919) % n)
+	}
+	sorted := Sort(vals)
+	for i := 1; i < n; i++ {
+		if Compare(sorted[i-1], sorted[i]) > 0 {
+			t.Fatal("not sorted")
+		}
 	}
 }

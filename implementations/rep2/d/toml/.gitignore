@@ -1,6 +1,7 @@
 .dub/
-/toml
-*.o
+bin/
 *.a
-*-test-*
+*.o
+*.lst
 dub.selections.json
+toml-test-library

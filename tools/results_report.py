@@ -65,8 +65,17 @@ def render(impl, baseline="go"):
     for r in runs:
         results.update(json.load(open(os.path.join(impl, r["results"]))))
     audit = merged_findings([json.load(open(os.path.join(impl, r["audit"]))) for r in runs])
+    reviewed = []
+    for r in runs:
+        path = os.path.join(impl, r["audit"])[:-len(".json")] + ".reviewed.json"
+        if os.path.isfile(path):
+            reviewed += json.load(open(path))
+    accepted = {(f.get("agent"), f.get("kind"), f.get("detail")) for f in reviewed if f.get("reason")}
     kinds = collections.Counter(f["kind"] for f in audit)
-    integrity = sum(kinds[k] for k in INTEGRITY)
+    integrity = sum(1 for f in audit if f["kind"] in INTEGRITY
+                    and (f.get("agent"), f.get("kind"), f.get("detail")) not in accepted)
+    reviewed_note = (f" ({len(accepted)} reviewed and found harmless, with reasons, in "
+                     f"`implementations/audit/<run>.reviewed.json`)" if accepted else "")
     tasks = agent_effort.task_records(archives)
     opts = first["options"]
     langs = order(opts["langs"], baseline)
@@ -82,6 +91,13 @@ def render(impl, baseline="go"):
     tasks_line = (f"all {len(problems)} problems once" + (
         f", plus {reps} repetitions of {', '.join(sorted(repeated))}" if reps > 1 and repeated else "")
         + ": " + ", ".join(f"{per_lang[lang]} tasks for {name(lang)}" for lang in langs) + ".")
+    planned = len(problems) + (reps - 1) * len([p for p in repeated if p in problems])
+    if any(per_lang[lang] < planned for lang in langs):
+        missing = len(langs) * planned - sum(per_lang[lang] for lang in langs)
+        covered = all(any(t["slug"] == p and t["lang"] == lang for t in tasks) for p in problems for lang in langs)
+        tasks_line += (f" The run was stopped before it finished: {missing} of {len(langs) * planned} planned tasks did "
+                       + ("not run, all of them repetitions, so every problem has at least one task per language."
+                          if covered else "not run, and some problems have no task in some languages."))
     reruns = "".join(
         f"\n- **Rerun `{r['workflow_run']}`:** {', '.join(sorted(r['implementations']))}, with the same prompt, "
         f"model and sandbox at a later harness commit; it replaces the earlier attempts at those tasks "
@@ -112,7 +128,8 @@ def render(impl, baseline="go"):
         cells += [f"{median(slug, lang, 'turns'):.0f}" for lang in langs]
         cells += [f"{sum(x['finished'] for x in by[(slug, lang)])}/{len(by[(slug, lang)])}" for lang in langs]
         rows.append("| " + " | ".join(cells) + " |")
-    language_list = " and ".join(name(lang) for lang in langs)
+    names = [name(lang) for lang in langs]
+    language_list = ", ".join(names[:-1]) + " and " + names[-1] if len(names) > 1 else "".join(names)
 
     return f"""# Results
 
@@ -148,7 +165,7 @@ task counts as at least as costly as the costliest finished task on its problem.
 
 - Tasks that pass every public and held-out test on a clean build: {finished}.
 - Not passing: {'; '.join(failed) if failed else 'none'}.
-- Audit: {integrity or 'no'} integrity findings. Blocked attempts (reads the sandbox refused): \
+- Audit: {integrity or 'no'} unreviewed integrity findings{reviewed_note}. Blocked attempts (reads the sandbox refused): \
 {kinds.get('blocked-attempt', 0)}; non-default optimisation settings in build files: {kinds.get('build-flags', 0)};
   uses of a standard-library facility the problem's spec rules out: {kinds.get('banned-facility', 0)};
   third-party dependencies: {kinds.get('dependency', 0)}.

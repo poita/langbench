@@ -1,3 +1,3 @@
-module github.com/example/bigint
+module github.com/peteralexander/bigint
 
 go 1.27

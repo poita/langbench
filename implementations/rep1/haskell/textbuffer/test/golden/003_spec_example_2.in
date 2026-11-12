@@ -1,0 +1,16 @@
+3
+alpha
+beta
+gamma
+add-cursor 1 0
+add-cursor 2 0
+insert - 
+print
+move end select
+insert X
+print
+goto 0 1
+move right select
+move right select
+delete
+print

@@ -1,0 +1,9 @@
+label(0, none)
+label(1, red)
+label(2, red)
+-- 3
+ok(1, 2)
+-- 1
+colour(green, 2, 2, 7)
+colour(green, 3, 3, 7)
+-- 2

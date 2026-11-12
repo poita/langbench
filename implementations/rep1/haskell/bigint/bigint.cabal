@@ -1,0 +1,51 @@
+cabal-version:      3.0
+name:               bigint
+version:            0.1.0.0
+synopsis:           Arbitrary-precision signed integer arithmetic, written from scratch
+description:
+  A small, dependency-light library of signed arbitrary-precision integers
+  (base 10^9 limbs, so decimal parsing and printing are linear), using the
+  classical algorithms: schoolbook multiplication, Knuth's Algorithm D for
+  division and binary exponentiation. Includes a command-line evaluator.
+category:           Math
+license:            MIT
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Data.BigInt
+                    Data.BigInt.Magnitude
+                    Data.BigInt.Decimal
+  build-depends:    base >=4.18 && <5
+                  , array >=0.5 && <0.6
+                  , bytestring >=0.11 && <0.13
+
+executable bigint
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  other-modules:    Query
+  build-depends:    base >=4.18 && <5
+                  , bytestring >=0.11 && <0.13
+                  , bigint
+
+test-suite bigint-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test, app
+  main-is:          Spec.hs
+  other-modules:    Query
+  build-depends:    base >=4.18 && <5
+                  , bytestring >=0.11 && <0.13
+                  , bigint
+                  , hspec
+                  , QuickCheck

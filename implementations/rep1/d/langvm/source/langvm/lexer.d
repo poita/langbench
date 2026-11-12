@@ -1,174 +1,154 @@
-/// Lexical analysis of Vellum source text.
+/// The lexer (SPEC.md section 3).
 module langvm.lexer;
 
 import langvm.diag;
-import langvm.source;
-import core.stdc.stdlib : strtod;
+import langvm.source : SourceModule;
 
 /// Token kinds.
-enum Tk : ubyte
+enum T : ubyte
 {
-    eof, ident, intLit, floatLit, strLit, charLit,
+    eof,
+    ident,
+    int_,
+    float_,
+    str,
+    char_,
     // keywords
     kwAs, kwBreak, kwContinue, kwElse, kwEnum, kwFalse, kwFn, kwFor, kwIf, kwImpl,
     kwIn, kwLet, kwMatch, kwPub, kwReturn, kwSelf, kwStruct, kwTrait, kwTrue, kwUse,
     kwVar, kwWhen, kwWhile,
-    // punctuation
-    hashBracket, colonColon, dotDot, arrow, eqEq, notEq, ltEq, gtEq, andAnd, orOr,
-    shl, shr, plusPlus, lParen, rParen, lBracket, rBracket, lBrace, rBrace, comma,
-    semi, colon, dot, pipe, plus, minus, star, slash, percent, bang, tilde, amp,
-    caret, lt, gt, assign, underscore,
+    // multi-character punctuation
+    hashBracket, colonColon, dotDot, arrow, eqEq, ne, le, ge, andAnd, orOr, shl, shr,
+    plusPlus,
+    // single-character punctuation
+    lparen, rparen, lbracket, rbracket, lbrace, rbrace, comma, semi, colon, dot, pipe,
+    plus, minus, star, slash, percent, bang, tilde, amp, caret, lt, gt, eq, underscore,
 }
 
-/// A lexical token.
+/// A lexical token with its position and literal payload.
 struct Token
 {
-    /// The kind of token.
-    Tk kind;
-    /// Position of the first character.
+    T kind;
     Pos pos;
-    /// Identifier text (for `ident`).
-    string text;
-    /// Value of an integer literal or character literal.
+    /// Value of an integer literal, or the scalar of a character literal.
     long ival;
     /// Value of a float literal.
     double fval;
+    /// Text of an identifier.
+    string id;
     /// Value of a string literal.
     dstring sval;
 }
 
-/// Human-readable spelling of a punctuation/keyword token kind (used by tests and debugging).
-string tokenName(Tk k)
-{
-    import std.conv : to;
+private immutable T[string] keywordTable;
 
-    return k.to!string;
+shared static this()
+{
+    keywordTable = [
+        "as": T.kwAs, "break": T.kwBreak, "continue": T.kwContinue, "else": T.kwElse,
+        "enum": T.kwEnum, "false": T.kwFalse, "fn": T.kwFn, "for": T.kwFor, "if": T.kwIf,
+        "impl": T.kwImpl, "in": T.kwIn, "let": T.kwLet, "match": T.kwMatch, "pub": T.kwPub,
+        "return": T.kwReturn, "self": T.kwSelf, "struct": T.kwStruct, "trait": T.kwTrait,
+        "true": T.kwTrue, "use": T.kwUse, "var": T.kwVar, "when": T.kwWhen, "while": T.kwWhile,
+    ];
 }
 
-private Tk keywordKind(const(char)[] s)
+/// Is `s` a reserved word?
+bool isKeyword(string s) @trusted
 {
-    switch (s)
-    {
-    case "as": return Tk.kwAs;
-    case "break": return Tk.kwBreak;
-    case "continue": return Tk.kwContinue;
-    case "else": return Tk.kwElse;
-    case "enum": return Tk.kwEnum;
-    case "false": return Tk.kwFalse;
-    case "fn": return Tk.kwFn;
-    case "for": return Tk.kwFor;
-    case "if": return Tk.kwIf;
-    case "impl": return Tk.kwImpl;
-    case "in": return Tk.kwIn;
-    case "let": return Tk.kwLet;
-    case "match": return Tk.kwMatch;
-    case "pub": return Tk.kwPub;
-    case "return": return Tk.kwReturn;
-    case "self": return Tk.kwSelf;
-    case "struct": return Tk.kwStruct;
-    case "trait": return Tk.kwTrait;
-    case "true": return Tk.kwTrue;
-    case "use": return Tk.kwUse;
-    case "var": return Tk.kwVar;
-    case "when": return Tk.kwWhen;
-    case "while": return Tk.kwWhile;
-    default: return Tk.eof;
-    }
+    return (s in keywordTable) !is null;
 }
 
-private bool isDigit(dchar c) pure nothrow @safe @nogc
+/// Is `s` a valid identifier (ASCII, not a keyword, not a lone `_`)?
+bool isIdentifier(string s) @safe
 {
-    return c >= '0' && c <= '9';
+    if (s.length == 0 || s.length > 200 || s == "_")
+        return false;
+    if (!isIdStart(s[0]))
+        return false;
+    foreach (c; s)
+        if (!isIdCont(c))
+            return false;
+    return !isKeyword(s);
 }
 
-private bool isHex(dchar c) pure nothrow @safe @nogc
-{
-    return isDigit(c) || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
-}
-
-private int hexVal(dchar c) pure nothrow @safe @nogc
-{
-    if (isDigit(c))
-        return c - '0';
-    if (c >= 'a' && c <= 'f')
-        return c - 'a' + 10;
-    return c - 'A' + 10;
-}
-
-private bool isIdStart(dchar c) pure nothrow @safe @nogc
+private bool isIdStart(int c) @safe pure nothrow @nogc
 {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-private bool isIdChar(dchar c) pure nothrow @safe @nogc
+private bool isIdCont(int c) @safe pure nothrow @nogc
 {
     return isIdStart(c) || isDigit(c);
 }
 
-/// Converts decimal float text (digits, optional `.`, exponent) to the nearest binary64 value.
-double parseDecimalDouble(const(char)[] text)
+private bool isDigit(int c) @safe pure nothrow @nogc
 {
-    import std.string : toStringz;
-
-    return strtod(toStringz(text), null);
+    return c >= '0' && c <= '9';
 }
 
-/// The lexer for one module body.
-struct Lexer
+private int hexVal(int c) @safe pure nothrow @nogc
 {
-    private dstring src;
-    private size_t i;
-    private int line = 1;
-    private int col = 1;
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    if (c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    return -1;
+}
 
-    /// Lexes `lines` (the body of one module) into a token array ending with `eof`.
-    /// Throws: [CompileError] for the first ill-formed token.
-    static Token[] lex(const(dstring)[] lines)
+/// The position just past the last token of `m`: used for "unexpected end of input".
+Pos endPos(const SourceModule m) @safe pure nothrow @nogc
+{
+    if (m.lines.length == 0)
+        return Pos(1, 1);
+    return Pos(cast(int) m.lines.length, cast(int) m.lines[$ - 1].length + 1);
+}
+
+/// Lex a whole module body. The returned list always ends with an `eof` token.
+Token[] lex(const SourceModule m) @trusted
+{
+    dchar[] text;
+    foreach (i, ln; m.lines)
     {
-        dstring text;
-        size_t total = 0;
-        foreach (l; lines)
-            total += l.length + 1;
-        text.reserve(total);
-        foreach (k, l; lines)
-        {
-            if (k > 0)
-                text ~= '\n';
-            text ~= l;
-        }
-        Lexer lx;
-        lx.src = text;
-        Token[] toks;
-        toks.reserve(text.length / 3 + 4);
-        lx.run(toks);
-        // end-of-input position: last line of the module, one past its length
-        Token e;
-        e.kind = Tk.eof;
-        int ln = lines.length == 0 ? 1 : cast(int) lines.length;
-        int cl = lines.length == 0 ? 1 : cast(int) lines[$ - 1].length + 1;
-        e.pos = Pos(ln, cl);
-        toks ~= e;
-        return toks;
+        if (i)
+            text ~= '\n';
+        text ~= ln;
+    }
+    auto lx = Lexer(text);
+    lx.run();
+    lx.toks ~= Token(T.eof, endPos(m));
+    return lx.toks;
+}
+
+private struct Lexer
+{
+    const(dchar)[] s;
+    size_t i;
+    int line = 1, col = 1;
+    Token[] toks;
+
+    this(const(dchar)[] s)
+    {
+        this.s = s;
+        toks.reserve(s.length / 3 + 8);
     }
 
-    private bool atEnd() const
+    Pos pos() const
     {
-        return i >= src.length;
+        return Pos(line, col);
     }
 
-    private dchar peek(size_t off = 0) const
+    /// The character `k` positions ahead, or -1 past the end.
+    int at(size_t k = 0) const
     {
-        return i + off < src.length ? src[i + off] : dchar.init;
+        return i + k < s.length ? cast(int) s[i + k] : -1;
     }
 
-    private bool has(size_t off = 0) const
+    void adv()
     {
-        return i + off < src.length;
-    }
-
-    private void adv()
-    {
-        if (src[i] == '\n')
+        if (s[i] == '\n')
         {
             line++;
             col = 1;
@@ -178,374 +158,485 @@ struct Lexer
         i++;
     }
 
-    private Pos here() const
-    {
-        return Pos(line, col);
-    }
-
-    private void run(ref Token[] toks)
-    {
-        while (true)
-        {
-            // skip whitespace and comments
-            while (has())
-            {
-                dchar c = peek();
-                if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
-                    adv();
-                else if (c == '/' && has(1) && peek(1) == '/')
-                {
-                    while (has() && peek() != '\n')
-                        adv();
-                }
-                else if (c == '/' && has(1) && peek(1) == '*')
-                {
-                    Pos start = here();
-                    adv();
-                    adv();
-                    int depth = 1;
-                    while (depth > 0)
-                    {
-                        if (!has())
-                            fail("unterminated", start);
-                        if (peek() == '/' && has(1) && peek(1) == '*')
-                        {
-                            adv();
-                            adv();
-                            depth++;
-                        }
-                        else if (peek() == '*' && has(1) && peek(1) == '/')
-                        {
-                            adv();
-                            adv();
-                            depth--;
-                        }
-                        else
-                            adv();
-                    }
-                }
-                else
-                    break;
-            }
-            if (!has())
-                return;
-            toks ~= next();
-        }
-    }
-
-    private Token punct(Tk k, int n)
+    void emit(T k, Pos p)
     {
         Token t;
         t.kind = k;
-        t.pos = here();
-        foreach (_; 0 .. n)
-            adv();
-        return t;
+        t.pos = p;
+        toks ~= t;
     }
 
-    private Token next()
+    void run()
     {
-        dchar c = peek();
-        Pos start = here();
-        if (isDigit(c))
-            return number();
-        if (isIdStart(c))
+        while (true)
         {
-            size_t b = i;
-            while (has() && isIdChar(peek()))
+            skipTrivia();
+            const c = at();
+            if (c < 0)
+                return;
+            const p = pos();
+            if (isIdStart(c))
+                lexWord(p);
+            else if (isDigit(c))
+                lexNumber(p);
+            else if (c == '"')
+                lexString(p);
+            else if (c == '\'')
+                lexChar(p);
+            else
+                lexPunct(p);
+        }
+    }
+
+    void skipTrivia()
+    {
+        while (true)
+        {
+            const c = at();
+            if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
                 adv();
-            size_t len = i - b;
-            if (len > 200)
-                fail("bad-token", start);
-            char[] buf = new char[len];
-            foreach (k; 0 .. len)
-                buf[k] = cast(char) src[b + k];
-            string s = cast(string) buf;
-            Token t;
-            t.pos = start;
-            if (s == "_")
+            else if (c == '/' && at(1) == '/')
             {
-                t.kind = Tk.underscore;
-                return t;
+                while (at() >= 0 && at() != '\n')
+                    adv();
             }
-            Tk kw = keywordKind(s);
-            if (kw != Tk.eof)
+            else if (c == '/' && at(1) == '*')
             {
-                t.kind = kw;
-                return t;
-            }
-            t.kind = Tk.ident;
-            t.text = s;
-            return t;
-        }
-        if (c == '"')
-            return stringLit();
-        if (c == '\'')
-            return charLit();
-        dchar d = peek(1);
-        bool has1 = has(1);
-        switch (c)
-        {
-        case '#':
-            if (has1 && d == '[')
-                return punct(Tk.hashBracket, 2);
-            fail("bad-token", start);
-        case ':':
-            return has1 && d == ':' ? punct(Tk.colonColon, 2) : punct(Tk.colon, 1);
-        case '.':
-            return has1 && d == '.' ? punct(Tk.dotDot, 2) : punct(Tk.dot, 1);
-        case '-':
-            return has1 && d == '>' ? punct(Tk.arrow, 2) : punct(Tk.minus, 1);
-        case '=':
-            return has1 && d == '=' ? punct(Tk.eqEq, 2) : punct(Tk.assign, 1);
-        case '!':
-            return has1 && d == '=' ? punct(Tk.notEq, 2) : punct(Tk.bang, 1);
-        case '<':
-            if (has1 && d == '=')
-                return punct(Tk.ltEq, 2);
-            if (has1 && d == '<')
-                return punct(Tk.shl, 2);
-            return punct(Tk.lt, 1);
-        case '>':
-            if (has1 && d == '=')
-                return punct(Tk.gtEq, 2);
-            if (has1 && d == '>')
-                return punct(Tk.shr, 2);
-            return punct(Tk.gt, 1);
-        case '&':
-            return has1 && d == '&' ? punct(Tk.andAnd, 2) : punct(Tk.amp, 1);
-        case '|':
-            return has1 && d == '|' ? punct(Tk.orOr, 2) : punct(Tk.pipe, 1);
-        case '+':
-            return has1 && d == '+' ? punct(Tk.plusPlus, 2) : punct(Tk.plus, 1);
-        case '(':
-            return punct(Tk.lParen, 1);
-        case ')':
-            return punct(Tk.rParen, 1);
-        case '[':
-            return punct(Tk.lBracket, 1);
-        case ']':
-            return punct(Tk.rBracket, 1);
-        case '{':
-            return punct(Tk.lBrace, 1);
-        case '}':
-            return punct(Tk.rBrace, 1);
-        case ',':
-            return punct(Tk.comma, 1);
-        case ';':
-            return punct(Tk.semi, 1);
-        case '*':
-            return punct(Tk.star, 1);
-        case '/':
-            return punct(Tk.slash, 1);
-        case '%':
-            return punct(Tk.percent, 1);
-        case '~':
-            return punct(Tk.tilde, 1);
-        case '^':
-            return punct(Tk.caret, 1);
-        default:
-            fail("bad-token", start);
-        }
-    }
-
-    /// Consumes digits and `_` (a run that starts with a digit); appends digits (not `_`) to `buf`.
-    private void digitRun(ref char[] buf, bool function(dchar) pure nothrow @safe @nogc isD)
-    {
-        while (has() && (isD(peek()) || peek() == '_'))
-        {
-            if (peek() != '_')
-                buf ~= cast(char) peek();
-            adv();
-        }
-    }
-
-    private Token number()
-    {
-        Pos start = here();
-        Token t;
-        t.pos = start;
-        if (peek() == '0' && has(1) && (peek(1) == 'x' || peek(1) == 'b'))
-        {
-            bool hex = peek(1) == 'x';
-            bool function(dchar) pure nothrow @safe @nogc isD = hex ? &isHex : (dchar ch) => ch == '0' || ch == '1';
-            if (!(has(2) && isD(peek(2))))
-                fail("bad-token", start);
-            adv();
-            adv();
-            ulong v = 0;
-            bool over = false;
-            ulong base = hex ? 16 : 2;
-            while (has() && (isD(peek()) || peek() == '_'))
-            {
-                if (peek() != '_')
+                const p = pos();
+                adv();
+                adv();
+                int depth = 1;
+                while (depth > 0)
                 {
-                    ulong dv = hexVal(peek());
-                    if (v > (ulong(long.max) - dv) / base)
-                        over = true;
+                    if (at() < 0)
+                        throw err(Kind.unterminated, p);
+                    if (at() == '/' && at(1) == '*')
+                    {
+                        adv();
+                        adv();
+                        depth++;
+                    }
+                    else if (at() == '*' && at(1) == '/')
+                    {
+                        adv();
+                        adv();
+                        depth--;
+                    }
                     else
-                        v = v * base + dv;
+                        adv();
                 }
+            }
+            else
+                return;
+        }
+    }
+
+    void lexWord(Pos p)
+    {
+        const start = i;
+        while (isIdCont(at()))
+            adv();
+        const word = s[start .. i];
+        if (word.length > 200)
+            throw err(Kind.badToken, p);
+        if (word.length == 1 && word[0] == '_')
+        {
+            emit(T.underscore, p);
+            return;
+        }
+        char[] w = new char[word.length];
+        foreach (k, c; word)
+            w[k] = cast(char) c;
+        string id = cast(string) w;
+        if (auto kw = id in keywordTable)
+            emit(*kw, p);
+        else
+        {
+            Token t;
+            t.kind = T.ident;
+            t.pos = p;
+            t.id = id;
+            toks ~= t;
+        }
+    }
+
+    /// Scan `digit { digit | "_" }` into `buf` (underscores dropped); the first
+    /// character must be a digit.
+    void digitRun(ref char[] buf)
+    {
+        while (isDigit(at()) || at() == '_')
+        {
+            if (at() != '_')
+                buf ~= cast(char) at();
+            adv();
+        }
+    }
+
+    void lexNumber(Pos p)
+    {
+        if (at() == '0' && (at(1) == 'x' || at(1) == 'b'))
+        {
+            const hex = at(1) == 'x';
+            adv();
+            adv();
+            const base = hex ? 16 : 2;
+            const first = hexVal(at());
+            if (first < 0 || first >= base)
+                throw err(Kind.badToken, p);
+            ulong v = 0;
+            bool overflow = false;
+            while (true)
+            {
+                const c = at();
+                if (c == '_')
+                {
+                    adv();
+                    continue;
+                }
+                const d = hexVal(c);
+                if (d < 0 || d >= base)
+                    break;
+                if (v > (ulong.max - d) / base)
+                    overflow = true;
+                v = v * base + d;
                 adv();
             }
-            if (over)
-                fail("int-range", start);
-            t.kind = Tk.intLit;
-            t.ival = cast(long) v;
-            return t;
+            intToken(p, v, overflow);
+            return;
         }
         char[] buf;
-        digitRun(buf, &isDigit);
+        digitRun(buf);
         bool isFloat = false;
-        if (has() && peek() == '.' && has(1) && isDigit(peek(1)))
+        if (at() == '.' && isDigit(at(1)))
         {
-            adv();
-            buf ~= '.';
-            digitRun(buf, &isDigit);
             isFloat = true;
+            buf ~= '.';
+            adv();
+            digitRun(buf);
         }
-        if (has() && (peek() == 'e' || peek() == 'E'))
+        const e = at();
+        if ((e == 'e' || e == 'E') && (isDigit(at(1)) || ((at(1) == '+' || at(1) == '-') && isDigit(at(2)))))
         {
-            size_t off = 1;
-            if (has(off) && (peek(off) == '+' || peek(off) == '-'))
-                off++;
-            if (has(off) && isDigit(peek(off)))
+            isFloat = true;
+            buf ~= 'e';
+            adv();
+            if (at() == '+' || at() == '-')
             {
-                buf ~= 'e';
+                buf ~= cast(char) at();
                 adv();
-                if (peek() == '+' || peek() == '-')
-                {
-                    buf ~= cast(char) peek();
-                    adv();
-                }
-                digitRun(buf, &isDigit);
-                isFloat = true;
             }
+            digitRun(buf);
         }
         if (isFloat)
         {
-            t.kind = Tk.floatLit;
-            t.fval = parseDecimalDouble(buf);
-            return t;
+            import core.stdc.stdlib : strtod;
+
+            buf ~= '\0';
+            Token t;
+            t.kind = T.float_;
+            t.pos = p;
+            t.fval = strtod(buf.ptr, null);
+            toks ~= t;
+            return;
         }
         ulong v = 0;
-        foreach (ch; buf)
+        bool overflow = false;
+        foreach (c; buf)
         {
-            ulong dv = ch - '0';
-            if (v > (ulong(long.max) - dv) / 10)
-                fail("int-range", start);
-            v = v * 10 + dv;
+            const d = c - '0';
+            if (v > (ulong.max - d) / 10)
+                overflow = true;
+            v = v * 10 + d;
         }
-        t.kind = Tk.intLit;
-        t.ival = cast(long) v;
-        return t;
+        intToken(p, v, overflow);
     }
 
-    /// Reads an escape sequence; the backslash is at the current position.
-    private dchar escape()
+    void intToken(Pos p, ulong v, bool overflow)
     {
-        Pos bs = here();
-        adv(); // backslash
-        if (!has())
-            fail("bad-escape", bs);
-        dchar c = peek();
+        if (overflow || v > cast(ulong) long.max)
+            throw err(Kind.intRange, p);
+        Token t;
+        t.kind = T.int_;
+        t.pos = p;
+        t.ival = cast(long) v;
+        toks ~= t;
+    }
+
+    /// Read an escape; `i` is at the backslash. Returns the scalar value.
+    int readEscape()
+    {
+        const bs = pos();
         adv();
+        const c = at();
         switch (c)
         {
         case 'n':
+            adv();
             return '\n';
         case 't':
+            adv();
             return '\t';
         case 'r':
+            adv();
             return '\r';
         case '0':
-            return '\0';
+            adv();
+            return 0;
         case '\\':
+            adv();
             return '\\';
         case '\'':
+            adv();
             return '\'';
         case '"':
+            adv();
             return '"';
         case 'u':
-            if (!has() || peek() != '{')
-                fail("bad-escape", bs);
             adv();
-            uint v = 0;
-            int n = 0;
-            while (has() && isHex(peek()))
+            if (at() != '{')
+                throw err(Kind.badEscape, bs);
+            adv();
+            int digits = 0;
+            long v = 0;
+            while (hexVal(at()) >= 0)
             {
-                if (n < 7)
-                    v = v * 16 + hexVal(peek());
-                n++;
+                v = v * 16 + hexVal(at());
+                digits++;
+                if (digits > 6)
+                    throw err(Kind.badEscape, bs);
                 adv();
             }
-            if (n < 1 || n > 6 || !has() || peek() != '}')
-                fail("bad-escape", bs);
+            if (digits == 0 || at() != '}')
+                throw err(Kind.badEscape, bs);
             adv();
             if (v > 0x10FFFF || (v >= 0xD800 && v <= 0xDFFF))
-                fail("bad-escape", bs);
-            return cast(dchar) v;
+                throw err(Kind.badEscape, bs);
+            return cast(int) v;
         default:
-            fail("bad-escape", bs);
+            throw err(Kind.badEscape, bs);
         }
     }
 
-    private Token charLit()
+    void lexString(Pos p)
     {
-        Pos start = here();
         adv();
-        Token t;
-        t.pos = start;
-        t.kind = Tk.charLit;
-        if (!has())
-            fail("unterminated", start);
-        dchar c = peek();
-        dchar v;
-        if (c == '\\')
-            v = escape();
-        else if (c == '\'' || c == '\n' || c == '\r')
-            fail("unterminated", start);
-        else
-        {
-            v = c;
-            adv();
-        }
-        if (!has() || peek() != '\'')
-            fail("unterminated", start);
-        adv();
-        t.ival = v;
-        return t;
-    }
-
-    private Token stringLit()
-    {
-        Pos start = here();
-        adv();
-        Token t;
-        t.pos = start;
-        t.kind = Tk.strLit;
-        dchar[] buf;
+        dchar[] val;
         while (true)
         {
-            if (!has())
-                fail("unterminated", start);
-            dchar c = peek();
+            const c = at();
+            if (c < 0 || c == '\n' || c == '\r')
+                throw err(Kind.unterminated, p);
             if (c == '"')
             {
                 adv();
                 break;
             }
-            if (c == '\n' || c == '\r')
-                fail("unterminated", start);
             if (c == '\\')
-                buf ~= escape();
+                val ~= cast(dchar) readEscape();
             else
             {
-                buf ~= c;
+                val ~= cast(dchar) c;
                 adv();
             }
         }
-        t.sval = cast(dstring) buf;
-        return t;
+        Token t;
+        t.kind = T.str;
+        t.pos = p;
+        t.sval = cast(dstring) val;
+        toks ~= t;
     }
+
+    void lexChar(Pos p)
+    {
+        adv();
+        int v;
+        const c = at();
+        if (c == '\\')
+            v = readEscape();
+        else if (c < 0 || c == '\'' || c == '\n' || c == '\r')
+            throw err(Kind.unterminated, p);
+        else
+        {
+            v = c;
+            adv();
+        }
+        if (at() != '\'')
+            throw err(Kind.unterminated, p);
+        adv();
+        Token t;
+        t.kind = T.char_;
+        t.pos = p;
+        t.ival = v;
+        toks ~= t;
+    }
+
+    void lexPunct(Pos p)
+    {
+        const c = at();
+        const d = at(1);
+        T two = T.eof;
+        switch (c)
+        {
+        case '#':
+            if (d == '[')
+                two = T.hashBracket;
+            else
+                throw err(Kind.badToken, p);
+            break;
+        case ':':
+            if (d == ':')
+                two = T.colonColon;
+            break;
+        case '.':
+            if (d == '.')
+                two = T.dotDot;
+            break;
+        case '-':
+            if (d == '>')
+                two = T.arrow;
+            break;
+        case '=':
+            if (d == '=')
+                two = T.eqEq;
+            break;
+        case '!':
+            if (d == '=')
+                two = T.ne;
+            break;
+        case '<':
+            if (d == '=')
+                two = T.le;
+            else if (d == '<')
+                two = T.shl;
+            break;
+        case '>':
+            if (d == '=')
+                two = T.ge;
+            else if (d == '>')
+                two = T.shr;
+            break;
+        case '&':
+            if (d == '&')
+                two = T.andAnd;
+            break;
+        case '|':
+            if (d == '|')
+                two = T.orOr;
+            break;
+        case '+':
+            if (d == '+')
+                two = T.plusPlus;
+            break;
+        default:
+            break;
+        }
+        if (two != T.eof)
+        {
+            adv();
+            adv();
+            emit(two, p);
+            return;
+        }
+        T one;
+        switch (c)
+        {
+        case '(': one = T.lparen; break;
+        case ')': one = T.rparen; break;
+        case '[': one = T.lbracket; break;
+        case ']': one = T.rbracket; break;
+        case '{': one = T.lbrace; break;
+        case '}': one = T.rbrace; break;
+        case ',': one = T.comma; break;
+        case ';': one = T.semi; break;
+        case ':': one = T.colon; break;
+        case '.': one = T.dot; break;
+        case '|': one = T.pipe; break;
+        case '+': one = T.plus; break;
+        case '-': one = T.minus; break;
+        case '*': one = T.star; break;
+        case '/': one = T.slash; break;
+        case '%': one = T.percent; break;
+        case '!': one = T.bang; break;
+        case '~': one = T.tilde; break;
+        case '&': one = T.amp; break;
+        case '^': one = T.caret; break;
+        case '<': one = T.lt; break;
+        case '>': one = T.gt; break;
+        case '=': one = T.eq; break;
+        default:
+            throw err(Kind.badToken, p);
+        }
+        adv();
+        emit(one, p);
+    }
+}
+
+version (unittest)
+{
+    private Token[] lexString_(string src)
+    {
+        import langvm.source : decodeUtf8, splitLines;
+
+        return lex(SourceModule("t", splitLines(decodeUtf8(src))));
+    }
+
+    private Kind lexError(string src)
+    {
+        try
+        {
+            lexString_(src);
+        }
+        catch (CompileError e)
+            return e.kind;
+        assert(false, "expected a lex error");
+    }
+}
+
+unittest
+{
+    auto t = lexString_("let x = 1_000 + 0xFF;");
+    assert(t[0].kind == T.kwLet);
+    assert(t[1].kind == T.ident && t[1].id == "x");
+    assert(t[3].kind == T.int_ && t[3].ival == 1000);
+    assert(t[5].kind == T.int_ && t[5].ival == 255);
+}
+
+unittest
+{
+    auto t = lexString_("1.5 1e1_0 1_.5 0..3 1e 1e_5");
+    assert(t[0].kind == T.float_ && t[0].fval == 1.5);
+    assert(t[1].kind == T.float_ && t[1].fval == 1e10);
+    assert(t[2].kind == T.float_ && t[2].fval == 1.5);
+    assert(t[3].kind == T.int_ && t[4].kind == T.dotDot && t[5].kind == T.int_);
+    assert(t[6].kind == T.int_ && t[7].kind == T.ident && t[7].id == "e");
+    assert(t[8].kind == T.int_ && t[9].kind == T.ident && t[9].id == "e_5");
+}
+
+unittest
+{
+    auto t = lexString_(`"a\n\u{1F600}" '\'' '\u{e9}'`);
+    assert(t[0].sval == "a\n\U0001F600"d);
+    assert(t[1].ival == '\'');
+    assert(t[2].ival == 0xE9);
+}
+
+unittest
+{
+    assert(lexError("0x_1") == Kind.badToken);
+    assert(lexError("0x") == Kind.badToken);
+    assert(lexError("9223372036854775808") == Kind.intRange);
+    assert(lexError("\"ab\\q") == Kind.badEscape);
+    assert(lexError("'ab'") == Kind.unterminated);
+    assert(lexError("'\\q'") == Kind.badEscape);
+    assert(lexError("/* /* */") == Kind.unterminated);
+    assert(lexError("#x") == Kind.badToken);
+    assert(lexError("é") == Kind.badToken);
+}
+
+unittest
+{
+    auto t = lexString_("a // c\n/* x /* y */ z */ b\n  c");
+    assert(t.length == 4);
+    assert(t[1].pos == Pos(2, 19));
+    assert(t[2].pos == Pos(3, 3));
 }

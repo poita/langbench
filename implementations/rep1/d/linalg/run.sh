@@ -1,3 +1,3 @@
 #!/bin/sh
 # Usage: run.sh <input directory> <output directory>
-exec "$(dirname "$0")/bin/linalg" "$@"
+exec "$(dirname "$0")/linalg" "$@"

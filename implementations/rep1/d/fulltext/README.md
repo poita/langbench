@@ -1,125 +1,95 @@
 # fulltext
 
-A small, dependency-free full-text search engine written in D. It builds an
-in-memory positional inverted index over a directory of plain-text documents,
-evaluates boolean and phrase queries, ranks matches with BM25 and returns a
-snippet for each hit. Text analysis (tokeniser, stop words and the Porter
-stemmer) is implemented from scratch on top of the D standard library only.
+A small positional full-text search engine written in D, with no dependencies
+beyond Phobos. It indexes plain-text documents, evaluates boolean and phrase
+queries, and returns BM25-ranked hits with snippets. It is a reusable library
+(`fulltext`) plus a thin command-line tool.
 
-The code is split into a reusable library (`src/fulltext/`) and a thin
-command-line tool (`app/main.d`).
+* Tokeniser with ASCII case folding and apostrophe handling (Latin, Greek and
+  Cyrillic letters, digits)
+* The original Porter stemmer (Martin Porter's `porter.c` behaviour)
+* Positional inverted index; phrase matching by positional intersection
+* Query language: `AND`, `OR`, `NOT`, parentheses, `"phrases"`; juxtaposition
+  means `AND`; malformed queries are recovered from, never rejected
+* BM25 (`k1 = 1.2`, `b = 0.75`) ranking, ties broken by document id
+* Best 30-token-window snippets, found in O(length + occurrences)
 
-## Building
+## Build
 
-Requires LDC (tested with 1.41.0) and dub (tested with 1.40.0).
+Requires LDC and dub.
 
 ```sh
-./build.sh            # same as: dub build -b release --compiler=ldc2
+./build.sh          # dub build -b release --compiler=ldc2
 ```
 
-This produces `bin/fulltext`. Run the unit tests with:
+This produces the `fulltext` executable in this directory.
 
-```sh
-dub test --compiler=ldc2
-```
-
-## Command-line usage
+## Command-line use
 
 ```sh
 ./run.sh <input directory> <output directory>
 ```
 
-The input directory contains:
+The input directory holds `docs/<id>.txt` (zero or more documents) and
+`queries.txt`. `queries.txt` has one query per line; blank lines and lines
+starting with `#` are ignored; `%k N` sets the number of hits (default 10) for
+the queries after it.
 
 ```
-docs/<id>.txt     one UTF-8 file per document (docs/ may be missing or empty)
-queries.txt       one query per line
+# queries.txt
+fox
+quick brown
+%k 3
+"lazy dog" OR (cat NOT dog)
 ```
 
-`queries.txt` lines are stripped of surrounding whitespace. Blank lines and
-lines starting with `#` are ignored, and `%k <n>` sets the result limit for
-all following queries (default 10).
+The tool writes two files into the output directory:
 
-The tool writes two files into the output directory (created if missing):
+* `results.txt` — per query `QUERY <n> <text>`, `HITS <h>`, then
+  `rank<TAB>id<TAB>score<TAB>snippet` lines;
+* `stats.txt` — `documents`, `tokens`, `terms` and `avgdl`.
 
-* `results.txt` — for each query a `QUERY <n> <text>` line, a `HITS <h>` line,
-  and `h` lines `rank<TAB>doc id<TAB>BM25 score<TAB>snippet`.
-* `stats.txt` — `documents`, `tokens`, `terms` and `avgdl` of the corpus.
-
-### Query language
-
-| Syntax            | Meaning                                                    |
-|-------------------|------------------------------------------------------------|
-| `cat dog`         | both words (juxtaposition is `AND`)                        |
-| `cat OR dog`      | either word                                                |
-| `cat NOT dog`     | `cat` but not `dog` (`NOT` binds tightest, then `AND`, `OR`)|
-| `"lazy dog"`      | the terms adjacent and in order (a phrase)                 |
-| `(a OR b) c`      | grouping                                                   |
-
-`AND`, `OR` and `NOT` are operators only in upper case. A single stop word
-(`the`, `of`, …) matches nothing and is dropped from the query; inside a
-phrase stop words are kept. Malformed queries never fail — they are repaired
-by dropping what cannot be parsed (an empty query matches no document).
-
-Analysis: tokens are runs of ASCII alphanumerics, Latin, Greek and Cyrillic
-letters, with inner apostrophes kept in the token and then deleted; ASCII
-letters are lower-cased; purely `a`–`z` tokens are Porter-stemmed.
-
-## Layout
-
-| Module                | Responsibility                                          |
-|-----------------------|---------------------------------------------------------|
-| `fulltext.whitespace` | the seven whitespace code points; strip / collapse      |
-| `fulltext.analysis`   | tokeniser, folding, stop words, term analysis           |
-| `fulltext.stemmer`    | Porter stemmer (in place, allocation-free)              |
-| `fulltext.index`      | `Index`: documents, token spans, postings, statistics   |
-| `fulltext.query`      | lexer, recursive-descent parser, positive atoms         |
-| `fulltext.matcher`    | phrase occurrences, document bitsets, tree evaluation   |
-| `fulltext.ranking`    | BM25 and top-k selection                                |
-| `fulltext.snippet`    | best 30-token window and snippet text                   |
-| `fulltext.search`     | `SearchEngine`: ties the above together                 |
-| `fulltext.queryfile`  | parsing `queries.txt`                                   |
-| `fulltext.report`     | formatting `results.txt` and `stats.txt`                |
-| `fulltext.corpus`     | loading `docs/*.txt` from disk                          |
-
-`import fulltext;` re-exports all of them. Unit tests live in `tests/`.
-
-## Library example
+## Library use
 
 ```d
-import std.stdio : writefln;
+import std.stdio;
 import fulltext;
 
 void main()
 {
-    auto index = new Index([
-        Document.fromString("fox", "The quick brown fox jumps over the lazy dog."),
-        Document.fromString("cat", "A cat sat on the mat."),
+    auto index = Index.build([
+        Document("fox", "The quick brown fox jumps over the lazy dog."),
+        Document("cat", "A cat sat on the mat."),
     ]);
-    auto engine = new SearchEngine(index);
+    auto searcher = new Searcher(index);
 
-    foreach (i, hit; engine.search(`"lazy dog" OR cat`, 10))
-        writefln("%d\t%s\t%.4f\t%s", i + 1, hit.docId, hit.score, hit.snippet);
-
-    // Pieces are usable on their own:
-    assert(stem("running") == "run");
-    assert(analyzeText("Don't STOP") == ["dont", "stop"]);
+    foreach (hit; searcher.search(`quick OR "lazy dog"`, 10))
+        writefln("%s\t%.4f\t%s", hit.id, hit.score, hit.snippet);
 }
 ```
 
-Add it to a dub project with `"dependencies": { "fulltext": { "path": "../fulltext" } }`
-and the `library` configuration (`"subConfigurations": { "fulltext": "library" }`).
+Use it from another dub project with `dependency "fulltext" path="../fulltext"`
+(the `library` configuration is selected automatically).
 
-## Design notes
+Layout of the library (`source/fulltext/`):
 
-* Documents are kept as UTF-8 bytes; the tokeniser records byte spans, so
-  snippets are slices of the original text and no code-point arrays are built.
-* Each document is tokenised once; folding and stemming run once per distinct
-  surface form (memoised), and terms get dense integer ids.
-* Postings are flat `uint` arrays (documents, offsets, positions) built by
-  appending, so they come out sorted without a sort step.
-* Phrase matching merges the rarest term's document list against the others,
-  then intersects shifted position lists linearly.
-* Document sets are bitsets; the top `k` hits are chosen by partial sort.
-* The best snippet window is found with difference arrays in
-  O(length + occurrences).
+| Module | Responsibility |
+|--------|----------------|
+| `analysis` | tokeniser (an input range), folding, stop words |
+| `stemmer` | Porter stemmer |
+| `index` | positional inverted index, `Occurrences` postings view |
+| `query` | lexer, recursive-descent parser, query tree, positive atoms |
+| `search` | phrase matching, boolean evaluation, BM25, ranking (`Searcher`) |
+| `snippet` | best-window search and snippet extraction |
+| `queryfile`, `corpus`, `report` | `queries.txt` parsing, loading `docs/`, output rendering |
+
+Offsets in `Token` are UTF-8 byte offsets into the analysed string.
+
+## Tests
+
+Tests are D `unittest` blocks next to the code (the stemmer is also checked
+against a sample of Porter's reference vocabulary in `tests/data/`):
+
+```sh
+dub test --compiler=ldc2
+```

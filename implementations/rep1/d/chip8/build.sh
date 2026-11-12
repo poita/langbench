@@ -1,5 +1,6 @@
 #!/bin/sh
-# Build the chip8 command-line tool (bin/chip8). Works from any directory.
+# Build the chip8 command-line tool (bin/chip8) with dub + LDC.
 set -e
-cd "$(dirname "$0")"
-exec dub build -b release --compiler=ldc2 --quiet
+DIR=$(cd "$(dirname "$0")" && pwd)
+cd "$DIR"
+exec dub build -b release --compiler=ldc2 :cli

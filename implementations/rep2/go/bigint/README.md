@@ -1,57 +1,59 @@
 # bigint
 
-Signed arbitrary-precision integer arithmetic in pure Go, written from scratch
-on the standard library only (no `math/big`). It provides a small reusable
-library and a command-line tool that evaluates one query per line.
+Signed arbitrary-precision integer arithmetic in Go, written from scratch with
+only the standard library (no `math/big`). It provides a small library and a
+command-line tool that evaluates one query per line.
 
-- Magnitudes are little-endian slices of base-10⁹ limbs, so parsing and
-  printing decimal text are linear in the number of digits.
-- Addition, subtraction and comparison are linear; multiplication is
-  schoolbook O(n·m); division is Knuth's Algorithm D; exponentiation is
-  left-to-right binary exponentiation.
-- Division uses C semantics: the quotient truncates toward zero and the
-  remainder takes the sign of the dividend.
+Supported: addition, subtraction, multiplication, truncating division,
+remainder (C semantics), exponentiation and comparison on decimal integers with
+tens of thousands of digits.
+
+## Design
+
+- An `Int` is a sign plus a magnitude of little-endian `uint32` limbs in base
+  10^9, so parsing and printing are linear in the number of digits.
+- Add / subtract / compare: O(n + m).
+- Multiply: schoolbook, O(n·m).
+- Divide / remainder: Knuth's Algorithm D, computing quotient and remainder
+  together, O((n − m + 1)·m).
+- Power: binary exponentiation (repeated squaring).
 
 ## Layout
 
-| Path | Contents |
-|------|----------|
-| `doc.go`, `int.go` | public `Int` type: sign, comparison, add, sub, mul, quo/rem, pow |
-| `nat.go` | unsigned limb-level algorithms (internal) |
-| `convert.go` | decimal parsing and formatting |
-| `errors.go` | exported error values |
-| `cmd/bigint` | the command-line tool (`main.go` I/O, `process.go` query evaluation) |
-| `build.sh`, `run.sh` | build the tool into `bin/bigint`, and run it |
+| Path                 | Contents                                           |
+|----------------------|----------------------------------------------------|
+| `nat.go`             | unsigned magnitude arithmetic (add, sub, mul, divmod, pow) |
+| `int.go`             | public signed `Int` type, parsing, printing, errors |
+| `internal/query`     | the `<a> <op> <b>` query language evaluator         |
+| `cmd/bigint`         | the command-line tool                               |
 
-## Building
+## Build
 
-Requires Go 1.27 or newer.
+Requires Go 1.27.1.
 
-```
-./build.sh          # or: go build -o bin/bigint ./cmd/bigint
-go test ./...       # unit tests
-```
+    ./build.sh            # produces bin/bigint (same as: go build -o bin/bigint ./cmd/bigint)
+    go test ./...         # run the tests
+    go test -bench . -run XXX
 
 ## Command-line usage
 
-`bigint` reads all of standard input and writes one line per query to standard
-output (`./run.sh < queries.txt`). Each query is `<a> <op> <b>`, separated by
-single spaces, where operands match `-?[0-9]+` (leading zeros and `-0` are
-fine) and `op` is one of `+ - * / % ^ cmp`.
+`bigint` reads queries from standard input, one per line, and writes one result
+line per query. `./run.sh` runs the built binary.
 
-```
-$ printf '12 + 30\n-7 / 2\n-7 %% 2\n2 ^ 100\n007 cmp 7\n1 / 0\n' | ./run.sh
-42
--3
--1
-1267650600228229401496703205376
-0
-error
-```
+    $ printf '12 + 30\n-7 / 2\n-7 %% 2\n2 ^ 10\n007 cmp 7\n1 / 0\n' | ./run.sh
+    42
+    -3
+    -1
+    1024
+    0
+    error
 
-Results are in canonical decimal form (no leading zeros, never `-0`). `cmp`
-prints `-1`, `0` or `1`. Division or remainder by zero and a negative exponent
-print `error`. `0 ^ 0` is `1`.
+Each line is `<a> <op> <b>` with `op` one of `+ - * / % ^ cmp`; operands match
+`-?[0-9]+` (leading zeros and `-0` are accepted). Results are canonical decimal
+(no leading zeros, never `-0`); `cmp` prints `-1`, `0` or `1`. Division or
+remainder by zero and a negative exponent print `error`. `/` truncates toward
+zero and `%` takes the sign of the dividend. `x ^ 0` is `1`, including `0 ^ 0`.
+A malformed line makes the tool exit with status 1 and a message on stderr.
 
 ## Library usage
 
@@ -61,32 +63,27 @@ package main
 import (
 	"fmt"
 
-	"github.com/peteralexander/bigint"
+	"example.com/bigint"
 )
 
 func main() {
 	a := bigint.MustParse("-123456789012345678901234567890")
-	b, _ := bigint.Parse("987654321098765432109876543210")
-
+	b := bigint.MustParse("987654321098765432109876543210")
 	fmt.Println(a.Mul(b)) // -121932631137021795226185032733622923332237463801111263526900
 
-	q, r, err := a.QuoRem(bigint.FromInt64(1000))
-	fmt.Println(q, r, err) // -123456789012345678901234567 -890 <nil>
+	q, r, err := bigint.FromInt64(-7).QuoRem(bigint.FromInt64(2))
+	fmt.Println(q, r, err) // -3 -1 <nil>
 
-	p, _ := bigint.FromInt64(2).Pow(bigint.FromInt64(100))
-	fmt.Println(p, p.Cmp(a)) // 1267650600228229401496703205376 1
+	if _, err := a.Quo(bigint.FromInt64(0)); err == bigint.ErrDivByZero {
+		fmt.Println("division by zero")
+	}
 
-	_, err = a.Quo(bigint.Int{})
-	fmt.Println(err == bigint.ErrDivisionByZero) // true
+	p, _ := bigint.FromInt64(2).Exp(bigint.FromInt64(100))
+	fmt.Println(p) // 1267650600228229401496703205376
 }
 ```
 
-`Int` values are immutable, and the zero value is 0. The API: `Parse`,
-`ParseBytes`, `MustParse`, `FromInt64`, `FromUint64`, `String`, `AppendTo`,
-`Sign`, `IsZero`, `Neg`, `Abs`, `Cmp`, `Add`, `Sub`, `Mul`, `QuoRem`, `Quo`,
-`Rem` and `Pow`. See `go doc` for details.
-
-## Performance
-
-Multiplying two 50,000-digit numbers takes a few tens of milliseconds;
-dividing a 50,000-digit number by a 25,000-digit one is similar.
+`*bigint.Int` values are immutable: every method returns a new value. API:
+`Parse`, `MustParse`, `FromInt64`, `String`, `Sign`, `Cmp`, `Neg`, `Abs`, `Add`,
+`Sub`, `Mul`, `Quo`, `Rem`, `QuoRem`, `Exp`; errors `ErrSyntax`,
+`ErrDivByZero`, `ErrNegativeExponent`, `ErrExponentTooLarge`. See `go doc`.

@@ -1,391 +1,490 @@
 /**
- * Recurrence expansion.
+ * Expansion of a recurrence rule into its occurrences.
  *
- * The rule is evaluated period by period (a year, month, week or day,
- * depending on `FREQ`). Each period supplies an ordered run of candidate
- * days; every candidate is tested against the rule's filters with O(1)
- * table lookups, the surviving days optionally go through `BYSETPOS`, and
- * the results are handed to a sink, one day number at a time.
- *
- * All scratch storage lives inside the `Expander` and is reused, so
- * expanding many rules with one `Expander` performs no allocation.
+ * The rule is evaluated period by period (a year, a month, a week or a day,
+ * depending on `FREQ`). Every candidate day of every period is tested against
+ * every filter in constant time, `BYSETPOS` selects among the kept days, and
+ * the results are emitted in chronological order until `COUNT`, `UNTIL` or the
+ * year-9999 bound is reached. No attempt is made to skip periods that cannot
+ * match.
  */
 module rrule.expand;
 
 import rrule.calendar;
+import rrule.datetime;
 import rrule.rule;
+import rrule.weekno;
 
-/// Last year for which occurrences are generated.
-enum lastYear = 9999;
+/// The last year for which periods are enumerated.
+enum int maxYear = 9999;
+
+private enum int maxPeriodDays = 366;
+private enum long secondsPerDay = 86_400;
 
 /**
- * Reusable rule expander.
+ * Lazily expands a `Rule` starting at `dtstart`; an input range of
+ * `LocalDateTime`.
  *
- * A sink is any type with a method `void put(int dayNumber)`; it receives the
- * day number of each occurrence in chronological order (the time of day is the
- * one of DTSTART).
+ * It is a class so that copies of the range share one iteration state.
  */
-struct Expander
+final class Occurrences
 {
-    private Rule plan;
-    private int[366] kept;
-    private bool[366] ordinalMask;
-    private bool[366] selected;
-    private int dtDay;
-    private int lastDay;
-    private size_t emitted;
-    private size_t limit;
-    private bool done;
-    // Week numbering data for the YEARLY period's year (BYWEEKNO).
-    private int weekStart0;
-    private int weekCount;
-    private bool beforeWeekOne;
+    // Rule parameters.
+    private Freq freq;
+    private int interval;
+    private int count;
+    private bool hasUntil;
+    private long untilKey;
+    private int wkst;
 
-    /**
-     * Expands `rule` from `start`, passing at most `maxCount` occurrences
-     * (and no more than the rule's own `COUNT`) to `sink`.
-     *
-     * Returns: the number of occurrences produced.
-     */
-    size_t expand(Sink)(Rule rule, LocalDateTime start, size_t maxCount, ref Sink sink)
+    // DTSTART.
+    private long startDay;
+    private int startTod;
+    private long startYear;
+    private int startMonth;
+    private int weekOffset; // days from the week start (WKST) to DTSTART
+
+    // Filters (after the DTSTART defaults).
+    private bool hasMonth, hasMonthDay, hasYearDay, hasWeekNo, hasPlainDay, hasOrdinal;
+    private uint monthMask; // bit m: month m
+    private uint monthDayPos, monthDayNeg; // bit k: day k / day -k
+    private bool[367] yearDayPos, yearDayNeg; // index k: day k / day -k
+    private ulong weekNoPos, weekNoNeg; // bit k: week k / week -k
+    private uint plainDayMask; // bit d: weekday d
+    private ulong[7] ordinalPos, ordinalNeg; // per weekday, bit n: n-th / n-th from last
+    private bool ordinalInMonth; // ordinals count within the month, else within the year
+    private int[] setPos;
+
+    // Iteration state.
+    private long period;
+    private bool finished;
+    private long printed;
+    private long cachedWeekYear = long.min;
+    private YearWeeks yearWeeks;
+    private long[maxPeriodDays + 1] cand; // kept days of the current period
+    private bool[maxPeriodDays + 1] mark;
+    private int candCount;
+    private long[maxPeriodDays + 1] ready; // occurrences waiting to be consumed
+    private int readyCount, readyPos;
+
+    /// Prepares the expansion of `rule` from `dtstart`.
+    this(LocalDateTime dtstart, Rule rule)
     {
-        plan = rule;
-        applyDefaults(plan, start.date);
-        limit = maxCount;
-        if (plan.hasCount && plan.count < limit)
-            limit = plan.count;
-        emitted = 0;
-        done = limit == 0;
-        dtDay = dayNumber(start.date);
+        freq = rule.freq;
+        interval = rule.interval;
+        count = rule.count;
+        wkst = rule.weekStart;
+        startDay = dtstart.dayNumber;
+        startTod = dtstart.secondOfDay;
+        startYear = dtstart.year;
+        startMonth = dtstart.month;
+        const startWd = weekdayOf(startDay);
+        weekOffset = cast(int) floorMod(startWd - wkst, 7);
+        hasUntil = rule.hasUntil;
+        if (hasUntil)
+            untilKey = rule.until.dayNumber * secondsPerDay + rule.until.secondOfDay;
+        setPos = rule.bySetPos;
 
-        // Occurrences share DTSTART's time of day, so UNTIL reduces to the last
-        // day that may still be printed.
-        lastDay = int.max;
-        if (plan.hasUntil)
+        // Defaults derived from DTSTART.
+        if (rule.byMonthDay.length == 0 && rule.byYearDay.length == 0
+            && rule.byWeekNo.length == 0 && rule.byDay.length == 0)
         {
-            immutable untilDay = dayNumber(plan.until.date);
-            lastDay = plan.until.secondsOfDay >= start.secondsOfDay ? untilDay : untilDay - 1;
-        }
-
-        final switch (plan.freq)
-        {
-        case Freq.yearly:
-            yearly(sink, start.date);
-            break;
-        case Freq.monthly:
-            monthly(sink, start.date);
-            break;
-        case Freq.weekly:
-            weekly(sink);
-            break;
-        case Freq.daily:
-            daily(sink);
-            break;
-        }
-        return emitted;
-    }
-
-private:
-
-    static void applyDefaults(ref Rule r, CivilDate d)
-    {
-        if (r.hasMonthDay || r.hasYearDay || r.hasWeekNo || r.hasByDay)
-            return;
-        final switch (r.freq)
-        {
-        case Freq.yearly:
-            if (!r.hasMonth)
+            final switch (freq)
             {
-                r.month[d.month] = true;
-                r.hasMonth = true;
+            case Freq.yearly:
+                if (rule.byMonth.length == 0)
+                    rule.byMonth = [dtstart.month];
+                rule.byMonthDay = [dtstart.day];
+                break;
+            case Freq.monthly:
+                rule.byMonthDay = [dtstart.day];
+                break;
+            case Freq.weekly:
+                rule.byDay = [ByDay(startWd, 0)];
+                break;
+            case Freq.daily:
+                break;
             }
-            r.monthDay[d.day] = true;
-            r.hasMonthDay = true;
-            break;
-        case Freq.monthly:
-            r.monthDay[d.day] = true;
-            r.hasMonthDay = true;
-            break;
-        case Freq.weekly:
-            r.weekday[weekdayOf(dayNumber(d))] = true;
-            r.hasWeekdays = true;
-            break;
-        case Freq.daily:
-            break;
         }
-    }
 
-    void yearly(Sink)(ref Sink sink, CivilDate start)
-    {
-        for (int k = 0; !done; ++k)
+        hasMonth = rule.byMonth.length != 0;
+        foreach (m; rule.byMonth)
+            monthMask |= 1u << m;
+        hasMonthDay = rule.byMonthDay.length != 0;
+        foreach (v; rule.byMonthDay)
         {
-            immutable year = start.year + k * plan.interval;
-            if (year > lastYear)
-                break;
-            immutable jan1 = firstDayOfYear(year);
-            if (jan1 > lastDay)
-                break;
-            if (plan.hasWeekNo)
-                prepareWeekNumbers(year);
-            uint n = 0;
-            if (plan.hasMonth)
+            if (v > 0)
+                monthDayPos |= 1u << v;
+            else
+                monthDayNeg |= 1u << -v;
+        }
+        hasYearDay = rule.byYearDay.length != 0;
+        foreach (v; rule.byYearDay)
+        {
+            if (v > 0)
+                yearDayPos[v] = true;
+            else
+                yearDayNeg[-v] = true;
+        }
+        hasWeekNo = rule.byWeekNo.length != 0;
+        foreach (v; rule.byWeekNo)
+        {
+            if (v > 0)
+                weekNoPos |= 1UL << v;
+            else
+                weekNoNeg |= 1UL << -v;
+        }
+        foreach (b; rule.byDay)
+        {
+            if (b.ordinal == 0)
             {
-                foreach (m; 1 .. 13)
-                {
-                    if (!plan.month[m])
-                        continue;
-                    immutable before = daysBeforeMonth(year, m);
-                    n = walk(jan1 + before, year, m, 1, before, daysInMonth(year, m), n);
-                }
+                hasPlainDay = true;
+                plainDayMask |= 1u << b.weekday;
             }
             else
-                n = walk(jan1, year, 1, 1, 0, yearLength(year), n);
-            emitPeriod(sink, n);
+            {
+                hasOrdinal = true;
+                if (b.ordinal > 0)
+                    ordinalPos[b.weekday] |= 1UL << b.ordinal;
+                else
+                    ordinalNeg[b.weekday] |= 1UL << -b.ordinal;
+            }
         }
+        ordinalInMonth = freq == Freq.monthly || hasMonth;
+
+        fill();
     }
 
-    void monthly(Sink)(ref Sink sink, CivilDate start)
+    /// True when there are no more occurrences.
+    bool empty() const
     {
-        immutable base = start.year * 12 + start.month - 1;
-        for (int k = 0; !done; ++k)
+        return readyPos >= readyCount;
+    }
+
+    /// The current occurrence. Must not be called when `empty`.
+    LocalDateTime front() const
+    in (!empty)
+    {
+        return LocalDateTime.fromDayAndSecond(ready[readyPos], startTod);
+    }
+
+    /// Advances to the next occurrence.
+    void popFront()
+    in (!empty)
+    {
+        if (++readyPos >= readyCount)
+            fill();
+    }
+
+    // Enumerates periods until at least one occurrence is ready or the rule is exhausted.
+    private void fill()
+    {
+        readyCount = 0;
+        readyPos = 0;
+        while (!finished && readyCount == 0)
         {
-            immutable index = base + k * plan.interval;
-            immutable year = index / 12;
-            if (year > lastYear)
+            long pStart;
+            int pLen;
+            if (!nextPeriod(pStart, pLen))
+            {
+                finished = true;
                 break;
-            immutable month = index % 12 + 1;
-            immutable before = daysBeforeMonth(year, month);
-            immutable first = firstDayOfYear(year) + before;
-            if (first > lastDay)
+            }
+            if (hasUntil && pStart * secondsPerDay + startTod > untilKey)
+            {
+                finished = true;
                 break;
-            if (plan.hasMonth && !plan.month[month])
-                continue;
-            immutable n = walk(first, year, month, 1, before, daysInMonth(year, month), 0);
-            emitPeriod(sink, n);
+            }
+            scan(pStart, pLen);
+            select();
+            emit();
         }
     }
 
-    void weekly(Sink)(ref Sink sink)
+    // Start and length of the next period; false once it starts after year 9999.
+    private bool nextPeriod(out long pStart, out int pLen)
     {
-        immutable endDay = firstDayOfYear(lastYear + 1);
-        immutable back = (weekdayOf(dtDay) - plan.weekStart + 7) % 7;
-        immutable anchor = dtDay - back;
-        for (int k = 0; !done; ++k)
+        enum lastDay = daysFromCivil(maxYear, 12, 31);
+        const k = period++;
+        final switch (freq)
         {
-            immutable first = k == 0 ? dtDay : anchor + 7 * k * plan.interval;
-            if (first >= endDay || first > lastDay)
-                break;
-            immutable len = k == 0 ? 7 - back : 7;
-            immutable n = walkFromDay(first, len);
-            emitPeriod(sink, n);
+        case Freq.yearly:
+            const year = startYear + k * interval;
+            if (year > maxYear)
+                return false;
+            pStart = daysFromCivil(year, 1, 1);
+            pLen = daysInYear(year);
+            return true;
+        case Freq.monthly:
+            const index = startYear * 12 + (startMonth - 1) + k * interval;
+            const year = index / 12;
+            if (year > maxYear)
+                return false;
+            const month = cast(int)(index % 12) + 1;
+            pStart = daysFromCivil(year, month, 1);
+            pLen = daysInMonth(year, month);
+            return true;
+        case Freq.weekly:
+            if (k == 0)
+            {
+                pStart = startDay;
+                pLen = 7 - weekOffset;
+                return true;
+            }
+            pStart = startDay - weekOffset + 7 * k * interval;
+            pLen = 7;
+            return pStart <= lastDay;
+        case Freq.daily:
+            pStart = startDay + k * interval;
+            pLen = 1;
+            return pStart <= lastDay;
         }
     }
 
-    void daily(Sink)(ref Sink sink)
+    // Tests the `pLen` days from `pStart` against the filters and stores the kept ones in `cand`.
+    private void scan(long pStart, int pLen)
     {
-        immutable endDay = firstDayOfYear(lastYear + 1);
-        for (int k = 0; !done; ++k)
+        candCount = 0;
+        const first = civilFromDays(pStart);
+        long year = first.year;
+        int month = first.month;
+        int day = first.day;
+        bool leap = isLeapYear(year);
+        int yearLen = leap ? 366 : 365;
+        int monthLen = daysInMonth(month, leap);
+        int yday = cast(int)(pStart - daysFromCivil(year, 1, 1)) + 1;
+        int wd = weekdayOf(pStart);
+        if (hasWeekNo && cachedWeekYear != year)
         {
-            immutable first = dtDay + k * plan.interval;
-            if (first >= endDay || first > lastDay)
-                break;
-            immutable n = walkFromDay(first, 1);
-            emitPeriod(sink, n);
+            cachedWeekYear = year;
+            yearWeeks = YearWeeks(year, wkst);
         }
-    }
 
-    uint walkFromDay(int first, int len)
-    {
-        immutable date = civilFromDayNumber(first);
-        immutable before = daysBeforeMonth(date.year, date.month);
-        return walk(first, date.year, date.month, date.day, before + date.day - 1, len, 0);
-    }
-
-    /// Computes `s(Y)`, `weeks(Y)` and the week number given to the first days
-    /// of January (SPEC step 4) for `year`.
-    void prepareWeekNumbers(int year)
-    {
-        int s, weeks;
-        weekInfo(year, s, weeks);
-        weekStart0 = s;
-        weekCount = weeks;
-        int p;
-        int sPrev, weeksPrev;
-        weekInfo(year - 1, sPrev, weeksPrev);
-        if (sPrev < 0)
-            p = weeksPrev;
-        else
-            p = 52 + ((yearLength(year) - s) % 7 >= 4 ? 1 : 0);
-        beforeWeekOne = plan.weekNoNeg[1] || plan.weekNo[p];
-    }
-
-    void weekInfo(int year, out int s, out int weeks) const
-    {
-        immutable first = (plan.weekStart - weekdayOf(firstDayOfYear(year)) + 7) % 7;
-        s = first < 4 ? first : first - 7;
-        immutable len = yearLength(year) - s;
-        weeks = len / 7 + (len % 7 >= 4 ? 1 : 0);
-    }
-
-    /// Marks, within the `len`-day range starting on weekday `startWeekday`,
-    /// the days designated by the ordinal `BYDAY` codes.
-    void markOrdinalDays(int len, int startWeekday)
-    {
-        ordinalMask[0 .. len] = false;
-        immutable lastWeekday = (startWeekday + len - 1) % 7;
-        foreach (code; plan.ordinalDays)
+        foreach (i; 0 .. pLen)
         {
-            int offset;
-            if (code.ordinal > 0)
-                offset = (code.weekday - startWeekday + 7) % 7 + 7 * (code.ordinal - 1);
-            else
-                offset = len - 1 - ((lastWeekday - code.weekday + 7) % 7 + 7 * (-code.ordinal - 1));
-            if (offset >= 0 && offset < len)
-                ordinalMask[offset] = true;
-        }
-    }
-
-    /**
-     * Walks `len` consecutive candidate days starting at day number
-     * `startDay` (civil fields `year`, `month`, `dom`, 0-based day of year
-     * `yday`), appending the days that pass every filter to `kept[n ..]`.
-     * Returns the new number of kept days.
-     */
-    uint walk(int startDay, int year, int month, int dom, int yday, int len, uint n)
-    {
-        immutable hasMonth = plan.hasMonth;
-        immutable hasMonthDay = plan.hasMonthDay;
-        immutable hasYearDay = plan.hasYearDay;
-        immutable hasWeekNo = plan.hasWeekNo;
-        immutable hasOrdinal = plan.ordinalDays.length != 0;
-        immutable hasWeekdays = plan.hasWeekdays;
-        int weekday = weekdayOf(startDay);
-        int monthLen = daysInMonth(year, month);
-        int yearLen = yearLength(year);
-        if (hasOrdinal)
-            markOrdinalDays(len, weekday);
-
-        foreach (off; 0 .. len)
-        {
-            bool keep = true;
-            if (hasMonth && !plan.month[month])
-                keep = false;
-            else if (hasMonthDay && !(plan.monthDay[dom] || plan.monthDayNeg[monthLen + 1 - dom]))
-                keep = false;
-            else if (hasYearDay && !(plan.yearDay[yday + 1] || plan.yearDayNeg[yearLen - yday]))
-                keep = false;
-            else if (hasWeekNo && !weekMatches(yday))
-                keep = false;
-            else if (hasWeekdays && !plan.weekday[weekday])
-                keep = false;
-            else if (hasOrdinal && !ordinalMask[off])
-                keep = false;
+            bool keep = (!hasMonth || ((monthMask >> month) & 1))
+                && (!hasMonthDay || ((monthDayPos >> day) & 1)
+                        || ((monthDayNeg >> (monthLen + 1 - day)) & 1))
+                && (!hasYearDay || yearDayPos[yday] || yearDayNeg[yearLen + 1 - yday])
+                && (!hasWeekNo || yearWeeks.matches(yday - 1, weekNoPos, weekNoNeg))
+                && (!hasPlainDay || ((plainDayMask >> wd) & 1))
+                && (!hasOrdinal || ordinalMatches(wd, day, monthLen, yday, yearLen));
             if (keep)
-                kept[n++] = startDay + off;
+                cand[candCount++] = pStart + i;
 
-            // Advance the calendar cursor by one day.
-            if (++weekday == 7)
-                weekday = 0;
+            // Move to the next day.
+            wd = wd == 6 ? 0 : wd + 1;
             ++yday;
-            if (++dom > monthLen)
+            if (++day > monthLen)
             {
-                dom = 1;
+                day = 1;
                 if (++month > 12)
                 {
                     month = 1;
                     ++year;
-                    yday = 0;
-                    yearLen = yearLength(year);
+                    yday = 1;
+                    leap = isLeapYear(year);
+                    yearLen = leap ? 366 : 365;
+                    if (hasWeekNo && i + 1 < pLen)
+                    {
+                        cachedWeekYear = year;
+                        yearWeeks = YearWeeks(year, wkst);
+                    }
                 }
-                monthLen = daysInMonth(year, month);
+                monthLen = daysInMonth(month, leap);
             }
         }
-        return n;
     }
 
-    bool weekMatches(int yday) const
+    // Whether an ordinal BYDAY code designates this day.
+    private bool ordinalMatches(int wd, int day, int monthLen, int yday, int yearLen) const
     {
-        if (yday < weekStart0)
-            return beforeWeekOne;
-        immutable w = (yday - weekStart0) / 7 + 1;
-        if (w <= weekCount)
-            return plan.weekNo[w] || plan.weekNoNeg[weekCount + 1 - w];
-        return plan.weekNo[1];
+        // The n-th `wd` of a range is the day at offset 7(n-1)..7(n-1)+6 from its start.
+        const offset = ordinalInMonth ? day - 1 : yday - 1;
+        const length = ordinalInMonth ? monthLen : yearLen;
+        const n = offset / 7 + 1;
+        const fromEnd = (length - 1 - offset) / 7 + 1;
+        return ((ordinalPos[wd] >> n) & 1) != 0 || ((ordinalNeg[wd] >> fromEnd) & 1) != 0;
     }
 
-    /// Applies `BYSETPOS` (if any) to `kept[0 .. n]` and emits the result.
-    void emitPeriod(Sink)(ref Sink sink, uint n)
+    // Applies BYSETPOS to the kept days of the period.
+    private void select()
     {
-        if (n == 0)
+        if (setPos.length == 0)
             return;
-        if (plan.setPos.length == 0)
+        mark[0 .. candCount] = false;
+        foreach (p; setPos)
         {
-            foreach (i; 0 .. n)
+            const index = p > 0 ? p - 1 : candCount + p;
+            if (index >= 0 && index < candCount)
+                mark[index] = true;
+        }
+        int n;
+        foreach (i; 0 .. candCount)
+            if (mark[i])
+                cand[n++] = cand[i];
+        candCount = n;
+    }
+
+    // Applies UNTIL / DTSTART / COUNT to the period's occurrences.
+    private void emit()
+    {
+        foreach (day; cand[0 .. candCount])
+        {
+            if (hasUntil && day * secondsPerDay + startTod > untilKey)
             {
-                if (done)
-                    return;
-                emitOne(sink, kept[i]);
+                finished = true;
+                return;
             }
-            return;
-        }
-        foreach (p; plan.setPos)
-        {
-            immutable idx = p > 0 ? p - 1 : cast(int) n + p;
-            if (idx >= 0 && idx < n)
-                selected[idx] = true;
-        }
-        foreach (i; 0 .. n)
-        {
-            if (!selected[i])
+            if (day < startDay)
                 continue;
-            selected[i] = false;
-            if (!done)
-                emitOne(sink, kept[i]);
+            ready[readyCount++] = day;
+            if (count != 0 && ++printed >= count)
+            {
+                finished = true;
+                return;
+            }
         }
-    }
-
-    void emitOne(Sink)(ref Sink sink, int day)
-    {
-        if (day > lastDay)
-        {
-            done = true;
-            return;
-        }
-        if (day < dtDay)
-            return;
-        sink.put(day);
-        if (++emitted >= limit)
-            done = true;
-    }
-}
-
-/// A sink that collects occurrence day numbers.
-struct DayNumberCollector
-{
-    /// Collected day numbers, in order.
-    int[] days;
-
-    /// Receives one occurrence.
-    void put(int dayNumber)
-    {
-        days ~= dayNumber;
     }
 }
 
 /**
- * Convenience wrapper: the first `limit` occurrences of `rule` starting at
- * `start`, as date-times.
+ * Returns the first `limit` occurrences of `rule` (fewer if the rule ends
+ * sooner) for a series starting at `dtstart`.
  */
-LocalDateTime[] occurrences(Rule rule, LocalDateTime start, size_t limit)
+LocalDateTime[] expand(LocalDateTime dtstart, Rule rule, size_t limit = size_t.max)
 {
-    Expander ex;
-    DayNumberCollector sink;
-    ex.expand(rule, start, limit, sink);
-    auto result = new LocalDateTime[sink.days.length];
-    foreach (i, d; sink.days)
-    {
-        result[i] = start;
-        result[i].date = civilFromDayNumber(d);
-    }
+    LocalDateTime[] result;
+    auto occ = new Occurrences(dtstart, rule);
+    for (; result.length < limit && !occ.empty; occ.popFront())
+        result ~= occ.front;
     return result;
+}
+
+version (unittest)
+{
+    private string[] run(string start, string rule, size_t limit = size_t.max)
+    {
+        string[] r;
+        foreach (t; expand(LocalDateTime.parse(start), parseRule(rule), limit))
+            r ~= t.toString;
+        return r;
+    }
+}
+
+///
+unittest
+{
+    assert(run("19970902T090000", "FREQ=DAILY;COUNT=3") ==
+            ["19970902T090000", "19970903T090000", "19970904T090000"]);
+}
+
+unittest
+{
+    // Worked examples of the specification.
+    assert(run("19970902T090000", "FREQ=MONTHLY;INTERVAL=2;BYDAY=-1FR;COUNT=10", 100) ==
+            ["19970926T090000", "19971128T090000", "19980130T090000", "19980327T090000",
+            "19980529T090000", "19980731T090000", "19980925T090000", "19981127T090000",
+            "19990129T090000", "19990326T090000"]);
+    assert(run("19970902T090000", "FREQ=WEEKLY;INTERVAL=2;WKST=SU;BYDAY=TU,TH;COUNT=8", 100) ==
+            ["19970902T090000", "19970904T090000", "19970916T090000", "19970918T090000",
+            "19970930T090000", "19971002T090000", "19971014T090000", "19971016T090000"]);
+    assert(run("19970902T090000", "FREQ=WEEKLY;INTERVAL=2;WKST=MO;BYDAY=TU,SU;COUNT=4", 4) ==
+            ["19970902T090000", "19970907T090000", "19970916T090000", "19970921T090000"]);
+}
+
+unittest
+{
+    assert(run("20240229T120000", "FREQ=YEARLY;COUNT=3", 10) ==
+            ["20240229T120000", "20280229T120000", "20320229T120000"]);
+    assert(run("20240131T000000", "FREQ=MONTHLY;BYMONTHDAY=-1;UNTIL=20240430T000000", 10) ==
+            ["20240131T000000", "20240229T000000", "20240331T000000", "20240430T000000"]);
+    assert(run("20240301T080000", "FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1;COUNT=3", 10) ==
+            ["20240329T080000", "20240430T080000", "20240531T080000"]);
+    assert(run("20260101T000000", "FREQ=YEARLY;BYMONTH=2;BYMONTHDAY=30;COUNT=5", 10).length == 0);
+}
+
+unittest
+{
+    assert(run("20200101T000000", "FREQ=YEARLY;BYWEEKNO=53;BYDAY=MO;COUNT=3", 10) ==
+            ["20201228T000000", "20261228T000000", "20321227T000000"]);
+    assert(run("20110101T000000", "FREQ=YEARLY;BYWEEKNO=53;COUNT=4", 10) ==
+            ["20110101T000000", "20110102T000000", "20151228T000000", "20151229T000000"]);
+}
+
+unittest
+{
+    // Defaults derived from DTSTART.
+    assert(run("20240131T000000", "FREQ=MONTHLY;COUNT=3") ==
+            ["20240131T000000", "20240331T000000", "20240531T000000"]);
+    assert(run("20240110T000000", "FREQ=WEEKLY;COUNT=3") ==
+            ["20240110T000000", "20240117T000000", "20240124T000000"]);
+    assert(run("20240115T000000", "FREQ=MONTHLY;BYSETPOS=1;COUNT=2") ==
+            ["20240115T000000", "20240215T000000"]);
+    assert(run("20240115T000000", "FREQ=MONTHLY;BYSETPOS=2;COUNT=2").length == 0);
+    // BYSETPOS is applied before the DTSTART check.
+    assert(run("20240120T000000", "FREQ=MONTHLY;BYDAY=MO;BYSETPOS=1;COUNT=2") ==
+            ["20240205T000000", "20240304T000000"]);
+}
+
+unittest
+{
+    // UNTIL is inclusive and may precede DTSTART.
+    assert(run("20240101T000000", "FREQ=DAILY;UNTIL=20240103T000000") ==
+            ["20240101T000000", "20240102T000000", "20240103T000000"]);
+    assert(run("20240101T120000", "FREQ=DAILY;UNTIL=20240103T115959") ==
+            ["20240101T120000", "20240102T120000"]);
+    assert(run("20240101T000000", "FREQ=DAILY;UNTIL=20231231T000000").length == 0);
+}
+
+unittest
+{
+    // Ordinals: yearly with and without BYMONTH.
+    assert(run("20240101T000000", "FREQ=YEARLY;BYMONTH=1,7;BYDAY=2MO;COUNT=4") ==
+            ["20240108T000000", "20240708T000000", "20250113T000000", "20250714T000000"]);
+    assert(run("20240101T000000", "FREQ=YEARLY;BYDAY=20MO;COUNT=2") ==
+            ["20240513T000000", "20250519T000000"]);
+    assert(run("20240101T000000", "FREQ=YEARLY;BYDAY=-1SU;COUNT=2") ==
+            ["20241229T000000", "20251228T000000"]);
+    // A fifth Monday exists only in some months.
+    assert(run("20240101T000000", "FREQ=MONTHLY;BYDAY=5MO;COUNT=3") ==
+            ["20240129T000000", "20240429T000000", "20240729T000000"]);
+}
+
+unittest
+{
+    // BYYEARDAY, negative and positive.
+    assert(run("20240101T000000", "FREQ=YEARLY;BYYEARDAY=1,-1;COUNT=4") ==
+            ["20240101T000000", "20241231T000000", "20250101T000000", "20251231T000000"]);
+    assert(run("20240101T000000", "FREQ=YEARLY;BYYEARDAY=366;COUNT=2") ==
+            ["20241231T000000", "20281231T000000"]);
+}
+
+unittest
+{
+    // Year 9999 bound: the expansion ends rather than overflowing.
+    assert(run("99980101T000000", "FREQ=YEARLY;COUNT=10") ==
+            ["99980101T000000", "99990101T000000"]);
+    assert(run("99991230T000000", "FREQ=DAILY;COUNT=10") ==
+            ["99991230T000000", "99991231T000000"]);
+    assert(run("99991201T000000", "FREQ=WEEKLY;INTERVAL=100;COUNT=5") ==
+            ["99991201T000000"]);
+    assert(run("10000101T000000", "FREQ=WEEKLY;BYMONTH=2;BYMONTHDAY=30", 3).length == 0);
+}
+
+unittest
+{
+    // WEEKLY periods may cross month and year boundaries.
+    assert(run("20231228T000000", "FREQ=WEEKLY;BYDAY=MO,SA;COUNT=4") ==
+            ["20231230T000000", "20240101T000000", "20240106T000000", "20240108T000000"]);
+}
+
+unittest
+{
+    // The range interface and `limit`.
+    auto occ = new Occurrences(LocalDateTime.parse("20240101T000000"), parseRule("FREQ=DAILY"));
+    assert(!occ.empty && occ.front.toString == "20240101T000000");
+    occ.popFront();
+    assert(occ.front.toString == "20240102T000000");
+    assert(expand(LocalDateTime.parse("20240101T000000"), parseRule("FREQ=DAILY"), 5).length == 5);
 }

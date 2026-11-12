@@ -3,94 +3,77 @@ package query
 import (
 	"reflect"
 	"testing"
+
+	"fulltext/analysis"
 )
 
-// show renders a tree as a compact s-expression for comparison.
-func show(n *Node) string {
-	if n == nil {
-		return "()"
+func TestParse(t *testing.T) {
+	tests := []struct{ in, want string }{
+		{"cat", "(cat)"},
+		{"cat dog", "[(cat) AND (dog)]"},
+		{"cat AND dog", "[(cat) AND (dog)]"},
+		{"cat OR dog", "[(cat) OR (dog)]"},
+		{"cat dog OR bird", "[[(cat) AND (dog)] OR (bird)]"},
+		{"cat OR dog bird", "[(cat) OR [(dog) AND (bird)]]"},
+		{"NOT cat", "NOT (cat)"},
+		{"cat NOT dog", "[(cat) AND NOT (dog)]"},
+		{"NOT NOT cat", "NOT NOT (cat)"},
+		{"(cat OR dog) bird", "[[(cat) OR (dog)] AND (bird)]"},
+		{`"quick brown" fox`, "[(quick brown) AND (fox)]"},
+		{"well-known", "(well known)"},
+		{`"to be or not to be"`, "(to be or not to be)"},
+		{"running", "(run)"},
+		// Everything that parses to the empty tree.
+		{"()", "<empty>"}, {"the", "<empty>"}, {"NOT", "<empty>"}, {"", "<empty>"},
+		{`""`, "<empty>"}, {"...", "<empty>"}, {"AND", "<empty>"}, {"The", "<empty>"},
+		// Recovery cases from the specification.
+		{"cat AND", "(cat)"}, {"OR cat", "(cat)"}, {"cat ()", "(cat)"},
+		{"cat NOT ()", "(cat)"}, {"cat NOT (", "(cat)"}, {"(cat", "(cat)"},
+		{`"cat`, "(cat)"}, {"cat ) dog", "(cat)"}, {"cat ) ) dog", "(cat)"},
+		{"cat OR AND dog", "[(cat) OR (dog)]"}, {"cat AND OR dog", "[(cat) OR (dog)]"},
+		{"cat AND AND dog", "[(cat) AND (dog)]"},
+		{"dog NOT ( cat", "[(dog) AND NOT (cat)]"},
+		{"cat NOT OR dog", "[(cat) AND (dog)]"}, // OR after NOT is consumed as the operand
+		{"and", "<empty>"}, {"cat and dog", "[(cat) AND (dog)]"},
+		{`cat"dog"`, "[(cat) AND (dog)]"},
 	}
-	switch n.Op {
-	case Atom:
-		s := "["
-		for i, t := range n.Terms {
-			if i > 0 {
-				s += " "
-			}
-			s += t
+	a := analysis.NewAnalyzer()
+	for _, tc := range tests {
+		if got := Parse(tc.in, a).String(); got != tc.want {
+			t.Errorf("Parse(%q) = %s, want %s", tc.in, got, tc.want)
 		}
-		return s + "]"
-	case Not:
-		return "(NOT " + show(n.Children[0]) + ")"
 	}
-	name := "AND"
-	if n.Op == Or {
-		name = "OR"
-	}
-	s := "(" + name
-	for _, c := range n.Children {
-		s += " " + show(c)
-	}
-	return s + ")"
 }
 
-func TestParse(t *testing.T) {
-	cases := []struct{ in, want string }{
-		{"", "()"},
-		{"()", "()"},
-		{"the", "()"},
-		{"NOT", "()"},
-		{"cat", "[cat]"},
-		{"cat AND", "[cat]"},
-		{"OR cat", "[cat]"},
-		{"cat ()", "[cat]"},
-		{"cat NOT ()", "[cat]"},
-		{"cat NOT (", "[cat]"},
-		{"(cat", "[cat]"},
-		{`"cat`, "[cat]"},
-		{"cat ) dog", "[cat]"},
-		{"cat ) ) dog", "[cat]"},
-		{"cat OR AND dog", "(OR [cat] [dog])"},
-		{"cat AND OR dog", "(OR [cat] [dog])"},
-		{"cat AND AND dog", "(AND [cat] [dog])"},
-		{"dog NOT ( cat", "(AND [dog] (NOT [cat]))"},
-		{"cat dog", "(AND [cat] [dog])"},
-		{"x OR b c", "(OR [x] (AND [b] [c]))"},
-		{"NOT NOT cat", "(NOT (NOT [cat]))"},
-		{`"to be or not to be"`, "[to be or not to be]"},
-		{"well-known", "[well known]"},
-		{`"lazy dog" or`, "[lazi dog]"}, // lower-case "or" is an empty stop-word atom
-		{"cats AND (dogs OR bird)", "(AND [cat] (OR [dog] [bird]))"},
-		{`""`, "()"},
-		{"cat dog", "(AND [cat] [dog])"},
-		{"and", "()"},
-		{"NOT OR cat", "[cat]"},
+func atomTerms(ns []*Node) [][]string {
+	var out [][]string
+	for _, n := range ns {
+		out = append(out, n.Terms)
 	}
-	for _, c := range cases {
-		got := show(Parse(c.in))
-		want := c.want
-		if got != want {
-			t.Errorf("Parse(%q) = %s, want %s", c.in, got, want)
-		}
-	}
+	return out
 }
 
 func TestPositiveAtoms(t *testing.T) {
-	got := PositiveAtoms(Parse("cat NOT dog NOT NOT bird cat"))
-	want := [][]string{{"cat"}, {"bird"}}
-	if !reflect.DeepEqual(got, want) {
-		t.Fatalf("got %v", got)
+	a := analysis.NewAnalyzer()
+	tests := []struct {
+		in   string
+		want [][]string
+	}{
+		{"NOT cat", nil},
+		{"cat NOT dog", [][]string{{"cat"}}},
+		{"cat cat dog", [][]string{{"cat"}, {"dog"}}},
+		{"NOT (cat NOT dog)", [][]string{{"dog"}}},
+		{"NOT NOT cat", [][]string{{"cat"}}},
+		{`"big cat" big`, [][]string{{"big", "cat"}, {"big"}}},
+		{"", nil},
 	}
-	if got := PositiveAtoms(Parse("NOT cat")); len(got) != 0 {
-		t.Fatalf("got %v", got)
+	for _, tc := range tests {
+		got := atomTerms(Parse(tc.in, a).PositiveAtoms())
+		if !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("PositiveAtoms(%q) = %v, want %v", tc.in, got, tc.want)
+		}
 	}
-	if got := Atoms(Parse("NOT cat dog")); len(got) != 2 {
-		t.Fatalf("got %v", got)
-	}
-}
-
-func TestTrimSpace(t *testing.T) {
-	if got := TrimSpace("  \tab c  \n"); got != "ab c" {
-		t.Fatalf("got %q", got)
+	if n := len(Parse("cat NOT cat dog", a).Atoms()); n != 2 {
+		t.Errorf("Atoms count = %d, want 2", n)
 	}
 }

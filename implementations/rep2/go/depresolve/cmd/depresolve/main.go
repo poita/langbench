@@ -1,37 +1,41 @@
-// Command depresolve reads a package registry and a root manifest on standard
-// input and prints the resolved versions, one "name version" line per
-// package sorted by name, or the single line "unsatisfiable".
+// Command depresolve reads a package registry and a root manifest from
+// standard input and prints the resolved package versions, one
+// "name version" per line sorted by name, or "unsatisfiable".
 package main
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/example/depresolve"
+	"github.com/peteralexander/depresolve"
 )
 
 func main() {
-	os.Exit(run(os.Stdin, os.Stdout, os.Stderr))
+	if err := run(os.Stdin, os.Stdout); err != nil {
+		fmt.Fprintln(os.Stderr, "depresolve:", err)
+		os.Exit(1)
+	}
 }
 
-func run(in io.Reader, out, errOut io.Writer) int {
-	p, err := depresolve.Parse(in)
+func run(in io.Reader, w io.Writer) error {
+	reg, root, err := depresolve.Parse(in)
 	if err != nil {
-		fmt.Fprintln(errOut, "depresolve:", err)
-		return 2
+		return err
 	}
-	res, err := p.Resolve()
+	out := bufio.NewWriter(w)
+	sol, err := reg.Resolve(root)
 	switch {
 	case errors.Is(err, depresolve.ErrUnsatisfiable):
-		_, err = io.WriteString(out, "unsatisfiable\n")
-	case err == nil:
-		_, err = io.WriteString(out, res.String())
+		out.WriteString("unsatisfiable\n")
+	case err != nil:
+		return err
+	default:
+		for _, p := range sol {
+			out.WriteString(p.Name + " " + p.Version.String() + "\n")
+		}
 	}
-	if err != nil {
-		fmt.Fprintln(errOut, "depresolve:", err)
-		return 1
-	}
-	return 0
+	return out.Flush()
 }

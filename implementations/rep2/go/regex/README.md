@@ -1,36 +1,34 @@
-# regexvm
+# regex
 
-A small backtracking regular-expression engine in Go with Perl-style
-semantics (leftmost start, ordered choice, greedy quantifiers, last-iteration
-captures), a reusable library, and a batch command-line tool. Standard library
-only; no `regexp` package is used.
+A small backtracking regular-expression engine for Go, with Perl-style
+leftmost, greedy, ordered-choice semantics, plus a command-line tool that runs
+many patterns over many subjects and reports every capture group's position.
+It uses only the Go standard library and does not use `regexp`.
 
-## Supported syntax
+## Layout
 
-Literals, `.`, `^`, `$`, classes `[a-z_]` / `[^...]`, escapes `\d \w \s \D \W \S`
-and escaped punctuation, capturing groups `( )`, alternation `|`, and the greedy
-quantifiers `* + ? {n} {n,} {n,m}`. Only the first match in a subject is reported.
+| Path | Responsibility |
+| --- | --- |
+| `syntax/` | Pattern parser (recursive descent) and syntax tree; character classes become 256-bit sets |
+| `regex.go` | Public API: `Compile`, `Find`, `FindIndex`, ... and the start-position search loop |
+| `compile.go`, `prog.go` | Compiles the tree to a program; counted repetitions are expanded into copies |
+| `vm.go` | Backtracking machine with an explicit stack (no recursion, so `.*` over huge subjects is fine) and an undo trail for capture writes |
+| `analysis.go` | Per-pattern first-byte set and `^`-anchoring, used to skip impossible start positions |
+| `internal/batch/` | The stdin/stdout batch protocol |
+| `cmd/regex/` | The command-line entry point |
 
-## How it works
+## Build
 
-`parse.go` builds a syntax tree; `syntax.go` computes start-position filters
-(anchored-at-start, first-byte set); `compile.go` emits a flat program for a
-backtracking VM (`char`, `any`, `class`, `split`, `jmp`, `save`, `mark`,
-`check`, `charloop`, `match`); `matcher.go` runs it iteratively with an explicit
-choice-point stack and an undo trail for captures, so there is no recursion and
-no per-match allocation. Single-character loops (`.*`, `\w+`, `[^,]{2,5}`) use
-one choice point each.
-
-## Build and test
+Requires Go 1.27.
 
 ```
-./build.sh          # produces bin/regexvm
-go test ./...       # unit tests
+./build.sh          # builds bin/regex
+go test ./...       # runs the tests
 ```
 
-## Command line
+## Command-line use
 
-`run.sh` (or `bin/regexvm`) reads stdin and writes stdout:
+`./run.sh` (or `bin/regex`) reads from stdin and writes to stdout:
 
 ```
 N
@@ -38,23 +36,40 @@ pattern_1
 M_1
 subject_1_1
 ...
+subject_1_M1
+pattern_2
+...
 ```
 
-Lines are taken verbatim (empty, space-only and integer-looking lines are
-fine). For each subject one line is printed: `no`, or
-`match <start> <end>` followed by `|<gs>,<ge>` (or `|-` if unset) for each
-group in order.
+Lines are taken verbatim (they may be empty or have leading and trailing spaces).
+For each subject one line is printed: `no`, or `match START END` followed by
+`|S,E` for each capture group in order (`|-` if the group did not take part).
 
 ```
-$ printf '2\n(a|(b))+\n2\nba\nab\n[^a-c]\\d{2,3}x?\n1\nzz123xx\n' | ./run.sh
+$ printf '2\n(a|(b))+\n2\nba\nab\n[^a-c]\\d{2,3}x?\n2\nzz123xx\nabc9\n' | ./run.sh
 match 0 2|1,2|0,1
 match 0 2|1,2|1,2
 match 1 6
+no
 ```
 
-Exit status is 0 on success, 1 on malformed input or an invalid pattern.
+A malformed input or an invalid pattern prints a message to stderr and exits 1.
 
-## Library
+## Pattern syntax
+
+Literals; `.`; `^` and `$` (zero-width anchors); classes `[a-z_]`, `[^0-9]`;
+`\d \w \s` and their complements `\D \W \S`; `\` followed by punctuation for a
+literal; capturing groups `( )`; alternation `|`; greedy quantifiers
+`* + ? {n} {n,} {n,m}` (counts up to 1000). There are no lazy quantifiers,
+non-capturing groups, backreferences or `\b`; they are reported as errors.
+
+Matching is by bytes. Semantics are the usual backtracking ones: alternatives
+are tried left to right and the first overall success wins; an optional loop
+iteration that matches the empty string ends the loop; a group reports the last
+span it completed on the successful path. Backtracking is exponential in the
+worst case, so do not run untrusted patterns.
+
+## Library example
 
 ```go
 package main
@@ -62,33 +77,34 @@ package main
 import (
 	"fmt"
 
-	"example.com/regexvm"
+	"example.com/regex"
 )
 
 func main() {
-	re, err := regexvm.Compile(`(\w+)@(\w+)\.com`)
+	re, err := regex.Compile(`(\w+)@(\w+)\.com`)
 	if err != nil {
 		panic(err)
 	}
-
-	// Reuse one Matcher across many subjects to avoid allocation.
-	var m regexvm.Matcher
-	m.Reset(re)
-	if m.Match([]byte("mail bob@example.com now")) {
-		fmt.Println(m.Start(), m.End()) // 5 20
-		s, e, ok := m.Group(2)
-		fmt.Println(s, e, ok) // 9 16 true
+	if m := re.Find("mail bob@example.com now"); m != nil {
+		fmt.Println(m.Start, m.End)           // 5 20
+		fmt.Println(m.Groups[0], m.Groups[1]) // {5 8} {9 16}
 	}
 
-	// One-shot helper: [start end g1start g1end ...], -1 for unset groups.
-	fmt.Println(re.FindSubmatchIndex([]byte("a@b.com")))
+	// Allocation-free form: [start end g1start g1end ...], -1 for unset groups.
+	loc, ok := regex.MustCompile(`(a|(b))+`).FindIndex("ba", nil)
+	fmt.Println(loc, ok) // [0 2 1 2 0 1] true
 }
 ```
 
-A `*Regexp` is immutable and safe for concurrent use; a `*Matcher` is not.
-Invalid patterns return a `*regexvm.SyntaxError`.
+A `*Regexp` is safe for concurrent use.
 
-## Notes
+## Design notes
 
-Backtracking is exponential on pathological patterns such as `(a*)*b` against
-long non-matching input; that is inherent in the specified semantics.
+* Alternation, loops and quantifiers compile to `split`/`jmp` instructions;
+  the machine pushes a frame per `split` and resumes the latest one on failure.
+* Capture writes are recorded on a trail; backtracking undoes only the writes
+  made since the choice point, so the cost is proportional to the writes.
+* A loop body that can match empty gets a mark/check pair so an empty optional
+  iteration ends the loop, as the semantics require.
+* Search tries start offsets in order, skipping offsets whose byte cannot begin
+  a match, and tries only offset 0 when every match begins with `^`.

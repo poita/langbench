@@ -1,89 +1,85 @@
-// Package typeset is a typesetting engine for the Codexa markup language:
-// total-fit line breaking, Liang hyphenation, footnotes, floating figures,
-// a generated table of contents and running headers, producing an exact
-// integer description of every placed item.
+// Package typeset is the Codexa typesetting engine: it reads a Codexa
+// document and an optional settings file, lays the document out on numbered
+// pages (total-fit line breaking, Liang hyphenation, footnotes, floating
+// figures, a table of contents and running headers) and renders a complete
+// description of every placed item.
 //
-// The usual entry points are LoadResources (read the font and hyphenation
-// data once) and Typeset (run one document through the pipeline).
+// The two entry points are Typeset, which works on in-memory file systems,
+// and the sub-packages for callers that want to drive individual stages.
 package typeset
 
 import (
-	"fmt"
+	"errors"
+	"io/fs"
 
+	"typeset/codexa"
 	"typeset/diag"
 	"typeset/hyphen"
 	"typeset/layout"
-	"typeset/markup"
-	"typeset/metrics"
+	"typeset/metric"
 	"typeset/render"
 	"typeset/settings"
 )
 
-// Resources are the font metrics and hyphenation pattern sets, which never
-// change between documents.
-type Resources struct {
-	Faces    *metrics.Set
-	Patterns map[string]*hyphen.Set
+// Output holds the files a run produces, keyed by file name. For a valid
+// document these are "layout.txt" and "report.txt"; for an invalid one just
+// "error.txt".
+type Output struct {
+	Files map[string][]byte
+	// Err is the input error that was reported in error.txt, or nil.
+	Err *diag.Error
 }
 
-// LoadResources reads data/faces/*.cfm and data/hyphen/*.chp below dataDir.
-func LoadResources(dataDir string) (*Resources, error) {
-	faces, err := metrics.LoadDir(dataDir)
+// Typeset processes the document in input (document.cdx and, optionally,
+// settings.cfg), reading font metrics from data/faces/*.cfm and hyphenation
+// patterns from data/hyphen/*.chp of the data file system. An input error is
+// reported in the Output; the returned error is non-nil only when the data
+// files cannot be read.
+func Typeset(input, data fs.FS) (*Output, error) {
+	invalid := func(e *diag.Error) (*Output, error) {
+		return &Output{Files: map[string][]byte{"error.txt": render.ErrorFile(e)}, Err: e}, nil
+	}
+
+	docSrc, err := fs.ReadFile(input, "document.cdx")
 	if err != nil {
-		return nil, fmt.Errorf("loading faces: %w", err)
-	}
-	r := &Resources{Faces: faces, Patterns: map[string]*hyphen.Set{}}
-	for _, name := range []string{"english", "minimal"} {
-		s, err := hyphen.LoadDir(dataDir, name)
-		if err != nil {
-			return nil, fmt.Errorf("loading patterns %s: %w", name, err)
+		if errors.Is(err, fs.ErrNotExist) {
+			return invalid(&diag.Error{File: "-", Code: diag.MissingDocument})
 		}
-		r.Patterns[name] = s
+		return nil, err
 	}
-	return r, nil
-}
 
-// Input is one document to typeset. Document is document.cdx and Settings is
-// settings.cfg; the Has flags say whether each file exists (an existing but
-// empty file is valid).
-type Input struct {
-	Document    []byte
-	HasDocument bool
-	Settings    []byte
-	HasSettings bool
-}
+	set := settings.Defaults()
+	if src, err := fs.ReadFile(input, "settings.cfg"); err == nil {
+		var e *diag.Error
+		if set, e = settings.Parse(src); e != nil {
+			return invalid(e)
+		}
+	} else if !errors.Is(err, fs.ErrNotExist) {
+		return nil, err
+	}
 
-// Result is the outcome of typesetting one document: either an input error,
-// or the text of layout.txt and report.txt.
-type Result struct {
-	Err    *diag.Error
-	Layout string
-	Report string
-}
+	doc, e := codexa.Parse(docSrc)
+	if e != nil {
+		return invalid(e)
+	}
 
-// ErrorText returns the content of error.txt for a failed Result.
-func (r *Result) ErrorText() string { return r.Err.Error() + "\n" }
+	faces, err := metric.LoadSet(data, "faces")
+	if err != nil {
+		return nil, err
+	}
+	f, err := data.Open("hyphen/" + set.HyphenPatterns + ".chp")
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	pats, err := hyphen.Parse(f)
+	if err != nil {
+		return nil, err
+	}
 
-// Typeset runs the whole pipeline on one input.
-func Typeset(in Input, res *Resources) *Result {
-	if !in.HasDocument {
-		return &Result{Err: diag.New("-", 0, 0, "missing-document")}
-	}
-	var cfg *settings.Settings
-	var derr *diag.Error
-	if in.HasSettings {
-		cfg, derr = settings.Parse(in.Settings)
-	} else {
-		cfg, derr = settings.Parse(nil)
-	}
-	if derr != nil {
-		return &Result{Err: derr}
-	}
-	doc, derr := markup.Parse(in.Document)
-	if derr != nil {
-		return &Result{Err: derr}
-	}
-	laid := layout.Layout(doc, cfg, res.Faces, res.Patterns[cfg.HyphenPatterns])
-	geometry := [6]int64{cfg.PageWidth, cfg.PageHeight, cfg.BodyX(), cfg.BodyY(), cfg.BodyWidth(), cfg.BodyHeight()}
-	return &Result{Layout: render.Layout(laid, geometry), Report: render.Report(laid)}
+	res := layout.Layout(layout.Input{Doc: doc, Settings: set, Faces: faces, Patterns: pats})
+	return &Output{Files: map[string][]byte{
+		"layout.txt": render.Layout(res, set),
+		"report.txt": render.Report(res.Stats),
+	}}, nil
 }

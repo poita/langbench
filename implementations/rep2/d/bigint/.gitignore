@@ -1,6 +1,7 @@
 .dub/
-bigint-cli
+bigint
 *.o
 *.a
+*.lst
 dub.selections.json
-*-test-*
+bigint-test-*

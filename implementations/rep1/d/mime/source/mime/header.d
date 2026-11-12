@@ -1,127 +1,129 @@
-/// Header-block parsing: line splitting, unfolding, field extraction.
+/// Header block parsing: field lines, continuation lines and unfolding.
 module mime.header;
 
-import mime.ascii;
-import mime.charset;
-import mime.encodedword;
+import std.array : appender;
+import mime.charset : decodeUtf8;
+import mime.lines;
+import mime.text;
 
-/// One header field.
-struct HeaderField
+@safe:
+
+/// A header field after unfolding and UTF-8 decoding.
+struct Header
 {
-    string name; /// lower-cased name with surrounding blanks stripped
-    string rawValue; /// unfolded text after the first `:` (decoded as UTF-8)
+    string name;   /// text before the first `:`, as written
+    string raw;    /// everything after the first `:` (leading blank kept)
 
-    /// The value as shown in the dump: `collapse(rawValue)` for the
-    /// date-like fields, `decode_unstructured(rawValue)` otherwise.
-    string displayValue() const @safe pure nothrow
-    {
-        switch (name)
-        {
-        case "content-disposition", "content-id", "content-transfer-encoding",
-                "content-type", "date", "in-reply-to", "message-id",
-                "mime-version", "received", "references", "return-path":
-                return collapse(rawValue);
-        default:
-            return decodeUnstructured(rawValue);
-        }
-    }
+    /// The lower-cased name with SPACE/TAB stripped.
+    string key() const pure nothrow { return toLowerAscii(stripBlanks(name)); }
 }
 
-/// The result of splitting a message into header block and body.
-struct HeaderBlock
-{
-    HeaderField[] fields;
-    size_t bodyStart; /// offset of the first body byte
-}
-
-/// Is `line` a field line: a `:` preceded by one or more bytes in
-/// 0x21-0x39 or 0x3B-0x7E?
-private bool isFieldLine(scope const(ubyte)[] line) @safe pure nothrow @nogc
+private bool isFieldLine(const(ubyte)[] line, out size_t colon) pure nothrow @nogc
 {
     foreach (i, c; line)
     {
         if (c == ':')
+        {
+            colon = i;
             return i > 0;
+        }
         if (c < 0x21 || c > 0x7E)
             return false;
     }
     return false;
 }
 
-/// Parses the header block at the start of `data`, which must already have
-/// LF-only line endings.
-HeaderBlock parseHeaders(const(ubyte)[] data) @safe pure nothrow
+/// Parses the header block at the start of `data`.  `bodyStart` receives the
+/// offset of the first body byte: just after the blank separator line, or at
+/// the first line that is not a field line, or the end of `data`.
+Header[] parseHeaders(const(ubyte)[] data, out size_t bodyStart) pure nothrow
 {
-    HeaderBlock hb;
-    size_t pos = 0;
-    immutable n = data.length;
+    Header[] headers;
+    const(ubyte)[][] pieces;   // lines of the field being collected
+    size_t colon;
 
-    // current field under construction
-    size_t fieldStart = 0; // offset of the first line's start
-    size_t fieldLineEnd = 0; // end (exclusive, no LF) of the first line
-    ubyte[] extra; // continuation text (without terminators)
-    bool open = false;
-
-    void closeField() @safe pure nothrow
+    void flush()
     {
-        if (!open)
+        if (pieces.length == 0)
             return;
-        open = false;
-        auto first = data[fieldStart .. fieldLineEnd];
-        size_t colon = 0;
-        while (first[colon] != ':')
-            colon++;
-        string name = toLowerAscii(stripBlanks(cast(string)(() @trusted => first[0 .. colon].idup)()));
-        const(ubyte)[] valueBytes;
-        if (extra.length == 0)
-            valueBytes = first[colon + 1 .. $];
+        const(ubyte)[] whole;
+        if (pieces.length == 1)
+            whole = pieces[0];
         else
-            valueBytes = first[colon + 1 .. $] ~ extra;
-        hb.fields ~= HeaderField(name, decodeUtf8(valueBytes));
-        extra = null;
+        {
+            auto app = appender!(ubyte[])();
+            foreach (p; pieces)
+                app.put(p);
+            whole = app.data;
+        }
+        pieces.length = 0;
+        size_t c = 0;
+        while (whole[c] != ':')
+            ++c;
+        headers ~= Header(decodeUtf8(whole[0 .. c]), decodeUtf8(whole[c + 1 .. $]));
     }
 
-    while (pos < n)
+    size_t pos = 0;
+    while (pos < data.length)
     {
-        size_t e = pos;
-        while (e < n && data[e] != '\n')
-            e++;
-        auto line = data[pos .. e];
-        immutable next = e < n ? e + 1 : n;
-        if (line.length == 0)
+        const ln = nextLine(data, pos);
+        const content = data[ln.start .. ln.end];
+        if (content.length == 0)
         {
-            closeField();
-            hb.bodyStart = next;
-            return hb;
+            flush();
+            bodyStart = ln.next;
+            return headers;
         }
-        if (open && (line[0] == ' ' || line[0] == '\t'))
+        if (pieces.length != 0 && (content[0] == ' ' || content[0] == '\t'))
+            pieces ~= content;
+        else if (isFieldLine(content, colon))
         {
-            extra ~= line;
-            pos = next;
-            continue;
+            flush();
+            pieces ~= content;
         }
-        if (!isFieldLine(line))
+        else
         {
-            closeField();
-            hb.bodyStart = pos;
-            return hb;
+            flush();
+            bodyStart = ln.start;
+            return headers;
         }
-        closeField();
-        open = true;
-        fieldStart = pos;
-        fieldLineEnd = e;
-        pos = next;
+        pos = ln.next;
     }
-    closeField();
-    hb.bodyStart = n;
-    return hb;
+    flush();
+    bodyStart = data.length;
+    return headers;
 }
 
-/// The first field called `name` (already lower-case), or null.
-const(HeaderField)* findHeader(const(HeaderField)[] fields, string name) @safe pure nothrow @nogc
+/// The first header whose stripped, lower-cased name equals `key`
+/// (which must already be lower-case), or null.
+const(Header)* findHeader(const(Header)[] headers, string key) pure nothrow
 {
-    foreach (i; 0 .. fields.length)
-        if (fields[i].name == name)
-            return &fields[i];
+    foreach (i; 0 .. headers.length)
+        if (headers[i].key == key)
+            return &headers[i];
     return null;
+}
+
+pure nothrow unittest
+{
+    static const(ubyte)[] u(string s) @trusted { return cast(const(ubyte)[]) s; }
+    size_t body_;
+    auto h = parseHeaders(u("Subject: a\n b\nX:y\n\nbody"), body_);
+    assert(h.length == 2);
+    assert(h[0].name == "Subject" && h[0].raw == " a b");
+    assert(h[1].key == "x" && h[1].raw == "y");
+    assert(body_ == 19);
+    assert(findHeader(h, "x") !is null);
+    assert(findHeader(h, "nope") is null);
+
+    foreach (s; ["Subject :x\nfoo", "no colon here\nfoo", ": novalue\nfoo",
+                 "From nobody Mon Sep  1 00:00:00 2025\nfoo", " lead: x\nfoo"])
+    {
+        h = parseHeaders(u(s), body_);
+        assert(h.length == 0 && body_ == 0, s);
+    }
+    h = parseHeaders(u("A: 1\nnot a field\nbody"), body_);
+    assert(h.length == 1 && body_ == 5);
+    h = parseHeaders(u("A: 1"), body_);
+    assert(h.length == 1 && body_ == 4);
 }

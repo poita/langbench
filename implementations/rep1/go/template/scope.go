@@ -1,43 +1,65 @@
 package template
 
-// scope is a lexical scope: a small array of bindings (or, for the root
-// scope, the context dict) plus a parent pointer. Lookup walks the chain.
-type scope struct {
-	parent *scope
-	root   *Dict
-	names  []string
-	vals   []Value
+import "example.com/template/value"
+
+type binding struct {
+	name string
+	val  value.Value
 }
 
-func newScope(parent *scope) *scope { return &scope{parent: parent} }
+// Scope maps names to values and has a parent scope. Creating one is O(1);
+// a lookup walks the chain of scopes.
+type Scope struct {
+	parent  *Scope
+	entries []binding
+	index   map[string]int // built once the scope grows large
+}
 
-func (s *scope) lookup(name string) (Value, bool) {
-	for sc := s; sc != nil; sc = sc.parent {
-		if sc.root != nil {
-			if v, ok := sc.root.Get(name); ok {
-				return v, true
+const scopeIndexThreshold = 12
+
+func newScope(parent *Scope) *Scope { return &Scope{parent: parent} }
+
+// Lookup returns the value bound to name in s or the nearest ancestor.
+func (s *Scope) Lookup(name string) (value.Value, bool) {
+	for ; s != nil; s = s.parent {
+		if s.index != nil {
+			if i, ok := s.index[name]; ok {
+				return s.entries[i].val, true
 			}
 			continue
 		}
-		for i := len(sc.names) - 1; i >= 0; i-- {
-			if sc.names[i] == name {
-				if v := sc.vals[i]; v != unbound {
-					return v, true
-				}
+		for i := range s.entries {
+			if s.entries[i].name == name {
+				return s.entries[i].val, true
 			}
 		}
 	}
 	return nil, false
 }
 
-// set binds name in this scope only.
-func (s *scope) set(name string, v Value) {
-	for i := len(s.names) - 1; i >= 0; i-- {
-		if s.names[i] == name {
-			s.vals[i] = v
+// Set binds name in s itself (never in an ancestor).
+func (s *Scope) Set(name string, v value.Value) {
+	if s.index != nil {
+		if i, ok := s.index[name]; ok {
+			s.entries[i].val = v
 			return
 		}
+	} else {
+		for i := range s.entries {
+			if s.entries[i].name == name {
+				s.entries[i].val = v
+				return
+			}
+		}
 	}
-	s.names = append(s.names, name)
-	s.vals = append(s.vals, v)
+	s.entries = append(s.entries, binding{name, v})
+	switch {
+	case s.index != nil:
+		s.index[name] = len(s.entries) - 1
+	case len(s.entries) > scopeIndexThreshold:
+		s.index = make(map[string]int, len(s.entries)*2)
+		for i, e := range s.entries {
+			s.index[e.name] = i
+		}
+	}
 }

@@ -1,0 +1,956 @@
+.[] | select(.active and .age > 40) | {id, name, city: .address.city}
+[
+  {
+    "id": 0,
+    "name": "ivy_0",
+    "age": 25,
+    "active": true,
+    "dept": "hr",
+    "score": 60,
+    "balance": 3366.22,
+    "tags": [
+      "green"
+    ],
+    "address": {
+      "city": "Quito",
+      "zip": "27519",
+      "geo": [
+        -66,
+        69
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 1,
+    "name": "wes_1",
+    "age": 46,
+    "active": true,
+    "dept": "ops",
+    "score": 75,
+    "balance": 4905.94,
+    "tags": [],
+    "address": {
+      "city": "Oslo",
+      "zip": "41606",
+      "geo": [
+        -83,
+        -169
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 2,
+    "name": "ann_2",
+    "age": 51,
+    "active": true,
+    "dept": "hr",
+    "score": 63,
+    "balance": 2848.57,
+    "tags": [
+      "gold",
+      "beta",
+      "vip"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "45311",
+      "geo": [
+        -31,
+        166
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 3,
+    "name": "ned_3",
+    "age": 71,
+    "active": false,
+    "dept": null,
+    "score": 12,
+    "balance": 924.68,
+    "tags": [],
+    "address": {
+      "city": "Cairo",
+      "zip": "15845",
+      "geo": [
+        -5,
+        76
+      ]
+    },
+    "manager": {
+      "id": 3,
+      "level": 5
+    }
+  },
+  {
+    "id": 4,
+    "name": "日向_4",
+    "age": 78,
+    "active": true,
+    "dept": "legal",
+    "score": 4,
+    "balance": 2467.77,
+    "tags": [
+      "new",
+      "x"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "97482",
+      "geo": [
+        13,
+        32
+      ]
+    },
+    "manager": {
+      "id": 2,
+      "level": 5
+    }
+  },
+  {
+    "id": 5,
+    "name": "vic_5",
+    "age": 50,
+    "active": true,
+    "dept": "ops",
+    "score": 66,
+    "balance": 4353.76,
+    "tags": [
+      "green",
+      "x"
+    ],
+    "address": {
+      "city": "Quito",
+      "zip": "48565",
+      "geo": [
+        35,
+        -165
+      ]
+    },
+    "manager": {
+      "id": 2,
+      "level": 5
+    }
+  },
+  {
+    "id": 6,
+    "name": "quin_6",
+    "age": 32,
+    "active": false,
+    "dept": "ops",
+    "score": 69,
+    "balance": 4773.9,
+    "tags": [
+      "blue"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "53012",
+      "geo": [
+        41,
+        -4
+      ]
+    },
+    "manager": {
+      "id": 4,
+      "level": 3
+    }
+  },
+  {
+    "id": 7,
+    "name": "quin_7",
+    "age": 69,
+    "active": true,
+    "dept": "legal",
+    "score": 26,
+    "balance": 2183.94,
+    "tags": [
+      "red",
+      "beta",
+      "x",
+      "vip"
+    ],
+    "address": {
+      "city": "Paris",
+      "zip": "63058",
+      "geo": [
+        3,
+        111
+      ]
+    },
+    "manager": {
+      "id": 6,
+      "level": 4
+    }
+  },
+  {
+    "id": 8,
+    "name": "rae_8",
+    "age": 52,
+    "active": false,
+    "dept": "legal",
+    "score": 42,
+    "balance": 2352,
+    "tags": [],
+    "address": {
+      "city": "Paris",
+      "zip": "30094",
+      "geo": [
+        72,
+        -90
+      ]
+    },
+    "manager": {
+      "id": 2,
+      "level": 1
+    }
+  },
+  {
+    "id": 9,
+    "name": "cy_9",
+    "age": 73,
+    "active": true,
+    "dept": "eng",
+    "score": 96,
+    "balance": 3911.45,
+    "tags": [
+      "red",
+      "green"
+    ],
+    "address": {
+      "city": "Cairo",
+      "zip": "32710",
+      "geo": [
+        -22,
+        -124
+      ]
+    },
+    "manager": {
+      "id": 2,
+      "level": 3
+    }
+  },
+  {
+    "id": 10,
+    "name": "vic_10",
+    "age": 35,
+    "active": false,
+    "dept": "sales",
+    "score": 58,
+    "balance": 3633.78,
+    "tags": [
+      "y",
+      "blue"
+    ],
+    "address": {
+      "city": "Perth",
+      "zip": "65076",
+      "geo": [
+        31,
+        -122
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 11,
+    "name": "di_11",
+    "age": 34,
+    "active": false,
+    "dept": "legal",
+    "score": 26,
+    "balance": 3125.34,
+    "tags": [
+      "new"
+    ],
+    "address": {
+      "city": "Quito",
+      "zip": "02728",
+      "geo": [
+        -33,
+        -171
+      ]
+    },
+    "manager": {
+      "id": 0,
+      "level": 2
+    }
+  },
+  {
+    "id": 12,
+    "name": "zed_12",
+    "age": 62,
+    "active": true,
+    "score": 67,
+    "balance": 3350.04,
+    "tags": [
+      "y",
+      "gold",
+      "vip"
+    ],
+    "address": {
+      "city": "Paris",
+      "zip": "51760",
+      "geo": [
+        82,
+        114
+      ]
+    },
+    "manager": {
+      "id": 10,
+      "level": 4
+    }
+  },
+  {
+    "id": 13,
+    "name": "jo_13",
+    "age": 22,
+    "active": false,
+    "dept": "sales",
+    "score": 38,
+    "balance": 3849.87,
+    "tags": [
+      "red"
+    ],
+    "address": {
+      "city": "Tokyo",
+      "zip": "54548",
+      "geo": [
+        54,
+        -51
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 14,
+    "name": "tom_14",
+    "age": 50,
+    "active": true,
+    "dept": "ops",
+    "score": 44,
+    "balance": 469.17,
+    "tags": [
+      "gold",
+      "x",
+      "green",
+      "vip"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "75154",
+      "geo": [
+        82,
+        41
+      ]
+    },
+    "manager": {
+      "id": 7,
+      "level": 1
+    }
+  },
+  {
+    "id": 15,
+    "name": "日向_15",
+    "age": 43,
+    "active": false,
+    "dept": "eng",
+    "score": 20,
+    "balance": 1003.04,
+    "tags": [
+      "x",
+      "red",
+      "blue",
+      "new"
+    ],
+    "address": {
+      "city": "Perth",
+      "zip": "73838",
+      "geo": [
+        -56,
+        -7
+      ]
+    },
+    "manager": {
+      "id": 8,
+      "level": 1
+    }
+  },
+  {
+    "id": 16,
+    "name": "yan_16",
+    "age": 52,
+    "active": true,
+    "dept": null,
+    "score": 5,
+    "balance": 393.96,
+    "tags": [
+      "y",
+      "x"
+    ],
+    "address": {
+      "city": "Tokyo",
+      "zip": "22242",
+      "geo": [
+        -48,
+        95
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 17,
+    "name": "kim_17",
+    "age": 25,
+    "active": true,
+    "dept": "legal",
+    "score": 99,
+    "balance": 4953.31,
+    "tags": [
+      "vip",
+      "y"
+    ],
+    "address": {
+      "city": "Rome",
+      "zip": "17740",
+      "geo": [
+        58,
+        102
+      ]
+    },
+    "manager": {
+      "id": 10,
+      "level": 1
+    }
+  },
+  {
+    "id": 18,
+    "name": "kim_18",
+    "age": 25,
+    "active": false,
+    "dept": "hr",
+    "score": 9,
+    "balance": 2942.53,
+    "tags": [
+      "blue"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "74182",
+      "geo": [
+        -70,
+        -44
+      ]
+    },
+    "manager": {
+      "id": 9,
+      "level": 5
+    }
+  },
+  {
+    "id": 19,
+    "name": "émile_19",
+    "age": 36,
+    "active": true,
+    "dept": null,
+    "score": 1,
+    "balance": 430.68,
+    "tags": [
+      "green",
+      "red"
+    ],
+    "address": {
+      "city": "Quito",
+      "zip": "15086",
+      "geo": [
+        -80,
+        -84
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 20,
+    "name": "oz_20",
+    "age": 28,
+    "active": false,
+    "dept": "ops",
+    "score": 95,
+    "balance": 4380.33,
+    "tags": [],
+    "address": {
+      "city": "Oslo",
+      "zip": "57029",
+      "geo": [
+        6,
+        97
+      ]
+    },
+    "manager": {
+      "id": 9,
+      "level": 5
+    }
+  },
+  {
+    "id": 21,
+    "name": "gus_21",
+    "age": 59,
+    "active": true,
+    "score": 1,
+    "balance": 4075.41,
+    "tags": [],
+    "address": {
+      "city": "Cairo",
+      "zip": "95221",
+      "geo": [
+        62,
+        -17
+      ]
+    },
+    "manager": {
+      "id": 10,
+      "level": 4
+    }
+  },
+  {
+    "id": 22,
+    "name": "zed_22",
+    "age": 57,
+    "active": false,
+    "dept": "legal",
+    "score": 88,
+    "balance": 2408.49,
+    "tags": [
+      "x",
+      "green",
+      "blue",
+      "y"
+    ],
+    "address": {
+      "city": "Perth",
+      "zip": "33958",
+      "geo": [
+        -44,
+        97
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 23,
+    "name": "cy_23",
+    "age": 59,
+    "active": true,
+    "dept": "sales",
+    "score": 29,
+    "balance": 1997.23,
+    "tags": [
+      "green",
+      "x"
+    ],
+    "address": {
+      "city": "Cairo",
+      "zip": "05380",
+      "geo": [
+        -7,
+        -85
+      ]
+    },
+    "manager": {
+      "id": 18,
+      "level": 3
+    }
+  },
+  {
+    "id": 24,
+    "name": "zed_24",
+    "age": 33,
+    "active": true,
+    "dept": "sales",
+    "score": 70,
+    "balance": 4498.49,
+    "tags": [
+      "green",
+      "gold",
+      "y",
+      "red"
+    ],
+    "address": {
+      "city": "Oslo",
+      "zip": "95573",
+      "geo": [
+        -71,
+        -169
+      ]
+    },
+    "manager": {
+      "id": 9,
+      "level": 3
+    }
+  },
+  {
+    "id": 25,
+    "name": "quin_25",
+    "age": 67,
+    "active": false,
+    "dept": "eng",
+    "score": 65,
+    "balance": 4926.68,
+    "tags": [
+      "green"
+    ],
+    "address": {
+      "city": "Tokyo",
+      "zip": "23536",
+      "geo": [
+        -52,
+        -108
+      ]
+    },
+    "manager": {
+      "id": 10,
+      "level": 3
+    }
+  },
+  {
+    "id": 26,
+    "name": "rae_26",
+    "age": 76,
+    "active": false,
+    "dept": "sales",
+    "score": 79,
+    "balance": 4164.52,
+    "tags": [
+      "new",
+      "blue",
+      "green",
+      "beta"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "23351",
+      "geo": [
+        -14,
+        41
+      ]
+    },
+    "manager": {
+      "id": 1,
+      "level": 2
+    }
+  },
+  {
+    "id": 27,
+    "name": "oz_27",
+    "age": 72,
+    "active": true,
+    "dept": "eng",
+    "score": 50,
+    "balance": 4334.57,
+    "tags": [
+      "beta",
+      "new",
+      "x"
+    ],
+    "address": {
+      "city": "Perth",
+      "zip": "22481",
+      "geo": [
+        -24,
+        68
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 28,
+    "name": "sal_28",
+    "age": 26,
+    "active": true,
+    "score": 33,
+    "balance": 4296,
+    "tags": [
+      "red",
+      "y",
+      "vip",
+      "blue"
+    ],
+    "address": {
+      "city": "Cairo",
+      "zip": "52140",
+      "geo": [
+        54,
+        25
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 29,
+    "name": "kim_29",
+    "age": 50,
+    "active": false,
+    "dept": "hr",
+    "score": 87,
+    "balance": 3300.78,
+    "tags": [
+      "y"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "31244",
+      "geo": [
+        -10,
+        73
+      ]
+    },
+    "manager": {
+      "id": 7,
+      "level": 4
+    }
+  },
+  {
+    "id": 30,
+    "name": "Ólafur_30",
+    "age": 22,
+    "active": false,
+    "dept": null,
+    "score": 47,
+    "balance": 786.07,
+    "tags": [
+      "gold",
+      "red"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "40868",
+      "geo": [
+        -14,
+        174
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 31,
+    "name": "quin_31",
+    "age": 54,
+    "active": true,
+    "dept": "ops",
+    "score": 32,
+    "balance": 2187.41,
+    "tags": [
+      "green",
+      "y",
+      "new"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "74647",
+      "geo": [
+        -77,
+        73
+      ]
+    },
+    "manager": {
+      "id": 22,
+      "level": 4
+    }
+  },
+  {
+    "id": 32,
+    "name": "quin_32",
+    "age": 80,
+    "active": true,
+    "dept": "sales",
+    "score": 80,
+    "balance": 479.77,
+    "tags": [],
+    "address": {
+      "city": "Cairo",
+      "zip": "96587",
+      "geo": [
+        -69,
+        -109
+      ]
+    },
+    "manager": {
+      "id": 5,
+      "level": 4
+    }
+  },
+  {
+    "id": 33,
+    "name": "Ólafur_33",
+    "age": 38,
+    "active": true,
+    "dept": "legal",
+    "score": 62,
+    "balance": 4980.14,
+    "tags": [
+      "beta",
+      "y",
+      "green"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "15622",
+      "geo": [
+        20,
+        127
+      ]
+    },
+    "manager": {
+      "id": 7,
+      "level": 3
+    }
+  },
+  {
+    "id": 34,
+    "name": "sal_34",
+    "age": 19,
+    "active": true,
+    "dept": "legal",
+    "score": 31,
+    "balance": 4329.54,
+    "tags": [
+      "red",
+      "gold",
+      "new",
+      "x"
+    ],
+    "address": {
+      "city": "Cairo",
+      "zip": "27080",
+      "geo": [
+        -46,
+        -35
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 35,
+    "name": "rae_35",
+    "age": 40,
+    "active": true,
+    "dept": "eng",
+    "score": 98,
+    "balance": 1045.47,
+    "tags": [
+      "x",
+      "blue"
+    ],
+    "address": {
+      "city": "Quito",
+      "zip": "26846",
+      "geo": [
+        -18,
+        -125
+      ]
+    },
+    "manager": {
+      "id": 1,
+      "level": 1
+    },
+    "notes": "line1\nline2\t\"quoted\" \\ end"
+  },
+  {
+    "id": 36,
+    "name": "quin_36",
+    "age": 41,
+    "active": true,
+    "dept": "sales",
+    "score": 55,
+    "balance": 2587.33,
+    "tags": [
+      "blue",
+      "green"
+    ],
+    "address": {
+      "city": "Perth",
+      "zip": "99432",
+      "geo": [
+        45,
+        -15
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 37,
+    "name": "kim_37",
+    "age": 68,
+    "active": false,
+    "dept": "legal",
+    "score": 63,
+    "balance": 542.94,
+    "tags": [
+      "y",
+      "beta"
+    ],
+    "address": {
+      "city": "Quito",
+      "zip": "50120",
+      "geo": [
+        -38,
+        105
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 38,
+    "name": "ned_38",
+    "age": 77,
+    "active": false,
+    "dept": "sales",
+    "score": 89,
+    "balance": 842.92,
+    "tags": [
+      "gold",
+      "x",
+      "new",
+      "beta"
+    ],
+    "address": {
+      "city": "Rome",
+      "zip": "81269",
+      "geo": [
+        81,
+        91
+      ]
+    },
+    "manager": null
+  },
+  {
+    "id": 39,
+    "name": "sal_39",
+    "age": 80,
+    "active": false,
+    "dept": null,
+    "score": 8,
+    "balance": 2533.17,
+    "tags": [
+      "beta",
+      "y",
+      "blue",
+      "new"
+    ],
+    "address": {
+      "city": "Lima",
+      "zip": "83932",
+      "geo": [
+        76,
+        -32
+      ]
+    },
+    "manager": {
+      "id": 26,
+      "level": 2
+    }
+  }
+]

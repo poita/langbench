@@ -1,0 +1,19 @@
+[package]
+name = "webhooks"
+version = "0.1.0"
+edition = "2021"
+description = "Standard Webhooks signing and verification with from-scratch SHA-256, HMAC and Base64, plus a deterministic delivery simulator"
+license = "MIT"
+readme = "README.md"
+keywords = ["webhooks", "hmac", "sha256", "base64", "standard-webhooks"]
+categories = ["cryptography", "command-line-utilities"]
+
+[lib]
+name = "webhooks"
+path = "src/lib.rs"
+
+[[bin]]
+name = "webhooks"
+path = "src/main.rs"
+
+[dependencies]

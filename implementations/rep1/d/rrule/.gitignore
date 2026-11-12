@@ -1,6 +1,6 @@
 .dub/
-bin/
-*.o
+rrule
+rrule.o
 *.a
+*-test-*
 dub.selections.json
-rrule-test-*

@@ -1,6 +1,5 @@
 #!/bin/sh
-# Build the scheme CLI into bin/scheme. Works from any current directory.
+# Build the scheme interpreter into bin/scheme.
 set -e
-dir=$(cd "$(dirname "$0")" && pwd)
-cd "$dir"
+cd "$(dirname "$0")"
 go build -o bin/scheme ./cmd/scheme

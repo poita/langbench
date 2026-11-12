@@ -1,0 +1,103 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 51 51
+5 EMBER B 50 50
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #11 DSK-027
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DISCARD B #36 CIN-001
+14 DISCARD B #37 CIN-001
+15 SPENT #11 DSK-027
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 50 cap 51 vault 10 hand 4 ash 1 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 1 ash 2 rift 0
+hand A 1 #12 DSK-027
+hand A 2 #13 NEU-006
+hand A 3 #14 NEU-006
+hand A 4 #15 TID-026
+hand B 1 #38 CIN-001
+ash A 1 #11 DSK-027
+ash B 1 #36 CIN-001
+ash B 2 #37 CIN-001
+STATE END
+16 PLAY A ~2 #12 DSK-027
+17 PAY A ember 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 DISCARD B #38 CIN-001
+22 SPENT #12 DSK-027
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 49 cap 51 vault 10 hand 3 ash 2 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 3 rift 0
+hand A 1 #13 NEU-006
+hand A 2 #14 NEU-006
+hand A 3 #15 TID-026
+ash A 1 #11 DSK-027
+ash A 2 #12 DSK-027
+ash B 1 #36 CIN-001
+ash B 2 #37 CIN-001
+ash B 3 #38 CIN-001
+STATE END
+23 PLAY A ~3 #13 NEU-006
+24 PAY A ember 1
+25 PASS A
+26 PASS B
+27 RESOLVE ~3
+28 DISCARD A #14 NEU-006
+29 DRAW A #1 CIN-002
+30 DRAW A #2 CIN-002
+31 SPENT #13 NEU-006
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 48 cap 51 vault 8 hand 3 ash 4 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 3 rift 0
+hand A 1 #15 TID-026
+hand A 2 #1 CIN-002
+hand A 3 #2 CIN-002
+ash A 1 #11 DSK-027
+ash A 2 #12 DSK-027
+ash A 3 #14 NEU-006
+ash A 4 #13 NEU-006
+ash B 1 #36 CIN-001
+ash B 2 #37 CIN-001
+ash B 3 #38 CIN-001
+STATE END
+32 PLAY A ~4 #15 TID-026
+33 PAY A ember 5
+34 PASS A
+35 PASS B
+36 RESOLVE ~4
+37 ARRIVE #15 TID-026
+38 TRIGGER A ~5 #15 1
+39 PASS A
+40 PASS B
+41 RESOLVE ~5
+42 DRAW A #3 CIN-002
+43 DRAW A #4 CIN-002
+44 DISCARD A #1 CIN-002
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 40 ember 43 cap 51 vault 6 hand 3 ash 5 rift 0
+player B spire 40 ember 50 cap 50 vault 20 hand 0 ash 3 rift 0
+hand A 1 #2 CIN-002
+hand A 2 #3 CIN-002
+hand A 3 #4 CIN-002
+field A #15 TID-026 3/4 w0 c0 ready settling kw -
+ash A 1 #11 DSK-027
+ash A 2 #12 DSK-027
+ash A 3 #14 NEU-006
+ash A 4 #13 NEU-006
+ash A 5 #1 CIN-002
+ash B 1 #36 CIN-001
+ash B 2 #37 CIN-001
+ash B 3 #38 CIN-001
+STATE END
+45 RESULT pending none

@@ -1,0 +1,14 @@
+{
+  "items": [
+    1,
+    2,
+    3
+  ],
+  "base": 10
+}
+--
+=== main
+{% set total = 0 %}{% set label = "sum" %}{% for i in items %}{% set total = total + i %}{{ label }}[{{ loop.index }}]={{ total }} {% endfor %}after={{ total }}
+{% set x = 1 %}{{ x }}{% set x = x + 1 %}{{ x }}{% set x = x * base %}{{ x }} {% if x > 10 %}{% set y = "big" %}{% else %}{% set y = "small" %}{% endif %}{{ y }}
+{% for i in items %}{% set sq = i * i %}{{ sq }}{% endfor %} {{ sq is defined }} {{ i is defined }} {{ loop is defined }}
+{% set l = [base, base * 2, "s"] %}{{ l }} {{ l|length }} {% set n = none %}{{ n }} {% set b = base > 5 %}{{ b }}

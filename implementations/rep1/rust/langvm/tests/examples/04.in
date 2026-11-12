@@ -1,0 +1,38 @@
+@module main
+enum Shape {
+    Circle(Int),
+    Rect(Int, Int),
+    Group([Shape]),
+    Empty,
+}
+
+fn area(s: Shape) -> Int {
+    match s {
+        Circle(r) when r <= 0 -> 0,
+        Circle(r) -> 3 * r * r,
+        Rect(w, h) -> w * h,
+        Group([]) -> 0,
+        Group([only]) -> area(only),
+        Group([first, ..rest]) -> area(first) + area(Group(rest)),
+        Empty -> 0,
+    }
+}
+
+fn describe(s: Shape) -> Str {
+    match s {
+        Rect(w, h) when w == h -> "square",
+        Rect(_, _) -> "rect",
+        Circle(_) -> "circle",
+        Group([Circle(_), ..]) -> "group starting with a circle",
+        Group(_) -> "group",
+        Empty -> "nothing",
+    }
+}
+
+fn main() {
+    let shapes = [Circle(2), Circle(-1), Rect(3, 4), Rect(5, 5), Empty,
+                  Group([Circle(1), Rect(2, 2)])];
+    for s in shapes {
+        print(fmt("{} {}", [padRight(describe(s), 29, '.'), showInt(area(s))]));
+    }
+}

@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the sat solver: DIMACS CNF on stdin, result on stdout.
-exec "$(dirname "$0")/sat" "$@"
+# Run the solver: DIMACS CNF on stdin, answer on stdout.
+exec "$(dirname "$0")/bin/sat" "$@"

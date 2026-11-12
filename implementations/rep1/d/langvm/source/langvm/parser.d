@@ -1,1281 +1,1180 @@
-/// Recursive-descent parser producing the AST of a module.
+/// The recursive-descent parser (SPEC.md section 4).
 module langvm.parser;
 
 import langvm.ast;
 import langvm.diag;
 import langvm.lexer;
-import langvm.model;
 
-/// Parses the token array of one module.
-struct Parser
+/// Parse the tokens of one module into its items. Throws `parse` errors.
+Item[] parseModule(Token[] toks)
 {
-    private Token[] toks;
-    private size_t p;
+    auto p = Parser(toks);
+    Item[] items;
+    while (p.k != T.eof)
+        items ~= p.parseItem();
+    return items;
+}
 
-    /// Parses a whole module body.
-    /// Throws: [CompileError] (`parse`).
-    static ModuleAst parseModule(string name, Token[] tokens)
+private struct Parser
+{
+    Token[] toks;
+    size_t p;
+    /// Number of `TypeArgs` lists currently open (for the `>>` token).
+    int typeArgDepth;
+    /// A `>>` closed two lists; the second `>` is still owed to the outer one.
+    bool pendingGt;
+
+    this(Token[] toks)
     {
-        Parser ps;
-        ps.toks = tokens;
-        auto m = new ModuleAst;
-        m.name = name;
-        while (ps.kind != Tk.eof)
-            m.items ~= ps.parseItem();
-        return m;
+        this.toks = toks;
     }
 
-    /// Parses a function signature `name<T: B>(a: A, ...) -> R` (no body); used for built-ins.
-    static FnItem parseSignature(Token[] tokens)
-    {
-        Parser ps;
-        ps.toks = tokens;
-        auto f = new FnItem;
-        f.pos = ps.cur.pos;
-        f.namePos = ps.cur.pos;
-        f.name = ps.expectIdent();
-        if (ps.kind == Tk.lt)
-            f.gen = ps.parseGenerics(true);
-        ps.expect(Tk.lParen);
-        if (ps.kind != Tk.rParen)
-            f.params = ps.parseParams();
-        ps.expect(Tk.rParen);
-        if (ps.accept(Tk.arrow))
-            f.ret = ps.parseType();
-        ps.expect(Tk.eof);
-        return f;
-    }
+    // ------------------------------------------------------------ helpers
 
-    // ------------------------------------------------------------ token helpers
-
-    private ref Token cur()
+    ref const(Token) cur() const
     {
         return toks[p];
     }
 
-    private Tk kind()
+    T k() const
     {
         return toks[p].kind;
     }
 
-    private Tk kindAt(size_t off)
+    T kAt(size_t n) const
     {
-        size_t q = p + off;
-        return q < toks.length ? toks[q].kind : Tk.eof;
+        return p + n < toks.length ? toks[p + n].kind : T.eof;
     }
 
-    private noreturn err()
+    Pos pos() const
     {
-        fail("parse", toks[p].pos);
+        return toks[p].pos;
     }
 
-    private Token advance()
+    Token take()
     {
         auto t = toks[p];
-        if (p + 1 < toks.length)
+        if (t.kind != T.eof)
             p++;
         return t;
     }
 
-    private bool accept(Tk k)
+    bool accept(T kind)
     {
-        if (kind == k)
+        if (k == kind)
         {
-            advance();
+            take();
             return true;
         }
         return false;
     }
 
-    private Token expect(Tk k)
+    Token expect(T kind)
     {
-        if (kind != k)
-            err();
-        return advance();
+        if (k != kind)
+            throw parseError();
+        return take();
     }
 
-    private string expectIdent()
+    CompileError parseError() const
     {
-        if (kind != Tk.ident)
-            err();
-        return advance().text;
+        return err(Kind.parse, pos);
     }
 
     // ------------------------------------------------------------ items
 
-    private Item parseItem()
+    Item parseItem()
     {
         bool pub = false;
-        Pos startPos = cur.pos;
-        if (kind == Tk.kwPub)
+        if (k == T.kwPub)
         {
+            take();
             pub = true;
-            advance();
-            if (kind != Tk.kwFn && kind != Tk.kwStruct && kind != Tk.kwEnum && kind != Tk.kwTrait)
-                err();
+            if (k != T.kwFn && k != T.kwStruct && k != T.kwEnum && k != T.kwTrait)
+                throw parseError();
         }
-        Item it;
-        switch (kind)
+        switch (k)
         {
-        case Tk.kwUse:
-            it = parseUse();
-            break;
-        case Tk.kwFn:
-            it = parseFn();
-            break;
-        case Tk.kwStruct:
-            it = parseStruct();
-            break;
-        case Tk.kwEnum:
-            it = parseEnum();
-            break;
-        case Tk.kwTrait:
-            it = parseTrait();
-            break;
-        case Tk.kwImpl:
-            it = parseImpl();
-            break;
+        case T.kwUse:
+            return parseUse();
+        case T.kwFn:
+            return parseFn(pub, false, false);
+        case T.kwStruct:
+            return parseStruct(pub);
+        case T.kwEnum:
+            return parseEnum(pub);
+        case T.kwTrait:
+            return parseTrait(pub);
+        case T.kwImpl:
+            return parseImpl();
         default:
-            err();
+            throw parseError();
         }
-        it.pub = pub;
-        return it;
     }
 
-    private UseItem parseUse()
+    UseItem parseUse()
     {
-        auto u = new UseItem;
-        u.pos = advance().pos;
-        u.modPos = cur.pos;
-        u.mod = expectIdent();
-        if (accept(Tk.kwAs))
+        auto u = new UseItem(take().pos);
+        auto m = expect(T.ident);
+        u.mod = m.id;
+        u.modPos = m.pos;
+        u.alias_ = m.id;
+        u.aliasPos = m.pos;
+        if (accept(T.kwAs))
         {
-            u.hasAlias = true;
-            u.aliasPos = cur.pos;
-            u.alias_ = expectIdent();
+            auto a = expect(T.ident);
+            u.alias_ = a.id;
+            u.aliasPos = a.pos;
         }
-        expect(Tk.semi);
+        expect(T.semi);
         return u;
     }
 
-    private GenParamAst[] parseGenerics(bool allowBounds)
+    GenParam[] parseGenerics(bool allowBounds)
     {
-        GenParamAst[] r;
-        expect(Tk.lt);
+        GenParam[] r;
+        if (k != T.lt)
+            return r;
+        take();
         while (true)
         {
-            auto g = new GenParamAst;
-            g.pos = cur.pos;
-            g.name = expectIdent();
-            if (kind == Tk.colon)
+            auto id = expect(T.ident);
+            GenParam g;
+            g.name = id.id;
+            g.pos = id.pos;
+            if (k == T.colon)
             {
                 if (!allowBounds)
-                    err();
-                advance();
+                    throw parseError();
+                take();
                 g.bounds ~= parseTraitRef();
-                while (accept(Tk.plus))
+                while (accept(T.plus))
                     g.bounds ~= parseTraitRef();
             }
             r ~= g;
-            if (accept(Tk.comma))
+            if (accept(T.comma))
             {
-                if (kind == Tk.gt)
+                if (k == T.gt)
                     break;
                 continue;
             }
             break;
         }
-        expect(Tk.gt);
+        expect(T.gt);
         return r;
     }
 
-    private TraitRefAst parseTraitRef()
+    TraitRef parseTraitRef()
     {
-        auto t = new TraitRefAst;
-        t.pos = cur.pos;
-        t.namePos = cur.pos;
-        t.name = expectIdent();
-        if (accept(Tk.colonColon))
+        TraitRef t;
+        auto id = expect(T.ident);
+        t.pos = id.pos;
+        if (k == T.colonColon)
         {
-            t.qual = t.name;
-            t.qualPos = t.namePos;
-            t.namePos = cur.pos;
-            t.name = expectIdent();
+            take();
+            auto n = expect(T.ident);
+            t.qual = id.id;
+            t.qualPos = id.pos;
+            t.name = n.id;
+            t.namePos = n.pos;
+        }
+        else
+        {
+            t.name = id.id;
+            t.namePos = id.pos;
         }
         return t;
     }
 
-    private ParamAst[] parseParams()
+    Param parseParam()
     {
-        ParamAst[] r;
+        auto id = expect(T.ident);
+        expect(T.colon);
+        return Param(id.id, id.pos, parseType());
+    }
+
+    /// A function (`isMethod == false`), a trait method or an impl method.
+    FnDecl parseFn(bool pub, bool isMethod, bool inTrait)
+    {
+        auto f = new FnDecl(expect(T.kwFn).pos);
+        f.pub = pub;
+        auto name = expect(T.ident);
+        f.name = name.id;
+        f.namePos = name.pos;
+        if (!isMethod)
+            f.gparams = parseGenerics(true);
+        expect(T.lparen);
+        if (isMethod)
+        {
+            expect(T.kwSelf);
+            f.hasSelf = true;
+            if (accept(T.comma))
+                parseParamList(f);
+        }
+        else if (k != T.rparen)
+            parseParamList(f);
+        expect(T.rparen);
+        if (accept(T.arrow))
+            f.ret = parseType();
+        if (inTrait && k == T.semi)
+            take();
+        else
+            f.body = parseBlock();
+        return f;
+    }
+
+    void parseParamList(FnDecl f)
+    {
         while (true)
         {
-            ParamAst a;
-            a.pos = cur.pos;
-            a.name = expectIdent();
-            expect(Tk.colon);
-            a.te = parseType();
-            r ~= a;
-            if (accept(Tk.comma))
+            f.params ~= parseParam();
+            if (accept(T.comma))
             {
-                if (kind == Tk.rParen)
+                if (k == T.rparen)
                     break;
                 continue;
             }
             break;
         }
-        return r;
     }
 
-    private FnItem parseFn()
+    StructDecl parseStruct(bool pub)
     {
-        auto f = new FnItem;
-        f.pos = advance().pos;
-        f.namePos = cur.pos;
-        f.name = expectIdent();
-        if (kind == Tk.lt)
-            f.gen = parseGenerics(true);
-        expect(Tk.lParen);
-        if (kind != Tk.rParen)
-            f.params = parseParams();
-        expect(Tk.rParen);
-        if (accept(Tk.arrow))
-            f.ret = parseType();
-        f.body = parseBlock();
-        return f;
-    }
-
-    private StructItem parseStruct()
-    {
-        auto s = new StructItem;
-        s.pos = advance().pos;
-        s.namePos = cur.pos;
-        s.name = expectIdent();
-        if (kind == Tk.lt)
-            s.gen = parseGenerics(false);
-        expect(Tk.lBrace);
-        while (kind != Tk.rBrace)
+        auto s = new StructDecl(take().pos);
+        s.pub = pub;
+        auto name = expect(T.ident);
+        s.name = name.id;
+        s.namePos = name.pos;
+        s.gparams = parseGenerics(false);
+        expect(T.lbrace);
+        while (k != T.rbrace)
         {
-            ParamAst a;
-            a.pos = cur.pos;
-            a.name = expectIdent();
-            expect(Tk.colon);
-            a.te = parseType();
-            s.fields ~= a;
-            if (!accept(Tk.comma))
+            auto id = expect(T.ident);
+            expect(T.colon);
+            s.fields ~= FieldDecl(id.id, id.pos, parseType());
+            if (!accept(T.comma))
                 break;
         }
-        expect(Tk.rBrace);
+        expect(T.rbrace);
         return s;
     }
 
-    private EnumItem parseEnum()
+    EnumDecl parseEnum(bool pub)
     {
-        auto e = new EnumItem;
-        e.pos = advance().pos;
-        e.namePos = cur.pos;
-        e.name = expectIdent();
-        if (kind == Tk.lt)
-            e.gen = parseGenerics(false);
-        expect(Tk.lBrace);
-        while (kind != Tk.rBrace)
+        auto e = new EnumDecl(take().pos);
+        e.pub = pub;
+        auto name = expect(T.ident);
+        e.name = name.id;
+        e.namePos = name.pos;
+        e.gparams = parseGenerics(false);
+        expect(T.lbrace);
+        while (k != T.rbrace)
         {
-            auto v = new VariantAst;
-            v.pos = cur.pos;
-            v.name = expectIdent();
-            if (accept(Tk.lParen))
+            auto id = expect(T.ident);
+            VariantDecl v;
+            v.name = id.id;
+            v.pos = id.pos;
+            if (accept(T.lparen))
             {
                 while (true)
                 {
                     v.payload ~= parseType();
-                    if (accept(Tk.comma))
+                    if (accept(T.comma))
                     {
-                        if (kind == Tk.rParen)
+                        if (k == T.rparen)
                             break;
                         continue;
                     }
                     break;
                 }
-                expect(Tk.rParen);
+                expect(T.rparen);
             }
             e.variants ~= v;
-            if (!accept(Tk.comma))
+            if (!accept(T.comma))
                 break;
         }
-        expect(Tk.rBrace);
+        expect(T.rbrace);
         return e;
     }
 
-    private MethodAst parseMethod(bool allowNoBody)
+    TraitDecl parseTrait(bool pub)
     {
-        auto m = new MethodAst;
-        m.pos = expect(Tk.kwFn).pos;
-        m.namePos = cur.pos;
-        m.name = expectIdent();
-        expect(Tk.lParen);
-        expect(Tk.kwSelf);
-        if (accept(Tk.comma))
-            m.params = parseParams();
-        expect(Tk.rParen);
-        if (accept(Tk.arrow))
-            m.ret = parseType();
-        if (allowNoBody && accept(Tk.semi))
-            return m;
-        m.body = parseBlock();
-        return m;
-    }
-
-    private TraitItem parseTrait()
-    {
-        auto t = new TraitItem;
-        t.pos = advance().pos;
-        t.namePos = cur.pos;
-        t.name = expectIdent();
-        expect(Tk.lBrace);
-        while (kind != Tk.rBrace)
-            t.methods ~= parseMethod(true);
-        expect(Tk.rBrace);
+        auto t = new TraitDecl(take().pos);
+        t.pub = pub;
+        auto name = expect(T.ident);
+        t.name = name.id;
+        t.namePos = name.pos;
+        expect(T.lbrace);
+        while (k != T.rbrace)
+            t.methods ~= parseFn(false, true, true);
+        expect(T.rbrace);
         return t;
     }
 
-    private ImplAst parseImpl()
+    ImplDecl parseImpl()
     {
-        auto im = new ImplAst;
-        im.pos = advance().pos;
-        if (kind == Tk.lt)
-            im.gen = parseGenerics(true);
+        auto im = new ImplDecl(take().pos);
+        im.gparams = parseGenerics(true);
         im.trait = parseTraitRef();
-        expect(Tk.kwFor);
+        expect(T.kwFor);
         im.head = parseType();
-        expect(Tk.lBrace);
-        while (kind != Tk.rBrace)
-            im.methods ~= parseMethod(false);
-        expect(Tk.rBrace);
+        expect(T.lbrace);
+        while (k != T.rbrace)
+            im.methods ~= parseFn(false, true, false);
+        expect(T.rbrace);
         return im;
     }
 
     // ------------------------------------------------------------ types
 
-    private TypeExpr parseType()
+    TypeExpr parseType()
     {
-        auto t = new TypeExpr;
-        t.pos = cur.pos;
-        switch (kind)
+        auto t = new TypeExpr();
+        t.pos = pos;
+        switch (k)
         {
-        case Tk.lBracket:
-            advance();
-            t.kind = TypeExpr.Kind.list;
-            t.args = [parseType()];
-            expect(Tk.rBracket);
-            return t;
-        case Tk.hashBracket:
-            advance();
-            t.kind = TypeExpr.Kind.map;
-            auto k = parseType();
-            expect(Tk.colon);
-            auto v = parseType();
-            t.args = [k, v];
-            expect(Tk.rBracket);
-            return t;
-        case Tk.lParen:
-            advance();
-            t.kind = TypeExpr.Kind.tuple;
+        case T.lbracket:
+        {
+            take();
+            t.kind = TyK.list;
+            auto saved = typeArgDepth;
+            typeArgDepth = 0;
             t.args ~= parseType();
-            expect(Tk.comma);
-            while (true)
+            noPending();
+            expect(T.rbracket);
+            typeArgDepth = saved;
+            return t;
+        }
+        case T.hashBracket:
+        {
+            take();
+            t.kind = TyK.map;
+            auto saved = typeArgDepth;
+            typeArgDepth = 0;
+            t.args ~= parseType();
+            noPending();
+            expect(T.colon);
+            t.args ~= parseType();
+            noPending();
+            expect(T.rbracket);
+            typeArgDepth = saved;
+            return t;
+        }
+        case T.lparen:
+        {
+            take();
+            t.kind = TyK.tuple;
+            auto saved = typeArgDepth;
+            typeArgDepth = 0;
+            t.args ~= parseType();
+            noPending();
+            expect(T.comma);
+            while (k != T.rparen)
             {
                 t.args ~= parseType();
-                if (accept(Tk.comma))
-                {
-                    if (kind == Tk.rParen)
-                        break;
-                    continue;
-                }
-                break;
-            }
-            expect(Tk.rParen);
-            return t;
-        case Tk.kwFn:
-            advance();
-            t.kind = TypeExpr.Kind.fn;
-            expect(Tk.lParen);
-            if (kind != Tk.rParen)
-            {
-                while (true)
-                {
-                    t.args ~= parseType();
-                    if (accept(Tk.comma))
-                    {
-                        if (kind == Tk.rParen)
-                            break;
-                        continue;
-                    }
+                noPending();
+                if (!accept(T.comma))
                     break;
-                }
             }
-            expect(Tk.rParen);
-            if (accept(Tk.arrow))
+            expect(T.rparen);
+            typeArgDepth = saved;
+            return t;
+        }
+        case T.kwFn:
+        {
+            take();
+            t.kind = TyK.fn;
+            auto saved = typeArgDepth;
+            typeArgDepth = 0;
+            expect(T.lparen);
+            while (k != T.rparen)
+            {
+                t.args ~= parseType();
+                noPending();
+                if (!accept(T.comma))
+                    break;
+            }
+            expect(T.rparen);
+            typeArgDepth = saved;
+            if (accept(T.arrow))
                 t.ret = parseType();
             return t;
-        case Tk.ident:
-            t.kind = TypeExpr.Kind.path;
-            t.namePos = cur.pos;
-            t.name = advance().text;
-            if (accept(Tk.colonColon))
+        }
+        case T.ident:
+        {
+            t.kind = TyK.path;
+            auto id = take();
+            if (k == T.colonColon)
             {
-                t.qual = t.name;
-                t.qualPos = t.namePos;
-                t.namePos = cur.pos;
-                t.name = expectIdent();
+                take();
+                auto n = expect(T.ident);
+                t.qual = id.id;
+                t.qualPos = id.pos;
+                t.name = n.id;
+                t.namePos = n.pos;
             }
-            if (kind == Tk.lt)
+            else
             {
-                advance();
-                t.hasArgs = true;
-                while (true)
-                {
-                    t.args ~= parseType();
-                    if (accept(Tk.comma))
-                    {
-                        if (kind == Tk.gt || kind == Tk.shr)
-                            break;
-                        continue;
-                    }
-                    break;
-                }
-                closeAngle();
+                t.name = id.id;
+                t.namePos = id.pos;
             }
+            if (k == T.lt)
+                parseTypeArgs(t);
             return t;
+        }
         default:
-            err();
+            throw parseError();
         }
     }
 
-    /// Consumes one `>`; a `>>` token closes two lists, so it is rewritten to `>` and kept.
-    private void closeAngle()
+    void noPending()
     {
-        if (kind == Tk.gt)
-            advance();
-        else if (kind == Tk.shr)
-        {
-            toks[p].kind = Tk.gt;
-            toks[p].pos.col += 1;
-        }
-        else
-            err();
+        if (pendingGt)
+            throw parseError();
     }
 
-    // ------------------------------------------------------------ statements
-
-    private Block parseBlock()
+    void parseTypeArgs(TypeExpr t)
     {
-        auto b = new Block;
-        b.pos = cur.pos;
-        expect(Tk.lBrace);
-        while (kind != Tk.rBrace)
+        expect(T.lt);
+        typeArgDepth++;
+        while (true)
         {
-            Pos sp = cur.pos;
-            switch (kind)
+            t.args ~= parseType();
+            if (pendingGt)
             {
-            case Tk.kwLet:
+                pendingGt = false;
+                typeArgDepth--;
+                return;
+            }
+            if (k == T.comma)
             {
-                advance();
-                auto s = new LetStmt;
-                s.pos = sp;
-                s.pat = parsePattern();
-                if (accept(Tk.colon))
-                    s.te = parseType();
-                expect(Tk.assign);
-                s.init = parseExpr();
-                expect(Tk.semi);
+                take();
+                if (k != T.gt && k != T.shr)
+                    continue;
+            }
+            if (k == T.gt)
+            {
+                take();
+                typeArgDepth--;
+                return;
+            }
+            if (k == T.shr && typeArgDepth >= 2)
+            {
+                take();
+                pendingGt = true;
+                typeArgDepth--;
+                return;
+            }
+            throw parseError();
+        }
+    }
+
+    // ------------------------------------------------------------ blocks and statements
+
+    BlockExpr parseBlock()
+    {
+        auto b = new BlockExpr(expect(T.lbrace).pos);
+        while (k != T.rbrace)
+        {
+            switch (k)
+            {
+            case T.kwLet:
+                b.stmts ~= parseLet();
+                break;
+            case T.kwVar:
+                b.stmts ~= parseVar();
+                break;
+            case T.kwReturn:
+            {
+                auto s = new Stmt(SK.return_, take().pos);
+                if (k != T.semi)
+                    s.expr = parseExpr();
+                expect(T.semi);
                 b.stmts ~= s;
                 break;
             }
-            case Tk.kwVar:
+            case T.kwWhile:
             {
-                advance();
-                auto s = new VarStmt;
-                s.pos = sp;
-                s.namePos = cur.pos;
-                s.name = expectIdent();
-                if (accept(Tk.colon))
-                    s.te = parseType();
-                expect(Tk.assign);
-                s.init = parseExpr();
-                expect(Tk.semi);
-                b.stmts ~= s;
-                break;
-            }
-            case Tk.kwReturn:
-            {
-                advance();
-                auto s = new ReturnStmt;
-                s.pos = sp;
-                if (kind != Tk.semi)
-                    s.value = parseExpr();
-                expect(Tk.semi);
-                b.stmts ~= s;
-                break;
-            }
-            case Tk.kwWhile:
-            {
-                advance();
-                auto s = new WhileStmt;
-                s.pos = sp;
-                s.cond = parseExpr();
+                auto s = new Stmt(SK.while_, take().pos);
+                s.expr = parseExpr();
                 s.body = parseBlock();
                 b.stmts ~= s;
                 break;
             }
-            case Tk.kwFor:
+            case T.kwFor:
+                b.stmts ~= parseFor();
+                break;
+            case T.kwBreak:
             {
-                advance();
-                auto s = new ForStmt;
-                s.pos = sp;
-                s.pat = parsePattern();
-                expect(Tk.kwIn);
-                s.iter = parseExpr();
-                if (accept(Tk.dotDot))
-                    s.hi = parseExpr();
-                s.body = parseBlock();
+                auto s = new Stmt(SK.break_, take().pos);
+                expect(T.semi);
                 b.stmts ~= s;
                 break;
             }
-            case Tk.kwBreak:
+            case T.kwContinue:
             {
-                advance();
-                auto s = new BreakStmt;
-                s.pos = sp;
-                expect(Tk.semi);
-                b.stmts ~= s;
-                break;
-            }
-            case Tk.kwContinue:
-            {
-                advance();
-                auto s = new ContinueStmt;
-                s.pos = sp;
-                expect(Tk.semi);
+                auto s = new Stmt(SK.continue_, take().pos);
+                expect(T.semi);
                 b.stmts ~= s;
                 break;
             }
             default:
             {
                 auto e = parseExpr();
-                if (kind == Tk.assign)
+                if (k == T.eq)
                 {
-                    advance();
-                    auto s = new AssignStmt;
-                    s.pos = e.pos;
+                    take();
+                    auto s = new Stmt(SK.assign, e.pos);
                     s.target = e;
-                    s.value = parseExpr();
-                    expect(Tk.semi);
+                    s.expr = parseExpr();
+                    expect(T.semi);
                     b.stmts ~= s;
                 }
-                else if (kind == Tk.semi)
+                else if (k == T.semi)
                 {
-                    advance();
-                    auto s = new ExprStmt;
-                    s.pos = e.pos;
-                    s.e = e;
+                    take();
+                    auto s = new Stmt(SK.expr, e.pos);
+                    s.expr = e;
                     b.stmts ~= s;
                 }
-                else if (kind == Tk.rBrace)
+                else if (k == T.rbrace)
                 {
-                    b.trailing = e;
+                    b.tail = e;
                 }
-                else if (cast(IfExpr) e !is null || cast(MatchExpr) e !is null)
+                else if (e.kind == EK.if_ || e.kind == EK.match)
                 {
-                    auto s = new ExprStmt;
-                    s.pos = e.pos;
-                    s.e = e;
+                    auto s = new Stmt(SK.expr, e.pos);
+                    s.expr = e;
                     b.stmts ~= s;
                 }
                 else
-                    err();
-                break;
+                    throw parseError();
             }
             }
         }
-        expect(Tk.rBrace);
+        expect(T.rbrace);
         return b;
+    }
+
+    Stmt parseLet()
+    {
+        auto s = new Stmt(SK.let_, take().pos);
+        s.pat = parsePattern();
+        if (accept(T.colon))
+            s.ann = parseType();
+        expect(T.eq);
+        s.expr = parseExpr();
+        expect(T.semi);
+        return s;
+    }
+
+    Stmt parseVar()
+    {
+        auto s = new Stmt(SK.var_, take().pos);
+        auto id = expect(T.ident);
+        s.name = id.id;
+        s.namePos = id.pos;
+        if (accept(T.colon))
+            s.ann = parseType();
+        expect(T.eq);
+        s.expr = parseExpr();
+        expect(T.semi);
+        return s;
+    }
+
+    Stmt parseFor()
+    {
+        auto s = new Stmt(SK.for_, take().pos);
+        s.pat = parsePattern();
+        expect(T.kwIn);
+        s.expr = parseExpr();
+        if (accept(T.dotDot))
+            s.hi = parseExpr();
+        s.body = parseBlock();
+        return s;
+    }
+
+    // ------------------------------------------------------------ patterns
+
+    Pattern parsePattern()
+    {
+        auto pt = new Pattern();
+        pt.pos = pos;
+        switch (k)
+        {
+        case T.underscore:
+            take();
+            pt.kind = PatK.wild;
+            return pt;
+        case T.int_:
+            pt.kind = PatK.int_;
+            pt.ival = take().ival;
+            return pt;
+        case T.float_:
+            pt.kind = PatK.float_;
+            pt.fval = take().fval;
+            return pt;
+        case T.minus:
+            take();
+            if (k == T.int_)
+            {
+                pt.kind = PatK.int_;
+                pt.ival = -take().ival;
+            }
+            else if (k == T.float_)
+            {
+                pt.kind = PatK.float_;
+                pt.fval = -take().fval;
+            }
+            else
+                throw parseError();
+            return pt;
+        case T.str:
+            pt.kind = PatK.str;
+            pt.sval = take().sval;
+            return pt;
+        case T.char_:
+            pt.kind = PatK.char_;
+            pt.ival = take().ival;
+            return pt;
+        case T.kwTrue:
+        case T.kwFalse:
+            pt.kind = PatK.bool_;
+            pt.ival = take().kind == T.kwTrue ? 1 : 0;
+            return pt;
+        case T.lparen:
+            take();
+            pt.kind = PatK.tuple;
+            pt.subs ~= parsePattern();
+            expect(T.comma);
+            while (k != T.rparen)
+            {
+                pt.subs ~= parsePattern();
+                if (!accept(T.comma))
+                    break;
+            }
+            expect(T.rparen);
+            return pt;
+        case T.lbracket:
+            take();
+            pt.kind = PatK.list;
+            while (k != T.rbracket)
+            {
+                if (k == T.dotDot)
+                {
+                    take();
+                    pt.hasRest = true;
+                    if (k == T.ident)
+                    {
+                        auto id = take();
+                        pt.restName = id.id;
+                        pt.restPos = id.pos;
+                    }
+                    break;
+                }
+                pt.subs ~= parsePattern();
+                if (!accept(T.comma))
+                    break;
+            }
+            expect(T.rbracket);
+            return pt;
+        case T.ident:
+        {
+            auto id = take();
+            if (k == T.colonColon)
+            {
+                take();
+                auto n = expect(T.ident);
+                pt.qual = id.id;
+                pt.qualPos = id.pos;
+                pt.cname = n.id;
+                pt.cnamePos = n.pos;
+            }
+            else
+            {
+                pt.cname = id.id;
+                pt.cnamePos = id.pos;
+            }
+            if (k == T.dot && kAt(1) == T.lbrace)
+            {
+                take();
+                take();
+                pt.kind = PatK.struct_;
+                while (k != T.rbrace)
+                {
+                    if (k == T.dotDot)
+                    {
+                        take();
+                        pt.structRest = true;
+                        break;
+                    }
+                    auto f = expect(T.ident);
+                    FieldPat fp;
+                    fp.name = f.id;
+                    fp.pos = f.pos;
+                    if (accept(T.colon))
+                        fp.pat = parsePattern();
+                    pt.fields ~= fp;
+                    if (!accept(T.comma))
+                        break;
+                }
+                expect(T.rbrace);
+                return pt;
+            }
+            if (k == T.lparen)
+            {
+                take();
+                pt.kind = PatK.variant;
+                pt.hasParens = true;
+                while (true)
+                {
+                    pt.subs ~= parsePattern();
+                    if (accept(T.comma))
+                    {
+                        if (k == T.rparen)
+                            break;
+                        continue;
+                    }
+                    break;
+                }
+                expect(T.rparen);
+                return pt;
+            }
+            if (pt.qual.length == 0)
+            {
+                pt.kind = PatK.bind;
+                pt.name = pt.cname;
+            }
+            else
+                pt.kind = PatK.variant;
+            return pt;
+        }
+        default:
+            throw parseError();
+        }
     }
 
     // ------------------------------------------------------------ expressions
 
-    /// Parses an expression.
     Expr parseExpr()
     {
-        return parseOr();
+        return parseBinary(1);
     }
 
-    private Expr bin(Tk op, Expr l, Expr r, Pos opPos)
+    /// Binding power of a binary operator token (0 if it is not one).
+    static int prec(T t)
     {
-        auto b = new Binary;
-        b.pos = l.pos;
-        b.op = op;
-        b.l = l;
-        b.r = r;
-        b.opPos = opPos;
-        return b;
-    }
-
-    private Expr parseOr()
-    {
-        auto l = parseAnd();
-        while (kind == Tk.orOr)
+        switch (t)
         {
-            Pos op = advance().pos;
-            l = bin(Tk.orOr, l, parseAnd(), op);
-        }
-        return l;
-    }
-
-    private Expr parseAnd()
-    {
-        auto l = parseCmp();
-        while (kind == Tk.andAnd)
-        {
-            Pos op = advance().pos;
-            l = bin(Tk.andAnd, l, parseCmp(), op);
-        }
-        return l;
-    }
-
-    private Expr parseCmp()
-    {
-        auto l = parseBitOr();
-        switch (kind)
-        {
-        case Tk.eqEq, Tk.notEq, Tk.lt, Tk.ltEq, Tk.gt, Tk.gtEq:
-            auto t = advance();
-            return bin(t.kind, l, parseBitOr(), t.pos);
+        case T.orOr:
+            return 1;
+        case T.andAnd:
+            return 2;
+        case T.eqEq, T.ne, T.lt, T.le, T.gt, T.ge:
+            return 3;
+        case T.pipe:
+            return 4;
+        case T.caret:
+            return 5;
+        case T.amp:
+            return 6;
+        case T.shl, T.shr:
+            return 7;
+        case T.plus, T.minus, T.plusPlus:
+            return 8;
+        case T.star, T.slash, T.percent:
+            return 9;
         default:
-            return l;
+            return 0;
         }
     }
 
-    private Expr parseBitOr()
+    static Operator binOp(T t)
     {
-        auto l = parseBitXor();
-        while (kind == Tk.pipe)
+        switch (t)
         {
-            Pos op = advance().pos;
-            l = bin(Tk.pipe, l, parseBitXor(), op);
+        case T.orOr: return Operator.or;
+        case T.andAnd: return Operator.and;
+        case T.eqEq: return Operator.eq;
+        case T.ne: return Operator.ne;
+        case T.lt: return Operator.lt;
+        case T.le: return Operator.le;
+        case T.gt: return Operator.gt;
+        case T.ge: return Operator.ge;
+        case T.pipe: return Operator.bor;
+        case T.caret: return Operator.bxor;
+        case T.amp: return Operator.band;
+        case T.shl: return Operator.shl;
+        case T.shr: return Operator.shr;
+        case T.plus: return Operator.add;
+        case T.minus: return Operator.sub;
+        case T.plusPlus: return Operator.concat;
+        case T.star: return Operator.mul;
+        case T.slash: return Operator.div;
+        default: return Operator.rem;
         }
-        return l;
     }
 
-    private Expr parseBitXor()
+    /// Precedence climbing; comparison (level 3) is non-associative.
+    Expr parseBinary(int minPrec)
     {
-        auto l = parseBitAnd();
-        while (kind == Tk.caret)
+        auto left = parseUnary();
+        bool afterCmp = false;
+        while (true)
         {
-            Pos op = advance().pos;
-            l = bin(Tk.caret, l, parseBitAnd(), op);
+            const pr = prec(k);
+            if (pr == 0 || pr < minPrec || (pr == 3 && afterCmp))
+                return left; // a second comparison is left for the caller to reject
+            const opTok = take();
+            auto right = parseBinary(pr + 1);
+            auto b = new BinaryExpr(left.pos, binOp(opTok.kind), left, right);
+            b.opPos = opTok.pos;
+            left = b;
+            afterCmp = pr == 3;
         }
-        return l;
     }
 
-    private Expr parseBitAnd()
+    Expr parseUnary()
     {
-        auto l = parseShift();
-        while (kind == Tk.amp)
+        Operator op;
+        switch (k)
         {
-            Pos op = advance().pos;
-            l = bin(Tk.amp, l, parseShift(), op);
+        case T.minus:
+            op = Operator.neg;
+            break;
+        case T.bang:
+            op = Operator.not;
+            break;
+        case T.tilde:
+            op = Operator.bnot;
+            break;
+        default:
+            return parsePostfix();
         }
-        return l;
+        const t = take();
+        return new UnaryExpr(t.pos, op, parseUnary());
     }
 
-    private Expr parseShift()
-    {
-        auto l = parseAdd();
-        while (kind == Tk.shl || kind == Tk.shr)
-        {
-            auto t = advance();
-            l = bin(t.kind, l, parseAdd(), t.pos);
-        }
-        return l;
-    }
-
-    private Expr parseAdd()
-    {
-        auto l = parseMul();
-        while (kind == Tk.plus || kind == Tk.minus || kind == Tk.plusPlus)
-        {
-            auto t = advance();
-            l = bin(t.kind, l, parseMul(), t.pos);
-        }
-        return l;
-    }
-
-    private Expr parseMul()
-    {
-        auto l = parseUnary();
-        while (kind == Tk.star || kind == Tk.slash || kind == Tk.percent)
-        {
-            auto t = advance();
-            l = bin(t.kind, l, parseUnary(), t.pos);
-        }
-        return l;
-    }
-
-    private Expr parseUnary()
-    {
-        if (kind == Tk.minus || kind == Tk.bang || kind == Tk.tilde)
-        {
-            auto t = advance();
-            auto u = new Unary;
-            u.pos = t.pos;
-            u.op = t.kind;
-            u.e = parseUnary();
-            return u;
-        }
-        return parsePostfix();
-    }
-
-    private Expr[] parseArgs(Tk close)
+    Expr[] parseArgs(T close)
     {
         Expr[] args;
-        if (kind != close)
+        while (k != close)
         {
-            while (true)
-            {
-                args ~= parseExpr();
-                if (accept(Tk.comma))
-                {
-                    if (kind == close)
-                        break;
-                    continue;
-                }
+            args ~= parseExpr();
+            if (!accept(T.comma))
                 break;
-            }
         }
         expect(close);
         return args;
     }
 
-    private Expr parsePostfix()
+    Expr parsePostfix()
     {
         auto e = parsePrimary();
         while (true)
         {
-            if (kind == Tk.lParen)
+            switch (k)
             {
-                advance();
-                auto c = new Call;
-                c.pos = e.pos;
-                c.callee = e;
-                c.args = parseArgs(Tk.rParen);
-                e = c;
+            case T.lparen:
+                take();
+                e = new CallExpr(e.pos, e, parseArgs(T.rparen));
+                break;
+            case T.lbracket:
+            {
+                take();
+                auto i = parseExpr();
+                expect(T.rbracket);
+                e = new IndexExpr(e.pos, e, i);
+                break;
             }
-            else if (kind == Tk.lBracket)
+            case T.dot:
             {
-                advance();
-                auto ix = new IndexExpr;
-                ix.pos = e.pos;
-                ix.base = e;
-                ix.index = parseExpr();
-                expect(Tk.rBracket);
-                e = ix;
-            }
-            else if (kind == Tk.dot)
-            {
-                advance();
-                Pos np = cur.pos;
-                string n = expectIdent();
-                if (kind == Tk.lParen)
+                take();
+                auto id = expect(T.ident);
+                if (k == T.lparen)
                 {
-                    advance();
-                    auto m = new MethodCall;
-                    m.pos = e.pos;
-                    m.recv = e;
-                    m.name = n;
-                    m.namePos = np;
-                    m.args = parseArgs(Tk.rParen);
-                    e = m;
+                    take();
+                    e = new MethodExpr(e.pos, e, id.id, id.pos, parseArgs(T.rparen));
                 }
                 else
-                {
-                    auto f = new FieldExpr;
-                    f.pos = e.pos;
-                    f.base = e;
-                    f.name = n;
-                    f.namePos = np;
-                    e = f;
-                }
-            }
-            else
+                    e = new FieldExpr(e.pos, e, id.id, id.pos);
                 break;
+            }
+            default:
+                return e;
+            }
         }
-        return e;
     }
 
-    private Expr parsePrimary()
+    Expr parsePrimary()
     {
-        auto t = cur;
-        switch (t.kind)
+        const pos0 = pos;
+        switch (k)
         {
-        case Tk.intLit:
+        case T.int_:
         {
-            advance();
-            auto e = new IntLit;
-            e.pos = t.pos;
-            e.v = t.ival;
-            return e;
-        }
-        case Tk.floatLit:
-        {
-            advance();
-            auto e = new FloatLit;
-            e.pos = t.pos;
-            e.v = t.fval;
-            return e;
-        }
-        case Tk.strLit:
-        {
-            advance();
-            auto e = new StrLit;
-            e.pos = t.pos;
-            e.v = t.sval;
-            return e;
-        }
-        case Tk.charLit:
-        {
-            advance();
-            auto e = new CharLit;
-            e.pos = t.pos;
-            e.v = cast(dchar) t.ival;
-            return e;
-        }
-        case Tk.kwTrue, Tk.kwFalse:
-        {
-            advance();
-            auto e = new BoolLit;
-            e.pos = t.pos;
-            e.v = t.kind == Tk.kwTrue;
-            return e;
-        }
-        case Tk.kwSelf:
-        {
-            advance();
-            auto e = new SelfExpr;
-            e.pos = t.pos;
-            return e;
-        }
-        case Tk.lParen:
-        {
-            advance();
-            auto first = parseExpr();
-            if (accept(Tk.rParen))
-                return first;
-            auto tl = new TupleLit;
-            tl.pos = t.pos;
-            tl.elems ~= first;
-            expect(Tk.comma);
-            while (true)
-            {
-                tl.elems ~= parseExpr();
-                if (accept(Tk.comma))
-                {
-                    if (kind == Tk.rParen)
-                        break;
-                    continue;
-                }
-                break;
-            }
-            expect(Tk.rParen);
-            return tl;
-        }
-        case Tk.lBracket:
-        {
-            advance();
-            auto l = new ListLit;
-            l.pos = t.pos;
-            l.elems = parseArgs(Tk.rBracket);
+            auto l = new LitExpr(EK.int_, pos0);
+            l.ival = take().ival;
             return l;
         }
-        case Tk.hashBracket:
+        case T.float_:
         {
-            advance();
-            auto m = new MapLit;
-            m.pos = t.pos;
-            if (kind != Tk.rBracket)
+            auto l = new LitExpr(EK.float_, pos0);
+            l.fval = take().fval;
+            return l;
+        }
+        case T.str:
+        {
+            auto l = new LitExpr(EK.str, pos0);
+            l.sval = take().sval;
+            return l;
+        }
+        case T.char_:
+        {
+            auto l = new LitExpr(EK.char_, pos0);
+            l.ival = take().ival;
+            return l;
+        }
+        case T.kwTrue:
+        case T.kwFalse:
+        {
+            auto l = new LitExpr(EK.bool_, pos0);
+            l.ival = take().kind == T.kwTrue ? 1 : 0;
+            return l;
+        }
+        case T.kwSelf:
+            take();
+            return new SelfExpr(pos0);
+        case T.lparen:
+        {
+            take();
+            auto first = parseExpr();
+            if (k == T.comma)
             {
-                while (true)
+                auto t = new SeqExpr(EK.tuple, pos0);
+                t.elems ~= first;
+                while (accept(T.comma))
                 {
-                    m.keys ~= parseExpr();
-                    expect(Tk.colon);
-                    m.vals ~= parseExpr();
-                    if (accept(Tk.comma))
-                    {
-                        if (kind == Tk.rBracket)
-                            break;
-                        continue;
-                    }
-                    break;
+                    if (k == T.rparen && t.elems.length >= 2)
+                        break;
+                    t.elems ~= parseExpr();
                 }
+                expect(T.rparen);
+                return t;
             }
-            expect(Tk.rBracket);
+            expect(T.rparen);
+            return first;
+        }
+        case T.lbracket:
+        {
+            take();
+            auto l = new SeqExpr(EK.list, pos0);
+            l.elems = parseArgs(T.rbracket);
+            return l;
+        }
+        case T.hashBracket:
+        {
+            take();
+            auto m = new SeqExpr(EK.map, pos0);
+            while (k != T.rbracket)
+            {
+                m.elems ~= parseExpr();
+                expect(T.colon);
+                m.elems ~= parseExpr();
+                if (!accept(T.comma))
+                    break;
+            }
+            expect(T.rbracket);
             return m;
         }
-        case Tk.pipe, Tk.orOr:
+        case T.pipe:
+        case T.orOr:
             return parseLambda();
-        case Tk.kwIf:
+        case T.kwIf:
             return parseIf();
-        case Tk.kwMatch:
+        case T.kwMatch:
             return parseMatch();
-        case Tk.ident:
-        {
-            advance();
-            string first = t.text;
-            Pos firstPos = t.pos;
-            string qual;
-            Pos qualPos;
-            string name = first;
-            Pos namePos = firstPos;
-            if (accept(Tk.colonColon))
-            {
-                qual = first;
-                qualPos = firstPos;
-                namePos = cur.pos;
-                name = expectIdent();
-            }
-            if (kind == Tk.dot && kindAt(1) == Tk.lBrace)
-            {
-                advance();
-                advance();
-                auto s = new StructLit;
-                s.pos = firstPos;
-                s.qual = qual;
-                s.qualPos = qualPos;
-                s.name = name;
-                s.namePos = namePos;
-                if (kind != Tk.rBrace)
-                {
-                    while (true)
-                    {
-                        FieldInit fi;
-                        fi.pos = cur.pos;
-                        fi.name = expectIdent();
-                        expect(Tk.colon);
-                        fi.value = parseExpr();
-                        s.inits ~= fi;
-                        if (accept(Tk.comma))
-                        {
-                            if (kind == Tk.rBrace)
-                                break;
-                            continue;
-                        }
-                        break;
-                    }
-                }
-                expect(Tk.rBrace);
-                return s;
-            }
-            auto pe = new PathExpr;
-            pe.pos = firstPos;
-            pe.qual = qual;
-            pe.qualPos = qualPos;
-            pe.name = name;
-            pe.namePos = namePos;
-            return pe;
-        }
+        case T.ident:
+            return parsePathOrStruct();
         default:
-            err();
+            throw parseError();
         }
     }
 
-    private Expr parseLambda()
+    Expr parsePathOrStruct()
     {
-        auto l = new Lambda;
-        l.pos = cur.pos;
-        if (accept(Tk.orOr))
+        const pos0 = pos;
+        auto id = take();
+        string qual, name = id.id;
+        Pos qualPos, namePos = id.pos;
+        if (k == T.colonColon)
         {
+            take();
+            auto n = expect(T.ident);
+            qual = id.id;
+            qualPos = id.pos;
+            name = n.id;
+            namePos = n.pos;
         }
+        if (k == T.dot && kAt(1) == T.lbrace)
+        {
+            take();
+            take();
+            auto s = new StructLitExpr(pos0);
+            s.qual = qual;
+            s.qualPos = qualPos;
+            s.name = name;
+            s.namePos = namePos;
+            while (k != T.rbrace)
+            {
+                auto f = expect(T.ident);
+                expect(T.colon);
+                s.inits ~= FieldInit(f.id, f.pos, parseExpr());
+                if (!accept(T.comma))
+                    break;
+            }
+            expect(T.rbrace);
+            return s;
+        }
+        auto pe = new PathExpr(pos0);
+        pe.qual = qual;
+        pe.qualPos = qualPos;
+        pe.name = name;
+        pe.namePos = namePos;
+        return pe;
+    }
+
+    Expr parseLambda()
+    {
+        auto lam = new LambdaExpr(pos);
+        if (k == T.orOr)
+            take();
         else
         {
-            expect(Tk.pipe);
+            take();
             while (true)
             {
+                auto id = expect(T.ident);
                 LParam lp;
-                lp.pos = cur.pos;
-                lp.name = expectIdent();
-                if (accept(Tk.colon))
-                    lp.te = parseType();
-                l.params ~= lp;
-                if (accept(Tk.comma))
+                lp.name = id.id;
+                lp.pos = id.pos;
+                if (accept(T.colon))
+                    lp.ann = parseType();
+                lam.params ~= lp;
+                if (accept(T.comma))
                 {
-                    if (kind == Tk.pipe)
+                    if (k == T.pipe)
                         break;
                     continue;
                 }
                 break;
             }
-            expect(Tk.pipe);
+            expect(T.pipe);
         }
-        if (accept(Tk.arrow))
-            l.retTe = parseType();
-        if (kind == Tk.lBrace)
-            l.body = parseBlock();
+        if (accept(T.arrow))
+            lam.retAnn = parseType();
+        if (k == T.lbrace)
+            lam.body = parseBlock();
         else
-            l.body = parseExpr();
-        return l;
+            lam.body = parseExpr();
+        return lam;
     }
 
-    private IfExpr parseIf()
+    Expr parseIf()
     {
-        auto e = new IfExpr;
-        e.pos = advance().pos;
+        auto e = new IfExpr(take().pos);
         e.cond = parseExpr();
         e.then = parseBlock();
-        if (accept(Tk.kwElse))
+        if (accept(T.kwElse))
         {
-            if (kind == Tk.kwIf)
-                e.els = parseIf();
+            if (k == T.kwIf)
+                e.else_ = parseIf();
             else
-                e.els = parseBlock();
+                e.else_ = parseBlock();
         }
         return e;
     }
 
-    private MatchExpr parseMatch()
+    Expr parseMatch()
     {
-        auto m = new MatchExpr;
-        m.pos = advance().pos;
+        auto m = new MatchExpr(take().pos);
         m.scrut = parseExpr();
-        expect(Tk.lBrace);
-        while (kind != Tk.rBrace)
+        expect(T.lbrace);
+        while (k != T.rbrace)
         {
-            auto arm = new MatchArm;
-            arm.pat = parsePattern();
-            if (accept(Tk.kwWhen))
-                arm.guard = parseExpr();
-            expect(Tk.arrow);
-            bool blockBody = kind == Tk.lBrace;
-            if (blockBody)
-                arm.body = parseBlock();
+            Arm a;
+            a.pat = parsePattern();
+            if (accept(T.kwWhen))
+                a.guard = parseExpr();
+            expect(T.arrow);
+            bool block = false;
+            if (k == T.lbrace)
+            {
+                a.body = parseBlock();
+                block = true;
+            }
             else
-                arm.body = parseExpr();
-            m.arms ~= arm;
-            if (accept(Tk.comma))
-                continue;
-            if (kind == Tk.rBrace)
-                break;
-            if (!blockBody)
-                err();
+                a.body = parseExpr();
+            m.arms ~= a;
+            if (!accept(T.comma) && k != T.rbrace && !block)
+                throw parseError();
         }
-        expect(Tk.rBrace);
+        expect(T.rbrace);
         return m;
     }
+}
 
-    // ------------------------------------------------------------ patterns
-
-    private Pat parsePattern()
+version (unittest)
+{
+    private Item[] parseSrc(string src)
     {
-        auto t = cur;
-        switch (t.kind)
-        {
-        case Tk.underscore:
-        {
-            advance();
-            auto w = new WildPat;
-            w.pos = t.pos;
-            return w;
-        }
-        case Tk.intLit, Tk.floatLit, Tk.minus:
-        {
-            advance();
-            auto l = new LitPat;
-            l.pos = t.pos;
-            Token num = t;
-            bool neg = false;
-            if (t.kind == Tk.minus)
-            {
-                neg = true;
-                if (kind != Tk.intLit && kind != Tk.floatLit)
-                    err();
-                num = advance();
-            }
-            if (num.kind == Tk.intLit)
-            {
-                l.kind = LitPat.Kind.int_;
-                l.iv = neg ? -num.ival : num.ival;
-            }
-            else
-            {
-                l.kind = LitPat.Kind.float_;
-                l.fv = neg ? -num.fval : num.fval;
-            }
-            return l;
-        }
-        case Tk.strLit:
-        {
-            advance();
-            auto l = new LitPat;
-            l.pos = t.pos;
-            l.kind = LitPat.Kind.str;
-            l.sv = t.sval;
-            return l;
-        }
-        case Tk.charLit:
-        {
-            advance();
-            auto l = new LitPat;
-            l.pos = t.pos;
-            l.kind = LitPat.Kind.char_;
-            l.iv = t.ival;
-            return l;
-        }
-        case Tk.kwTrue, Tk.kwFalse:
-        {
-            advance();
-            auto l = new LitPat;
-            l.pos = t.pos;
-            l.kind = LitPat.Kind.bool_;
-            l.iv = t.kind == Tk.kwTrue ? 1 : 0;
-            return l;
-        }
-        case Tk.lParen:
-        {
-            advance();
-            auto tp = new TuplePat;
-            tp.pos = t.pos;
-            tp.subs ~= parsePattern();
-            expect(Tk.comma);
-            while (true)
-            {
-                tp.subs ~= parsePattern();
-                if (accept(Tk.comma))
-                {
-                    if (kind == Tk.rParen)
-                        break;
-                    continue;
-                }
-                break;
-            }
-            expect(Tk.rParen);
-            return tp;
-        }
-        case Tk.lBracket:
-        {
-            advance();
-            auto lp = new ListPat;
-            lp.pos = t.pos;
-            while (kind != Tk.rBracket)
-            {
-                if (kind == Tk.dotDot)
-                {
-                    advance();
-                    lp.hasRest = true;
-                    if (kind == Tk.ident)
-                    {
-                        lp.restPos = cur.pos;
-                        lp.restName = advance().text;
-                    }
-                    break;
-                }
-                lp.subs ~= parsePattern();
-                if (!accept(Tk.comma))
-                    break;
-            }
-            expect(Tk.rBracket);
-            return lp;
-        }
-        case Tk.ident:
-        {
-            advance();
-            string qual;
-            Pos qualPos;
-            string name = t.text;
-            Pos namePos = t.pos;
-            if (accept(Tk.colonColon))
-            {
-                qual = name;
-                qualPos = namePos;
-                namePos = cur.pos;
-                name = expectIdent();
-            }
-            if (kind == Tk.dot && kindAt(1) == Tk.lBrace)
-            {
-                advance();
-                advance();
-                auto sp = new StructPat;
-                sp.pos = t.pos;
-                sp.qual = qual;
-                sp.qualPos = qualPos;
-                sp.name = name;
-                sp.namePos = namePos;
-                while (kind != Tk.rBrace)
-                {
-                    if (kind == Tk.dotDot)
-                    {
-                        advance();
-                        sp.dots = true;
-                        break;
-                    }
-                    FieldPat fp;
-                    fp.pos = cur.pos;
-                    fp.name = expectIdent();
-                    if (accept(Tk.colon))
-                        fp.sub = parsePattern();
-                    else
-                    {
-                        auto ip = new IdentPat;
-                        ip.pos = fp.pos;
-                        ip.name = fp.name;
-                        ip.forceBind = true;
-                        fp.sub = ip;
-                    }
-                    sp.fields ~= fp;
-                    if (!accept(Tk.comma))
-                        break;
-                }
-                expect(Tk.rBrace);
-                return sp;
-            }
-            if (kind == Tk.lParen)
-            {
-                advance();
-                auto vp = new VariantPat;
-                vp.pos = t.pos;
-                vp.qual = qual;
-                vp.qualPos = qualPos;
-                vp.name = name;
-                vp.namePos = namePos;
-                vp.parens = true;
-                while (true)
-                {
-                    vp.subs ~= parsePattern();
-                    if (accept(Tk.comma))
-                    {
-                        if (kind == Tk.rParen)
-                            break;
-                        continue;
-                    }
-                    break;
-                }
-                expect(Tk.rParen);
-                return vp;
-            }
-            if (qual.length)
-            {
-                auto vp = new VariantPat;
-                vp.pos = t.pos;
-                vp.qual = qual;
-                vp.qualPos = qualPos;
-                vp.name = name;
-                vp.namePos = namePos;
-                return vp;
-            }
-            auto ip = new IdentPat;
-            ip.pos = t.pos;
-            ip.name = name;
-            return ip;
-        }
-        default:
-            err();
-        }
+        import langvm.source : SourceModule, decodeUtf8, splitLines;
+
+        return parseModule(lex(SourceModule("t", splitLines(decodeUtf8(src)))));
     }
+
+    private Pos parseFailure(string src)
+    {
+        try
+            parseSrc(src);
+        catch (CompileError e)
+        {
+            assert(e.kind == Kind.parse);
+            return e.pos;
+        }
+        assert(false, "expected a parse error");
+    }
+}
+
+unittest
+{
+    auto items = parseSrc(`
+        use util as u;
+        pub struct P<A, B> { a: A, b: [B], }
+        enum E { X, Y(Int, Str), }
+        trait T { fn f(self) -> Int; fn g(self, x: Int) { } }
+        impl<A: T + Eq> T for [A] { fn f(self) -> Int { 1 } }
+        fn main() { let x: Option<Option<Int>> = None; }
+    `);
+    assert(items.length == 6);
+    assert(items[0].kind == IK.use);
+    assert(items[5].kind == IK.fn);
+}
+
+unittest
+{
+    // a `>>` closes two argument lists, but never splits otherwise
+    parseSrc("fn f(x: A<B<C>>) {}");
+    parseSrc("fn f(x: A<B<C<D>>>) {}");
+    assert(parseFailure("fn f(x: A<B>>) {}") == Pos(1, 12));
+    assert(parseFailure("fn f(x: [A<B>>]) {}").line == 1);
+}
+
+unittest
+{
+    // comparison is non-associative; an if statement continues as a call
+    assert(parseFailure("fn f() { a < b < c; }") == Pos(1, 16));
+    parseSrc("fn f() { if c { 1 } else { 2 } (1, 2); }");
+    assert(parseFailure("fn f() { | | 8 }") == Pos(1, 12));
+    assert(parseFailure("fn f(") == Pos(1, 6));
 }

@@ -1,46 +1,71 @@
-/// The in-memory document tree shared by the decoder and the encoder.
+/**
+ * The in-memory document model shared by the decoder, the encoder and the
+ * tagged-JSON reader/writer.
+ *
+ * A document is a tree of `Node`s. Scalars keep their *canonical text* (see
+ * the `text` field) rather than a native number or date, so that nothing is
+ * lost or altered when a document is converted from one form to another.
+ */
 module toml.node;
 
-import toml.errors : TomlException;
+import std.algorithm.sorting : sort;
+import std.array : array;
 
-/// What a `Node` holds.
-enum Kind : ubyte
+/// Thrown when a document is not valid TOML (or not valid tagged JSON).
+class TomlException : Exception
 {
-    table,         /// a table: string keys mapping to nodes
-    array,         /// an array of nodes
-    string_,       /// a string
-    integer,       /// a 64-bit signed integer
-    float_,        /// a binary64 float
-    boolean,       /// `true` or `false`
-    datetime,      /// offset date-time
-    datetimeLocal, /// local date-time
-    dateLocal,     /// local date
-    timeLocal,     /// local time
+    /// Byte offset in the input at which the problem was detected, or
+    /// `size_t.max` when unknown.
+    size_t offset;
+
+    this(string msg, size_t offset = size_t.max,
+         string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
+    {
+        super(msg, file, line);
+        this.offset = offset;
+    }
 }
 
-/// How a table came into existence. Drives the redefinition rules of TOML.
-enum Origin : ubyte
+/// The three structural kinds of node.
+enum NodeKind
 {
-    implicit, /// created as an intermediate segment of a `[header]`
-    explicit, /// created by a `[header]` line (or is the root)
-    dotted,   /// created as an intermediate segment of a dotted key
-    inline,   /// an inline table literal, or something inside one (closed)
+    table,  /// a mapping from keys to nodes
+    array,  /// an ordered list of nodes
+    scalar, /// a string, number, boolean or date/time
 }
 
-/// The tagged-JSON `"type"` name for each scalar kind.
-immutable string[10] kindNames = [
-    "table", "array", "string", "integer", "float", "bool",
+/// The type of a scalar node. Names match the `toml-test` tagged-JSON tags.
+enum ScalarType
+{
+    string_,       /// `string`
+    integer,       /// `integer`
+    float_,        /// `float`
+    boolean,       /// `bool`
+    datetime,      /// `datetime` (offset date-time)
+    datetimeLocal, /// `datetime-local`
+    dateLocal,     /// `date-local`
+    timeLocal,     /// `time-local`
+}
+
+private immutable string[8] typeNames = [
+    "string", "integer", "float", "bool",
     "datetime", "datetime-local", "date-local", "time-local",
 ];
 
-/// Returns the kind named by a tagged-JSON type string, or `false`.
-bool kindFromName(const(char)[] name, out Kind kind) @safe pure nothrow @nogc
+/// The tagged-JSON name of a scalar type, e.g. `"datetime-local"`.
+string typeName(ScalarType t) @safe pure nothrow @nogc
 {
-    foreach (i; Kind.string_ .. Kind.max + 1)
+    return typeNames[t];
+}
+
+/// Looks up a scalar type by its tagged-JSON name. Returns false if unknown.
+bool typeFromName(const(char)[] name, out ScalarType t) @safe pure nothrow @nogc
+{
+    foreach (i, n; typeNames)
     {
-        if (kindNames[i] == name)
+        if (n == name)
         {
-            kind = cast(Kind) i;
+            t = cast(ScalarType) i;
             return true;
         }
     }
@@ -48,170 +73,101 @@ bool kindFromName(const(char)[] name, out Kind kind) @safe pure nothrow @nogc
 }
 
 /**
- * A node of a TOML document.
+ * A node of a TOML document tree.
  *
- * Scalars keep their canonical text (see the README): the decoded string
- * itself, a decimal integer, a 17-significant-digit float, and so on. Typed
- * accessors (`integer`, `floating`, ...) convert on demand.
+ * Use the `table`, `array` and `scalar` factory functions to create nodes.
  */
 final class Node
 {
-    /// What this node holds.
-    Kind kind;
-    /// For tables: how the table was created.
-    Origin origin;
-    /// For arrays: `true` when created by `[[header]]` lines.
-    bool isTableArray;
-    /// Scalars: the canonical text.
+    /// Which kind of node this is.
+    NodeKind kind;
+
+    // ---- scalar ----------------------------------------------------------
+    /// For scalars: the type.
+    ScalarType scalarType;
+    /// For scalars: the canonical text (the string itself for strings; the
+    /// decimal form for integers; the 17-digit form for floats; ...).
     string text;
-    /// Tables: the members.
-    Node[string] members;
-    /// Arrays: the elements.
+
+    // ---- array -----------------------------------------------------------
+    /// For arrays: the elements, in document order.
     Node[] items;
+    /// For arrays: true when created by `[[header]]` syntax.
+    bool arrayOfTables;
 
-    /// Creates an empty table.
-    static Node newTable(Origin origin = Origin.explicit) pure nothrow
+    // ---- table -----------------------------------------------------------
+    /// For tables: the members.
+    Node[string] entries;
+    /// For tables: opened by a `[header]` or written as an inline table.
+    bool explicit;
+    /// For tables: created by an intermediate segment of a dotted key.
+    bool dotted;
+    /// For tables: written as an inline table (closed to later additions).
+    bool inline;
+
+    private this(NodeKind k) @safe pure nothrow
     {
-        auto n = new Node;
-        n.kind = Kind.table;
-        n.origin = origin;
-        return n;
+        kind = k;
     }
 
-    /// Creates an empty array.
-    static Node newArray(bool isTableArray = false) pure nothrow
+    /// The keys of a table in ascending code point order.
+    string[] sortedKeys() pure
     {
-        auto n = new Node;
-        n.kind = Kind.array;
-        n.isTableArray = isTableArray;
-        return n;
-    }
-
-    /// Creates a scalar node of the given kind with canonical `text`.
-    static Node newScalar(Kind kind, string text) pure nothrow
-    in (kind != Kind.table && kind != Kind.array)
-    {
-        auto n = new Node;
-        n.kind = kind;
-        n.text = text;
-        return n;
-    }
-
-    /// Creates a string node.
-    static Node fromString(string s) pure nothrow
-    {
-        return newScalar(Kind.string_, s);
-    }
-
-    /// Creates an integer node.
-    static Node fromInteger(long v) pure
-    {
-        import std.conv : to;
-
-        return newScalar(Kind.integer, v.to!string);
-    }
-
-    /// Creates a float node (canonical 17-digit text).
-    static Node fromFloat(double v)
-    {
-        import toml.floatfmt : formatFloat;
-
-        return newScalar(Kind.float_, formatFloat(v));
-    }
-
-    /// Creates a boolean node.
-    static Node fromBool(bool v) pure nothrow
-    {
-        return newScalar(Kind.boolean, v ? "true" : "false");
-    }
-
-    /// True for tables.
-    bool isTable() const pure nothrow @nogc => kind == Kind.table;
-    /// True for arrays.
-    bool isArray() const pure nothrow @nogc => kind == Kind.array;
-    /// True for everything that is neither a table nor an array.
-    bool isScalar() const pure nothrow @nogc => kind != Kind.table && kind != Kind.array;
-
-    /// Number of members (tables) or elements (arrays); 0 for scalars.
-    size_t length() const pure nothrow @nogc
-    {
-        if (kind == Kind.table)
-            return members.length;
-        if (kind == Kind.array)
-            return items.length;
-        return 0;
-    }
-
-    /// Looks up a member of a table. Throws if this is not a table or the key is missing.
-    Node opIndex(string key)
-    {
-        enforceKind(Kind.table);
-        if (auto p = key in members)
-            return *p;
-        throw new TomlException("no such key: " ~ key);
-    }
-
-    /// Returns a pointer to a member of a table, or `null`.
-    Node* opBinaryRight(string op : "in")(string key)
-    {
-        return kind == Kind.table ? key in members : null;
-    }
-
-    /// Element `i` of an array.
-    Node opIndex(size_t i)
-    {
-        enforceKind(Kind.array);
-        if (i >= items.length)
-            throw new TomlException("array index out of range");
-        return items[i];
-    }
-
-    /// The text of a string node.
-    string str() const
-    {
-        enforceKind(Kind.string_);
-        return text;
-    }
-
-    /// The value of an integer node.
-    long integer() const
-    {
-        import std.conv : to;
-
-        enforceKind(Kind.integer);
-        return text.to!long;
-    }
-
-    /// The value of a float node.
-    double floating() const
-    {
-        import toml.floatfmt : parseFloatText;
-
-        enforceKind(Kind.float_);
-        return parseFloatText(text);
-    }
-
-    /// The value of a boolean node.
-    bool boolean() const
-    {
-        enforceKind(Kind.boolean);
-        return text == "true";
-    }
-
-    /// Table keys in ascending (code point) order.
-    string[] sortedKeys() const
-    {
-        import std.algorithm.sorting : sort;
-
-        enforceKind(Kind.table);
-        auto ks = members.keys;
+        auto ks = entries.keys;
         ks.sort();
         return ks;
     }
 
-    private void enforceKind(Kind k) const
+    /// True when this is a table.
+    bool isTable() const @safe pure nothrow @nogc { return kind == NodeKind.table; }
+    /// True when this is an array.
+    bool isArray() const @safe pure nothrow @nogc { return kind == NodeKind.array; }
+    /// True when this is a scalar.
+    bool isScalar() const @safe pure nothrow @nogc { return kind == NodeKind.scalar; }
+
+    /// Member lookup on a table; returns null when absent.
+    Node opIndex(string key) pure
     {
-        if (kind != k)
-            throw new TomlException("node is a " ~ kindNames[kind] ~ ", expected " ~ kindNames[k]);
+        assert(kind == NodeKind.table);
+        auto p = key in entries;
+        return p ? *p : null;
     }
+}
+
+/// Creates an empty table node.
+Node table() @safe pure nothrow
+{
+    return new Node(NodeKind.table);
+}
+
+/// Creates an array node holding `items`.
+Node array(Node[] items = null) @safe pure nothrow
+{
+    auto n = new Node(NodeKind.array);
+    n.items = items;
+    return n;
+}
+
+/// Creates a scalar node of type `t` with canonical text `text`.
+Node scalar(ScalarType t, string text) @safe pure nothrow
+{
+    auto n = new Node(NodeKind.scalar);
+    n.scalarType = t;
+    n.text = text;
+    return n;
+}
+
+unittest
+{
+    auto t = table();
+    t.entries["b"] = scalar(ScalarType.integer, "1");
+    t.entries["a"] = scalar(ScalarType.string_, "x");
+    t.entries["é"] = array();
+    assert(t.sortedKeys == ["a", "b", "é"]);
+    assert(t["a"].text == "x");
+    assert(t["zzz"] is null);
+    ScalarType ty;
+    assert(typeFromName("datetime-local", ty) && ty == ScalarType.datetimeLocal);
+    assert(!typeFromName("nope", ty));
+    assert(typeName(ScalarType.boolean) == "bool");
 }

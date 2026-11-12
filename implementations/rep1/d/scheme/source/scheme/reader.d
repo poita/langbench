@@ -1,52 +1,51 @@
-/// Reader: turns program text into datums.
+/**
+ * The reader: text to datums.
+ *
+ * A recursive-descent parser for the lexical syntax in the specification:
+ * integers of any length, booleans, strings with `\"` `\\` `\n` `\t` escapes,
+ * symbols, lists (including dotted pairs), `'x` quotation and `;` comments.
+ */
 module scheme.reader;
 
-import scheme.bignum : BigInt;
-import scheme.numeric : normalize;
-import scheme.symbols;
+import scheme.bignum : BigNum;
+import scheme.numeric : fromBig;
 import scheme.value;
 
-/// A recursive-descent reader over an in-memory source string.
+/// Reads successive datums from a source string.
 struct Reader
 {
     private string src;
     private size_t pos;
-    private SymbolTable syms;
-    private Value[] scratch; // shared element stack for list construction
+    private SymbolTable symbols;
 
-    /// Read datums from `source`, interning symbols in `syms`.
-    this(string source, SymbolTable syms)
+    /// Start reading `source`, interning symbols in `symbols`.
+    this(string source, SymbolTable symbols)
     {
         this.src = source;
-        this.syms = syms;
+        this.symbols = symbols;
     }
 
-    /// Read the next datum into `v`; false at end of input.
-    bool next(out Value v)
+    /// Read the next datum into `datum`; returns false at end of input.
+    bool read(out Value datum)
     {
-        skipSpace();
-        while (pos < src.length && src[pos] == ')') // stray close paren: ignore
-        {
-            ++pos;
-            skipSpace();
-        }
+        skipTrivia();
         if (pos >= src.length)
             return false;
-        v = readDatum();
+        datum = readDatum();
         return true;
     }
 
-    private static bool isSpace(char c)
+    private static bool isSpace(char c) pure nothrow @nogc @safe
     {
         return c == ' ' || c == '\t' || c == '\r' || c == '\n';
     }
 
-    private static bool isDelim(char c)
+    private static bool isDelimiter(char c) pure nothrow @nogc @safe
     {
         return isSpace(c) || c == '(' || c == ')' || c == '\'' || c == '"' || c == ';';
     }
 
-    private void skipSpace()
+    private void skipTrivia()
     {
         while (pos < src.length)
         {
@@ -65,74 +64,72 @@ struct Reader
 
     private Value readDatum()
     {
-        skipSpace();
+        skipTrivia();
         if (pos >= src.length)
-            return Value.nil;
+            throw new SyntaxError("unexpected end of input");
         char c = src[pos];
         switch (c)
         {
         case '(':
             ++pos;
-            return readList();
+            return readListTail();
+        case ')':
+            throw new SyntaxError("unexpected ')'");
         case '\'':
             ++pos;
-            return Value.cons(Value.symbol(Known.quote),
-                    Value.cons(readDatum(), Value.nil));
+            auto quoted = readDatum();
+            return Value.cons(Value.fromSymbol(symbols.quoteSym), Value.cons(quoted, Value.nil()));
         case '"':
-            ++pos;
             return readString();
         default:
             return readAtom();
         }
     }
 
-    private Value readList()
+    private Value readListTail()
     {
-        immutable size_t base = scratch.length;
-        Value tail = Value.nil;
+        Value head = Value.nil();
+        Pair last = null;
         for (;;)
         {
-            skipSpace();
+            skipTrivia();
             if (pos >= src.length)
-                break;
+                throw new SyntaxError("unterminated list");
             char c = src[pos];
             if (c == ')')
             {
                 ++pos;
-                break;
+                return head;
             }
-            if (c == '.' && (pos + 1 >= src.length || isDelim(src[pos + 1])))
+            if (c == '.' && (pos + 1 >= src.length || isDelimiter(src[pos + 1])))
             {
                 ++pos;
-                tail = readDatum();
-                skipSpace();
-                if (pos < src.length && src[pos] == ')')
-                    ++pos;
-                break;
+                if (last is null)
+                    throw new SyntaxError("'.' at start of list");
+                last.cdr = readDatum();
+                skipTrivia();
+                if (pos >= src.length || src[pos] != ')')
+                    throw new SyntaxError("expected ')' after dotted tail");
+                ++pos;
+                return head;
             }
-            Value d = readDatum();
-            scratch ~= d;
+            auto cell = Value.cons(readDatum(), Value.nil());
+            if (last is null)
+                head = cell;
+            else
+                last.cdr = cell;
+            last = cell.pair;
         }
-        Value r = listFrom(scratch[base .. $], tail);
-        scratch.length = base;
-        return r;
     }
 
     private Value readString()
     {
-        size_t start = pos;
-        // fast path: no escapes
-        while (pos < src.length && src[pos] != '"' && src[pos] != '\\')
-            ++pos;
-        if (pos < src.length && src[pos] == '"')
+        ++pos; // opening quote
+        char[] buf;
+        for (;;)
         {
-            string s = src[start .. pos];
-            ++pos;
-            return Value.str(s);
-        }
-        char[] buf = src[start .. pos].dup;
-        while (pos < src.length)
-        {
+            if (pos >= src.length)
+                throw new SyntaxError("unterminated string");
             char c = src[pos++];
             if (c == '"')
                 break;
@@ -141,59 +138,125 @@ struct Reader
                 char e = src[pos++];
                 switch (e)
                 {
-                case 'n': buf ~= '\n'; break;
-                case 't': buf ~= '\t'; break;
-                default: buf ~= e; break;
+                case 'n':
+                    buf ~= '\n';
+                    break;
+                case 't':
+                    buf ~= '\t';
+                    break;
+                default:
+                    buf ~= e; // \" and \\ (and anything else) stand for themselves
+                    break;
                 }
             }
             else
                 buf ~= c;
         }
-        return Value.str(cast(string) buf);
+        return Value.fromString(buf.idup);
     }
 
     private Value readAtom()
     {
         size_t start = pos;
-        while (pos < src.length && !isDelim(src[pos]))
+        while (pos < src.length && !isDelimiter(src[pos]))
             ++pos;
         string tok = src[start .. pos];
         if (tok == "#t")
-            return Value.true_;
+            return Value.fromBool(true);
         if (tok == "#f")
-            return Value.false_;
-        // integer?
-        size_t k = 0;
-        bool neg = false;
-        if (tok[0] == '+' || tok[0] == '-')
-        {
-            neg = tok[0] == '-';
-            k = 1;
-        }
-        if (k < tok.length)
-        {
-            bool digits = true;
-            foreach (ch; tok[k .. $])
-                if (ch < '0' || ch > '9')
-                {
-                    digits = false;
-                    break;
-                }
-            if (digits)
-                return parseInteger(tok[k .. $], neg);
-        }
-        return Value.symbol(syms.intern(tok));
+            return Value.fromBool(false);
+        if (isIntegerToken(tok))
+            return parseInteger(tok);
+        return Value.fromSymbol(symbols.intern(tok));
     }
 
-    private static Value parseInteger(string digits, bool neg)
+    private static bool isIntegerToken(string tok) pure nothrow @nogc @safe
     {
+        size_t i = 0;
+        if (tok[0] == '+' || tok[0] == '-')
+            i = 1;
+        if (i == tok.length)
+            return false;
+        foreach (c; tok[i .. $])
+            if (c < '0' || c > '9')
+                return false;
+        return true;
+    }
+
+    private static Value parseInteger(string tok)
+    {
+        bool neg = tok[0] == '-';
+        string digits = (tok[0] == '+' || neg) ? tok[1 .. $] : tok;
         if (digits.length <= 18)
         {
-            long v = 0;
-            foreach (ch; digits)
-                v = v * 10 + (ch - '0');
-            return Value.fixnum(neg ? -v : v);
+            long n = 0;
+            foreach (c; digits)
+                n = n * 10 + (c - '0');
+            return Value.fromInt(neg ? -n : n);
         }
-        return normalize(BigInt.parseDecimal(digits, neg));
+        return fromBig(BigNum.parse(digits, neg));
     }
+}
+
+version (unittest)
+{
+    import scheme.printer : toWriteString;
+
+    private string roundTrip(string src)
+    {
+        auto syms = new SymbolTable;
+        auto r = Reader(src, syms);
+        Value v;
+        string result;
+        while (r.read(v))
+        {
+            if (result.length)
+                result ~= " ";
+            result ~= toWriteString(v);
+        }
+        return result;
+    }
+}
+
+unittest
+{
+    assert(roundTrip("") == "");
+    assert(roundTrip("  ; just a comment\n") == "");
+    assert(roundTrip("42 -7 +5 007 -0") == "42 -7 5 7 0");
+    assert(roundTrip("+ - ... set! list->string <= a.b 1+ -x") == "+ - ... set! list->string <= a.b 1+ -x");
+    assert(roundTrip("#t #f") == "#t #f");
+    assert(roundTrip("(1 2 . 3)") == "(1 2 . 3)");
+    assert(roundTrip("(1 . (2 . (3 . ())))") == "(1 2 3)");
+    assert(roundTrip("()") == "()");
+    assert(roundTrip("'x") == "(quote x)");
+    assert(roundTrip("''(a b)") == "(quote (quote (a b)))");
+    assert(roundTrip("(a;comment\n b)") == "(a b)");
+    assert(roundTrip("(a'b)") == "(a (quote b))");
+    assert(roundTrip("123456789012345678901234567890") == "123456789012345678901234567890");
+    assert(roundTrip("-123456789012345678901234567890") == "-123456789012345678901234567890");
+    assert(roundTrip("123456789012345678") == "123456789012345678");
+    assert(roundTrip("9223372036854775808") == "9223372036854775808");
+}
+
+unittest
+{
+    auto syms = new SymbolTable;
+    auto r = Reader("\"a\\\"b\\\\c\\nd\\te\nf\"", syms);
+    Value v;
+    assert(r.read(v));
+    assert(v.kind == Kind.string);
+    assert(v.str.s == "a\"b\\c\nd\te\nf");
+    assert(!r.read(v));
+}
+
+unittest
+{
+    auto syms = new SymbolTable;
+    auto r = Reader("foo foo Foo", syms);
+    Value a, b, c;
+    r.read(a);
+    r.read(b);
+    r.read(c);
+    assert(a.sym is b.sym);
+    assert(a.sym !is c.sym);
 }

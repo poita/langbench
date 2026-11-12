@@ -1,32 +1,28 @@
-// Command orderbook reads a stream of order commands on standard input,
-// matches them in a limit order book and prints the resulting events on
-// standard output. See the project README for the protocol.
+// Command orderbook reads limit order book commands from standard input and
+// writes the resulting events to standard output.
+//
+// Usage:
+//
+//	orderbook < commands.txt > events.txt
+//
+// The first input line is the number of commands N; N command lines follow.
+// See the README for the command and event formats.
 package main
 
 import (
 	"fmt"
-	"io"
 	"os"
 
-	"github.com/example/orderbook"
+	"github.com/peteralexander/orderbook/protocol"
 )
 
 func main() {
-	if err := run(os.Stdin, os.Stdout); err != nil {
+	if len(os.Args) > 1 {
+		fmt.Fprintln(os.Stderr, "usage: orderbook < commands > events")
+		os.Exit(2)
+	}
+	if err := protocol.Run(os.Stdin, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "orderbook:", err)
 		os.Exit(1)
 	}
-}
-
-func run(in io.Reader, out io.Writer) error {
-	input, err := io.ReadAll(in)
-	if err != nil {
-		return err
-	}
-	res, err := orderbook.Run(input)
-	if err != nil {
-		return err
-	}
-	_, err = out.Write(res)
-	return err
 }

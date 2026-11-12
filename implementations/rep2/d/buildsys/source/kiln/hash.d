@@ -1,45 +1,43 @@
 /**
- * 64-bit FNV-1a content hashing and its 16-digit hexadecimal form.
+ * 64-bit FNV-1a content hashing.
  */
 module kiln.hash;
 
-/// FNV-1a offset basis.
-enum ulong fnvOffset = 0xcbf29ce484222325UL;
-/// FNV-1a prime.
-enum ulong fnvPrime = 0x100000001b3UL;
-
-/// Hashes a byte string with 64-bit FNV-1a.
+/// The FNV-1a 64-bit hash of `data`.
 ulong fnv1a(const(char)[] data) @safe pure nothrow @nogc
 {
-    ulong h = fnvOffset;
-    foreach (immutable char c; data)
+    ulong h = 0xcbf29ce484222325UL;
+    foreach (b; data)
     {
-        h ^= cast(ubyte) c;
-        h *= fnvPrime;
+        h ^= cast(ubyte) b;
+        h *= 0x100000001b3UL;
     }
     return h;
 }
 
-/// Formats a hash as exactly 16 lowercase hex digits.
-string toHex16(ulong h) @safe pure nothrow
+/// Formats `h` as exactly sixteen lowercase hexadecimal digits.
+string hex16(ulong h) @safe pure nothrow
 {
     static immutable digits = "0123456789abcdef";
-    char[] r = new char[16];
+    char[16] buf;
     foreach_reverse (i; 0 .. 16)
     {
-        r[i] = digits[h & 15];
+        buf[i] = digits[h & 0xf];
         h >>= 4;
     }
-    return (() @trusted => cast(string) r)();
+    return buf[].idup;
 }
 
-/// Parses exactly 16 lowercase hex digits. Returns false for anything else.
+/**
+ * Parses sixteen lowercase hex digits. Returns false (leaving `h` untouched)
+ * for anything else.
+ */
 bool parseHex16(const(char)[] s, out ulong h) @safe pure nothrow @nogc
 {
     if (s.length != 16)
         return false;
     ulong v = 0;
-    foreach (immutable char c; s)
+    foreach (c; s)
     {
         uint d;
         if (c >= '0' && c <= '9')
@@ -52,4 +50,15 @@ bool parseHex16(const(char)[] s, out ulong h) @safe pure nothrow @nogc
     }
     h = v;
     return true;
+}
+
+@safe pure unittest
+{
+    assert(hex16(fnv1a("")) == "cbf29ce484222325");
+    assert(hex16(fnv1a("hello\n")) == "a9bc80cca21f28b3");
+    assert(hex16(fnv1a("abc\n")) == "fc17b183ee074373");
+    ulong h;
+    assert(parseHex16("a9bc80cca21f28b3", h) && h == fnv1a("hello\n"));
+    assert(!parseHex16("A9bc80cca21f28b3", h));
+    assert(!parseHex16("a9bc80cca21f28b", h));
 }

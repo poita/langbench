@@ -1,37 +1,46 @@
-/// Splits template source into text and tag items, and tags into tokens.
+/**
+ * The template lexer.
+ *
+ * A template source is split into $(LREF Item)s: literal text, `{{ }}` print
+ * tags and `{% %}` statement tags.  Comments produce no item.  The contents
+ * of tags are tokenized.  Whitespace control (`{{-`, `-}}`, ...) is applied
+ * here, to the adjacent text items.
+ */
 module sitegen.templating.lexer;
 
+import std.array : Appender;
 import sitegen.templating.errors;
 import sitegen.templating.value : parseDouble;
 
-/// Token categories inside a tag.
+/// The kinds of token inside a tag.
 enum TokKind : ubyte
 {
     name,
     integer,
     floating,
-    str,
+    string_,
     op,
 }
 
-/// One token of a tag.
+/// A token of a tag's content.
 struct Token
 {
     TokKind kind;
-    string text; /// name, operator, or decoded string contents
+    /// The name, operator, or decoded string value.
+    string text;
     long ival;
     double fval;
 }
 
-/// Item categories of a template.
+/// The kinds of top-level item of a template.
 enum ItemKind : ubyte
 {
     text,
     print,
-    stmt,
+    statement,
 }
 
-/// A piece of a template: literal text or a tokenized tag.
+/// A piece of a template: text, or the tokens of one tag.
 struct Item
 {
     ItemKind kind;
@@ -39,268 +48,253 @@ struct Item
     Token[] tokens;
 }
 
-private bool isWs(char c) pure nothrow @safe @nogc
+private bool isWs(char c) pure nothrow @nogc @safe
 {
     return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v';
 }
 
-private bool isNameStart(char c) pure nothrow @safe @nogc
+private bool isNameStart(char c) pure nothrow @nogc @safe
 {
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-private bool isDigit(char c) pure nothrow @safe @nogc
+private bool isDigit(char c) pure nothrow @nogc @safe
 {
     return c >= '0' && c <= '9';
 }
 
-private string trimLeft(string s) pure nothrow @safe @nogc
+private string stripLeadingWs(string s) pure nothrow @nogc @safe
 {
     size_t i = 0;
-    while (i < s.length && isWs(s[i]))
-        ++i;
+    while (i < s.length && isWs(s[i])) i++;
     return s[i .. $];
 }
 
-private string trimRight(string s) pure nothrow @safe @nogc
+private string stripTrailingWs(string s) pure nothrow @nogc @safe
 {
-    size_t n = s.length;
-    while (n > 0 && isWs(s[n - 1]))
-        --n;
-    return s[0 .. n];
+    size_t i = s.length;
+    while (i > 0 && isWs(s[i - 1])) i--;
+    return s[0 .. i];
 }
 
-private bool startsWithAt(string s, size_t i, string lit) pure nothrow @safe @nogc
-{
-    return s.length - i >= lit.length && s[i .. i + lit.length] == lit;
-}
-
-/// Split `src` into items, applying whitespace control. Throws a `syntax`
-/// error for unterminated tags and untokenizable tag content.
-Item[] lexTemplate(string src)
+/**
+ * Splits `src` into items.
+ *
+ * Throws: `TemplateException` of kind `syntax` for an unterminated tag, a
+ * bad token or a bad string escape.
+ */
+Item[] lex(string src)
 {
     Item[] items;
-    size_t pos = 0;
+    const n = src.length;
+    size_t i = 0;
     bool stripNext = false;
-    while (true)
-    {
-        // find the next tag opener
-        size_t found = size_t.max;
-        for (size_t i = pos; i + 1 < src.length; ++i)
-        {
-            if (src[i] != '{')
-                continue;
-            immutable n = src[i + 1];
-            if (n == '{' || n == '%' || n == '#')
-            {
-                found = i;
-                break;
-            }
-        }
-        string text = src[pos .. found == size_t.max ? src.length : found];
-        if (stripNext)
-            text = trimLeft(text);
-        size_t contentStart;
-        bool lstrip = false;
-        if (found != size_t.max)
-        {
-            contentStart = found + 2;
-            if (contentStart < src.length && src[contentStart] == '-')
-            {
-                lstrip = true;
-                ++contentStart;
-            }
-            if (lstrip)
-                text = trimRight(text);
-        }
-        if (text.length)
-            items ~= Item(ItemKind.text, text);
-        if (found == size_t.max)
-            break;
 
-        immutable opener = src[found + 1];
-        stripNext = false;
-        if (opener == '#')
+    while (i < n)
+    {
+        // Find the next tag opener.
+        size_t j = i;
+        while (j + 1 < n && !(src[j] == '{' && (src[j + 1] == '{' || src[j + 1] == '%' || src[j + 1] == '#')))
+            j++;
+        if (j + 1 >= n)
         {
-            size_t end = contentStart;
-            bool ok = false;
-            for (; end + 1 < src.length; ++end)
-                if (src[end] == '#' && src[end + 1] == '}')
-                {
-                    ok = true;
-                    break;
-                }
-            if (!ok)
-                throw syntaxError("unclosed comment");
-            stripNext = end > contentStart && src[end - 1] == '-';
-            pos = end + 2;
+            auto t = src[i .. $];
+            if (stripNext) t = stripLeadingWs(t);
+            if (t.length) items ~= Item(ItemKind.text, t);
+            break;
+        }
+        auto text = src[i .. j];
+        const kindChar = src[j + 1];
+        size_t k = j + 2;
+        const openMinus = k < n && src[k] == '-';
+        if (openMinus) k++;
+        if (stripNext) text = stripLeadingWs(text);
+        if (openMinus) text = stripTrailingWs(text);
+        if (text.length) items ~= Item(ItemKind.text, text);
+
+        if (kindChar == '#')
+        {
+            size_t e = k;
+            while (e + 1 < n && !(src[e] == '#' && src[e + 1] == '}')) e++;
+            if (e + 1 >= n) syntaxError("unclosed comment");
+            stripNext = e > k && src[e - 1] == '-';
+            i = e + 2;
             continue;
         }
-        bool rstrip;
-        size_t after;
-        auto tokens = lexTag(src, contentStart, opener == '{', rstrip, after);
-        items ~= Item(opener == '{' ? ItemKind.print : ItemKind.stmt, null, tokens);
-        stripNext = rstrip;
-        pos = after;
+
+        const isPrint = kindChar == '{';
+        Token[] toks;
+        bool closeMinus = false;
+        bool closed = false;
+        while (true)
+        {
+            while (k < n && isWs(src[k])) k++;
+            if (k >= n) break;
+            // Is this the closer?
+            if (isPrint)
+            {
+                if (src[k] == '}' && k + 1 < n && src[k + 1] == '}')
+                {
+                    k += 2;
+                    closed = true;
+                    break;
+                }
+                if (src[k] == '-' && k + 2 < n && src[k + 1] == '}' && src[k + 2] == '}')
+                {
+                    k += 3;
+                    closeMinus = true;
+                    closed = true;
+                    break;
+                }
+            }
+            else
+            {
+                if (src[k] == '%' && k + 1 < n && src[k + 1] == '}')
+                {
+                    k += 2;
+                    closed = true;
+                    break;
+                }
+                if (src[k] == '-' && k + 2 < n && src[k + 1] == '%' && src[k + 2] == '}')
+                {
+                    k += 3;
+                    closeMinus = true;
+                    closed = true;
+                    break;
+                }
+            }
+            toks ~= lexToken(src, k);
+        }
+        if (!closed) syntaxError("unclosed tag");
+        items ~= Item(isPrint ? ItemKind.print : ItemKind.statement, null, toks);
+        stripNext = closeMinus;
+        i = k;
     }
     return items;
 }
 
-/// Tokenize one tag whose content starts at `start`. Sets `rstrip` when the
-/// closer had a `-` and `after` to the index following the closer.
-private Token[] lexTag(string src, size_t start, bool isPrint, out bool rstrip, out size_t after)
+/// Lexes one token starting at `k` (not whitespace) and advances `k`.
+private Token lexToken(string src, ref size_t k)
 {
-    Token[] toks;
-    size_t i = start;
-    immutable closer = isPrint ? "}}" : "%}";
-    immutable closerDash = isPrint ? "-}}" : "-%}";
-    while (true)
+    const n = src.length;
+    const c = src[k];
+    if (isNameStart(c))
     {
-        while (i < src.length && isWs(src[i]))
-            ++i;
-        if (i >= src.length)
-            throw syntaxError("unclosed tag");
-        if (startsWithAt(src, i, closerDash))
+        const start = k;
+        while (k < n && (isNameStart(src[k]) || isDigit(src[k]))) k++;
+        return Token(TokKind.name, src[start .. k]);
+    }
+    if (isDigit(c))
+    {
+        const start = k;
+        while (k < n && isDigit(src[k])) k++;
+        if (k + 1 < n && src[k] == '.' && isDigit(src[k + 1]))
         {
-            rstrip = true;
-            after = i + 3;
-            return toks;
+            k++;
+            while (k < n && isDigit(src[k])) k++;
+            Token t;
+            t.kind = TokKind.floating;
+            t.text = src[start .. k];
+            t.fval = parseDouble(t.text);
+            return t;
         }
-        if (startsWithAt(src, i, closer))
-        {
-            rstrip = false;
-            after = i + 2;
-            return toks;
-        }
-        immutable c = src[i];
         Token t;
-        if (isNameStart(c))
+        t.kind = TokKind.integer;
+        t.text = src[start .. k];
+        long v = 0;
+        foreach (ch; t.text) v = v * 10 + (ch - '0');
+        t.ival = v;
+        return t;
+    }
+    if (c == '"' || c == '\'')
+    {
+        k++;
+        Appender!string o;
+        while (true)
         {
-            size_t j = i + 1;
-            while (j < src.length && (isNameStart(src[j]) || isDigit(src[j])))
-                ++j;
-            t.kind = TokKind.name;
-            t.text = src[i .. j];
-            i = j;
-        }
-        else if (isDigit(c))
-        {
-            size_t j = i;
-            while (j < src.length && isDigit(src[j]))
-                ++j;
-            if (j + 1 < src.length && src[j] == '.' && isDigit(src[j + 1]))
+            if (k >= n) syntaxError("unterminated string");
+            const ch = src[k];
+            if (ch == c)
             {
-                size_t k = j + 1;
-                while (k < src.length && isDigit(src[k]))
-                    ++k;
-                t.kind = TokKind.floating;
-                t.fval = parseDouble(src[i .. k]);
-                j = k;
+                k++;
+                break;
             }
-            else
+            if (ch == '\\')
             {
-                long v = 0;
-                foreach (ch; src[i .. j])
-                    v = v * 10 + (ch - '0');
-                t.kind = TokKind.integer;
-                t.ival = v;
-            }
-            t.text = src[i .. j];
-            i = j;
-        }
-        else if (c == '"' || c == '\'')
-        {
-            t.kind = TokKind.str;
-            t.text = lexString(src, i);
-        }
-        else
-        {
-            t.kind = TokKind.op;
-            static immutable string[6] two = ["**", "//", "==", "!=", "<=", ">="];
-            string op;
-            foreach (cand; two)
-                if (startsWithAt(src, i, cand))
+                if (k + 1 >= n) syntaxError("unterminated string");
+                const e = src[k + 1];
+                switch (e)
                 {
-                    op = cand;
-                    break;
+                    case '\\': o.put('\\'); break;
+                    case '"': o.put('"'); break;
+                    case '\'': o.put('\''); break;
+                    case 'n': o.put('\n'); break;
+                    case 't': o.put('\t'); break;
+                    default: syntaxError("bad string escape");
                 }
-            if (op is null)
-            {
-                switch (c)
-                {
-                case '~': op = "~"; break;
-                case '+': op = "+"; break;
-                case '-': op = "-"; break;
-                case '*': op = "*"; break;
-                case '/': op = "/"; break;
-                case '%': op = "%"; break;
-                case '<': op = "<"; break;
-                case '>': op = ">"; break;
-                case '(': op = "("; break;
-                case ')': op = ")"; break;
-                case '[': op = "["; break;
-                case ']': op = "]"; break;
-                case ',': op = ","; break;
-                case '|': op = "|"; break;
-                case '.': op = "."; break;
-                case '=': op = "="; break;
-                default:
-                    throw syntaxError("unexpected character in tag");
-                }
+                k += 2;
+                continue;
             }
-            t.text = op;
-            i += op.length;
+            o.put(ch);
+            k++;
         }
-        toks ~= t;
+        return Token(TokKind.string_, o.data);
+    }
+    // Operators: longest match first.
+    if (k + 1 < n)
+    {
+        const two = src[k .. k + 2];
+        switch (two)
+        {
+            case "**", "//", "==", "!=", "<=", ">=":
+                k += 2;
+                return Token(TokKind.op, two);
+            default:
+                break;
+        }
+    }
+    switch (c)
+    {
+        case '~', '+', '-', '*', '/', '%', '<', '>', '(', ')', '[', ']', ',', '|', '.', '=':
+            k++;
+            return Token(TokKind.op, src[k - 1 .. k]);
+        default:
+            syntaxError("unexpected character in tag");
     }
 }
 
-/// Lex the string literal opening at `src[i]`; advances `i` past it.
-private string lexString(string src, ref size_t i)
+unittest
 {
-    immutable quote = src[i];
-    ++i;
-    size_t runStart = i;
-    char[] buf;
-    bool escaped = false;
-    while (true)
+    auto items = lex("a {{ x }} b {%- if y -%} c {# n #} d");
+    assert(items.length == 6);
+    assert(items[0].text == "a ");
+    assert(items[1].kind == ItemKind.print);
+    assert(items[2].text == " b");
+    assert(items[3].kind == ItemKind.statement && items[3].tokens.length == 2);
+    assert(items[4].text == "c ");
+    assert(items[5].text == " d");
+}
+
+unittest
+{
+    auto items = lex(`{{ "a\"b" ~ 'c' }}{{ 1.5 ** 2 }}`);
+    assert(items[0].tokens[0].text == "a\"b");
+    assert(items[0].tokens[1].text == "~");
+    assert(items[1].tokens[0].kind == TokKind.floating);
+    assert(items[1].tokens[1].text == "**");
+}
+
+unittest
+{
+    import std.exception : collectException;
+
+    foreach (bad; ["{{ x", "{# x", "{{ \"a }}", "{{ a $ b }}", "{{ \"\\q\" }}", "{{ x - }}x"])
     {
-        if (i >= src.length)
-            throw syntaxError("unterminated string");
-        immutable c = src[i];
-        if (c == quote)
-            break;
-        if (c != '\\')
-        {
-            ++i;
-            continue;
-        }
-        escaped = true;
-        buf ~= src[runStart .. i];
-        ++i;
-        if (i >= src.length)
-            throw syntaxError("unterminated string");
-        switch (src[i])
-        {
-        case '\\': buf ~= '\\'; break;
-        case '"': buf ~= '"'; break;
-        case '\'': buf ~= '\''; break;
-        case 'n': buf ~= '\n'; break;
-        case 't': buf ~= '\t'; break;
-        default:
-            throw syntaxError("bad string escape");
-        }
-        ++i;
-        runStart = i;
+        auto e = collectException!TemplateException(lex(bad));
+        // "{{ x - }}x" lexes fine (the parser rejects it); the rest are lexical errors.
+        if (bad != "{{ x - }}x")
+            assert(e !is null && e.kind == ErrorKind.syntax, bad);
     }
-    string result;
-    if (escaped)
-    {
-        buf ~= src[runStart .. i];
-        result = buf.idup;
-    }
-    else
-        result = src[runStart .. i];
-    ++i;
-    return result;
+    auto items = lex("{{ x -}}  y");
+    assert(items.length == 2 && items[1].text == "y");
 }

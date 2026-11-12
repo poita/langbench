@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the spreadsheet CLI (release mode, LDC).  Works from any directory.
+# Build the spreadsheet CLI with dub + LDC. Works from any directory.
 set -e
 cd "$(dirname "$0")"
-exec dub build -b release --compiler=ldc2 --config=cli
+exec dub build -b release --compiler=ldc2 --quiet

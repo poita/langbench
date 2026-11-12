@@ -1,33 +1,22 @@
 name "protowire"
-description "Schema-driven Protocol Buffers wire-format codec with a canonical text form"
+description "Protobuf-style wire codec: schema parsing, binary wire format and canonical text form (proto3 semantics)."
 authors "protowire contributors"
+copyright "Copyright © protowire contributors"
 license "MIT"
-copyright "Copyright (c) protowire contributors"
 
-// The command-line tool. First, so it is the default configuration.
+# The default configuration builds the command-line tool.
 configuration "cli" {
     targetType "executable"
     targetName "protowire"
     targetPath "bin"
-    sourcePaths "source" "cli"
+    sourcePaths "source" "app"
     importPaths "source"
-    mainSourceFile "cli/main.d"
+    mainSourceFile "app/main.d"
 }
 
-// The reusable library only (use as a dub dependency).
+# Library only (for use as a dub dependency).
 configuration "library" {
     targetType "library"
-    targetName "protowire"
-    targetPath "bin"
     sourcePaths "source"
-    importPaths "source"
-}
-
-// Unit tests live in tests/, separate from the library sources.
-configuration "unittest" {
-    targetType "library"
-    targetName "protowire-test"
-    targetPath "bin"
-    sourcePaths "source" "tests"
     importPaths "source"
 }

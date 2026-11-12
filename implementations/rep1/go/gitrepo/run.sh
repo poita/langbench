@@ -1,4 +1,3 @@
 #!/bin/sh
-# Run the gitrepo tool: run.sh <input path> <output dir>
-dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/bin/gitrepo" "$@"
+# Run the gitrepo CLI: run.sh <input path> <output dir>
+exec "$(dirname "$0")/bin/gitrepo" "$@"

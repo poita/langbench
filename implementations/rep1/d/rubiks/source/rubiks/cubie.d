@@ -1,223 +1,339 @@
 /**
- * Cubie-level cube representation: where each corner and edge piece is and
- * how it is oriented.
+ * The cubie-level cube model.
  *
- * Positions and pieces share one numbering (a piece's number is the position
- * it occupies when solved):
+ * A `CubieCube` records which corner and edge cubie sits at each position and
+ * how it is twisted or flipped. Cubie moves are *derived* from the facelet
+ * cycles of `rubiks.facelets` at compile time, so the facelet definition in
+ * the specification is the single source of truth.
  *
- * $(UL
- *   $(LI corners 0-7: URF UFL ULB UBR DFR DLF DBL DRB)
- *   $(LI edges 0-3: UR UF UL UB, 4-7: DR DF DL DB, 8-11: FR FL BL BR)
- * )
+ * Conventions
+ * ---
+ * Corner positions and cubies are numbered URF, UFL, ULB, UBR, DFR, DLF, DBL,
+ * DRB (0-7); edges UR, UF, UL, UB, DR, DF, DL, DB, FR, FL, BL, BR (0-11).
+ * `cp[i]` is the corner cubie at corner position `i` and `co[i]` its
+ * orientation: the index (0, 1 or 2, clockwise) of the facelet of position `i`
+ * that shows the cubie's first sticker (the U/D sticker). `ep[i]`/`eo[i]` are
+ * the same for edges, where the first sticker is the one listed first in
+ * `rubiks.facelets` and `eo[i]` is 0 or 1.
  *
- * Corner orientation is the index (0, 1 or 2) within the position's facelet
- * triple of the piece's U/D sticker.  Edge orientation is 0 when the piece's
- * primary sticker (U/D colour, or F/B colour for middle-layer pieces) is on
- * the position's primary facelet.  With these conventions only quarter turns
- * of F and B change edge orientation.
+ * With these conventions U, D, R and L preserve edge orientation, only F and
+ * B quarter turns flip edges, and every quarter turn except U and D twists
+ * corners.
  */
 module rubiks.cubie;
 
-import rubiks.facelet;
-import rubiks.moves;
+import rubiks.facelets;
+import rubiks.move;
 
-/// Positions of the middle-slice ("E slice") edges.
-enum ubyte firstSliceEdge = 8;
-
-/**
- * A cube state as four small arrays.  `cp[i]` / `co[i]` are the piece at
- * corner position `i` and its orientation; `ep` / `eo` likewise for edges.
- * The default value is the solved cube.
- */
+/// A cube described by the placement and orientation of its cubies.
 struct CubieCube
 {
-    ubyte[8] cp = [0, 1, 2, 3, 4, 5, 6, 7];  /// corner piece at each position
-    ubyte[8] co;                             /// corner orientation (0..2)
-    ubyte[12] ep = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]; /// edge piece at each position
-    ubyte[12] eo;                            /// edge orientation (0..1)
+    /// Corner cubie at each corner position.
+    ubyte[8] cp = [0, 1, 2, 3, 4, 5, 6, 7];
+    /// Corner orientation (0..2) at each corner position.
+    ubyte[8] co;
+    /// Edge cubie at each edge position.
+    ubyte[12] ep = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+    /// Edge orientation (0..1) at each edge position.
+    ubyte[12] eo;
 
-    /// Applies a move to this cube (a single 20-element composition).
-    void apply(Move m) pure nothrow @safe @nogc
+    /// The solved cube is the default value.
+    static CubieCube solved() pure nothrow @safe @nogc
     {
-        const mc = &moveCubes[m.id];
-        ubyte[8] ncp = void, nco = void;
-        ubyte[12] nep = void, neo = void;
-        foreach (i; 0 .. 8)
-        {
-            const j = mc.cp[i];
-            ncp[i] = cp[j];
-            nco[i] = cast(ubyte)((co[j] + mc.co[i]) % 3);
-        }
-        foreach (i; 0 .. 12)
-        {
-            const j = mc.ep[i];
-            nep[i] = ep[j];
-            neo[i] = cast(ubyte)(eo[j] ^ mc.eo[i]);
-        }
-        cp = ncp;
-        co = nco;
-        ep = nep;
-        eo = neo;
+        return CubieCube.init;
     }
 
-    /// Applies a sequence of moves, left to right.
-    void apply(const(Move)[] moves) pure nothrow @safe @nogc
-    {
-        foreach (m; moves)
-            apply(m);
-    }
-
-    /// True for the solved cube.
+    /// True if every cubie is in place and correctly oriented.
     bool isSolved() const pure nothrow @safe @nogc
     {
         return this == CubieCube.init;
     }
 
     /**
-     * Whether this state can be reached from the solved cube by legal
-     * moves: pieces form permutations, the orientation sums are 0 mod 3 /
-     * mod 2, and the two permutations have the same parity.
+     * True if this describes a cube reachable by turning faces: both
+     * permutations are valid, the corner twists sum to a multiple of 3, the
+     * edge flips sum to an even number, and the two permutations have the
+     * same parity.
      */
-    bool isSolvable() const pure nothrow @safe @nogc
+    bool isValid() const pure nothrow @safe @nogc
     {
-        if (!isPermutation(cp[]) || !isPermutation(ep[]))
+        static bool parityOf(const(ubyte)[] p, out bool ok)
+        {
+            ulong seen;
+            bool odd;
+            foreach (i, v; p)
+            {
+                if (v >= p.length || (seen >> v) & 1)
+                {
+                    ok = false;
+                    return false;
+                }
+                seen |= 1UL << v;
+                foreach (j; i + 1 .. p.length)
+                    odd ^= p[j] < v;
+            }
+            ok = true;
+            return odd;
+        }
+
+        bool cornersOk, edgesOk;
+        immutable cornerParity = parityOf(cp[], cornersOk);
+        immutable edgeParity = parityOf(ep[], edgesOk);
+        if (!cornersOk || !edgesOk || cornerParity != edgeParity)
             return false;
-        uint ts, fs;
-        foreach (v; co)
+        int twist, flip;
+        foreach (o; co)
         {
-            if (v > 2)
+            if (o > 2)
                 return false;
-            ts += v;
+            twist += o;
         }
-        foreach (v; eo)
+        foreach (o; eo)
         {
-            if (v > 1)
+            if (o > 1)
                 return false;
-            fs += v;
+            flip += o;
         }
-        return ts % 3 == 0 && fs % 2 == 0 && parity(cp[]) == parity(ep[]);
+        return twist % 3 == 0 && flip % 2 == 0;
     }
 
-    /// Converts to the sticker representation.
-    FaceletCube toFacelets() const pure nothrow @safe @nogc
+    /// The state reached by applying `other` (as a move) to this state.
+    CubieCube opBinary(string op : "*")(const ref CubieCube other) const pure nothrow @safe @nogc
     {
-        auto f = FaceletCube.solved();
+        CubieCube r;
+        foreach (i; 0 .. 8)
+        {
+            immutable j = other.cp[i];
+            r.cp[i] = cp[j];
+            r.co[i] = cast(ubyte)((co[j] + other.co[i]) % 3);
+        }
+        foreach (i; 0 .. 12)
+        {
+            immutable j = other.ep[i];
+            r.ep[i] = ep[j];
+            r.eo[i] = cast(ubyte)(eo[j] ^ other.eo[i]);
+        }
+        return r;
+    }
+
+    /// Applies a move in place.
+    void apply(Move m) pure nothrow @safe @nogc
+    {
+        this = this * basicMoves[m.id];
+    }
+
+    /// Applies a sequence of moves in place.
+    void apply(const(Move)[] moves) pure nothrow @safe @nogc
+    {
+        foreach (m; moves)
+            apply(m);
+    }
+
+    /// Returns the sticker colours (face indices) of this cube, one per facelet.
+    ubyte[faceletCount] toFacelets() const pure nothrow @safe @nogc
+    {
+        ubyte[faceletCount] f;
         foreach (i; 0 .. 8)
             foreach (k; 0 .. 3)
-                f.stickers[cornerFacelets[i][(k + co[i]) % 3]] =
-                    cast(Face)(cornerFacelets[cp[i]][k] / 9);
+                f[cornerFacelets[i][(k + co[i]) % 3]] = faceOf(cornerFacelets[cp[i]][k]);
         foreach (i; 0 .. 12)
             foreach (k; 0 .. 2)
-                f.stickers[edgeFacelets[i][(k + eo[i]) % 2]] =
-                    cast(Face)(edgeFacelets[ep[i]][k] / 9);
+                f[edgeFacelets[i][(k + eo[i]) % 2]] = faceOf(edgeFacelets[ep[i]][k]);
+        foreach (face; 0 .. 6)
+            f[face * 9 + 4] = cast(ubyte) face;
         return f;
     }
 
-    /// Converts from stickers; throws if the stickers do not describe a
-    /// physically consistent set of pieces (the result may still be
-    /// unsolvable; see `isSolvable`).
-    static CubieCube fromFacelets(in FaceletCube f) pure @safe
+    /// Cubie-level cube obtained by applying `moves` to a solved cube.
+    static CubieCube fromMoves(const(Move)[] moves) pure nothrow @safe @nogc
     {
         CubieCube c;
-        bool[8] seenC;
-        bool[12] seenE;
-        foreach (i; 0 .. 8)
-        {
-            Face[3] col;
-            foreach (k; 0 .. 3)
-                col[k] = f.stickers[cornerFacelets[i][k]];
-            int k0 = -1;
-            foreach (k; 0 .. 3)
-                if (col[k] == Face.U || col[k] == Face.D)
-                    k0 = k;
-            if (k0 < 0)
-                throw new Exception("corner without U/D sticker");
-            int piece = -1;
-            foreach (j; 0 .. 8)
-                if (col[k0] == cornerFacelets[j][0] / 9
-                    && col[(k0 + 1) % 3] == cornerFacelets[j][1] / 9
-                    && col[(k0 + 2) % 3] == cornerFacelets[j][2] / 9)
-                    piece = j;
-            if (piece < 0 || seenC[piece])
-                throw new Exception("invalid corner");
-            seenC[piece] = true;
-            c.cp[i] = cast(ubyte) piece;
-            c.co[i] = cast(ubyte) k0;
-        }
-        foreach (i; 0 .. 12)
-        {
-            const a = f.stickers[edgeFacelets[i][0]];
-            const b = f.stickers[edgeFacelets[i][1]];
-            int piece = -1, flip;
-            foreach (j; 0 .. 12)
-            {
-                const h0 = edgeFacelets[j][0] / 9;
-                const h1 = edgeFacelets[j][1] / 9;
-                if (a == h0 && b == h1)
-                {
-                    piece = j;
-                    flip = 0;
-                }
-                else if (a == h1 && b == h0)
-                {
-                    piece = j;
-                    flip = 1;
-                }
-            }
-            if (piece < 0 || seenE[piece])
-                throw new Exception("invalid edge");
-            seenE[piece] = true;
-            c.ep[i] = cast(ubyte) piece;
-            c.eo[i] = cast(ubyte) flip;
-        }
+        c.apply(moves);
         return c;
     }
 }
 
-/// True if `p` contains each of `0 .. p.length` exactly once.
-bool isPermutation(const(ubyte)[] p) pure nothrow @safe @nogc
-{
-    uint seen;
-    foreach (v; p)
-    {
-        if (v >= p.length || (seen & (1u << v)))
-            return false;
-        seen |= 1u << v;
-    }
-    return true;
-}
+/// The cubie-level effect of each of the eighteen moves on a solved cube.
+immutable CubieCube[moveCount] basicMoves = deriveBasicMoves();
 
-/// Parity (0 even, 1 odd) of a permutation, by counting inversions.
-uint parity(const(ubyte)[] p) pure nothrow @safe @nogc
+private CubieCube deriveQuarterTurn(Face face) pure nothrow @safe @nogc
 {
-    uint inv;
-    foreach (i; 0 .. p.length)
-        foreach (j; i + 1 .. p.length)
-            if (p[i] > p[j])
-                ++inv;
-    return inv & 1;
-}
-
-private CubieCube[numMoves] buildMoveCubes() pure @safe
-{
-    CubieCube[numMoves] all;
-    foreach (m; 0 .. numMoves)
-    {
-        auto f = FaceletCube.solved();
-        f.apply(Move.fromId(m));
-        all[m] = CubieCube.fromFacelets(f);
-    }
-    return all;
-}
-
-/// The cubie state produced by each of the eighteen moves from the solved
-/// cube, derived from the facelet cycles at compile time.
-immutable CubieCube[numMoves] moveCubes = buildMoveCubes();
-
-/// Returns a solved cube with `moves` applied.
-CubieCube cubeFromMoves(const(Move)[] moves) pure nothrow @safe @nogc
-{
+    immutable ubyte[faceletCount] src = faceletSource(Move(face, 1));
     CubieCube c;
-    c.apply(moves);
+    foreach (i; 0 .. 8)
+    {
+        // Colours now shown on the three facelets of corner position i.
+        ubyte[3] col;
+        foreach (k; 0 .. 3)
+            col[k] = faceOf(src[cornerFacelets[i][k]]);
+        foreach (j; 0 .. 8)
+        {
+            int matches;
+            foreach (k; 0 .. 3)
+                foreach (m; 0 .. 3)
+                    if (col[k] == faceOf(cornerFacelets[j][m]))
+                        ++matches;
+            if (matches != 3)
+                continue;
+            c.cp[i] = cast(ubyte) j;
+            foreach (k; 0 .. 3)
+                if (col[k] == faceOf(cornerFacelets[j][0]))
+                    c.co[i] = cast(ubyte) k;
+        }
+    }
+    foreach (i; 0 .. 12)
+    {
+        ubyte[2] col;
+        foreach (k; 0 .. 2)
+            col[k] = faceOf(src[edgeFacelets[i][k]]);
+        foreach (j; 0 .. 12)
+        {
+            immutable a = faceOf(edgeFacelets[j][0]);
+            immutable b = faceOf(edgeFacelets[j][1]);
+            if ((col[0] == a && col[1] == b) || (col[0] == b && col[1] == a))
+            {
+                c.ep[i] = cast(ubyte) j;
+                c.eo[i] = col[0] == a ? 0 : 1;
+            }
+        }
+    }
     return c;
+}
+
+private CubieCube[moveCount] deriveBasicMoves() pure nothrow @safe @nogc
+{
+    CubieCube[moveCount] r;
+    foreach (face; 0 .. 6)
+    {
+        immutable one = deriveQuarterTurn(cast(Face) face);
+        immutable two = one * one;
+        r[face * 3] = one;
+        r[face * 3 + 1] = two;
+        r[face * 3 + 2] = two * one;
+    }
+    return r;
+}
+
+version (unittest)
+{
+    import std.random : Random, uniform;
+
+    private Move[] randomMoves(ref Random rng, size_t n)
+    {
+        auto r = new Move[n];
+        foreach (ref m; r)
+            m = Move(uniform(0, moveCount, rng));
+        return r;
+    }
+}
+
+unittest
+{
+    // The cubie model agrees with the facelet model on random sequences.
+    auto rng = Random(12345);
+    foreach (_; 0 .. 200)
+    {
+        auto moves = randomMoves(rng, uniform(0, 60, rng));
+        auto facelets = solvedFacelets;
+        foreach (m; moves)
+            applyToFacelets(facelets, m);
+        assert(CubieCube.fromMoves(moves).toFacelets == facelets);
+    }
+}
+
+@safe pure nothrow @nogc unittest
+{
+    assert(CubieCube.solved.isValid);
+    foreach (m; allMoves)
+        assert(basicMoves[m.id].isValid);
+    CubieCube twisted;
+    twisted.co[0] = 1;
+    assert(!twisted.isValid);
+    CubieCube flipped;
+    flipped.eo[3] = 1;
+    assert(!flipped.isValid);
+    CubieCube swapped; // two edges exchanged: parity mismatch
+    swapped.ep[0] = 1;
+    swapped.ep[1] = 0;
+    assert(!swapped.isValid);
+    CubieCube duplicate;
+    duplicate.cp[1] = 0;
+    assert(!duplicate.isValid);
+    assert(CubieCube.solved.isSolved);
+    assert(CubieCube.solved.toFacelets == solvedFacelets);
+    // X applied four times is the identity.
+    foreach (m; allMoves)
+    {
+        auto c = CubieCube.solved;
+        foreach (_; 0 .. 4)
+            c.apply(Move(m.face, 1));
+        assert(c.isSolved);
+        assert(!basicMoves[m.id].isSolved);
+    }
+}
+
+@safe pure unittest
+{
+    // Orientation behaviour: only F and B quarter turns flip edges; U and D
+    // are the only moves that do not twist corners.
+    foreach (m; allMoves)
+    {
+        immutable c = basicMoves[m.id];
+        int flipped, twisted;
+        foreach (e; c.eo)
+            flipped += e;
+        foreach (o; c.co)
+            twisted += o != 0;
+        immutable quarterFB = (m.face == Face.F || m.face == Face.B) && !m.isHalfTurn;
+        assert(flipped == (quarterFB ? 4 : 0));
+        immutable udOrHalf = m.face == Face.U || m.face == Face.D || m.isHalfTurn;
+        assert(twisted == (udOrHalf ? 0 : 4));
+    }
+}
+
+unittest
+{
+    import std.conv : to;
+
+    // Order of move sequences, from the specification's sanity checks.
+    size_t order(string seq)
+    {
+        auto moves = parseMoves(seq);
+        auto c = CubieCube.solved;
+        foreach (n; 1 .. 1000)
+        {
+            c.apply(moves);
+            if (c.isSolved)
+                return n;
+        }
+        return 0;
+    }
+
+    assert(order("R U R' U'") == 6);
+    assert(order("R U") == 105);
+    assert(order("U D") == 4);
+    assert(order("U") == 4);
+}
+
+unittest
+{
+    // The superflip: all corners solved, all edges in place but flipped.
+    auto c = CubieCube.fromMoves(parseMoves("U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2"));
+    assert(c.cp == CubieCube.init.cp && c.co == CubieCube.init.co);
+    assert(c.ep == CubieCube.init.ep);
+    foreach (e; c.eo)
+        assert(e == 1);
+}
+
+unittest
+{
+    // A move followed by its inverse restores the cube.
+    auto rng = Random(7);
+    foreach (_; 0 .. 50)
+    {
+        auto moves = randomMoves(rng, 30);
+        auto c = CubieCube.fromMoves(moves);
+        c.apply(invertMoves(moves));
+        assert(c.isSolved);
+    }
 }

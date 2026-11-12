@@ -1,0 +1,16 @@
+@module main
+fn main() {
+    var i = 0;
+    var acc: [fn() -> Int] = listNew();
+    while i < 3 { let j = i; push(acc, || j * 10); i = i + 1; }
+    for f in acc { emit(showInt(f()) ++ " "); }
+    print("");
+    let xs = [3, 1, 2];
+    let ys = sortBy(xs, |a, b| cmpI(b, a));
+    print(strJoin(listMap(ys, |v| showInt(v)), ""));
+    let t = listFold(xs, "", |s, x| s ++ showInt(x));
+    print(t);
+    print(showInt(listLen(listFilter(xs, |x| x > 1))));
+    print(showBool(listAny(xs, |x| x == 2)) ++ showBool(listAll(xs, |x| x == 2)));
+    print(showInt(listFindIndex(xs, |x| x == 2)));
+}

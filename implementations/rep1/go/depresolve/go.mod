@@ -1,3 +1,3 @@
-module example.com/depresolve
+module depresolve
 
-go 1.27
+go 1.27.1

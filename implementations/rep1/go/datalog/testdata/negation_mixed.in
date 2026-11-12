@@ -1,0 +1,12 @@
+% nodes and links
+node(a). node(b). node(c). node(5). node(-2).
+link(a, b). link(b, 5). link(5, 5).
+reach(X, Y) :- link(X, Y).
+reach(X, Z) :- reach(X, Y), link(Y, Z).
+sink(X) :- node(X), not hasout(X).
+hasout(X) :- link(X, _).
+small(X) :- node(X), X < a.
+?- sink(X).
+?- small(X).
+?- reach(a, X).
+?- reach(X, X).

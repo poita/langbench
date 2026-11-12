@@ -1,64 +1,61 @@
-/// Rendering of the machine state as the textual report.
+/// Rendering of a machine's final state as text.
 module chip8.output;
 
-import chip8.machine : Machine, displayHeight, displayWidth;
+import std.array : appender;
+import std.format : formattedWrite;
 
-private immutable hexDigits = "0123456789abcdef";
+import chip8.display;
+import chip8.machine;
 
-/// Appends `value` as exactly `digits` lowercase hex digits.
-private void putHex(ref char[] buf, uint value, uint digits) @safe pure nothrow
+/// Renders the 32 display rows, each 64 characters (`#` lit, `.` unlit) plus `\n`.
+string renderDisplay(ref const Display d) @safe pure
 {
-    foreach (k; 0 .. digits)
-        buf ~= hexDigits[(value >> (4 * (digits - 1 - k))) & 0xF];
+    auto o = appender!string;
+    o.reserve((Display.width + 1) * Display.height);
+    foreach (y; 0 .. Display.height)
+    {
+        foreach (x; 0 .. Display.width)
+            o.put(d[x, y] ? '#' : '.');
+        o.put('\n');
+    }
+    return o.data;
 }
 
-/// Appends `value` in decimal without padding.
-private void putDecimal(ref char[] buf, uint value) @safe pure nothrow
+/// Renders the `PC=... I=... SP=... DT=... ST=...` line and the `V=...` line.
+string renderRegisters(ref const Machine m) @safe pure
 {
-    char[10] tmp;
-    size_t k = tmp.length;
-    do
+    auto o = appender!string;
+    o.formattedWrite("PC=%04x I=%04x SP=%d DT=%02x ST=%02x\nV=", m.pc, m.i, m.sp, m.dt, m.st);
+    foreach (k, r; m.v)
     {
-        tmp[--k] = cast(char)('0' + value % 10);
-        value /= 10;
+        if (k) o.put(' ');
+        o.formattedWrite("%02x", r);
     }
-    while (value);
-    buf ~= tmp[k .. $];
+    o.put('\n');
+    return o.data;
 }
 
-/++
-    Renders the 32 display rows (`#` lit, `.` unlit) followed by the
-    `PC=... I=... SP=... DT=... ST=...` and `V=...` lines.
-
-    Every line ends in `\n`; the result is exactly 34 lines, built in one buffer.
-+/
-string render(ref const Machine m) @trusted pure nothrow
+/// Renders the full 34-line report: display, then registers.
+string renderState(ref const Machine m) @safe pure
 {
-    char[] buf;
-    buf.reserve(displayHeight * (displayWidth + 1) + 128);
-    foreach (y; 0 .. displayHeight)
-    {
-        immutable row = m.display[y];
-        foreach (x; 0 .. displayWidth)
-            buf ~= ((row >> (displayWidth - 1 - x)) & 1) ? '#' : '.';
-        buf ~= '\n';
-    }
-    buf ~= "PC=";
-    putHex(buf, m.pc, 4);
-    buf ~= " I=";
-    putHex(buf, m.i, 4);
-    buf ~= " SP=";
-    putDecimal(buf, m.sp);
-    buf ~= " DT=";
-    putHex(buf, m.dt, 2);
-    buf ~= " ST=";
-    putHex(buf, m.st, 2);
-    buf ~= "\nV=";
-    foreach (k; 0 .. 16)
-    {
-        if (k) buf ~= ' ';
-        putHex(buf, m.v[k], 2);
-    }
-    buf ~= '\n';
-    return cast(string) buf;
+    return renderDisplay(m.display) ~ renderRegisters(m);
+}
+
+@safe pure unittest
+{
+    auto m = Machine([0x60, 0x01]);
+    m.v[0xF] = 0xab;
+    m.pc = 0x20a;
+    m.i = 0x50;
+    m.sp = 16;
+    m.dt = 7;
+    m.display.toggle(63, 31);
+    const s = renderState(m);
+    import std.algorithm : count;
+    import std.string : splitLines;
+    auto lines = s.splitLines;
+    assert(lines.length == 34 && s[$ - 1] == '\n');
+    assert(lines[31] == "................................................................".dup[0 .. 63] ~ "#");
+    assert(lines[32] == "PC=020a I=0050 SP=16 DT=07 ST=00");
+    assert(lines[33] == "V=00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ab");
 }

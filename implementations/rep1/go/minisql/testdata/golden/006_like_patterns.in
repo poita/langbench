@@ -1,0 +1,25 @@
+
+CREATE TABLE w (s TEXT);
+INSERT INTO w VALUES ('apple'), ('Apple'), ('APPLE'), ('pineapple'), ('apple pie'), ('a'), (''), ('app_le'), ('50%'), (NULL), ('éclair'), ('ÉCLAIR'), ('café');
+SELECT s FROM w WHERE s LIKE 'apple';
+SELECT s FROM w WHERE s LIKE 'app%';
+SELECT s FROM w WHERE s LIKE '%apple';
+SELECT s FROM w WHERE s LIKE '%apple%';
+SELECT s FROM w WHERE s LIKE '%';
+SELECT s FROM w WHERE s LIKE '';
+SELECT s FROM w WHERE s LIKE '_';
+SELECT s FROM w WHERE s LIKE 'a____';
+SELECT s FROM w WHERE s LIKE 'app_le';
+SELECT s FROM w WHERE s LIKE '%\_%';
+SELECT s FROM w WHERE s LIKE '50%';
+SELECT s FROM w WHERE s LIKE '5_%';
+SELECT s FROM w WHERE s LIKE '%PIE';
+SELECT s FROM w WHERE s NOT LIKE '%a%';
+SELECT s FROM w WHERE s LIKE 'é%';
+SELECT s FROM w WHERE s LIKE '%é';
+SELECT s FROM w WHERE s LIKE 'caf_';
+SELECT s FROM w WHERE s LIKE '%%%';
+SELECT s FROM w WHERE s LIKE NULL;
+SELECT s, s LIKE 'a%', s NOT LIKE 'a%' FROM w WHERE s IS NULL OR s = 'a' OR s = 'Apple';
+SELECT 'abc' LIKE 'ABC', 'abc' LIKE 'a_c', 'abc' LIKE 'a%c%', 'abc' LIKE 'b%', 12345 LIKE '12%', 'x' LIKE 'x%x';
+SELECT s FROM w WHERE s LIKE 'a%' AND s NOT LIKE '%e';

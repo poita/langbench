@@ -1,6 +1,6 @@
 .dub/
-bin/
+depresolve
 *.o
 *.a
-*-test-*
+*-test-library
 dub.selections.json

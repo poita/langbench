@@ -1,79 +1,33 @@
 /**
- * The canonical TOML writer: renders a tree as the deterministic document
- * described in SPEC.md §2.2 (pairs first, then sub-tables and arrays of
- * tables, each level in code-point key order).
+ * Canonical TOML serialisation of a document tree.
+ *
+ * The output is deterministic: keys are sorted by code point, plain
+ * key/value pairs come before sub-tables, every table gets an explicit
+ * header, and strings are always basic strings. Decoding the output yields
+ * the original tree.
  */
 module toml.encoder;
 
 import std.array : Appender, appender;
-import toml.node;
+import toml.value;
 
-/// Renders `root` (a table) as canonical TOML. The result ends with `\n`.
-string toToml(Node root)
+/// Serialises `root` (which must be a table) to canonical TOML text.
+string toToml(Node root) @safe
+in (root.kind == Kind.table)
 {
-    if (!root.isTable)
-        throw new TomlException("the root must be a table");
-    auto o = appender!(char[])();
-    writeTable(o, root, "");
-    if (o.data.length == 0)
-        o.put('\n');
-    return cast(string) o.data;
+    auto app = appender!(char[])();
+    writeTable(app, root, "");
+    if (app.data.length == 0)
+        app ~= '\n';
+    return (() @trusted => cast(string) app.data)();
 }
 
-/// Renders a key: bare when possible, otherwise a quoted basic string.
-string renderKey(string k)
+private bool isSubTable(Node n) @safe pure nothrow @nogc
 {
-    bool bare = k.length > 0;
-    foreach (c; k)
-        if (!isBare(c))
-        {
-            bare = false;
-            break;
-        }
-    if (bare)
-        return k;
-    auto o = appender!(char[])();
-    quote(o, k);
-    return cast(string) o.data;
+    return n.kind == Kind.table;
 }
 
-private bool isBare(char c) pure nothrow @safe @nogc
-{
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
-        || c == '_' || c == '-';
-}
-
-private void quote(ref Appender!(char[]) o, string s)
-{
-    static immutable hexd = "0123456789abcdef";
-    o.put('"');
-    size_t run = 0;
-    foreach (i, c; s)
-    {
-        if (c >= 0x20 && c != '"' && c != '\\' && c != 0x7f)
-            continue;
-        o.put(s[run .. i]);
-        run = i + 1;
-        switch (c)
-        {
-        case '"':  o.put(`\"`); break;
-        case '\\': o.put(`\\`); break;
-        case '\b': o.put(`\b`); break;
-        case '\t': o.put(`\t`); break;
-        case '\n': o.put(`\n`); break;
-        case '\f': o.put(`\f`); break;
-        case '\r': o.put(`\r`); break;
-        default:
-            o.put(`\u00`);
-            o.put(hexd[c >> 4]);
-            o.put(hexd[c & 15]);
-        }
-    }
-    o.put(s[run .. $]);
-    o.put('"');
-}
-
-private bool isArrayOfTables(Node n) pure nothrow @safe
+private bool isTableArray(Node n) @safe pure nothrow
 {
     if (n.kind != Kind.array || n.items.length == 0)
         return false;
@@ -83,80 +37,158 @@ private bool isArrayOfTables(Node n) pure nothrow @safe
     return true;
 }
 
-private void writeInline(ref Appender!(char[]) o, Node n)
+private void writeTable(ref Appender!(char[]) app, Node table, string path) @safe
 {
-    final switch (n.kind)
-    {
-    case Kind.table:
-        o.put('{');
-        bool first = true;
-        foreach (k; n.sortedKeys)
-        {
-            if (!first) o.put(", ");
-            first = false;
-            o.put(renderKey(k));
-            o.put(" = ");
-            writeInline(o, n.fields[k]);
-        }
-        o.put('}');
-        break;
-    case Kind.array:
-        o.put('[');
-        foreach (i, e; n.items)
-        {
-            if (i) o.put(", ");
-            writeInline(o, e);
-        }
-        o.put(']');
-        break;
-    case Kind.string:
-        quote(o, n.text);
-        break;
-    case Kind.integer, Kind.float_, Kind.boolean, Kind.datetime,
-         Kind.datetimeLocal, Kind.dateLocal, Kind.timeLocal:
-        o.put(n.text);
-        break;
-    }
-}
-
-private void writeTable(ref Appender!(char[]) o, Node t, string path)
-{
-    auto keys = t.sortedKeys;
+    auto keys = table.sortedKeys;
     foreach (k; keys)
     {
-        auto v = t.fields[k];
-        if (v.kind == Kind.table || isArrayOfTables(v))
+        auto v = table.members[k];
+        if (isSubTable(v) || isTableArray(v))
             continue;
-        o.put(renderKey(k));
-        o.put(" = ");
-        writeInline(o, v);
-        o.put('\n');
+        writeKey(app, k);
+        app ~= " = ";
+        writeInline(app, v);
+        app ~= '\n';
     }
     foreach (k; keys)
     {
-        auto v = t.fields[k];
-        immutable sub = path.length ? path ~ "." ~ renderKey(k) : renderKey(k);
-        if (v.kind == Kind.table)
+        auto v = table.members[k];
+        immutable sub = isSubTable(v);
+        if (!sub && !isTableArray(v))
+            continue;
+        auto childPath = path.length ? path ~ "." ~ renderKey(k) : renderKey(k);
+        if (sub)
         {
-            header(o, sub, false);
-            writeTable(o, v, sub);
+            header(app, childPath, false);
+            writeTable(app, v, childPath);
         }
-        else if (isArrayOfTables(v))
+        else
         {
             foreach (e; v.items)
             {
-                header(o, sub, true);
-                writeTable(o, e, sub);
+                header(app, childPath, true);
+                writeTable(app, e, childPath);
             }
         }
     }
 }
 
-private void header(ref Appender!(char[]) o, string path, bool array)
+private void header(ref Appender!(char[]) app, string path, bool isArray) @safe
 {
-    if (o.data.length)
-        o.put('\n');
-    o.put(array ? "[[" : "[");
-    o.put(path);
-    o.put(array ? "]]\n" : "]\n");
+    if (app.data.length != 0)
+        app ~= '\n';
+    app ~= isArray ? "[[" : "[";
+    app ~= path;
+    app ~= isArray ? "]]\n" : "]\n";
+}
+
+private void writeInline(ref Appender!(char[]) app, Node n) @safe
+{
+    switch (n.kind)
+    {
+    case Kind.str:
+        writeBasicString(app, n.text);
+        break;
+    case Kind.array:
+        app ~= '[';
+        foreach (i, e; n.items)
+        {
+            if (i)
+                app ~= ", ";
+            writeInline(app, e);
+        }
+        app ~= ']';
+        break;
+    case Kind.table:
+        app ~= '{';
+        bool first = true;
+        foreach (k; n.sortedKeys)
+        {
+            if (!first)
+                app ~= ", ";
+            first = false;
+            writeKey(app, k);
+            app ~= " = ";
+            writeInline(app, n.members[k]);
+        }
+        app ~= '}';
+        break;
+    default:
+        app ~= n.text;
+    }
+}
+
+private bool isBare(const(char)[] k) @safe pure nothrow @nogc
+{
+    if (k.length == 0)
+        return false;
+    foreach (c; k)
+        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+              || c == '_' || c == '-'))
+            return false;
+    return true;
+}
+
+private void writeKey(ref Appender!(char[]) app, const(char)[] k) @safe
+{
+    if (isBare(k))
+        app ~= k;
+    else
+        writeBasicString(app, k);
+}
+
+private string renderKey(const(char)[] k) @safe
+{
+    if (isBare(k))
+        return k.idup;
+    auto app = appender!(char[])();
+    writeBasicString(app, k);
+    return (() @trusted => cast(string) app.data)();
+}
+
+private void writeBasicString(ref Appender!(char[]) app, const(char)[] s) @safe
+{
+    static immutable hex = "0123456789abcdef";
+    app ~= '"';
+    size_t runStart = 0;
+    foreach (i, c; s)
+    {
+        if (c >= 0x20 && c != '"' && c != '\\' && c != 0x7F)
+            continue;
+        app ~= s[runStart .. i];
+        runStart = i + 1;
+        switch (c)
+        {
+        case '"':  app ~= `\"`; break;
+        case '\\': app ~= `\\`; break;
+        case '\b': app ~= `\b`; break;
+        case '\t': app ~= `\t`; break;
+        case '\n': app ~= `\n`; break;
+        case '\f': app ~= `\f`; break;
+        case '\r': app ~= `\r`; break;
+        default:
+            app ~= `\u00`;
+            app ~= hex[c >> 4];
+            app ~= hex[c & 15];
+        }
+    }
+    app ~= s[runStart .. $];
+    app ~= '"';
+}
+
+unittest
+{
+    import toml.json : fromTaggedJson;
+
+    auto t = fromTaggedJson(`{"db":{"enabled":{"type":"bool","value":"true"},
+        "ports":[{"type":"integer","value":"8001"},{"type":"integer","value":"8002"}]},
+        "dob":{"type":"datetime","value":"1979-05-27T07:32:00-08:00"},
+        "fruit":[{"name":{"type":"string","value":"apple"}},{"name":{"type":"string","value":"banana"}}],
+        "name":{"type":"string","value":"Tom"}}`);
+    assert(toToml(t) ==
+        "dob = 1979-05-27T07:32:00-08:00\nname = \"Tom\"\n\n[db]\nenabled = true\n"
+        ~ "ports = [8001, 8002]\n\n[[fruit]]\nname = \"apple\"\n\n[[fruit]]\nname = \"banana\"\n");
+    assert(toToml(Node.newTable()) == "\n");
+    auto e = fromTaggedJson(`{"a":{"b":{}},"k y":[{},{"type":"integer","value":"1"}],"e":[]}`);
+    assert(toToml(e) == "e = []\n\"k y\" = [{}, 1]\n\n[a]\n\n[a.b]\n");
 }

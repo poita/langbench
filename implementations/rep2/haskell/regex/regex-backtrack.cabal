@@ -1,0 +1,59 @@
+cabal-version:      3.0
+name:               regex-backtrack
+version:            0.1.0.0
+synopsis:           A small backtracking regular-expression engine with capture positions
+description:
+  A from-scratch backtracking matcher for a Perl-flavoured regular-expression
+  subset (literals, classes, escapes, groups, alternation, greedy counted
+  quantifiers, anchors). Matching is leftmost, greedy and ordered-choice, and
+  the first match is reported together with the span of every capture group.
+category:           Text
+license:            MIT
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Text.Regex.Backtrack
+    Text.Regex.Backtrack.Batch
+    Text.Regex.Backtrack.CharSet
+    Text.Regex.Backtrack.Matcher
+    Text.Regex.Backtrack.Parser
+    Text.Regex.Backtrack.Syntax
+  other-modules:
+    Text.Regex.Backtrack.Analysis
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.14 && <5
+    , bytestring  >=0.11 && <0.13
+
+executable regex-backtrack
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts
+  build-depends:
+    , base
+    , bytestring
+    , regex-backtrack
+
+test-suite spec
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Reference
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , hspec        >=2.7
+    , QuickCheck   >=2.13
+    , regex-backtrack

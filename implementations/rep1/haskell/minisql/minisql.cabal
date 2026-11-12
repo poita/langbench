@@ -1,0 +1,72 @@
+cabal-version:      3.0
+name:               minisql
+version:            0.1.0.0
+synopsis:           A small in-memory relational database speaking a subset of SQLite's dialect
+description:
+  minisql executes a script of SQL statements (CREATE TABLE, INSERT, UPDATE,
+  DELETE and SELECT with joins, grouping, aggregates, ordering and limits)
+  against an in-memory database and renders the results of every SELECT.
+  The library exposes the lexer, parser, binder and executor as separate
+  modules; the @minisql@ executable is a thin stdin/stdout wrapper.
+category:           Database
+license:            MIT
+author:             minisql contributors
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC ==9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    MiniSQL
+    MiniSQL.Bound
+    MiniSQL.Database
+    MiniSQL.Error
+    MiniSQL.Eval
+    MiniSQL.Execute
+    MiniSQL.Hash
+    MiniSQL.Lexer
+    MiniSQL.Like
+    MiniSQL.Parser
+    MiniSQL.Select
+    MiniSQL.Syntax
+    MiniSQL.Value
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.18 && <5
+    , containers  >=0.6 && <0.9
+    , text        >=2.0 && <2.2
+
+executable minisql
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+  build-depends:
+    , base
+    , bytestring  >=0.11 && <0.13
+    , minisql
+    , text
+
+test-suite minisql-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    EndToEndSpec
+    LexerParserSpec
+    ValueSpec
+  build-depends:
+    , base
+    , containers
+    , hspec       >=2.10
+    , minisql
+    , QuickCheck  >=2.14
+    , text

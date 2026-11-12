@@ -2,20 +2,18 @@
 //
 // The package is split by responsibility:
 //
-//   - font.go:    the built-in hexadecimal font and memory layout constants.
-//   - display.go: the 64x32 one-bit display stored as 32 row words.
-//   - rng.go:     the 32-bit linear congruential generator behind CXNN.
-//   - machine.go: the machine state and the fetch-decode-execute loop.
-//   - input.go:   parsing of the textual input format (ROM, cycles, key schedule).
-//   - output.go:  rendering of the display and CPU state as text.
+//   - Machine (machine.go, exec.go): the CPU, memory, timers and the
+//     fetch-decode-execute cycle.
+//   - Display (display.go): the 64x32 monochrome frame buffer.
+//   - RNG (rng.go): the specified 32-bit linear congruential generator.
+//   - KeySchedule (keys.go): time-stamped keypad states.
+//   - ParseInput and Output (input.go, output.go): the textual
+//     program format and the textual report of the final machine state.
 //
-// A typical use:
+// The semantics are fixed and fully deterministic: shifts operate on VX in
+// place, FX55/FX65 leave I unchanged, BNNN always uses V0, sprites wrap, the
+// timers tick once every eight cycles, and CXNN draws from a fixed-seed LCG.
 //
-//	m := chip8.New()
-//	if err := m.LoadROM(rom); err != nil { ... }
-//	m.Run(1000, schedule)
-//	os.Stdout.Write(m.Format())
-//
-// All behaviour (shift semantics, sprite wrapping, timer rate, RNG) is the
-// fixed variant described in the project's SPEC.md.
+// Every cycle the opcode is fetched from memory and decoded afresh, so
+// self-modifying programs behave as expected.
 package chip8

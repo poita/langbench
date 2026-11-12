@@ -1,14 +1,15 @@
 // Command chip8 reads a ROM, a cycle budget and an optional key schedule from
-// stdin, runs the CHIP-8 interpreter for exactly that many cycles and prints
-// the display and CPU state to stdout.
+// standard input, runs the CHIP-8 machine for that many cycles and prints the
+// display and CPU state to standard output.
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 
-	"github.com/example/chip8"
+	"github.com/peter/chip8"
 )
 
 func main() {
@@ -23,15 +24,17 @@ func run(in io.Reader, out io.Writer) error {
 	if err != nil {
 		return err
 	}
-	prog, err := chip8.ParseInput(data)
+	prog, err := chip8.ParseInput(string(data))
 	if err != nil {
 		return err
 	}
-	m := chip8.New()
-	if err := m.LoadROM(prog.ROM); err != nil {
+	m, err := prog.Execute()
+	if err != nil {
 		return err
 	}
-	m.Run(prog.Cycles, prog.Schedule)
-	_, err = out.Write(m.Format())
-	return err
+	w := bufio.NewWriter(out)
+	if _, err := w.WriteString(m.Report()); err != nil {
+		return err
+	}
+	return w.Flush()
 }

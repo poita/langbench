@@ -1,13 +1,15 @@
-// Package cards defines the typed card model of Spiremark and reads and
+// Package cards defines the typed card model of Spiremark, and reads and
 // validates card databases written as s-expressions.
 //
-// A database is parsed once into a tree of small structs whose operands are
-// already converted (integers, enums, interned tag ids, resolved card
-// pointers), so the engine never compares strings while a match runs.
+// A Database is parsed once into trees of Effect, Selector, Filter, Amount,
+// Cond and Static values which the engine package interprets directly;
+// nothing is re-parsed while a game runs.
 package cards
 
+import "github.com/spiremark/cardgame/sexpr"
+
 // Type is a card type.
-type Type uint8
+type Type int
 
 // Card types.
 const (
@@ -21,9 +23,9 @@ var typeNames = [...]string{"unit", "rite", "relic"}
 func (t Type) String() string { return typeNames[t] }
 
 // Keyword identifies one of the sixteen keywords.
-type Keyword uint8
+type Keyword int
 
-// Keywords.
+// Keywords, in no particular order.
 const (
 	Vanguard Keyword = iota
 	Vigil
@@ -41,7 +43,7 @@ const (
 	Shackled
 	Relentless
 	Swift
-	NumKeywords
+	numKeywords
 )
 
 var keywordNames = [...]string{
@@ -52,7 +54,7 @@ var keywordNames = [...]string{
 
 func (k Keyword) String() string { return keywordNames[k] }
 
-// KeywordByName looks a keyword up by its source spelling.
+// KeywordByName looks a keyword up by its printed name.
 func KeywordByName(s string) (Keyword, bool) {
 	for i, n := range keywordNames {
 		if n == s {
@@ -62,22 +64,22 @@ func KeywordByName(s string) (Keyword, bool) {
 	return 0, false
 }
 
-// KwInst is one keyword instance; N is the value of a plating instance.
-type KwInst struct {
+// KW is one keyword instance. N is meaningful only for Plating.
+type KW struct {
 	K Keyword
 	N int
 }
 
-// String renders the instance: the keyword name, or plating:N.
-func (k KwInst) String() string {
+// String renders the keyword as in CARD output: "plating:N" or the name.
+func (k KW) String() string {
 	if k.K == Plating {
-		return "plating:" + itoa(int64(k.N))
+		return "plating:" + itoa(k.N)
 	}
 	return k.K.String()
 }
 
 // Cmp is a comparator.
-type Cmp uint8
+type Cmp int
 
 // Comparators.
 const (
@@ -91,8 +93,8 @@ const (
 
 var cmpNames = [...]string{"le", "lt", "eq", "ge", "gt", "ne"}
 
-// Test applies the comparator to l and r.
-func (c Cmp) Test(l, r int64) bool {
+// Test applies the comparator: l <cmp> r.
+func (c Cmp) Test(l, r int) bool {
 	switch c {
 	case Le:
 		return l <= r
@@ -108,8 +110,8 @@ func (c Cmp) Test(l, r int64) bool {
 	return l != r
 }
 
-// Scope restricts a selector by controller or owner.
-type Scope uint8
+// Scope restricts a selector to one side of the table.
+type Scope int
 
 // Scopes.
 const (
@@ -118,21 +120,315 @@ const (
 	All
 )
 
-// Zone names a private zone usable in a (cards ...) selector.
-type Zone uint8
+// CardZone is a zone a (cards ...) selector can name.
+type CardZone int
 
-// Zones.
+// Zones usable in (cards <zone> ...).
 const (
-	ZoneHand Zone = iota
-	ZoneAsh
-	ZoneVault
-	ZoneRift
+	ZHand CardZone = iota
+	ZAsh
+	ZVault
+	ZRift
 )
 
-// Event is a triggered-ability event.
-type Event uint8
+// FilterKind enumerates the filter forms of SPEC section 6.5.
+type FilterKind int
 
-// Events.
+// Filter kinds.
+const (
+	FKw FilterKind = iota
+	FNoKw
+	FTag
+	FType
+	FCost
+	FEdge
+	FCore
+	FWounded
+	FReady
+	FExhausted
+	FSettling
+	FAttacking
+	FBlocking
+	FMine
+	FEnemy
+	FOther
+	FNot
+)
+
+// Filter is one predicate of a selector or target specification.
+type Filter struct {
+	Kind FilterKind
+	KW   Keyword
+	Tag  string
+	Type Type
+	Cmp  Cmp
+	N    int
+	Not  *Filter
+}
+
+// SelKind enumerates selector forms.
+type SelKind int
+
+// Selector kinds.
+const (
+	SelSelf SelKind = iota
+	SelIt
+	SelThat
+	SelTarget
+	SelUnits
+	SelRelics
+	SelCards
+	SelRandomUnit
+)
+
+// Selector denotes zero or more objects.
+type Selector struct {
+	Kind    SelKind
+	N       int // target number for SelTarget (1-based)
+	Scope   Scope
+	Zone    CardZone
+	Filters []Filter
+}
+
+// PSelKind enumerates player-selector forms.
+type PSelKind int
+
+// Player selector kinds.
+const (
+	PYou PSelKind = iota
+	PFoe
+	PBoth
+	PTarget
+	POwnerOf
+)
+
+// PlayerSel denotes zero, one or two players.
+type PlayerSel struct {
+	Kind PSelKind
+	N    int       // target number for PTarget
+	Sel  *Selector // for POwnerOf
+}
+
+// DSel is the second argument of damage: a player selector or an object
+// selector (or, for (t n), whichever the target is).
+type DSel struct {
+	Player *PlayerSel
+	Obj    *Selector
+}
+
+// AmtKind enumerates amount forms.
+type AmtKind int
+
+// Amount kinds.
+const (
+	AConst AmtKind = iota
+	ACount
+	AHand
+	AAsh
+	AVault
+	AEdge
+	ACore
+	AWounds
+)
+
+// Amount evaluates to a signed integer.
+type Amount struct {
+	Kind AmtKind
+	N    int
+	Sel  *Selector
+	PSel *PlayerSel
+}
+
+// CondKind enumerates condition forms.
+type CondKind int
+
+// Condition kinds.
+const (
+	CCount CondKind = iota
+	CSpire
+	CHand
+	CAsh
+	CVault
+	CEmber
+	CMyTurn
+	CAnd
+	COr
+	CNot
+)
+
+// Cond is a boolean condition.
+type Cond struct {
+	Kind CondKind
+	Cmp  Cmp
+	N    int
+	Sel  *Selector
+	PSel *PlayerSel
+	Subs []*Cond
+}
+
+// Op identifies an effect form.
+type Op int
+
+// Effect operations.
+const (
+	OpDamage Op = iota
+	OpDestroy
+	OpSacrifice
+	OpExile
+	OpBounce
+	OpDraw
+	OpDiscard
+	OpMill
+	OpSpire
+	OpEmber
+	OpCap
+	OpModify
+	OpSetbody
+	OpSwapstats
+	OpGrant
+	OpStrip
+	OpControl
+	OpCounters
+	OpReady
+	OpExhaust
+	OpDoom
+	OpWard
+	OpShield
+	OpSummon
+	OpConjure
+	OpReanimate
+	OpRecall
+	OpNegate
+	OpDig
+	OpDelay
+	OpIf
+	OpEach
+	OpRepeat
+	OpNothing
+)
+
+// When is the timing of a delayed trigger.
+type When int
+
+// Delay timings.
+const (
+	TurnEnd When = iota
+	EndOfCombat
+	YourNextTurnStart
+)
+
+var whenNames = [...]string{"turn-end", "end-of-combat", "your-next-turn-start"}
+
+func (w When) String() string { return whenNames[w] }
+
+// Effect is one node of an effect tree. Which fields are used depends on Op.
+type Effect struct {
+	Op      Op
+	A1, A2  *Amount
+	Sel     *Selector
+	PSel    *PlayerSel
+	DSel    *DSel
+	KW      KW
+	CardID  string
+	K       int      // dig: number of cards
+	Filters []Filter // dig: filters
+	When    When
+	Cond    *Cond
+	Body    []*Effect
+	Else    []*Effect
+	HasElse bool
+	Node    sexpr.Node // original form, for canonical printing
+}
+
+// StaticKind enumerates aura statics.
+type StaticKind int
+
+// Static kinds.
+const (
+	StModify StaticKind = iota
+	StSetbody
+	StSwap
+	StGrant
+	StCheaper
+	StWhen
+)
+
+// CardFilter is a filter on a card about to be played (printed values).
+type CardFilter struct {
+	Kind FilterKind // FType, FTag or FCost
+	Type Type
+	Tag  string
+	Cmp  Cmp
+	N    int
+}
+
+// Static is one continuous effect of an aura.
+type Static struct {
+	Kind        StaticKind
+	A1, A2      *Amount
+	Sel         *Selector
+	KW          KW
+	N           int
+	CardFilters []CardFilter
+	Cond        *Cond
+	Body        []*Static
+	Node        sexpr.Node
+}
+
+// CostKind enumerates activated-ability cost items.
+type CostKind int
+
+// Cost item kinds.
+const (
+	CostEmber CostKind = iota
+	CostSpire
+	CostDiscard
+	CostExhaust
+	CostSacself
+	CostCounters
+	CostOnce
+)
+
+// CostItem is one payment of an activated ability.
+type CostItem struct {
+	Kind CostKind
+	N    int
+}
+
+// TSKind enumerates target-specification forms.
+type TSKind int
+
+// Target specification kinds.
+const (
+	TSUnit TSKind = iota
+	TSRelic
+	TSAny
+	TSPlayer
+	TSChained
+	TSAshcard
+)
+
+// TargetSpec says what one target of an ability may be.
+type TargetSpec struct {
+	Kind    TSKind
+	Filters []Filter
+}
+
+// AbilityKind says which clause an ability came from.
+type AbilityKind int
+
+// Ability kinds.
+const (
+	AbResolve AbilityKind = iota
+	AbOn
+	AbAct
+	AbAura
+)
+
+// Event is a trigger event.
+type Event int
+
+// Trigger events.
 const (
 	EvArrive Event = iota
 	EvLeave
@@ -157,7 +453,6 @@ const (
 	EvSpireLoss
 	EvEnemySpireLoss
 	EvEndOfCombat
-	NumEvents
 )
 
 var eventNames = [...]string{
@@ -170,375 +465,76 @@ var eventNames = [...]string{
 
 func (e Event) String() string { return eventNames[e] }
 
-// When is the timing of a delayed trigger.
-type When uint8
-
-// Delayed-trigger timings.
-const (
-	TurnEnd When = iota
-	EndOfCombat
-	YourNextTurnStart
-)
-
-var whenNames = [...]string{"turn-end", "end-of-combat", "your-next-turn-start"}
-
-func (w When) String() string { return whenNames[w] }
-
-// SelKind is the form of a selector.
-type SelKind uint8
-
-// Selector forms. The last four are player selectors; SelT can be either.
-const (
-	SelSelf SelKind = iota
-	SelIt
-	SelThat
-	SelT
-	SelUnits
-	SelRelics
-	SelCards
-	SelRandomUnit
-	SelYou
-	SelFoe
-	SelBoth
-	SelOwnerOf
-)
-
-// Sel is an object, player or damage selector.
-type Sel struct {
-	Kind    SelKind
-	N       int // target number for SelT (1-based)
-	Scope   Scope
-	Zone    Zone
-	Filters []Filter
-	Inner   *Sel // operand of SelOwnerOf
-}
-
-// FilterKind is the form of a filter.
-type FilterKind uint8
-
-// Filter forms.
-const (
-	FKw FilterKind = iota
-	FNoKw
-	FTag
-	FType
-	FCost
-	FEdge
-	FCore
-	FWounded
-	FReady
-	FExhausted
-	FSettling
-	FAttacking
-	FBlocking
-	FMine
-	FEnemy
-	FOther
-	FNot
-)
-
-// Filter is one predicate of a selector or target specification.
-type Filter struct {
-	Kind  FilterKind
-	Kw    Keyword
-	Tag   int // interned tag id
-	Type  Type
-	Cmp   Cmp
-	N     int64
-	Inner *Filter
-}
-
-// AmtKind is the form of an amount.
-type AmtKind uint8
-
-// Amount forms.
-const (
-	AmtConst AmtKind = iota
-	AmtCount
-	AmtHand
-	AmtAsh
-	AmtVault
-	AmtEdge
-	AmtCore
-	AmtWounds
-)
-
-// Amount evaluates to a signed integer.
-type Amount struct {
-	Kind AmtKind
-	N    int64
-	Sel  *Sel // object selector, or player selector for hand/ash/vault
-}
-
-// CondKind is the form of a condition.
-type CondKind uint8
-
-// Condition forms.
-const (
-	CondCount CondKind = iota
-	CondSpire
-	CondHand
-	CondAsh
-	CondVault
-	CondEmber
-	CondMyTurn
-	CondAnd
-	CondOr
-	CondNot
-)
-
-// Cond is a boolean condition.
-type Cond struct {
-	Kind CondKind
-	Sel  *Sel
-	Cmp  Cmp
-	N    int64
-	Subs []*Cond
-}
-
-// EffKind is the form of an effect.
-type EffKind uint8
-
-// Effect forms.
-const (
-	EffDamage EffKind = iota
-	EffDestroy
-	EffSacrifice
-	EffExile
-	EffBounce
-	EffDraw
-	EffDiscard
-	EffMill
-	EffSpire
-	EffEmber
-	EffCap
-	EffModify
-	EffSetbody
-	EffSwapstats
-	EffGrant
-	EffStrip
-	EffControl
-	EffCounters
-	EffReady
-	EffExhaust
-	EffDoom
-	EffWard
-	EffShield
-	EffSummon
-	EffConjure
-	EffReanimate
-	EffRecall
-	EffNegate
-	EffDig
-	EffDelay
-	EffIf
-	EffEach
-	EffRepeat
-	EffNothing
-)
-
-// Effect is one node of an effect tree.
-type Effect struct {
-	Kind    EffKind
-	A, B    Amount
-	Sel     *Sel
-	Card    *Card // summon / conjure
-	CardID  string
-	Kw      KwInst
-	When    When
-	Cond    *Cond
-	Body    []*Effect // delay / each / repeat body, or the "then" list of if
-	Else    []*Effect
-	HasElse bool
-	DigK    int64
-	Filters []Filter // dig filters
-}
-
-// StaticKind is the form of an aura static.
-type StaticKind uint8
-
-// Static forms.
-const (
-	StModify StaticKind = iota
-	StSetbody
-	StSwap
-	StGrant
-	StCheaper
-	StWhen
-)
-
-// CardFilter is a filter on the printed characteristics of a card.
-type CardFilter struct {
-	Kind FilterKind // FType, FTag or FCost
-	Type Type
-	Tag  int
-	Cmp  Cmp
-	N    int64
-}
-
-// Static is one continuous-effect form inside an aura clause.
-type Static struct {
-	Kind    StaticKind
-	A, B    Amount
-	Sel     *Sel
-	Kw      KwInst
-	Cheaper int64
-	CardF   []CardFilter
-	Cond    *Cond
-	Subs    []*Static
-}
-
-// Leaf is a non-"when" static together with the conditions of the "when"
-// statements that enclose it.
-type Leaf struct {
-	S     *Static
-	Conds []*Cond
-	Deps  Dep
-}
-
-// Dep is a bit set of game-state categories that an aura leaf reads.
-type Dep uint32
-
-// Dependency bits.
-const (
-	DepWounds Dep = 1 << iota
-	DepReady
-	DepCombat
-	DepTurn
-	DepSpire
-	DepEmber
-	DepZones
-)
-
-// TSKind is the form of a target specification.
-type TSKind uint8
-
-// Target specification forms.
-const (
-	TSUnit TSKind = iota
-	TSRelic
-	TSAny
-	TSPlayer
-	TSChained
-	TSAshcard
-)
-
-// TargetSpec describes one target of an ability.
-type TargetSpec struct {
-	Kind    TSKind
-	Filters []Filter
-}
-
-// CostKind is the form of an activation cost item.
-type CostKind uint8
-
-// Cost item forms.
-const (
-	CostEmber CostKind = iota
-	CostSpire
-	CostDiscard
-	CostExhaust
-	CostSacself
-	CostCounters
-	CostOnce
-)
-
-// CostItem is one activation cost item.
-type CostItem struct {
-	Kind CostKind
-	N    int64
-}
-
-// AbilityKind is the clause an ability came from.
-type AbilityKind uint8
-
-// Ability kinds, in ability-number order.
-const (
-	AbResolve AbilityKind = iota
-	AbOn
-	AbAct
-	AbAura
-)
-
 // Ability is one numbered ability of a card.
 type Ability struct {
+	Index   int // 1-based, per SPEC 5.3
 	Kind    AbilityKind
-	Event   Event
+	Event   Event // AbOn only
 	Targets []TargetSpec
-	Cost    []CostItem
-	Effects []*Effect
-	Leaves  []Leaf
+	Cost    []CostItem // AbAct only
+	Effects []*Effect  // AbResolve, AbOn, AbAct
+	Statics []*Static  // AbAura
 
-	// Canonical renderings used by the CARD directive.
-	TargetsText string // "-" when absent
-	CostText    string
-	BodyText    string // effects or statics, space separated
+	targetsNode *sexpr.Node
+	costNode    *sexpr.Node
+	effectNodes []sexpr.Node // for effects or statics, in order
 }
 
-// Card is one card definition.
+// Card is one entry of a database.
 type Card struct {
 	ID        string
 	Name      string
-	Text      string
 	Type      Type
-	Cost      int64
-	Edge      int64
-	Core      int64
-	Tags      []string // file order
-	TagIDs    []int
-	Keywords  []KwInst // printed keywords, file order
-	KwMask    uint32
-	Abilities []*Ability // ability n is Abilities[n-1]
+	Cost      int
+	Edge      int // printed edge (0 unless a unit)
+	Core      int // printed core (0 unless a unit)
+	Tags      []string
+	Keywords  []KW // printed keywords, in file order
+	Text      string
+	Abilities []*Ability // Abilities[i].Index == i+1
 
-	// ByEvent[e] lists the 1-based numbers of the "on e" abilities.
-	ByEvent [NumEvents][]int
+	keywordMask uint32
 }
 
-// HasTag reports whether the card's tags include the interned tag id.
-func (c *Card) HasTag(id int) bool {
-	for _, t := range c.TagIDs {
-		if t == id {
+// HasPrinted reports whether the card prints keyword k.
+func (c *Card) HasPrinted(k Keyword) bool { return c.keywordMask&(1<<uint(k)) != 0 }
+
+// HasTag reports whether the card has the given tag.
+func (c *Card) HasTag(tag string) bool {
+	for _, t := range c.Tags {
+		if t == tag {
 			return true
 		}
 	}
 	return false
 }
 
-// HasKeyword reports whether the printed keywords include k.
-func (c *Card) HasKeyword(k Keyword) bool { return c.KwMask&(1<<k) != 0 }
-
-// DB is a validated card database.
-type DB struct {
-	cards map[string]*Card
-	order []*Card
-	tags  map[string]int
+// Ability returns the 1-based numbered ability, or nil when out of range.
+func (c *Card) Ability(i int) *Ability {
+	if i < 1 || i > len(c.Abilities) {
+		return nil
+	}
+	return c.Abilities[i-1]
 }
 
-// Card returns the card with the given id, or nil.
-func (db *DB) Card(id string) *Card { return db.cards[id] }
+// Database is an immutable collection of cards.
+type Database struct {
+	byID  map[string]*Card
+	order []*Card
+}
 
-// Cards returns every card in file order.
-func (db *DB) Cards() []*Card { return db.order }
+// Get returns the card with the given id.
+func (d *Database) Get(id string) (*Card, bool) {
+	c, ok := d.byID[id]
+	return c, ok
+}
 
-func itoa(v int64) string {
-	if v == 0 {
-		return "0"
-	}
-	var b [20]byte
-	i := len(b)
-	neg := v < 0
-	u := uint64(v)
-	if neg {
-		u = -u
-	}
-	for u > 0 {
-		i--
-		b[i] = byte('0' + u%10)
-		u /= 10
-	}
-	if neg {
-		i--
-		b[i] = '-'
-	}
-	return string(b[i:])
+// Cards returns the cards in file order.
+func (d *Database) Cards() []*Card { return d.order }
+
+// Len returns the number of cards.
+func (d *Database) Len() int { return len(d.order) }
+
+func itoa(n int) string {
+	return sexpr.Node{Kind: sexpr.Int, Num: int64(n)}.String()
 }

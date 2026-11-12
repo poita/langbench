@@ -1,9 +1,24 @@
+// Package engine implements the Spiremark rules engine: game state, the
+// layer system, the effect interpreter, the Chain, triggers, combat and the
+// inspection views (DUMP, LEGAL, VAULT).
+//
+// A Game is created with New, which performs match setup and runs the engine
+// forward to the first decision point. Player actions are then submitted with
+// Game.Do; each accepted action is processed and the engine again runs
+// forward to the next decision point, so the Game is always either waiting
+// for input or finished. Every rules event is written as one numbered line to
+// the io.Writer given to New (callers should supply a buffered writer).
 package engine
 
-import "cardgame/cards"
+import (
+	"io"
 
-// Player identifies one of the two players: 0 is A and 1 is B.
-type Player uint8
+	"github.com/spiremark/cardgame/cards"
+	"github.com/spiremark/cardgame/prng"
+)
+
+// Player is one of the two players.
+type Player int
 
 // The two players.
 const (
@@ -12,7 +27,7 @@ const (
 )
 
 // Opp returns the opponent.
-func (p Player) Opp() Player { return p ^ 1 }
+func (p Player) Opp() Player { return 1 - p }
 
 func (p Player) String() string {
 	if p == A {
@@ -21,12 +36,13 @@ func (p Player) String() string {
 	return "B"
 }
 
-// Zone is the place an object currently occupies.
-type Zone uint8
+// Zone is where an object currently is.
+type Zone int
 
-// Zones. ZChain holds a card that is the source of a Chain entry.
+// Zones.
 const (
-	ZVault Zone = iota
+	ZNone Zone = iota
+	ZVault
 	ZHand
 	ZField
 	ZAsh
@@ -34,10 +50,32 @@ const (
 	ZChain
 )
 
-var zoneNames = [...]string{"vault", "hand", "field", "ash", "rift", "chain"}
+var zoneNames = [...]string{"none", "vault", "hand", "field", "ash", "rift", "chain"}
 
-// DecisionKind is the kind of input the engine is waiting for.
-type DecisionKind uint8
+func (z Zone) String() string { return zoneNames[z] }
+
+// step identifies the next piece of turn structure the engine will run.
+type step int
+
+const (
+	sDawn step = iota
+	sDraw
+	sMain1
+	sClashAttack
+	sClashBlock
+	sRiposte
+	sDamage
+	sClashEnd
+	sClashEndDone
+	sMain2
+	sDuskTrigger
+	sDuskDiscard
+	sDuskCleanup
+	sAdvance
+)
+
+// DecisionKind says what input the engine is waiting for.
+type DecisionKind int
 
 // Decision kinds.
 const (
@@ -47,206 +85,297 @@ const (
 	DecBlockers
 )
 
-var decisionNames = [...]string{"over", "priority", "attackers", "blockers"}
+var decNames = [...]string{"over", "priority", "attackers", "blockers"}
 
-// Obj is one card instance of the match. Objects live in a dense slice
-// indexed by oid.
-type Obj struct {
-	Card  *cards.Card
-	Owner Player
-	Zone  Zone
-	TS    int    // timestamp of the last entry to the Field, 0 if never
-	Ctrl  Player // base controller on the Field; last controller afterwards
+func (d DecisionKind) String() string { return decNames[d] }
 
-	// Per-Field state (SPEC 7.5).
-	Exhausted    bool
-	Wounds       int
-	Counters     int
-	Ward         int
-	Doomed       bool
-	Since        int
-	Attacking    bool
-	Blocking     bool
-	Blocked      bool
-	Blockers     []int
-	BlockedAtk   int
-	TenacityUsed bool
-	Once         []int // ability numbers used this turn
+// Entry (Chain) kinds.
+type entryKind int
 
-	// Derived characteristics, valid for Field objects after derive().
-	CurCtrl  Player
-	Edge     int
-	Core     int
-	KwMask   uint32
-	Plating  int
-	Stripped bool
-}
-
-func (o *Obj) hasKw(k cards.Keyword) bool { return o.KwMask&(1<<k) != 0 }
-
-// resetField clears the per-Field state when an object leaves or enters.
-func (o *Obj) resetField() {
-	o.Exhausted = false
-	o.Wounds, o.Counters, o.Ward = 0, 0, 0
-	o.Doomed = false
-	o.Attacking, o.Blocking, o.Blocked = false, false, false
-	o.Blockers = o.Blockers[:0]
-	o.BlockedAtk = 0
-	o.TenacityUsed = false
-	o.Once = o.Once[:0]
-}
-
-// RecKind is the kind of a continuous-effect record.
-type RecKind uint8
-
-// Record kinds.
 const (
-	RModify RecKind = iota
-	RSetbody
-	RSwap
-	RGrant
-	RStrip
-	RControl
-	RCheaper
-)
-
-// Eff is one effect carried by a record. Discrete records have exactly one;
-// an aura record has one per leaf static of its clause.
-type Eff struct {
-	Kind     RecKind
-	A, B     int
-	Kw       cards.KwInst
-	Cheaper  int
-	CardF    []cards.CardFilter
-	Active   bool
-	Affected []int
-	leaf     *cards.Leaf
-}
-
-// Record is a continuous-effect record (SPEC 14.1).
-type Record struct {
-	Eid, TS int
-	Ctrl    Player
-	Source  int
-	Aura    bool // aura records belong to a source on the Field; Ctrl is then its current controller
-	Effs    []Eff
-}
-
-// TargetKind distinguishes players, objects and Chain entries.
-type TargetKind uint8
-
-// Target kinds.
-const (
-	TPlayer TargetKind = iota
-	TObject
-	TChain
-)
-
-// Target is one chosen target of an ability.
-type Target struct {
-	Kind    TargetKind
-	ID      int
-	Removed bool
-}
-
-// EntryKind is the kind of a Chain entry.
-type EntryKind uint8
-
-// Chain entry kinds.
-const (
-	EKRite EntryKind = iota
-	EKUnit
-	EKRelic
-	EKAbility
-	EKTrigger
+	entRite entryKind = iota
+	entUnit
+	entRelic
+	entAbility
+	entTrigger
 )
 
 var entryKindNames = [...]string{"rite", "unit", "relic", "ability", "trigger"}
 
-// SubjKind is the kind of a trigger subject.
-type SubjKind uint8
+// Obj is one card instance in the match.
+type Obj struct {
+	OID   int
+	Card  *cards.Card
+	Owner Player
+	zone  Zone
+	ts    int // timestamp of last Field entry, 0 if never
 
-// Subject kinds.
+	// Field state.
+	baseCtrl  Player
+	lastCtrl  Player
+	ready     bool
+	wounds    int
+	counters  int
+	ward      int
+	doomed    bool
+	since     int
+	attacking bool
+	blocking  bool
+	blocked   bool
+	blockers  []*Obj
+	blocks    *Obj
+	tenUsed   bool
+	once      []int
+
+	// Derived (valid for Field objects after derive).
+	ctrl     Player
+	edge     int
+	core     int
+	kwMask   uint32
+	plating  int
+	stripped bool
+}
+
+// ID returns the object's oid.
+func (o *Obj) ID() int { return o.OID }
+
+type tkind int
+
 const (
-	SubjNone SubjKind = iota
-	SubjObj
-	SubjPlayer
+	tNone tkind = iota
+	tPlayer
+	tObj
+	tEntry
 )
 
-// Subject is the `it` of a triggered ability.
-type Subject struct {
-	Kind SubjKind
-	ID   int
+// target is a player, an object or a Chain entry.
+type target struct {
+	kind    tkind
+	p       Player
+	o       *Obj
+	e       *entry
+	removed bool
 }
 
-// Entry is a Chain entry.
-type Entry struct {
-	Cid     int
-	Kind    EntryKind
-	Ctrl    Player
-	Source  int
-	Index   int
-	Targets []Target
-	Specs   []cards.TargetSpec
-	Delayed *Delayed
-	Subj    Subject
+func playerTarget(p Player) target { return target{kind: tPlayer, p: p} }
+func objTarget(o *Obj) target      { return target{kind: tObj, o: o} }
+
+func (t target) key() [3]int {
+	switch t.kind {
+	case tPlayer:
+		return [3]int{0, int(t.p), 0}
+	case tObj:
+		return [3]int{1, t.o.ts, t.o.OID}
+	case tEntry:
+		return [3]int{2, t.e.cid, 0}
+	}
+	return [3]int{3, 0, 0}
 }
 
-// Delayed is a delayed trigger (SPEC 13.5).
-type Delayed struct {
-	TS      int
-	Ctrl    Player
-	Source  int
-	When    cards.When
-	Effects []*cards.Effect
-	Targets []Target
-	Specs   []cards.TargetSpec
+func keyLess(a, b [3]int) bool {
+	for i := 0; i < 3; i++ {
+		if a[i] != b[i] {
+			return a[i] < b[i]
+		}
+	}
+	return false
 }
 
-// Pending is a collected trigger waiting for the next push.
-type Pending struct {
-	Ctrl    Player
-	Source  int
-	TS      int
-	Index   int
-	Subj    Subject
-	Delayed *Delayed
+func (t target) same(u target) bool {
+	if t.kind != u.kind {
+		return false
+	}
+	switch t.kind {
+	case tPlayer:
+		return t.p == u.p
+	case tObj:
+		return t.o == u.o
+	case tEntry:
+		return t.e == u.e
+	}
+	return true
 }
 
-// Step is a turn step.
-type Step uint8
+func (t target) render() string {
+	switch t.kind {
+	case tPlayer:
+		return t.p.String()
+	case tObj:
+		return oidS(t.o)
+	case tEntry:
+		return "~" + itoa(t.e.cid)
+	}
+	return "-"
+}
 
-// Turn steps, in order. Some are internal sub-stages of the clash phase.
+// entry is an item on the Chain.
+type entry struct {
+	cid     int
+	kind    entryKind
+	ctrl    Player
+	src     *Obj
+	idx     int
+	targets []target
+	specs   []cards.TargetSpec
+	it      target
+	effects []*cards.Effect // delayed triggers only
+	onChain bool
+}
+
+type recKind int
+
 const (
-	StDawn Step = iota
-	StDraw
-	StMain1
-	StAttackDecl
-	StAttackRound
-	StBlockDecl
-	StBlockRound
-	StRiposte
-	StDamage
-	StClashEnd
-	StClashCleanup
-	StMain2
-	StDuskTrigger
-	StDuskDiscard
-	StDuskCleanup
+	rModify recKind = iota
+	rSetbody
+	rSwap
+	rGrant
+	rStrip
+	rControl
+	rAura
 )
 
-var stepPhaseNames = [...]string{
-	"dawn", "draw", "main1", "clash-attack", "clash-attack", "clash-block", "clash-block",
-	"clash-riposte", "clash-damage", "clash-end", "clash-end", "main2", "dusk-trigger", "dusk-discard", "dusk-cleanup",
+// auraPart is the evaluated form of one static of an aura record.
+type auraPart struct {
+	kind   cards.StaticKind
+	a, b   int
+	kw     cards.KW
+	n      int
+	cf     []cards.CardFilter
+	active bool
+	objs   []*Obj
+}
+
+// record is a continuous-effect record (SPEC 14.1).
+type record struct {
+	eid      int
+	ts       int
+	ctrl     Player
+	src      *Obj
+	kind     recKind
+	a, b     int
+	kw       cards.KW
+	affected []*Obj
+	ab       *cards.Ability
+	parts    []auraPart
+}
+
+type delayed struct {
+	ts      int
+	ctrl    Player
+	src     *Obj
+	when    cards.When
+	effects []*cards.Effect
+	targets []target
+	specs   []cards.TargetSpec
+}
+
+type pendingTrig struct {
+	ctrl    Player
+	ts, oid int
+	idx     int
+	src     *Obj
+	ab      *cards.Ability
+	it      target
+	delayed *delayed
 }
 
 type playerState struct {
-	Spire  int
-	Ember  int
-	Cap    int
-	Shield int
-	Vault  []int // top first
-	Hand   []int
-	Ash    []int
-	Rift   []int
+	spire, ember, cap, shield int
+	vault, hand, ash, rift    []*Obj
 }
+
+// Config describes a match to set up. The zero value is not valid: Spire,
+// MaxCap, TurnLimit and so on must be filled in (see DefaultConfig).
+type Config struct {
+	Seed      uint64
+	Spire     int
+	Opening   int
+	MaxCap    int
+	HandMax   int
+	TurnLimit int
+	First     Player
+	Shuffle   bool
+	Cap       [2]int
+	Deck      [2][]CardCount
+	Hand      [2][]CardCount
+	Field     [2][]CardCount
+	Ash       [2][]CardCount
+	Rift      [2][]CardCount
+}
+
+// CardCount is a card id with a number of copies.
+type CardCount struct {
+	ID    string
+	Count int
+}
+
+// DefaultConfig returns a Config holding the defaults of SPEC 4.1.
+func DefaultConfig() Config {
+	return Config{Spire: 25, Opening: 5, MaxCap: 10, HandMax: 7, TurnLimit: 200, Shuffle: true}
+}
+
+// Game is a running match.
+type Game struct {
+	cfg Config
+	db  *cards.Database
+	out io.Writer
+	rng *prng.Rand
+	seq int
+
+	pl    [2]playerState
+	byOID []*Obj // index = oid; byOID[0] unused
+	field []*Obj // canonical order (entry order)
+	chain []*entry
+
+	nextCID, nextTS, nextEID int
+
+	records []*record
+	delays  []*delayed
+	pending []*pendingTrig
+
+	turn   int
+	active Player
+	phase  string
+	step   step
+
+	decKind   DecisionKind
+	decPlayer Player
+	passes    int
+	roundNext step
+
+	loss      [2]string
+	over      bool
+	winner    string
+	reason    string
+	finalized bool
+
+	dirty      bool
+	noTriggers bool
+	riposteSet map[*Obj]bool
+	scratch    []byte
+}
+
+// Result describes how a finished match ended.
+type Result struct {
+	Over   bool
+	Winner string // "A", "B" or "draw"
+	Reason string
+}
+
+// Result returns the match result; Over is false while the match runs.
+func (g *Game) Result() Result {
+	return Result{Over: g.over, Winner: g.winner, Reason: g.reason}
+}
+
+// Decision reports who the engine is waiting for and what it expects. After
+// the match ends the kind is DecNone.
+func (g *Game) Decision() (Player, DecisionKind) { return g.decPlayer, g.decKind }
+
+// Turn returns the current turn number.
+func (g *Game) Turn() int { return g.turn }
+
+// Active returns the active player.
+func (g *Game) Active() Player { return g.active }
+
+// Phase returns the name of the current phase or step.
+func (g *Game) Phase() string { return g.phase }

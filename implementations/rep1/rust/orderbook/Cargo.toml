@@ -1,0 +1,18 @@
+[package]
+name = "orderbook"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.70"
+description = "A single-instrument limit order book matching engine with price-time priority"
+license = "MIT"
+readme = "README.md"
+keywords = ["orderbook", "matching-engine", "trading"]
+categories = ["algorithms", "finance"]
+
+[lib]
+name = "orderbook"
+path = "src/lib.rs"
+
+[[bin]]
+name = "orderbook"
+path = "src/main.rs"

@@ -1,22 +1,25 @@
 /**
- * Arbitrary-precision signed integers using base-10^9 limbs.
+ * Arbitrary-precision integer arithmetic.
  *
- * Import this module to get everything:
+ * Import `bigint` to get everything:
  * ---
  * import bigint;
+ *
  * auto x = BigInt("123456789012345678901234567890");
- * writeln(x * x + 1);
+ * auto y = x * x - BigInt(1);
+ * writeln(y / x, " rem ", y % x);
  * ---
  *
  * Modules:
  * $(UL
- *   $(LI `bigint.limbs`   – low-level magnitude (unsigned) algorithms)
- *   $(LI `bigint.integer` – the signed `BigInt` type)
- *   $(LI `bigint.queries` – the line-oriented query evaluator used by the CLI)
+ *   $(LI `bigint.bigint`: the signed `BigInt` type and `divMod`/`pow`.)
+ *   $(LI `bigint.natural`: unsigned limb-array algorithms (add, sub, mul, Knuth division, pow).)
+ *   $(LI `bigint.decimal`: linear-time decimal parsing and printing.)
+ *   $(LI `bigint.query`: the `<a> <op> <b>` query evaluator used by the CLI.)
  * )
  */
 module bigint;
 
-public import bigint.limbs;
-public import bigint.integer;
-public import bigint.queries;
+public import bigint.bigint;
+public import bigint.decimal : ParseException;
+public import bigint.query : evaluate, evaluateAll;

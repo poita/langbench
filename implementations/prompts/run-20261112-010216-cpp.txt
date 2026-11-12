@@ -1,0 +1,12 @@
+Build a standalone C++ project that implements the specification in <root>/problems/bigint/SPEC.md, using the design in <root>/problems/bigint/APPROACH.md. <root>/CONVENTIONS.md describes the command-line contract and the build.sh and run.sh scripts the project needs.
+
+Put the project in <root>/bigint/. Structure it the way a well-maintained open-source C++ project of this kind would be:
+- a reusable library with a clear, documented public API, split into modules by responsibility;
+- a thin command-line tool on top of the library that implements the I/O contract in SPEC.md;
+- the language's standard build tool and project manifest;
+- a README.md: what it is, how to build it, how to use the CLI, and an example of using the library;
+- automated tests, written the way the language's projects usually are.
+
+Use Apple clang 21.0.0, CMake 4.2.0 and GoogleTest 1.15.2; build it with CMake as a Release build; GoogleTest is installed for tests (find_package(GTest) finds it). Keep the build tool's standard optimisation settings. Use only the standard library, apart from a test framework for the tests. Don't use anything that implements the core of the problem for you; SPEC.md says what that rules out.
+
+It's done when `cd <root> && bigint/build.sh && python3 run_tests.py bigint -- bigint/run.sh` passes every test (-v and --filter help with debugging) and the project's own tests pass. Scratch files can go in <root>/scratch/. If you think the spec or a test is wrong, say so.

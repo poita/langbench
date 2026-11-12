@@ -2,51 +2,49 @@ package tmpl
 
 import "fmt"
 
-// ErrorKind classifies template errors.
-type ErrorKind int
+// Kind classifies a template error.
+type Kind int
 
-// The error kinds.
+// The kinds of error. They are the categories of the language definition.
 const (
-	// SyntaxError: a template cannot be lexed or parsed.
-	SyntaxError ErrorKind = iota + 1
-	// FilterError: a loaded template uses an unknown filter.
-	FilterError
-	// UndefinedError: the undefined value was used.
-	UndefinedError
-	// TemplateError: include/extends names a template that does not exist.
-	TemplateError
-	// TypeError: an operand or argument has the wrong kind.
-	TypeError
+	KindSyntax    Kind = iota + 1 // unlexable or unparsable template
+	KindFilter                    // unknown filter name in a loaded template
+	KindUndefined                 // forbidden use of the undefined value
+	KindTemplate                  // include or extends of a template that does not exist
+	KindType                      // operand or argument of the wrong kind, division by zero, ...
 )
 
-// String returns the short name of the kind: "syntax", "filter", "undefined",
-// "template" or "type".
-func (k ErrorKind) String() string {
+func (k Kind) String() string {
 	switch k {
-	case SyntaxError:
+	case KindSyntax:
 		return "syntax"
-	case FilterError:
+	case KindFilter:
 		return "filter"
-	case UndefinedError:
+	case KindUndefined:
 		return "undefined"
-	case TemplateError:
+	case KindTemplate:
 		return "template"
-	case TypeError:
+	case KindType:
 		return "type"
 	}
 	return "unknown"
 }
 
-// Error is the error type returned by Engine.Render.
+// An Error is the error returned by loading and rendering templates.
 type Error struct {
-	Kind ErrorKind
+	Kind Kind
 	Msg  string
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("tmpl: %s error: %s", e.Kind, e.Msg)
+	if e.Msg == "" {
+		return "template: " + e.Kind.String() + " error"
+	}
+	return fmt.Sprintf("template: %s error: %s", e.Kind, e.Msg)
 }
 
-func fail(kind ErrorKind, format string, args ...any) {
-	panic(&Error{Kind: kind, Msg: fmt.Sprintf(format, args...)})
+// throw aborts the current load or render with an error. The panic is
+// recovered at the API boundary and never escapes the package.
+func throw(k Kind, format string, args ...any) {
+	panic(&Error{Kind: k, Msg: fmt.Sprintf(format, args...)})
 }

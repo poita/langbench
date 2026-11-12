@@ -1,28 +1,22 @@
-name "kvstore"
-description "Tessera: an embedded transactional document store with a WAL, B+tree index and a small command language"
-authors "kvstore authors"
+name "tessera"
+description "Tessera: an embedded, single-file transactional document store with a write-ahead log and B+tree indexes"
+authors "Tessera authors"
 license "MIT"
-copyright "Copyright (c) kvstore authors"
+copyright "Copyright (c) Tessera authors"
+sourcePaths "source"
+importPaths "source"
+targetPath "bin"
 
+// `dub build` produces the command-line tool; dependants of the library use
+// `subConfiguration "tessera" "library"`.
 configuration "cli" {
     targetType "executable"
-    targetName "kvstore"
-    targetPath "bin"
-    sourcePaths "source" "app"
-    importPaths "source"
-    mainSourceFile "app/main.d"
+    targetName "tessera"
+    mainSourceFile "source/app.d"
 }
 
 configuration "library" {
     targetType "library"
     targetName "tessera"
-    sourcePaths "source"
-    importPaths "source"
-}
-
-configuration "unittest" {
-    targetType "library"
-    targetName "tessera-test"
-    sourcePaths "source" "tests"
-    importPaths "source" "."
+    excludedSourceFiles "source/app.d"
 }

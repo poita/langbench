@@ -1,8 +1,6 @@
 /// SHA-1 (FIPS 180-4), implemented from scratch.
 module gitrepo.sha1;
 
-import gitrepo.oid : ObjectId;
-
 /// Incremental SHA-1 hasher.
 struct Sha1
 {
@@ -10,18 +8,17 @@ struct Sha1
     private ubyte[64] buf;
     private size_t bufLen;
     private ulong total;
-    private uint[80] w;
 
-    /// Feed more bytes.
+    /// Feed more bytes into the hash.
     void put(scope const(ubyte)[] data) @safe pure nothrow @nogc
     {
         total += data.length;
-        if (bufLen != 0)
+        if (bufLen > 0)
         {
-            immutable take = data.length < 64 - bufLen ? data.length : 64 - bufLen;
-            buf[bufLen .. bufLen + take] = data[0 .. take];
-            bufLen += take;
-            data = data[take .. $];
+            immutable n = data.length < 64 - bufLen ? data.length : 64 - bufLen;
+            buf[bufLen .. bufLen + n] = data[0 .. n];
+            bufLen += n;
+            data = data[n .. $];
             if (bufLen < 64)
                 return;
             block(buf[]);
@@ -37,74 +34,114 @@ struct Sha1
     }
 
     /// ditto
-    void put(scope const(char)[] s) @trusted pure nothrow @nogc
+    void put(scope const(char)[] text) @trusted pure nothrow @nogc
     {
-        put(cast(const(ubyte)[]) s);
+        put(cast(const(ubyte)[]) text);
     }
 
-    /// Finish and return the 20-byte digest. The hasher must not be reused afterwards.
+    /// Finish and return the 20-byte digest. The hasher must not be reused.
     ubyte[20] finish() @safe pure nothrow @nogc
     {
         immutable ulong bits = total * 8;
-        buf[bufLen++] = 0x80;
-        if (bufLen > 56)
-        {
-            buf[bufLen .. 64] = 0;
-            block(buf[]);
-            bufLen = 0;
-        }
-        buf[bufLen .. 56] = 0;
+        ubyte[72] pad;
+        pad[0] = 0x80;
+        immutable padLen = (bufLen < 56) ? 56 - bufLen : 120 - bufLen;
         foreach (i; 0 .. 8)
-            buf[56 + i] = cast(ubyte)(bits >> (56 - 8 * i));
-        block(buf[]);
+            pad[padLen + i] = cast(ubyte)(bits >> (56 - 8 * i));
+        put(pad[0 .. padLen + 8]);
+        assert(bufLen == 0);
         ubyte[20] digest;
         foreach (i; 0 .. 5)
             foreach (j; 0 .. 4)
-                digest[4 * i + j] = cast(ubyte)(h[i] >> (24 - 8 * j));
+                digest[i * 4 + j] = cast(ubyte)(h[i] >> (24 - 8 * j));
         return digest;
-    }
-
-    private static uint rol(uint x, uint n) @safe pure nothrow @nogc
-    {
-        return (x << n) | (x >> (32 - n));
     }
 
     private void block(scope const(ubyte)[] p) @safe pure nothrow @nogc
     {
-        foreach (t; 0 .. 16)
-            w[t] = (cast(uint) p[4 * t] << 24) | (cast(uint) p[4 * t + 1] << 16)
-                | (cast(uint) p[4 * t + 2] << 8) | p[4 * t + 3];
-        foreach (t; 16 .. 80)
-            w[t] = rol(w[t - 3] ^ w[t - 8] ^ w[t - 14] ^ w[t - 16], 1);
+        uint[80] w = void;
+        foreach (i; 0 .. 16)
+            w[i] = (cast(uint) p[4 * i] << 24) | (cast(uint) p[4 * i + 1] << 16)
+                | (cast(uint) p[4 * i + 2] << 8) | p[4 * i + 3];
+        foreach (i; 16 .. 80)
+        {
+            immutable x = w[i - 3] ^ w[i - 8] ^ w[i - 14] ^ w[i - 16];
+            w[i] = (x << 1) | (x >> 31);
+        }
         uint a = h[0], b = h[1], c = h[2], d = h[3], e = h[4];
-        foreach (t; 0 .. 20)
+        foreach (i; 0 .. 80)
         {
-            immutable tmp = rol(a, 5) + ((b & c) | (~b & d)) + e + 0x5A827999 + w[t];
-            e = d; d = c; c = rol(b, 30); b = a; a = tmp;
+            uint f, k;
+            if (i < 20)
+            {
+                f = (b & c) | (~b & d);
+                k = 0x5A827999;
+            }
+            else if (i < 40)
+            {
+                f = b ^ c ^ d;
+                k = 0x6ED9EBA1;
+            }
+            else if (i < 60)
+            {
+                f = (b & c) | (b & d) | (c & d);
+                k = 0x8F1BBCDC;
+            }
+            else
+            {
+                f = b ^ c ^ d;
+                k = 0xCA62C1D6;
+            }
+            immutable t = ((a << 5) | (a >> 27)) + f + e + k + w[i];
+            e = d;
+            d = c;
+            c = (b << 30) | (b >> 2);
+            b = a;
+            a = t;
         }
-        foreach (t; 20 .. 40)
-        {
-            immutable tmp = rol(a, 5) + (b ^ c ^ d) + e + 0x6ED9EBA1 + w[t];
-            e = d; d = c; c = rol(b, 30); b = a; a = tmp;
-        }
-        foreach (t; 40 .. 60)
-        {
-            immutable tmp = rol(a, 5) + ((b & c) | (b & d) | (c & d)) + e + 0x8F1BBCDC + w[t];
-            e = d; d = c; c = rol(b, 30); b = a; a = tmp;
-        }
-        foreach (t; 60 .. 80)
-        {
-            immutable tmp = rol(a, 5) + (b ^ c ^ d) + e + 0xCA62C1D6 + w[t];
-            e = d; d = c; c = rol(b, 30); b = a; a = tmp;
-        }
-        h[0] += a; h[1] += b; h[2] += c; h[3] += d; h[4] += e;
+        h[0] += a;
+        h[1] += b;
+        h[2] += c;
+        h[3] += d;
+        h[4] += e;
     }
 }
 
-/// SHA-1 of a single buffer.
+/// One-shot SHA-1 of `data`.
 ubyte[20] sha1Of(scope const(ubyte)[] data) @safe pure nothrow @nogc
 {
     Sha1 s;
     s.put(data);
     return s.finish();
+}
+
+unittest
+{
+    import gitrepo.hex : toHex;
+
+    assert(toHex(sha1Of([])) == "da39a3ee5e6b4b0d3255bfef95601890afd80709");
+    assert(toHex(sha1Of(cast(const(ubyte)[]) "abc")) == "a9993e364706816aba3e25717850c26c9cd0d89d");
+    assert(toHex(sha1Of(cast(const(ubyte)[]) "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"))
+            == "84983e441c3bd26ebaae4aa1f95129e5e54670f1");
+    // The id of a blob holding "one file\n" (SPEC.md).
+    assert(toHex(sha1Of(cast(const(ubyte)[]) "blob 9\0one file\n"))
+            == "b7814cae2e925fe74c6cd5816462fff515ccb256");
+}
+
+unittest
+{
+    import gitrepo.hex : toHex;
+
+    // One million 'a', fed in awkward chunk sizes.
+    Sha1 s;
+    auto chunk = new ubyte[](997);
+    chunk[] = 'a';
+    size_t left = 1_000_000;
+    while (left)
+    {
+        immutable n = left < chunk.length ? left : chunk.length;
+        s.put(chunk[0 .. n]);
+        left -= n;
+    }
+    assert(toHex(s.finish()) == "34aa973cd4c4daa4f61eeb2bdbad27316534016f");
 }

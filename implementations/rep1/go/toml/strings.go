@@ -1,263 +1,244 @@
 package toml
 
-import "unicode/utf8"
+import (
+	"strings"
+	"unicode/utf8"
+)
 
-// forbidden reports whether c may not appear unescaped in a string or
-// comment: C0 controls other than tab, and DEL.
-func forbidden(c byte) bool { return (c < 0x20 && c != '\t') || c == 0x7f }
+// The scanners below are entered just after the opening delimiter and
+// return the decoded string, having consumed the closing delimiter.
 
-// basicString parses a single-line "basic string"; the cursor is on the
-// opening quote.
-func (p *parser) basicString() string {
-	src := p.src
-	p.pos++
-	start := p.pos
-	var buf []byte
-	escaped := false
-	for {
-		if p.pos >= len(src) {
-			p.fail("unterminated string")
-		}
-		switch c := src[p.pos]; {
-		case c == '"':
-			var s string
-			if escaped {
-				buf = append(buf, src[start:p.pos]...)
-				p.scratch = buf[:0]
-				s = string(buf)
-			} else {
-				s = string(src[start:p.pos])
-			}
-			p.pos++
-			return s
-		case c == '\\':
-			if !escaped {
-				escaped = true
-				buf = p.scratch[:0]
-			}
-			buf = append(buf, src[start:p.pos]...)
-			p.pos++
-			buf = p.escape(buf)
-			start = p.pos
-		case forbidden(c):
-			p.fail("control character in string")
-		default:
-			p.pos++
-		}
-	}
+func isForbiddenControl(c byte) bool {
+	return (c < 0x20 && c != '\t') || c == 0x7f
 }
 
-// literalString parses a single-line 'literal string'; the cursor is on the
-// opening quote.
-func (p *parser) literalString() string {
-	src := p.src
-	p.pos++
+func hexVal(c byte) int {
+	switch {
+	case c >= '0' && c <= '9':
+		return int(c - '0')
+	case c >= 'a' && c <= 'f':
+		return int(c-'a') + 10
+	case c >= 'A' && c <= 'F':
+		return int(c-'A') + 10
+	}
+	return -1
+}
+
+func (p *parser) basicString() string {
 	start := p.pos
-	for {
-		if p.pos >= len(src) {
-			p.fail("unterminated string")
-		}
-		c := src[p.pos]
-		if c == '\'' {
-			s := string(src[start:p.pos])
+	// Fast path: no escapes.
+	for p.pos < len(p.data) {
+		c := p.data[p.pos]
+		if c == '"' {
+			s := string(p.data[start:p.pos])
 			p.pos++
 			return s
 		}
-		if forbidden(c) {
+		if c == '\\' {
+			break
+		}
+		if isForbiddenControl(c) {
 			p.fail("control character in string")
 		}
 		p.pos++
 	}
+	var sb strings.Builder
+	sb.Write(p.data[start:p.pos])
+	for {
+		if p.eof() {
+			p.fail("unterminated string")
+		}
+		c := p.data[p.pos]
+		switch {
+		case c == '"':
+			p.pos++
+			return sb.String()
+		case c == '\\':
+			p.pos++
+			p.escape(&sb)
+		case isForbiddenControl(c):
+			p.fail("control character in string")
+		default:
+			sb.WriteByte(c)
+			p.pos++
+		}
+	}
 }
 
-// escape decodes the escape sequence after a backslash (cursor just past the
-// backslash), appends the result to buf and advances the cursor.
-func (p *parser) escape(buf []byte) []byte {
+// escape decodes the escape sequence after a backslash.
+func (p *parser) escape(sb *strings.Builder) {
 	if p.eof() {
 		p.fail("unterminated escape")
 	}
-	c := p.src[p.pos]
+	c := p.data[p.pos]
 	p.pos++
 	switch c {
 	case 'b':
-		return append(buf, '\b')
+		sb.WriteByte('\b')
 	case 't':
-		return append(buf, '\t')
+		sb.WriteByte('\t')
 	case 'n':
-		return append(buf, '\n')
+		sb.WriteByte('\n')
 	case 'f':
-		return append(buf, '\f')
+		sb.WriteByte('\f')
 	case 'r':
-		return append(buf, '\r')
+		sb.WriteByte('\r')
 	case '"':
-		return append(buf, '"')
+		sb.WriteByte('"')
 	case '\\':
-		return append(buf, '\\')
-	case 'u':
-		return p.unicodeEscape(buf, 4)
-	case 'U':
-		return p.unicodeEscape(buf, 8)
-	}
-	p.pos--
-	p.fail("invalid escape sequence")
-	return buf
-}
-
-func (p *parser) unicodeEscape(buf []byte, digits int) []byte {
-	if p.pos+digits > len(p.src) {
-		p.fail("truncated unicode escape")
-	}
-	var r uint32
-	for i := 0; i < digits; i++ {
-		d, ok := hexVal(p.src[p.pos+i])
-		if !ok {
-			p.pos += i
-			p.fail("invalid hex digit in unicode escape")
+		sb.WriteByte('\\')
+	case 'u', 'U':
+		n := 4
+		if c == 'U' {
+			n = 8
 		}
-		r = r<<4 | uint32(d)
+		if p.pos+n > len(p.data) {
+			p.fail("short unicode escape")
+		}
+		var r rune
+		for _, h := range p.data[p.pos : p.pos+n] {
+			v := hexVal(h)
+			if v < 0 {
+				p.fail("bad hex digit in unicode escape")
+			}
+			r = r<<4 | rune(v)
+		}
+		p.pos += n
+		if !utf8.ValidRune(r) {
+			p.fail("escape is not a Unicode scalar value")
+		}
+		sb.WriteRune(r)
+	default:
+		p.fail("invalid escape \\%c", c)
 	}
-	if r > utf8.MaxRune || (r >= 0xD800 && r <= 0xDFFF) {
-		p.fail("escape is not a unicode scalar value")
-	}
-	p.pos += digits
-	return utf8.AppendRune(buf, rune(r))
 }
 
-func hexVal(c byte) (int, bool) {
-	switch {
-	case c >= '0' && c <= '9':
-		return int(c - '0'), true
-	case c >= 'a' && c <= 'f':
-		return int(c-'a') + 10, true
-	case c >= 'A' && c <= 'F':
-		return int(c-'A') + 10, true
-	}
-	return 0, false
-}
-
-// skipOpeningNewline discards a newline directly after a multi-line opening
-// delimiter.
-func (p *parser) skipOpeningNewline() {
-	if p.pos < len(p.src) {
-		if p.src[p.pos] == '\n' {
+func (p *parser) literalString() string {
+	start := p.pos
+	for p.pos < len(p.data) {
+		c := p.data[p.pos]
+		if c == '\'' {
+			s := string(p.data[start:p.pos])
 			p.pos++
-		} else if p.src[p.pos] == '\r' {
-			p.pos += 2
+			return s
 		}
+		if isForbiddenControl(c) {
+			p.fail("control character in string")
+		}
+		p.pos++
+	}
+	p.fail("unterminated string")
+	return ""
+}
+
+// openMultiline discards a newline directly after the opening delimiter.
+func (p *parser) openMultiline() {
+	if p.atNewline() {
+		p.skipNewline()
 	}
 }
 
-// quoteRun returns the length of the run of q bytes at the cursor.
-func (p *parser) quoteRun(q byte) int {
+// quoteRun consumes a run of the delimiter byte q inside a multi-line
+// string. It reports whether the run closed the string, and writes the
+// quotes that belong to the value.
+func (p *parser) quoteRun(q byte, sb *strings.Builder) (closed bool) {
 	n := 0
-	for p.pos+n < len(p.src) && p.src[p.pos+n] == q {
+	for p.pos < len(p.data) && p.data[p.pos] == q {
 		n++
+		p.pos++
 	}
-	return n
+	switch {
+	case n < 3:
+		for i := 0; i < n; i++ {
+			sb.WriteByte(q)
+		}
+		return false
+	case n > 5:
+		p.fail("too many quotes in multi-line string")
+	}
+	for i := 0; i < n-3; i++ {
+		sb.WriteByte(q)
+	}
+	return true
 }
 
-// multilineBasicString parses a """ string; the cursor is on the opening
-// delimiter.
-func (p *parser) multilineBasicString() string {
-	src := p.src
-	p.pos += 3
-	p.skipOpeningNewline()
-	buf := p.scratch[:0]
+func (p *parser) multiBasicString() string {
+	p.openMultiline()
+	var sb strings.Builder
 	for {
-		if p.pos >= len(src) {
+		if p.eof() {
 			p.fail("unterminated multi-line string")
 		}
-		c := src[p.pos]
+		c := p.data[p.pos]
 		switch {
 		case c == '"':
-			n := p.quoteRun('"')
-			if n < 3 {
-				buf = append(buf, src[p.pos:p.pos+n]...)
-				p.pos += n
-				continue
+			if p.quoteRun('"', &sb) {
+				return sb.String()
 			}
-			if n > 5 {
-				p.fail("too many quotes in multi-line string")
-			}
-			buf = append(buf, src[p.pos:p.pos+n-3]...)
-			p.pos += n
-			p.scratch = buf[:0]
-			return string(buf)
 		case c == '\\':
 			p.pos++
-			// Line-ending backslash: optional whitespace, then a newline.
-			j := p.pos
-			for j < len(src) && (src[j] == ' ' || src[j] == '\t') {
-				j++
-			}
-			if j < len(src) && (src[j] == '\n' || src[j] == '\r') {
-				for j < len(src) {
-					switch src[j] {
-					case ' ', '\t', '\n':
-						j++
-						continue
-					case '\r':
-						j += 2
-						continue
-					}
-					break
-				}
-				p.pos = j
+			if p.lineEndingBackslash() {
 				continue
 			}
-			buf = p.escape(buf)
-		case c == '\r':
-			buf = append(buf, '\n')
-			p.pos += 2
+			p.escape(&sb)
 		case c == '\n':
-			buf = append(buf, '\n')
+			sb.WriteByte('\n')
 			p.pos++
-		case forbidden(c):
+		case c == '\r': // always CRLF: normalise to LF
+			sb.WriteByte('\n')
+			p.pos += 2
+		case isForbiddenControl(c):
 			p.fail("control character in string")
 		default:
-			buf = append(buf, c)
+			sb.WriteByte(c)
 			p.pos++
 		}
 	}
 }
 
-// multilineLiteralString parses a ”' string; the cursor is on the opening
-// delimiter.
-func (p *parser) multilineLiteralString() string {
-	src := p.src
-	p.pos += 3
-	p.skipOpeningNewline()
-	buf := p.scratch[:0]
+// lineEndingBackslash handles a backslash (already consumed) followed by
+// optional whitespace and a newline, skipping all whitespace and newlines
+// up to the next other character. It reports false, consuming nothing, if
+// the backslash is not a line-ending one.
+func (p *parser) lineEndingBackslash() bool {
+	save := p.pos
+	p.skipWS()
+	if !p.atNewline() {
+		p.pos = save
+		return false
+	}
 	for {
-		if p.pos >= len(src) {
+		p.skipWS()
+		if !p.atNewline() {
+			return true
+		}
+		p.skipNewline()
+	}
+}
+
+func (p *parser) multiLiteralString() string {
+	p.openMultiline()
+	var sb strings.Builder
+	for {
+		if p.eof() {
 			p.fail("unterminated multi-line string")
 		}
-		c := src[p.pos]
+		c := p.data[p.pos]
 		switch {
 		case c == '\'':
-			n := p.quoteRun('\'')
-			if n < 3 {
-				buf = append(buf, src[p.pos:p.pos+n]...)
-				p.pos += n
-				continue
+			if p.quoteRun('\'', &sb) {
+				return sb.String()
 			}
-			if n > 5 {
-				p.fail("too many quotes in multi-line string")
-			}
-			buf = append(buf, src[p.pos:p.pos+n-3]...)
-			p.pos += n
-			p.scratch = buf[:0]
-			return string(buf)
-		case c == '\r':
-			buf = append(buf, '\n')
-			p.pos += 2
 		case c == '\n':
-			buf = append(buf, '\n')
+			sb.WriteByte('\n')
 			p.pos++
-		case forbidden(c):
+		case c == '\r':
+			sb.WriteByte('\n')
+			p.pos += 2
+		case isForbiddenControl(c):
 			p.fail("control character in string")
 		default:
-			buf = append(buf, c)
+			sb.WriteByte(c)
 			p.pos++
 		}
 	}

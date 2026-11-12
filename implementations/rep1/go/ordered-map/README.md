@@ -1,60 +1,60 @@
 # ordered-map
 
-An ordered map from 64-bit signed integer keys to short string values, written
-in Go with only the standard library. The tree is a hand-written AVL tree
-augmented with subtree sizes, so insert, delete, lookup, neighbour queries,
-`rank` and `select` are all O(log n), and listing a range is O(log n + r).
+A small Go library implementing an ordered map from `int64` keys to `string`
+values, plus a command-line tool that drives it from a text script.
 
-The repository has three parts:
+The map is a hand-written AVL tree whose nodes carry subtree sizes, so every
+operation is O(log n) — including order statistics (`Rank`, `Select`) — and
+`Range` is O(log n + r). Only the standard library is used.
 
-| path | what |
-|------|------|
-| `orderedmap/` | the reusable library (`Map`): `map.go` (node pool, insert, delete, rebalancing), `query.go` (lookups, neighbours, rank/select, range traversal), `check.go` (invariant checker for tests) |
-| `script/` | parser/executor for the line-oriented command language, built on the library |
-| `cmd/ordered-map/` | thin CLI: stdin → stdout |
+## Layout
 
-Nodes live in one index-addressed pool (index 0 is a nil sentinel, freed slots
-are reused), and values are kept as references to the caller's bytes, not
-copied.
+| path                    | contents                                                       |
+|-------------------------|----------------------------------------------------------------|
+| `node.go`               | AVL node, cached height/size, rotations, rebalancing           |
+| `map.go`                | `Map` type: `Put`, `Delete`, `Get`, `Len`                      |
+| `query.go`              | `Min`, `Max`, `Floor`, `Ceil`, `Successor`, `Predecessor`, `Rank`, `Select` |
+| `range.go`              | `Range`, `Ascend` (pruned in-order traversal)                  |
+| `internal/cli`          | the command protocol (parse, execute, format)                  |
+| `cmd/ordered-map`       | the `main` package, a thin wrapper over `internal/cli`         |
 
 ## Build
 
+```
+./build.sh          # produces bin/ordered-map (runs `go build`)
+go test ./...       # run the tests
+```
+
 Requires Go 1.27 or newer.
 
-```sh
-./build.sh          # produces bin/ordered-map
-go test ./...       # unit tests
-```
+## Command-line usage
 
-## CLI
-
-`./run.sh` reads a script on stdin and writes one output line per command:
+`./run.sh` reads a script on stdin and writes one output line per command to
+stdout. The first line is the number of commands `Q`; then `Q` commands follow:
 
 ```
-$ printf '5\ninsert 5 five\ninsert 2 two\nrange 1 9\nrank 5\nsucc 5\n' | ./run.sh
+insert <key> <value>   ok | updated
+delete <key>           ok | missing
+get <key>              the value | missing
+size                   number of keys
+min | max              the key | empty
+floor|ceil|succ|pred <key>   the key | missing
+rank <key>             number of keys strictly less than <key>
+select <k>             k-th smallest key (0-based) | missing
+range <lo> <hi>        keys in [lo, hi], space-separated | empty
+```
+
+Keys are 64-bit signed decimals; values are 1–32 printable ASCII characters
+without spaces.
+
+```
+$ printf '5\ninsert 10 a\ninsert 20 b\nfloor 25\nrank 20\nrange 0 100\n' | ./run.sh
 ok
 ok
-2 5
+20
 1
-missing
+10 20
 ```
-
-The first line is the command count `Q`; then `Q` commands, one per line,
-tokens separated by a single space. Keys are int64 decimals (both extremes are
-handled), values are 1–32 printable ASCII characters without spaces.
-
-| command | output |
-|---|---|
-| `insert <key> <value>` | `ok` (new) or `updated` (replaced) |
-| `delete <key>` | `ok` or `missing` |
-| `get <key>` | the value or `missing` |
-| `size` | number of keys |
-| `min` / `max` | smallest / largest key, or `empty` |
-| `floor` / `ceil <key>` | largest key ≤ / smallest key ≥ `key`, or `missing` |
-| `pred` / `succ <key>` | largest key < / smallest key > `key`, or `missing` |
-| `rank <key>` | number of keys strictly less than `key` |
-| `select <k>` | k-th smallest key (0-based) or `missing` |
-| `range <lo> <hi>` | keys in `[lo, hi]` ascending, space-separated, or `empty` |
 
 ## Library example
 
@@ -64,26 +64,25 @@ package main
 import (
 	"fmt"
 
-	"github.com/example/ordered-map/orderedmap"
+	orderedmap "example.com/orderedmap"
 )
 
 func main() {
-	m := orderedmap.New(0)
-	m.Put(10, []byte("a"))
-	m.Put(20, []byte("b"))
-	m.Put(30, []byte("c"))
+	m := orderedmap.New()
+	m.Put(10, "a")
+	m.Put(20, "b")
+	m.Put(30, "c")
 
-	k, _ := m.Floor(25)    // 20
-	r := m.Rank(21)        // 2
-	s, _ := m.Select(2)    // 30
-	fmt.Println(k, r, s)
+	floor, _ := m.Floor(25)      // 20
+	rank := m.Rank(21)           // 2
+	third, _ := m.Select(2)      // 30
+	fmt.Println(floor, rank, third)
 
-	m.Ascend(15, 40, func(key int64, val []byte) bool {
-		fmt.Println(key, string(val))
+	m.Range(10, 20, func(k int64, v string) bool {
+		fmt.Println(k, v)
 		return true // return false to stop early
 	})
 }
 ```
 
-Values passed to `Put` are retained, not copied; don't modify them afterwards.
-A `Map` is not safe for concurrent use.
+A `Map` is not safe for concurrent use without external locking.

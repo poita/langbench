@@ -1,3 +1,3 @@
-module example.com/typeinfer
+module github.com/example/typeinfer
 
 go 1.27

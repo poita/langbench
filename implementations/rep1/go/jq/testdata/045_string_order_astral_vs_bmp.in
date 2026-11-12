@@ -1,0 +1,2 @@
+sort, keys, (.[0] < .[1]), (.[2] > .[3]), unique, (group_by(.[0:1]) | map(length)), (sort_by(.) | .[-1] | length), (map(. + "!") | max)
+["\ud83d\ude00", "\uffff", "\ue000z", "\ud7ffz", "\ud83d\ude00a", "\ud83d\ude00", "\ufffd", "z", "\u65e5"]

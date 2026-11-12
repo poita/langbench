@@ -1,5 +1,8 @@
-bin/
 .dub/
-*.o
+/linalg
 *.a
+*.o
+*.lst
 dub.selections.json
+__test__*
+/linalg-test-*

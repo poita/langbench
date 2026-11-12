@@ -1,24 +1,21 @@
-// Package inflate implements a decoder for raw DEFLATE streams (RFC 1951).
+// Package inflate is a from-scratch decoder for raw DEFLATE streams
+// (RFC 1951).
 //
-// The decoder is table driven: Huffman codes are expanded into two-level
-// lookup tables, bits are served from a 64-bit LSB-first bit buffer, and the
-// whole output doubles as the back-reference window. It is deliberately
-// strict: it rejects every malformation that zlib rejects (invalid block
-// types, bad stored-block lengths, over-subscribed or incomplete Huffman
-// codes, distances that reach before the start of the output, truncated
-// streams) and, unlike most decompressors, also rejects whole bytes left
-// over after the final block.
+// It decodes a complete in-memory stream in a single pass using
+// table-driven Huffman decoding: every literal/length and distance symbol is
+// resolved with one or two table lookups (a root table plus second-level
+// tables for the longest codes), never bit by bit.
 //
-// The package does not understand the zlib (RFC 1950) or gzip (RFC 1952)
-// wrappers; strip them before calling Decode.
+// The decoder is strict. Besides the usual structural errors it rejects
+// over-subscribed and incomplete code-length sets (apart from the single-code
+// and empty-distance-code exceptions that zlib also accepts), back-references
+// that reach before the start of the output, truncated input, and whole bytes
+// left over after the final block. Every failure is reported as one of the
+// sentinel errors declared in this package.
 //
 // Basic use:
 //
 //	out, err := inflate.Decode(compressed)
-//	if errors.Is(err, inflate.ErrTruncated) {
-//		// ...
-//	}
 //
-// To decode many streams, create a Decoder once and reuse it so that its
-// Huffman table buffers are recycled.
+// A Decoder may be reused to amortise table allocations across many streams.
 package inflate

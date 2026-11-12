@@ -1,78 +1,80 @@
-// Command rrule reads recurrence rules from standard input, one per line in
-// the form "<DTSTART> <RRULE> <N>", and prints the first N occurrences of
-// each rule on one line.
+// Command rrule reads lines of the form "<DTSTART> <RRULE> <N>" on standard
+// input and prints, for each, the first N occurrences of the rule.
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/example/rrule"
 )
 
 func main() {
-	in, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "rrule:", err)
-		os.Exit(1)
-	}
-	out, err := process(in)
-	if _, werr := os.Stdout.Write(out); werr != nil && err == nil {
-		err = werr
-	}
-	if err != nil {
+	if err := run(os.Stdin, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "rrule:", err)
 		os.Exit(1)
 	}
 }
 
-// process expands every line of in and returns the output. On a malformed
-// line it returns the output produced so far together with the error.
-func process(in []byte) ([]byte, error) {
-	out := make([]byte, 0, 1<<16)
-	exp := rrule.NewExpander()
-	for lineNo := 1; len(in) > 0; lineNo++ {
-		var line []byte
-		if i := bytes.IndexByte(in, '\n'); i >= 0 {
-			line, in = in[:i], in[i+1:]
-		} else {
-			line, in = in, nil
+// run processes every line of in and writes one output line per input line.
+func run(in io.Reader, out io.Writer) error {
+	r := bufio.NewReaderSize(in, 1<<20)
+	w := bufio.NewWriterSize(out, 1<<20)
+	var buf []byte
+	for lineNo := 1; ; lineNo++ {
+		line, err := r.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return err
 		}
-		var err error
-		if out, err = expandLine(out, exp, line); err != nil {
-			return out, fmt.Errorf("line %d: %w", lineNo, err)
+		if line != "" {
+			line = strings.TrimSuffix(line, "\n")
+			var perr error
+			buf, perr = processLine(buf[:0], line)
+			if perr != nil {
+				return fmt.Errorf("line %d: %w", lineNo, perr)
+			}
+			buf = append(buf, '\n')
+			if _, werr := w.Write(buf); werr != nil {
+				return werr
+			}
+		}
+		if err == io.EOF {
+			break
 		}
 	}
-	return out, nil
+	return w.Flush()
 }
 
-// expandLine parses one "<DTSTART> <RRULE> <N>" line and appends the
-// occurrences and a newline to out.
-func expandLine(out []byte, exp *rrule.Expander, line []byte) ([]byte, error) {
-	i := bytes.IndexByte(line, ' ')
-	j := bytes.LastIndexByte(line, ' ')
-	if i < 0 || j <= i {
-		return out, fmt.Errorf("expected \"<DTSTART> <RRULE> <N>\"")
+// processLine appends the output for one input line (without the newline).
+func processLine(buf []byte, line string) ([]byte, error) {
+	fields := strings.Split(line, " ")
+	if len(fields) != 3 {
+		return buf, fmt.Errorf("expected \"<DTSTART> <RRULE> <N>\", got %q", line)
 	}
-	start, err := rrule.ParseDateTime(string(line[:i]))
+	start, err := rrule.ParseDateTime(fields[0])
 	if err != nil {
-		return out, err
+		return buf, err
 	}
-	rule, err := rrule.ParseRule(string(line[i+1 : j]))
+	rule, err := rrule.ParseRule(fields[1])
 	if err != nil {
-		return out, err
+		return buf, err
 	}
-	n := 0
-	for _, c := range line[j+1:] {
-		if c < '0' || c > '9' || n > 1e9 {
-			return out, fmt.Errorf("bad limit %q", line[j+1:])
+	n, err := strconv.Atoi(fields[2])
+	if err != nil || n < 1 {
+		return buf, fmt.Errorf("invalid N %q", fields[2])
+	}
+	first := true
+	err = rule.Each(start, n, func(t rrule.DateTime) bool {
+		if !first {
+			buf = append(buf, ' ')
 		}
-		n = n*10 + int(c-'0')
-	}
-	if out, err = exp.AppendText(out, rule, start, n); err != nil {
-		return out, err
-	}
-	return append(out, '\n'), nil
+		first = false
+		buf = t.AppendFormat(buf)
+		return true
+	})
+	return buf, err
 }

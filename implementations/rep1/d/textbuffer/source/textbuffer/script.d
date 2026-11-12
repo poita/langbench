@@ -1,201 +1,376 @@
-/// The line-oriented command language: parses and runs a script against a
-/// `TextBuffer`.
+/// The command language: parsing command lines and running whole scripts.
+///
+/// A script is a document followed by commands, one per line:
+///
+/// ---
+/// 2
+/// hello world
+/// second line
+/// move end
+/// insert !
+/// print
+/// ---
 module textbuffer.script;
 
-import core.stdc.string : memchr;
+import std.array : appender;
+import std.conv : to;
+import std.range.primitives : put;
 
 import textbuffer.buffer;
-import textbuffer.vec;
+import textbuffer.cursor;
 
-/// Thrown for malformed scripts.
+/// Raised for malformed input.
 class ScriptException : Exception
 {
-    this(string msg, size_t lineNo, string file = __FILE__, size_t line = __LINE__) nothrow pure @safe
+    /// 1-based input line the problem was found on (0 if unknown).
+    size_t lineNumber;
+
+    this(string msg, size_t lineNumber = 0, string file = __FILE__, size_t line = __LINE__)
+        @safe nothrow
     {
-        import std.conv : to;
-        string m;
-        try m = "line " ~ lineNo.to!string ~ ": " ~ msg; catch (Exception) m = msg;
-        super(m, file, line);
+        super(msg, file, line);
+        this.lineNumber = lineNumber;
     }
 }
 
-/// Decodes the escape sequences of an `insert` argument (`\n`, `\\`) into
-/// `scratch` and returns the decoded text. If the argument has no backslash
-/// it is returned as is and `scratch` is untouched.
-const(char)[] decodeInsert(const(char)[] raw, ref CharBuf scratch) @trusted
+/// Kinds of command.
+enum CommandKind
 {
-    if (raw.length == 0 || memchr(raw.ptr, '\\', raw.length) is null)
+    insert,
+    deleteBackward,
+    deleteForward,
+    move,
+    goTo,
+    addCursor,
+    clearCursors,
+    undo,
+    redo,
+    print,
+}
+
+/// A parsed command.
+struct Command
+{
+    /// What to do.
+    CommandKind kind;
+    /// `insert`: the decoded text.
+    string text;
+    /// `move`: direction.
+    Direction direction;
+    /// `move`: whether the selection is extended.
+    bool select;
+    /// `goto` / `add-cursor`: the (unclamped) position.
+    long line, col;
+}
+
+/// Decodes the escapes of an `insert` argument: `\n` is a newline, `\\` a backslash.
+string decodeInsertText(string raw) @safe
+{
+    import std.string : indexOf;
+
+    if (raw.indexOf('\\') < 0)
         return raw;
-    scratch.clear();
+    auto app = appender!string();
+    app.reserve(raw.length);
     for (size_t i = 0; i < raw.length; ++i)
     {
-        char ch = raw[i];
-        if (ch == '\\' && i + 1 < raw.length)
+        immutable ch = raw[i];
+        if (ch != '\\')
         {
-            ++i;
-            ch = raw[i] == 'n' ? '\n' : raw[i];
+            app.put(ch);
+            continue;
         }
-        scratch.put(ch);
+        if (++i == raw.length)
+            throw new ScriptException("dangling backslash in insert text");
+        switch (raw[i])
+        {
+        case 'n': app.put('\n'); break;
+        case '\\': app.put('\\'); break;
+        default: throw new ScriptException("unknown escape in insert text");
+        }
     }
-    return scratch[];
+    return app[];
 }
 
-/// Splits `input` into the initial document lines and returns the offset of
-/// the first command. The first line holds the line count `N`; the next `N`
-/// lines are the document, verbatim.
-size_t parseDocument(const(char)[] input, out const(char)[][] initial)
+private long parseNumber(string s) @safe
 {
-    size_t pos = 0;
-    size_t lineNo = 1;
-    size_t n = 0;
-    bool any = false;
-    while (pos < input.length && input[pos] != '\n')
-    {
-        immutable ch = input[pos];
-        if (ch < '0' || ch > '9')
-            throw new ScriptException("expected the line count", lineNo);
-        n = n * 10 + (ch - '0');
-        any = true;
-        ++pos;
-    }
-    if (!any && input.length != 0)
-        throw new ScriptException("expected the line count", lineNo);
-    if (pos < input.length)
-        ++pos;
-    initial.length = 0;
-    initial.reserve(n < 1_000_000 ? n : 1_000_000);
-    foreach (i; 0 .. n)
-    {
-        // Lines missing at the end of the input count as empty.
-        size_t end = pos;
-        while (end < input.length && input[end] != '\n')
-            ++end;
-        initial ~= input[pos .. end];
-        pos = end < input.length ? end + 1 : end;
-    }
-    return pos;
-}
-
-private bool parseNumber(const(char)[] s, out long value) pure nothrow @nogc @safe
-{
-    if (s.length == 0)
-        return false;
+    if (s.length == 0 || s.length > 18)
+        throw new ScriptException("invalid number '" ~ s ~ "'");
     long v = 0;
     foreach (ch; s)
     {
         if (ch < '0' || ch > '9')
-            return false;
-        if (v < 1_000_000_000_000L)
-            v = v * 10 + (ch - '0');
+            throw new ScriptException("invalid number '" ~ s ~ "'");
+        v = v * 10 + (ch - '0');
     }
-    value = v;
-    return true;
+    return v;
 }
 
-private void parsePair(const(char)[] args, size_t lineNo, out long a, out long b)
+private bool splitWord(ref string rest, out string word) @safe nothrow @nogc
 {
-    size_t sp = 0;
-    while (sp < args.length && args[sp] != ' ')
-        ++sp;
-    if (sp == args.length || !parseNumber(args[0 .. sp], a) || !parseNumber(args[sp + 1 .. $], b))
-        throw new ScriptException("expected two numbers", lineNo);
+    foreach (i, ch; rest)
+        if (ch == ' ')
+        {
+            word = rest[0 .. i];
+            rest = rest[i + 1 .. $];
+            return true;
+        }
+    word = rest;
+    rest = rest[$ .. $];
+    return false;
 }
 
-/// Executes the commands in `input[offset .. $]` against `buf`, appending the
-/// output of every `print` to `output`.
-void runCommands(TextBuffer buf, const(char)[] input, size_t offset, ref CharBuf output)
+/// Parses one command line (without its terminating newline).
+Command parseCommand(string text) @safe
 {
-    CharBuf scratch;
-    size_t pos = offset;
-    size_t lineNo = 1; // only used in error messages; counts commands, not input lines
-    while (pos < input.length)
+    string rest = text;
+    string name;
+    splitWord(rest, name);
+    Command cmd;
+    switch (name)
     {
-        size_t end = pos;
+    case "insert":
+        if (rest.length == 0)
+            throw new ScriptException("insert needs text");
+        cmd.kind = CommandKind.insert;
+        cmd.text = decodeInsertText(rest);
+        break;
+    case "delete":
+        cmd.kind = CommandKind.deleteBackward;
+        break;
+    case "delete-forward":
+        cmd.kind = CommandKind.deleteForward;
+        break;
+    case "move":
+        cmd.kind = CommandKind.move;
+        string dir, sel;
+        splitWord(rest, dir);
+        splitWord(rest, sel);
+        switch (dir)
         {
-            auto p = cast(const(char)*) memchr(input.ptr + pos, '\n', input.length - pos);
-            end = p is null ? input.length : p - input.ptr;
+        case "left": cmd.direction = Direction.left; break;
+        case "right": cmd.direction = Direction.right; break;
+        case "up": cmd.direction = Direction.up; break;
+        case "down": cmd.direction = Direction.down; break;
+        case "home": cmd.direction = Direction.home; break;
+        case "end": cmd.direction = Direction.end; break;
+        default: throw new ScriptException("unknown direction '" ~ dir ~ "'");
         }
-        const ln = input[pos .. end];
-        pos = end + 1;
+        if (sel == "select")
+            cmd.select = true;
+        else if (sel.length)
+            throw new ScriptException("unexpected move argument '" ~ sel ~ "'");
+        break;
+    case "goto":
+    case "add-cursor":
+        cmd.kind = name == "goto" ? CommandKind.goTo : CommandKind.addCursor;
+        string l, c;
+        splitWord(rest, l);
+        splitWord(rest, c);
+        cmd.line = parseNumber(l);
+        cmd.col = parseNumber(c);
+        break;
+    case "clear-cursors":
+        cmd.kind = CommandKind.clearCursors;
+        break;
+    case "undo":
+        cmd.kind = CommandKind.undo;
+        break;
+    case "redo":
+        cmd.kind = CommandKind.redo;
+        break;
+    case "print":
+        cmd.kind = CommandKind.print;
+        break;
+    default:
+        throw new ScriptException("unknown command '" ~ name ~ "'");
+    }
+    return cmd;
+}
+
+/// Writes the document (each line followed by a newline), one `cursor <line> <col>`
+/// line per cursor in cursor order, and a final `--` line to `sink`.
+void printState(Sink)(const TextBuffer buffer, ref Sink sink)
+{
+    foreach (i; 0 .. buffer.lineCount)
+    {
+        put(sink, buffer.line(i));
+        put(sink, "\n");
+    }
+    foreach (c; buffer.cursors)
+    {
+        put(sink, "cursor ");
+        put(sink, to!string(c.head.line));
+        put(sink, " ");
+        put(sink, to!string(c.head.col));
+        put(sink, "\n");
+    }
+    put(sink, "--\n");
+}
+
+/// Executes `cmd` on `buffer`; `print` writes to `sink`.
+void execute(Sink)(TextBuffer buffer, in Command cmd, ref Sink sink)
+{
+    final switch (cmd.kind)
+    {
+    case CommandKind.insert: buffer.insert(cmd.text); break;
+    case CommandKind.deleteBackward: buffer.deleteBackward(); break;
+    case CommandKind.deleteForward: buffer.deleteForward(); break;
+    case CommandKind.move: buffer.move(cmd.direction, cmd.select); break;
+    case CommandKind.goTo: buffer.goTo(cmd.line, cmd.col); break;
+    case CommandKind.addCursor: buffer.addCursor(cmd.line, cmd.col); break;
+    case CommandKind.clearCursors: buffer.clearCursors(); break;
+    case CommandKind.undo: buffer.undo(); break;
+    case CommandKind.redo: buffer.redo(); break;
+    case CommandKind.print: printState(buffer, sink); break;
+    }
+}
+
+/// Runs a whole script: the first line is the number `N` of document lines,
+/// then come `N` document lines (verbatim), then one command per line.
+/// Output of `print` commands goes to `sink`.
+///
+/// Throws: `ScriptException` on malformed input; output produced before the
+/// error has already been written.
+void runScript(Sink)(string input, ref Sink sink)
+{
+    size_t pos = 0;
+    size_t lineNo = 0;
+
+    bool nextLine(out string line)
+    {
+        if (pos >= input.length)
+            return false;
+        size_t e = pos;
+        while (e < input.length && input[e] != '\n')
+            ++e;
+        line = input[pos .. e];
+        pos = e < input.length ? e + 1 : e;
         ++lineNo;
+        return true;
+    }
 
-        size_t sp = 0;
-        while (sp < ln.length && ln[sp] != ' ')
-            ++sp;
-        const word = ln[0 .. sp];
-        const args = sp < ln.length ? ln[sp + 1 .. $] : ln[$ .. $];
+    string line;
+    if (!nextLine(line))
+        throw new ScriptException("empty input");
+    size_t n;
+    try
+        n = cast(size_t) parseNumber(line);
+    catch (ScriptException e)
+        throw new ScriptException("bad document line count", 1);
 
-        switch (word)
+    const(char)[][] lines;
+    lines.reserve(n);
+    foreach (i; 0 .. n)
+    {
+        if (!nextLine(line))
+            throw new ScriptException("input ends inside the document", lineNo);
+        lines ~= line;
+    }
+    auto buffer = new TextBuffer(lines);
+    lines = null;
+
+    while (nextLine(line))
+    {
+        if (line.length == 0)
+            continue;
+        try
+            execute(buffer, parseCommand(line), sink);
+        catch (ScriptException e)
         {
-        case "insert":
-            buf.insert(decodeInsert(args, scratch));
-            break;
-        case "delete":
-            buf.deleteBackward();
-            break;
-        case "delete-forward":
-            buf.deleteForward();
-            break;
-        case "move":
-        {
-            size_t d = 0;
-            while (d < args.length && args[d] != ' ')
-                ++d;
-            const dir = args[0 .. d];
-            const sel = d < args.length ? args[d + 1 .. $] : args[$ .. $];
-            if (sel.length != 0 && sel != "select")
-                throw new ScriptException("unknown move modifier", lineNo);
-            Direction dd;
-            switch (dir)
-            {
-            case "left": dd = Direction.left; break;
-            case "right": dd = Direction.right; break;
-            case "up": dd = Direction.up; break;
-            case "down": dd = Direction.down; break;
-            case "home": dd = Direction.home; break;
-            case "end": dd = Direction.end; break;
-            default: throw new ScriptException("unknown direction", lineNo);
-            }
-            buf.move(dd, sel.length != 0);
-            break;
-        }
-        case "goto":
-        {
-            long a, b;
-            parsePair(args, lineNo, a, b);
-            buf.goTo(a, b);
-            break;
-        }
-        case "add-cursor":
-        {
-            long a, b;
-            parsePair(args, lineNo, a, b);
-            buf.addCursor(a, b);
-            break;
-        }
-        case "clear-cursors":
-            buf.clearCursors();
-            break;
-        case "undo":
-            buf.undo();
-            break;
-        case "redo":
-            buf.redo();
-            break;
-        case "print":
-            buf.render(output);
-            break;
-        default:
-            throw new ScriptException("unknown command", lineNo);
+            e.lineNumber = lineNo;
+            throw e;
         }
     }
 }
 
-/// Runs a complete script (document header followed by commands) and appends
-/// the printed output to `output`.
-void runScript(const(char)[] input, ref CharBuf output)
+version (unittest)
 {
-    const(char)[][] initial;
-    immutable offset = parseDocument(input, initial);
-    runCommands(new TextBuffer(initial), input, offset, output);
+    private string run(string input) @safe
+    {
+        auto app = appender!string();
+        runScript(input, app);
+        return app[];
+    }
+}
+
+@safe unittest
+{
+    assert(decodeInsertText("plain") == "plain");
+    assert(decodeInsertText(`a\nb\\c\\n`) == "a\nb\\c\\n");
+    import std.exception : assertThrown;
+
+    assertThrown!ScriptException(decodeInsertText(`oops\`));
+    assertThrown!ScriptException(decodeInsertText(`\t`));
+}
+
+@safe unittest
+{
+    auto c = parseCommand("insert  two  spaces ");
+    assert(c.kind == CommandKind.insert && c.text == " two  spaces ");
+    c = parseCommand("move up select");
+    assert(c.kind == CommandKind.move && c.direction == Direction.up && c.select);
+    c = parseCommand("goto 1000000000 3");
+    assert(c.kind == CommandKind.goTo && c.line == 1_000_000_000 && c.col == 3);
+    assert(parseCommand("add-cursor 1 2").kind == CommandKind.addCursor);
+    assert(parseCommand("delete-forward").kind == CommandKind.deleteForward);
+    import std.exception : assertThrown;
+
+    assertThrown!ScriptException(parseCommand("insert"));
+    assertThrown!ScriptException(parseCommand("frobnicate"));
+    assertThrown!ScriptException(parseCommand("move sideways"));
+    assertThrown!ScriptException(parseCommand("goto x 1"));
+}
+
+@safe unittest
+{
+    // Spec example 1.
+    immutable input = "2\nhello world\nsecond line\nmove end\ninsert !\nmove down\n"
+        ~ "insert  (edited)\ngoto 0 5\ninsert ,\nprint\ndelete\ndelete\nprint\n";
+    immutable expected = "hello, world!\nsecond line (edited)\ncursor 0 6\n--\n"
+        ~ "hell world!\nsecond line (edited)\ncursor 0 4\n--\n";
+    assert(run(input) == expected);
+}
+
+@safe unittest
+{
+    // Spec example 2.
+    immutable input = "3\nalpha\nbeta\ngamma\nadd-cursor 1 0\nadd-cursor 2 0\ninsert - \nprint\n"
+        ~ "move end select\ninsert X\nprint\ngoto 0 1\nmove right select\nmove right select\n"
+        ~ "delete\nprint\n";
+    immutable expected = "- alpha\n- beta\n- gamma\ncursor 0 2\ncursor 1 2\ncursor 2 2\n--\n"
+        ~ "- X\n- X\n- X\ncursor 0 3\ncursor 1 3\ncursor 2 3\n--\n"
+        ~ "-\n- X\n- X\ncursor 0 1\n--\n";
+    assert(run(input) == expected);
+}
+
+@safe unittest
+{
+    // Spec example 3.
+    immutable input = "1\nabc\nmove end\ninsert d\\ne\nprint\ndelete\ndelete\nprint\nundo\nprint\n"
+        ~ "undo\nprint\nredo\nprint\ninsert Z\nredo\nprint";
+    immutable expected = "abcd\ne\ncursor 1 1\n--\nabcd\ncursor 0 4\n--\nabcd\n\ncursor 1 0\n--\n"
+        ~ "abcd\ne\ncursor 1 1\n--\nabcd\n\ncursor 1 0\n--\nabcd\nZ\ncursor 1 1\n--\n";
+    assert(run(input) == expected);
+}
+
+@safe unittest
+{
+    // Empty document, document lines that look like commands, missing trailing newline.
+    assert(run("0\nprint") == "\ncursor 0 0\n--\n");
+    assert(run("2\nprint\n  undo  \nprint\n") == "print\n  undo  \ncursor 0 0\n--\n");
+    assert(run("1\n\nmove left\nmove up\ndelete\nprint\n") == "\ncursor 0 0\n--\n");
+    assert(run("1\nabc\nundo\nredo\nclear-cursors\n") == "");
+}
+
+@safe unittest
+{
+    import std.exception : assertThrown;
+
+    string o;
+    auto app = appender!string();
+    assertThrown!ScriptException(runScript("", app));
+    assertThrown!ScriptException(runScript("x\n", app));
+    assertThrown!ScriptException(runScript("3\na\n", app));
+    assertThrown!ScriptException(runScript("0\nbogus\n", app));
 }

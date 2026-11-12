@@ -1,135 +1,137 @@
-/// Conversion of SVG basic shapes into paths (SPEC §7.3).
+/// Conversion of the basic SVG shapes to paths (SVG 1.1 §9, as profiled in
+/// SPEC.md §7.3).
 module svgraster.shapes;
 
-import std.algorithm.comparison : min;
-import svgraster.buf;
+import std.algorithm : min, max;
 import svgraster.geom;
 import svgraster.parse;
 import svgraster.path;
+import svgraster.pathdata;
 import svgraster.xml;
 
-/// True if `tag` names one of the seven shape elements (or `path`).
-bool isShapeTag(string tag) pure nothrow @nogc @safe
+/// The rendered shape elements.
+bool isShape(string tag) pure nothrow @safe @nogc
 {
-    return tag == "path" || tag == "rect" || tag == "circle" || tag == "ellipse"
-        || tag == "line" || tag == "polyline" || tag == "polygon";
+    switch (tag)
+    {
+    case "path", "rect", "circle", "ellipse", "line", "polyline", "polygon":
+        return true;
+    default:
+        return false;
+    }
 }
 
-private double lengthAttr(const Element e, string name, double dflt) pure nothrow @safe
+/// The geometry of shape element `el` in its own user space. Elements that
+/// draw nothing give an empty path.
+Path shapeToPath(const Element el)
 {
-    double v;
-    if (e.has(name) && parseLength(e.attr(name), v))
-        return v;
-    return dflt;
-}
+    Path p;
+    double num(string name, double dflt = 0)
+    {
+        return lengthOr(el.get(name), dflt);
+    }
 
-/// Append the path for shape element `e` to `path` (which should be empty).
-/// Returns false, leaving the path empty, when the element draws nothing.
-bool shapeToPath(const Element e, ref Path path) pure nothrow @safe
-{
-    switch (e.tag)
+    switch (el.tag)
     {
     case "path":
-        parsePathData(e.attr("d"), path);
-        break;
+        return parsePathData(el.get("d"));
     case "rect":
-        rectPath(e, path);
+        rectPath(p, num("x"), num("y"), num("width"), num("height"), el.get("rx"), el.get("ry"));
         break;
     case "circle":
-        {
-            immutable r = lengthAttr(e, "r", 0);
-            if (r > 0)
-                ellipsePath(path, lengthAttr(e, "cx", 0), lengthAttr(e, "cy", 0), r, r);
-        }
+        ellipsePath(p, num("cx"), num("cy"), num("r"), num("r"));
         break;
     case "ellipse":
-        {
-            immutable rx = lengthAttr(e, "rx", 0), ry = lengthAttr(e, "ry", 0);
-            if (rx > 0 && ry > 0)
-                ellipsePath(path, lengthAttr(e, "cx", 0), lengthAttr(e, "cy", 0), rx, ry);
-        }
+        ellipsePath(p, num("cx"), num("cy"), num("rx"), num("ry"));
         break;
     case "line":
-        path.moveTo(Vec2(lengthAttr(e, "x1", 0), lengthAttr(e, "y1", 0)));
-        path.lineTo(Vec2(lengthAttr(e, "x2", 0), lengthAttr(e, "y2", 0)));
+        p.moveTo(Point(num("x1"), num("y1")));
+        p.lineTo(Point(num("x2"), num("y2")));
         break;
     case "polyline":
+        return parsePoints(el.get("points"), false);
     case "polygon":
-        {
-            Buf!double nums;
-            parseNumberList(e.attr("points"), nums);
-            immutable n = nums.length / 2;
-            auto v = nums.slice;
-            foreach (i; 0 .. n)
-            {
-                auto pt = Vec2(v[2 * i], v[2 * i + 1]);
-                if (i == 0)
-                    path.moveTo(pt);
-                else
-                    path.lineTo(pt);
-            }
-            if (n >= 1 && e.tag == "polygon")
-                path.close();
-        }
-        break;
+        return parsePoints(el.get("points"), true);
     default:
         break;
     }
-    return !path.empty;
+    return p;
 }
 
-private void rectPath(const Element e, ref Path path) pure nothrow @safe
+/// Append a (possibly rounded) rectangle. `rxAttr` and `ryAttr` are the raw
+/// attribute values, or `null` when absent.
+void rectPath(ref Path p, double x, double y, double w, double h, string rxAttr, string ryAttr)
 {
-    immutable x = lengthAttr(e, "x", 0), y = lengthAttr(e, "y", 0);
-    immutable w = lengthAttr(e, "width", 0), h = lengthAttr(e, "height", 0);
     if (!(w > 0) || !(h > 0))
         return;
     double rx = 0, ry = 0;
-    double v;
-    immutable hasRx = e.has("rx") && e.attr("rx") != "auto" && parseLength(e.attr("rx"), v);
-    if (hasRx)
-        rx = v;
-    immutable hasRy = e.has("ry") && e.attr("ry") != "auto" && parseLength(e.attr("ry"), v);
-    if (hasRy)
-        ry = v;
-    if (hasRx && !hasRy)
-        ry = rx;
-    else if (hasRy && !hasRx)
-        rx = ry;
-    if (rx < 0)
-        rx = 0;
-    if (ry < 0)
-        ry = 0;
+    immutable hasRx = rxAttr !is null && rxAttr != "auto";
+    immutable hasRy = ryAttr !is null && ryAttr != "auto";
+    double rxv = hasRx ? lengthOr(rxAttr, 0) : 0;
+    double ryv = hasRy ? lengthOr(ryAttr, 0) : 0;
+    if (hasRx && hasRy)
+    {
+        rx = rxv;
+        ry = ryv;
+    }
+    else if (hasRx)
+        rx = ry = rxv;
+    else if (hasRy)
+        rx = ry = ryv;
+    rx = max(rx, 0.0);
+    ry = max(ry, 0.0);
     rx = min(rx, w / 2);
     ry = min(ry, h / 2);
     if (rx == 0 || ry == 0)
     {
-        path.moveTo(Vec2(x, y));
-        path.lineTo(Vec2(x + w, y));
-        path.lineTo(Vec2(x + w, y + h));
-        path.lineTo(Vec2(x, y + h));
-        path.close();
+        p.moveTo(Point(x, y));
+        p.lineTo(Point(x + w, y));
+        p.lineTo(Point(x + w, y + h));
+        p.lineTo(Point(x, y + h));
+        p.close();
         return;
     }
-    path.moveTo(Vec2(x + rx, y));
-    path.lineTo(Vec2(x + w - rx, y));
-    arcTo(path, Vec2(x + w - rx, y), rx, ry, 0, false, true, Vec2(x + w, y + ry));
-    path.lineTo(Vec2(x + w, y + h - ry));
-    arcTo(path, Vec2(x + w, y + h - ry), rx, ry, 0, false, true, Vec2(x + w - rx, y + h));
-    path.lineTo(Vec2(x + rx, y + h));
-    arcTo(path, Vec2(x + rx, y + h), rx, ry, 0, false, true, Vec2(x, y + h - ry));
-    path.lineTo(Vec2(x, y + ry));
-    arcTo(path, Vec2(x, y + ry), rx, ry, 0, false, true, Vec2(x + rx, y));
-    path.close();
+    p.moveTo(Point(x + rx, y));
+    p.lineTo(Point(x + w - rx, y));
+    p.arcTo(rx, ry, 0, false, true, Point(x + w, y + ry));
+    p.lineTo(Point(x + w, y + h - ry));
+    p.arcTo(rx, ry, 0, false, true, Point(x + w - rx, y + h));
+    p.lineTo(Point(x + rx, y + h));
+    p.arcTo(rx, ry, 0, false, true, Point(x, y + h - ry));
+    p.lineTo(Point(x, y + ry));
+    p.arcTo(rx, ry, 0, false, true, Point(x + rx, y));
+    p.close();
 }
 
-/// Append an ellipse as four arcs, starting at `(cx + rx, cy)`.
-void ellipsePath(ref Path path, double cx, double cy, double rx, double ry) pure nothrow @safe
+/// Append an ellipse (nothing if a radius is not positive).
+void ellipsePath(ref Path p, double cx, double cy, double rx, double ry)
 {
-    path.moveTo(Vec2(cx + rx, cy));
-    arcTo(path, Vec2(cx + rx, cy), rx, ry, 0, false, true, Vec2(cx, cy + ry));
-    arcTo(path, Vec2(cx, cy + ry), rx, ry, 0, false, true, Vec2(cx - rx, cy));
-    arcTo(path, Vec2(cx - rx, cy), rx, ry, 0, false, true, Vec2(cx, cy - ry));
-    arcTo(path, Vec2(cx, cy - ry), rx, ry, 0, false, true, Vec2(cx + rx, cy));
-    path.close();
+    if (!(rx > 0) || !(ry > 0))
+        return;
+    p.moveTo(Point(cx + rx, cy));
+    p.arcTo(rx, ry, 0, false, true, Point(cx, cy + ry));
+    p.arcTo(rx, ry, 0, false, true, Point(cx - rx, cy));
+    p.arcTo(rx, ry, 0, false, true, Point(cx, cy - ry));
+    p.arcTo(rx, ry, 0, false, true, Point(cx + rx, cy));
+    p.close();
+}
+
+unittest
+{
+    auto root = parseXml(`<svg>
+        <rect x="1" y="2" width="3" height="4"/>
+        <rect width="10" height="10" rx="3"/>
+        <rect width="0" height="10"/>
+        <circle cx="5" cy="5" r="2"/>
+        <circle r="0"/>
+        <line x1="1" y1="2" x2="3" y2="4"/>
+    </svg>`);
+    auto k = root.children;
+    assert(shapeToPath(k[0]).segments.length == 5);
+    const rounded = shapeToPath(k[1]);
+    assert(rounded.segments.length > 9 && rounded.segments[0].p3 == Point(3, 0));
+    assert(shapeToPath(k[2]).segments.length == 0);
+    assert(shapeToPath(k[3]).segments.length > 5);
+    assert(shapeToPath(k[4]).segments.length == 0);
+    assert(shapeToPath(k[5]).segments.length == 2);
 }

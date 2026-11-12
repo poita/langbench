@@ -1,0 +1,62 @@
+cabal-version:      3.0
+name:               template-engine
+version:            0.1.0.0
+synopsis:           A small Jinja2-style template engine
+description:
+  A tree-walking interpreter for a subset of the Jinja2 template language:
+  variables, expressions, filters, @if@, @for@, @set@, macros, @include@,
+  template inheritance (@extends@, @block@, @super()@), comments and
+  whitespace control.  See the README for details.
+license:            BSD-3-Clause
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+category:           Text
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Template
+    Template.Document
+    Template.Error
+    Template.Eval
+    Template.Filters
+    Template.Json
+    Template.Lexer
+    Template.Ops
+    Template.Parser
+    Template.Syntax
+    Template.Value
+  build-depends:
+    , base        >=4.18 && <5
+    , containers  >=0.6
+    , text        >=2.0
+
+executable template
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , template-engine
+    , text
+
+test-suite template-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+    , base
+    , containers
+    , hspec        >=2.0
+    , QuickCheck
+    , template-engine
+    , text

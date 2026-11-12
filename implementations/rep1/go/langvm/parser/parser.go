@@ -1,4 +1,6 @@
-// Package parser is a recursive-descent parser for Vellum (SPEC section 4).
+// Package parser builds the syntax tree of one module from its tokens
+// (SPEC.md section 4). It is a recursive-descent parser with precedence
+// climbing; every failure is the single diagnostic `parse`.
 package parser
 
 import (
@@ -7,68 +9,75 @@ import (
 	"langvm/lexer"
 )
 
-type parser struct {
-	toks []lexer.Token
-	i    int
-}
+// bail is the panic payload used to abort parsing.
+type bail struct{ err *diag.Error }
 
-type bailout struct{ err *diag.Error }
-
-// Parse parses a token array (as produced by lexer.Lex) into a module. The
-// slice is modified in place when a `>>` token is split into two `>`.
-func Parse(name string, toks []lexer.Token) (m *ast.Module, err *diag.Error) {
+// Parse parses the tokens of a module. The token slice must end with an EOF
+// token, as produced by lexer.Lex.
+func Parse(name string, toks []lexer.Token) (mod *ast.Module, err *diag.Error) {
 	p := &parser{toks: toks}
 	defer func() {
 		if r := recover(); r != nil {
-			if b, ok := r.(bailout); ok {
-				m, err = nil, b.err
+			if b, ok := r.(bail); ok {
+				mod, err = nil, b.err
 				return
 			}
 			panic(r)
 		}
 	}()
-	m = &ast.Module{Name: name}
-	for p.kind() != lexer.EOF {
-		m.Items = append(m.Items, p.item())
+	mod = &ast.Module{Name: name}
+	for p.tok().Kind != lexer.EOF {
+		mod.Items = append(mod.Items, p.item())
 	}
-	return m, nil
+	return mod, nil
+}
+
+type parser struct {
+	toks []lexer.Token
+	i    int
+
+	// halfGT is set when a `>>` token closed an inner type-argument list and
+	// its second `>` is still available to the enclosing list.
+	halfGT bool
+	gtPos  diag.Pos
 }
 
 func (p *parser) tok() *lexer.Token { return &p.toks[p.i] }
-func (p *parser) kind() lexer.Kind  { return p.toks[p.i].Kind }
-func (p *parser) pos() ast.Pos      { return p.toks[p.i].Pos }
-func (p *parser) peekKind(k int) lexer.Kind {
-	if p.i+k < len(p.toks) {
-		return p.toks[p.i+k].Kind
+
+func (p *parser) peekKind(off int) lexer.Kind {
+	if p.i+off < len(p.toks) {
+		return p.toks[p.i+off].Kind
 	}
 	return lexer.EOF
 }
 
-func (p *parser) fail() {
-	panic(bailout{diag.New(diag.Parse, p.pos())})
+func (p *parser) fail(pos diag.Pos) {
+	panic(bail{diag.New(diag.Parse, pos)})
 }
 
-func (p *parser) next() lexer.Token {
-	t := p.toks[p.i]
+func (p *parser) failHere() { p.fail(p.tok().Pos) }
+
+func (p *parser) next() *lexer.Token {
+	t := &p.toks[p.i]
 	if t.Kind != lexer.EOF {
 		p.i++
 	}
 	return t
 }
 
-func (p *parser) expect(k lexer.Kind) lexer.Token {
-	if p.kind() != k {
-		p.fail()
-	}
-	return p.next()
-}
-
 func (p *parser) accept(k lexer.Kind) bool {
-	if p.kind() == k {
+	if p.tok().Kind == k {
 		p.next()
 		return true
 	}
 	return false
+}
+
+func (p *parser) expect(k lexer.Kind) *lexer.Token {
+	if p.tok().Kind != k {
+		p.failHere()
+	}
+	return p.next()
 }
 
 func (p *parser) ident() ast.Ident {
@@ -76,70 +85,68 @@ func (p *parser) ident() ast.Ident {
 	return ast.Ident{Name: t.Text, Pos: t.Pos}
 }
 
-// ------------------------------------------------------------------- items
+// ---------------------------------------------------------------- items
 
 func (p *parser) item() ast.Item {
-	switch p.kind() {
+	t := p.tok()
+	switch t.Kind {
 	case lexer.KwUse:
 		return p.useDecl()
 	case lexer.KwImpl:
 		return p.implDecl()
 	case lexer.KwPub:
 		p.next()
-		switch p.kind() {
-		case lexer.KwFn:
-			f := p.fnDecl(false)
-			f.Pub = true
-			return f
-		case lexer.KwStruct:
-			s := p.structDecl()
-			s.Pub = true
-			return s
-		case lexer.KwEnum:
-			e := p.enumDecl()
-			e.Pub = true
-			return e
-		case lexer.KwTrait:
-			t := p.traitDecl()
-			t.Pub = true
-			return t
-		}
-		p.fail()
-	case lexer.KwFn:
-		return p.fnDecl(false)
-	case lexer.KwStruct:
-		return p.structDecl()
-	case lexer.KwEnum:
-		return p.enumDecl()
-	case lexer.KwTrait:
-		return p.traitDecl()
+		return p.pubItem(true)
 	}
-	p.fail()
+	return p.pubItem(false)
+}
+
+func (p *parser) pubItem(pub bool) ast.Item {
+	switch p.tok().Kind {
+	case lexer.KwFn:
+		return p.fnDecl(pub)
+	case lexer.KwStruct:
+		return p.structDecl(pub)
+	case lexer.KwEnum:
+		return p.enumDecl(pub)
+	case lexer.KwTrait:
+		return p.traitDecl(pub)
+	}
+	p.failHere()
 	return nil
 }
 
-func (p *parser) useDecl() *ast.UseDecl {
-	u := &ast.UseDecl{Pos: p.next().Pos}
-	u.Module = p.ident()
+func (p *parser) useDecl() ast.Item {
+	pos := p.next().Pos
+	d := &ast.UseDecl{Pos: pos, Name: p.ident()}
 	if p.accept(lexer.KwAs) {
 		a := p.ident()
-		u.Alias = &a
+		d.Alias = &a
 	}
 	p.expect(lexer.Semi)
-	return u
+	return d
+}
+
+func (p *parser) traitRef() *ast.TraitRef {
+	first := p.ident()
+	if p.accept(lexer.ColonColon) {
+		n := p.ident()
+		return &ast.TraitRef{Pos: first.Pos, Qual: &first, Name: n}
+	}
+	return &ast.TraitRef{Pos: first.Pos, Name: first}
 }
 
 func (p *parser) generics(allowBounds bool) []*ast.GenParam {
-	if p.kind() != lexer.Lt {
+	if p.tok().Kind != lexer.Less {
 		return nil
 	}
 	p.next()
-	var out []*ast.GenParam
+	var gs []*ast.GenParam
 	for {
 		g := &ast.GenParam{Name: p.ident()}
-		if p.kind() == lexer.Colon {
+		if p.tok().Kind == lexer.Colon {
 			if !allowBounds {
-				p.fail()
+				p.failHere()
 			}
 			p.next()
 			g.Bounds = append(g.Bounds, p.traitRef())
@@ -147,117 +154,82 @@ func (p *parser) generics(allowBounds bool) []*ast.GenParam {
 				g.Bounds = append(g.Bounds, p.traitRef())
 			}
 		}
-		out = append(out, g)
+		gs = append(gs, g)
 		if p.accept(lexer.Comma) {
-			if p.kind() == lexer.Gt || p.kind() == lexer.Shr {
+			if p.tok().Kind == lexer.Greater {
 				break
 			}
 			continue
 		}
 		break
 	}
-	p.closeAngle()
-	return out
-}
-
-func (p *parser) closeAngle() {
-	switch p.kind() {
-	case lexer.Gt:
-		p.next()
-	case lexer.Shr:
-		t := p.tok()
-		t.Kind = lexer.Gt
-		t.Pos.Col++
-	default:
-		p.fail()
-	}
-}
-
-func (p *parser) traitRef() *ast.TraitRef {
-	first := p.ident()
-	tr := &ast.TraitRef{Pos: first.Pos, Name: first}
-	if p.accept(lexer.ColonColon) {
-		m := first
-		tr.Mod = &m
-		tr.Name = p.ident()
-	}
-	return tr
+	p.expect(lexer.Greater)
+	return gs
 }
 
 func (p *parser) params() []*ast.Param {
-	var out []*ast.Param
+	var ps []*ast.Param
 	for {
 		name := p.ident()
 		p.expect(lexer.Colon)
-		out = append(out, &ast.Param{Name: name, Type: p.typ()})
+		ps = append(ps, &ast.Param{Name: name, Type: p.typ()})
 		if p.accept(lexer.Comma) {
-			if p.kind() == lexer.RParen {
+			if p.tok().Kind == lexer.RParen {
 				break
 			}
 			continue
 		}
 		break
 	}
-	return out
+	return ps
 }
 
-// fnDecl parses a function; with method set it parses a trait/impl method.
-func (p *parser) fnDecl(method bool) *ast.FnDecl {
-	f := &ast.FnDecl{Pos: p.expect(lexer.KwFn).Pos, IsMethod: method}
-	f.Name = p.ident()
-	if !method {
-		f.Generics = p.generics(true)
-	}
+func (p *parser) fnDecl(pub bool) ast.Item {
+	pos := p.next().Pos
+	d := &ast.FnDecl{Pos: pos, Pub: pub, Name: p.ident()}
+	d.Generics = p.generics(true)
 	p.expect(lexer.LParen)
-	if method {
-		p.expect(lexer.KwSelf)
-		if p.accept(lexer.Comma) {
-			f.Params = p.params()
-		}
-	} else if p.kind() != lexer.RParen {
-		f.Params = p.params()
+	if p.tok().Kind != lexer.RParen {
+		d.Params = p.params()
 	}
 	p.expect(lexer.RParen)
 	if p.accept(lexer.Arrow) {
-		f.Ret = p.typ()
+		d.Ret = p.typ()
 	}
-	if method && p.kind() == lexer.Semi {
-		p.next()
-		return f
-	}
-	f.Body = p.block()
-	return f
+	d.Body = p.block()
+	return d
 }
 
-func (p *parser) structDecl() *ast.StructDecl {
-	s := &ast.StructDecl{Pos: p.next().Pos}
-	s.Name = p.ident()
-	s.Generics = p.generics(false)
+func (p *parser) structDecl(pub bool) ast.Item {
+	pos := p.next().Pos
+	d := &ast.StructDecl{Pos: pos, Pub: pub, Name: p.ident()}
+	d.Generics = p.generics(false)
 	p.expect(lexer.LBrace)
-	for p.kind() != lexer.RBrace {
-		name := p.ident()
+	for p.tok().Kind != lexer.RBrace {
+		f := &ast.FieldDecl{Name: p.ident()}
 		p.expect(lexer.Colon)
-		s.Fields = append(s.Fields, &ast.Field{Name: name, Type: p.typ()})
+		f.Type = p.typ()
+		d.Fields = append(d.Fields, f)
 		if !p.accept(lexer.Comma) {
 			break
 		}
 	}
 	p.expect(lexer.RBrace)
-	return s
+	return d
 }
 
-func (p *parser) enumDecl() *ast.EnumDecl {
-	e := &ast.EnumDecl{Pos: p.next().Pos}
-	e.Name = p.ident()
-	e.Generics = p.generics(false)
+func (p *parser) enumDecl(pub bool) ast.Item {
+	pos := p.next().Pos
+	d := &ast.EnumDecl{Pos: pos, Pub: pub, Name: p.ident()}
+	d.Generics = p.generics(false)
 	p.expect(lexer.LBrace)
-	for p.kind() != lexer.RBrace {
-		v := &ast.Variant{Name: p.ident()}
+	for p.tok().Kind != lexer.RBrace {
+		v := &ast.VariantDecl{Name: p.ident()}
 		if p.accept(lexer.LParen) {
 			for {
 				v.Payload = append(v.Payload, p.typ())
 				if p.accept(lexer.Comma) {
-					if p.kind() == lexer.RParen {
+					if p.tok().Kind == lexer.RParen {
 						break
 					}
 					continue
@@ -266,374 +238,399 @@ func (p *parser) enumDecl() *ast.EnumDecl {
 			}
 			p.expect(lexer.RParen)
 		}
-		e.Variants = append(e.Variants, v)
+		d.Variants = append(d.Variants, v)
 		if !p.accept(lexer.Comma) {
 			break
 		}
 	}
 	p.expect(lexer.RBrace)
-	return e
+	return d
 }
 
-func (p *parser) traitDecl() *ast.TraitDecl {
-	t := &ast.TraitDecl{Pos: p.next().Pos}
-	t.Name = p.ident()
-	p.expect(lexer.LBrace)
-	for p.kind() != lexer.RBrace {
-		t.Methods = append(t.Methods, p.fnDecl(true))
-	}
-	p.expect(lexer.RBrace)
-	return t
-}
-
-func (p *parser) implDecl() *ast.ImplDecl {
-	d := &ast.ImplDecl{Pos: p.next().Pos}
-	d.Generics = p.generics(true)
-	d.Trait = p.traitRef()
-	p.expect(lexer.KwFor)
-	d.Head = p.typ()
-	p.expect(lexer.LBrace)
-	for p.kind() != lexer.RBrace {
-		m := p.fnDecl(true)
-		if m.Body == nil {
-			// An impl method must have a body: the `;` form was accepted
-			// by fnDecl, so reject it here at the semicolon's position.
-			p.i--
-			p.fail()
+// method parses `fn name(self [, params]) [-> T] ( ; | block )`.
+func (p *parser) method(allowNoBody bool) *ast.MethodDecl {
+	pos := p.expect(lexer.KwFn).Pos
+	m := &ast.MethodDecl{Pos: pos, Name: p.ident()}
+	p.expect(lexer.LParen)
+	p.expect(lexer.KwSelf)
+	if p.accept(lexer.Comma) {
+		if p.tok().Kind == lexer.RParen {
+			p.failHere()
 		}
-		d.Methods = append(d.Methods, m)
+		m.Params = p.params()
+	}
+	p.expect(lexer.RParen)
+	if p.accept(lexer.Arrow) {
+		m.Ret = p.typ()
+	}
+	if allowNoBody && p.accept(lexer.Semi) {
+		return m
+	}
+	m.Body = p.block()
+	return m
+}
+
+func (p *parser) traitDecl(pub bool) ast.Item {
+	pos := p.next().Pos
+	d := &ast.TraitDecl{Pos: pos, Pub: pub, Name: p.ident()}
+	p.expect(lexer.LBrace)
+	for p.tok().Kind != lexer.RBrace {
+		d.Methods = append(d.Methods, p.method(true))
 	}
 	p.expect(lexer.RBrace)
 	return d
 }
 
-// -------------------------------------------------------------------- types
+func (p *parser) implDecl() ast.Item {
+	pos := p.next().Pos
+	d := &ast.ImplDecl{Pos: pos}
+	d.Generics = p.generics(true)
+	d.Trait = p.traitRef()
+	p.expect(lexer.KwFor)
+	d.Head = p.typ()
+	p.expect(lexer.LBrace)
+	for p.tok().Kind != lexer.RBrace {
+		d.Methods = append(d.Methods, p.method(false))
+	}
+	p.expect(lexer.RBrace)
+	return d
+}
 
-func (p *parser) typ() *ast.TypeExpr {
-	start := p.pos()
-	switch p.kind() {
+// ---------------------------------------------------------------- types
+
+func (p *parser) typ() ast.Type {
+	t := p.typeCore(false)
+	return t
+}
+
+func (p *parser) typeCore(allowHalf bool) ast.Type {
+	t := p.tok()
+	var res ast.Type
+	switch t.Kind {
 	case lexer.LBracket:
 		p.next()
-		t := p.typ()
+		e := p.typ()
 		p.expect(lexer.RBracket)
-		return &ast.TypeExpr{Kind: ast.TList, Pos: start, Args: []*ast.TypeExpr{t}}
+		res = &ast.ListType{Pos: t.Pos, Elem: e}
 	case lexer.HashBracket:
 		p.next()
 		k := p.typ()
 		p.expect(lexer.Colon)
 		v := p.typ()
 		p.expect(lexer.RBracket)
-		return &ast.TypeExpr{Kind: ast.TMap, Pos: start, Args: []*ast.TypeExpr{k, v}}
+		res = &ast.MapType{Pos: t.Pos, K: k, V: v}
 	case lexer.LParen:
 		p.next()
-		args := []*ast.TypeExpr{p.typ()}
+		tt := &ast.TupleType{Pos: t.Pos}
+		tt.Elems = append(tt.Elems, p.typ())
 		p.expect(lexer.Comma)
-		for p.kind() != lexer.RParen {
-			args = append(args, p.typ())
-			if !p.accept(lexer.Comma) {
-				break
+		for {
+			tt.Elems = append(tt.Elems, p.typ())
+			if p.accept(lexer.Comma) {
+				if p.tok().Kind == lexer.RParen {
+					break
+				}
+				continue
 			}
+			break
 		}
 		p.expect(lexer.RParen)
-		return &ast.TypeExpr{Kind: ast.TTuple, Pos: start, Args: args}
+		res = tt
 	case lexer.KwFn:
 		p.next()
+		ft := &ast.FnType{Pos: t.Pos}
 		p.expect(lexer.LParen)
-		var args []*ast.TypeExpr
-		for p.kind() != lexer.RParen {
-			args = append(args, p.typ())
-			if !p.accept(lexer.Comma) {
-				break
-			}
-		}
-		p.expect(lexer.RParen)
-		t := &ast.TypeExpr{Kind: ast.TFn, Pos: start, Args: args}
-		if p.accept(lexer.Arrow) {
-			t.Ret = p.typ()
-		}
-		return t
-	case lexer.Ident:
-		first := p.ident()
-		t := &ast.TypeExpr{Kind: ast.TPath, Pos: start, Name: first}
-		if p.accept(lexer.ColonColon) {
-			m := first
-			t.Mod = &m
-			t.Name = p.ident()
-		}
-		if p.kind() == lexer.Lt {
-			p.next()
+		if p.tok().Kind != lexer.RParen {
 			for {
-				t.Args = append(t.Args, p.typ())
+				ft.Params = append(ft.Params, p.typ())
 				if p.accept(lexer.Comma) {
-					if p.kind() == lexer.Gt || p.kind() == lexer.Shr {
+					if p.tok().Kind == lexer.RParen {
 						break
 					}
 					continue
 				}
 				break
 			}
-			p.closeAngle()
 		}
-		return t
+		p.expect(lexer.RParen)
+		if p.accept(lexer.Arrow) {
+			ft.Ret = p.typ()
+		}
+		res = ft
+	case lexer.Ident:
+		first := p.ident()
+		pt := &ast.PathType{Pos: first.Pos, Name: first}
+		if p.accept(lexer.ColonColon) {
+			q := first
+			pt.Qual = &q
+			pt.Name = p.ident()
+		}
+		if p.tok().Kind == lexer.Less {
+			p.next()
+			pt.HasArgs = true
+			for {
+				pt.Args = append(pt.Args, p.typeCore(true))
+				if p.halfGT {
+					p.halfGT = false
+					break
+				}
+				if p.accept(lexer.Comma) {
+					if p.tok().Kind == lexer.Greater || p.tok().Kind == lexer.Shr {
+						// trailing comma, then the closer
+						p.closeAngle()
+						break
+					}
+					continue
+				}
+				p.closeAngle()
+				break
+			}
+		}
+		res = pt
+	default:
+		p.failHere()
 	}
-	p.fail()
-	return nil
+	if p.halfGT && !allowHalf {
+		p.fail(p.gtPos)
+	}
+	return res
 }
 
-// ------------------------------------------------------------------- blocks
+// closeAngle consumes the `>` (or `>>`, leaving half of it for the enclosing
+// list) that ends a type-argument list.
+func (p *parser) closeAngle() {
+	switch p.tok().Kind {
+	case lexer.Greater:
+		p.next()
+	case lexer.Shr:
+		p.gtPos = p.tok().Pos
+		p.next()
+		p.halfGT = true
+	default:
+		p.failHere()
+	}
+}
+
+// ---------------------------------------------------------------- blocks
 
 func (p *parser) block() *ast.Block {
-	b := &ast.Block{P: p.expect(lexer.LBrace).Pos}
-	for p.kind() != lexer.RBrace {
-		switch p.kind() {
+	open := p.expect(lexer.LBrace)
+	b := &ast.Block{Pos: open.Pos}
+	for p.tok().Kind != lexer.RBrace {
+		t := p.tok()
+		switch t.Kind {
 		case lexer.KwLet:
-			b.Stmts = append(b.Stmts, p.letStmt())
+			p.next()
+			s := &ast.LetStmt{Pos: t.Pos}
+			s.Pat = p.pattern()
+			if p.accept(lexer.Colon) {
+				s.Type = p.typ()
+			}
+			p.expect(lexer.Assign)
+			s.Init = p.expr()
+			p.expect(lexer.Semi)
+			b.Stmts = append(b.Stmts, s)
 		case lexer.KwVar:
-			b.Stmts = append(b.Stmts, p.varStmt())
+			p.next()
+			s := &ast.VarStmt{Pos: t.Pos, Name: p.ident()}
+			if p.accept(lexer.Colon) {
+				s.Type = p.typ()
+			}
+			p.expect(lexer.Assign)
+			s.Init = p.expr()
+			p.expect(lexer.Semi)
+			b.Stmts = append(b.Stmts, s)
 		case lexer.KwReturn:
-			r := &ast.ReturnStmt{P: p.next().Pos}
-			if p.kind() != lexer.Semi {
-				r.X = p.expr()
+			p.next()
+			s := &ast.ReturnStmt{Pos: t.Pos}
+			if p.tok().Kind != lexer.Semi {
+				s.X = p.expr()
 			}
 			p.expect(lexer.Semi)
-			b.Stmts = append(b.Stmts, r)
+			b.Stmts = append(b.Stmts, s)
 		case lexer.KwWhile:
-			w := &ast.WhileStmt{P: p.next().Pos}
-			w.Cond = p.expr()
-			w.Body = p.block()
-			b.Stmts = append(b.Stmts, w)
+			p.next()
+			s := &ast.WhileStmt{Pos: t.Pos}
+			s.Cond = p.expr()
+			s.Body = p.block()
+			b.Stmts = append(b.Stmts, s)
 		case lexer.KwFor:
-			b.Stmts = append(b.Stmts, p.forStmt())
+			p.next()
+			s := &ast.ForStmt{Pos: t.Pos}
+			s.Pat = p.pattern()
+			p.expect(lexer.KwIn)
+			s.Iter = p.expr()
+			if p.accept(lexer.DotDot) {
+				s.End = p.expr()
+			}
+			s.Body = p.block()
+			b.Stmts = append(b.Stmts, s)
 		case lexer.KwBreak:
-			s := &ast.BreakStmt{P: p.next().Pos}
+			p.next()
 			p.expect(lexer.Semi)
-			b.Stmts = append(b.Stmts, s)
+			b.Stmts = append(b.Stmts, &ast.BreakStmt{Pos: t.Pos})
 		case lexer.KwContinue:
-			s := &ast.ContinueStmt{P: p.next().Pos}
+			p.next()
 			p.expect(lexer.Semi)
-			b.Stmts = append(b.Stmts, s)
+			b.Stmts = append(b.Stmts, &ast.ContinueStmt{Pos: t.Pos})
 		default:
 			e := p.expr()
-			switch p.kind() {
+			switch p.tok().Kind {
 			case lexer.Assign:
-				pos := p.next().Pos
+				p.next()
 				v := p.expr()
 				p.expect(lexer.Semi)
-				b.Stmts = append(b.Stmts, &ast.AssignStmt{P: pos, Target: e, Value: v})
+				b.Stmts = append(b.Stmts, &ast.AssignStmt{Pos: e.ExprPos(), Target: e, Value: v})
 			case lexer.Semi:
 				p.next()
 				b.Stmts = append(b.Stmts, &ast.ExprStmt{X: e})
 			case lexer.RBrace:
-				b.Tail = e
+				b.Trailing = e
 			default:
 				switch e.(type) {
 				case *ast.IfExpr, *ast.MatchExpr:
 					b.Stmts = append(b.Stmts, &ast.ExprStmt{X: e})
 				default:
-					p.fail()
+					p.failHere()
 				}
 			}
 		}
 	}
 	p.expect(lexer.RBrace)
-	b.Div = b.Tail != nil && ast.Diverges(b.Tail)
-	if !b.Div {
-		for _, s := range b.Stmts {
-			if ast.StmtDiverges(s) {
-				b.Div = true
-				break
-			}
-		}
-	}
 	return b
 }
 
-func (p *parser) letStmt() ast.Stmt {
-	s := &ast.LetStmt{P: p.next().Pos}
-	s.Pat = p.pattern()
-	if p.accept(lexer.Colon) {
-		s.Type = p.typ()
-	}
-	p.expect(lexer.Assign)
-	s.Init = p.expr()
-	p.expect(lexer.Semi)
-	return s
-}
-
-func (p *parser) varStmt() ast.Stmt {
-	s := &ast.VarStmt{P: p.next().Pos}
-	s.Name = p.ident()
-	if p.accept(lexer.Colon) {
-		s.Type = p.typ()
-	}
-	p.expect(lexer.Assign)
-	s.Init = p.expr()
-	p.expect(lexer.Semi)
-	return s
-}
-
-func (p *parser) forStmt() ast.Stmt {
-	s := &ast.ForStmt{P: p.next().Pos}
-	s.Pat = p.pattern()
-	p.expect(lexer.KwIn)
-	s.Seq = p.expr()
-	if p.accept(lexer.DotDot) {
-		s.Hi = p.expr()
-	}
-	s.Body = p.block()
-	return s
-}
-
-// -------------------------------------------------------------- expressions
+// ---------------------------------------------------------------- expressions
 
 func (p *parser) expr() ast.Expr { return p.binary(1) }
 
-func isCmp(k lexer.Kind) bool {
-	switch k {
-	case lexer.EqEq, lexer.NotEq, lexer.Lt, lexer.Le, lexer.Gt, lexer.Ge:
-		return true
-	}
-	return false
+type opInfo struct {
+	level int
+	op    string
 }
 
-func binOp(k lexer.Kind, level int) (ast.BinOp, bool) {
-	switch level {
-	case 1:
-		if k == lexer.OrOr {
-			return ast.OpOr, true
-		}
-	case 2:
-		if k == lexer.AndAnd {
-			return ast.OpAnd, true
-		}
-	case 4:
-		if k == lexer.Pipe {
-			return ast.OpBitOr, true
-		}
-	case 5:
-		if k == lexer.Caret {
-			return ast.OpBitXor, true
-		}
-	case 6:
-		if k == lexer.Amp {
-			return ast.OpBitAnd, true
-		}
-	case 7:
-		switch k {
-		case lexer.Shl:
-			return ast.OpShl, true
-		case lexer.Shr:
-			return ast.OpShr, true
-		}
-	case 8:
-		switch k {
-		case lexer.Plus:
-			return ast.OpAdd, true
-		case lexer.Minus:
-			return ast.OpSub, true
-		case lexer.PlusPlus:
-			return ast.OpConcat, true
-		}
-	case 9:
-		switch k {
-		case lexer.Star:
-			return ast.OpMul, true
-		case lexer.Slash:
-			return ast.OpDiv, true
-		case lexer.Percent:
-			return ast.OpMod, true
-		}
-	}
-	return 0, false
-}
-
-func cmpOp(k lexer.Kind) ast.BinOp {
+func binOp(k lexer.Kind) (opInfo, bool) {
 	switch k {
+	case lexer.OrOr:
+		return opInfo{1, "||"}, true
+	case lexer.AndAnd:
+		return opInfo{2, "&&"}, true
 	case lexer.EqEq:
-		return ast.OpEq
+		return opInfo{3, "=="}, true
 	case lexer.NotEq:
-		return ast.OpNe
-	case lexer.Lt:
-		return ast.OpLt
-	case lexer.Le:
-		return ast.OpLe
-	case lexer.Gt:
-		return ast.OpGt
+		return opInfo{3, "!="}, true
+	case lexer.Less:
+		return opInfo{3, "<"}, true
+	case lexer.LessEq:
+		return opInfo{3, "<="}, true
+	case lexer.Greater:
+		return opInfo{3, ">"}, true
+	case lexer.GreaterEq:
+		return opInfo{3, ">="}, true
+	case lexer.Pipe:
+		return opInfo{4, "|"}, true
+	case lexer.Caret:
+		return opInfo{5, "^"}, true
+	case lexer.Amp:
+		return opInfo{6, "&"}, true
+	case lexer.Shl:
+		return opInfo{7, "<<"}, true
+	case lexer.Shr:
+		return opInfo{7, ">>"}, true
+	case lexer.Plus:
+		return opInfo{8, "+"}, true
+	case lexer.Minus:
+		return opInfo{8, "-"}, true
+	case lexer.PlusPlus:
+		return opInfo{8, "++"}, true
+	case lexer.Star:
+		return opInfo{9, "*"}, true
+	case lexer.Slash:
+		return opInfo{9, "/"}, true
+	case lexer.Percent:
+		return opInfo{9, "%"}, true
 	}
-	return ast.OpGe
+	return opInfo{}, false
 }
 
-func (p *parser) binary(level int) ast.Expr {
-	if level > 9 {
-		return p.unary()
-	}
-	left := p.binary(level + 1)
-	if level == 3 {
-		if isCmp(p.kind()) {
-			t := p.next()
-			right := p.binary(4)
-			left = &ast.Binary{Op: cmpOp(t.Kind), OpP: t.Pos, L: left, R: right}
-		}
-		return left
-	}
+func (p *parser) binary(minLevel int) ast.Expr {
+	left := p.unary()
 	for {
-		op, ok := binOp(p.kind(), level)
-		if !ok {
+		info, ok := binOp(p.tok().Kind)
+		if !ok || info.level < minLevel {
 			return left
 		}
-		t := p.next()
-		right := p.binary(level + 1)
-		left = &ast.Binary{Op: op, OpP: t.Pos, L: left, R: right}
+		opTok := p.next()
+		right := p.binary(info.level + 1)
+		left = &ast.BinaryExpr{Pos: left.ExprPos(), Op: info.op, OpPos: opTok.Pos, L: left, R: right}
+		if info.level == 3 {
+			// comparison is non-associative
+			if next, ok := binOp(p.tok().Kind); ok && next.level == 3 {
+				p.failHere()
+			}
+		}
 	}
 }
 
 func (p *parser) unary() ast.Expr {
-	switch p.kind() {
-	case lexer.Minus:
-		t := p.next()
-		return &ast.Unary{P: t.Pos, Op: ast.OpNeg, X: p.unary()}
-	case lexer.Bang:
-		t := p.next()
-		return &ast.Unary{P: t.Pos, Op: ast.OpNot, X: p.unary()}
-	case lexer.Tilde:
-		t := p.next()
-		return &ast.Unary{P: t.Pos, Op: ast.OpBitNot, X: p.unary()}
+	t := p.tok()
+	switch t.Kind {
+	case lexer.Minus, lexer.Bang, lexer.Tilde:
+		p.next()
+		x := p.unary()
+		op := "-"
+		if t.Kind == lexer.Bang {
+			op = "!"
+		} else if t.Kind == lexer.Tilde {
+			op = "~"
+		}
+		return &ast.UnaryExpr{Pos: t.Pos, Op: op, X: x}
 	}
 	return p.postfix()
 }
 
-func (p *parser) args(close lexer.Kind) []ast.Expr {
-	var out []ast.Expr
-	for p.kind() != close {
-		out = append(out, p.expr())
-		if !p.accept(lexer.Comma) {
-			break
-		}
+func (p *parser) args() []ast.Expr {
+	var as []ast.Expr
+	if p.tok().Kind == lexer.RParen {
+		return as
 	}
-	p.expect(close)
-	return out
+	for {
+		as = append(as, p.expr())
+		if p.accept(lexer.Comma) {
+			if p.tok().Kind == lexer.RParen {
+				break
+			}
+			continue
+		}
+		break
+	}
+	return as
 }
 
 func (p *parser) postfix() ast.Expr {
 	e := p.primary()
 	for {
-		switch p.kind() {
+		switch p.tok().Kind {
 		case lexer.LParen:
 			p.next()
-			e = &ast.Call{Callee: e, Args: p.args(lexer.RParen)}
+			as := p.args()
+			p.expect(lexer.RParen)
+			e = &ast.CallExpr{Pos: e.ExprPos(), Callee: e, Args: as}
 		case lexer.LBracket:
 			p.next()
-			idx := p.expr()
+			i := p.expr()
 			p.expect(lexer.RBracket)
-			e = &ast.IndexExpr{X: e, Index: idx}
+			e = &ast.IndexExpr{Pos: e.ExprPos(), X: e, I: i}
 		case lexer.Dot:
 			p.next()
 			name := p.ident()
-			if p.kind() == lexer.LParen {
+			if p.tok().Kind == lexer.LParen {
 				p.next()
-				e = &ast.MethodCall{Recv: e, Name: name, Args: p.args(lexer.RParen)}
+				as := p.args()
+				p.expect(lexer.RParen)
+				e = &ast.MethodCallExpr{Pos: e.ExprPos(), Recv: e, Name: name, Args: as}
 			} else {
-				e = &ast.FieldExpr{X: e, Name: name}
+				e = &ast.FieldExpr{Pos: e.ExprPos(), X: e, Name: name}
 			}
 		default:
 			return e
@@ -643,77 +640,140 @@ func (p *parser) postfix() ast.Expr {
 
 func (p *parser) primary() ast.Expr {
 	t := p.tok()
-	pos := t.Pos
 	switch t.Kind {
-	case lexer.IntLit:
+	case lexer.Int:
 		p.next()
-		return &ast.IntLit{P: pos, Val: t.Int}
-	case lexer.FloatLit:
+		return &ast.IntLit{Pos: t.Pos, Val: t.Int}
+	case lexer.Float:
 		p.next()
-		return &ast.FloatLit{P: pos, Val: t.Float}
-	case lexer.StrLit:
+		return &ast.FloatLit{Pos: t.Pos, Val: t.Float}
+	case lexer.Str:
 		p.next()
-		return &ast.StrLit{P: pos, Val: t.Str}
-	case lexer.CharLit:
+		return &ast.StrLit{Pos: t.Pos, Val: t.Str}
+	case lexer.Char:
 		p.next()
-		return &ast.CharLit{P: pos, Val: rune(t.Int)}
-	case lexer.KwTrue:
+		return &ast.CharLit{Pos: t.Pos, Val: rune(t.Int)}
+	case lexer.KwTrue, lexer.KwFalse:
 		p.next()
-		return &ast.BoolLit{P: pos, Val: true}
-	case lexer.KwFalse:
-		p.next()
-		return &ast.BoolLit{P: pos, Val: false}
+		return &ast.BoolLit{Pos: t.Pos, Val: t.Kind == lexer.KwTrue}
 	case lexer.KwSelf:
 		p.next()
-		return &ast.SelfExpr{P: pos}
+		return &ast.SelfExpr{Pos: t.Pos}
 	case lexer.LParen:
 		p.next()
 		first := p.expr()
-		if p.kind() == lexer.Comma {
-			elems := []ast.Expr{first}
-			for p.accept(lexer.Comma) {
-				if len(elems) >= 2 && p.kind() == lexer.RParen {
+		if p.accept(lexer.RParen) {
+			return first
+		}
+		p.expect(lexer.Comma)
+		elems := []ast.Expr{first}
+		for {
+			elems = append(elems, p.expr())
+			if p.accept(lexer.Comma) {
+				if p.tok().Kind == lexer.RParen {
 					break
 				}
-				elems = append(elems, p.expr())
+				continue
 			}
-			p.expect(lexer.RParen)
-			return &ast.TupleLit{P: pos, Elems: elems}
+			break
 		}
 		p.expect(lexer.RParen)
-		return first
+		return &ast.TupleLit{Pos: t.Pos, Elems: elems}
 	case lexer.LBracket:
 		p.next()
-		return &ast.ListLit{P: pos, Elems: p.args(lexer.RBracket)}
+		l := &ast.ListLit{Pos: t.Pos}
+		if p.tok().Kind != lexer.RBracket {
+			for {
+				l.Elems = append(l.Elems, p.expr())
+				if p.accept(lexer.Comma) {
+					if p.tok().Kind == lexer.RBracket {
+						break
+					}
+					continue
+				}
+				break
+			}
+		}
+		p.expect(lexer.RBracket)
+		return l
 	case lexer.HashBracket:
 		p.next()
-		m := &ast.MapLit{P: pos}
-		for p.kind() != lexer.RBracket {
-			k := p.expr()
-			p.expect(lexer.Colon)
-			v := p.expr()
-			m.Keys = append(m.Keys, k)
-			m.Vals = append(m.Vals, v)
-			if !p.accept(lexer.Comma) {
+		m := &ast.MapLit{Pos: t.Pos}
+		if p.tok().Kind != lexer.RBracket {
+			for {
+				k := p.expr()
+				p.expect(lexer.Colon)
+				v := p.expr()
+				m.Entries = append(m.Entries, &ast.MapEntry{K: k, V: v})
+				if p.accept(lexer.Comma) {
+					if p.tok().Kind == lexer.RBracket {
+						break
+					}
+					continue
+				}
 				break
 			}
 		}
 		p.expect(lexer.RBracket)
 		return m
-	case lexer.OrOr:
-		p.next()
-		return p.lambdaRest(pos, nil)
-	case lexer.Pipe:
-		p.next()
-		var ps []*ast.LParam
+	case lexer.Pipe, lexer.OrOr:
+		return p.lambda()
+	case lexer.KwIf:
+		return p.ifExpr()
+	case lexer.KwMatch:
+		return p.matchExpr()
+	case lexer.Ident:
+		path := p.valuePath()
+		if p.tok().Kind == lexer.Dot && p.peekKind(1) == lexer.LBrace {
+			p.next()
+			p.next()
+			s := &ast.StructLit{Pos: path.Pos, Path: path}
+			if p.tok().Kind != lexer.RBrace {
+				for {
+					name := p.ident()
+					p.expect(lexer.Colon)
+					s.Fields = append(s.Fields, &ast.FieldInit{Name: name, Value: p.expr()})
+					if p.accept(lexer.Comma) {
+						if p.tok().Kind == lexer.RBrace {
+							break
+						}
+						continue
+					}
+					break
+				}
+			}
+			p.expect(lexer.RBrace)
+			return s
+		}
+		return path
+	}
+	p.failHere()
+	return nil
+}
+
+func (p *parser) valuePath() *ast.PathExpr {
+	first := p.ident()
+	pe := &ast.PathExpr{Pos: first.Pos, Name: first}
+	if p.accept(lexer.ColonColon) {
+		q := first
+		pe.Qual = &q
+		pe.Name = p.ident()
+	}
+	return pe
+}
+
+func (p *parser) lambda() ast.Expr {
+	t := p.next()
+	l := &ast.Lambda{Pos: t.Pos}
+	if t.Kind == lexer.Pipe {
 		for {
 			lp := &ast.LParam{Name: p.ident()}
 			if p.accept(lexer.Colon) {
 				lp.Type = p.typ()
 			}
-			ps = append(ps, lp)
+			l.Params = append(l.Params, lp)
 			if p.accept(lexer.Comma) {
-				if p.kind() == lexer.Pipe {
+				if p.tok().Kind == lexer.Pipe {
 					break
 				}
 				continue
@@ -721,46 +781,11 @@ func (p *parser) primary() ast.Expr {
 			break
 		}
 		p.expect(lexer.Pipe)
-		return p.lambdaRest(pos, ps)
-	case lexer.KwIf:
-		return p.ifExpr()
-	case lexer.KwMatch:
-		return p.matchExpr()
-	case lexer.Ident:
-		first := p.ident()
-		path := &ast.PathExpr{P: pos, Name: first}
-		if p.accept(lexer.ColonColon) {
-			m := first
-			path.Mod = &m
-			path.Name = p.ident()
-		}
-		if p.kind() == lexer.Dot && p.peekKind(1) == lexer.LBrace {
-			p.next()
-			p.next()
-			sl := &ast.StructLit{P: pos, Mod: path.Mod, Name: path.Name}
-			for p.kind() != lexer.RBrace {
-				name := p.ident()
-				p.expect(lexer.Colon)
-				sl.Fields = append(sl.Fields, &ast.FieldInit{Name: name, X: p.expr()})
-				if !p.accept(lexer.Comma) {
-					break
-				}
-			}
-			p.expect(lexer.RBrace)
-			return sl
-		}
-		return path
 	}
-	p.fail()
-	return nil
-}
-
-func (p *parser) lambdaRest(pos ast.Pos, ps []*ast.LParam) ast.Expr {
-	l := &ast.Lambda{P: pos, Params: ps}
 	if p.accept(lexer.Arrow) {
 		l.Ret = p.typ()
 	}
-	if p.kind() == lexer.LBrace {
+	if p.tok().Kind == lexer.LBrace {
 		l.Body = p.block()
 	} else {
 		l.Body = p.expr()
@@ -769,150 +794,138 @@ func (p *parser) lambdaRest(pos ast.Pos, ps []*ast.LParam) ast.Expr {
 }
 
 func (p *parser) ifExpr() ast.Expr {
-	e := &ast.IfExpr{P: p.next().Pos}
+	t := p.next()
+	e := &ast.IfExpr{Pos: t.Pos}
 	e.Cond = p.expr()
 	e.Then = p.block()
 	if p.accept(lexer.KwElse) {
-		if p.kind() == lexer.KwIf {
+		if p.tok().Kind == lexer.KwIf {
 			e.Else = p.ifExpr()
 		} else {
 			e.Else = p.block()
 		}
-		e.Div = e.Then.Div && ast.Diverges(e.Else)
 	}
 	return e
 }
 
 func (p *parser) matchExpr() ast.Expr {
-	m := &ast.MatchExpr{P: p.next().Pos}
-	m.Scrut = p.expr()
+	t := p.next()
+	m := &ast.MatchExpr{Pos: t.Pos}
+	m.Scr = p.expr()
 	p.expect(lexer.LBrace)
-	for p.kind() != lexer.RBrace {
+	for p.tok().Kind != lexer.RBrace {
 		arm := &ast.Arm{Pat: p.pattern()}
 		if p.accept(lexer.KwWhen) {
 			arm.Guard = p.expr()
 		}
 		p.expect(lexer.Arrow)
-		isBlock := p.kind() == lexer.LBrace
-		if isBlock {
+		blockBody := false
+		if p.tok().Kind == lexer.LBrace {
 			arm.Body = p.block()
+			blockBody = true
 		} else {
 			arm.Body = p.expr()
 		}
 		m.Arms = append(m.Arms, arm)
 		if !p.accept(lexer.Comma) {
-			if p.kind() != lexer.RBrace && !isBlock {
-				p.fail()
+			if p.tok().Kind != lexer.RBrace && !blockBody {
+				p.failHere()
 			}
 		}
 	}
 	p.expect(lexer.RBrace)
-	if len(m.Arms) > 0 {
-		m.Div = true
-		for _, a := range m.Arms {
-			if !ast.Diverges(a.Body) {
-				m.Div = false
-				break
-			}
-		}
-	}
 	return m
 }
 
-// ----------------------------------------------------------------- patterns
+// ---------------------------------------------------------------- patterns
 
 func (p *parser) pattern() ast.Pattern {
 	t := p.tok()
-	pos := t.Pos
 	switch t.Kind {
 	case lexer.Underscore:
 		p.next()
-		return &ast.WildPat{P: pos}
-	case lexer.IntLit:
+		return &ast.WildPat{Pos: t.Pos}
+	case lexer.Int:
 		p.next()
-		return &ast.LitPat{P: pos, Kind: ast.LitInt, Int: t.Int}
-	case lexer.FloatLit:
+		return &ast.LitPat{Pos: t.Pos, Kind: ast.LitInt, Int: t.Int}
+	case lexer.Float:
 		p.next()
-		return &ast.LitPat{P: pos, Kind: ast.LitFloat}
+		return &ast.LitPat{Pos: t.Pos, Kind: ast.LitFloat}
 	case lexer.Minus:
 		p.next()
 		n := p.tok()
 		switch n.Kind {
-		case lexer.IntLit:
+		case lexer.Int:
 			p.next()
-			return &ast.LitPat{P: pos, Kind: ast.LitInt, Neg: true, Int: n.Int}
-		case lexer.FloatLit:
+			return &ast.LitPat{Pos: t.Pos, Kind: ast.LitInt, Int: -n.Int}
+		case lexer.Float:
 			p.next()
-			return &ast.LitPat{P: pos, Kind: ast.LitFloat, Neg: true}
+			return &ast.LitPat{Pos: t.Pos, Kind: ast.LitFloat}
 		}
-		p.fail()
-	case lexer.StrLit:
+		p.failHere()
+	case lexer.Str:
 		p.next()
-		return &ast.LitPat{P: pos, Kind: ast.LitStr, Str: t.Str}
-	case lexer.CharLit:
+		return &ast.LitPat{Pos: t.Pos, Kind: ast.LitStr, Str: t.Str}
+	case lexer.Char:
 		p.next()
-		return &ast.LitPat{P: pos, Kind: ast.LitChar, Int: t.Int}
+		return &ast.LitPat{Pos: t.Pos, Kind: ast.LitChar, Int: t.Int}
 	case lexer.KwTrue:
 		p.next()
-		return &ast.LitPat{P: pos, Kind: ast.LitBool, Bool: true}
+		return &ast.LitPat{Pos: t.Pos, Kind: ast.LitBool, Int: 1}
 	case lexer.KwFalse:
 		p.next()
-		return &ast.LitPat{P: pos, Kind: ast.LitBool, Bool: false}
+		return &ast.LitPat{Pos: t.Pos, Kind: ast.LitBool, Int: 0}
 	case lexer.LParen:
 		p.next()
-		elems := []ast.Pattern{p.pattern()}
+		tp := &ast.TuplePat{Pos: t.Pos}
+		tp.Elems = append(tp.Elems, p.pattern())
 		p.expect(lexer.Comma)
-		for p.kind() != lexer.RParen {
-			elems = append(elems, p.pattern())
+		for {
+			tp.Elems = append(tp.Elems, p.pattern())
+			if p.accept(lexer.Comma) {
+				if p.tok().Kind == lexer.RParen {
+					break
+				}
+				continue
+			}
+			break
+		}
+		p.expect(lexer.RParen)
+		return tp
+	case lexer.LBracket:
+		p.next()
+		lp := &ast.ListPat{Pos: t.Pos}
+		for p.tok().Kind != lexer.RBracket {
+			if p.accept(lexer.DotDot) {
+				lp.HasRest = true
+				if p.tok().Kind == lexer.Ident {
+					r := p.ident()
+					lp.Rest = &r
+				}
+				break
+			}
+			lp.Elems = append(lp.Elems, p.pattern())
 			if !p.accept(lexer.Comma) {
 				break
 			}
 		}
-		p.expect(lexer.RParen)
-		return &ast.TuplePat{P: pos, Elems: elems}
-	case lexer.LBracket:
-		p.next()
-		lp := &ast.ListPat{P: pos}
-		for {
-			if p.kind() == lexer.DotDot {
-				p.next()
-				lp.HasRest = true
-				if p.kind() == lexer.Ident {
-					id := p.ident()
-					lp.RestName = &id
-				}
-				p.expect(lexer.RBracket)
-				break
-			}
-			if p.kind() == lexer.RBracket {
-				p.next()
-				break
-			}
-			lp.Elems = append(lp.Elems, p.pattern())
-			if p.accept(lexer.Comma) {
-				continue
-			}
-			p.expect(lexer.RBracket)
-			break
-		}
+		p.expect(lexer.RBracket)
 		return lp
 	case lexer.Ident:
 		first := p.ident()
-		var mod *ast.Ident
-		name := first
+		path := &ast.PathExpr{Pos: first.Pos, Name: first}
 		if p.accept(lexer.ColonColon) {
-			m := first
-			mod = &m
-			name = p.ident()
+			q := first
+			path.Qual = &q
+			path.Name = p.ident()
 		}
-		if p.kind() == lexer.Dot && p.peekKind(1) == lexer.LBrace {
+		if p.tok().Kind == lexer.Dot && p.peekKind(1) == lexer.LBrace {
 			p.next()
 			p.next()
-			sp := &ast.StructPat{P: pos, Mod: mod, Name: name}
-			for p.kind() != lexer.RBrace {
-				if p.kind() == lexer.DotDot {
-					p.next()
-					sp.Rest = true
+			sp := &ast.StructPat{Pos: path.Pos, Path: path}
+			for p.tok().Kind != lexer.RBrace {
+				if p.accept(lexer.DotDot) {
+					sp.HasRest = true
 					break
 				}
 				fp := &ast.FieldPat{Name: p.ident()}
@@ -927,13 +940,13 @@ func (p *parser) pattern() ast.Pattern {
 			p.expect(lexer.RBrace)
 			return sp
 		}
-		if p.kind() == lexer.LParen {
+		if p.tok().Kind == lexer.LParen {
 			p.next()
-			vp := &ast.VariantPat{P: pos, Mod: mod, Name: name}
+			vp := &ast.VariantPat{Pos: path.Pos, Path: path}
 			for {
 				vp.Args = append(vp.Args, p.pattern())
 				if p.accept(lexer.Comma) {
-					if p.kind() == lexer.RParen {
+					if p.tok().Kind == lexer.RParen {
 						break
 					}
 					continue
@@ -943,8 +956,11 @@ func (p *parser) pattern() ast.Pattern {
 			p.expect(lexer.RParen)
 			return vp
 		}
-		return &ast.NamePat{P: pos, Mod: mod, Name: name}
+		if path.Qual != nil {
+			return &ast.VariantPat{Pos: path.Pos, Path: path}
+		}
+		return &ast.IdentPat{Pos: first.Pos, Name: first.Name}
 	}
-	p.fail()
+	p.failHere()
 	return nil
 }

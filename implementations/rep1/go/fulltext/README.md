@@ -1,64 +1,65 @@
 # fulltext
 
-A small, dependency-free full-text search engine in Go: a positional inverted
-index over plain-text documents with boolean and phrase queries, BM25 ranking,
-Porter stemming and best-window snippets. It comes as a reusable library and
-a thin command-line tool that indexes a directory and answers a file of
-queries. Only the Go standard library is used; indexing, stemming and ranking
-are implemented here.
+A small full-text search engine in Go, standard library only. It builds a
+positional inverted index over plain-text documents, evaluates boolean and
+phrase queries, ranks matches with BM25 and returns a best-window snippet for
+each hit. The indexing, Porter stemming and ranking are all implemented here.
 
-## Layout
-
-| Package | Responsibility |
-|---|---|
-| `example.com/fulltext` | `Builder`/`Index`, phrase matching, boolean evaluation, BM25 ranking, snippets, `queries.txt` and corpus-directory handling |
-| `example.com/fulltext/analysis` | tokeniser, case/apostrophe folding, stop words, term analysis |
-| `example.com/fulltext/porter` | the Porter (1980) stemmer, as in Porter's `porter.c` |
-| `example.com/fulltext/query` | query lexer and recursive-descent parser producing a tree |
-| `cmd/fulltext` | the command-line tool |
+It ships as a library (import path `fulltext`) and a thin command-line tool
+that runs a batch of queries over a directory of documents.
 
 ## Build
 
-```
-./build.sh            # produces bin/fulltext (runs: go build -o bin/fulltext ./cmd/fulltext)
-go test ./...         # unit tests
+Requires Go 1.27.1.
+
+```sh
+./build.sh          # builds bin/fulltext with plain `go build`
+go test ./...       # runs the unit tests
 ```
 
-Requires Go 1.27.1 or later.
+## Command-line use
 
-## Command line
-
-```
+```sh
 ./run.sh <input directory> <output directory>
 ```
 
-The input directory contains `docs/<id>.txt` documents (UTF-8) and
-`queries.txt`. The tool writes two files into the output directory:
-
-* `results.txt` — per query, `QUERY <n> <text>`, `HITS <h>`, then one line
-  `<rank>\t<id>\t<score>\t<snippet>` per hit (BM25 score with four decimals).
-* `stats.txt` — `documents`, `tokens`, `terms` and `avgdl`.
+The input directory holds `docs/<id>.txt` (zero or more documents; the id is
+the file name without `.txt`) and `queries.txt`. The tool writes `results.txt`
+and `stats.txt` into the output directory (created if missing) and exits 0.
 
 `queries.txt` has one query per line. Blank lines and lines starting with `#`
-are ignored; `%k <n>` sets the number of results for the queries after it
-(default 10).
+are ignored, and `%k <n>` sets the result limit (default 10) for the queries
+after it.
+
+`results.txt` has a block per query:
+
+```
+QUERY <number> <query text>
+HITS <h>
+<rank>\t<document id>\t<score, 4 decimals>\t<snippet>
+```
+
+`stats.txt` has four lines: `documents`, `tokens`, `terms` and `avgdl`.
+
+Example, with `docs/note.txt` = `The quick brown fox jumps over the lazy dog.` and
+`queries.txt` = `fox`:
+
+```
+QUERY 1 fox
+HITS 1
+1	note	0.2877	The quick brown fox jumps over the lazy dog
+```
 
 ### Query language
 
-* a bare word or `"quoted phrase"` — a phrase of stemmed terms that must occur
-  adjacently and in order (`well-known` is the phrase `"well known"`);
-* `AND`, `OR`, `NOT` (upper case), parentheses; juxtaposition means `AND`;
-  `NOT` binds tightest, then `AND`, then `OR`;
-* a lone stop word (`the`) matches nothing and is dropped; stop words inside
-  phrases count; malformed queries are repaired rather than rejected;
-* results are ranked by BM25 (`k1 = 1.2`, `b = 0.75`) summed over the
-  non-negated phrases, ties broken by document id.
+- A word or a `"quoted phrase"` is an atom; a phrase matches its terms
+  adjacently, stop words included. A single stop word is ignored.
+- `AND`, `OR`, `NOT` (upper case) and parentheses combine atoms. `NOT` binds
+  tightest, then `AND`, then `OR`; juxtaposition means `AND`.
+- Parsing never fails: malformed queries are recovered from by dropping what
+  cannot be used, and a query with nothing left matches no document.
 
-Text analysis: tokens are runs of ASCII alphanumerics, Latin, Greek and
-Cyrillic letters, optionally joined by single apostrophes; case folding only
-touches `A`–`Z`; ASCII-only words are Porter-stemmed.
-
-## Library example
+## Library use
 
 ```go
 package main
@@ -66,34 +67,42 @@ package main
 import (
 	"fmt"
 
-	"example.com/fulltext"
+	"fulltext"
 )
 
 func main() {
-	b := fulltext.NewBuilder()
-	b.Add("note", []byte("The quick brown fox jumps over the lazy dog."))
-	b.Add("other", []byte("A slow green turtle."))
-	ix := b.Build()
-
-	for _, h := range ix.Search(`fox OR "lazy dog"`, 10) {
-		fmt.Printf("%s %.4f %s\n", h.DocID, h.Score, h.Snippet)
+	eng := fulltext.New([]fulltext.Document{
+		{ID: "note", Text: "The quick brown fox jumps over the lazy dog."},
+		{ID: "pets", Text: "Dogs and cats."},
+	})
+	for _, hit := range eng.Search(`dog OR "lazy dog"`, 10) {
+		fmt.Printf("%s %.4f %s\n", hit.DocID, hit.Score, hit.Snippet)
 	}
-	// note 1.1978 The quick brown fox jumps over the lazy dog
-
-	fmt.Print(ix.Stats()) // documents 2, tokens 13, terms ..., avgdl 6.5000
+	fmt.Println(eng.Stats().Terms, "terms")
 }
 ```
 
-To load a corpus directory and process a queries file use `fulltext.LoadDir`,
-`fulltext.ParseQueryFile` and `(*Index).WriteResults`.
+## Layout
 
-## Design
+| Package | Responsibility |
+|---------|----------------|
+| `fulltext` | `Engine`: index documents, `Search`, `Stats` |
+| `fulltext/porter` | the Porter stemmer (`porter.c` semantics) |
+| `fulltext/analysis` | tokeniser, ASCII case folding, apostrophes, stop words, terms |
+| `fulltext/index` | positional inverted index (`Builder`, `Index`, `Postings`) |
+| `fulltext/query` | query lexer and recursive-descent parser, `Node` tree |
+| `fulltext/search` | phrase matching, set algebra, BM25, ranking, snippets |
+| `fulltext/batch` | `queries.txt` parsing, document loading, output files |
+| `cmd/fulltext` | the command-line entry point |
 
-Documents are tokenised once, at `Build`; token byte spans are kept so
-snippets are cut from the original bytes without re-analysis. Terms are
-integer ids (raw tokens are memoised so folding and stemming run once per
-distinct form). Postings are flat sorted arrays of positions. Per query, each
-distinct phrase is resolved once by a positional merge starting from its
-rarest term; boolean operators are word-wise bitset operations over document
-numbers; snippets use difference arrays so the best 30-token window is found
-in O(length + occurrences).
+### How it works
+
+- Phrases are matched by intersecting the document lists of their terms and
+  then merging the position lists shifted by term offset: linear in the lists
+  involved. Each distinct atom is matched once per query, and that result serves
+  boolean matching, document frequency and BM25 frequencies.
+- Boolean evaluation is set algebra over bitsets of document indexes; only the
+  matched documents are scored.
+- The best snippet window (30 tokens: most distinct atoms, then most
+  occurrences, then earliest) is found in O(length + occurrences) with
+  difference arrays over window starts, and only for the emitted hits.

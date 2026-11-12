@@ -1,0 +1,9 @@
+{
+  "s": "Hello",
+  "n": 3,
+  "w": "a-b-c"
+}
+--
+=== main
+{{ s ~ " " ~ s|lower }} {{ s * n }} {{ n * "ab" }} {{ s[0] ~ s[-1] }} {{ s[1] }} {{ "ll" in s }} {{ "LL" in s }} {{ s|length * 2 }} {{ w|replace("-", "+") }} {{ w|reverse }} {{ w|upper|replace("B", "b") }} {{ s|first|lower ~ s|last|upper }} {{ (s ~ s)|length }}
+{{ "a" < "b" }} {{ "abc" < "abd" }} {{ "abc" < "ab" }} {{ "Z" < "a" }} {{ "" < "a" }} {{ "a" == "a" }} {{ "a" != "b" }} {{ "é"|length }} {{ "日本語"|reverse }} {{ "日本語"|first }}

@@ -1,0 +1,19 @@
+{
+  "items": [
+    "a",
+    "b",
+    "c"
+  ],
+  "nums": [
+    10,
+    20,
+    30,
+    40
+  ]
+}
+--
+=== main
+{% for x in items %}{{ loop.index }}:{{ x }} {% endfor %}
+{% for n in nums %}[{{ loop.index0 }}/{{ loop.length }} {{ n }} first={{ loop.first }} last={{ loop.last }}]{% endfor %}
+{% for n in nums %}{{ n }}{% if not loop.last %}, {% endif %}{% endfor %}
+{% for c in "xyz" %}{{ c }}-{% endfor %}{% for i in [1, [2, 3], "s"] %}<{{ i }}>{% endfor %}

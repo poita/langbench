@@ -1,0 +1,10 @@
+{
+  "x": "X"
+}
+--
+=== main
+{% extends "mid" %}{% block a %}A3({{ super() }}){% endblock %}{% block c %}C3{% endblock %}
+=== mid
+{% extends "base" %}{% block a %}A2({{ super() }}){% endblock %}{% block b %}B2({{ super() }}){% endblock %}{% block d %}D2{% endblock %}
+=== base
+[{% block a %}A1{% endblock %}|{% block b %}B1{% endblock %}|{% block c %}C1{% endblock %}|{% block d %}D1{% endblock %}|{% block e %}E1{{ x }}{% endblock %}]

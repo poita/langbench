@@ -1,29 +1,23 @@
 name "bigint"
-description "Arbitrary-precision signed integer arithmetic in pure D (base 10^9 limbs)."
-authors "bigint authors"
-copyright "Copyright © bigint authors"
+description "Arbitrary-precision signed integer arithmetic with a base-10^9 representation"
+authors "Peter Alexander"
+copyright "Copyright © 2026"
 license "MIT"
 
-# Default configuration: the command-line tool (reads queries on stdin).
+# Default configuration: the command-line tool (source/app.d + the library).
 configuration "cli" {
     targetType "executable"
-    targetName "bigint-cli"
-    sourcePaths "source" "app"
-    importPaths "source"
-    mainSourceFile "app/main.d"
+    targetName "bigint"
 }
 
-# The reusable library only (use this when depending on the package).
+# Use this configuration when depending on the package as a library.
 configuration "library" {
     targetType "library"
-    sourcePaths "source"
-    importPaths "source"
+    excludedSourceFiles "source/app.d"
 }
 
-# Used by `dub test`: library sources plus the unit tests in tests/.
+# Used by `dub test`: library modules only, the unit tests live next to the code.
 configuration "unittest" {
     targetType "library"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
+    excludedSourceFiles "source/app.d"
 }
-

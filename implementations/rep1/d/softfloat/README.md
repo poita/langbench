@@ -1,83 +1,101 @@
 # softfloat
 
-Software IEEE-754 binary32 (single-precision) arithmetic in D: add, subtract,
-multiply, divide and square root on raw 32-bit patterns, with
-round-to-nearest-even and full gradual underflow. Everything is computed with
-integer operations on at most 64-bit words — no host floating point, no wide
-integers — and the NaN policy is simple: any NaN operand or invalid operation
-gives the canonical quiet NaN `7fc00000`.
+Software IEEE-754 binary32 (single-precision) arithmetic in D: addition,
+subtraction, multiplication, division and square root, with
+round-to-nearest-even and full gradual underflow (denormals).  Everything is
+computed with 64-bit integer operations on raw bit patterns; no hardware
+floating point, `float` conversions, `std.math` or big-integer types are used.
+
+The project has two parts:
+
+* a reusable library (`source/softfloat/`), and
+* a thin command-line tool (`app/main.d`) that reads operations from standard
+  input and prints result bit patterns.
 
 ## Layout
 
-| Path | Purpose |
-| --- | --- |
-| `source/softfloat/bits.d` | field masks, classification, unpacking to `m * 2^e` |
-| `source/softfloat/round.d` | `roundPack`, the one shared rounding routine |
-| `source/softfloat/arith.d` | `add`, `sub`, `mul`, `div`, `sqrt` |
-| `source/softfloat/io.d` | line-oriented batch format (`processBatch`) |
-| `source/softfloat/package.d` | `import softfloat;` re-exports everything |
-| `app/main.d` | the command-line tool |
-| `tests/softfloat/` | unit tests (kept apart from the library) |
+| Module                | Responsibility                                              |
+|-----------------------|-------------------------------------------------------------|
+| `softfloat.bits`      | bit-field access, classification, unpacking to `m * 2^e`     |
+| `softfloat.rounding`  | shift-with-sticky and the single shared round-and-pack step  |
+| `softfloat.addsub`    | `add`, `sub` (guard-bit alignment, sticky folding)          |
+| `softfloat.mul`       | `mul` (exact 48-bit product)                                 |
+| `softfloat.div`       | `div` (one integer divide, remainder is the sticky bit)      |
+| `softfloat.sqrt`      | `sqrt` (restoring digit-by-digit integer square root)        |
+| `softfloat.ops`       | `Float32`, a value type with operator overloads              |
+| `softfloat.text`      | the line-based hex text protocol used by the CLI             |
+| `softfloat`           | `package.d`, imports everything above                        |
 
 ## Build
 
-Requires LDC and dub.
+Requires LDC 1.41 and dub 1.40.
 
 ```sh
-./build.sh                                   # same as: dub build -b release --compiler=ldc2
-dub test --compiler=ldc2                     # unit tests
+./build.sh          # same as: dub build -b release --compiler=ldc2
 ```
 
-## CLI
+This produces `bin/softfloat`.  `dub build -c library` builds only the library.
 
-The tool reads operations from standard input, one per line, and writes one
-result line per input line:
-
-```
-<op> <a> <b>     op in add sub mul div
-sqrt <a>
-```
-
-Operands are 8 lowercase hex digits (the binary32 bit pattern); results are 8
-lowercase hex digits.
+## Test
 
 ```sh
+dub test --compiler=ldc2
+```
+
+The tests are D `unittest` blocks next to the code, plus property and
+regression tests in `source/softfloat/tests.d`.
+
+## Command line
+
+```sh
+./run.sh < ops.txt > results.txt
+```
+
+Input is one operation per line, `<op> <a> <b>` for `add sub mul div` or
+`<op> <a>` for `sqrt`.  Operands are exactly eight lowercase hex digits giving
+the binary32 bit pattern.  Output is one line per input line: the result as
+eight lowercase hex digits.  Any NaN result is the canonical `7fc00000`.
+
+```console
 $ printf 'add 3f800000 3f800000\ndiv 3f800000 40400000\nsqrt 40000000\n' | ./run.sh
 40000000
 3eaaaaab
 3fb504f3
 ```
 
-## Library
+Malformed input makes the tool print a message to stderr and exit with status 1.
 
-Add it as a dub dependency (path or registry) and use the `softfloat` package:
+## Library example
 
 ```d
 import softfloat;
 
 void main()
 {
-    assert(add(0x3f800000, 0x3f800000) == 0x40000000); // 1 + 1 == 2
-    assert(div(0x3f800000, 0x40400000) == 0x3eaaaaab); // 1 / 3
-    assert(sqrt(0x40000000) == 0x3fb504f3);            // sqrt(2)
-    assert(mul(0x7f800000, 0) == canonicalNaN);        // inf * 0 is invalid
+    // Raw bit patterns: 1.0 and 3.0.
+    uint one = 0x3f80_0000, three = 0x4040_0000;
 
-    // The batch format used by the CLI:
-    auto out_ = processBatch(cast(const(ubyte)[]) "sub 40000000 3f800000\n");
-    assert(cast(string) out_ == "3f800000\n");
+    assert(softfloat.addsub.add(one, one) == 0x4000_0000);   // 1 + 1 = 2
+    assert(softfloat.div.div(one, three) == 0x3eaa_aaab);    // 1 / 3, rounded
+
+    // Or use the value type with operators.
+    auto x = Float32(0x4000_0000);                           // 2.0
+    assert(x.sqrt.bits == 0x3fb5_04f3);                      // sqrt(2)
+    assert((Float32(0x7f80_0000) - Float32(0x7f80_0000)).isNaN);
+
+    // Text protocol helpers.
+    assert(evaluateLine("mul 40400000 c0400000") == 0xc110_0000); // 3 * -3 = -9
 }
 ```
 
-## Design notes
+Note: `div` and `sqrt` are also names in `std.math`/`std.algorithm`; qualify
+them (`softfloat.div.div`) or import selectively when mixing.
 
-* `add`/`sub` align the smaller operand against 35 guard bits and fold lost
-  bits into a sticky flag; `sub a b` is `add a (-b)`.
-* `mul` is one exact 24×24→48-bit product.
-* `div` is one 64-bit integer division with a 32-bit scaled dividend; the
-  remainder gives the sticky bit.
-* `sqrt` is the digit-by-digit restoring integer square root.
-* All paths end in `roundPack`, which rounds exactly once on the final
-  (normal or denormal) grid, so there is no double rounding.
+## How it works
 
-The unit tests cross-check the library against the host FPU on random inputs;
-the FPU is used there only as an oracle, never by the library.
+Every operation reduces its operands to an integer significand and exponent,
+computes a truncated integer result plus a sticky bit, and passes it to
+`roundPack`, which rounds once, to nearest-even, directly onto the binary32
+grid (normal or denormal).  All intermediates fit in 64 bits.
+Division is a single integer divide; square root is the restoring
+digit-by-digit method (about 31 steps).

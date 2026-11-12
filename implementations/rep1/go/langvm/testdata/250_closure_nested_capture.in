@@ -1,0 +1,9 @@
+@module main
+fn main() {
+    let a = 1;
+    let f = || {
+        let g = || a + 1;
+        g()
+    };
+    print(showInt(f()));
+}

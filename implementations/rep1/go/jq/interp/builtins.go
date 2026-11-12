@@ -1,412 +1,391 @@
 package interp
 
 import (
+	"example.com/jq/syntax"
 	"math"
-	"slices"
-	"unicode/utf8"
+	"strings"
 
-	"github.com/peter/jq/value"
+	"example.com/jq/value"
 )
 
-type builtinID uint8
-
-const (
-	biEmpty builtinID = iota
-	biError0
-	biError1
-	biNot
-	biLength
-	biKeys
-	biHas
-	biType
-	biAdd
-	biSelect
-	biMap
-	biSort
-	biSortBy
-	biGroupBy
-	biUnique
-	biReverse
-	biMin
-	biMax
-	biToString
-	biToNumber
-)
+// builtinFn builds the evaluator for a builtin from its compiled arguments.
+type builtinFn func(args []evalFn) evalFn
 
 type builtinKey struct {
 	name  string
 	arity int
 }
 
-var builtinTable = map[builtinKey]builtinID{
-	{"empty", 0}:    biEmpty,
-	{"error", 0}:    biError0,
-	{"error", 1}:    biError1,
-	{"not", 0}:      biNot,
-	{"length", 0}:   biLength,
-	{"keys", 0}:     biKeys,
-	{"has", 1}:      biHas,
-	{"type", 0}:     biType,
-	{"add", 0}:      biAdd,
-	{"select", 1}:   biSelect,
-	{"map", 1}:      biMap,
-	{"sort", 0}:     biSort,
-	{"sort_by", 1}:  biSortBy,
-	{"group_by", 1}: biGroupBy,
-	{"unique", 0}:   biUnique,
-	{"reverse", 0}:  biReverse,
-	{"min", 0}:      biMin,
-	{"max", 0}:      biMax,
-	{"tostring", 0}: biToString,
-	{"tonumber", 0}: biToNumber,
-}
+var builtins map[builtinKey]builtinFn
 
-func lookupBuiltin(name string, arity int) (builtinID, bool) {
-	id, ok := builtinTable[builtinKey{name, arity}]
-	return id, ok
-}
-
-func evalCall(n *node, v value.Value, e *env, out sink) error {
-	switch n.bi {
-	case biEmpty:
-		return nil
-	case biError0:
-		return &Error{Value: v}
-	case biError1:
-		return eval(n.args[0], v, e, func(x value.Value) error { return &Error{Value: x} })
-	case biNot:
-		return out(value.Bool(!v.Truthy()))
-	case biType:
-		return out(value.String(v.TypeName()))
-	case biHas:
-		return eval(n.args[0], v, e, func(k value.Value) error {
-			r, err := has(v, k)
-			if err != nil {
-				return err
+func init() {
+	builtins = map[builtinKey]builtinFn{
+		{"empty", 0}: func([]evalFn) evalFn {
+			return func(*env, Value, func(Value) error) error { return nil }
+		},
+		{"error", 0}: func([]evalFn) evalFn {
+			return func(_ *env, in Value, _ func(Value) error) error { return &Error{Value: in} }
+		},
+		{"error", 1}: func(a []evalFn) evalFn {
+			return func(e *env, in Value, _ func(Value) error) error {
+				return a[0](e, in, func(v Value) error { return &Error{Value: v} })
 			}
-			return out(r)
-		})
-	case biSelect:
-		return eval(n.args[0], v, e, func(c value.Value) error {
-			if c.Truthy() {
+		},
+		{"select", 1}: func(a []evalFn) evalFn {
+			return func(e *env, in Value, out func(Value) error) error {
+				return a[0](e, in, func(c Value) error {
+					if value.Truthy(c) {
+						return out(in)
+					}
+					return nil
+				})
+			}
+		},
+		{"map", 1}: func(a []evalFn) evalFn {
+			return func(e *env, in Value, out func(Value) error) error {
+				var res []Value
+				if arr, ok := in.([]Value); ok {
+					res = make([]Value, 0, len(arr))
+				} else {
+					res = []Value{}
+				}
+				err := iterate(in, func(x Value) error {
+					return a[0](e, x, func(y Value) error {
+						res = append(res, y)
+						return nil
+					})
+				})
+				if err != nil {
+					return err
+				}
+				return out(res)
+			}
+		},
+		{"sort_by", 1}: func(a []evalFn) evalFn {
+			return byKey(a[0], "sorted", func(arr, keys []Value) Value {
+				perm := value.SortedOrder(keys)
+				res := make([]Value, len(arr))
+				for i, p := range perm {
+					res[i] = arr[p]
+				}
+				return res
+			})
+		},
+		{"group_by", 1}: func(a []evalFn) evalFn {
+			return byKey(a[0], "grouped", func(arr, keys []Value) Value {
+				perm := value.SortedOrder(keys)
+				res := []Value{}
+				var cur []Value
+				for i, p := range perm {
+					if i > 0 && value.Compare(keys[perm[i-1]], keys[p]) != 0 {
+						res = append(res, cur)
+						cur = nil
+					}
+					cur = append(cur, arr[p])
+				}
+				if cur != nil {
+					res = append(res, cur)
+				}
+				return res
+			})
+		},
+		{"has", 1}: func(a []evalFn) evalFn {
+			return func(e *env, in Value, out func(Value) error) error {
+				return a[0](e, in, func(k Value) error {
+					r, err := has(in, k)
+					if err != nil {
+						return err
+					}
+					return out(r)
+				})
+			}
+		},
+	}
+
+	simple := map[string]func(Value) (Value, error){
+		"not":      func(in Value) (Value, error) { return !value.Truthy(in), nil },
+		"length":   length,
+		"keys":     keys,
+		"type":     func(in Value) (Value, error) { return value.TypeName(in), nil },
+		"add":      addAll,
+		"sort":     sortValues,
+		"unique":   unique,
+		"reverse":  reverse,
+		"min":      func(in Value) (Value, error) { return extreme(in, false) },
+		"max":      func(in Value) (Value, error) { return extreme(in, true) },
+		"tostring": tostring,
+		"tonumber": tonumber,
+	}
+	for name, f := range simple {
+		builtins[builtinKey{name, 0}] = func([]evalFn) evalFn {
+			return func(_ *env, in Value, out func(Value) error) error {
+				v, err := f(in)
+				if err != nil {
+					return err
+				}
 				return out(v)
 			}
-			return nil
-		})
-	case biMap:
-		elems, err := iterValues(v)
-		if err != nil {
-			return err
 		}
-		res := make([]value.Value, 0, len(elems))
-		for _, x := range elems {
-			err := eval(n.args[0], x, e, func(y value.Value) error {
-				res = append(res, y)
-				return nil
-			})
-			if err != nil {
-				return err
-			}
-		}
-		return out(value.Array(res))
-	case biSortBy, biGroupBy:
-		return sortOrGroupBy(n, v, e, out)
 	}
-	r, err := callPure(n.bi, v)
-	if err != nil {
-		return err
-	}
-	return out(r)
 }
 
-// iterValues returns the values of an array or object, like .[].
-func iterValues(v value.Value) ([]value.Value, error) {
-	switch v.Kind() {
-	case value.KindArray:
-		return v.Elems(), nil
-	case value.KindObject:
-		es := v.Object().Entries()
-		out := make([]value.Value, len(es))
-		for i, en := range es {
-			out[i] = en.Value
+func (c *compiler) compileCall(n *syntax.Call) evalFn {
+	b, ok := builtins[builtinKey{n.Name, len(n.Args)}]
+	if !ok {
+		c.fail("%s/%d is not defined", n.Name, len(n.Args))
+	}
+	args := make([]evalFn, len(n.Args))
+	for i, a := range n.Args {
+		args[i] = c.compile(a)
+	}
+	return b(args)
+}
+
+// byKey evaluates the key expression f on every element of an array input,
+// collecting all of its outputs into one key array per element, then hands the
+// elements and keys to build. Each key is evaluated exactly once.
+func byKey(f evalFn, what string, build func(arr, keys []Value) Value) evalFn {
+	return func(e *env, in Value, out func(Value) error) error {
+		arr, ok := in.([]Value)
+		if !ok {
+			return errf("%s cannot be %s, as it is not an array", describe(in), what)
+		}
+		keys := make([]Value, len(arr))
+		for i, x := range arr {
+			ks := []Value{}
+			if err := f(e, x, func(k Value) error {
+				ks = append(ks, k)
+				return nil
+			}); err != nil {
+				return err
+			}
+			keys[i] = ks
+		}
+		return out(build(arr, keys))
+	}
+}
+
+func length(in Value) (Value, error) {
+	switch x := in.(type) {
+	case nil:
+		return 0.0, nil
+	case float64:
+		return math.Abs(x), nil
+	case string:
+		return float64(runeCount(x)), nil
+	case []Value:
+		return float64(len(x)), nil
+	case *value.Object:
+		return float64(x.Len()), nil
+	}
+	return nil, errf("%s has no length", describe(in))
+}
+
+func keys(in Value) (Value, error) {
+	switch x := in.(type) {
+	case *value.Object:
+		ks := x.SortedKeys()
+		out := make([]Value, len(ks))
+		for i, k := range ks {
+			out[i] = k
+		}
+		return out, nil
+	case []Value:
+		out := make([]Value, len(x))
+		for i := range x {
+			out[i] = float64(i)
 		}
 		return out, nil
 	}
-	return nil, errorf("Cannot iterate over %s", describe(v))
+	return nil, errf("%s has no keys", describe(in))
 }
 
-// callPure evaluates the builtins that take no filter arguments and produce
-// exactly one output.
-func callPure(id builtinID, v value.Value) (value.Value, error) {
-	switch id {
-	case biLength:
-		switch v.Kind() {
-		case value.KindNull:
-			return value.Number(0), nil
-		case value.KindNumber:
-			return value.Number(math.Abs(v.Float())), nil
-		case value.KindString:
-			return value.Number(float64(utf8.RuneCountInString(v.Str()))), nil
-		case value.KindArray:
-			return value.Number(float64(len(v.Elems()))), nil
-		case value.KindObject:
-			return value.Number(float64(v.Object().Len())), nil
+func has(in, k Value) (Value, error) {
+	switch x := in.(type) {
+	case nil:
+		return false, nil
+	case *value.Object:
+		if ks, ok := k.(string); ok {
+			return x.Has(ks), nil
 		}
-		return value.Null, errorf("%s has no length", describe(v))
-	case biKeys:
-		switch v.Kind() {
-		case value.KindObject:
-			keys := v.Object().SortedKeys()
-			out := make([]value.Value, len(keys))
-			for i, k := range keys {
-				out[i] = value.String(k)
-			}
-			return value.Array(out), nil
-		case value.KindArray:
-			out := make([]value.Value, len(v.Elems()))
-			for i := range out {
-				out[i] = value.Number(float64(i))
-			}
-			return value.Array(out), nil
+	case []Value:
+		if kf, ok := k.(float64); ok {
+			i, ok := toIndex(kf)
+			return ok && i >= 0 && i < len(x), nil
 		}
-		return value.Null, errorf("%s has no keys", describe(v))
-	case biAdd:
-		return addAll(v)
-	case biSort:
-		elems, err := needArray(v, "sorted")
-		if err != nil {
-			return value.Null, err
-		}
-		return value.Array(sortedCopy(elems)), nil
-	case biUnique:
-		elems, err := needArray(v, "sorted")
-		if err != nil {
-			return value.Null, err
-		}
-		sorted := sortedCopy(elems)
-		out := sorted[:0]
-		for i, x := range sorted {
-			if i == 0 || !value.Equal(x, out[len(out)-1]) {
-				out = append(out, x)
-			}
-		}
-		return value.Array(out), nil
-	case biReverse:
-		if v.IsNull() {
-			return value.Array([]value.Value{}), nil
-		}
-		if v.Kind() != value.KindArray {
-			return value.Null, errorf("Cannot reverse %s", describe(v))
-		}
-		src := v.Elems()
-		out := make([]value.Value, len(src))
-		for i, x := range src {
-			out[len(src)-1-i] = x
-		}
-		return value.Array(out), nil
-	case biMin, biMax:
-		elems, err := needArray(v, "iterated over")
-		if err != nil {
-			return value.Null, err
-		}
-		if len(elems) == 0 {
-			return value.Null, nil
-		}
-		best := elems[0]
-		for _, x := range elems[1:] {
-			c := value.Compare(x, best)
-			if (id == biMin && c < 0) || (id == biMax && c >= 0) {
-				best = x
-			}
-		}
-		return best, nil
-	case biToString:
-		if v.Kind() == value.KindString {
-			return v, nil
-		}
-		return value.String(value.JSON(v)), nil
-	case biToNumber:
-		switch v.Kind() {
-		case value.KindNumber:
-			return v, nil
-		case value.KindString:
-			f, err := value.ParseNumber(v.Str())
-			if err != nil {
-				return value.Null, errorf("Cannot parse %s as a number", describe(v))
-			}
-			return value.Number(f), nil
-		}
-		return value.Null, errorf("%s cannot be parsed as a number", describe(v))
 	}
-	panic("interp: unhandled builtin")
+	return nil, errf("Cannot check whether %s has a %s key", value.TypeName(in), value.TypeName(k))
 }
 
-func needArray(v value.Value, what string) ([]value.Value, error) {
-	if v.Kind() != value.KindArray {
-		return nil, errorf("%s cannot be %s, as it is not an array", describe(v), what)
+// addAll sums the elements of an array (or the values of an object) with +,
+// starting from null, in time linear in the total size.
+func addAll(in Value) (Value, error) {
+	var elems []Value
+	switch x := in.(type) {
+	case []Value:
+		elems = x
+	case *value.Object:
+		elems = x.Values()
+	default:
+		return nil, errf("Cannot iterate over %s", describe(in))
 	}
-	return v.Elems(), nil
-}
-
-func has(v, k value.Value) (value.Value, error) {
-	switch {
-	case v.Kind() == value.KindObject && k.Kind() == value.KindString:
-		return value.Bool(v.Object().Has(k.Str())), nil
-	case v.Kind() == value.KindArray && k.Kind() == value.KindNumber:
-		i := math.Trunc(k.Float())
-		return value.Bool(i >= 0 && i < float64(len(v.Elems()))), nil
-	case v.IsNull():
-		return value.False, nil
-	}
-	return value.Null, errorf("Cannot check whether %s has a %s key", v.TypeName(), k.TypeName())
-}
-
-// stableOrder returns the permutation that sorts keys[i] ascending, ties
-// broken by original position (so the sort is stable). It sorts indices with
-// an O(n log n) comparison sort rather than moving elements.
-func stableOrder(keys []value.Value) []int32 {
-	idx := make([]int32, len(keys))
-	for i := range idx {
-		idx[i] = int32(i)
-	}
-	slices.SortFunc(idx, func(a, b int32) int {
-		if c := value.Compare(keys[a], keys[b]); c != 0 {
-			return c
-		}
-		return int(a) - int(b)
-	})
-	return idx
-}
-
-func sortedCopy(elems []value.Value) []value.Value {
-	idx := stableOrder(elems)
-	out := make([]value.Value, len(elems))
-	for i, p := range idx {
-		out[i] = elems[p]
-	}
-	return out
-}
-
-// sortOrGroupBy implements sort_by(f) and group_by(f): the key [f] is
-// computed exactly once per element, then indices are sorted by key.
-func sortOrGroupBy(n *node, v value.Value, e *env, out sink) error {
-	elems, err := needArray(v, "sorted")
-	if err != nil {
-		return err
-	}
-	keys := make([]value.Value, len(elems))
-	for i, x := range elems {
-		ks := []value.Value{}
-		err := eval(n.args[0], x, e, func(k value.Value) error {
-			ks = append(ks, k)
-			return nil
-		})
-		if err != nil {
-			return err
-		}
-		keys[i] = value.Array(ks)
-	}
-	idx := stableOrder(keys)
-	if n.bi == biSortBy {
-		res := make([]value.Value, len(elems))
-		for i, p := range idx {
-			res[i] = elems[p]
-		}
-		return out(value.Array(res))
-	}
-	groups := []value.Value{}
-	for lo := 0; lo < len(idx); {
-		hi := lo + 1
-		for hi < len(idx) && value.Equal(keys[idx[hi]], keys[idx[lo]]) {
-			hi++
-		}
-		g := make([]value.Value, hi-lo)
-		for i := lo; i < hi; i++ {
-			g[i-lo] = elems[idx[i]]
-		}
-		groups = append(groups, value.Array(g))
-		lo = hi
-	}
-	return out(value.Array(groups))
-}
-
-// addAll folds the elements of an array (or values of an object) with +,
-// using one private builder so the whole fold is linear.
-func addAll(v value.Value) (value.Value, error) {
-	elems, err := iterValues(v)
-	if err != nil {
-		return value.Null, err
-	}
-	var (
-		kind  = value.KindNull
-		sum   float64
-		str   []byte
-		arr   []value.Value
-		obj   *value.ObjectBuilder
-		first value.Value
-	)
+	// Classify the non-null elements; homogeneous input takes a linear path.
+	kind := value.KindNull
+	homogeneous := true
 	for _, x := range elems {
-		if x.IsNull() {
+		if x == nil {
 			continue
+		}
+		k := value.KindOf(x)
+		if k == value.KindFalse || k == value.KindTrue {
+			k = value.KindFalse
 		}
 		if kind == value.KindNull {
-			kind, first = x.Kind(), x
-			switch kind {
-			case value.KindNumber:
-				sum = x.Float()
-			case value.KindString:
-				str = append(str, x.Str()...)
-			case value.KindArray:
-				arr = append(arr, x.Elems()...)
-			case value.KindObject:
-				obj = x.Object().Builder(0)
-			default:
-				// booleans cannot be added to anything but null
-			}
-			continue
+			kind = k
+		} else if kind != k {
+			homogeneous = false
+			break
 		}
-		if x.Kind() != kind || kind == value.KindFalse || kind == value.KindTrue {
-			return value.Null, opError(accumulated(kind, sum, str, arr, obj, first), x, "added")
-		}
+	}
+	if homogeneous {
 		switch kind {
 		case value.KindNumber:
-			sum += x.Float()
-		case value.KindString:
-			str = append(str, x.Str()...)
-		case value.KindArray:
-			arr = append(arr, x.Elems()...)
-		case value.KindObject:
-			for _, en := range x.Object().Entries() {
-				obj.Set(en.Key, en.Value)
+			sum := 0.0
+			for _, x := range elems {
+				if f, ok := x.(float64); ok {
+					sum += f
+				}
 			}
+			return sum, nil
+		case value.KindString:
+			var sb strings.Builder
+			for _, x := range elems {
+				if s, ok := x.(string); ok {
+					sb.WriteString(s)
+				}
+			}
+			return sb.String(), nil
+		case value.KindArray:
+			n := 0
+			for _, x := range elems {
+				if a, ok := x.([]Value); ok {
+					n += len(a)
+				}
+			}
+			res := make([]Value, 0, n)
+			for _, x := range elems {
+				if a, ok := x.([]Value); ok {
+					res = append(res, a...)
+				}
+			}
+			return res, nil
+		case value.KindObject:
+			var b *value.Builder
+			for _, x := range elems {
+				if o, ok := x.(*value.Object); ok {
+					if b == nil {
+						b = value.NewBuilder(o.Len())
+					}
+					for i := 0; i < o.Len(); i++ {
+						k, v := o.At(i)
+						b.Set(k, v)
+					}
+				}
+			}
+			return b.Build(), nil
 		}
 	}
-	switch kind {
-	case value.KindNumber:
-		return value.Number(sum), nil
-	case value.KindString:
-		return value.String(string(str)), nil
-	case value.KindArray:
-		if arr == nil {
-			arr = []value.Value{}
+	var acc Value
+	for _, x := range elems {
+		var err error
+		if acc, err = add(acc, x); err != nil {
+			return nil, err
 		}
-		return value.Array(arr), nil
-	case value.KindObject:
-		return obj.Build(), nil
 	}
-	return first, nil // null, or a lone boolean
+	return acc, nil
 }
 
-// accumulated reconstructs the running sum for an error message.
-func accumulated(kind value.Kind, sum float64, str []byte, arr []value.Value,
-	obj *value.ObjectBuilder, first value.Value) value.Value {
-	switch kind {
-	case value.KindNumber:
-		return value.Number(sum)
-	case value.KindString:
-		return value.String(string(str))
-	case value.KindArray:
-		return value.Array(arr)
+func sortValues(in Value) (Value, error) {
+	arr, ok := in.([]Value)
+	if !ok {
+		return nil, errf("%s cannot be sorted, as it is not an array", describe(in))
 	}
-	return first
+	return value.Sort(arr), nil
+}
+
+func unique(in Value) (Value, error) {
+	arr, ok := in.([]Value)
+	if !ok {
+		return nil, errf("%s cannot be sorted, as it is not an array", describe(in))
+	}
+	sorted := value.Sort(arr)
+	out := sorted[:0]
+	for i, x := range sorted {
+		if i == 0 || value.Compare(out[len(out)-1], x) != 0 {
+			out = append(out, x)
+		}
+	}
+	return out, nil
+}
+
+func reverse(in Value) (Value, error) {
+	switch x := in.(type) {
+	case nil:
+		return []Value{}, nil
+	case []Value:
+		out := make([]Value, len(x))
+		for i, v := range x {
+			out[len(x)-1-i] = v
+		}
+		return out, nil
+	}
+	return nil, errf("Cannot reverse %s", describe(in))
+}
+
+// extreme returns the minimum (the first of equal minima) or maximum (the last
+// of equal maxima) of an array.
+func extreme(in Value, wantMax bool) (Value, error) {
+	arr, ok := in.([]Value)
+	if !ok {
+		return nil, errf("Cannot compute extreme of %s", describe(in))
+	}
+	if len(arr) == 0 {
+		return nil, nil
+	}
+	best := arr[0]
+	for _, x := range arr[1:] {
+		c := value.Compare(x, best)
+		if (wantMax && c >= 0) || (!wantMax && c < 0) {
+			best = x
+		}
+	}
+	return best, nil
+}
+
+func tostring(in Value) (Value, error) {
+	if s, ok := in.(string); ok {
+		return s, nil
+	}
+	return value.String(in), nil
+}
+
+func tonumber(in Value) (Value, error) {
+	switch x := in.(type) {
+	case float64:
+		return x, nil
+	case string:
+		if f, ok := value.ParseNumber(x); ok {
+			return f, nil
+		}
+		return nil, errf("Cannot parse %q as a number", x)
+	}
+	return nil, errf("%s cannot be parsed as a number", describe(in))
+}
+
+func runeCount(s string) int {
+	n := 0
+	for range s {
+		n++
+	}
+	return n
 }

@@ -1,3 +1,4 @@
 #!/bin/sh
 # Usage: run.sh <input directory> <output directory>
-exec "$(dirname "$0")/buildsys" "$@"
+HERE=$(cd "$(dirname "$0")" && pwd)
+exec "$HERE/kiln" "$@"

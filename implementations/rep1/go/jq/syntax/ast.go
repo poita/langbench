@@ -1,67 +1,108 @@
-// Package syntax implements the lexer and recursive-descent parser for the
-// supported jq filter language and defines its abstract syntax tree.
+// Package syntax parses jq filter text into an abstract syntax tree.
+//
+// The accepted language is the jq subset described in the repository README:
+// paths, slices, optional (?), pipes, commas, arithmetic and comparison,
+// and/or, if/elif/else, variable binding with "as", reduce, array and object
+// construction, and calls of builtin functions.
 package syntax
 
-import "github.com/peter/jq/value"
+import "example.com/jq/value"
 
-// Op is the kind of an AST node.
-type Op uint8
+// Node is a filter expression. The concrete types are the pointer types
+// declared in this file.
+type Node interface{ isNode() }
 
-// Node kinds.
-const (
-	OpIdentity Op = iota // .
-	OpLiteral            // Val
-	OpVar                // $Name
-	OpPipe               // A | B
-	OpComma              // A , B
-	OpNeg                // -A
-	OpBinary             // A Bin B (arithmetic and comparison)
-	OpAnd                // A and B
-	OpOr                 // A or B
-	OpArray              // [A] (A may be nil)
-	OpObject             // {Entries}
-	OpIf                 // if A then B else C (C may be nil: identity)
-	OpReduce             // reduce A as $Name (B; C)
-	OpAs                 // A as $Name | B
-	OpCall               // Name(Args...)
-	OpIndex              // A[B]; Optional makes the index operation tolerant
-	OpIter               // A[]
-	OpSlice              // A[B:C]; B or C may be nil
-	OpTry                // (A)?
+type (
+	// Identity is ".".
+	Identity struct{}
+	// Literal is a constant number, string, boolean or null.
+	Literal struct{ Value value.Value }
+	// Var is a variable reference such as $x.
+	Var struct {
+		Name string
+		Pos  int
+	}
+	// Index is Term[Key] (also .name and ."name"). Opt marks a trailing "?"
+	// that makes just this operation tolerant of errors.
+	Index struct {
+		Term, Key Node
+		Opt       bool
+	}
+	// Iterate is Term[].
+	Iterate struct {
+		Term Node
+		Opt  bool
+	}
+	// Slice is Term[From:To]; From or To may be nil.
+	Slice struct {
+		Term, From, To Node
+		Opt            bool
+	}
+	// Try is Body? applied to a term that is not a path operation: errors
+	// raised inside Body end its output stream silently.
+	Try struct{ Body Node }
+	// Pipe is L | R.
+	Pipe struct{ L, R Node }
+	// Comma is L , R.
+	Comma struct{ L, R Node }
+	// Binary is an arithmetic or comparison operator; Op is one of
+	// + - * / % == != < <= > >=.
+	Binary struct {
+		Op   string
+		L, R Node
+	}
+	// And is L and R.
+	And struct{ L, R Node }
+	// Or is L or R.
+	Or struct{ L, R Node }
+	// Neg is unary minus.
+	Neg struct{ X Node }
+	// Array is [Body]; Body is nil for [].
+	Array struct{ Body Node }
+	// Object is an object construction.
+	Object struct{ Entries []Entry }
+	// If is if Cond then Then else Else end; Else is nil when omitted
+	// (meaning identity).
+	If struct{ Cond, Then, Else Node }
+	// As is Src as $Name | Body.
+	As struct {
+		Src  Node
+		Name string
+		Body Node
+	}
+	// Reduce is reduce Src as $Name (Init; Update).
+	Reduce struct {
+		Src          Node
+		Name         string
+		Init, Update Node
+	}
+	// Call is a builtin function call.
+	Call struct {
+		Name string
+		Args []Node
+		Pos  int
+	}
 )
 
-// BinOp is a binary arithmetic or comparison operator.
-type BinOp uint8
+// Entry is one key/value pair of an object construction.
+type Entry struct{ Key, Val Node }
 
-// Binary operators.
-const (
-	Add BinOp = iota
-	Sub
-	Mul
-	Div
-	Mod
-	Eq
-	Ne
-	Lt
-	Le
-	Gt
-	Ge
-)
-
-// Node is a filter AST node. Which fields are meaningful depends on Op.
-type Node struct {
-	Op       Op
-	A, B, C  *Node
-	Name     string      // variable name or builtin name
-	Val      value.Value // literal value
-	Bin      BinOp
-	Args     []*Node       // builtin call arguments
-	Entries  []ObjectEntry // object construction
-	Optional bool          // tolerant "?" on an index, iterate or slice
-}
-
-// ObjectEntry is one key/value pair of an object construction. Key is a
-// literal string node or an arbitrary (computed) expression.
-type ObjectEntry struct {
-	Key, Value *Node
-}
+func (*Identity) isNode() {}
+func (*Literal) isNode()  {}
+func (*Var) isNode()      {}
+func (*Index) isNode()    {}
+func (*Iterate) isNode()  {}
+func (*Slice) isNode()    {}
+func (*Try) isNode()      {}
+func (*Pipe) isNode()     {}
+func (*Comma) isNode()    {}
+func (*Binary) isNode()   {}
+func (*And) isNode()      {}
+func (*Or) isNode()       {}
+func (*Neg) isNode()      {}
+func (*Array) isNode()    {}
+func (*Object) isNode()   {}
+func (*If) isNode()       {}
+func (*As) isNode()       {}
+func (*Reduce) isNode()   {}
+func (*Call) isNode()     {}

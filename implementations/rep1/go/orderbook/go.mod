@@ -1,3 +1,3 @@
-module github.com/example/orderbook
+module github.com/peteralexander/orderbook
 
-go 1.27.1
+go 1.27

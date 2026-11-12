@@ -1,5 +1,5 @@
-/// Parser for the `CREATE TABLE` and `CREATE INDEX` statements stored in
-/// `sqlite_schema` (SPEC Part 2).
+/// A small tokenizer and parsers for the `CREATE TABLE` and `CREATE INDEX`
+/// statements stored in `sqlite_schema` (SPEC Part 2).
 module sqlitefile.ddl;
 
 import sqlitefile.affinity;
@@ -7,20 +7,51 @@ import sqlitefile.errors;
 
 @safe:
 
-/// Lexical class of a DDL token.
+/// Lexical token classes.
 enum TokenKind : ubyte
 {
-    word, /// bare run of `[A-Za-z0-9_$]` (or non-ASCII bytes)
-    quoted, /// "name", `name` or [name]; `text` is the unescaped content
-    str, /// 'string literal'
-    punct, /// any other single character
+    word, /// run of `[A-Za-z0-9_$]` (and non-ASCII bytes)
+    quoted, /// `"…"`, `` `…` `` or `[…]`; `text` is unescaped
+    string_, /// `'…'`
+    punct, /// one of `( ) , . ;`
+    other, /// any other single character
 }
 
-/// A DDL token.
+/// A lexical token.
 struct Token
 {
     TokenKind kind;
     string text;
+
+    /// True if this is the unquoted keyword `kw` (given upper-case).
+    bool isKeyword(string kw) const pure
+    {
+        return kind == TokenKind.word && asciiEqualFold(text, kw);
+    }
+
+    /// True if this is the punctuation character `c`.
+    bool isPunct(char c) const pure nothrow @nogc
+    {
+        return kind == TokenKind.punct && text.length == 1 && text[0] == c;
+    }
+}
+
+/// ASCII case-insensitive equality (`b` is expected in upper case).
+bool asciiEqualFold(const(char)[] a, const(char)[] b) pure nothrow @nogc
+{
+    if (a.length != b.length)
+        return false;
+    foreach (i; 0 .. a.length)
+    {
+        char x = a[i], y = b[i];
+        if (x >= 'a' && x <= 'z')
+            x -= 32;
+        if (y >= 'a' && y <= 'z')
+            y -= 32;
+        if (x != y)
+            return false;
+    }
+    return true;
 }
 
 private bool isWordChar(char c) pure nothrow @nogc
@@ -29,121 +60,99 @@ private bool isWordChar(char c) pure nothrow @nogc
         || c == '_' || c == '$' || c >= 0x80;
 }
 
-/// Splits DDL text into tokens, dropping whitespace and `--` / `/* */` comments.
-Token[] tokenize(string s) pure
+/// Splits SQL text into tokens, skipping whitespace and comments.
+Token[] tokenize(string sql) pure
 {
     Token[] toks;
     size_t i = 0;
-    while (i < s.length)
+    const n = sql.length;
+    while (i < n)
     {
-        immutable c = s[i];
+        const c = sql[i];
         if (c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v')
         {
             i++;
         }
-        else if (c == '-' && i + 1 < s.length && s[i + 1] == '-')
+        else if (c == '-' && i + 1 < n && sql[i + 1] == '-')
         {
-            while (i < s.length && s[i] != '\n')
+            while (i < n && sql[i] != '\n')
                 i++;
         }
-        else if (c == '/' && i + 1 < s.length && s[i + 1] == '*')
+        else if (c == '/' && i + 1 < n && sql[i + 1] == '*')
         {
             i += 2;
-            while (i < s.length && !(s[i] == '*' && i + 1 < s.length && s[i + 1] == '/'))
+            while (i < n && !(sql[i] == '*' && i + 1 < n && sql[i + 1] == '/'))
                 i++;
-            i += 2;
+            i = i + 2 > n ? n : i + 2;
         }
         else if (isWordChar(c))
         {
-            immutable b = i;
-            while (i < s.length && isWordChar(s[i]))
+            const s = i;
+            while (i < n && isWordChar(sql[i]))
                 i++;
-            toks ~= Token(TokenKind.word, s[b .. i]);
+            toks ~= Token(TokenKind.word, sql[s .. i]);
         }
         else if (c == '"' || c == '`' || c == '\'')
         {
-            string text;
+            const kind = c == '\'' ? TokenKind.string_ : TokenKind.quoted;
             i++;
-            while (i < s.length)
+            char[] buf;
+            while (i < n)
             {
-                if (s[i] == c)
+                if (sql[i] == c)
                 {
-                    if (i + 1 < s.length && s[i + 1] == c)
+                    if (i + 1 < n && sql[i + 1] == c)
                     {
-                        text ~= c;
+                        buf ~= c;
                         i += 2;
                         continue;
                     }
                     break;
                 }
-                text ~= s[i++];
+                buf ~= sql[i++];
             }
             i++; // closing quote
-            toks ~= Token(c == '\'' ? TokenKind.str : TokenKind.quoted, text);
+            toks ~= Token(kind, buf.idup);
         }
         else if (c == '[')
         {
-            immutable b = ++i;
-            while (i < s.length && s[i] != ']')
+            const s = ++i;
+            while (i < n && sql[i] != ']')
                 i++;
-            toks ~= Token(TokenKind.quoted, s[b .. i]);
+            toks ~= Token(TokenKind.quoted, sql[s .. i]);
+            i++;
+        }
+        else if (c == '(' || c == ')' || c == ',' || c == '.' || c == ';')
+        {
+            toks ~= Token(TokenKind.punct, sql[i .. i + 1]);
             i++;
         }
         else
         {
-            toks ~= Token(TokenKind.punct, s[i .. i + 1]);
+            toks ~= Token(TokenKind.other, sql[i .. i + 1]);
             i++;
         }
     }
     return toks;
 }
 
-/// ASCII case-insensitive string equality.
-bool equalsCI(const(char)[] a, const(char)[] b) pure nothrow @nogc
-{
-    if (a.length != b.length)
-        return false;
-    foreach (i; 0 .. a.length)
-    {
-        char x = a[i], y = b[i];
-        if (x >= 'A' && x <= 'Z')
-            x += 32;
-        if (y >= 'A' && y <= 'Z')
-            y += 32;
-        if (x != y)
-            return false;
-    }
-    return true;
-}
-
-private bool isKw(in Token t, string kw) pure nothrow @nogc
-{
-    return t.kind == TokenKind.word && equalsCI(t.text, kw);
-}
-
-private bool isPunct(in Token t, char c) pure nothrow @nogc
-{
-    return t.kind == TokenKind.punct && t.text[0] == c;
-}
-
-/// A column as declared in `CREATE TABLE`.
-struct Column
+/// One column of a table definition.
+struct ColumnDef
 {
     string name;
-    string declaredType; /// tokens of the type joined by single spaces; may be empty
+    string declaredType; /// e.g. `NVARCHAR(160)`; empty if none
     Affinity affinity;
+    bool isRowidAlias; /// an `INTEGER PRIMARY KEY` alias for the rowid
 }
 
-/// The result of parsing a `CREATE TABLE` statement.
+/// A parsed `CREATE TABLE`.
 struct TableDef
 {
     string name;
-    Column[] columns;
-    /// Index of the column that aliases the rowid, or -1.
-    int rowidAlias = -1;
+    ColumnDef[] columns;
 }
 
-/// The result of parsing a `CREATE INDEX` statement.
+/// A parsed `CREATE INDEX`.
 struct IndexDef
 {
     string name;
@@ -151,212 +160,285 @@ struct IndexDef
     string[] columns;
 }
 
-private immutable string[] typeStoppers = [
+private immutable columnTypeStoppers = [
     "CONSTRAINT", "PRIMARY", "NOT", "NULL", "UNIQUE", "CHECK", "DEFAULT",
     "COLLATE", "REFERENCES", "GENERATED", "AS", "AUTOINCREMENT"
 ];
 
-private bool endsType(in Token t) pure nothrow @nogc
+private bool isTypeStopper(in Token t) pure
 {
     if (t.kind != TokenKind.word)
         return false;
-    foreach (k; typeStoppers)
-        if (equalsCI(t.text, k))
+    foreach (k; columnTypeStoppers)
+        if (asciiEqualFold(t.text, k))
             return true;
     return false;
 }
 
-/// Position cursor over a token array with the little helpers both parsers need.
-private struct TokenCursor
+/// Skips `[schema .] name` at `toks[p]`, returning the (last) name.
+private string readQualifiedName(const Token[] toks, ref size_t p)
 {
-    Token[] toks;
-    size_t pos;
-
-    bool atEnd() const pure nothrow @nogc
+    if (p >= toks.length || (toks[p].kind != TokenKind.word && toks[p].kind != TokenKind.quoted))
+        throw new SchemaException("expected a name");
+    string name = toks[p++].text;
+    if (p + 1 < toks.length && toks[p].isPunct('.'))
     {
-        return pos >= toks.length;
+        p++;
+        if (toks[p].kind != TokenKind.word && toks[p].kind != TokenKind.quoted)
+            throw new SchemaException("expected a name after '.'");
+        name = toks[p++].text;
     }
-
-    bool eatKw(string kw) pure nothrow @nogc
-    {
-        if (!atEnd && isKw(toks[pos], kw))
-        {
-            pos++;
-            return true;
-        }
-        return false;
-    }
-
-    bool eatPunct(char c) pure nothrow @nogc
-    {
-        if (!atEnd && isPunct(toks[pos], c))
-        {
-            pos++;
-            return true;
-        }
-        return false;
-    }
-
-    string name()
-    {
-        if (atEnd || (toks[pos].kind != TokenKind.word && toks[pos].kind != TokenKind.quoted))
-            throw new FormatException("expected a name in schema SQL");
-        return toks[pos++].text;
-    }
-
-    /// Reads `[schema.]name` and returns the final name.
-    string qualifiedName()
-    {
-        auto n = name();
-        if (eatPunct('.'))
-            n = name();
-        return n;
-    }
-
-    /// Reads the parenthesised body and splits it at depth-0 commas. The
-    /// opening parenthesis must be the next token.
-    Token[][] parenItems()
-    {
-        if (!eatPunct('('))
-            throw new FormatException("expected '(' in schema SQL");
-        Token[][] items;
-        size_t depth = 0, start = pos;
-        while (!atEnd)
-        {
-            auto t = toks[pos];
-            if (isPunct(t, '('))
-                depth++;
-            else if (isPunct(t, ')'))
-            {
-                if (depth == 0)
-                {
-                    items ~= toks[start .. pos];
-                    pos++;
-                    return items;
-                }
-                depth--;
-            }
-            else if (isPunct(t, ',') && depth == 0)
-            {
-                items ~= toks[start .. pos];
-                start = pos + 1;
-            }
-            pos++;
-        }
-        throw new FormatException("unbalanced parentheses in schema SQL");
-    }
+    return name;
 }
 
-private bool isExactInteger(in Column c) pure nothrow @nogc
+/// Splits the tokens after `toks[p]` (which must be `(`) into the items
+/// separated by depth-0 commas, up to the matching `)`. `p` is left after it.
+private const(Token)[][] splitParenthesised(const Token[] toks, ref size_t p)
 {
-    return equalsCI(c.declaredType, "INTEGER");
+    if (p >= toks.length || !toks[p].isPunct('('))
+        throw new SchemaException("expected '('");
+    p++;
+    const(Token)[][] items;
+    size_t start = p;
+    int depth = 0;
+    for (; p < toks.length; p++)
+    {
+        const t = toks[p];
+        if (t.isPunct('('))
+            depth++;
+        else if (t.isPunct(')'))
+        {
+            if (depth == 0)
+            {
+                items ~= toks[start .. p];
+                p++;
+                return items;
+            }
+            depth--;
+        }
+        else if (t.isPunct(',') && depth == 0)
+        {
+            items ~= toks[start .. p];
+            start = p + 1;
+        }
+    }
+    throw new SchemaException("unbalanced parentheses");
 }
 
-/// Parses a `CREATE TABLE` statement: column names, declared types, affinities
-/// and the rowid alias (SPEC §2.1–2.3).
+/// Parses a `CREATE TABLE` statement.
 TableDef parseCreateTable(string sql)
 {
-    auto c = TokenCursor(tokenize(sql));
-    if (!c.eatKw("CREATE"))
-        throw new FormatException("not a CREATE statement");
-    if (!c.eatKw("TEMP"))
-        c.eatKw("TEMPORARY");
-    if (!c.eatKw("TABLE"))
-        throw new FormatException("not a CREATE TABLE statement");
-    if (c.eatKw("IF"))
-    {
-        c.eatKw("NOT");
-        c.eatKw("EXISTS");
-    }
+    const toks = tokenize(sql);
+    size_t p = 0;
+    if (p >= toks.length || !toks[p++].isKeyword("CREATE"))
+        throw new SchemaException("expected CREATE");
+    if (p < toks.length && (toks[p].isKeyword("TEMP") || toks[p].isKeyword("TEMPORARY")))
+        p++;
+    if (p >= toks.length || !toks[p++].isKeyword("TABLE"))
+        throw new SchemaException("expected TABLE");
+    if (p + 2 < toks.length && toks[p].isKeyword("IF") && toks[p + 1].isKeyword("NOT")
+            && toks[p + 2].isKeyword("EXISTS"))
+        p += 3;
     TableDef def;
-    def.name = c.qualifiedName();
-    auto items = c.parenItems();
+    def.name = readQualifiedName(toks, p);
+    const items = splitParenthesised(toks, p);
 
-    int tableLevelPk = -1; // set by a table-level PRIMARY KEY (<one column>)
-    string tablePkName;
-    bool hasTablePk = false;
-    int columnPk = -1; // column-level PRIMARY KEY not followed by DESC
+    // Names of columns that a table-level PRIMARY KEY(...) of exactly one
+    // column designates.
+    string tablePk;
     foreach (item; items)
     {
         if (item.length == 0)
-            continue;
-        auto first = item[0];
-        if (isKw(first, "CONSTRAINT") || isKw(first, "PRIMARY") || isKw(first, "UNIQUE")
-            || isKw(first, "CHECK") || isKw(first, "FOREIGN"))
+            throw new SchemaException("empty item in table definition");
+        const first = item[0];
+        const isConstraint = first.isKeyword("CONSTRAINT") || first.isKeyword("PRIMARY")
+            || first.isKeyword("UNIQUE") || first.isKeyword("CHECK") || first.isKeyword("FOREIGN");
+        if (isConstraint)
         {
-            size_t k = 0;
-            if (isKw(first, "CONSTRAINT"))
-                k = 2;
-            if (k + 2 < item.length && isKw(item[k], "PRIMARY") && isKw(item[k + 1], "KEY")
-                && isPunct(item[k + 2], '('))
-            {
-                auto sub = TokenCursor(item, k + 2);
-                auto cols = sub.parenItems();
-                if (cols.length == 1 && cols[0].length > 0)
-                {
-                    hasTablePk = true;
-                    tablePkName = cols[0][0].text;
-                }
-            }
+            string pk;
+            if (tableConstraintPrimaryKey(item, pk))
+                tablePk = pk;
             continue;
         }
-        Column col;
-        col.name = first.text;
-        size_t k = 1;
-        string type;
-        while (k < item.length && !endsType(item[k]))
-        {
-            if (type.length)
-                type ~= ' ';
-            type ~= item[k].text;
-            k++;
-        }
-        col.declaredType = type;
-        col.affinity = affinityOf(type);
-        for (size_t j = k; j + 1 < item.length; j++)
-            if (isKw(item[j], "PRIMARY") && isKw(item[j + 1], "KEY"))
-            {
-                immutable desc = j + 2 < item.length && isKw(item[j + 2], "DESC");
-                if (!desc && columnPk < 0)
-                    columnPk = cast(int) def.columns.length;
-                break;
-            }
-        def.columns ~= col;
+        def.columns ~= parseColumnDef(item);
     }
-    if (columnPk >= 0 && isExactInteger(def.columns[columnPk]))
-        def.rowidAlias = columnPk;
-    else if (hasTablePk)
-        foreach (i, ref col; def.columns)
-            if (equalsCI(col.name, tablePkName))
-            {
-                if (isExactInteger(col))
-                    def.rowidAlias = cast(int) i;
-                break;
-            }
+    if (tablePk.length)
+        foreach (ref c; def.columns)
+            if (asciiEqualFold(c.name, tablePk) && isExactlyInteger(c))
+                c.isRowidAlias = true;
     return def;
 }
 
-/// Parses a `CREATE INDEX` statement: index name, table and indexed column names.
+private bool isExactlyInteger(in ColumnDef c) pure
+{
+    return asciiEqualFold(c.declaredType, "INTEGER");
+}
+
+/// If the table constraint `item` is `[CONSTRAINT n] PRIMARY KEY (<one column>
+/// …)`, stores that column's name in `column`.
+private bool tableConstraintPrimaryKey(const(Token)[] item, out string column)
+{
+    int depth = 0;
+    foreach (k, t; item)
+    {
+        if (t.isPunct('('))
+            depth++;
+        else if (t.isPunct(')'))
+            depth--;
+        else if (depth == 0 && t.isKeyword("PRIMARY") && k + 2 < item.length
+                && item[k + 1].isKeyword("KEY") && item[k + 2].isPunct('('))
+        {
+            size_t q = k + 2;
+            const cols = splitParenthesised(item, q);
+            if (cols.length == 1 && cols[0].length >= 1
+                    && (cols[0][0].kind == TokenKind.word || cols[0][0].kind == TokenKind.quoted))
+            {
+                column = cols[0][0].text;
+                return true;
+            }
+            return false;
+        }
+    }
+    return false;
+}
+
+private ColumnDef parseColumnDef(const(Token)[] item)
+{
+    ColumnDef c;
+    if (item[0].kind != TokenKind.word && item[0].kind != TokenKind.quoted)
+        throw new SchemaException("expected a column name");
+    c.name = item[0].text;
+
+    // declared type: tokens up to the first unquoted constraint keyword
+    size_t k = 1;
+    string type;
+    int depth = 0;
+    for (; k < item.length; k++)
+    {
+        const t = item[k];
+        if (depth == 0 && isTypeStopper(t))
+            break;
+        if (t.isPunct('('))
+            depth++;
+        else if (t.isPunct(')'))
+            depth--;
+        if (t.kind == TokenKind.word || t.kind == TokenKind.quoted || t.kind == TokenKind.string_
+                || t.kind == TokenKind.other)
+        {
+            if (type.length && type[$ - 1] != '(' && type[$ - 1] != ',' && type[$ - 1] != '.')
+                type ~= ' ';
+            type ~= t.text;
+        }
+        else
+            type ~= t.text;
+    }
+    c.declaredType = type;
+    c.affinity = affinityOf(type);
+
+    // column-level PRIMARY KEY [DESC]
+    depth = 0;
+    for (size_t j = k; j < item.length; j++)
+    {
+        const t = item[j];
+        if (t.isPunct('('))
+            depth++;
+        else if (t.isPunct(')'))
+            depth--;
+        else if (depth == 0 && t.isKeyword("PRIMARY") && j + 1 < item.length
+                && item[j + 1].isKeyword("KEY"))
+        {
+            const desc = j + 2 < item.length && item[j + 2].isKeyword("DESC");
+            if (!desc && isExactlyInteger(c))
+                c.isRowidAlias = true;
+            break;
+        }
+    }
+    return c;
+}
+
+/// Parses a `CREATE [UNIQUE] INDEX` statement.
 IndexDef parseCreateIndex(string sql)
 {
-    auto c = TokenCursor(tokenize(sql));
-    if (!c.eatKw("CREATE"))
-        throw new FormatException("not a CREATE statement");
-    c.eatKw("UNIQUE");
-    if (!c.eatKw("INDEX"))
-        throw new FormatException("not a CREATE INDEX statement");
-    if (c.eatKw("IF"))
-    {
-        c.eatKw("NOT");
-        c.eatKw("EXISTS");
-    }
+    const toks = tokenize(sql);
+    size_t p = 0;
+    if (p >= toks.length || !toks[p++].isKeyword("CREATE"))
+        throw new SchemaException("expected CREATE");
+    if (p < toks.length && toks[p].isKeyword("UNIQUE"))
+        p++;
+    if (p >= toks.length || !toks[p++].isKeyword("INDEX"))
+        throw new SchemaException("expected INDEX");
+    if (p + 2 < toks.length && toks[p].isKeyword("IF") && toks[p + 1].isKeyword("NOT")
+            && toks[p + 2].isKeyword("EXISTS"))
+        p += 3;
     IndexDef def;
-    def.name = c.qualifiedName();
-    if (!c.eatKw("ON"))
-        throw new FormatException("expected ON in CREATE INDEX");
-    def.table = c.name();
-    foreach (item; c.parenItems())
-        if (item.length > 0)
-            def.columns ~= item[0].text;
+    def.name = readQualifiedName(toks, p);
+    if (p >= toks.length || !toks[p++].isKeyword("ON"))
+        throw new SchemaException("expected ON");
+    def.table = readQualifiedName(toks, p);
+    foreach (item; splitParenthesised(toks, p))
+    {
+        if (item.length == 0 || (item[0].kind != TokenKind.word && item[0].kind != TokenKind.quoted))
+            throw new SchemaException("unsupported index column");
+        def.columns ~= item[0].text;
+    }
     return def;
+}
+
+unittest
+{
+    auto t = tokenize("CREATE TABLE \"a\"\"b\"([x y], `z`) -- c\n/* d */ 'it''s'");
+    assert(t[2].kind == TokenKind.quoted && t[2].text == `a"b`);
+    assert(t[4].text == "x y");
+    assert(t[6].text == "z");
+    assert(t[$ - 1].kind == TokenKind.string_ && t[$ - 1].text == "it's");
+}
+
+unittest
+{
+    auto d = parseCreateTable(`CREATE TABLE people(
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        price NUMERIC(10,2) DEFAULT 'a,b',
+        photo BLOB, untyped)`);
+    assert(d.name == "people");
+    assert(d.columns.length == 5);
+    assert(d.columns[0].isRowidAlias && d.columns[0].affinity == Affinity.integer);
+    assert(d.columns[1].declaredType == "TEXT" && d.columns[1].affinity == Affinity.text);
+    assert(d.columns[2].declaredType == "NUMERIC(10,2)" && d.columns[2].affinity == Affinity.numeric);
+    assert(d.columns[4].declaredType == "" && d.columns[4].affinity == Affinity.blob);
+}
+
+unittest
+{
+    // rowid-alias shapes (SPEC §2.2)
+    bool alias_(string sql, size_t col = 0)
+    {
+        return parseCreateTable(sql).columns[col].isRowidAlias;
+    }
+
+    assert(alias_("CREATE TABLE t(x INTEGER PRIMARY KEY)"));
+    assert(alias_("CREATE TABLE t(x integer primary key asc)"));
+    assert(alias_("CREATE TABLE t(x INTEGER PRIMARY KEY AUTOINCREMENT)"));
+    assert(!alias_("CREATE TABLE t(x INTEGER PRIMARY KEY DESC)"));
+    assert(alias_("CREATE TABLE t(x INTEGER, PRIMARY KEY(x DESC))"));
+    assert(alias_("CREATE TABLE t([A] INTEGER NOT NULL, CONSTRAINT [PK] PRIMARY KEY ([a]))"));
+    assert(!alias_("CREATE TABLE t(x INT PRIMARY KEY)"));
+    assert(!alias_("CREATE TABLE t(x INTEGER(4) PRIMARY KEY)"));
+    assert(!alias_("CREATE TABLE t(x INTEGER, y INTEGER, PRIMARY KEY(x, y))"));
+    assert(!alias_("CREATE TABLE t(x TEXT PRIMARY KEY)"));
+    assert(!alias_("CREATE TABLE t(x INTEGER CHECK(x > 0 AND y PRIMARY KEY))"));
+    assert(alias_("CREATE TABLE t(a TEXT, b INTEGER, PRIMARY KEY(b))", 1));
+    assert(!alias_("CREATE TABLE t(a TEXT, b INTEGER, PRIMARY KEY(b))", 0));
+    assert(alias_("CREATE TEMP TABLE IF NOT EXISTS main.t(x INTEGER PRIMARY KEY)"));
+}
+
+unittest
+{
+    auto d = parseCreateIndex(`CREATE UNIQUE INDEX IF NOT EXISTS "main"."ix" ON t ( a COLLATE BINARY DESC, [b c] )`);
+    assert(d.name == "ix" && d.table == "t");
+    assert(d.columns == ["a", "b c"]);
+    import std.exception : assertThrown;
+
+    assertThrown!SchemaException(parseCreateIndex("CREATE TABLE x(a)"));
+    assertThrown!SchemaException(parseCreateTable("CREATE VIEW v AS SELECT 1"));
 }

@@ -1,15 +1,14 @@
 /**
- * The dependency graph: nodes for steps, phony targets and source files,
- * whole-graph validation, target resolution and cycle detection.
+ * The dependency graph of one build: steps, phony targets and source files,
+ * with whole-graph validation, target resolution and cycle detection.
  */
 module kiln.graph;
 
 import kiln.errors;
-import kiln.interp;
-import kiln.step;
-import kiln.vfs;
+import kiln.model;
+import kiln.workspace : Workspace;
 
-/// Kinds of graph node.
+/// What a graph node stands for.
 enum NodeKind : ubyte
 {
     step,
@@ -17,214 +16,201 @@ enum NodeKind : ubyte
     source,
 }
 
-/// The dependency graph of one build.
+/// A graph node. Step `i` has node id `i`; phony `j` has id `steps + j`; source nodes follow.
+struct Node
+{
+    NodeKind kind;
+    /// Step or phony index (unused for sources).
+    size_t index;
+    /// Name used in messages: primary output, `@phony`, or the source path.
+    string name;
+    /// Ordering dependencies with duplicates removed, first occurrence kept.
+    int[] successors;
+}
+
+/// The graph for one build.
 final class Graph
 {
-    /// Number of step nodes; step `n` has node id `n` (its serial).
-    int numSteps;
-    /// Number of phony nodes; phony `k` has node id `numSteps + k`.
-    int numPhony;
-    NodeKind[] kind;
-    /// Node names as used in messages.
-    string[] name;
-    /// Successor lists (ordering dependencies, de-duplicated, first kept).
-    int[][] succ;
-
-    private Evaluator ev;
-    private Vfs vfs;
-    private int[string] outputOwner;
-    private int[string] sourceNode;
+    /// All nodes.
+    Node[] nodes;
+    private BuildPlan plan;
+    private Workspace ws;
+    private size_t[string] outputOwner;
+    private int[string] sourceIds;
 
     /**
-     * Builds the graph and performs whole-graph validation.
-     *
-     * Throws: `E_DUP_OUTPUT`, `E_MISSING_INPUT` or `E_UNKNOWN_TARGET`.
+     * Builds the graph and performs the whole-graph validation:
+     * duplicate outputs, then reference resolution, then the default list.
+     * Throws `KilnError` (`E_DUP_OUTPUT`, `E_MISSING_INPUT`, `E_UNKNOWN_TARGET`).
      */
-    this(Evaluator ev, Vfs vfs)
+    this(BuildPlan plan, Workspace ws) @safe
     {
-        this.ev = ev;
-        this.vfs = vfs;
-        numSteps = cast(int) ev.steps.length;
-        numPhony = cast(int) ev.phonyNames.length;
-        foreach (s; ev.steps)
-        {
-            kind ~= NodeKind.step;
-            name ~= s.primary;
-        }
-        foreach (p; ev.phonyNames)
-        {
-            kind ~= NodeKind.phony;
-            name ~= "@" ~ p;
-        }
-        succ.length = kind.length;
+        this.plan = plan;
+        this.ws = ws;
+        foreach (i, s; plan.steps)
+            nodes ~= Node(NodeKind.step, i, s.primary);
+        foreach (j, p; plan.phonies)
+            nodes ~= Node(NodeKind.phony, j, "@" ~ p.name);
 
-        // 1. duplicate outputs
-        foreach (s; ev.steps)
-            foreach (o; s.fullOutputs)
+        foreach (i, s; plan.steps)
+            foreach (o; s.fullOuts)
             {
                 if (o in outputOwner)
-                    throw new KilnError("E_DUP_OUTPUT", o);
-                outputOwner[o] = s.serial;
+                    fail("E_DUP_OUTPUT", o);
+                outputOwner[o] = i;
             }
 
-        // 2. reference resolution
-        foreach (s; ev.steps)
+        foreach (i, s; plan.steps)
         {
-            int[] deps;
+            int[] succ;
             foreach (r; s.ins)
-                deps ~= resolveRequired(r, s.primary);
+                succ ~= resolveRequired(r, s.primary);
             foreach (r; s.afters)
-                deps ~= resolveRequired(r, s.primary);
-            succ[s.serial] = dedup(deps);
+                succ ~= resolveRequired(r, s.primary);
+            nodes[i].successors = dedup(succ);
         }
-        foreach (k; 0 .. numPhony)
+        foreach (j, p; plan.phonies)
         {
-            int[] deps;
-            foreach (r; ev.phonyDeps[k])
-                deps ~= resolveRequired(r, "@" ~ ev.phonyNames[k]);
-            succ[numSteps + k] = dedup(deps);
+            int[] succ;
+            foreach (r; p.deps)
+                succ ~= resolveRequired(r, "@" ~ p.name);
+            nodes[plan.steps.length + j].successors = dedup(succ);
         }
-
-        // 3. default list
-        foreach (d; ev.defaults)
-            if (resolve(d) < 0)
-                throw new KilnError("E_UNKNOWN_TARGET", d);
+        foreach (r; plan.defaults)
+            if (resolve(r) < 0)
+                fail("E_UNKNOWN_TARGET", r);
     }
 
-    private static int[] dedup(int[] deps)
-    {
-        int[] r;
-        bool[int] seen;
-        foreach (d; deps)
-            if (d !in seen)
-            {
-                seen[d] = true;
-                r ~= d;
-            }
-        return r;
-    }
-
-    private int resolveRequired(string ref_, string by)
+    private int resolveRequired(string ref_, string requiredBy) @safe
     {
         immutable n = resolve(ref_);
         if (n < 0)
-            throw new KilnError("E_MISSING_INPUT", ref_ ~ " required by " ~ by);
+            fail("E_MISSING_INPUT", ref_ ~ " required by " ~ requiredBy);
         return n;
     }
 
     /// Resolves a target reference to a node id, or -1 if it names nothing.
-    int resolve(string ref_)
+    int resolve(string target) @safe
     {
-        if (ref_.length > 0 && ref_[0] == '@')
+        if (target.length > 0 && target[0] == '@')
         {
-            if (auto p = ref_[1 .. $] in ev.phonyIndex)
-                return numSteps + *p;
+            if (auto p = target[1 .. $] in plan.phonyIndex)
+                return cast(int)(plan.steps.length + *p);
             return -1;
         }
-        if (auto p = ref_ in outputOwner)
+        if (auto p = target in outputOwner)
+            return cast(int) *p;
+        if (auto p = target in sourceIds)
             return *p;
-        if (auto p = ref_ in sourceNode)
-            return *p;
-        if (vfs.exists(ref_))
+        if (ws.exists(target))
         {
-            immutable id = cast(int) kind.length;
-            kind ~= NodeKind.source;
-            name ~= ref_;
-            succ ~= cast(int[]) null;
-            sourceNode[ref_] = id;
+            immutable id = cast(int) nodes.length;
+            nodes ~= Node(NodeKind.source, 0, target);
+            sourceIds[target] = id;
             return id;
         }
         return -1;
     }
 
     /**
-     * The requested targets as node ids: the given targets, or the default
-     * list when none are given, with duplicates removed.
-     *
-     * Throws: `E_NO_DEFAULT` or `E_UNKNOWN_TARGET`.
+     * Resolves the requested targets (`E_UNKNOWN_TARGET` on failure), with
+     * duplicates removed keeping the first occurrence.
      */
-    int[] requested(const(string)[] targets)
+    int[] resolveTargets(const(string)[] targets) @safe
     {
-        const(string)[] list = targets.length ? targets : ev.defaults;
-        if (list.length == 0)
-            throw new KilnError("E_NO_DEFAULT");
-        int[] r;
-        bool[string] seen;
-        foreach (t; list)
+        int[] roots;
+        foreach (t; targets)
         {
-            if (t in seen)
-                continue;
-            seen[t] = true;
             immutable n = resolve(t);
             if (n < 0)
-                throw new KilnError("E_UNKNOWN_TARGET", t);
-            r ~= n;
+                fail("E_UNKNOWN_TARGET", t);
+            roots ~= n;
         }
-        return r;
+        return dedup(roots);
     }
 
     /**
-     * Searches the nodes reachable from `roots` for a cycle with the
-     * specified deterministic DFS and returns the reachable set.
-     *
-     * Throws: `E_CYCLE`.
+     * Searches for a cycle among the nodes reachable from `roots` with the
+     * spec's exact depth-first search. Throws `E_CYCLE`; otherwise returns the
+     * reachable set (grey or black nodes) as node ids.
      */
-    bool[] reachable(const(int)[] roots)
+    int[] reachable(const(int)[] roots) @safe
     {
-        enum ubyte white = 0, grey = 1, black = 2;
-        auto colour = new ubyte[kind.length];
+        enum : ubyte
+        {
+            white,
+            grey,
+            black
+        }
+        auto colour = new ubyte[nodes.length];
+        int[] visited;
         struct Frame
         {
             int node;
             size_t next;
         }
 
-        Frame[] stack;
         foreach (root; roots)
         {
             if (colour[root] != white)
                 continue;
             colour[root] = grey;
-            stack = [Frame(root, 0)];
+            visited ~= root;
+            Frame[] stack = [Frame(root, 0)];
             while (stack.length)
             {
                 auto top = &stack[$ - 1];
-                immutable n = top.node;
-                if (top.next < succ[n].length)
+                auto succ = nodes[top.node].successors;
+                if (top.next < succ.length)
                 {
-                    immutable m = succ[n][top.next];
+                    immutable m = succ[top.next];
                     top.next++;
                     if (colour[m] == grey)
                     {
                         size_t j = 0;
-                        foreach (k, ref f; stack)
-                            if (f.node == m)
-                            {
-                                j = k;
-                                break;
-                            }
+                        while (stack[j].node != m)
+                            j++;
+                        string[] names;
+                        foreach (f; stack[j .. $])
+                            names ~= nodes[f.node].name;
+                        names ~= nodes[m].name;
                         string text;
-                        foreach (k; j .. stack.length)
-                            text ~= name[stack[k].node] ~ " -> ";
-                        text ~= name[m];
-                        throw new KilnError("E_CYCLE", text);
+                        foreach (k, n; names)
+                            text ~= (k ? " -> " : "") ~ n;
+                        fail("E_CYCLE", text);
                     }
                     if (colour[m] == white)
                     {
                         colour[m] = grey;
+                        visited ~= m;
                         stack ~= Frame(m, 0);
                     }
                 }
                 else
                 {
-                    colour[n] = black;
-                    stack.length = stack.length - 1;
+                    colour[top.node] = black;
+                    stack = stack[0 .. $ - 1];
                 }
             }
         }
-        auto r = new bool[kind.length];
-        foreach (i; 0 .. kind.length)
-            r[i] = colour[i] != white;
-        return r;
+        return visited;
     }
+}
+
+/// Removes duplicates, keeping the first occurrence of each.
+private int[] dedup(int[] xs) @safe pure
+{
+    if (xs.length < 2)
+        return xs;
+    bool[int] seen;
+    int[] r;
+    r.reserve(xs.length);
+    foreach (x; xs)
+    {
+        if (x in seen)
+            continue;
+        seen[x] = true;
+        r ~= x;
+    }
+    return r;
 }

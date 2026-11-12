@@ -1,38 +1,36 @@
 /**
- * Session scripts: parsing `session.txt`, replaying it against a workspace
- * and rendering the log.
+ * Session scripts: a sequence of builds and workspace mutations, and the log
+ * that records everything that happened.
  */
 module kiln.session;
 
-import kiln.build;
-import kiln.paths;
-import kiln.vfs;
+import kiln.build : BuildReport, runBuild;
+import kiln.bytes : decimal;
+import kiln.scheduler : Event, EventKind;
+import kiln.workspace : Workspace;
 
-import std.array : appender, Appender;
-import std.conv : to;
-
-/// Kinds of session step.
+/// The kinds of session step.
 enum StepKind : ubyte
 {
     build,
     create,
     edit,
-    delete_,
+    remove,
     touch,
     clean,
 }
 
-/// One parsed session step.
+/// One step of a session script.
 struct SessionStep
 {
     StepKind kind;
-    /// `build`: the targets as written.
+    /// `build` targets as written.
     string[] targets;
-    /// `build`: worker count.
+    /// `build` worker count.
     int workers = 1;
-    /// `create` / `edit` / `delete` / `touch`: the path.
+    /// Path for create/edit/delete/touch.
     string path;
-    /// `create` / `edit`: the new content.
+    /// New content for create/edit.
     string content;
 }
 
@@ -44,7 +42,7 @@ private bool isBlank(const(char)[] s) @safe pure nothrow @nogc
     return true;
 }
 
-private string[] splitWords(string line)
+private string[] splitWords(string line) @safe pure nothrow
 {
     string[] words;
     size_t i = 0;
@@ -62,198 +60,160 @@ private string[] splitWords(string line)
     return words;
 }
 
-/// Parses the text of a `session.txt`.
-SessionStep[] parseSession(string text)
+private int parseWorkers(string w) @safe pure nothrow @nogc
 {
-    SessionStep[] steps;
-    string[] lines;
-    size_t start = 0;
-    foreach (i; 0 .. text.length)
-        if (text[i] == '\n')
-        {
-            lines ~= text[start .. i];
-            start = i + 1;
-        }
-    if (start < text.length)
-        lines ~= text[start .. $];
-
-    size_t li = 0;
-    while (li < lines.length)
+    int n = 0;
+    foreach (c; w)
     {
-        auto line = lines[li++];
-        if (isBlank(line))
+        if (c < '0' || c > '9')
+            return 1;
+        n = n * 10 + (c - '0');
+        if (n > 1_000_000)
+            break;
+    }
+    return n < 1 ? 1 : n;
+}
+
+/// Parses `session.txt` text into steps.
+SessionStep[] parseSession(string text) @safe pure nothrow
+{
+    import kiln.bytes : splitLines;
+
+    SessionStep[] steps;
+    auto lines = splitLines(text);
+    size_t i = 0;
+    while (i < lines.length)
+    {
+        auto raw = lines[i++];
+        if (isBlank(raw))
             continue;
-        auto words = splitWords(line);
-        if (words[0].length && words[0][0] == '#')
+        auto words = splitWords(raw);
+        if (words[0][0] == '#')
             continue;
-        SessionStep s;
+        SessionStep st;
         switch (words[0])
         {
         case "build":
-        {
-            s.kind = StepKind.build;
+            st.kind = StepKind.build;
             auto rest = words[1 .. $];
             if (rest.length >= 2 && rest[$ - 2] == "-j")
             {
-                s.workers = rest[$ - 1].to!int;
+                st.workers = parseWorkers(rest[$ - 1]);
                 rest = rest[0 .. $ - 2];
             }
-            s.targets = rest;
+            st.targets = rest;
             break;
-        }
         case "create":
         case "edit":
-        {
-            s.kind = words[0] == "create" ? StepKind.create : StepKind.edit;
-            s.path = words.length > 1 ? words[1] : "";
-            auto app = appender!(char[]);
-            while (li < lines.length && lines[li] != "---")
+            st.kind = words[0] == "create" ? StepKind.create : StepKind.edit;
+            st.path = words.length > 1 ? words[1] : "";
+            char[] content;
+            while (i < lines.length && lines[i] != "---")
             {
-                app.put(lines[li]);
-                app.put('\n');
-                li++;
+                content ~= lines[i++];
+                content ~= '\n';
             }
-            li++; // the terminator
-            s.content = (() @trusted => cast(string) app.data)();
+            if (i < lines.length)
+                i++; // the terminator
+            st.content = (() @trusted => cast(string) content)();
             break;
-        }
         case "delete":
-            s.kind = StepKind.delete_;
-            s.path = words[1];
+            st.kind = StepKind.remove;
+            st.path = words.length > 1 ? words[1] : "";
             break;
         case "touch":
-            s.kind = StepKind.touch;
-            s.path = words[1];
+            st.kind = StepKind.touch;
+            st.path = words.length > 1 ? words[1] : "";
             break;
         case "clean":
-            s.kind = StepKind.clean;
+            st.kind = StepKind.clean;
             break;
         default:
-            continue;
+            continue; // not a well-formed step: ignored
         }
-        steps ~= s;
+        steps ~= st;
     }
     return steps;
 }
 
-/// Appends the event lines and the result line of a build to `log`.
-void appendBuildLines(ref Appender!(char[]) log, const ref BuildReport rep)
+private void eventLine(ref char[] log, ref const Event e) @safe pure nothrow
 {
-    static immutable string[] names = ["hit", "run", "fail", "cancel"];
-    foreach (ref e; rep.events)
+    final switch (e.kind)
     {
-        log.put("  ");
-        log.put(names[e.kind]);
-        log.put(' ');
-        if (e.kind == EventKind.hit)
-        {
-            log.put(e.start.to!string);
-            log.put(' ');
-            log.put(e.target);
-        }
-        else
-        {
-            log.put(e.start.to!string);
-            log.put(' ');
-            log.put(e.end.to!string);
-            log.put(" w");
-            log.put(e.worker.to!string);
-            log.put(' ');
-            log.put(e.target);
-            log.put(' ');
-            log.put(e.command);
-        }
-        log.put('\n');
+    case EventKind.hit:
+        log ~= "  hit " ~ decimal(e.start) ~ " " ~ e.target ~ "\n";
+        break;
+    case EventKind.run:
+    case EventKind.fail:
+    case EventKind.cancel:
+        immutable word = e.kind == EventKind.run ? "run" : (e.kind == EventKind.fail ? "fail" : "cancel");
+        log ~= "  " ~ word ~ " " ~ decimal(e.start) ~ " " ~ decimal(e.end) ~ " w"
+            ~ decimal(e.worker) ~ " " ~ e.target ~ " " ~ e.command ~ "\n";
+        break;
     }
-    if (rep.ok)
-    {
-        log.put("  ok ran=");
-        log.put(rep.ran.to!string);
-        log.put(" hit=");
-        log.put(rep.hits.to!string);
-        log.put(" time=");
-        log.put(rep.time.to!string);
-    }
-    else
-    {
-        log.put("  error ");
-        log.put(rep.error.render());
-    }
-    log.put('\n');
 }
 
 /**
- * Replays a session against `vfs` and returns the log text.
+ * Runs `steps` against `ws` and returns the text of `log.txt`.
  */
-string runSession(Vfs vfs, const(SessionStep)[] steps)
+string runSession(Workspace ws, const(SessionStep)[] steps) @safe
 {
-    import kiln.build : runBuild;
-
-    auto log = appender!(char[]);
-    foreach (idx, ref s; steps)
+    char[] log;
+    foreach (n, ref st; steps)
     {
-        log.put("step ");
-        log.put((idx + 1).to!string);
-        log.put(": ");
-        final switch (s.kind)
+        immutable head = "step " ~ decimal(n + 1) ~ ": ";
+        final switch (st.kind)
         {
         case StepKind.build:
-        {
-            log.put("build");
-            if (s.targets.length == 0)
-                log.put(" (default)");
-            foreach (t; s.targets)
             {
-                log.put(' ');
-                log.put(t);
+                string targets;
+                foreach (t; st.targets)
+                    targets ~= t ~ " ";
+                if (st.targets.length == 0)
+                    targets = "(default) ";
+                log ~= head ~ "build " ~ targets ~ "-j " ~ decimal(st.workers) ~ "\n";
+                auto rep = runBuild(ws, st.targets, st.workers);
+                foreach (ref e; rep.events)
+                    eventLine(log, e);
+                if (rep.error !is null)
+                    log ~= "  error " ~ rep.error.render() ~ "\n";
+                else
+                    log ~= "  ok ran=" ~ decimal(rep.ran) ~ " hit=" ~ decimal(rep.hits)
+                        ~ " time=" ~ decimal(rep.time) ~ "\n";
+                break;
             }
-            log.put(" -j ");
-            log.put(s.workers.to!string);
-            log.put('\n');
-            auto rep = runBuild(vfs, s.targets, s.workers);
-            appendBuildLines(log, rep);
-            break;
-        }
         case StepKind.create:
         case StepKind.edit:
-            log.put(s.kind == StepKind.create ? "create " : "edit ");
-            log.put(s.path);
-            log.put('\n');
-            vfs.write(s.path, s.content);
-            log.put("  ok size=");
-            log.put(s.content.length.to!string);
-            log.put('\n');
+            log ~= head ~ (st.kind == StepKind.create ? "create " : "edit ") ~ st.path ~ "\n";
+            ws.write(st.path, st.content);
+            log ~= "  ok size=" ~ decimal(st.content.length) ~ "\n";
             break;
-        case StepKind.delete_:
-            log.put("delete ");
-            log.put(s.path);
-            log.put('\n');
-            vfs.remove(s.path);
-            log.put("  ok\n");
+        case StepKind.remove:
+            log ~= head ~ "delete " ~ st.path ~ "\n";
+            ws.remove(st.path);
+            log ~= "  ok\n";
             break;
         case StepKind.touch:
-            log.put("touch ");
-            log.put(s.path);
-            log.put('\n');
-            vfs.touch(s.path);
-            log.put("  ok\n");
+            log ~= head ~ "touch " ~ st.path ~ "\n";
+            ws.touch(st.path);
+            log ~= "  ok\n";
             break;
         case StepKind.clean:
-        {
-            log.put("clean\n");
-            auto gone = vfs.clean();
-            foreach (p; gone)
             {
-                log.put("  remove ");
-                log.put(p);
-                log.put('\n');
+                log ~= head ~ "clean\n";
+                auto gone = ws.clean();
+                foreach (p; gone)
+                    log ~= "  remove " ~ p ~ "\n";
+                log ~= "  ok removed=" ~ decimal(gone.length) ~ "\n";
+                break;
             }
-            log.put("  ok removed=");
-            log.put(gone.length.to!string);
-            log.put('\n');
-            break;
-        }
         }
     }
-    return (() @trusted => cast(string) log.data)();
+    return (() @trusted => cast(string) log)();
+}
+
+/// Parses `sessionText` and runs it: a convenience for callers holding the script as text.
+string runSession(Workspace ws, string sessionText) @safe
+{
+    return runSession(ws, parseSession(sessionText));
 }

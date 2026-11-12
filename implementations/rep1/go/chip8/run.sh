@@ -1,4 +1,4 @@
 #!/bin/sh
-# Runs the chip8 CLI: reads the problem input on stdin, writes the report to stdout.
+# Runs the chip8 CLI: stdin -> stdout. Works from any directory.
 dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/bin/chip8" "$@"
+exec "$dir/bin/chip8"

@@ -4,13 +4,13 @@ import (
 	"errors"
 	"testing"
 
-	"datalog/ast"
-	"datalog/parser"
+	"example.com/datalog/ast"
+	"example.com/datalog/parser"
 )
 
 func mustParse(t *testing.T, src string) *ast.Program {
 	t.Helper()
-	p, err := parser.Parse([]byte(src))
+	p, err := parser.Parse(src)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -22,20 +22,19 @@ func TestSafety(t *testing.T) {
 		src  string
 		safe bool
 	}{
-		{"p(X) :- q(X).", true},
-		{"p(a).", true},
+		{"p(a). p(X) :- q(X).", true},
+		{"p(X) :- q(X, _), not r(X), X < 3.", true},
+		{"p(a) :- 1 < 2.", true},
+		{"p(a) :- not q(b).", true},
 		{"p(X).", false},
 		{"p(_).", false},
 		{"p(X) :- q(Y).", false},
-		{"p(X) :- q(X), not r(X).", true},
-		{"p(X) :- q(X), not r(X, Y).", false},
+		{"p(X) :- q(X), not r(Y).", false},
 		{"p(X) :- q(X), not r(_).", false},
-		{"p(X) :- q(X, _).", true},
+		{"p(X) :- q(X), X < Y.", false},
 		{"p(Y) :- q(X), X = Y.", false},
 		{"p(X) :- q(X), Y = 5.", false},
-		{"p(X) :- q(X), X < 5, 1 != 2.", true},
-		{"p(X) :- q(X), _ = 3.", false},
-		{"p(a) :- 1 < 2.", true},
+		{"p(X) :- not q(X), r(X).", true},
 	}
 	for _, c := range cases {
 		err := CheckSafety(mustParse(t, c.src))
@@ -43,7 +42,7 @@ func TestSafety(t *testing.T) {
 			t.Errorf("%q: unexpected %v", c.src, err)
 		}
 		if !c.safe && !errors.Is(err, ErrUnsafe) {
-			t.Errorf("%q: expected ErrUnsafe, got %v", c.src, err)
+			t.Errorf("%q: want ErrUnsafe, got %v", c.src, err)
 		}
 	}
 }
@@ -53,12 +52,13 @@ func TestStratify(t *testing.T) {
 		src string
 		ok  bool
 	}{
+		{"p(X) :- q(X).", true},
+		{"p(X) :- q(X), not r(X). r(X) :- s(X).", true},
 		{"win(X) :- e(X, Y), not win(Y).", false},
-		{"a(X) :- d(X), not b(X). b(X) :- d(X), not a(X).", false},
-		{"a(X) :- d(X), not b(X). b(X) :- d(X), c(X). c(X) :- a(X).", false},
-		{"p(X) :- d(X), not q(X). q(X) :- r(X). r(X) :- q(X).", true},
-		{"p(X) :- p(X), q(X). q(X) :- d(X), not p2(X).", true},
-		{"p(X) :- q(X), not undefined(X).", true},
+		{"p(X) :- q(X), not r(X). r(X) :- p(X).", false},
+		{"p(X) :- q(X), not r(X). r(X) :- s(X), not t(X). t(X) :- u(X).", true},
+		{"a(X) :- b(X). b(X) :- a(X). c(X) :- d(X), not a(X).", true},
+		{"a(X) :- b(X). b(X) :- c(X). c(X) :- d(X), not a(X).", false},
 	}
 	for _, c := range cases {
 		_, err := Stratify(mustParse(t, c.src))
@@ -66,30 +66,34 @@ func TestStratify(t *testing.T) {
 			t.Errorf("%q: unexpected %v", c.src, err)
 		}
 		if !c.ok && !errors.Is(err, ErrNotStratifiable) {
-			t.Errorf("%q: expected ErrNotStratifiable, got %v", c.src, err)
+			t.Errorf("%q: want ErrNotStratifiable, got %v", c.src, err)
 		}
 	}
 }
 
-func TestComponentOrder(t *testing.T) {
-	p := mustParse(t, `
-		top(X) :- mid(X), not low(X).
-		mid(X) :- base(X).
-		mid(X) :- mid(X), base(X).
-		low(X) :- base(X).`)
-	s, err := Stratify(p)
+func TestStratifyOrder(t *testing.T) {
+	prog := mustParse(t, "c(X) :- b(X), not a(X). b(X) :- a(X). a(1). ?- z(X).")
+	comps, err := Stratify(prog)
 	if err != nil {
 		t.Fatal(err)
 	}
-	id := map[string]int{}
-	for i, pr := range p.Preds {
-		id[pr.Name] = i
+	pos := map[string]int{}
+	for i, c := range comps {
+		for _, p := range c {
+			pos[p.Name] = i
+		}
 	}
-	if s.Comp[id["base"]] >= s.Comp[id["mid"]] || s.Comp[id["mid"]] >= s.Comp[id["top"]] ||
-		s.Comp[id["low"]] >= s.Comp[id["top"]] {
-		t.Errorf("components not in dependency order: %v", s.Comp)
+	if len(pos) != 4 {
+		t.Errorf("predicates = %v, want a, b, c, z", pos)
 	}
-	if !s.Recursive[s.Comp[id["mid"]]] || s.Recursive[s.Comp[id["top"]]] {
-		t.Errorf("recursive flags wrong: %v", s.Recursive)
+	if !(pos["a"] < pos["b"] && pos["b"] < pos["c"]) {
+		t.Errorf("bad evaluation order %v", comps)
+	}
+}
+
+func TestArityDistinguishesPredicates(t *testing.T) {
+	// r/1 and r/2 are different predicates: no cycle here.
+	if _, err := Stratify(mustParse(t, "r(X, Y) :- s(X, Y), not r(X).")); err != nil {
+		t.Errorf("unexpected %v", err)
 	}
 }

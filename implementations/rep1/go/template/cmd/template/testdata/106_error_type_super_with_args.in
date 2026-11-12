@@ -1,0 +1,6 @@
+{}
+--
+=== main
+{% extends "b" %}{% block x %}{{ super(1) }}{% endblock %}
+=== b
+{% block x %}p{% endblock %}

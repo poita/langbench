@@ -1,0 +1,19 @@
+{
+  "which": "b",
+  "depth": 3
+}
+--
+=== main
+{% include "a" %}|{% include which %}|{% include "r1" %}|{% for k in ["c", "b"] %}{% include k %}{% endfor %}
+=== a
+A{% include "b" %}
+=== b
+B{% include "c" %}
+=== c
+C
+=== r1
+{% if depth > 0 %}{{ depth }}{% set depth1 = depth - 1 %}{% include "r2" %}{% else %}.{% endif %}
+=== r2
+{% if depth1 > 0 %}{{ depth1 }}{% set depth2 = depth1 - 1 %}{% include "r3" %}{% else %}.{% endif %}
+=== r3
+{{ depth2 }} {{ depth1 }} {{ depth }} {{ which }}

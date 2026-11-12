@@ -1,0 +1,9 @@
+{
+  "l": [
+    1,
+    2
+  ]
+}
+--
+=== main
+{% for x in [] %}{% else %}{{ loop is defined }}{% endfor %}|{% for a in l %}{% for b in [] %}x{% else %}{{ loop.index }}{% endfor %}{% for b in [] %}{{ loop.index }}{% else %}[{{ loop.index }}{{ loop.last }}]{% endfor %}{% endfor %}

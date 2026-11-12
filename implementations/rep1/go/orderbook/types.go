@@ -1,13 +1,14 @@
 package orderbook
 
-import "errors"
+import "fmt"
 
-// Side is the side of an order: buy (bid) or sell (ask).
+// Side is the side of the book an order belongs to.
 type Side uint8
 
-// The two sides of the book.
 const (
+	// Buy orders rest as bids.
 	Buy Side = iota
+	// Sell orders rest as asks.
 	Sell
 )
 
@@ -19,19 +20,19 @@ func (s Side) String() string {
 	return "SELL"
 }
 
-// TimeInForce selects what happens to the unfilled part of a limit order.
+// TimeInForce controls what happens to the unfilled part of a limit order.
 type TimeInForce uint8
 
 const (
-	// GTC (good till cancelled) rests any remainder in the book.
+	// GTC (good till cancelled) rests any unfilled remainder in the book.
 	GTC TimeInForce = iota
-	// IOC (immediate or cancel) discards any remainder.
+	// IOC (immediate or cancel) discards any unfilled remainder.
 	IOC
 	// FOK (fill or kill) executes completely or not at all.
 	FOK
 )
 
-// String returns the protocol flag for the time in force ("" for GTC).
+// String returns "", "IOC" or "FOK" as used on the wire (GTC has no flag).
 func (t TimeInForce) String() string {
 	switch t {
 	case IOC:
@@ -42,58 +43,103 @@ func (t TimeInForce) String() string {
 	return ""
 }
 
-// Kind identifies a command in the text protocol.
-type Kind uint8
+// CommandKind identifies the type of a [Command].
+type CommandKind uint8
 
-// The command kinds.
 const (
-	KindLimit Kind = iota
-	KindMarket
-	KindCancel
-	KindReplace
-	KindBook
+	// CmdLimit submits a limit order.
+	CmdLimit CommandKind = iota
+	// CmdMarket submits a market order.
+	CmdMarket
+	// CmdCancel cancels a resting order.
+	CmdCancel
+	// CmdReplace modifies a resting order.
+	CmdReplace
+	// CmdBook requests a snapshot of the book.
+	CmdBook
 )
 
-// Command is one parsed command of the text protocol. Which fields are
-// meaningful depends on Kind:
-//
-//	KindLimit:   ID, Side, Price, Qty, TIF
-//	KindMarket:  ID, Side, Qty
-//	KindCancel:  ID
-//	KindReplace: ID, Price, Qty
-//	KindBook:    (none)
-//
-// ID aliases the buffer the command was parsed from.
+// Command is a request to a [Book]. Which fields are meaningful depends on
+// Kind: Limit uses all of them; Market uses ID, Side and Qty; Cancel uses ID;
+// Replace uses ID, Price and Qty; Book uses none.
 type Command struct {
-	Kind  Kind
+	Kind  CommandKind
+	ID    string
 	Side  Side
+	Price uint64
+	Qty   uint64
 	TIF   TimeInForce
-	ID    []byte
-	Price int64
-	Qty   int64
-
-	rank int32 // index of Price in the script's price table
 }
 
-// Level is one non-empty price level of the book.
-type Level struct {
-	Price  int64 // price of the level
-	Qty    int64 // sum of the remaining quantities of its orders
-	Orders int   // number of orders resting at the level
-}
+// EventKind identifies the type of an [Event].
+type EventKind uint8
 
-// Errors returned by Book methods and the parser.
-var (
-	// ErrUnknownPrice means a price is not in the book's price table.
-	ErrUnknownPrice = errors.New("orderbook: price not in the book's price table")
-	// ErrInvalidQty means a quantity was not positive.
-	ErrInvalidQty = errors.New("orderbook: quantity must be positive")
-	// ErrDuplicateID means a limit order used the id of an order that is
-	// still resting.
-	ErrDuplicateID = errors.New("orderbook: id is already resting")
-	// ErrBadPrices means a price table was not strictly ascending or
-	// contained a non-positive price.
-	ErrBadPrices = errors.New("orderbook: prices must be positive and strictly ascending")
-	// ErrBadCommand means a Command had an unknown Kind.
-	ErrBadCommand = errors.New("orderbook: unknown command kind")
+const (
+	// Trade is a fill between a taker and a maker at the maker's price.
+	Trade EventKind = iota
+	// Rest reports that an order now rests in the book.
+	Rest
+	// Cancel reports that an order left the book, or never entered it, with
+	// Qty unfilled.
+	Cancel
+	// Reject reports that a command was refused and nothing changed.
+	Reject
+	// Filled reports that an order's remaining quantity reached zero.
+	Filled
+	// Bid is one bid level of a snapshot.
+	Bid
+	// Ask is one ask level of a snapshot.
+	Ask
+	// EndBook terminates a snapshot.
+	EndBook
 )
+
+// Event is one line of engine output.
+//
+// Field use by Kind:
+//
+//	Trade:   ID is the taker, MakerID the maker, Price the maker's price, Qty the traded quantity
+//	Rest:    ID
+//	Cancel:  ID, Qty (the unfilled remainder)
+//	Reject:  ID
+//	Filled:  ID
+//	Bid/Ask: Price, Qty (level total), Orders (number of orders)
+//	EndBook: no fields
+type Event struct {
+	Kind    EventKind
+	ID      string
+	MakerID string
+	Price   uint64
+	Qty     uint64
+	Orders  uint64
+}
+
+// String renders the event in the textual wire format.
+func (e Event) String() string {
+	switch e.Kind {
+	case Trade:
+		return fmt.Sprintf("TRADE %s %s %d %d", e.ID, e.MakerID, e.Price, e.Qty)
+	case Rest:
+		return "REST " + e.ID
+	case Cancel:
+		return fmt.Sprintf("CANCEL %s %d", e.ID, e.Qty)
+	case Reject:
+		return "REJECT " + e.ID
+	case Filled:
+		return "FILLED " + e.ID
+	case Bid:
+		return fmt.Sprintf("BID %d %d %d", e.Price, e.Qty, e.Orders)
+	case Ask:
+		return fmt.Sprintf("ASK %d %d %d", e.Price, e.Qty, e.Orders)
+	case EndBook:
+		return "--"
+	}
+	return "?"
+}
+
+// Level is a snapshot of one price level.
+type Level struct {
+	Price  uint64 // price of the level
+	Qty    uint64 // total remaining quantity of the orders in the level
+	Orders int    // number of orders in the level
+}

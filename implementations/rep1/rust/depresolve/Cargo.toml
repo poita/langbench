@@ -1,0 +1,17 @@
+[package]
+name = "depresolve"
+version = "0.1.0"
+edition = "2021"
+description = "A deterministic package dependency resolver (depth-first, newest-first, chronological backtracking)"
+license = "MIT"
+readme = "README.md"
+keywords = ["dependency", "resolver", "semver"]
+categories = ["algorithms", "command-line-utilities"]
+
+[lib]
+name = "depresolve"
+path = "src/lib.rs"
+
+[[bin]]
+name = "depresolve"
+path = "src/main.rs"

@@ -2,74 +2,59 @@ package chess
 
 import "fmt"
 
-// Move is a compact 16-bit move: bits 0-5 origin, bits 6-11 destination and
-// bits 12-15 a flag. A move does not record what it captures; Make reads that
-// from the board.
+// Move is a chess move packed into 16 bits: origin square (6 bits),
+// destination square (6 bits) and promotion piece type (4 bits).
+//
+// Castling is represented as the king's two-square move, and an en passant
+// capture as the capturing pawn's diagonal move to the en passant square, as in
+// UCI; [Position.Make] recognises both from the position.
 type Move uint16
 
-// Move flags (bits 12-15).
-const (
-	flagQuiet  = 0
-	flagDouble = 1 // pawn two-square advance
-	flagEP     = 2 // en passant capture
-	flagCastle = 3 // king move of a castling
-	flagPromoN = 4 // promotions: flagPromoN + (type - Knight)
-	flagPromoB = 5
-	flagPromoR = 6
-	flagPromoQ = 7
-)
+// noPromo is stored in the promotion field of a non-promoting move.
+const noPromo = 0
 
-// NoMove is the zero Move (a1a1), never produced by the generator.
-const NoMove Move = 0
-
-func newMove(from, to Square, flag int) Move {
-	return Move(from) | Move(to)<<6 | Move(flag)<<12
+// NewMove builds a move. promo is the piece type promoted to, and is ignored
+// unless promoting is true.
+func NewMove(from, to Square, promo PieceType, promoting bool) Move {
+	m := Move(from) | Move(to)<<6
+	if promoting {
+		m |= Move(promo+1) << 12
+	}
+	return m
 }
 
 // From returns the origin square.
 func (m Move) From() Square { return Square(m & 63) }
 
-// To returns the destination square. Castling is the king's destination.
+// To returns the destination square.
 func (m Move) To() Square { return Square(m >> 6 & 63) }
 
-func (m Move) flag() int { return int(m >> 12) }
-
-// IsPromotion reports whether the move promotes a pawn.
-func (m Move) IsPromotion() bool { return m.flag() >= flagPromoN }
-
-// Promotion returns the piece type a pawn promotes to (Knight, Bishop, Rook or
-// Queen); it is only meaningful when IsPromotion is true.
-func (m Move) Promotion() PieceType { return PieceType(m.flag()-flagPromoN) + Knight }
-
-// IsEnPassant reports whether the move is an en passant capture.
-func (m Move) IsEnPassant() bool { return m.flag() == flagEP }
-
-// IsCastle reports whether the move is a castling move.
-func (m Move) IsCastle() bool { return m.flag() == flagCastle }
-
-// IsDoublePush reports whether the move is a two-square pawn advance.
-func (m Move) IsDoublePush() bool { return m.flag() == flagDouble }
-
-// String returns the move in UCI long algebraic notation, e.g. "e2e4",
-// "e1g1" or "a7a8q".
-func (m Move) String() string {
-	b := [5]byte{}
-	f, t := m.From(), m.To()
-	b[0], b[1] = byte('a'+f.File()), byte('1'+f.Rank())
-	b[2], b[3] = byte('a'+t.File()), byte('1'+t.Rank())
-	if m.IsPromotion() {
-		b[4] = "nbrq"[m.Promotion()-Knight]
-		return string(b[:5])
+// Promotion returns the piece type a pawn promotes to and true, or false if m
+// is not a promotion.
+func (m Move) Promotion() (PieceType, bool) {
+	p := m >> 12
+	if p == noPromo {
+		return 0, false
 	}
-	return string(b[:4])
+	return PieceType(p - 1), true
 }
 
-// ParseMove finds the legal move of the position whose UCI string is s.
+// String returns m in UCI long algebraic notation, such as "e2e4", "e1g1" or
+// "a7a8q".
+func (m Move) String() string {
+	s := m.From().String() + m.To().String()
+	if p, ok := m.Promotion(); ok {
+		s += string(pieceChars[p] + 'a' - 'A')
+	}
+	return s
+}
+
+// ParseMove parses a UCI move string and returns the matching legal move of p.
 func (p *Position) ParseMove(s string) (Move, error) {
 	for _, m := range p.LegalMoves() {
 		if m.String() == s {
 			return m, nil
 		}
 	}
-	return NoMove, fmt.Errorf("chess: %q is not a legal move in %s", s, p.FEN())
+	return 0, fmt.Errorf("chess: %q is not a legal move in %s", s, p.FEN())
 }

@@ -1,5 +1,10 @@
 #!/bin/sh
-# Build the regex command-line tool (bin/regex-cli) with dub + LDC.
+# Build the btregex command-line tool (bin/btregex) with dub + LDC.
 set -e
-cd "$(dirname "$0")"
-exec dub build -b release --compiler=ldc2 --config=cli --quiet
+DIR=$(cd "$(dirname "$0")" && pwd)
+if ! command -v dub >/dev/null 2>&1 && [ -x "$HOME/dlang/ldc-1.41.0/bin/dub" ]; then
+    PATH="$HOME/dlang/ldc-1.41.0/bin:$PATH"
+    export PATH
+fi
+cd "$DIR"
+exec dub build -b release --compiler=ldc2 -c cli --quiet

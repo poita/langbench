@@ -1,7 +1,7 @@
 .dub/
-bin/
+sitegen
 *.o
 *.a
+*.lst
 dub.selections.json
-sitegen-test*
-__test__*
+sitegen-test-*

@@ -1,193 +1,256 @@
-/// Phase 3 of the Markdown conversion: rendering the tree as HTML.
+/**
+ * Renders the block tree (with parsed inlines) to HTML, byte for byte as the
+ * CommonMark reference implementation does.
+ */
 module sitegen.markdown.html;
 
-import sitegen.markdown.node;
-import sitegen.markdown.text;
-import std.array : Appender, appender;
-import std.conv : to;
+import std.array : Appender;
+import sitegen.markdown.ast;
+import sitegen.markdown.entities;
+import sitegen.markdown.inlines;
 
-/// Render a finished document tree.
-string renderHtml(Node document)
+/// Renders `doc` to HTML, parsing the inline content of its leaf blocks.
+string renderHtml(Block doc)
 {
-    auto r = HtmlRenderer(appender!(char[])());
-    r.renderChildren(document);
-    return r.out_.data.idup;
+    auto r = HtmlRenderer();
+    r.renderBlock(doc);
+    return r.out_.data;
 }
 
 private struct HtmlRenderer
 {
-    Appender!(char[]) out_;
+    Appender!string out_;
 
+    /// Outputs a newline unless the output is empty or ends with one.
     void cr()
     {
-        auto d = out_.data;
-        if (d.length != 0 && d[$ - 1] != '\n')
-            out_.put('\n');
+        const d = out_.data;
+        if (d.length && d[$ - 1] != '\n') out_.put('\n');
     }
 
-    void renderChildren(Node n)
+    void renderBlock(Block b)
     {
-        for (Node c = n.firstChild; c !is null; c = c.next)
-            render(c);
-    }
-
-    void render(Node n)
-    {
-        final switch (n.kind)
+        final switch (b.kind)
         {
-        case NodeKind.document:
-            renderChildren(n);
-            break;
-        case NodeKind.blockQuote:
-            cr();
-            out_.put("<blockquote>\n");
-            renderChildren(n);
-            cr();
-            out_.put("</blockquote>\n");
-            break;
-        case NodeKind.list:
-            cr();
-            if (!n.ordered)
-                out_.put("<ul>\n");
-            else if (n.start == 1)
-                out_.put("<ol>\n");
-            else
-            {
-                out_.put("<ol start=\"");
-                out_.put(n.start.to!string);
-                out_.put("\">\n");
-            }
-            renderChildren(n);
-            cr();
-            out_.put(n.ordered ? "</ol>\n" : "</ul>\n");
-            break;
-        case NodeKind.item:
-            cr();
-            out_.put("<li>");
-            renderChildren(n);
-            out_.put("</li>\n");
-            break;
-        case NodeKind.paragraph:
-            if (n.parent !is null && n.parent.kind == NodeKind.item
-                    && n.parent.parent !is null && n.parent.parent.tight)
-            {
-                renderChildren(n);
-            }
-            else
-            {
+            case BlockKind.document:
+                foreach (c; b.children) renderBlock(c);
+                break;
+            case BlockKind.blockQuote:
                 cr();
-                out_.put("<p>");
-                renderChildren(n);
-                out_.put("</p>\n");
-            }
-            break;
-        case NodeKind.heading:
-            cr();
-            out_.put("<h");
-            out_.put(cast(char)('0' + n.level));
-            out_.put('>');
-            renderChildren(n);
-            out_.put("</h");
-            out_.put(cast(char)('0' + n.level));
-            out_.put(">\n");
-            break;
-        case NodeKind.thematicBreak:
-            cr();
-            out_.put("<hr />\n");
-            break;
-        case NodeKind.codeBlock:
-            cr();
-            if (n.info.length == 0)
-                out_.put("<pre><code>");
-            else
-            {
-                size_t e = 0;
-                while (e < n.info.length && !isAsciiWs(n.info[e]))
-                    ++e;
-                auto lang = n.info[0 .. e];
-                out_.put("<pre><code class=\"");
-                if (lang.length < 9 || lang[0 .. 9] != "language-")
-                    out_.put("language-");
-                escapeHtml(out_, lang);
-                out_.put("\">");
-            }
-            escapeHtml(out_, n.content);
-            out_.put("</code></pre>\n");
-            break;
-        case NodeKind.text:
-            escapeHtml(out_, n.literal);
-            break;
-        case NodeKind.softBreak:
-            out_.put('\n');
-            break;
-        case NodeKind.lineBreak:
-            out_.put("<br />\n");
-            break;
-        case NodeKind.code:
-            out_.put("<code>");
-            escapeHtml(out_, n.literal);
-            out_.put("</code>");
-            break;
-        case NodeKind.emph:
-            out_.put("<em>");
-            renderChildren(n);
-            out_.put("</em>");
-            break;
-        case NodeKind.strong:
-            out_.put("<strong>");
-            renderChildren(n);
-            out_.put("</strong>");
-            break;
-        case NodeKind.link:
-            out_.put("<a href=\"");
-            putHref(out_, n.url);
-            out_.put('"');
-            if (n.hasTitle)
-            {
-                out_.put(" title=\"");
-                escapeHtml(out_, n.title);
-                out_.put('"');
-            }
-            out_.put('>');
-            renderChildren(n);
-            out_.put("</a>");
-            break;
-        case NodeKind.image:
-            out_.put("<img src=\"");
-            putHref(out_, n.url);
-            out_.put("\" alt=\"");
-            renderPlain(n);
-            out_.put('"');
-            if (n.hasTitle)
-            {
-                out_.put(" title=\"");
-                escapeHtml(out_, n.title);
-                out_.put('"');
-            }
-            out_.put(" />");
-            break;
+                out_.put("<blockquote>\n");
+                foreach (c; b.children) renderBlock(c);
+                cr();
+                out_.put("</blockquote>\n");
+                break;
+            case BlockKind.list:
+                cr();
+                if (!b.ordered)
+                    out_.put("<ul>\n");
+                else if (b.start == 1)
+                    out_.put("<ol>\n");
+                else
+                {
+                    import std.conv : to;
+
+                    out_.put("<ol start=\"");
+                    out_.put(b.start.to!string);
+                    out_.put("\">\n");
+                }
+                foreach (c; b.children) renderBlock(c);
+                out_.put(b.ordered ? "</ol>\n" : "</ul>\n");
+                break;
+            case BlockKind.item:
+                cr();
+                out_.put("<li>");
+                foreach (c; b.children) renderBlock(c);
+                out_.put("</li>\n");
+                break;
+            case BlockKind.paragraph:
+                {
+                    const tight = b.parent !is null && b.parent.kind == BlockKind.item
+                        && b.parent.parent !is null && b.parent.parent.tight;
+                    if (tight)
+                        renderInlines(inlinesOf(b));
+                    else
+                    {
+                        cr();
+                        out_.put("<p>");
+                        renderInlines(inlinesOf(b));
+                        out_.put("</p>\n");
+                    }
+                }
+                break;
+            case BlockKind.heading:
+                cr();
+                out_.put("<h");
+                out_.put(cast(char)('0' + b.level));
+                out_.put('>');
+                renderInlines(inlinesOf(b));
+                out_.put("</h");
+                out_.put(cast(char)('0' + b.level));
+                out_.put(">\n");
+                break;
+            case BlockKind.thematicBreak:
+                cr();
+                out_.put("<hr />\n");
+                break;
+            case BlockKind.codeBlock:
+                cr();
+                if (b.info.length == 0)
+                    out_.put("<pre><code>");
+                else
+                {
+                    size_t e = 0;
+                    while (e < b.info.length && !isSpace(b.info[e])) e++;
+                    const word = b.info[0 .. e];
+                    out_.put("<pre><code class=\"");
+                    if (word.length < 9 || word[0 .. 9] != "language-") out_.put("language-");
+                    escapeHtml(out_, word);
+                    out_.put("\">");
+                }
+                escapeHtml(out_, cast(string) b.content.data);
+                out_.put("</code></pre>\n");
+                break;
         }
     }
 
-    /// The plain-text content of an image's descendants (its alt text).
-    void renderPlain(Node n)
+    static Inline inlinesOf(Block b)
     {
-        for (Node c = n.firstChild; c !is null; c = c.next)
+        if (b.inlines is null)
         {
-            switch (c.kind)
+            auto text = cast(string) b.content.data;
+            b.inlines = parseInlines(trimEnd(text));
+        }
+        return b.inlines;
+    }
+
+    static string trimEnd(string s)
+    {
+        size_t e = s.length;
+        while (e > 0 && isSpace(s[e - 1])) e--;
+        return s[0 .. e];
+    }
+
+    /// Renders an inline list without recursion.
+    void renderInlines(Inline first)
+    {
+        Inline[] stack;
+        Inline cur = first;
+        while (cur !is null)
+        {
+            // Enter `cur`.
+            bool descend = false;
+            final switch (cur.kind)
             {
-            case NodeKind.text:
-            case NodeKind.code:
-                escapeHtml(out_, c.literal);
-                break;
-            case NodeKind.softBreak:
-            case NodeKind.lineBreak:
-                out_.put(' ');
-                break;
-            default:
-                renderPlain(c);
-                break;
+                case InlineKind.text:
+                    escapeHtml(out_, cur.text);
+                    break;
+                case InlineKind.softbreak:
+                    out_.put('\n');
+                    break;
+                case InlineKind.linebreak:
+                    out_.put("<br />\n");
+                    break;
+                case InlineKind.code:
+                    out_.put("<code>");
+                    escapeHtml(out_, cur.text);
+                    out_.put("</code>");
+                    break;
+                case InlineKind.emph:
+                    out_.put("<em>");
+                    descend = true;
+                    break;
+                case InlineKind.strong:
+                    out_.put("<strong>");
+                    descend = true;
+                    break;
+                case InlineKind.link:
+                    out_.put("<a href=\"");
+                    encodeHref(out_, cur.dest);
+                    out_.put('"');
+                    if (cur.hasTitle)
+                    {
+                        out_.put(" title=\"");
+                        escapeHtml(out_, cur.title);
+                        out_.put('"');
+                    }
+                    out_.put('>');
+                    descend = true;
+                    break;
+                case InlineKind.image:
+                    out_.put("<img src=\"");
+                    encodeHref(out_, cur.dest);
+                    out_.put("\" alt=\"");
+                    renderAlt(cur.firstChild);
+                    out_.put('"');
+                    if (cur.hasTitle)
+                    {
+                        out_.put(" title=\"");
+                        escapeHtml(out_, cur.title);
+                        out_.put('"');
+                    }
+                    out_.put(" />");
+                    break;
             }
+            if (descend && cur.firstChild !is null)
+            {
+                stack ~= cur;
+                cur = cur.firstChild;
+                continue;
+            }
+            if (descend) exitNode(cur);
+            // Move to the next node, leaving finished containers.
+            while (cur.next is null && stack.length)
+            {
+                cur = stack[$ - 1];
+                stack.length = stack.length - 1;
+                exitNode(cur);
+            }
+            cur = cur.next;
+        }
+    }
+
+    void exitNode(Inline n)
+    {
+        switch (n.kind)
+        {
+            case InlineKind.emph: out_.put("</em>"); break;
+            case InlineKind.strong: out_.put("</strong>"); break;
+            case InlineKind.link: out_.put("</a>"); break;
+            default: break;
+        }
+    }
+
+    /// The plain text of an image's descendants.
+    void renderAlt(Inline first)
+    {
+        Inline[] stack;
+        Inline cur = first;
+        while (cur !is null)
+        {
+            switch (cur.kind)
+            {
+                case InlineKind.text, InlineKind.code:
+                    escapeHtml(out_, cur.text);
+                    break;
+                case InlineKind.softbreak, InlineKind.linebreak:
+                    out_.put(' ');
+                    break;
+                default:
+                    break;
+            }
+            if (cur.firstChild !is null)
+            {
+                stack ~= cur;
+                cur = cur.firstChild;
+                continue;
+            }
+            while (cur.next is null && stack.length)
+            {
+                cur = stack[$ - 1];
+                stack.length = stack.length - 1;
+            }
+            cur = cur.next;
         }
     }
 }

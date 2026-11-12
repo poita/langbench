@@ -1,26 +1,50 @@
 package bigint
 
-// base is the limb radix: the largest power of ten whose limb products fit
-// comfortably in 64 bits.
+// base is the radix of a limb. 10^9 is the largest power of ten whose square
+// (plus carries) still fits in a uint64, and it makes decimal conversion a
+// matter of slicing the digit string into groups of baseDigits.
 const (
 	base       = 1_000_000_000
 	baseDigits = 9
 )
 
-// nat is an unsigned magnitude: little-endian limbs in [0, base) with no
-// most-significant zero limbs. Zero is the empty (nil) nat.
+// nat is a natural number: little-endian limbs in base 10^9 with no
+// most-significant zero limbs. Zero is the empty slice.
 type nat []uint32
 
-// trim removes most-significant zero limbs.
-func (x nat) trim() nat {
-	n := len(x)
-	for n > 0 && x[n-1] == 0 {
-		n--
+// norm strips most-significant zero limbs.
+func (z nat) norm() nat {
+	i := len(z)
+	for i > 0 && z[i-1] == 0 {
+		i--
 	}
-	return x[:n]
+	return z[:i]
 }
 
-// cmp compares two normalised magnitudes, returning -1, 0 or 1.
+// natFromUint64 converts a machine word to a nat.
+func natFromUint64(v uint64) nat {
+	var z nat
+	for v > 0 {
+		z = append(z, uint32(v%base))
+		v /= base
+	}
+	return z
+}
+
+// uint64 returns the value of x and whether it fits in a uint64.
+func (x nat) uint64() (uint64, bool) {
+	var v uint64
+	for i := len(x) - 1; i >= 0; i-- {
+		// v*base + limb must not exceed MaxUint64.
+		if v > (^uint64(0)-uint64(x[i]))/base {
+			return 0, false
+		}
+		v = v*base + uint64(x[i])
+	}
+	return v, true
+}
+
+// cmp returns -1, 0 or +1 as x <, == or > y.
 func (x nat) cmp(y nat) int {
 	if len(x) != len(y) {
 		if len(x) < len(y) {
@@ -39,16 +63,6 @@ func (x nat) cmp(y nat) int {
 	return 0
 }
 
-// natFromUint64 returns the magnitude of v.
-func natFromUint64(v uint64) nat {
-	var z nat
-	for v != 0 {
-		z = append(z, uint32(v%base))
-		v /= base
-	}
-	return z
-}
-
 // add returns x + y.
 func (x nat) add(y nat) nat {
 	if len(x) < len(y) {
@@ -56,19 +70,11 @@ func (x nat) add(y nat) nat {
 	}
 	z := make(nat, len(x)+1)
 	var carry uint32
-	i := 0
-	for ; i < len(y); i++ {
-		s := x[i] + y[i] + carry // < 2*base, fits in uint32
-		if s >= base {
-			s -= base
-			carry = 1
-		} else {
-			carry = 0
-		}
-		z[i] = s
-	}
-	for ; i < len(x); i++ {
+	for i := range x {
 		s := x[i] + carry
+		if i < len(y) {
+			s += y[i]
+		}
 		if s >= base {
 			s -= base
 			carry = 1
@@ -77,27 +83,19 @@ func (x nat) add(y nat) nat {
 		}
 		z[i] = s
 	}
-	z[i] = carry
-	return z.trim()
+	z[len(x)] = carry
+	return z.norm()
 }
 
-// sub returns x - y; it requires x >= y.
+// sub returns x - y. It requires x >= y.
 func (x nat) sub(y nat) nat {
 	z := make(nat, len(x))
 	var borrow uint32
-	i := 0
-	for ; i < len(y); i++ {
-		d := x[i] + base - y[i] - borrow
-		if d >= base {
-			d -= base
-			borrow = 0
-		} else {
-			borrow = 1
-		}
-		z[i] = d
-	}
-	for ; i < len(x); i++ {
+	for i := range x {
 		d := x[i] + base - borrow
+		if i < len(y) {
+			d -= y[i]
+		}
 		if d >= base {
 			d -= base
 			borrow = 0
@@ -106,11 +104,10 @@ func (x nat) sub(y nat) nat {
 		}
 		z[i] = d
 	}
-	return z.trim()
+	return z.norm()
 }
 
-// mul returns x * y using schoolbook multiplication. Rows run over the limbs
-// of the shorter operand so that the inner loop is the long one.
+// mul returns x * y using schoolbook long multiplication.
 func (x nat) mul(y nat) nat {
 	if len(x) == 0 || len(y) == 0 {
 		return nil
@@ -118,90 +115,90 @@ func (x nat) mul(y nat) nat {
 	if len(x) < len(y) {
 		x, y = y, x
 	}
-	// x is the longer operand.
 	z := make(nat, len(x)+len(y))
-	for i, yi := range y {
-		if yi == 0 {
+	for j, yj := range y {
+		if yj == 0 {
 			continue
 		}
-		m := uint64(yi)
-		row := z[i : i+len(x)+1]
 		var carry uint64
-		for j, xj := range x {
-			t := uint64(row[j]) + uint64(xj)*m + carry
+		row := z[j : j+len(x)]
+		for i, xi := range x {
+			t := uint64(xi)*uint64(yj) + uint64(row[i]) + carry
 			carry = t / base
-			row[j] = uint32(t - carry*base)
+			row[i] = uint32(t - carry*base)
 		}
-		row[len(x)] = uint32(carry) // still zero before this row
+		z[j+len(x)] = uint32(carry)
 	}
-	return z.trim()
+	return z.norm()
 }
 
-// divModSmall divides x by the single limb d (non-zero), returning the
-// quotient and remainder.
-func (x nat) divModSmall(d uint32) (nat, uint32) {
+// mulLimb returns x * m for a single limb m < base.
+func (x nat) mulLimb(m uint32) nat {
+	if len(x) == 0 || m == 0 {
+		return nil
+	}
+	z := make(nat, len(x)+1)
+	var carry uint64
+	for i, xi := range x {
+		t := uint64(xi)*uint64(m) + carry
+		carry = t / base
+		z[i] = uint32(t - carry*base)
+	}
+	z[len(x)] = uint32(carry)
+	return z.norm()
+}
+
+// divLimb returns the quotient and remainder of x / d for a single limb
+// 0 < d < base.
+func (x nat) divLimb(d uint32) (nat, uint32) {
 	q := make(nat, len(x))
 	var rem uint64
-	dd := uint64(d)
 	for i := len(x) - 1; i >= 0; i-- {
 		cur := rem*base + uint64(x[i])
-		qi := cur / dd
+		qi := cur / uint64(d)
 		q[i] = uint32(qi)
-		rem = cur - qi*dd
+		rem = cur - qi*uint64(d)
 	}
-	return q.trim(), uint32(rem)
+	return q.norm(), uint32(rem)
 }
 
-// divMod returns the quotient and remainder of u / v; v must be non-zero.
-// The results may share storage with u.
-func (u nat) divMod(v nat) (q, r nat) {
-	if len(v) == 0 {
+// divmod returns the quotient and remainder of x / y using Knuth's
+// Algorithm D (TAOCP vol. 2, 4.3.1). It requires y != 0.
+func (x nat) divmod(y nat) (q, r nat) {
+	if len(y) == 0 {
 		panic("bigint: division by zero")
 	}
-	if u.cmp(v) < 0 {
-		return nil, u
+	if x.cmp(y) < 0 {
+		return nil, x
 	}
-	if len(v) == 1 {
-		q, rem := u.divModSmall(v[0])
+	if len(y) == 1 {
+		q, rem := x.divLimb(y[0])
 		return q, natFromUint64(uint64(rem))
 	}
-	return u.divModKnuth(v)
-}
 
-// divModKnuth is Knuth's Algorithm D (TAOCP vol. 2, 4.3.1) in base 10⁹.
-// It requires len(v) >= 2 and u >= v.
-func (u nat) divModKnuth(v nat) (nat, nat) {
-	n := len(v)
-	m := len(u) - n
-
-	// D1: normalise so the divisor's top limb is at least base/2.
-	d := uint64(base / (uint64(v[n-1]) + 1))
-	un := make([]uint32, len(u)+1)
-	vn := make([]uint32, n)
-	var carry uint64
-	for i, w := range u {
-		t := uint64(w)*d + carry
-		carry = t / base
-		un[i] = uint32(t - carry*base)
+	// D1: normalise so that the divisor's top limb is >= base/2. Then each
+	// quotient-digit estimate is at most 2 too large.
+	d := uint32(base / (uint64(y[len(y)-1]) + 1))
+	vn := y
+	un := make(nat, len(x)+1)
+	if d == 1 {
+		copy(un, x)
+	} else {
+		vn = y.mulLimb(d)
+		copy(un, x.mulLimb(d))
 	}
-	un[len(u)] = uint32(carry)
-	carry = 0
-	for i, w := range v {
-		t := uint64(w)*d + carry
-		carry = t / base
-		vn[i] = uint32(t - carry*base)
-	}
-
-	q := make(nat, m+1)
+	n := len(vn)
+	m := len(x) - n
+	q = make(nat, m+1)
 	vTop := uint64(vn[n-1])
-	vSecond := uint64(vn[n-2])
+	vNext := uint64(vn[n-2])
 
 	for j := m; j >= 0; j-- {
-		// D3: estimate the quotient limb.
+		// D3: estimate the quotient digit from the top two limbs.
 		num := uint64(un[j+n])*base + uint64(un[j+n-1])
 		qhat := num / vTop
 		rhat := num - qhat*vTop
-		for qhat >= base || qhat*vSecond > rhat*base+uint64(un[j+n-2]) {
+		for qhat >= base || qhat*vNext > rhat*base+uint64(un[j+n-2]) {
 			qhat--
 			rhat += vTop
 			if rhat >= base {
@@ -209,48 +206,61 @@ func (u nat) divModKnuth(v nat) (nat, nat) {
 			}
 		}
 
-		// D4: multiply and subtract qhat*v from the window un[j..j+n].
-		window := un[j : j+n+1]
-		var mc uint64 // product carry
+		// D4: multiply and subtract qhat*vn from un[j : j+n+1].
+		var carry uint64
 		var borrow int64
 		for i := 0; i < n; i++ {
-			p := qhat*uint64(vn[i]) + mc
-			mc = p / base
-			lo := int64(p - mc*base)
-			s := int64(window[i]) - lo - borrow
-			if s < 0 {
-				s += base
+			p := qhat*uint64(vn[i]) + carry
+			carry = p / base
+			t := int64(un[i+j]) - int64(p-carry*base) - borrow
+			if t < 0 {
+				t += base
 				borrow = 1
 			} else {
 				borrow = 0
 			}
-			window[i] = uint32(s)
+			un[i+j] = uint32(t)
 		}
-		s := int64(window[n]) - int64(mc) - borrow
-		if s < 0 {
+		t := int64(un[j+n]) - int64(carry) - borrow
+		if t < 0 {
 			// D6: qhat was one too large; add the divisor back.
 			qhat--
 			var c uint32
 			for i := 0; i < n; i++ {
-				t := window[i] + vn[i] + c
-				if t >= base {
-					t -= base
+				s := un[i+j] + vn[i] + c
+				if s >= base {
+					s -= base
 					c = 1
 				} else {
 					c = 0
 				}
-				window[i] = t
+				un[i+j] = s
 			}
-			s += base + int64(c)
-			if s >= base {
-				s -= base
-			}
+			t += int64(c)
 		}
-		window[n] = uint32(s)
+		un[j+n] = uint32(t) // always 0 here
 		q[j] = uint32(qhat)
 	}
 
-	// D8: the remainder is the low n limbs, un-normalised.
-	r, _ := nat(un[:n]).trim().divModSmall(uint32(d))
-	return q.trim(), r
+	// D8: denormalise the remainder.
+	r = un[:n].norm()
+	if d != 1 {
+		r, _ = r.divLimb(d)
+	}
+	return q.norm(), r
+}
+
+// pow returns x**e by binary exponentiation (left-to-right square and
+// multiply).
+func (x nat) pow(e uint64) nat {
+	result := natFromUint64(1)
+	for bit := 63; bit >= 0; bit-- {
+		if len(result) != 1 || result[0] != 1 {
+			result = result.mul(result)
+		}
+		if e>>uint(bit)&1 == 1 {
+			result = result.mul(x)
+		}
+	}
+	return result
 }

@@ -1,61 +1,69 @@
 # protowire
 
-A small D library and command-line tool for the Protocol Buffers (proto3) wire
-format. Given a message schema, it decodes binary messages to a canonical text
-form and encodes that text form back to canonical (deterministic) bytes. It is
-standard-library only (Phobos/druntime) and implements the wire format itself.
+A Protocol Buffers–style wire codec in D (proto3 semantics). Given a small
+message schema it converts between
 
-* **Library** (`source/protowire/`): schema parser, decoder, encoder, text
-  renderer and parser, split by responsibility.
-* **CLI** (`cli/main.d`): a thin wrapper that reads a schema plus a list of
-  `decode`/`encode` requests on stdin and prints one result line per request.
-* **Tests** (`tests/`): unit tests, kept apart from the library sources.
+* the binary **wire format** (varints, tags, packed repeated fields, groups skipped on decode, …),
+* **hex** strings, and
+* a canonical **text form** such as `{a: 1, b: "x", c: [1, 2], d: {v: -5}}`.
 
-## Building
+The library is dependency-free (Phobos only); the command-line tool is a thin
+layer over it. Decoding is linear in the payload and encoding is linear in the
+output, independent of nesting depth (encoding computes all sizes in one pass,
+then writes).
 
-Requires LDC 1.41 and dub 1.40.
+## Build
+
+Requires LDC (tested with 1.41.0) and dub (1.40.0).
 
 ```sh
-./build.sh                 # = dub build -b release --compiler=ldc2 --config=cli
-./run.sh < input.txt       # runs bin/protowire
+./build.sh            # = dub build -b release --compiler=ldc2  -> bin/protowire
 dub test --compiler=ldc2   # unit tests
 ```
 
-## Command-line use
+## Command-line usage
 
-Standard input is a schema, a line consisting of `--`, then requests, one per
-line:
+`protowire` (or `./run.sh`) reads everything from stdin and writes to stdout:
 
 ```
+<schema>
+--
+<request>
+<request>
+...
+```
+
+The schema is a list of definitions such as
+`message Outer { int32 a = 1; repeated int32 c = 3; Inner d = 4; }` (scalar
+types `int32 int64 uint32 uint64 sint32 sint64 bool fixed32 fixed64 sfixed32
+sfixed64 string bytes`, message types, and `repeated`). Each request line is
+
+* `decode <Message> <lowercase hex>` → canonical text, or
+* `encode <Message> <text>` → canonical lowercase hex (an empty encoding prints an empty line).
+
+A malformed request prints `error`; the exit status is always 0.
+
+```console
+$ ./run.sh <<'IN'
 message Inner { sint32 v = 1; }
 message Outer { int32 a = 1; string b = 2; repeated int32 c = 3; Inner d = 4; }
 --
 encode Outer {a: 1, b: "x", c: [1, 2], d: {v: -5}}
 decode Outer 08011201781a02010222020809
 decode Outer 08ff
-```
-
-Each request produces one output line (`error` for a malformed request; the
-exit code is always 0):
-
-```
+IN
 08011201781a02010222020809
 {a: 1, b: "x", c: [1, 2], d: {v: -5}}
 error
 ```
 
-* `decode <Message> <lowercase-hex>` prints the canonical text form.
-* `encode <Message> <text>` prints the lowercase hex of the canonical encoding
-  (an empty line if the encoding is empty).
+The full rules (wire format, decode/encode rules, text grammar) are in the
+task specification, `problems/protowire/SPEC.md`.
 
-Schema language: `message Name { [repeated] type name = number; ... }` where
-`type` is one of `int32 int64 uint32 uint64 sint32 sint64 bool fixed32 fixed64
-sfixed32 sfixed64 string bytes` or a message name (forward and recursive
-references allowed). Supported semantics follow proto3: repeated numeric fields
-are packed on encode and accepted packed or unpacked on decode, unknown fields
-and groups are skipped, repeated occurrences of a singular message are merged.
+## Library
 
-## Library example
+Add the package to a dub project (`dependency "protowire" path="../protowire"`,
+using the `library` configuration) and `import protowire;`.
 
 ```d
 import protowire;
@@ -64,48 +72,39 @@ void main()
 {
     auto schema = Schema.parse(`
         message Inner { sint32 v = 1; }
-        message Outer { int32 a = 1; string b = 2; repeated int32 c = 3; Inner d = 4; }
-    `);
-    auto codec = new Codec(schema);
+        message Outer { int32 a = 1; string b = 2; repeated int32 c = 3; Inner d = 4; }`);
+    auto outer = schema["Outer"];
 
     // text -> bytes
-    ubyte[] wire = codec.encode("Outer", `{a: 1, b: "x", c: [1, 2], d: {v: -5}}`);
-    assert(wire == [0x08, 0x01, 0x12, 0x01, 0x78, 0x1a, 0x02, 0x01, 0x02, 0x22, 0x02, 0x08, 0x09]);
+    ubyte[] bytes = encodeFromText(outer, `{c: [1, 2], a: 1, d: {v: -5}}`);
+    assert(toHex(bytes) == "08011a02010222020809");
 
-    // bytes -> text
-    assert(codec.decode("Outer", wire) == `{a: 1, b: "x", c: [1, 2], d: {v: -5}}`);
+    // bytes -> text (canonical)
+    assert(decodeToText(outer, bytes) == `{a: 1, c: [1, 2], d: {v: -5}}`);
 
-    // Malformed input throws CodecException.
-    try
-        codec.decode("Outer", [0x08, 0xff]);
-    catch (CodecException e)
-        assert(e.msg.length);
+    // bad input throws a ProtowireException subclass
+    try decodeToText(outer, [0x08, 0xff]);
+    catch (WireException e) { /* truncated varint */ }
 }
 ```
 
-For allocation-free use there is a lower-level API:
-`Codec.decodeToText(messageIndex, bytes, ref ByteBuffer)` and
-`Codec.encodeFromText(messageIndex, text, ref ByteBuffer)` return `false` on
-malformed input (with `Codec.lastError` describing it) and leave the buffer
-unchanged. `processDocument` implements the whole CLI protocol over a byte
-slice.
+| module | responsibility |
+|---|---|
+| `protowire.schema` | schema parser, `Schema`, `MessageDescriptor`, `FieldDescriptor`, `FieldKind` |
+| `protowire.wire` | varints, tags, zigzag, bounds-checked `Reader`, group skipping |
+| `protowire.value` | `Message` / `Slot` value tree |
+| `protowire.decoder` | `decodeMessage`: bytes → `Message` |
+| `protowire.encoder` | `encodeMessage`: `Message` → canonical bytes |
+| `protowire.textformat` | `formatMessage` / `parseMessage`: `Message` ↔ text |
+| `protowire.codec` | one-call conversions (`decodeToText`, `encodeFromText`, hex variants) |
+| `protowire.request` | the CLI's request-line protocol (`processInput`) |
+| `protowire.hex`, `protowire.utf8`, `protowire.errors` | helpers and exception types |
 
 ## Layout
 
-| Module | Responsibility |
-|---|---|
-| `protowire.schema` | schema parser and compiled message descriptors |
-| `protowire.wire` | varints, zigzag, wire types |
-| `protowire.decoder` | wire bytes to value tree |
-| `protowire.render` | value tree to canonical text |
-| `protowire.textparser` | canonical text to value tree |
-| `protowire.encoder` | value tree to wire bytes (size pass, then write pass) |
-| `protowire.codec` | `Codec`: the public decode/encode façade |
-| `protowire.session` | the line-oriented request protocol used by the CLI |
-| `protowire.value`, `protowire.memory` | value tree, arena allocator, byte buffer |
-| `protowire.hex`, `protowire.utf8` | hex conversion and strict UTF-8 validation |
-
-Design notes: the schema is compiled once (fields sorted by number, binary
-search by number and hash lookup by name); each request builds its value tree
-in a reusable arena; the encoder computes sizes bottom-up once and then writes
-every byte exactly once; all output goes into one buffer written at the end.
+```
+dub.sdl          manifest ("cli" executable config, "library" config)
+source/protowire library (unit tests live beside the code)
+app/main.d       command-line tool
+build.sh run.sh  build / run scripts
+```

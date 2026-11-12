@@ -1,266 +1,311 @@
-/// The built-in procedures.
+/**
+ * The built-in procedures.
+ *
+ * Each primitive receives its evaluated arguments; the evaluator has already
+ * checked the argument count, so a primitive only checks argument types.
+ */
 module scheme.primitives;
 
-import std.array : appender;
-import scheme.errors;
 import scheme.numeric;
 import scheme.output;
 import scheme.printer;
-import scheme.symbols;
 import scheme.value;
 
-/// What primitives may touch besides their arguments.
-final class Context
+private enum anyCount = size_t.max;
+
+/// Define every standard primitive in the global environment of `symbols`.
+void installPrimitives(SymbolTable symbols)
 {
-    SymbolTable syms;
-    Output output;
-
-    this(SymbolTable s, Output o) { syms = s; output = o; }
-}
-
-/// Signature of a primitive implementation. Arity has already been checked.
-alias PrimFn = Value function(Value[] args, Context cx);
-
-/// A primitive's name, accepted argument counts (`maxArgs < 0`: no limit)
-/// and implementation. `apply` has a null `fn`: the evaluator handles it.
-struct PrimDef
-{
-    string name;
-    int minArgs;
-    int maxArgs;
-    PrimFn fn;
-}
-
-/// Name of the one primitive the evaluator implements itself.
-enum applyName = "apply";
-
-/// The table of all primitives; the index is the primitive id.
-PrimDef[] makePrimitives()
-{
-    return [
-        PrimDef("+", 0, -1, &primAdd),
-        PrimDef("*", 0, -1, &primMul),
-        PrimDef("-", 1, -1, &primSub),
-        PrimDef("quotient", 2, 2, &primQuotient),
-        PrimDef("remainder", 2, 2, &primRemainder),
-        PrimDef("=", 2, -1, &primNumEq),
-        PrimDef("<", 2, -1, &primLt),
-        PrimDef(">", 2, -1, &primGt),
-        PrimDef("<=", 2, -1, &primLe),
-        PrimDef(">=", 2, -1, &primGe),
-        PrimDef("cons", 2, 2, &primCons),
-        PrimDef("car", 1, 1, &primCar),
-        PrimDef("cdr", 1, 1, &primCdr),
-        PrimDef("list", 0, -1, &primList),
-        PrimDef("null?", 1, 1, &primNullP),
-        PrimDef("pair?", 1, 1, &primPairP),
-        PrimDef("not", 1, 1, &primNot),
-        PrimDef("number?", 1, 1, &primNumberP),
-        PrimDef("boolean?", 1, 1, &primBooleanP),
-        PrimDef("string?", 1, 1, &primStringP),
-        PrimDef("symbol?", 1, 1, &primSymbolP),
-        PrimDef("procedure?", 1, 1, &primProcedureP),
-        PrimDef("eq?", 2, 2, &primEq),
-        PrimDef("equal?", 2, 2, &primEqual),
-        PrimDef(applyName, 2, -1, null),
-        PrimDef("error", 0, -1, &primError),
-        PrimDef("string-append", 0, -1, &primStringAppend),
-        PrimDef("string-length", 1, 1, &primStringLength),
-        PrimDef("number->string", 1, 1, &primNumberToString),
-        PrimDef("symbol->string", 1, 1, &primSymbolToString),
-        PrimDef("display", 1, 1, &primDisplay),
-        PrimDef("newline", 0, 0, &primNewline),
-    ];
-}
-
-/// `eq?`: numeric equality for integers, identity for everything else.
-bool isEq(Value a, Value b)
-{
-    if (a.tag != b.tag)
-        return false;
-    final switch (a.tag)
+    void def(string name, PrimFn fn, size_t lo, size_t hi = anyCount, bool isApply = false)
     {
-    case Tag.unbound:
-    case Tag.nil:
-    case Tag.voidValue:
-        return true;
-    case Tag.fixnum:
-    case Tag.boolean:
-    case Tag.symbol:
-    case Tag.prim:
-        return a.i == b.i;
-    case Tag.pair:
-    case Tag.str:
-    case Tag.closure:
-        return a.p == b.p;
-    case Tag.big:
-        return compare(a, b) == 0;
+        auto sym = symbols.intern(name);
+        sym.value = Value.fromPrimitive(new Primitive(name, fn, lo, hi, isApply));
+        sym.bound = true;
     }
+
+    def("+", &plus, 0);
+    def("*", &times, 0);
+    def("-", &minus, 1);
+    def("quotient", &quotientPrim, 2, 2);
+    def("remainder", &remainderPrim, 2, 2);
+    def("=", &compareChain!"==", 2);
+    def("<", &compareChain!"<", 2);
+    def(">", &compareChain!">", 2);
+    def("<=", &compareChain!"<=", 2);
+    def(">=", &compareChain!">=", 2);
+
+    def("cons", &consPrim, 2, 2);
+    def("car", &carPrim, 1, 1);
+    def("cdr", &cdrPrim, 1, 1);
+    def("list", &listPrim, 0);
+    def("null?", &isNull, 1, 1);
+    def("pair?", &isPair, 1, 1);
+
+    def("not", &notPrim, 1, 1);
+    def("number?", &isNumber, 1, 1);
+    def("boolean?", &isBoolean, 1, 1);
+    def("string?", &isString, 1, 1);
+    def("symbol?", &isSymbol, 1, 1);
+    def("procedure?", &isProcedure, 1, 1);
+    def("eq?", &eqPrim, 2, 2);
+    def("equal?", &equalPrim, 2, 2);
+
+    def("apply", &applyPrim, 2, anyCount, true);
+    def("error", &errorPrim, 0);
+
+    def("string-append", &stringAppend, 0);
+    def("string-length", &stringLength, 1, 1);
+    def("number->string", &numberToString, 1, 1);
+    def("symbol->string", &symbolToString, 1, 1);
+
+    def("display", &displayPrim, 1, 1);
+    def("newline", &newlinePrim, 0, 0);
 }
 
-/// `equal?`: structural on pairs and strings, `eq?` otherwise.
-bool isEqual(Value a, Value b)
+private SchemeError typeError()
 {
-    for (;;)
-    {
-        if (a.tag == Tag.pair && b.tag == Tag.pair)
-        {
-            if (!isEqual(a.pair.car, b.pair.car))
-                return false;
-            a = a.pair.cdr;
-            b = b.pair.cdr;
-            continue;
-        }
-        if (a.tag == Tag.str && b.tag == Tag.str)
-            return a.strObj.s == b.strObj.s;
-        return isEq(a, b);
-    }
+    return new SchemeError(ErrorKind.typeError);
 }
 
-private:
-
-void checkInts(const Value[] args)
+private void requireIntegers(Value[] args)
 {
     foreach (a; args)
         if (!a.isInteger)
-            typeError();
+            throw typeError();
 }
 
-Value primAdd(Value[] args, Context)
+private Value plus(Value[] args, Output)
 {
-    checkInts(args);
-    Value acc = Value.fixnum(0);
+    requireIntegers(args);
+    Value acc = Value.fromInt(0);
     foreach (a; args)
         acc = add(acc, a);
     return acc;
 }
 
-Value primMul(Value[] args, Context)
+private Value times(Value[] args, Output)
 {
-    checkInts(args);
-    Value acc = Value.fixnum(1);
+    requireIntegers(args);
+    Value acc = Value.fromInt(1);
     foreach (a; args)
         acc = mul(acc, a);
     return acc;
 }
 
-Value primSub(Value[] args, Context)
+private Value minus(Value[] args, Output)
 {
-    checkInts(args);
+    requireIntegers(args);
     if (args.length == 1)
-        return sub(Value.fixnum(0), args[0]);
+        return sub(Value.fromInt(0), args[0]);
     Value acc = args[0];
     foreach (a; args[1 .. $])
         acc = sub(acc, a);
     return acc;
 }
 
-Value primQuotient(Value[] args, Context)
+private Value quotientPrim(Value[] args, Output)
 {
-    checkInts(args);
+    requireIntegers(args);
     if (isZero(args[1]))
-        raise(ErrorKind.divisionByZero);
+        throw new SchemeError(ErrorKind.divisionByZero);
     return quotient(args[0], args[1]);
 }
 
-Value primRemainder(Value[] args, Context)
+private Value remainderPrim(Value[] args, Output)
 {
-    checkInts(args);
+    requireIntegers(args);
     if (isZero(args[1]))
-        raise(ErrorKind.divisionByZero);
+        throw new SchemeError(ErrorKind.divisionByZero);
     return remainder(args[0], args[1]);
 }
 
-Value chain(string op)(Value[] args)
+private Value compareChain(string op)(Value[] args, Output)
 {
-    checkInts(args);
-    foreach (k; 1 .. args.length)
-        if (!mixin("compare(args[k - 1], args[k]) " ~ op ~ " 0"))
-            return Value.false_;
-    return Value.true_;
+    requireIntegers(args);
+    foreach (i; 0 .. args.length - 1)
+        if (!mixin("compare(args[i], args[i + 1]) " ~ op ~ " 0"))
+            return Value.fromBool(false);
+    return Value.fromBool(true);
 }
 
-Value primNumEq(Value[] args, Context) { return chain!"=="(args); }
-Value primLt(Value[] args, Context) { return chain!"<"(args); }
-Value primGt(Value[] args, Context) { return chain!">"(args); }
-Value primLe(Value[] args, Context) { return chain!"<="(args); }
-Value primGe(Value[] args, Context) { return chain!">="(args); }
-
-Value primCons(Value[] args, Context) { return Value.cons(args[0], args[1]); }
-
-Value primCar(Value[] args, Context)
+private Value consPrim(Value[] args, Output)
 {
-    if (args[0].tag != Tag.pair)
-        typeError();
+    return Value.cons(args[0], args[1]);
+}
+
+private Value carPrim(Value[] args, Output)
+{
+    if (args[0].kind != Kind.pair)
+        throw typeError();
     return args[0].pair.car;
 }
 
-Value primCdr(Value[] args, Context)
+private Value cdrPrim(Value[] args, Output)
 {
-    if (args[0].tag != Tag.pair)
-        typeError();
+    if (args[0].kind != Kind.pair)
+        throw typeError();
     return args[0].pair.cdr;
 }
 
-Value primList(Value[] args, Context) { return listFrom(args); }
-Value primNullP(Value[] args, Context) { return Value.boolean(args[0].tag == Tag.nil); }
-Value primPairP(Value[] args, Context) { return Value.boolean(args[0].tag == Tag.pair); }
-Value primNot(Value[] args, Context) { return Value.boolean(!args[0].truthy); }
-Value primNumberP(Value[] args, Context) { return Value.boolean(args[0].isInteger); }
-Value primBooleanP(Value[] args, Context) { return Value.boolean(args[0].tag == Tag.boolean); }
-Value primStringP(Value[] args, Context) { return Value.boolean(args[0].tag == Tag.str); }
-Value primSymbolP(Value[] args, Context) { return Value.boolean(args[0].tag == Tag.symbol); }
-Value primProcedureP(Value[] args, Context)
+private Value listPrim(Value[] args, Output)
 {
-    return Value.boolean(args[0].tag == Tag.prim || args[0].tag == Tag.closure);
+    return listFromArray(args);
 }
-Value primEq(Value[] args, Context) { return Value.boolean(isEq(args[0], args[1])); }
-Value primEqual(Value[] args, Context) { return Value.boolean(isEqual(args[0], args[1])); }
 
-Value primError(Value[] args, Context) { raise(ErrorKind.userError); }
-
-Value primStringAppend(Value[] args, Context)
+private Value isNull(Value[] args, Output)
 {
+    return Value.fromBool(args[0].kind == Kind.nil);
+}
+
+private Value isPair(Value[] args, Output)
+{
+    return Value.fromBool(args[0].kind == Kind.pair);
+}
+
+private Value notPrim(Value[] args, Output)
+{
+    return Value.fromBool(!args[0].isTrue);
+}
+
+private Value isNumber(Value[] args, Output)
+{
+    return Value.fromBool(args[0].isInteger);
+}
+
+private Value isBoolean(Value[] args, Output)
+{
+    return Value.fromBool(args[0].kind == Kind.boolean);
+}
+
+private Value isString(Value[] args, Output)
+{
+    return Value.fromBool(args[0].kind == Kind.string);
+}
+
+private Value isSymbol(Value[] args, Output)
+{
+    return Value.fromBool(args[0].kind == Kind.symbol);
+}
+
+private Value isProcedure(Value[] args, Output)
+{
+    return Value.fromBool(args[0].isProcedure);
+}
+
+/// `eq?` semantics: numeric equality for integers, identity for heap objects.
+bool isEq(Value a, Value b) @trusted
+{
+    if (a.isInteger && b.isInteger)
+        return compare(a, b) == 0;
+    if (a.kind != b.kind)
+        return false;
+    final switch (a.kind)
+    {
+    case Kind.nil:
+    case Kind.void_:
+        return true;
+    case Kind.boolean:
+        return a.i == b.i;
+    case Kind.integer:
+    case Kind.bigInteger:
+        assert(false);
+    case Kind.string:
+        return a.str is b.str;
+    case Kind.symbol:
+        return a.sym is b.sym;
+    case Kind.pair:
+        return a.pair is b.pair;
+    case Kind.closure:
+        return a.closure is b.closure;
+    case Kind.primitive:
+        return a.prim is b.prim;
+    }
+}
+
+/// `equal?` semantics: structural on pairs and strings, `eq?` otherwise.
+bool isEqual(Value a, Value b) @trusted
+{
+    for (;;)
+    {
+        if (a.kind == Kind.pair && b.kind == Kind.pair)
+        {
+            if (a.pair is b.pair)
+                return true;
+            if (!isEqual(a.pair.car, b.pair.car))
+                return false;
+            a = a.pair.cdr;
+            b = b.pair.cdr;
+            continue;
+        }
+        if (a.kind == Kind.string && b.kind == Kind.string)
+            return a.str.s == b.str.s;
+        return isEq(a, b);
+    }
+}
+
+private Value eqPrim(Value[] args, Output)
+{
+    return Value.fromBool(isEq(args[0], args[1]));
+}
+
+private Value equalPrim(Value[] args, Output)
+{
+    return Value.fromBool(isEqual(args[0], args[1]));
+}
+
+private Value applyPrim(Value[] args, Output)
+{
+    // The evaluator performs `apply` itself so that the call is a tail call;
+    // this body is only reached if someone invokes the function pointer directly.
+    assert(false, "apply is handled by the evaluator");
+}
+
+private Value errorPrim(Value[] args, Output)
+{
+    throw new SchemeError(ErrorKind.userError);
+}
+
+private Value stringAppend(Value[] args, Output)
+{
+    string r;
     foreach (a; args)
-        if (a.tag != Tag.str)
-            typeError();
-    if (args.length == 1)
-        return args[0];
-    auto buf = appender!string();
-    foreach (a; args)
-        buf.put(a.strObj.s);
-    return Value.str(buf.data);
+    {
+        if (a.kind != Kind.string)
+            throw typeError();
+        r ~= a.str.s;
+    }
+    return Value.fromString(r);
 }
 
-Value primStringLength(Value[] args, Context)
+private Value stringLength(Value[] args, Output)
 {
-    if (args[0].tag != Tag.str)
-        typeError();
-    return Value.fixnum(cast(long) args[0].strObj.s.length);
+    if (args[0].kind != Kind.string)
+        throw typeError();
+    return Value.fromInt(cast(long) args[0].str.s.length);
 }
 
-Value primNumberToString(Value[] args, Context)
+private Value numberToString(Value[] args, Output)
 {
     if (!args[0].isInteger)
-        typeError();
-    return Value.str(toDecimal(args[0]));
+        throw typeError();
+    return Value.fromString(integerToString(args[0]));
 }
 
-Value primSymbolToString(Value[] args, Context cx)
+private Value symbolToString(Value[] args, Output)
 {
-    if (args[0].tag != Tag.symbol)
-        typeError();
-    return Value.str(cx.syms.name(cast(int) args[0].i));
+    if (args[0].kind != Kind.symbol)
+        throw typeError();
+    return Value.fromString(args[0].sym.name);
 }
 
-Value primDisplay(Value[] args, Context cx)
+private Value displayPrim(Value[] args, Output output)
 {
-    print(cx.output, cx.syms, args[0], true);
-    return Value.voidValue;
+    printValue(output, args[0], true);
+    return Value.void_();
 }
 
-Value primNewline(Value[] args, Context cx)
+private Value newlinePrim(Value[] args, Output output)
 {
-    cx.output.put('\n');
-    return Value.voidValue;
+    output.put('\n');
+    return Value.void_();
 }

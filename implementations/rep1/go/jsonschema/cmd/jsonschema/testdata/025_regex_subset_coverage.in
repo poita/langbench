@@ -1,0 +1,247 @@
+{
+  "schema": {
+    "type": "object",
+    "properties": {
+      "lazy": {
+        "type": "string",
+        "pattern": "^<.+?>$"
+      },
+      "lazyopt": {
+        "type": "string",
+        "pattern": "^a??b$"
+      },
+      "reps": {
+        "type": "string",
+        "pattern": "^\\d{2,4}$"
+      },
+      "openrep": {
+        "type": "string",
+        "pattern": "^x{2,}$"
+      },
+      "litbrace": {
+        "type": "string",
+        "pattern": "^a{b$"
+      },
+      "hex": {
+        "type": "string",
+        "pattern": "\\x41\\u00e9"
+      },
+      "nonbound": {
+        "type": "string",
+        "pattern": "\\Bcat"
+      },
+      "bound": {
+        "type": "string",
+        "pattern": "\\bcat\\b"
+      },
+      "negclass": {
+        "type": "string",
+        "pattern": "^[^\\d\\s]+$"
+      },
+      "dot": {
+        "type": "string",
+        "pattern": "^a.b$"
+      },
+      "classesc": {
+        "type": "string",
+        "pattern": "^[\\w-]+$"
+      },
+      "nested": {
+        "type": "string",
+        "pattern": "^(a(b|c)+d)$"
+      },
+      "anchorend": {
+        "type": "string",
+        "pattern": "^a$"
+      }
+    }
+  },
+  "tests": [
+    {
+      "description": "lazy matches '<abc>'",
+      "data": {
+        "lazy": "<abc>"
+      }
+    },
+    {
+      "description": "lazy matches '<a><b>'",
+      "data": {
+        "lazy": "<a><b>"
+      }
+    },
+    {
+      "description": "lazyopt matches 'b'",
+      "data": {
+        "lazyopt": "b"
+      }
+    },
+    {
+      "description": "lazyopt matches 'ab'",
+      "data": {
+        "lazyopt": "ab"
+      }
+    },
+    {
+      "description": "lazyopt matches 'aab'",
+      "data": {
+        "lazyopt": "aab"
+      }
+    },
+    {
+      "description": "reps matches '123'",
+      "data": {
+        "reps": "123"
+      }
+    },
+    {
+      "description": "reps matches '1'",
+      "data": {
+        "reps": "1"
+      }
+    },
+    {
+      "description": "reps matches '12345'",
+      "data": {
+        "reps": "12345"
+      }
+    },
+    {
+      "description": "openrep matches 'xx'",
+      "data": {
+        "openrep": "xx"
+      }
+    },
+    {
+      "description": "openrep matches 'x'",
+      "data": {
+        "openrep": "x"
+      }
+    },
+    {
+      "description": "litbrace matches 'a{b'",
+      "data": {
+        "litbrace": "a{b"
+      }
+    },
+    {
+      "description": "litbrace matches 'ab'",
+      "data": {
+        "litbrace": "ab"
+      }
+    },
+    {
+      "description": "hex matches 'zAéz'",
+      "data": {
+        "hex": "zAéz"
+      }
+    },
+    {
+      "description": "hex matches 'Ae'",
+      "data": {
+        "hex": "Ae"
+      }
+    },
+    {
+      "description": "nonbound matches 'concat'",
+      "data": {
+        "nonbound": "concat"
+      }
+    },
+    {
+      "description": "nonbound matches 'cat food'",
+      "data": {
+        "nonbound": "cat food"
+      }
+    },
+    {
+      "description": "bound matches 'the cat sat'",
+      "data": {
+        "bound": "the cat sat"
+      }
+    },
+    {
+      "description": "bound matches 'concat'",
+      "data": {
+        "bound": "concat"
+      }
+    },
+    {
+      "description": "bound matches 'écat '",
+      "data": {
+        "bound": "écat "
+      }
+    },
+    {
+      "description": "negclass matches 'abc-'",
+      "data": {
+        "negclass": "abc-"
+      }
+    },
+    {
+      "description": "negclass matches 'ab c'",
+      "data": {
+        "negclass": "ab c"
+      }
+    },
+    {
+      "description": "negclass matches 'ab1'",
+      "data": {
+        "negclass": "ab1"
+      }
+    },
+    {
+      "description": "dot matches 'axb'",
+      "data": {
+        "dot": "axb"
+      }
+    },
+    {
+      "description": "dot matches 'a\\nb'",
+      "data": {
+        "dot": "a\nb"
+      }
+    },
+    {
+      "description": "classesc matches 'a_1-b'",
+      "data": {
+        "classesc": "a_1-b"
+      }
+    },
+    {
+      "description": "classesc matches 'a b'",
+      "data": {
+        "classesc": "a b"
+      }
+    },
+    {
+      "description": "nested matches 'abcbd'",
+      "data": {
+        "nested": "abcbd"
+      }
+    },
+    {
+      "description": "nested matches 'ad'",
+      "data": {
+        "nested": "ad"
+      }
+    },
+    {
+      "description": "anchorend matches 'a'",
+      "data": {
+        "anchorend": "a"
+      }
+    },
+    {
+      "description": "anchorend matches 'a\\n'",
+      "data": {
+        "anchorend": "a\n"
+      }
+    },
+    {
+      "description": "anchorend matches 'ba'",
+      "data": {
+        "anchorend": "ba"
+      }
+    }
+  ]
+}

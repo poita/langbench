@@ -1,42 +1,55 @@
 /**
- * A TOML 1.0.0 parser and canonical serializer.
+ * A TOML 1.0.0 parser and serializer.
  *
+ * The library reads a TOML document into a tree of `Node`s, writes such a tree
+ * as canonical TOML, and converts between trees and the toml-test "tagged
+ * JSON" format.
+ *
+ * Example:
  * ---
  * import toml;
  *
- * auto doc = parse(`name = "Tom"` ~ "\n[db]\nports = [8001, 8002]\n");
- * assert(doc["name"].asString == "Tom");
- * assert(doc["db"]["ports"][1].asInteger == 8002);
- * writeln(toTaggedJson(doc));   // tagged JSON
- * writeln(toToml(doc));         // canonical TOML
- * ---
+ * auto doc = parse(`
+ *     title = "Example"
+ *     [owner]
+ *     name = "Tom"
+ *     ports = [8001, 8002]
+ * `);
+ * assert(doc["title"].asString == "Example");
+ * assert(doc["owner"]["ports"][1].asLong == 8002);
  *
- * Modules:
- * $(UL
- *   $(LI `toml.node`    – the document tree ($(D Node), $(D Kind), $(D TomlException)))
- *   $(LI `toml.parser`  – `parse`: TOML text to tree)
- *   $(LI `toml.encoder` – `toToml`: tree to canonical TOML)
- *   $(LI `toml.json`    – `toTaggedJson` / `fromTaggedJson`)
- *   $(LI `toml.scalar`  – number and date-time scanners)
- *   $(LI `toml.validate`– UTF-8 / CR / BOM validation)
- * )
+ * // Canonical TOML and tagged JSON renderings:
+ * string canonical = toToml(doc);
+ * string json = toTaggedJson(doc);
+ * assert(toToml(fromTaggedJson(json)) == canonical);
+ * ---
  */
 module toml;
 
-public import toml.node;
-public import toml.parser : parse;
-public import toml.encoder : toToml, renderKey;
-public import toml.json : toTaggedJson, fromTaggedJson;
+public import toml.datetime;
+public import toml.encoder;
+public import toml.exception;
+public import toml.json;
+public import toml.number;
+public import toml.parser;
+public import toml.value;
 
-/// Decodes a TOML document straight to tagged JSON.
-/// Throws: `TomlException` when the document is invalid.
-string tomlToTaggedJson(string document)
+/// Decodes a TOML document to compact, key-sorted tagged JSON.
+string tomlToTaggedJson(const(char)[] document) @safe
 {
     return toTaggedJson(parse(document));
 }
 
-/// Encodes tagged JSON as canonical TOML.
-string taggedJsonToToml(string json)
+/// Encodes a tagged JSON document as canonical TOML.
+string taggedJsonToToml(const(char)[] json) @safe
 {
     return toToml(fromTaggedJson(json));
+}
+
+unittest
+{
+    auto doc = parse("title = \"Example\"\n[owner]\nname = \"Tom\"\nports = [8001, 8002]\n");
+    assert(doc["title"].asString == "Example");
+    assert(doc["owner"]["ports"][1].asLong == 8002);
+    assert(toToml(fromTaggedJson(toTaggedJson(doc))) == toToml(doc));
 }

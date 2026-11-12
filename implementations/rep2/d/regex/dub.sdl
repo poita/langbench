@@ -1,33 +1,17 @@
 name "regex"
-description "A backtracking regular-expression engine (Perl-style leftmost, greedy, ordered choice) with a batch command-line tool"
-authors "regex authors"
+description "A backtracking regular-expression engine (Perl-style leftmost-first semantics) with a batch CLI"
+authors "Peter Alexander"
 license "MIT"
-copyright "Copyright (c) regex authors"
+copyright "Copyright © 2026"
+targetType "autodetect"
 
-# `dub build` produces the command-line tool.
 configuration "cli" {
     targetType "executable"
     targetName "regex"
-    sourcePaths "source" "app"
-    importPaths "source"
-    mainSourceFile "app/main.d"
+    mainSourceFile "source/app.d"
 }
 
-# Use this configuration to depend on the library only:
-#   dependency "regex" version="*"
-#   subConfiguration "regex" "library"
 configuration "library" {
     targetType "library"
-    targetName "regex"
-    sourcePaths "source"
-    importPaths "source"
-}
-
-# `dub test` builds the library together with the unit tests in tests/.
-configuration "unittest" {
-    targetType "executable"
-    targetName "regex-test"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-    mainSourceFile "tests/main.d"
+    excludedSourceFiles "source/app.d"
 }

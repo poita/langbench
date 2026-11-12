@@ -1,546 +1,584 @@
 package tmpl
 
+// template is a parsed template.
+type template struct {
+	name   string
+	body   []stmt
+	blocks map[string]*blockStmt // every block in the template, by name
+}
+
+var keywords = map[string]bool{
+	"and": true, "or": true, "not": true, "in": true, "is": true,
+	"true": true, "false": true, "none": true,
+}
+
 type parser struct {
-	items      []rawItem
-	pos        int
-	blocks     map[string]*blockDef
-	depth      int // nesting depth of if/for/block/macro bodies
+	items []item
+	pos   int
+
+	toks []token // tokens of the current tag
+	tp   int
+
+	depth      int // nesting of if/for/macro/block bodies
 	hasExtends bool
-	macros     int // macros parsed so far (to detect macros inside loop bodies)
+	blocks     map[string]*blockStmt
 	badFilter  string
 }
 
-// parseTemplate lexes and parses src. Syntax problems raise a syntax error;
-// an unknown filter, which is only reported after the whole template parsed,
-// raises a filter error.
+// parseTemplate lexes and parses src and checks its filter names. It panics
+// with an *Error if the template is invalid.
 func parseTemplate(name, src string) *template {
-	p := &parser{items: lex(src), blocks: map[string]*blockDef{}}
-	body, stop := p.parseBody()
-	if stop != nil {
-		fail(SyntaxError, "unexpected end of template")
+	p := &parser{items: lex(src), blocks: map[string]*blockStmt{}}
+	body, term := p.parseBody()
+	if term != "" {
+		throw(KindSyntax, "unexpected %q tag", term)
 	}
 	if p.badFilter != "" {
-		fail(FilterError, "no filter named %q", p.badFilter)
+		throw(KindFilter, "unknown filter %q", p.badFilter)
 	}
 	return &template{name: name, body: body, blocks: p.blocks}
 }
 
-// parseBody parses statements until a statement tag whose keyword is in
-// stops, which is returned (unparsed); it returns nil at the end of the
-// template, which is an error when stops is non-empty.
-func (p *parser) parseBody(stops ...string) (body []stmt, stop *rawItem) {
+var endKeywords = map[string]bool{
+	"elif": true, "else": true, "endif": true, "endfor": true, "endmacro": true, "endblock": true,
+}
+
+// parseBody parses statements until the end of the template or until a tag
+// that ends a body ("elif", "else", "endif", ...). In the second case the
+// keyword is returned and the parser is positioned after it in that tag.
+func (p *parser) parseBody() (body []stmt, term string) {
 	for p.pos < len(p.items) {
-		it := &p.items[p.pos]
+		it := p.items[p.pos]
 		p.pos++
 		switch it.kind {
-		case rawText:
+		case itText:
 			body = append(body, &textStmt{text: it.text})
-		case rawVar:
-			c := &cursor{toks: it.toks, p: p}
-			x := c.parseExpr()
-			c.expectEnd()
-			body = append(body, &printStmt{x: x})
-		case rawStmt:
-			if len(it.toks) == 0 || it.toks[0].kind != tName {
-				fail(SyntaxError, "invalid statement")
+		case itVar:
+			p.toks, p.tp = it.toks, 0
+			if len(p.toks) == 0 {
+				throw(KindSyntax, "empty expression")
 			}
-			kw := it.toks[0].s
-			for _, s := range stops {
-				if s == kw {
-					return body, it
-				}
+			e := p.parseExpr()
+			p.expectEnd()
+			body = append(body, &printStmt{e: e})
+		case itStmt:
+			p.toks, p.tp = it.toks, 0
+			if len(p.toks) == 0 || p.toks[0].kind != tName {
+				throw(KindSyntax, "empty or malformed statement")
 			}
-			body = append(body, p.parseStmt(kw, &cursor{toks: it.toks[1:], p: p}))
+			kw := p.toks[0].s
+			p.tp = 1
+			if endKeywords[kw] {
+				return body, kw
+			}
+			body = append(body, p.parseStatement(kw))
 		}
 	}
-	if len(stops) > 0 {
-		fail(SyntaxError, "unexpected end of template: missing {%% %s %%}", stops[len(stops)-1])
-	}
-	return body, nil
+	return body, ""
 }
 
-// nested parses a body one nesting level deeper.
-func (p *parser) nested(stops ...string) ([]stmt, *rawItem) {
+// parseNested parses a body one level deeper.
+func (p *parser) parseNested() ([]stmt, string) {
 	p.depth++
-	body, stop := p.parseBody(stops...)
+	body, term := p.parseBody()
 	p.depth--
-	return body, stop
+	return body, term
 }
 
-func endCursor(it *rawItem, p *parser) *cursor { return &cursor{toks: it.toks[1:], p: p} }
-
-func (p *parser) parseStmt(kw string, c *cursor) stmt {
+func (p *parser) parseStatement(kw string) stmt {
 	switch kw {
 	case "if":
-		return p.parseIf(c)
+		return p.parseIf()
 	case "for":
-		return p.parseFor(c)
+		return p.parseFor()
 	case "set":
-		name := c.expectName()
-		c.expectOp("=")
-		x := c.parseExpr()
-		c.expectEnd()
-		return &setStmt{name: name, x: x}
+		name := p.expectName()
+		p.expectOp("=")
+		e := p.parseExpr()
+		p.expectEnd()
+		return &setStmt{name: name, e: e}
 	case "macro":
-		return p.parseMacro(c)
+		return p.parseMacro()
 	case "include":
-		x := c.parseExpr()
-		c.expectEnd()
-		return &includeStmt{x: x}
+		e := p.parseExpr()
+		p.expectEnd()
+		return &includeStmt{e: e}
 	case "extends":
 		if p.depth > 0 || p.hasExtends {
-			fail(SyntaxError, "misplaced extends")
+			throw(KindSyntax, "misplaced extends")
 		}
 		p.hasExtends = true
-		x := c.parseExpr()
-		c.expectEnd()
-		return &extendsStmt{x: x}
+		e := p.parseExpr()
+		p.expectEnd()
+		return &extendsStmt{e: e}
 	case "block":
-		return p.parseBlock(c)
+		return p.parseBlock()
 	}
-	fail(SyntaxError, "unknown statement %q", kw)
+	throw(KindSyntax, "unknown statement %q", kw)
 	return nil
 }
 
-func (p *parser) parseIf(c *cursor) stmt {
+func (p *parser) parseIf() stmt {
 	s := &ifStmt{}
-	cond := c.parseExpr()
-	c.expectEnd()
 	for {
-		body, stop := p.nested("elif", "else", "endif")
+		cond := p.parseExpr()
+		p.expectEnd()
+		body, term := p.parseNested()
 		s.conds = append(s.conds, cond)
 		s.bodies = append(s.bodies, body)
-		sc := endCursor(stop, p)
-		switch stop.toks[0].s {
+		switch term {
 		case "elif":
-			cond = sc.parseExpr()
-			sc.expectEnd()
+			continue
 		case "else":
-			sc.expectEnd()
-			var end *rawItem
-			s.elseBody, end = p.nested("endif")
-			endCursor(end, p).expectEnd()
+			p.expectEnd()
+			var t2 string
+			s.elseBody, t2 = p.parseNested()
+			if t2 != "endif" {
+				throw(KindSyntax, "expected endif")
+			}
+			p.expectEnd()
 			return s
-		default:
-			sc.expectEnd()
+		case "endif":
+			p.expectEnd()
 			return s
 		}
+		throw(KindSyntax, "unclosed if")
 	}
 }
 
-func (p *parser) parseFor(c *cursor) stmt {
-	s := &forStmt{name: c.expectName()}
-	c.expectKeyword("in")
-	s.iter = c.parseExpr()
-	c.expectEnd()
-	macros := p.macros
-	body, stop := p.nested("else", "endfor")
+func (p *parser) parseFor() stmt {
+	name := p.expectName()
+	p.expectKeyword("in")
+	iter := p.parseExpr()
+	p.expectEnd()
+	s := &forStmt{name: name, iter: iter}
+	body, term := p.parseNested()
 	s.body = body
-	s.reuse = p.macros == macros
-	sc := endCursor(stop, p)
-	sc.expectEnd()
-	if stop.toks[0].s == "else" {
-		var end *rawItem
-		s.elseBody, end = p.nested("endfor")
-		endCursor(end, p).expectEnd()
+	switch term {
+	case "else":
+		p.expectEnd()
+		var t2 string
+		s.elseBody, t2 = p.parseNested()
+		if t2 != "endfor" {
+			throw(KindSyntax, "expected endfor")
+		}
+	case "endfor":
+	default:
+		throw(KindSyntax, "unclosed for")
 	}
+	p.expectEnd()
 	return s
 }
 
-func (p *parser) parseMacro(c *cursor) stmt {
-	m := &macroDef{name: c.expectName()}
-	c.expectOp("(")
-	for !c.acceptOp(")") {
-		pr := param{name: c.expectName()}
-		for _, o := range m.params {
-			if o.name == pr.name {
-				fail(SyntaxError, "duplicate macro parameter %q", pr.name)
-			}
+func (p *parser) parseMacro() stmt {
+	name := p.expectName()
+	p.expectOp("(")
+	m := &macroStmt{name: name}
+	seen := map[string]bool{}
+	for !p.peekOp(")") {
+		pname := p.expectName()
+		if seen[pname] {
+			throw(KindSyntax, "duplicate macro parameter %q", pname)
 		}
-		if c.acceptOp("=") {
-			pr.def = c.parseExpr()
+		seen[pname] = true
+		param := macroParam{name: pname}
+		if p.peekOp("=") {
+			p.tp++
+			param.def = p.parseExpr()
 		}
-		m.params = append(m.params, pr)
-		if !c.acceptOp(",") {
-			c.expectOp(")")
-			break
+		m.params = append(m.params, param)
+		if p.peekOp(",") {
+			p.tp++
+		} else if !p.peekOp(")") {
+			throw(KindSyntax, "expected ',' or ')' in macro parameters")
 		}
 	}
-	c.expectEnd()
-	p.macros++
-	body, end := p.nested("endmacro")
-	endCursor(end, p).expectEnd()
+	p.tp++ // ')'
+	p.expectEnd()
+	body, term := p.parseNested()
+	if term != "endmacro" {
+		throw(KindSyntax, "unclosed macro")
+	}
+	p.expectEnd()
 	m.body = body
 	return m
 }
 
-func (p *parser) parseBlock(c *cursor) stmt {
-	name := c.expectName()
-	c.expectEnd()
+func (p *parser) parseBlock() stmt {
+	name := p.expectName()
+	p.expectEnd()
 	if _, dup := p.blocks[name]; dup {
-		fail(SyntaxError, "block %q defined twice", name)
+		throw(KindSyntax, "duplicate block %q", name)
 	}
-	b := &blockDef{name: name}
+	b := &blockStmt{name: name}
 	p.blocks[name] = b
-	body, end := p.nested("endblock")
-	ec := endCursor(end, p)
-	if t := ec.peek(); t != nil {
-		if ec.expectName() != name {
-			fail(SyntaxError, "endblock name does not match block %q", name)
+	body, term := p.parseNested()
+	if term != "endblock" {
+		throw(KindSyntax, "unclosed block")
+	}
+	if p.tp < len(p.toks) {
+		if end := p.expectName(); end != name {
+			throw(KindSyntax, "endblock name %q does not match block %q", end, name)
 		}
 	}
-	ec.expectEnd()
+	p.expectEnd()
 	b.body = body
 	return b
 }
 
-// ---- token cursor and expression parser ----
+// Token helpers.
 
-type cursor struct {
-	toks []token
-	pos  int
-	p    *parser
-}
-
-func (c *cursor) peek() *token {
-	if c.pos < len(c.toks) {
-		return &c.toks[c.pos]
+func (p *parser) peek() (token, bool) {
+	if p.tp < len(p.toks) {
+		return p.toks[p.tp], true
 	}
-	return nil
+	return token{}, false
 }
 
-func (c *cursor) isOp(s string) bool {
-	t := c.peek()
-	return t != nil && t.kind == tOp && t.s == s
+func (p *parser) peekOp(op string) bool {
+	t, ok := p.peek()
+	return ok && t.kind == tOp && t.s == op
 }
 
-func (c *cursor) isKeyword(s string) bool {
-	t := c.peek()
-	return t != nil && t.kind == tName && t.s == s
+func (p *parser) peekKeyword(kw string) bool {
+	t, ok := p.peek()
+	return ok && t.kind == tName && t.s == kw
 }
 
-func (c *cursor) acceptOp(s string) bool {
-	if c.isOp(s) {
-		c.pos++
-		return true
+func (p *parser) peekKeywordAt(off int, kw string) bool {
+	i := p.tp + off
+	return i < len(p.toks) && p.toks[i].kind == tName && p.toks[i].s == kw
+}
+
+func (p *parser) expectOp(op string) {
+	if !p.peekOp(op) {
+		throw(KindSyntax, "expected %q", op)
 	}
-	return false
+	p.tp++
 }
 
-func (c *cursor) acceptKeyword(s string) bool {
-	if c.isKeyword(s) {
-		c.pos++
-		return true
+func (p *parser) expectKeyword(kw string) {
+	if !p.peekKeyword(kw) {
+		throw(KindSyntax, "expected %q", kw)
 	}
-	return false
+	p.tp++
 }
 
-func (c *cursor) expectOp(s string) {
-	if !c.acceptOp(s) {
-		fail(SyntaxError, "expected %q", s)
+func (p *parser) expectName() string {
+	t, ok := p.peek()
+	if !ok || t.kind != tName || keywords[t.s] {
+		throw(KindSyntax, "expected a name")
 	}
-}
-
-func (c *cursor) expectKeyword(s string) {
-	if !c.acceptKeyword(s) {
-		fail(SyntaxError, "expected %q", s)
-	}
-}
-
-func (c *cursor) expectEnd() {
-	if c.pos != len(c.toks) {
-		fail(SyntaxError, "unexpected token in tag")
-	}
-}
-
-func isReserved(s string) bool {
-	switch s {
-	case "and", "or", "not", "in", "is", "true", "false", "none":
-		return true
-	}
-	return false
-}
-
-// expectName consumes a non-reserved name.
-func (c *cursor) expectName() string {
-	t := c.peek()
-	if t == nil || t.kind != tName || isReserved(t.s) {
-		fail(SyntaxError, "expected a name")
-	}
-	c.pos++
+	p.tp++
 	return t.s
 }
 
-func (c *cursor) parseExpr() expr { return c.parseOr() }
+func (p *parser) expectEnd() {
+	if p.tp != len(p.toks) {
+		throw(KindSyntax, "unexpected tokens at end of tag")
+	}
+}
 
-func (c *cursor) parseOr() expr {
-	l := c.parseAnd()
-	for c.acceptKeyword("or") {
-		l = &orExpr{l, c.parseAnd()}
+// Expressions, lowest to highest precedence.
+
+func (p *parser) parseExpr() expr { return p.parseOr() }
+
+func (p *parser) parseOr() expr {
+	l := p.parseAnd()
+	for p.peekKeyword("or") {
+		p.tp++
+		l = &boolExpr{and: false, l: l, r: p.parseAnd()}
 	}
 	return l
 }
 
-func (c *cursor) parseAnd() expr {
-	l := c.parseNot()
-	for c.acceptKeyword("and") {
-		l = &andExpr{l, c.parseNot()}
+func (p *parser) parseAnd() expr {
+	l := p.parseNot()
+	for p.peekKeyword("and") {
+		p.tp++
+		l = &boolExpr{and: true, l: l, r: p.parseNot()}
 	}
 	return l
 }
 
-func (c *cursor) parseNot() expr {
-	if c.acceptKeyword("not") {
-		return &notExpr{c.parseNot()}
+func (p *parser) parseNot() expr {
+	if p.peekKeyword("not") {
+		p.tp++
+		return &notExpr{x: p.parseNot()}
 	}
-	return c.parseCompare()
+	return p.parseCompare()
 }
 
-var cmpOps = map[string]cmpOp{"==": cmpEq, "!=": cmpNe, "<": cmpLt, "<=": cmpLe, ">": cmpGt, ">=": cmpGe}
+var cmpOps = map[string]opcode{
+	"==": opEq, "!=": opNe, "<": opLt, "<=": opLe, ">": opGt, ">=": opGe,
+}
 
-func (c *cursor) parseCompare() expr {
-	first := c.parseAdditive()
-	var ce *cmpExpr
+func (p *parser) parseCompare() expr {
+	first := p.parseAdditive()
+	var ops []opcode
+	var rest []expr
 	for {
-		t := c.peek()
-		if t == nil {
+		t, ok := p.peek()
+		if !ok {
 			break
 		}
-		var op cmpOp
+		var op opcode
 		switch {
-		case t.kind == tOp && hasCmp(t.s):
+		case t.kind == tOp && cmpOps[t.s] != 0:
 			op = cmpOps[t.s]
-			c.pos++
+			p.tp++
 		case t.kind == tName && t.s == "in":
-			op = cmpIn
-			c.pos++
-		case t.kind == tName && t.s == "not" && c.pos+1 < len(c.toks) &&
-			c.toks[c.pos+1].kind == tName && c.toks[c.pos+1].s == "in":
-			op = cmpNotIn
-			c.pos += 2
+			op = opIn
+			p.tp++
+		case t.kind == tName && t.s == "not" && p.peekKeywordAt(1, "in"):
+			op = opNotIn
+			p.tp += 2
 		default:
-			if ce == nil {
-				return first
-			}
-			return ce
+			op = 0
 		}
-		if ce == nil {
-			ce = &cmpExpr{first: first}
+		if op == 0 {
+			break
 		}
-		ce.ops = append(ce.ops, op)
-		ce.rest = append(ce.rest, c.parseAdditive())
+		ops = append(ops, op)
+		rest = append(rest, p.parseAdditive())
 	}
-	if ce == nil {
+	if len(ops) == 0 {
 		return first
 	}
-	return ce
+	return &compareExpr{first: first, ops: ops, rest: rest}
 }
 
-func hasCmp(s string) bool { _, ok := cmpOps[s]; return ok }
-
-func (c *cursor) parseAdditive() expr {
-	l := c.parseConcat()
+func (p *parser) parseAdditive() expr {
+	l := p.parseConcat()
 	for {
 		switch {
-		case c.acceptOp("+"):
-			l = &binExpr{opAdd, l, c.parseConcat()}
-		case c.acceptOp("-"):
-			l = &binExpr{opSub, l, c.parseConcat()}
+		case p.peekOp("+"):
+			p.tp++
+			l = &binaryExpr{op: opAdd, l: l, r: p.parseConcat()}
+		case p.peekOp("-"):
+			p.tp++
+			l = &binaryExpr{op: opSub, l: l, r: p.parseConcat()}
 		default:
 			return l
 		}
 	}
 }
 
-func (c *cursor) parseConcat() expr {
-	l := c.parseTerm()
-	for c.acceptOp("~") {
-		l = &binExpr{opConcat, l, c.parseTerm()}
+func (p *parser) parseConcat() expr {
+	l := p.parseTerm()
+	for p.peekOp("~") {
+		p.tp++
+		l = &binaryExpr{op: opConcat, l: l, r: p.parseTerm()}
 	}
 	return l
 }
 
-func (c *cursor) parseTerm() expr {
-	l := c.parsePower()
+func (p *parser) parseTerm() expr {
+	l := p.parsePower()
 	for {
+		var op opcode
 		switch {
-		case c.acceptOp("*"):
-			l = &binExpr{opMul, l, c.parsePower()}
-		case c.acceptOp("//"):
-			l = &binExpr{opFloorDiv, l, c.parsePower()}
-		case c.acceptOp("/"):
-			l = &binExpr{opDiv, l, c.parsePower()}
-		case c.acceptOp("%"):
-			l = &binExpr{opMod, l, c.parsePower()}
+		case p.peekOp("*"):
+			op = opMul
+		case p.peekOp("/"):
+			op = opDiv
+		case p.peekOp("//"):
+			op = opFloorDiv
+		case p.peekOp("%"):
+			op = opMod
 		default:
 			return l
 		}
+		p.tp++
+		l = &binaryExpr{op: op, l: l, r: p.parsePower()}
 	}
 }
 
-func (c *cursor) parsePower() expr {
-	l := c.parseFiltered()
-	for c.acceptOp("**") {
-		l = &binExpr{opPow, l, c.parseFiltered()}
+func (p *parser) parsePower() expr {
+	l := p.parseFiltered()
+	for p.peekOp("**") {
+		p.tp++
+		l = &binaryExpr{op: opPow, l: l, r: p.parseFiltered()}
 	}
 	return l
 }
 
-func (c *cursor) parseFiltered() expr {
-	x := c.parseUnary()
+func (p *parser) parseFiltered() expr {
+	x := p.parseUnary()
 	for {
 		switch {
-		case c.acceptOp("|"):
-			name := c.expectFilterName()
-			code, ok := filterCodes[name]
-			if !ok {
-				code = filterUnknown
-				if c.p.badFilter == "" {
-					c.p.badFilter = name
-				}
+		case p.peekOp("|"):
+			p.tp++
+			name := p.expectFilterName()
+			f := &filterExpr{x: x, name: name, def: filterTable[name]}
+			if f.def == nil && p.badFilter == "" {
+				p.badFilter = name
 			}
-			var args []expr
-			if c.acceptOp("(") {
-				if !c.acceptOp(")") {
-					for {
-						args = append(args, c.parseExpr())
-						if c.acceptOp(")") {
-							break
-						}
-						c.expectOp(",")
-					}
-				}
+			if p.peekOp("(") {
+				p.tp++
+				f.args = p.parseArgList()
 			}
-			x = &filterExpr{x: x, code: code, args: args}
-		case c.acceptKeyword("is"):
-			neg := c.acceptKeyword("not")
-			if t := c.peek(); t == nil || t.kind != tName || t.s != "defined" {
-				fail(SyntaxError, "unknown test")
+			x = f
+		case p.peekKeyword("is"):
+			p.tp++
+			neg := false
+			if p.peekKeyword("not") {
+				p.tp++
+				neg = true
 			}
-			c.pos++
-			x = &definedExpr{x: x, neg: neg}
+			if !p.peekKeyword("defined") {
+				throw(KindSyntax, "unknown test")
+			}
+			p.tp++
+			x = &definedExpr{x: x, negate: neg}
 		default:
 			return x
 		}
 	}
 }
 
-func (c *cursor) expectFilterName() string {
-	t := c.peek()
-	if t == nil || t.kind != tName {
-		fail(SyntaxError, "expected a filter name")
+func (p *parser) expectFilterName() string {
+	t, ok := p.peek()
+	if !ok || t.kind != tName {
+		throw(KindSyntax, "expected a filter name")
 	}
-	c.pos++
+	p.tp++
 	return t.s
 }
 
-func (c *cursor) parseUnary() expr {
-	if c.acceptOp("-") {
-		return &negExpr{c.parseUnary()}
+// parseArgList parses filter arguments after '(' up to and including ')'.
+func (p *parser) parseArgList() []expr {
+	var args []expr
+	if p.peekOp(")") {
+		p.tp++
+		return args
 	}
-	return c.parsePostfix()
+	for {
+		args = append(args, p.parseExpr())
+		if p.peekOp(",") {
+			p.tp++
+			continue
+		}
+		p.expectOp(")")
+		return args
+	}
 }
 
-func (c *cursor) parsePostfix() expr {
-	x := c.parsePrimary()
+func (p *parser) parseUnary() expr {
+	if p.peekOp("-") {
+		p.tp++
+		return &negExpr{x: p.parseUnary()}
+	}
+	return p.parsePostfix()
+}
+
+func (p *parser) parsePostfix() expr {
+	x := p.parsePrimary()
 	for {
 		switch {
-		case c.acceptOp("."):
-			t := c.peek()
-			if t == nil || t.kind != tName {
-				fail(SyntaxError, "expected an attribute name")
+		case p.peekOp("."):
+			p.tp++
+			t, ok := p.peek()
+			if !ok || t.kind != tName {
+				throw(KindSyntax, "expected an attribute name")
 			}
-			c.pos++
-			x = &attrExpr{obj: x, key: t.s}
-		case c.acceptOp("["):
-			idx := c.parseExpr()
-			c.expectOp("]")
-			x = &indexExpr{x, idx}
-		case c.acceptOp("("):
-			x = c.parseCall(x)
+			p.tp++
+			x = &attrExpr{x: x, name: t.s}
+		case p.peekOp("["):
+			p.tp++
+			k := p.parseExpr()
+			p.expectOp("]")
+			x = &indexExpr{x: x, key: k}
+		case p.peekOp("("):
+			p.tp++
+			x = p.parseCall(x)
 		default:
 			return x
 		}
 	}
 }
 
-func (c *cursor) parseCall(fn expr) expr {
-	call := &callExpr{fn: fn}
-	if c.acceptOp(")") {
-		return call
+func (p *parser) parseCall(fn expr) expr {
+	c := &callExpr{fn: fn}
+	if p.peekOp(")") {
+		p.tp++
+		return c
 	}
 	for {
-		// A keyword argument is NAME "=" expr.
-		if t := c.peek(); t != nil && t.kind == tName && c.pos+1 < len(c.toks) &&
-			c.toks[c.pos+1].kind == tOp && c.toks[c.pos+1].s == "=" {
-			name := c.expectName()
-			for _, k := range call.kwNames {
-				if k == name {
-					fail(SyntaxError, "keyword argument repeated")
+		t, _ := p.peek()
+		if t.kind == tName && !keywords[t.s] && p.tp+1 < len(p.toks) && p.toks[p.tp+1].kind == tOp && p.toks[p.tp+1].s == "=" {
+			for _, n := range c.kwNames {
+				if n == t.s {
+					throw(KindSyntax, "repeated keyword argument %q", t.s)
 				}
 			}
-			c.pos++ // '='
-			call.kwNames = append(call.kwNames, name)
-			call.kwVals = append(call.kwVals, c.parseExpr())
+			p.tp += 2
+			c.kwNames = append(c.kwNames, t.s)
+			c.kwArgs = append(c.kwArgs, p.parseExpr())
 		} else {
-			if len(call.kwNames) > 0 {
-				fail(SyntaxError, "positional argument after keyword argument")
+			if len(c.kwNames) > 0 {
+				throw(KindSyntax, "positional argument after keyword argument")
 			}
-			call.args = append(call.args, c.parseExpr())
+			c.args = append(c.args, p.parseExpr())
 		}
-		if c.acceptOp(")") {
-			return call
+		if p.peekOp(",") {
+			p.tp++
+			continue
 		}
-		c.expectOp(",")
+		p.expectOp(")")
+		return c
 	}
 }
 
-func (c *cursor) parsePrimary() expr {
-	t := c.peek()
-	if t == nil {
-		fail(SyntaxError, "unexpected end of expression")
+func (p *parser) parsePrimary() expr {
+	t, ok := p.peek()
+	if !ok {
+		throw(KindSyntax, "unexpected end of expression")
 	}
-	c.pos++
+	p.tp++
 	switch t.kind {
 	case tInt:
-		return &litExpr{t.i}
+		return &litExpr{v: t.i}
 	case tFloat:
-		return &litExpr{t.f}
+		return &litExpr{v: t.f}
 	case tString:
-		return &litExpr{t.s}
+		return &litExpr{v: t.s}
 	case tName:
 		switch t.s {
 		case "true":
-			return &litExpr{true}
+			return &litExpr{v: true}
 		case "false":
-			return &litExpr{false}
+			return &litExpr{v: false}
 		case "none":
-			return &litExpr{nil}
+			return &litExpr{v: None}
 		}
-		if isReserved(t.s) {
-			fail(SyntaxError, "unexpected keyword %q", t.s)
+		if keywords[t.s] {
+			throw(KindSyntax, "unexpected keyword %q", t.s)
 		}
-		return &nameExpr{t.s}
+		return &nameExpr{name: t.s}
 	case tOp:
 		switch t.s {
 		case "(":
-			x := c.parseExpr()
-			c.expectOp(")")
-			return x
+			e := p.parseExpr()
+			p.expectOp(")")
+			return e
 		case "[":
 			l := &listExpr{}
-			if c.acceptOp("]") {
+			if p.peekOp("]") {
+				p.tp++
 				return l
 			}
 			for {
-				l.elems = append(l.elems, c.parseExpr())
-				if c.acceptOp("]") {
-					return l
+				l.elems = append(l.elems, p.parseExpr())
+				if p.peekOp(",") {
+					p.tp++
+					continue
 				}
-				c.expectOp(",")
+				p.expectOp("]")
+				return l
 			}
 		}
 	}
-	fail(SyntaxError, "unexpected token in expression")
+	throw(KindSyntax, "unexpected token in expression")
 	return nil
 }

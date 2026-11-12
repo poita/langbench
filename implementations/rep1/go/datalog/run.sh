@@ -1,3 +1,4 @@
 #!/bin/sh
-# Run the datalog tool: program on stdin, answers on stdout.
-exec "$(dirname "$0")/bin/datalog" "$@"
+# Runs the datalog CLI: program on stdin, answers on stdout.
+dir=$(cd "$(dirname "$0")" && pwd)
+exec "$dir/bin/datalog" "$@"

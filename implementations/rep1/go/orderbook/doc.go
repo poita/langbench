@@ -1,32 +1,26 @@
 // Package orderbook implements a single-instrument limit order book with
-// price-time priority, together with a parser and runner for the line-based
-// command protocol used by the accompanying command-line tool.
+// price-time priority.
+//
+// A [Book] holds resting orders grouped into price levels on a bid and an ask
+// side. Orders are submitted with [Book.Limit], [Book.Market], [Book.Cancel]
+// and [Book.Replace] (or generically through [Book.Execute]); each call
+// returns the [Event] values it produced, in order, exactly as a matching
+// engine would report them: trades, fills, rests, cancels and rejects.
 //
 // # Design
 //
-// All prices that will ever be used are known up front (they are collected
-// from the command stream in a first pass), sorted, de-duplicated and given a
-// dense rank. Each side of the book is then a plain array of price levels
-// indexed by rank, and a segment tree over that array (per-node quantity sum
-// and non-empty-level count) answers, in O(log P):
+// Each side keeps its price levels in a treap ordered by price, plus a hash
+// map from price to level and a cached pointer to the best level. A level owns
+// an intrusive doubly linked FIFO queue of orders together with the total
+// resting quantity and the order count. Consequently:
 //
-//   - what is the best non-empty level on this side,
-//   - how much quantity rests at or better than a given rank (fill-or-kill),
-//   - what is the next non-empty level after a given one (book listings).
+//   - finding the best price is O(1) and removing an emptied best level is
+//     O(log P);
+//   - removing an order from the middle of a queue is O(1);
+//   - level totals are always current, so a fill-or-kill check and a
+//     [Book.Snapshot] read them in O(1) per level.
 //
-// Resting orders live in one arena addressed by integer index. Within a level
-// they form an intrusive doubly linked FIFO list, so fills at the head and
-// cancels from the middle are O(1). A single hash map from order id to arena
-// index serves CANCEL and REPLACE.
-//
-// # Usage
-//
-// The simplest entry point is [Run], which takes the whole text protocol and
-// returns the whole text output. For programmatic use build a [Book] over a
-// fixed, sorted price table with [NewBook] and call [Book.Limit],
-// [Book.Market], [Book.Cancel], [Book.Replace] and [Book.Snapshot]; every
-// call appends its events, in the protocol's text form, to the book's output
-// buffer, available from [Book.Output].
+// All quantities are 64-bit; sums of 32-bit quantities never overflow.
 //
 // A Book is not safe for concurrent use.
 package orderbook

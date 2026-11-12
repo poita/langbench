@@ -1,0 +1,2 @@
+[.[] as $x | $x * 2], ((.[] | select(. > 1)) as $x | $x * 2), [.[] as $x | .[] as $y | select($x < $y) | [$x, $y]], [(.[] | select(. > 5)) as $x | $x]
+[1,2,3]

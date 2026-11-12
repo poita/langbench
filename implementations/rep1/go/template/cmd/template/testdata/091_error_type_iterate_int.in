@@ -1,0 +1,6 @@
+{
+  "n": 5
+}
+--
+=== main
+{% for i in n %}{{ i }}{% endfor %}

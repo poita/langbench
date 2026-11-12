@@ -1,48 +1,65 @@
 package ast
 
-import "testing"
+import (
+	"slices"
+	"testing"
+)
 
-func TestCompare(t *testing.T) {
-	i := func(v int64) Constant { return Constant{IsInt: true, Int: v} }
-	s := func(n string) Constant { return Constant{Name: n} }
-	ordered := []Constant{i(-5), i(0), i(7), i(1000000000), s("a"), s("a0"), s("a_"), s("a_b"), s("aa"), s("ab"), s("b")}
-	for x := range ordered {
-		for y := range ordered {
+func TestCompareOrder(t *testing.T) {
+	// Ascending order as given in the specification.
+	ordered := []Constant{
+		Int(-5), Int(0), Int(7), Int(1000000000),
+		Sym("a"), Sym("a0"), Sym("a_"), Sym("a_b"), Sym("aa"), Sym("ab"), Sym("b"),
+	}
+	for i, x := range ordered {
+		for j, y := range ordered {
 			want := 0
-			if x < y {
+			if i < j {
 				want = -1
-			} else if x > y {
+			} else if i > j {
 				want = 1
 			}
-			if got := Compare(ordered[x], ordered[y]); got != want {
-				t.Errorf("Compare(%v, %v) = %d, want %d", ordered[x], ordered[y], got, want)
+			if got := Compare(x, y); got != want {
+				t.Errorf("Compare(%v, %v) = %d, want %d", x, y, got, want)
 			}
 		}
+	}
+	shuffled := slices.Clone(ordered)
+	slices.Reverse(shuffled)
+	slices.SortFunc(shuffled, Compare)
+	if !slices.Equal(shuffled, ordered) {
+		t.Errorf("sorted = %v", shuffled)
+	}
+}
+
+func TestStrings(t *testing.T) {
+	r := Rule{
+		Head: Atom{"p", []Term{V("X"), C(Int(-3))}},
+		Body: []Literal{
+			{Kind: Positive, Atom: Atom{"q", []Term{V("X"), V("_0")}}},
+			{Kind: Negative, Atom: Atom{"r", []Term{V("X")}}},
+			{Kind: Comparison, Op: LE, Left: V("X"), Right: C(Sym("a"))},
+		},
+	}
+	want := "p(X, -3) :- q(X, _), not r(X), X <= a."
+	if got := r.String(); got != want {
+		t.Errorf("got %q, want %q", got, want)
 	}
 }
 
 func TestCmpOpHolds(t *testing.T) {
 	cases := []struct {
 		op   CmpOp
-		a, b int32
+		c    int
 		want bool
 	}{
-		{Eq, 1, 1, true}, {Eq, 1, 2, false}, {Ne, 1, 2, true}, {Ne, 2, 2, false},
-		{Lt, 1, 2, true}, {Lt, 2, 2, false}, {Le, 2, 2, true}, {Le, 3, 2, false},
-		{Gt, 3, 2, true}, {Gt, 2, 2, false}, {Ge, 2, 2, true}, {Ge, 1, 2, false},
+		{EQ, 0, true}, {EQ, 1, false}, {NE, 0, false}, {NE, -1, true},
+		{LT, -1, true}, {LT, 0, false}, {LE, 0, true}, {LE, 1, false},
+		{GT, 1, true}, {GT, 0, false}, {GE, 0, true}, {GE, -1, false},
 	}
 	for _, c := range cases {
-		if got := c.op.Holds(c.a, c.b); got != c.want {
-			t.Errorf("%d %v %d = %v", c.a, c.op, c.b, got)
+		if got := c.op.Holds(c.c); got != c.want {
+			t.Errorf("%v.Holds(%d) = %v", c.op, c.c, got)
 		}
-	}
-}
-
-func TestStrings(t *testing.T) {
-	if (Constant{IsInt: true, Int: -12}).String() != "-12" || (Constant{Name: "foo"}).String() != "foo" {
-		t.Error("Constant.String")
-	}
-	if (Pred{"r", 2}).String() != "r/2" || Le.String() != "<=" {
-		t.Error("Pred/CmpOp String")
 	}
 }

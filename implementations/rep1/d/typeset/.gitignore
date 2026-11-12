@@ -1,10 +1,6 @@
 .dub/
-bin/
+build/
 *.o
 *.a
-*.lib
+typeset-test-*
 dub.selections.json
-typeset-test-*
-cli/.dub/
-libtypeset.a
-typeset-test-*

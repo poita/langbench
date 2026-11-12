@@ -1,180 +1,174 @@
 package toml
 
-// TOML renders the tree as a canonical TOML document ending in a newline.
-//
-// Within each table, plain key/value pairs come first in ascending key order,
-// followed by sub-tables and arrays of tables (each with a header, preceded
-// by a blank line unless it is the first line of the document). Arrays are
-// written inline unless they are non-empty arrays of tables.
-func (t *Table) TOML() []byte { return t.AppendTOML(nil) }
+import (
+	"strings"
+)
 
-// AppendTOML appends the canonical TOML rendering of t to dst.
-func (t *Table) AppendTOML(dst []byte) []byte {
-	e := &encoder{out: dst, base: len(dst)}
-	e.table(t, "")
-	if len(e.out) == e.base {
-		e.out = append(e.out, '\n') // an empty document is a lone newline
+// Encode renders root as a canonical TOML document.
+//
+// Within each table, key/value pairs come first in ascending key order,
+// followed by sub-tables and arrays of tables, also in key order; every
+// table gets a header, a blank line precedes every header except one on the
+// first line, and arrays are written inline unless they are non-empty and
+// consist only of tables. Strings are always basic strings. Scalars are
+// written from their canonical text, so Encode never converts a number or
+// date.
+func Encode(root *Table) []byte {
+	var e encoder
+	e.table(root, "")
+	if e.sb.Len() == 0 {
+		return []byte("\n")
 	}
-	return e.out
+	return []byte(e.sb.String())
 }
 
 type encoder struct {
-	out  []byte
-	base int // length of out before encoding started
+	sb strings.Builder
 }
 
-type memberKind uint8
-
-const (
-	kindPair memberKind = iota
-	kindTable
-	kindArrayOfTables
-)
-
-func classify(n Node) memberKind {
-	switch n := n.(type) {
-	case *Table:
-		return kindTable
-	case *Array:
-		if len(n.Elems) == 0 {
-			return kindPair
-		}
-		for _, e := range n.Elems {
-			if _, ok := e.(*Table); !ok {
-				return kindPair
-			}
-		}
-		return kindArrayOfTables
+// isArrayOfTables reports whether a is a non-empty array of tables only.
+func isArrayOfTables(a *Array) bool {
+	if len(a.Items) == 0 {
+		return false
 	}
-	return kindPair
+	for _, it := range a.Items {
+		if _, ok := it.(*Table); !ok {
+			return false
+		}
+	}
+	return true
 }
 
 func (e *encoder) table(t *Table, path string) {
 	keys := t.Keys()
-	kinds := make([]memberKind, len(keys))
-	for i, k := range keys {
-		kinds[i] = classify(t.m[k])
-		if kinds[i] == kindPair {
-			e.out = appendKey(e.out, k)
-			e.out = append(e.out, " = "...)
-			e.out = e.inline(e.out, t.m[k])
-			e.out = append(e.out, '\n')
-		}
-	}
-	for i, k := range keys {
-		if kinds[i] == kindPair {
+	for _, k := range keys {
+		n := t.entries[k]
+		if isSection(n) {
 			continue
 		}
-		sub := string(appendKey(nil, k))
+		e.sb.WriteString(encodeKey(k))
+		e.sb.WriteString(" = ")
+		e.inline(n)
+		e.sb.WriteByte('\n')
+	}
+	for _, k := range keys {
+		n := t.entries[k]
+		if !isSection(n) {
+			continue
+		}
+		sub := encodeKey(k)
 		if path != "" {
 			sub = path + "." + sub
 		}
-		switch n := t.m[k].(type) {
+		switch n := n.(type) {
 		case *Table:
-			e.header(sub, false)
+			e.header("[" + sub + "]")
 			e.table(n, sub)
 		case *Array:
-			for _, el := range n.Elems {
-				e.header(sub, true)
-				e.table(el.(*Table), sub)
+			for _, it := range n.Items {
+				e.header("[[" + sub + "]]")
+				e.table(it.(*Table), sub)
 			}
 		}
 	}
 }
 
-func (e *encoder) header(path string, aot bool) {
-	if len(e.out) > e.base {
-		e.out = append(e.out, '\n')
+func isSection(n Node) bool {
+	switch n := n.(type) {
+	case *Table:
+		return true
+	case *Array:
+		return isArrayOfTables(n)
 	}
-	if aot {
-		e.out = append(e.out, "[["...)
-	} else {
-		e.out = append(e.out, '[')
-	}
-	e.out = append(e.out, path...)
-	if aot {
-		e.out = append(e.out, "]]\n"...)
-	} else {
-		e.out = append(e.out, "]\n"...)
-	}
+	return false
 }
 
-func (e *encoder) inline(dst []byte, n Node) []byte {
+func (e *encoder) header(h string) {
+	if e.sb.Len() > 0 {
+		e.sb.WriteByte('\n')
+	}
+	e.sb.WriteString(h)
+	e.sb.WriteByte('\n')
+}
+
+func (e *encoder) inline(n Node) {
 	switch n := n.(type) {
 	case *Value:
-		if n.Type == String {
-			return appendQuoted(dst, n.Text)
+		if n.Type == TypeString {
+			quote(&e.sb, n.Text)
+		} else {
+			e.sb.WriteString(n.Text)
 		}
-		return append(dst, n.Text...)
 	case *Array:
-		dst = append(dst, '[')
-		for i, el := range n.Elems {
+		e.sb.WriteByte('[')
+		for i, it := range n.Items {
 			if i > 0 {
-				dst = append(dst, ", "...)
+				e.sb.WriteString(", ")
 			}
-			dst = e.inline(dst, el)
+			e.inline(it)
 		}
-		return append(dst, ']')
+		e.sb.WriteByte(']')
 	case *Table:
-		dst = append(dst, '{')
+		e.sb.WriteByte('{')
 		for i, k := range n.Keys() {
 			if i > 0 {
-				dst = append(dst, ", "...)
+				e.sb.WriteString(", ")
 			}
-			dst = appendKey(dst, k)
-			dst = append(dst, " = "...)
-			dst = e.inline(dst, n.m[k])
+			e.sb.WriteString(encodeKey(k))
+			e.sb.WriteString(" = ")
+			e.inline(n.entries[k])
 		}
-		return append(dst, '}')
+		e.sb.WriteByte('}')
 	}
-	return dst
 }
 
-// appendKey appends k as a bare key if possible, otherwise as a basic string.
-func appendKey(dst []byte, k string) []byte {
-	bare := k != ""
-	for i := 0; i < len(k); i++ {
-		if !isBareKeyByte(k[i]) {
-			bare = false
-			break
+func encodeKey(k string) string {
+	if k != "" {
+		bare := true
+		for i := 0; i < len(k); i++ {
+			if !isBareKeyChar(k[i]) {
+				bare = false
+				break
+			}
+		}
+		if bare {
+			return k
 		}
 	}
-	if bare {
-		return append(dst, k...)
-	}
-	return appendQuoted(dst, k)
+	var sb strings.Builder
+	quote(&sb, k)
+	return sb.String()
 }
 
-// appendQuoted appends s as a TOML basic string.
-func appendQuoted(dst []byte, s string) []byte {
-	dst = append(dst, '"')
-	start := 0
+const hexDigits = "0123456789abcdef"
+
+// quote writes s as a TOML basic string.
+func quote(sb *strings.Builder, s string) {
+	sb.WriteByte('"')
 	for i := 0; i < len(s); i++ {
 		c := s[i]
-		if c >= 0x20 && c != '"' && c != '\\' && c != 0x7f {
-			continue
-		}
-		dst = append(dst, s[start:i]...)
-		start = i + 1
-		switch c {
-		case '"':
-			dst = append(dst, '\\', '"')
-		case '\\':
-			dst = append(dst, '\\', '\\')
-		case '\b':
-			dst = append(dst, '\\', 'b')
-		case '\t':
-			dst = append(dst, '\\', 't')
-		case '\n':
-			dst = append(dst, '\\', 'n')
-		case '\f':
-			dst = append(dst, '\\', 'f')
-		case '\r':
-			dst = append(dst, '\\', 'r')
+		switch {
+		case c == '"':
+			sb.WriteString(`\"`)
+		case c == '\\':
+			sb.WriteString(`\\`)
+		case c == '\b':
+			sb.WriteString(`\b`)
+		case c == '\t':
+			sb.WriteString(`\t`)
+		case c == '\n':
+			sb.WriteString(`\n`)
+		case c == '\f':
+			sb.WriteString(`\f`)
+		case c == '\r':
+			sb.WriteString(`\r`)
+		case c < 0x20 || c == 0x7f:
+			sb.WriteString(`\u00`)
+			sb.WriteByte(hexDigits[c>>4])
+			sb.WriteByte(hexDigits[c&15])
 		default:
-			dst = append(dst, '\\', 'u', '0', '0', hexDigits[c>>4], hexDigits[c&15])
+			sb.WriteByte(c)
 		}
 	}
-	dst = append(dst, s[start:]...)
-	return append(dst, '"')
+	sb.WriteByte('"')
 }

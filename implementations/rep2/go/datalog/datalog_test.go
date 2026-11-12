@@ -1,15 +1,27 @@
-package datalog
+package datalog_test
 
 import (
+	"bytes"
 	"errors"
 	"strings"
 	"testing"
+
+	"example.com/datalog"
+	"example.com/datalog/parser"
 )
+
+func run(t *testing.T, src string) string {
+	t.Helper()
+	var out bytes.Buffer
+	if err := datalog.Run(strings.NewReader(src), &out); err != nil {
+		t.Fatal(err)
+	}
+	return out.String()
+}
 
 func TestRunExamples(t *testing.T) {
 	cases := []struct{ name, in, out string }{
-		{"closure", `
-edge(1, 2). edge(2, 3). edge(3, 1). edge(3, 4).
+		{"closure", `edge(1, 2). edge(2, 3). edge(3, 1). edge(3, 4).
 path(X, Y) :- edge(X, Y).
 path(X, Z) :- edge(X, Y), path(Y, Z).
 ?- path(1, X).
@@ -25,8 +37,7 @@ path(2, 2)
 path(3, 3)
 -- 3
 `},
-		{"negation", `
-% nodes and links
+		{"mixed", `% nodes and links
 node(a). node(b). node(c). node(5). node(-2).
 link(a, b). link(b, 5). link(5, 5).
 reach(X, Y) :- link(X, Y).
@@ -49,67 +60,56 @@ reach(a, b)
 reach(5, 5)
 -- 1
 `},
-		{"no queries", "p(a).", ""},
+		{"no queries", "p(1).", ""},
+		{"empty", "", ""},
 		{"undefined predicate", "?- nothing(X).", "-- 0\n"},
-		{"arity namespaces", "r(a). r(b, c). ?- r(X). ?- r(X, Y). ?- r(X, Y, Z).",
-			"r(a)\n-- 1\nr(b, c)\n-- 1\n-- 0\n"},
 	}
 	for _, c := range cases {
-		out, err := Run([]byte(c.in))
-		if err != nil {
-			t.Errorf("%s: %v", c.name, err)
-		} else if string(out) != c.out {
-			t.Errorf("%s:\ngot:\n%s\nwant:\n%s", c.name, out, c.out)
+		if got := run(t, c.in); got != c.out {
+			t.Errorf("%s:\ngot:\n%s\nwant:\n%s", c.name, got, c.out)
 		}
 	}
 }
 
-func TestRunErrors(t *testing.T) {
+func TestErrors(t *testing.T) {
 	cases := []struct {
-		name, in string
-		want     error
+		name, src string
+		target    error
 	}{
-		{"unstratifiable", "edge(1, 2).\nwin(X) :- edge(X, Y), not win(Y).\n?- win(X).", ErrNotStratifiable},
-		{"unsafe head", "q(1).\n?- q(X).\np(X) :- q(Y).\n?- p(X).", ErrUnsafe},
-		{"unsafe fact", "p(X).", ErrUnsafe},
-		{"unsafe comparison", "q(1). p(Y) :- q(X), X = Y.", ErrUnsafe},
+		{"unstratifiable", "edge(1, 2).\nwin(X) :- edge(X, Y), not win(Y).\n?- win(X).", datalog.ErrNotStratifiable},
+		{"unsafe after query", "q(1).\n?- q(X).\np(X) :- q(Y).\n?- p(X).", datalog.ErrUnsafe},
+		{"unsafe fact", "p(X).", datalog.ErrUnsafe},
 	}
 	for _, c := range cases {
-		out, err := Run([]byte(c.in))
-		if !errors.Is(err, c.want) || len(out) != 0 || !IsRejected(err) {
-			t.Errorf("%s: out=%q err=%v", c.name, out, err)
+		var out bytes.Buffer
+		err := datalog.Run(strings.NewReader(c.src), &out)
+		if !errors.Is(err, c.target) {
+			t.Errorf("%s: err = %v", c.name, err)
+		}
+		if out.Len() != 0 {
+			t.Errorf("%s: wrote output %q", c.name, out.String())
 		}
 	}
-	_, err := Run([]byte("p("))
-	var se *SyntaxError
-	if !errors.As(err, &se) || IsRejected(err) {
-		t.Errorf("syntax error: %v", err)
+	var se *parser.SyntaxError
+	if _, err := datalog.Load("p("); !errors.As(err, &se) {
+		t.Errorf("syntax error: got %v", err)
 	}
 }
 
-func TestModelAPI(t *testing.T) {
-	p, err := Parse([]byte("n(b). n(3). n(a). n(-1). m(X) :- n(X), X > 0. ?- m(X)."))
+func TestAdHocQuery(t *testing.T) {
+	db, err := datalog.Load("p(2, b). p(1, a). p(1, 5).")
 	if err != nil {
 		t.Fatal(err)
 	}
-	m, err := p.Eval()
+	rows, err := db.Query("?- p(1, X).")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if m.Queries() != 1 {
-		t.Fatalf("queries = %d", m.Queries())
+	var got []string
+	for _, r := range rows {
+		got = append(got, datalog.Format("p", r))
 	}
-	if got := m.Query(0).Format(); got != "m(3)\nm(a)\nm(b)\n-- 3\n" {
-		t.Errorf("Query(0) = %q", got)
-	}
-	var names []string
-	for _, tup := range m.Facts("n", 1) {
-		names = append(names, tup[0].String())
-	}
-	if strings.Join(names, ",") != "-1,3,a,b" {
-		t.Errorf("Facts = %v", names)
-	}
-	if m.Facts("zzz", 1) != nil || m.Facts("n", 2) != nil {
-		t.Error("unknown predicate should have no facts")
+	if strings.Join(got, ";") != "p(1, 5);p(1, a)" {
+		t.Errorf("got %v", got)
 	}
 }

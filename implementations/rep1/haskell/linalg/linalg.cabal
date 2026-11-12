@@ -1,0 +1,70 @@
+cabal-version:      3.0
+name:               linalg
+version:            0.1.0.0
+synopsis:           Dense real linear algebra: LU, QR, Cholesky, Jacobi eigen/SVD
+description:
+  A small, dependency-light library of classical dense linear algebra
+  algorithms over 'Double' (LU with partial pivoting, Householder QR,
+  Cholesky, cyclic Jacobi symmetric eigendecomposition, one-sided Jacobi SVD),
+  a Matrix Market reader/writer, and a command line driver that executes a
+  script of matrix operations.
+license:            BSD-3-Clause
+author:             linalg contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Math
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Linalg
+    Linalg.Cholesky
+    Linalg.Eigen
+    Linalg.Error
+    Linalg.LU
+    Linalg.Matrix
+    Linalg.MatrixMarket
+    Linalg.Operation
+    Linalg.QR
+    Linalg.Runner
+    Linalg.SVD
+    Linalg.SignConvention
+  other-modules:
+    Linalg.Internal
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.14 && <5
+    , bytestring  >=0.11 && <0.13
+    , containers  >=0.6 && <0.9
+    , directory   >=1.3 && <1.4
+    , filepath    >=1.4 && <1.6
+
+executable linalg
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , linalg
+
+test-suite linalg-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  other-modules:
+    Generators
+  build-depends:
+    , base
+    , bytestring
+    , directory
+    , filepath
+    , hspec       >=2.7
+    , linalg
+    , QuickCheck  >=2.14

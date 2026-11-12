@@ -1,0 +1,110 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #11 EXT-030
+9 PAY A ember 1
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DAMAGE #11 #15 1
+14 DAMAGE #11 #15 1
+15 SPENT #11 EXT-030
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 9 cap 10 vault 10 hand 3 ash 1 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+hand A 1 #12 EXT-030
+hand A 2 #13 EXT-030
+hand A 3 #14 EXT-030
+field A #15 EXT-018 3/4 w2 c0 ready - kw provoke,tenacity
+field B #26 EXT-011 1/4 w0 c0 ready - kw plating:1
+field B #27 EXT-001 1/1 w0 c0 ready - kw -
+field B #28 EXT-025 2/4 w0 c0 ready - kw -
+field B #29 EXT-018 3/4 w0 c0 ready - kw provoke,tenacity
+ash A 1 #11 EXT-030
+effect 1 ts2 A aura grant venom on -
+effect 2 ts7 B aura grant venom on -
+STATE END
+16 PLAY A ~2 #12 EXT-030
+17 PAY A ember 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 DAMAGE #12 #29 1
+22 DAMAGE #12 #15 1
+23 SPENT #12 EXT-030
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 8 cap 10 vault 10 hand 2 ash 2 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+hand A 1 #13 EXT-030
+hand A 2 #14 EXT-030
+field A #15 EXT-018 3/4 w3 c0 ready - kw provoke,tenacity
+field B #26 EXT-011 1/4 w0 c0 ready - kw plating:1
+field B #27 EXT-001 1/1 w0 c0 ready - kw -
+field B #28 EXT-025 2/4 w0 c0 ready - kw -
+field B #29 EXT-018 3/4 w1 c0 ready - kw provoke,tenacity
+ash A 1 #11 EXT-030
+ash A 2 #12 EXT-030
+effect 1 ts2 A aura grant venom on -
+effect 2 ts7 B aura grant venom on -
+STATE END
+24 PLAY A ~3 #13 EXT-030
+25 PAY A ember 1
+26 PASS A
+27 PASS B
+28 RESOLVE ~3
+29 DAMAGE #13 #29 1
+30 DAMAGE #13 #15 1
+31 SPENT #13 EXT-030
+32 TENACITY #15
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 7 cap 10 vault 10 hand 1 ash 3 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+hand A 1 #14 EXT-030
+field A #15 EXT-018 3/4 w0 c0 ready tenacity-used kw provoke,tenacity
+field B #26 EXT-011 1/4 w0 c0 ready - kw plating:1
+field B #27 EXT-001 1/1 w0 c0 ready - kw -
+field B #28 EXT-025 2/4 w0 c0 ready - kw -
+field B #29 EXT-018 3/4 w2 c0 ready - kw provoke,tenacity
+ash A 1 #11 EXT-030
+ash A 2 #12 EXT-030
+ash A 3 #13 EXT-030
+effect 1 ts2 A aura grant venom on -
+effect 2 ts7 B aura grant venom on -
+STATE END
+33 PLAY A ~4 #14 EXT-030
+34 PAY A ember 1
+35 PASS A
+36 PASS B
+37 RESOLVE ~4
+38 DAMAGE #14 #28 1
+39 DAMAGE #14 #15 1
+40 SPENT #14 EXT-030
+41 TRIGGER B ~5 #28 1
+42 PASS A
+43 PASS B
+44 RESOLVE ~5
+45 WARD #28 1 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 6 cap 10 vault 10 hand 0 ash 4 rift 0
+player B spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+field A #15 EXT-018 3/4 w1 c0 ready tenacity-used kw provoke,tenacity
+field B #26 EXT-011 1/4 w0 c0 ready - kw plating:1
+field B #27 EXT-001 1/1 w0 c0 ready - kw -
+field B #28 EXT-025 2/4 w1 c0 ready ward1 kw -
+field B #29 EXT-018 3/4 w2 c0 ready - kw provoke,tenacity
+ash A 1 #11 EXT-030
+ash A 2 #12 EXT-030
+ash A 3 #13 EXT-030
+ash A 4 #14 EXT-030
+effect 1 ts2 A aura grant venom on -
+effect 2 ts7 B aura grant venom on -
+STATE END
+46 RESULT pending none

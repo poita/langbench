@@ -1,0 +1,66 @@
+cabal-version:      3.0
+name:               webhooks
+version:            0.1.0.0
+synopsis:           Standard Webhooks signatures and a deterministic delivery simulator
+description:
+  A self-contained implementation of SHA-256, HMAC-SHA-256 and Base64, the
+  <https://github.com/standard-webhooks/standard-webhooks/blob/main/spec/standard-webhooks.md Standard Webhooks>
+  signing and verification scheme built on them, and a deterministic simulator
+  that signs events and retries failed deliveries on a fixed schedule.
+  .
+  The library has no dependencies beyond GHC's bundled packages; every
+  cryptographic primitive is written out in full.
+license:            MIT
+license-file:       LICENSE
+author:             webhooks contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Network, Cryptography
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Webhooks
+    Webhooks.Base64
+    Webhooks.Command
+    Webhooks.Field
+    Webhooks.Heap
+    Webhooks.HMAC
+    Webhooks.Hex
+    Webhooks.SHA256
+    Webhooks.Secret
+    Webhooks.Signature
+    Webhooks.Simulator
+    Webhooks.Simulator.Block
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.18 && <5
+    , bytestring  >=0.11 && <0.13
+    , containers  >=0.6 && <0.9
+
+executable webhooks
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , webhooks
+
+test-suite webhooks-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+    , base
+    , bytestring
+    , hspec       >=2.10
+    , QuickCheck  >=2.14
+    , webhooks

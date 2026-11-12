@@ -1,0 +1,19 @@
+@module main
+trait Show { fn show(self) -> Str; fn twice(self) -> Str { self.show() ++ self.show() } }
+impl Show for Int { fn show(self) -> Str { showInt(self) } }
+impl<T: Show> Show for Option<T> {
+    fn show(self) -> Str { match self { Some(x) -> "Some(" ++ x.show() ++ ")", None -> "None" } }
+}
+impl<A: Show, B: Show> Show for Pair<A, B> { fn show(self) -> Str { self.a.show() ++ "&" ++ self.b.show() } }
+struct Pair<A, B> { a: A, b: B }
+impl<K: Key + Show, V: Show> Show for #[K: V] {
+    fn show(self) -> Str { strJoin(listMap(pairsOf(self), |p| fst(p).show() ++ "=" ++ snd(p).show()), ",") }
+}
+fn both<T: Show>(x: T) -> Str { x.twice() }
+fn main() {
+    print(both(Some(5)));
+    print(both(Pair.{ a: 1, b: Some(2) }));
+    print(Show::show(#[1: Some(2), 3: None]));
+    let f = |x: Int| x.show();
+    print(f(9));
+}

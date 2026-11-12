@@ -1,85 +1,50 @@
 # jq (D)
 
-A from-scratch interpreter for a subset of the [`jq`](https://jqlang.github.io/jq/)
-filter language, written in D. It is split into a reusable library (`jq`) and a
-thin command-line tool on top of it. The JSON parser, the serialiser and the
-filter interpreter are all hand-written; only the D standard library and
-druntime are used.
+A small implementation of a subset of the [jq](https://jqlang.github.io/jq/)
+query language, written in D with nothing but the standard library. It
+consists of
 
-The semantics follow jq 1.7 (`jq -c`) for the supported subset: paths and
-slices, `?`/try, generators and their exact evaluation order, arithmetic,
-comparisons with jq's total order, `if`, `reduce`, `as` bindings, object and
-array construction, and the builtins `empty error not length keys has type add
-select map sort sort_by group_by unique reverse min max tostring tonumber`.
-See `problems/jq/SPEC.md` in the parent repository for the full specification.
+* a **library** (`source/jq/`) with its own JSON parser, JSON serializer and
+  filter interpreter, and
+* a thin **command-line tool** (`app/main.d`) that reads a filter and a JSON
+  document from stdin and prints each result as a line of compact JSON.
 
-## Design
+The supported language and its exact semantics (evaluation order, `?`, key
+ordering, number formatting, …) are those of jq 1.7 (`jq -c`) restricted to the
+subset described in the problem's `SPEC.md`: paths (`.a`, `.[0]`, `.[]`,
+`.[1:3]`), pipes and commas, arithmetic and comparisons, `and`/`or`, `if`,
+`as` bindings, `reduce`, array and object construction, `?`, and the builtins
+`empty error not length keys has type add select map sort sort_by group_by
+unique reverse min max tostring tonumber`.
 
-* **Values** (`jq.value`): a 16-byte tagged struct. `null`, booleans and
-  numbers (doubles) are inline; strings, arrays and objects are references to
-  immutable heap data, so copying/binding/indexing never copies contents.
-* **Objects** are insertion-ordered key/value vectors with a lazy hash index
-  for objects of more than 16 keys and a memoised sorted-key permutation used by
-  comparison and `keys`. Parsed documents intern object keys.
-* **Evaluation** (`jq.interp`) is a push-style tree walker:
-  `eval(node, input, env, sink)` calls `sink` once per output. Sinks are
-  non-escaping (stack) delegates. Nodes that always yield exactly one output
-  take an allocation-free fast path (`evalOne`). Errors travel as a status
-  (`false` + the pending error), so `?` never needs exceptions, and `try`
-  distinguishes errors raised inside its term from downstream ones.
-* **Sorting** sorts an index permutation (original index as tie-break, so it is stable) and evaluates `sort_by` /
-  `group_by` keys exactly once per element.
+## Building
 
-## Layout
-
-```
-dub.sdl             project manifest (configurations: cli, library, unittest)
-source/app.d        command-line tool
-source/jq/          the library
-  package.d         `import jq;` re-exports everything
-  value.d           Value, JStr/JArr/JObj, ordering and equality
-  json.d            JSON parser, serialiser, number formatting
-  lexer.d parser.d ast.d    filter front end
-  ops.d             arithmetic, indexing, slicing, data builtins
-  interp.d          the evaluator
-  program.d         Program: compile once, run many times
-tests/              unit tests (separate from the library sources)
-build.sh run.sh     build / run helpers
-```
-
-## Build
-
-Requires LDC and dub.
+Requires LDC (tested with 1.41.0) and dub (1.40.0).
 
 ```sh
-./build.sh          # == dub build -b release --compiler=ldc2 --config=cli
+./build.sh          # = dub build -b release --compiler=ldc2; produces bin/jq
 dub test --compiler=ldc2
 ```
 
-The executable is written to `bin/jq`.
+`dub build --config=library` builds only the library.
 
 ## Command line
 
-`run.sh` (or `bin/jq`) reads **all of stdin**: the first line is the filter, the
-rest is exactly one JSON document. Every result is printed as compact JSON, one
-per line. If evaluation hits an uncaught error, the results produced so far are
-printed, followed by a line `error`. The exit code is always 0.
+The first line of stdin is the filter; everything after it is the JSON
+document. Every result is printed on its own line. If evaluation fails, the
+results produced so far are printed, then a line `error`. The exit code is 0.
 
 ```console
-$ printf '%s\n%s' '.users | map(select(.age >= 30)) | sort_by(.age) | map(.name)' \
-    '{"users":[{"name":"ann","age":31},{"name":"bob","age":25},{"name":"cy","age":30}]}' | ./run.sh
-["cy","ann"]
-
-$ printf '%s\n%s' '[(1,2) + (10,20)], (.[] | .a.b?)' '[{"a":{"b":1}},{"a":5},3]' | ./run.sh
+$ printf '%s\n%s\n' '.users | map(select(.age >= 30) | .name)' \
+    '{"users":[{"name":"ann","age":31},{"name":"bo","age":20}]}' | ./run.sh
+["ann"]
+$ printf '%s\n%s\n' '[(1,2) + (10,20)], {a:(1,2)}' 'null' | ./run.sh
 [11,12,21,22]
-1
-error
+{"a":1}
+{"a":2}
 ```
 
 ## Library
-
-Add the project as a dub dependency (`dependency "jq" path="../jq"`, using the
-`library` configuration), then:
 
 ```d
 import std.stdio : writeln;
@@ -87,26 +52,55 @@ import jq;
 
 void main()
 {
-    // Compile once ...
-    auto program = Program.compile(`.users | map({name, age}) | sort_by(.age)`);
+    // Compile once, run on any number of inputs.
+    auto filter = Filter.compile(`.users | map(select(.age >= 30) | .name)`);
+    auto doc = parseJson(`{"users":[{"name":"ann","age":31},{"name":"bo","age":20}]}`);
 
-    // ... run on any number of documents.
-    auto doc = parseJson(`{"users":[{"name":"ann","age":31,"x":1},{"name":"bob","age":25}]}`);
+    // Collect every output ...
+    foreach (result; filter.collect(doc))
+        writeln(toJson(result));           // ["ann"]
 
-    RunStatus status = program.run(doc, (Value v) {
-        writeln(toJson(v));          // [{"name":"bob","age":25},{"name":"ann","age":31}]
-    });
-    assert(status.ok);
-
-    // Or collect the results:
-    Value[] results = program.runAll(doc, status);
+    // ... or stream them; outputs delivered before an error stand.
+    try
+        Filter.compile(`1, 2, error, 3`).run(Value.makeNull(), (Value v) => writeln(toJson(v)));
+    catch (JqError e)
+        writeln("error");                   // after printing 1 and 2
 }
 ```
 
-* `parseJson(string)` -> `Value` (throws `JsonException` on malformed input).
-* `Program.compile(string)` (throws `FilterException` on a malformed filter),
-  `Program.run(input, emit)` and `Program.runAll(input, status)`.
-* `toJson(Value)` / `writeValue(ref Buffer, Value)` serialise compactly.
-* `compare` / `equals` implement jq's total order; `jq.ops` exposes the
-  individual operations (`opAdd`, `indexValue`, `opSort`, ...). Operations
-  report failure by returning an error value (`Value.isError`).
+Using the library from another dub project: add a dependency on this package
+(`dependency "jq" path="../jq"`, with `subConfiguration "jq" "library"`).
+
+### Layout
+
+| Module | Responsibility |
+|---|---|
+| `jq` | public import of everything below that is part of the API |
+| `jq.value` | `Value`, `JObject`, `ObjectBuilder`; ordering (`compare`) and equality |
+| `jq.json` | `parseJson`, `toJson`, `writeJson`: JSON text ⇄ `Value` |
+| `jq.filter` | `Filter`: `compile`, `run`, `collect` |
+| `jq.error` | `JqException` and its subclasses `JqError` (runtime), `JqSyntaxError`, `JsonParseError` |
+| `jq.lexer`, `jq.parser`, `jq.ast` | filter text → syntax tree (recursive descent) |
+| `jq.interp` | the evaluator (continuation-passing, lazy, ordered) |
+| `jq.ops` | indexing, slicing, arithmetic and value-level builtins |
+
+### Design notes
+
+* Values are immutable and shared; indexing, binding and iteration never copy.
+  Objects keep insertion order, with expected O(1) lookup and a sorted key
+  order that is computed at most once. `a + b` on objects/arrays appends in
+  place into spare capacity when `a` is the newest version, so accumulating in
+  a `reduce` is amortized linear.
+* The evaluator pushes each output to a callback, so streams are lazy and the
+  CLI prints results as they are produced; an error unwinds as a `JqError`.
+  `?` as `try` distinguishes errors raised inside the term from errors raised
+  later in the pipeline.
+* Sorting is a stable comparison sort with one key evaluation per element.
+* Numbers are doubles, parsed with a correctly rounded fast path (falling back
+  to `strtod`) and printed as integers or the shortest `%.15g`–`%.17g` text that
+  round-trips.
+
+## Tests
+
+`dub test --compiler=ldc2` runs the D `unittest` blocks in `source/` and the
+end-to-end suite in `tests/spec_examples.d`.

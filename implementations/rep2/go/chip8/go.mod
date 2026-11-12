@@ -1,3 +1,3 @@
-module github.com/example/chip8
+module github.com/peter/chip8
 
-go 1.27.1
+go 1.27

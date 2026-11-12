@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the canonjson CLI: JSON on stdin, canonical form (or "invalid") on stdout.
-exec "$(dirname "$0")/bin/canonjson" "$@"
+# Run the jsoncanon CLI: stdin -> stdout. Works from any directory.
+exec "$(dirname "$0")/jsoncanon" "$@"

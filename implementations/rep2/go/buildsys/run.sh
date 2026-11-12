@@ -1,4 +1,3 @@
 #!/bin/sh
-# Usage: run.sh <input directory> <output directory>
-dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/bin/kiln" "$@"
+# Run kiln: run.sh <input directory> <output directory>. Works from any directory.
+exec "$(dirname "$0")/bin/kiln" "$@"

@@ -1,28 +1,74 @@
 package scheme
 
-import "example.com/scheme/bigint"
+import (
+	"io"
+	"strconv"
+	"strings"
 
-// reader scans an in-memory source buffer by index and builds datums.
-type reader struct {
-	in  *Interp
-	src []byte
+	"example.com/scheme/bigint"
+)
+
+// Reader is a recursive-descent reader that turns source text into datums.
+type Reader struct {
+	src string
 	pos int
 }
 
-func isDelim(c byte) bool {
-	switch c {
-	case ' ', '\t', '\r', '\n', '(', ')', '\'', '"', ';':
-		return true
+// NewReader returns a Reader over src.
+func NewReader(src string) *Reader { return &Reader{src: src} }
+
+// ReadAll parses every datum in src.
+func ReadAll(src string) ([]Value, error) {
+	r := NewReader(src)
+	var out []Value
+	for {
+		v, err := r.Next()
+		if err == io.EOF {
+			return out, nil
+		}
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, v)
 	}
-	return false
 }
 
-func (r *reader) skipSpace() {
+// Next returns the next datum, or io.EOF when the input is exhausted.
+func (r *Reader) Next() (v Value, err error) {
+	r.skip()
+	if r.pos >= len(r.src) {
+		return nil, io.EOF
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			if se, ok := p.(*SyntaxError); ok {
+				v, err = nil, se
+				return
+			}
+			panic(p)
+		}
+	}()
+	return r.datum(), nil
+}
+
+func (r *Reader) fail(msg string) {
+	panic(&SyntaxError{Msg: msg, Pos: r.pos})
+}
+
+func isSpace(c byte) bool { return c == ' ' || c == '\t' || c == '\r' || c == '\n' }
+
+func isDelim(c byte) bool {
+	return isSpace(c) || c == '(' || c == ')' || c == '\'' || c == '"' || c == ';'
+}
+
+// skip consumes whitespace and comments.
+func (r *Reader) skip() {
 	for r.pos < len(r.src) {
-		switch r.src[r.pos] {
-		case ' ', '\t', '\r', '\n':
+		c := r.src[r.pos]
+		switch {
+		case isSpace(c):
 			r.pos++
-		case ';':
+		case c == ';':
 			for r.pos < len(r.src) && r.src[r.pos] != '\n' {
 				r.pos++
 			}
@@ -32,30 +78,20 @@ func (r *reader) skipSpace() {
 	}
 }
 
-// next reads the next datum. It returns ok == false at end of input.
-func (r *reader) next() (v Value, ok bool) {
-	r.skipSpace()
+func (r *Reader) datum() Value {
+	r.skip()
 	if r.pos >= len(r.src) {
-		return Value{}, false
-	}
-	return r.datum(), true
-}
-
-func (r *reader) datum() Value {
-	r.skipSpace()
-	if r.pos >= len(r.src) {
-		throw(ErrSyntax)
+		r.fail("unexpected end of input")
 	}
 	switch c := r.src[r.pos]; c {
 	case '(':
 		r.pos++
 		return r.list()
 	case ')':
-		throw(ErrSyntax)
+		r.fail("unexpected ')'")
 	case '\'':
 		r.pos++
-		d := r.datum()
-		return cons(r.in.symVals[symQuote], cons(d, nilV))
+		return List(Intern("quote"), r.datum())
 	case '"':
 		r.pos++
 		return r.str()
@@ -63,15 +99,23 @@ func (r *reader) datum() Value {
 	return r.atom()
 }
 
-// list reads the elements after '(' up to and including ')'. Elements are
-// collected with a tail pointer, so the cost is linear in the list length.
-func (r *reader) list() Value {
-	head := nilV
+// list reads the rest of a list after its opening parenthesis.
+func (r *Reader) list() Value {
+	var head Value = Nil
 	var tail *Pair
+	appendItem := func(v Value) {
+		p := &Pair{v, Nil}
+		if tail == nil {
+			head = p
+		} else {
+			tail.Cdr = p
+		}
+		tail = p
+	}
 	for {
-		r.skipSpace()
+		r.skip()
 		if r.pos >= len(r.src) {
-			throw(ErrSyntax)
+			r.fail("unterminated list")
 		}
 		c := r.src[r.pos]
 		if c == ')' {
@@ -80,98 +124,90 @@ func (r *reader) list() Value {
 		}
 		if c == '.' && (r.pos+1 >= len(r.src) || isDelim(r.src[r.pos+1])) && tail != nil {
 			r.pos++
-			tail.cdr = r.datum()
-			r.skipSpace()
+			tail.Cdr = r.datum()
+			r.skip()
 			if r.pos >= len(r.src) || r.src[r.pos] != ')' {
-				throw(ErrSyntax)
+				r.fail("expected ')' after dotted tail")
 			}
 			r.pos++
 			return head
 		}
-		cell := &Pair{car: r.datum(), cdr: nilV}
-		if tail == nil {
-			head = Value{t: tPair, ref: cell}
-		} else {
-			tail.cdr = Value{t: tPair, ref: cell}
-		}
-		tail = cell
+		appendItem(r.datum())
 	}
 }
 
-func (r *reader) str() Value {
-	var buf []byte
+func (r *Reader) str() Value {
+	var sb strings.Builder
 	for r.pos < len(r.src) {
 		c := r.src[r.pos]
 		r.pos++
 		switch c {
 		case '"':
-			return Str(string(buf))
+			return NewString(sb.String())
 		case '\\':
 			if r.pos >= len(r.src) {
-				throw(ErrSyntax)
+				r.fail("unterminated string")
 			}
 			e := r.src[r.pos]
 			r.pos++
 			switch e {
 			case 'n':
-				buf = append(buf, '\n')
+				sb.WriteByte('\n')
 			case 't':
-				buf = append(buf, '\t')
-			default: // \" and \\ (no other escapes occur)
-				buf = append(buf, e)
+				sb.WriteByte('\t')
+			default: // \" and \\ (and, leniently, anything else)
+				sb.WriteByte(e)
 			}
 		default:
-			buf = append(buf, c)
+			sb.WriteByte(c)
 		}
 	}
-	throw(ErrSyntax)
-	return Value{}
+	r.fail("unterminated string")
+	return nil
 }
 
-func (r *reader) atom() Value {
+func (r *Reader) atom() Value {
 	start := r.pos
 	for r.pos < len(r.src) && !isDelim(r.src[r.pos]) {
 		r.pos++
 	}
 	tok := r.src[start:r.pos]
-	if len(tok) == 2 && tok[0] == '#' {
-		switch tok[1] {
-		case 't':
-			return trueV
-		case 'f':
-			return falsV
-		}
+	switch tok {
+	case "#t":
+		return True
+	case "#f":
+		return False
 	}
 	if v, ok := parseInteger(tok); ok {
 		return v
 	}
-	return r.in.intern(string(tok))
+	return Intern(tok)
 }
 
-// parseInteger recognises [+-]?[0-9]+ and builds a fixnum or bignum.
-func parseInteger(tok []byte) (Value, bool) {
-	i := 0
-	if len(tok) > 0 && (tok[0] == '+' || tok[0] == '-') {
-		i = 1
+// parseInteger recognises an optional sign followed by one or more ASCII
+// digits.
+func parseInteger(tok string) (Value, bool) {
+	digits := tok
+	if len(digits) > 0 && (digits[0] == '+' || digits[0] == '-') {
+		digits = digits[1:]
 	}
-	if i == len(tok) {
-		return Value{}, false
+	if len(digits) == 0 {
+		return nil, false
 	}
-	for j := i; j < len(tok); j++ {
-		if tok[j] < '0' || tok[j] > '9' {
-			return Value{}, false
+	for i := 0; i < len(digits); i++ {
+		if digits[i] < '0' || digits[i] > '9' {
+			return nil, false
 		}
 	}
-	if len(tok)-i <= 18 {
-		var n int64
-		for j := i; j < len(tok); j++ {
-			n = n*10 + int64(tok[j]-'0')
+	if len(digits) <= 18 {
+		n, err := strconv.ParseInt(tok, 10, 64)
+		if err == nil {
+			return Int(n), true
 		}
-		if tok[0] == '-' {
-			n = -n
-		}
-		return fix(n), true
 	}
-	b, _ := bigint.Parse(string(tok))
-	return fromBig(b), true
+	b, ok := bigint.Parse(tok)
+	if !ok {
+		return nil, false
+	}
+	return NewBig(b), true
 }

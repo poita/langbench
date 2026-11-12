@@ -1,6 +1,7 @@
 #!/bin/sh
-# Build the svgraster command into bin/svgraster.
+# Build the svgraster command-line tool into bin/svgraster.
 set -e
-DIR=$(cd "$(dirname "$0")" && pwd)
-cd "$DIR"
+dir=$(cd "$(dirname "$0")" && pwd)
+cd "$dir"
+mkdir -p bin
 go build -o bin/svgraster ./cmd/svgraster

@@ -1,5 +1,5 @@
 .dub/
-bin/
 *.o
 *.a
-dub.selections.json
+/spreadsheet
+spreadsheet-test-*

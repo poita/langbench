@@ -3,76 +3,85 @@ package dimacs
 import (
 	"bytes"
 	"reflect"
+	"strings"
 	"testing"
+
+	"example.com/sat"
 )
 
-func TestParseBasic(t *testing.T) {
-	f, err := Parse([]byte("c hi\np cnf 3 2\n1 -2 0\n2 3 0"))
-	if err != nil {
-		t.Fatal(err)
+func TestParse(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want CNF
+	}{
+		{"empty", "p cnf 0 0", CNF{}},
+		{"simple", "c hi\np cnf 3 2\n1 -2 0\n2 3 0\n", CNF{3, [][]int{{1, -2}, {2, 3}}}},
+		{"split and packed", "p cnf 2 4\n1 2\n0 -1 2 0\n-1 -2 0 1 -2 0", CNF{2, [][]int{{1, 2}, {-1, 2}, {-1, -2}, {1, -2}}}},
+		{"comments and blanks mid-clause", "  \tc x\n p  cnf\t2  2 \n1\ncfoo\n\n  c\n2 0\n0\n", CNF{2, [][]int{{1, 2}, {}}}},
+		{"repeats and tautology", "p cnf 2 2\n1 1 -2 0\n1 -1 0\n", CNF{2, [][]int{{1, 1, -2}, {1, -1}}}},
 	}
-	want := [][]int{{1, -2}, {2, 3}}
-	if f.NumVars != 3 || !reflect.DeepEqual(f.Clauses, want) {
-		t.Fatalf("got %+v", f)
-	}
-}
-
-func TestParseLayout(t *testing.T) {
-	in := "  c\n\n\t p \t cnf  2   4 \nc x\n1 2\ncfoo\n0 -1 2 0\n-1 -2 0 1 -2 0\n c end\n"
-	f, err := Parse([]byte(in))
-	if err != nil {
-		t.Fatal(err)
-	}
-	want := [][]int{{1, 2}, {-1, 2}, {-1, -2}, {1, -2}}
-	if !reflect.DeepEqual(f.Clauses, want) {
-		t.Fatalf("got %v", f.Clauses)
-	}
-}
-
-func TestParseEmptyClauseAndFormula(t *testing.T) {
-	f, err := Parse([]byte("p cnf 0 0\n"))
-	if err != nil || f.NumVars != 0 || len(f.Clauses) != 0 {
-		t.Fatalf("%+v %v", f, err)
-	}
-	f, err = Parse([]byte("p cnf 1 2\n0\n1 0\n"))
-	if err != nil || len(f.Clauses) != 2 || len(f.Clauses[0]) != 0 {
-		t.Fatalf("%+v %v", f, err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got, err := Parse(strings.NewReader(tc.in))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got.NumVars != tc.want.NumVars || len(got.Clauses) != len(tc.want.Clauses) {
+				t.Fatalf("got %+v, want %+v", got, tc.want)
+			}
+			for i := range got.Clauses {
+				if !reflect.DeepEqual(append([]int{}, got.Clauses[i]...), append([]int{}, tc.want.Clauses[i]...)) {
+					t.Fatalf("clause %d: got %v, want %v", i, got.Clauses[i], tc.want.Clauses[i])
+				}
+			}
+		})
 	}
 }
 
 func TestParseErrors(t *testing.T) {
-	cases := map[string]error{
-		"1 0\n":                  ErrNoHeader,
-		"":                       ErrNoHeader,
-		"p cnf 1\n":              ErrBadHeader,
-		"p cnf 1 1\np cnf 1 1\n": ErrDupHeader,
-		"p cnf 2 1\n1 2\n":       ErrUnterminated,
-		"p cnf 2 1\n3 0\n":       ErrBadLiteral,
-		"p cnf 2 1\n1 x 0\n":     ErrBadLiteral,
-		"p cnf 2 1\n- 0\n":       ErrBadLiteral,
-	}
-	for in, want := range cases {
-		if _, err := Parse([]byte(in)); err != want {
-			t.Errorf("Parse(%q) error = %v, want %v", in, err, want)
+	for name, in := range map[string]string{
+		"no header":         "1 2 0\n",
+		"unterminated":      "p cnf 2 1\n1 2\n",
+		"out of range":      "p cnf 2 1\n3 0\n",
+		"wrong count":       "p cnf 2 2\n1 0\n",
+		"bad header":        "p dnf 2 1\n1 0\n",
+		"clause pre-header": "1 0\np cnf 1 1\n",
+	} {
+		if _, err := Parse(strings.NewReader(in)); err == nil {
+			t.Errorf("%s: expected an error", name)
 		}
-	}
-	if _, err := Parse([]byte("p cnf 2 2\n1 0\n")); err == nil {
-		t.Error("clause-count mismatch not detected")
 	}
 }
 
 func TestWriteResult(t *testing.T) {
 	var b bytes.Buffer
-	if err := WriteResult(&b, true, []bool{true, false, true}); err != nil {
+	WriteResult(&b, sat.Satisfiable, []bool{true, false, true})
+	if b.String() != "SAT\n1 -2 3 0\n" {
+		t.Errorf("got %q", b.String())
+	}
+	b.Reset()
+	WriteResult(&b, sat.Satisfiable, nil)
+	if b.String() != "SAT\n0\n" {
+		t.Errorf("got %q", b.String())
+	}
+	b.Reset()
+	WriteResult(&b, sat.Unsatisfiable, nil)
+	if b.String() != "UNSAT\n" {
+		t.Errorf("got %q", b.String())
+	}
+}
+
+func TestSolverFromCNF(t *testing.T) {
+	f, err := Parse(strings.NewReader("p cnf 4 2\n1 2 0\n-1 0\n"))
+	if err != nil {
 		t.Fatal(err)
 	}
-	if b.String() != "SAT\n1 -2 3 0\n" {
-		t.Fatalf("got %q", b.String())
+	s := f.Solver()
+	if s.Solve() != sat.Satisfiable {
+		t.Fatal("want SAT")
 	}
-	if got := string(AppendResult(nil, true, nil)); got != "SAT\n0\n" {
-		t.Fatalf("got %q", got)
-	}
-	if got := string(AppendResult(nil, false, nil)); got != "UNSAT\n" {
-		t.Fatalf("got %q", got)
+	if m := s.Model(); len(m) != 4 || m[0] || !m[1] {
+		t.Fatalf("bad model %v", m)
 	}
 }

@@ -1,0 +1,9 @@
+@module main
+fn main() {
+    var m: #[Str: Int] = mapNew();
+    m["a"] = 1; m["b"] = 2; m["a"] = 3;
+    print(strJoin(keysOf(m), ","));
+    mapDel(m, "a"); m["a"] = 9;
+    print(strJoin(keysOf(m), ","));
+    print(showInt(mapLen(m)));
+}

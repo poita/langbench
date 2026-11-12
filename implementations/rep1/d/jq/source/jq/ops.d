@@ -1,37 +1,88 @@
-/**
- * Value-level operations: arithmetic, indexing, slicing and the data-oriented
- * builtins (`length`, `keys`, `sort`, `add`, ...).
- *
- * Every function is pure with respect to its arguments (values are immutable)
- * and reports failure by returning an error-tagged `Value` (see
- * `Value.isError`) rather than throwing.
- */
+/// Value-level operations: indexing, slicing, arithmetic and the builtin
+/// functions that do not need to evaluate sub-filters.
 module jq.ops;
 
-import core.stdc.string : memchr, memcmp, memcpy;
-import std.algorithm.sorting : sort;
 import std.algorithm.mutation : SwapStrategy;
-import std.math : floor, ceil;
+import std.algorithm.sorting : sort;
+import std.array : appender;
+import std.exception : assumeUnique;
+import std.string : indexOf;
 
+import jq.ast : BinOp;
+import jq.error;
 import jq.json;
 import jq.value;
 
-private Value typeError(string what, Value a, Value b = Value.makeNull) nothrow
-{
-    return Value.makeError(typeName(a.type) ~ " and " ~ typeName(b.type) ~ " cannot be " ~ what);
-}
-
-private Value typeError1(string what, Value a) nothrow
-{
-    return Value.makeError(typeName(a.type) ~ " " ~ what);
-}
-
 // ---------------------------------------------------------------------------
-// UTF-8 helpers
+// Indexing, slicing, iteration
 // ---------------------------------------------------------------------------
 
-/// Number of code points in a UTF-8 string.
-size_t codePointCount(string s) pure nothrow @trusted @nogc
+/// `t[k]` without raising: returns false if the operation is an error.
+bool tryIndex(Value t, Value k, out Value r)
+{
+    if (k.kind == Kind.String)
+    {
+        if (t.kind == Kind.Object)
+        {
+            auto p = t.obj.get(k.str);
+            r = p is null ? Value.makeNull() : *p;
+            return true;
+        }
+        if (t.kind == Kind.Null)
+        {
+            r = Value.makeNull();
+            return true;
+        }
+        return false;
+    }
+    if (k.kind == Kind.Number)
+    {
+        if (t.kind == Kind.Array)
+        {
+            double d = k.num;
+            immutable len = t.arr.length;
+            if (d != d)
+            {
+                r = Value.makeNull();
+                return true;
+            }
+            if (d < 0)
+                d = d + len;
+            if (d < 0 || d >= len)
+                r = Value.makeNull();
+            else
+                r = t.arr[cast(size_t) d];
+            return true;
+        }
+        if (t.kind == Kind.Null)
+        {
+            r = Value.makeNull();
+            return true;
+        }
+        return false;
+    }
+    return false;
+}
+
+/// The error for a failed `t[k]`.
+JqError indexError(Value t, Value k)
+{
+    if (k.kind == Kind.String && t.kind != Kind.Object)
+        return new JqError("Cannot index " ~ t.typeName ~ " with \"" ~ k.str ~ "\"");
+    return new JqError("Cannot index " ~ t.typeName ~ " with " ~ k.typeName);
+}
+
+/// `t[k]`, raising `JqError` on failure.
+Value index(Value t, Value k)
+{
+    Value r;
+    if (!tryIndex(t, k, r))
+        throw indexError(t, k);
+    return r;
+}
+
+/// Number of Unicode code points in UTF-8 text.
+size_t codePointCount(const(char)[] s) @trusted pure nothrow @nogc
 {
     size_t n = 0;
     foreach (c; cast(const(ubyte)[]) s)
@@ -40,267 +91,288 @@ size_t codePointCount(string s) pure nothrow @trusted @nogc
     return n;
 }
 
-/// Byte offset of the `cps`-th code point at or after byte offset `from`.
-private size_t advanceCodePoints(string s, size_t from, size_t cps) pure nothrow @trusted @nogc
+private size_t byteOffsetOfCodePoint(const(char)[] s, size_t cp) @trusted pure nothrow @nogc
 {
-    size_t i = from;
-    while (cps > 0 && i < s.length)
+    size_t seen = 0;
+    foreach (i, c; cast(const(ubyte)[]) s)
+        if ((c & 0xC0) != 0x80)
+        {
+            if (seen == cp)
+                return i;
+            ++seen;
+        }
+    return s.length;
+}
+
+/// `t[from:to]` without raising; a null bound means "omitted".
+bool trySlice(Value t, Value from, Value to, out Value r)
+{
+    import std.math : floor, ceil;
+
+    if (t.kind == Kind.Null)
     {
-        ++i;
-        while (i < s.length && ((cast(ubyte) s[i]) & 0xC0) == 0x80)
-            ++i;
-        --cps;
+        r = Value.makeNull();
+        return true;
     }
-    return i;
+    if (t.kind != Kind.Array && t.kind != Kind.String)
+        return false;
+    if ((from.kind != Kind.Null && from.kind != Kind.Number)
+            || (to.kind != Kind.Null && to.kind != Kind.Number))
+        return false;
+    immutable double len = t.kind == Kind.Array ? t.arr.length : codePointCount(t.str);
+    double a = from.kind == Kind.Null ? 0 : floor(from.num);
+    double b = to.kind == Kind.Null ? len : ceil(to.num);
+    if (a < 0)
+        a += len;
+    if (b < 0)
+        b += len;
+    a = a < 0 ? 0 : (a > len ? len : a);
+    b = b < 0 ? 0 : (b > len ? len : b);
+    if (b < a)
+        b = a;
+    immutable ia = cast(size_t) a, ib = cast(size_t) b;
+    if (t.kind == Kind.Array)
+        r = Value.makeArray(t.arr[ia .. ib]);
+    else
+    {
+        immutable ba = byteOffsetOfCodePoint(t.str, ia);
+        immutable bb = ib == cast(size_t) len ? t.str.length : byteOffsetOfCodePoint(t.str, ib);
+        r = Value.makeString(t.str[ba .. bb]);
+    }
+    return true;
+}
+
+/// The error for a failed slice.
+JqError sliceError(Value t)
+{
+    return new JqError("Cannot index " ~ t.typeName ~ " with object");
+}
+
+/// The error for iterating a non-iterable.
+JqError iterateError(Value t)
+{
+    return new JqError("Cannot iterate over " ~ t.typeName);
 }
 
 // ---------------------------------------------------------------------------
-// Arithmetic
+// Arithmetic and comparison
 // ---------------------------------------------------------------------------
 
-/// Shallow merge: `a` with each key of `b` set in order (right wins).
-Value mergeObjects(JObj a, JObj b) nothrow
+/// Applies a binary operator; raises `JqError` for unsupported types.
+Value binop(BinOp op, Value a, Value b)
 {
-    if (b.length == 0)
-        return Value.makeObject(a);
-    if (a.length == 0)
-        return Value.makeObject(b);
-    const useIndex = b.length > 4 && a.length > JObj.linearLimit;
-    auto pos = new ptrdiff_t[b.length];
-    size_t extra = 0;
-    foreach (j; 0 .. b.length)
+    final switch (op)
     {
-        const p = useIndex ? a.find(b.keys[j].s) : a.findScan(b.keys[j].s);
-        pos[j] = p;
-        if (p < 0)
-            ++extra;
+    case BinOp.add:
+        return plus(a, b);
+    case BinOp.sub:
+        return minus(a, b);
+    case BinOp.mul:
+        return times(a, b);
+    case BinOp.div:
+        return divide(a, b);
+    case BinOp.mod:
+        return modulo(a, b);
+    case BinOp.eq:
+        return Value.makeBool(equals(a, b));
+    case BinOp.ne:
+        return Value.makeBool(!equals(a, b));
+    case BinOp.lt:
+        return Value.makeBool(compare(a, b) < 0);
+    case BinOp.le:
+        return Value.makeBool(compare(a, b) <= 0);
+    case BinOp.gt:
+        return Value.makeBool(compare(a, b) > 0);
+    case BinOp.ge:
+        return Value.makeBool(compare(a, b) >= 0);
     }
-    auto keys = new JStr[a.length + extra];
-    auto vals = new Value[a.length + extra];
-    keys[0 .. a.length] = a.keys[];
-    vals[0 .. a.length] = a.vals[];
-    size_t m = a.length;
-    foreach (j; 0 .. b.length)
-    {
-        if (pos[j] >= 0)
-            vals[pos[j]] = b.vals[j];
-        else
-        {
-            keys[m] = b.keys[j];
-            vals[m] = b.vals[j];
-            ++m;
-        }
-    }
-    return Value.makeObject(new JObj(keys, vals));
 }
 
-/// Recursive merge (`*` on objects).
-Value deepMerge(JObj a, JObj b) nothrow
+private JqError typeError(string what, Value a, Value b)
 {
-    if (b.length == 0)
-        return Value.makeObject(a);
-    if (a.length == 0)
-        return Value.makeObject(b);
-    const useIndex = b.length > 4 && a.length > JObj.linearLimit;
-    auto pos = new ptrdiff_t[b.length];
-    size_t extra = 0;
-    foreach (j; 0 .. b.length)
-    {
-        const p = useIndex ? a.find(b.keys[j].s) : a.findScan(b.keys[j].s);
-        pos[j] = p;
-        if (p < 0)
-            ++extra;
-    }
-    auto keys = new JStr[a.length + extra];
-    auto vals = new Value[a.length + extra];
-    keys[0 .. a.length] = a.keys[];
-    vals[0 .. a.length] = a.vals[];
-    size_t m = a.length;
-    foreach (j; 0 .. b.length)
-    {
-        if (pos[j] >= 0)
-        {
-            Value old = vals[pos[j]];
-            if (old.type == Type.object && b.vals[j].type == Type.object)
-                vals[pos[j]] = deepMerge(old.obj, b.vals[j].obj);
-            else
-                vals[pos[j]] = b.vals[j];
-        }
-        else
-        {
-            keys[m] = b.keys[j];
-            vals[m] = b.vals[j];
-            ++m;
-        }
-    }
-    return Value.makeObject(new JObj(keys, vals));
+    return new JqError(a.typeName ~ " and " ~ b.typeName ~ " cannot be " ~ what);
 }
 
 /// `a + b`.
-Value opAdd(Value a, Value b) nothrow
+Value plus(Value a, Value b) @trusted
 {
-    if (a.type == Type.null_)
+    if (a.kind == Kind.Null)
         return b;
-    if (b.type == Type.null_)
+    if (b.kind == Kind.Null)
         return a;
-    if (a.type != b.type)
-        return typeError("added", a, b);
-    switch (a.type)
+    if (a.kind != b.kind)
+        throw typeError("added", a, b);
+    switch (a.kind)
     {
-    case Type.number:
+    case Kind.Number:
         return Value.makeNumber(a.num + b.num);
-    case Type.string:
+    case Kind.String:
+        return Value.makeString(a.str ~ b.str);
+    case Kind.Array:
+        if (a.arr.length == 0)
+            return b;
+        if (b.arr.length == 0)
+            return a;
         {
-            const x = a.str.s, y = b.str.s;
-            if (x.length == 0)
-                return b;
-            if (y.length == 0)
-                return a;
-            return Value.makeString(concat(x, y));
-        }
-    case Type.array:
-        {
-            auto x = a.arr.items, y = b.arr.items;
-            if (x.length == 0)
-                return b;
-            if (y.length == 0)
-                return a;
-            auto r = new Value[x.length + y.length];
-            r[0 .. x.length] = x[];
-            r[x.length .. $] = y[];
+            // `~=` extends in place when `a.arr` is the newest slice of its
+            // block (the runtime tracks that), so repeated `. + [x]` is
+            // amortized O(|b|); otherwise it copies. Other slices never see
+            // the appended elements.
+            Value[] r = a.arr;
+            r ~= b.arr;
             return Value.makeArray(r);
         }
-    case Type.object:
-        return mergeObjects(a.obj, b.obj);
+    case Kind.Object:
+        return Value.makeObject(mergeObjects(a.obj, b.obj, false));
     default:
-        return typeError("added", a, b);
+        throw typeError("added", a, b);
     }
 }
 
-private string concat(string x, string y) nothrow @trusted
+/// Merges `b` into `a`: existing keys keep their position, new ones are
+/// appended; with `deep`, values that are objects on both sides merge
+/// recursively. Costs O(|a| + |b|).
+JObject mergeObjects(JObject a, JObject b, bool deep)
 {
-    auto r = new char[x.length + y.length];
-    memcpy(r.ptr, x.ptr, x.length);
-    memcpy(r.ptr + x.length, y.ptr, y.length);
-    return cast(string) r;
+    if (b.length == 0)
+        return a;
+    if (a.length == 0)
+        return b;
+    // Fast path: no key of `b` is in `a`, so nothing is replaced.
+    if (a.length > 12 || b.length > 12)
+    {
+        bool disjoint = true;
+        foreach (k; b.keys)
+            if (a.find(k) >= 0)
+            {
+                disjoint = false;
+                break;
+            }
+        if (disjoint)
+            return a.appendDisjoint(b.keys, b.vals);
+    }
+    auto keys = new string[a.length + b.length];
+    auto vals = new Value[a.length + b.length];
+    keys[0 .. a.length] = a.keys[];
+    vals[0 .. a.length] = a.vals[];
+    size_t n = a.length;
+    foreach (i; 0 .. b.length)
+    {
+        immutable pos = a.find(b.keys[i]);
+        if (pos >= 0)
+        {
+            auto bv = b.vals[i];
+            if (deep && vals[pos].kind == Kind.Object && bv.kind == Kind.Object)
+                vals[pos] = Value.makeObject(mergeObjects(vals[pos].obj, bv.obj, true));
+            else
+                vals[pos] = bv;
+        }
+        else
+        {
+            keys[n] = b.keys[i];
+            vals[n] = b.vals[i];
+            ++n;
+        }
+    }
+    return new JObject(keys[0 .. n], vals[0 .. n]);
 }
 
 /// `a - b`.
-Value opSub(Value a, Value b) nothrow
+Value minus(Value a, Value b)
 {
-    if (a.type == Type.number && b.type == Type.number)
+    if (a.kind == Kind.Number && b.kind == Kind.Number)
         return Value.makeNumber(a.num - b.num);
-    if (a.type == Type.array && b.type == Type.array)
+    if (a.kind == Kind.Array && b.kind == Kind.Array)
     {
-        Value[] r;
-        r.reserve(a.arr.items.length);
-        outer: foreach (x; a.arr.items)
+        auto r = appender!(Value[])();
+        foreach (x; a.arr)
         {
-            foreach (y; b.arr.items)
+            bool found = false;
+            foreach (y; b.arr)
                 if (equals(x, y))
-                    continue outer;
-            r ~= x;
+                {
+                    found = true;
+                    break;
+                }
+            if (!found)
+                r.put(x);
         }
-        return Value.makeArray(r);
+        return Value.makeArray(r.data);
     }
-    return typeError("subtracted", a, b);
-}
-
-private Value repeatString(string s, double n) nothrow @trusted
-{
-    if (n < 0 || n != n)
-        return Value.makeNull;
-    const count = cast(size_t) n;
-    if (count == 0 || s.length == 0)
-        return Value.makeString("");
-    if (count > (size_t(1) << 31) / s.length)
-        return Value.makeError("repeat string result too long");
-    auto r = new char[s.length * count];
-    foreach (i; 0 .. count)
-        memcpy(r.ptr + i * s.length, s.ptr, s.length);
-    return Value.makeString(cast(string) r);
+    throw typeError("subtracted", a, b);
 }
 
 /// `a * b`.
-Value opMul(Value a, Value b) nothrow
+Value times(Value a, Value b) @trusted
 {
-    if (a.type == Type.number && b.type == Type.number)
+    if (a.kind == Kind.Number && b.kind == Kind.Number)
         return Value.makeNumber(a.num * b.num);
-    if (a.type == Type.string && b.type == Type.number)
-        return repeatString(a.str.s, b.num);
-    if (a.type == Type.number && b.type == Type.string)
-        return repeatString(b.str.s, a.num);
-    if (a.type == Type.object && b.type == Type.object)
-        return deepMerge(a.obj, b.obj);
-    return typeError("multiplied", a, b);
+    if ((a.kind == Kind.String && b.kind == Kind.Number) || (a.kind == Kind.Number && b.kind == Kind.String))
+    {
+        immutable s = a.kind == Kind.String ? a.str : b.str;
+        immutable d = a.kind == Kind.Number ? a.num : b.num;
+        if (d < 0 || d != d)
+            return Value.makeNull();
+        immutable cnt = d >= 1e9 ? cast(size_t) 1_000_000_000 : cast(size_t) d;
+        if (cnt == 0 || s.length == 0)
+            return Value.makeString("");
+        auto buf = new char[s.length * cnt];
+        foreach (i; 0 .. cnt)
+            buf[i * s.length .. (i + 1) * s.length] = s[];
+        return Value.makeString(assumeUnique(buf));
+    }
+    if (a.kind == Kind.Object && b.kind == Kind.Object)
+        return Value.makeObject(mergeObjects(a.obj, b.obj, true));
+    throw typeError("multiplied", a, b);
 }
 
-/// Split `s` on `sep` (like jq's string division).
-Value splitString(string s, string sep) nothrow @trusted
+/// `a / b`.
+Value divide(Value a, Value b)
 {
-    Value[] parts;
+    if (a.kind == Kind.Number && b.kind == Kind.Number)
+    {
+        if (b.num == 0)
+            throw new JqError(a.typeName ~ " and " ~ b.typeName ~ " cannot be divided because the divisor is zero");
+        return Value.makeNumber(a.num / b.num);
+    }
+    if (a.kind == Kind.String && b.kind == Kind.String)
+        return splitString(a.str, b.str);
+    throw typeError("divided", a, b);
+}
+
+/// Splits `s` on every occurrence of `sep` (`""` splits into code points).
+Value splitString(string s, string sep)
+{
+    auto r = appender!(Value[])();
     if (s.length == 0)
-        return Value.makeArray(parts);
+        return Value.makeArray([]);
     if (sep.length == 0)
     {
         size_t i = 0;
         while (i < s.length)
         {
-            const j = advanceCodePoints(s, i, 1);
-            parts ~= Value.makeString(s[i .. j]);
+            size_t j = i + 1;
+            while (j < s.length && (cast(ubyte) s[j] & 0xC0) == 0x80)
+                ++j;
+            r.put(Value.makeString(s[i .. j]));
             i = j;
         }
-        return Value.makeArray(parts);
+        return Value.makeArray(r.data);
     }
-    size_t start = 0, i = 0;
-    const first = sep[0];
-    while (i + sep.length <= s.length)
+    size_t start = 0;
+    while (true)
     {
-        auto p = cast(const(char)*) memchr(s.ptr + i, first, s.length - sep.length + 1 - i);
-        if (p is null)
+        immutable pos = indexOf(s[start .. $], sep);
+        if (pos < 0)
             break;
-        i = p - s.ptr;
-        if (memcmp(s.ptr + i, sep.ptr, sep.length) == 0)
-        {
-            parts ~= Value.makeString(s[start .. i]);
-            i += sep.length;
-            start = i;
-        }
-        else
-            ++i;
+        r.put(Value.makeString(s[start .. start + pos]));
+        start += pos + sep.length;
     }
-    parts ~= Value.makeString(s[start .. $]);
-    return Value.makeArray(parts);
+    r.put(Value.makeString(s[start .. $]));
+    return Value.makeArray(r.data);
 }
 
-/// `a / b`.
-Value opDiv(Value a, Value b) nothrow
-{
-    if (a.type == Type.number && b.type == Type.number)
-    {
-        if (b.num == 0)
-            return Value.makeError("number and number cannot be divided because the divisor is zero");
-        return Value.makeNumber(a.num / b.num);
-    }
-    if (a.type == Type.string && b.type == Type.string)
-        return splitString(a.str.s, b.str.s);
-    return typeError("divided", a, b);
-}
-
-/// `a % b`.
-Value opMod(Value a, Value b) nothrow
-{
-    if (a.type != Type.number || b.type != Type.number)
-        return typeError("divided", a, b);
-    const x = toLong(a.num), y = toLong(b.num);
-    if (y == 0)
-        return Value.makeError("number and number cannot be divided because the divisor is zero");
-    if (y == -1)
-        return Value.makeNumber(0);
-    return Value.makeNumber(cast(double)(x % y));
-}
-
-private long toLong(double d) pure nothrow @safe @nogc
+private long toLong(double d) pure nothrow @nogc @safe
 {
     if (d != d)
         return 0;
@@ -311,384 +383,271 @@ private long toLong(double d) pure nothrow @safe @nogc
     return cast(long) d;
 }
 
-/// Unary minus.
-Value opNeg(Value a) nothrow
+/// `a % b`.
+Value modulo(Value a, Value b)
 {
-    if (a.type != Type.number)
-        return typeError1("cannot be negated", a);
-    return Value.makeNumber(-a.num);
-}
-
-// ---------------------------------------------------------------------------
-// Indexing and slicing
-// ---------------------------------------------------------------------------
-
-/// `t[k]` for a string or number `k`.
-Value indexValue(Value t, Value k) nothrow
-{
-    switch (k.type)
+    if (a.kind == Kind.Number && b.kind == Kind.Number)
     {
-    case Type.string:
-        if (t.type == Type.object)
-            return t.obj.get(k.str.s);
-        if (t.type == Type.null_)
-            return Value.makeNull;
-        return Value.makeError("cannot index " ~ typeName(t.type) ~ " with string");
-    case Type.number:
-        if (t.type == Type.array)
-        {
-            auto items = t.arr.items;
-            const len = cast(double) items.length;
-            double d = k.num;
-            if (d != d)
-                return Value.makeNull;
-            d = d < 0 ? ceil(d) : floor(d);
-            if (d < 0)
-                d += len;
-            if (d < 0 || d >= len)
-                return Value.makeNull;
-            return items[cast(size_t) d];
-        }
-        if (t.type == Type.null_)
-            return Value.makeNull;
-        return Value.makeError("cannot index " ~ typeName(t.type) ~ " with number");
-    default:
-        return Value.makeError("cannot index " ~ typeName(t.type) ~ " with " ~ typeName(k.type));
+        immutable x = toLong(a.num), y = toLong(b.num);
+        if (y == 0)
+            throw new JqError(a.typeName ~ " and " ~ b.typeName ~ " cannot be divided because the divisor is zero");
+        if (y == -1)
+            return Value.makeNumber(0);
+        return Value.makeNumber(cast(double)(x % y));
     }
+    throw typeError("divided", a, b);
 }
 
-/// `t[from:to]`; a `null` bound means "open".
-Value sliceValue(Value t, Value from, Value to) nothrow
+/// Unary minus.
+Value negate(Value a)
 {
-    if (t.type == Type.null_)
-        return t;
-    if (t.type != Type.array && t.type != Type.string)
-        return Value.makeError("cannot slice " ~ typeName(t.type));
-    if ((from.type != Type.null_ && from.type != Type.number)
-        || (to.type != Type.null_ && to.type != Type.number))
-        return Value.makeError("start and end indices of an array slice must be numbers");
-    const isArr = t.type == Type.array;
-    const len = isArr ? t.arr.items.length : codePointCount(t.str.s);
-    const dl = cast(double) len;
-    double f = from.type == Type.null_ ? 0 : floor(from.num);
-    double e = to.type == Type.null_ ? dl : ceil(to.num);
-    if (f != f)
-        f = 0;
-    if (e != e)
-        e = dl;
-    if (f < 0)
-        f += dl;
-    if (e < 0)
-        e += dl;
-    f = f < 0 ? 0 : (f > dl ? dl : f);
-    e = e < 0 ? 0 : (e > dl ? dl : e);
-    if (e < f)
-        e = f;
-    const fi = cast(size_t) f, ei = cast(size_t) e;
-    if (isArr)
-        return Value.makeArray(t.arr.items[fi .. ei].dup);
-    const s = t.str.s;
-    const b0 = advanceCodePoints(s, 0, fi);
-    const b1 = advanceCodePoints(s, b0, ei - fi);
-    return Value.makeString(s[b0 .. b1]);
+    if (a.kind != Kind.Number)
+        throw new JqError(a.typeName ~ " cannot be negated");
+    return Value.makeNumber(-a.num);
 }
 
 // ---------------------------------------------------------------------------
 // Builtins on values
 // ---------------------------------------------------------------------------
 
-private __gshared JStr[8] typeNames;
-
-shared static this()
-{
-    foreach (t; [Type.null_, Type.false_, Type.true_, Type.number, Type.string, Type.array, Type.object])
-        typeNames[t] = new JStr(typeName(t));
-}
-
-/// `type`.
-Value opType(Value v) nothrow @trusted
-{
-    return Value.makeString(typeNames[v.type]);
-}
-
 /// `length`.
-Value opLength(Value v) nothrow
+Value length(Value v)
 {
-    switch (v.type)
+    final switch (v.kind)
     {
-    case Type.null_: return Value.makeNumber(0);
-    case Type.number: return Value.makeNumber(v.num < 0 ? -v.num : v.num);
-    case Type.string: return Value.makeNumber(cast(double) codePointCount(v.str.s));
-    case Type.array: return Value.makeNumber(cast(double) v.arr.items.length);
-    case Type.object: return Value.makeNumber(cast(double) v.obj.length);
-    default: return typeError1("has no length", v);
+    case Kind.Null:
+        return Value.makeNumber(0);
+    case Kind.False:
+    case Kind.True:
+        throw new JqError("boolean has no length");
+    case Kind.Number:
+        return Value.makeNumber(v.num < 0 ? -v.num : v.num);
+    case Kind.String:
+        return Value.makeNumber(codePointCount(v.str));
+    case Kind.Array:
+        return Value.makeNumber(v.arr.length);
+    case Kind.Object:
+        return Value.makeNumber(v.obj.length);
     }
 }
 
 /// `keys`.
-Value opKeys(Value v) nothrow
+Value keys(Value v)
 {
-    if (v.type == Type.object)
+    if (v.kind == Kind.Object)
     {
-        auto o = v.obj;
-        auto ord = o.sortedOrder;
-        auto r = new Value[ord.length];
-        foreach (i, p; ord)
-            r[i] = Value.makeString(o.keys[p]);
+        auto ks = v.obj.sortedKeys();
+        auto r = new Value[ks.length];
+        foreach (i, k; ks)
+            r[i] = Value.makeString(k);
         return Value.makeArray(r);
     }
-    if (v.type == Type.array)
+    if (v.kind == Kind.Array)
     {
-        auto r = new Value[v.arr.items.length];
-        foreach (i, ref x; r)
-            x = Value.makeNumber(cast(double) i);
+        auto r = new Value[v.arr.length];
+        foreach (i; 0 .. r.length)
+            r[i] = Value.makeNumber(i);
         return Value.makeArray(r);
     }
-    return typeError1("has no keys", v);
+    throw new JqError(v.typeName ~ " has no keys");
 }
 
 /// `has(k)`.
-Value opHas(Value t, Value k) nothrow
+Value has(Value v, Value k)
 {
-    if (t.type == Type.object && k.type == Type.string)
-        return Value.makeBool(t.obj.has(k.str.s));
-    if (t.type == Type.array && k.type == Type.number)
-    {
-        const d = k.num;
-        return Value.makeBool(d == d && d > -1 && d < cast(double) t.arr.items.length);
-    }
-    if (t.type == Type.null_)
+    if (v.kind == Kind.Null)
         return Value.makeBool(false);
-    return Value.makeError("cannot check whether " ~ typeName(t.type) ~ " has a " ~ typeName(k.type) ~ " key");
-}
-
-/// `tostring`.
-Value opToString(Value v) nothrow
-{
-    if (v.type == Type.string)
-        return v;
-    return Value.makeString(toJson(v));
-}
-
-/// `tonumber`.
-Value opToNumber(Value v) nothrow
-{
-    if (v.type == Type.number)
-        return v;
-    if (v.type == Type.string)
+    if (v.kind == Kind.Object && k.kind == Kind.String)
+        return Value.makeBool(v.obj.find(k.str) >= 0);
+    if (v.kind == Kind.Array && k.kind == Kind.Number)
     {
-        double d;
-        const s = v.str.s;
-        if (s.length > 0 && scanNumber(s, 0, d) == s.length)
-            return Value.makeNumber(d);
-        return Value.makeError("cannot be parsed as a number");
+        immutable d = k.num;
+        return Value.makeBool(d > -1 && d < v.arr.length);
     }
-    return typeError1("cannot be parsed as a number", v);
+    throw new JqError("Cannot check whether " ~ v.typeName ~ " has a " ~ k.typeName ~ " key");
 }
 
-/// Indices `0 .. keys.length` ordered by `keys` (stable: ties keep index order).
-uint[] sortedPermutation(const(Value)[] keys) nothrow
+/// The elements of an array or the values of an object; raises otherwise.
+Value[] elementsOf(Value v)
 {
-    auto idx = new uint[keys.length];
-    foreach (i, ref x; idx)
-        x = cast(uint) i;
-    if (idx.length > 1)
-        idx.sort!((a, b) {
-            const c = compare(keys[a], keys[b]);
-            return c < 0 || (c == 0 && a < b);
-        });
-    return idx;
+    if (v.kind == Kind.Array)
+        return v.arr;
+    if (v.kind == Kind.Object)
+        return v.obj.vals;
+    throw iterateError(v);
+}
+
+/// `add`: sums the elements with `+`, linear in the total size.
+Value add(Value v)
+{
+    auto xs = elementsOf(v);
+    Value cur = Value.makeNull();
+    size_t i = 0;
+    while (i < xs.length)
+    {
+        auto x = xs[i];
+        if (cur.kind == Kind.String && x.kind == Kind.String)
+        {
+            size_t j = i, total = cur.str.length;
+            while (j < xs.length && xs[j].kind == Kind.String)
+                total += xs[j++].str.length;
+            auto buf = new char[total];
+            size_t o = cur.str.length;
+            buf[0 .. o] = cur.str[];
+            foreach (k; i .. j)
+            {
+                buf[o .. o + xs[k].str.length] = xs[k].str[];
+                o += xs[k].str.length;
+            }
+            cur = Value.makeString(assumeUnique(buf));
+            i = j;
+        }
+        else if (cur.kind == Kind.Array && x.kind == Kind.Array)
+        {
+            size_t j = i, total = cur.arr.length;
+            while (j < xs.length && xs[j].kind == Kind.Array)
+                total += xs[j++].arr.length;
+            auto buf = new Value[total];
+            size_t o = cur.arr.length;
+            buf[0 .. o] = cur.arr[];
+            foreach (k; i .. j)
+            {
+                buf[o .. o + xs[k].arr.length] = xs[k].arr[];
+                o += xs[k].arr.length;
+            }
+            cur = Value.makeArray(buf);
+            i = j;
+        }
+        else if (cur.kind == Kind.Object && x.kind == Kind.Object)
+        {
+            size_t j = i;
+            while (j < xs.length && xs[j].kind == Kind.Object)
+                ++j;
+            auto b = ObjectBuilder(cur.obj.length + 8);
+            foreach (k; 0 .. cur.obj.length)
+                b.set(cur.obj.keys[k], cur.obj.vals[k]);
+            foreach (k; i .. j)
+                foreach (m; 0 .. xs[k].obj.length)
+                    b.set(xs[k].obj.keys[m], xs[k].obj.vals[m]);
+            cur = Value.makeObject(b.build());
+            i = j;
+        }
+        else
+        {
+            cur = plus(cur, x);
+            ++i;
+        }
+    }
+    return cur;
+}
+
+/// An element paired with its sort key `[f]`.
+struct Keyed
+{
+    Value[] key;
+    Value val;
+}
+
+/// Stable sort by key.
+void sortKeyed(Keyed[] ks)
+{
+    sort!((a, b) => compareArrays(a.key, b.key) < 0, SwapStrategy.stable)(ks);
+}
+
+private Value[] sortedCopy(Value[] xs)
+{
+    auto c = xs.dup;
+    sort!((a, b) => compare(a, b) < 0, SwapStrategy.stable)(c);
+    return c;
+}
+
+private Value[] requireArray(Value v, string what)
+{
+    if (v.kind != Kind.Array)
+        throw new JqError(v.typeName ~ " cannot be " ~ what);
+    return v.arr;
 }
 
 /// `sort`.
-Value opSort(Value v) nothrow
+Value sortValues(Value v)
 {
-    if (v.type != Type.array)
-        return typeError1("cannot be sorted, as it is not an array", v);
-    auto src = v.arr.items;
-    auto idx = sortedPermutation(src);
-    auto r = new Value[src.length];
-    foreach (i, p; idx)
-        r[i] = src[p];
-    return Value.makeArray(r);
+    return Value.makeArray(sortedCopy(requireArray(v, "sorted, as it is not an array")));
 }
 
 /// `unique`.
-Value opUnique(Value v) nothrow
+Value unique(Value v)
 {
-    if (v.type != Type.array)
-        return typeError1("cannot be sorted, as it is not an array", v);
-    auto src = v.arr.items;
-    auto idx = sortedPermutation(src);
-    Value[] r;
-    r.reserve(src.length);
-    foreach (p; idx)
-        if (r.length == 0 || !equals(r[$ - 1], src[p]))
-            r ~= src[p];
-    return Value.makeArray(r);
+    auto s = sortedCopy(requireArray(v, "sorted, as it is not an array"));
+    size_t n = 0;
+    foreach (x; s)
+        if (n == 0 || !equals(s[n - 1], x))
+            s[n++] = x;
+    return Value.makeArray(s[0 .. n]);
 }
 
 /// `reverse`.
-Value opReverse(Value v) nothrow
+Value reverse(Value v)
 {
-    if (v.type == Type.null_)
-        return Value.makeArray(null);
-    if (v.type != Type.array)
-        return typeError1("cannot be reversed, as it is not an array", v);
-    auto src = v.arr.items;
-    auto r = new Value[src.length];
-    foreach (i, x; src)
+    if (v.kind == Kind.Null)
+        return Value.makeArray([]);
+    if (v.kind != Kind.Array)
+        throw new JqError("Cannot reverse " ~ v.typeName);
+    auto r = new Value[v.arr.length];
+    foreach (i, x; v.arr)
         r[$ - 1 - i] = x;
     return Value.makeArray(r);
 }
 
-/// `min` (first minimal element) or `max` (last maximal element).
-Value opMinMax(Value v, bool wantMax) nothrow
+/// `min` (first minimal element) / `max` (last maximal element).
+Value minMax(Value v, bool wantMax)
 {
-    if (v.type != Type.array)
-        return typeError1("cannot be iterated over for min/max", v);
-    auto src = v.arr.items;
-    if (src.length == 0)
-        return Value.makeNull;
-    Value best = src[0];
-    foreach (x; src[1 .. $])
+    auto xs = requireArray(v, "iterated over");
+    if (xs.length == 0)
+        return Value.makeNull();
+    auto best = xs[0];
+    foreach (x; xs[1 .. $])
     {
-        const c = compare(x, best);
+        immutable c = compare(x, best);
         if (wantMax ? c >= 0 : c < 0)
             best = x;
     }
     return best;
 }
 
-/// Accumulates `null + x1 + x2 + ...` in linear time using private builders.
-struct Adder
+/// `tostring`.
+Value tostring(Value v)
 {
-    private enum Mode : ubyte { none, number, text, array, object, other }
-    private Mode mode;
-    private double sum = 0;
-    private char[] text;
-    private Value[] items;
-    private JObj obj;
-    private Value other;
-
-    /// Fold in one more element. Returns an error value on a type mismatch, else null.
-    Value push(Value x) nothrow
-    {
-        if (x.type == Type.null_)
-            return Value.makeNull;
-        final switch (mode)
-        {
-        case Mode.none:
-            switch (x.type)
-            {
-            case Type.number:
-                mode = Mode.number;
-                sum = x.num;
-                break;
-            case Type.string:
-                mode = Mode.text;
-                text ~= x.str.s;
-                break;
-            case Type.array:
-                mode = Mode.array;
-                items ~= x.arr.items;
-                break;
-            case Type.object:
-                mode = Mode.object;
-                obj = x.obj.copy();
-                break;
-            default:
-                mode = Mode.other;
-                other = x;
-            }
-            break;
-        case Mode.number:
-            if (x.type != Type.number)
-                return typeError("added", Value.makeNumber(sum), x);
-            sum += x.num;
-            break;
-        case Mode.text:
-            if (x.type != Type.string)
-                return typeError("added", Value.makeString("") , x);
-            text ~= x.str.s;
-            break;
-        case Mode.array:
-            if (x.type != Type.array)
-                return typeError("added", Value.makeArray(null), x);
-            items ~= x.arr.items;
-            break;
-        case Mode.object:
-            if (x.type != Type.object)
-                return typeError("added", Value.makeObject(obj), x);
-            foreach (i; 0 .. x.obj.length)
-                obj.set(x.obj.keys[i], x.obj.vals[i]);
-            break;
-        case Mode.other:
-            return typeError("added", other, x);
-        }
-        return Value.makeNull;
-    }
-
-    /// The accumulated value.
-    Value result() nothrow @trusted
-    {
-        final switch (mode)
-        {
-        case Mode.none: return Value.makeNull;
-        case Mode.number: return Value.makeNumber(sum);
-        case Mode.text: return Value.makeString(cast(string) text);
-        case Mode.array: return Value.makeArray(items);
-        case Mode.object: return Value.makeObject(obj);
-        case Mode.other: return other;
-        }
-    }
+    if (v.kind == Kind.String)
+        return v;
+    return Value.makeString(toJson(v));
 }
 
-/// `add` on an array or object.
-Value opAddAll(Value v) nothrow
+/// `tonumber`.
+Value tonumber(Value v)
 {
-    Adder a;
-    if (v.type == Type.array)
+    if (v.kind == Kind.Number)
+        return v;
+    if (v.kind == Kind.String)
     {
-        foreach (x; v.arr.items)
-        {
-            auto e = a.push(x);
-            if (e.isError)
-                return e;
-        }
+        double d;
+        if (parseNumberText(v.str, d))
+            return Value.makeNumber(d);
+        throw new JqError("Cannot parse '" ~ v.str ~ "' as a number");
     }
-    else if (v.type == Type.object)
-    {
-        foreach (x; v.obj.vals)
-        {
-            auto e = a.push(x);
-            if (e.isError)
-                return e;
-        }
-    }
-    else
-        return Value.makeError("cannot iterate over " ~ typeName(v.type));
-    return a.result;
+    throw new JqError(v.typeName ~ " cannot be parsed as a number");
 }
 
-/// Apply a binary operator.
-Value applyBinary(BinOp op, Value a, Value b) nothrow
+unittest
 {
-    final switch (op)
-    {
-    case BinOp.add: return opAdd(a, b);
-    case BinOp.sub: return opSub(a, b);
-    case BinOp.mul: return opMul(a, b);
-    case BinOp.div: return opDiv(a, b);
-    case BinOp.mod: return opMod(a, b);
-    case BinOp.eq: return Value.makeBool(compare(a, b) == 0);
-    case BinOp.ne: return Value.makeBool(compare(a, b) != 0);
-    case BinOp.lt: return Value.makeBool(compare(a, b) < 0);
-    case BinOp.le: return Value.makeBool(compare(a, b) <= 0);
-    case BinOp.gt: return Value.makeBool(compare(a, b) > 0);
-    case BinOp.ge: return Value.makeBool(compare(a, b) >= 0);
-    }
+    auto n = (double d) => Value.makeNumber(d);
+    Value r;
+    assert(trySlice(Value.makeString("aé😀bc"), n(1), n(4), r) && r.str == "é😀b");
+    assert(trySlice(Value.makeString("abc"), n(-2), Value.makeNull(), r) && r.str == "bc");
+    assert(trySlice(Value.makeArray([n(1), n(2), n(3)]), Value.makeNull(), n(-1), r) && r.arr.length == 2);
+    assert(toJson(modulo(n(-7), n(3))) == "-1" && toJson(modulo(n(7), n(-3))) == "1");
+    assert(toJson(splitString("a,b,,c", ",")) == `["a","b","","c"]`);
+    assert(toJson(splitString("abc", "")) == `["a","b","c"]`);
+    assert(toJson(splitString("", ",")) == `[]`);
+    assert(toJson(times(Value.makeString("ab"), n(2))) == `"abab"`);
+    assert(toJson(times(Value.makeString("ab"), n(-1))) == `null`);
 }
-
-/// Binary operators of the filter language.
-enum BinOp : ubyte { add, sub, mul, div, mod, eq, ne, lt, le, gt, ge }

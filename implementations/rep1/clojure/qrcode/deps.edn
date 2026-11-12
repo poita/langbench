@@ -1,0 +1,15 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+
+ :aliases
+ {;; clojure -M:run < queries.txt
+  ;; target/classes holds the AOT-compiled CLI produced by build.sh.
+  :run  {:extra-paths ["target/classes"]
+         :main-opts ["-m" "qrcode.cli"]}
+
+  ;; clojure -M:test
+  :test {:extra-paths ["test" "test-resources"]
+         :extra-deps  {org.clojure/test.check {:mvn/version "1.1.1"}
+                       io.github.cognitect-labs/test-runner
+                       {:git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}}
+         :main-opts   ["-m" "cognitect.test-runner"]}}}

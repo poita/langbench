@@ -1,8 +1,5 @@
 .dub/
-kiln
-*.a
+bin/
 *.o
-*.lib
-*-test-*
+*.a
 dub.selections.json
-docs/

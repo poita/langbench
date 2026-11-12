@@ -1,0 +1,12 @@
+% Transitive closure whose base tuples arrive in different fixpoint rounds:
+% the `late` links only join `link` once link(1, 2) exists, so the closure
+% rule must combine tuples derived earlier with tuples derived later, in
+% either argument position.
+edge(1, 2).
+late(2, 3). late(3, 4).
+link(X, Y) :- edge(X, Y).
+link(X, Y) :- unlocked(X, Y).
+unlocked(X, Y) :- late(X, Y), link(1, 2).
+link(X, Z) :- link(X, Y), link(Y, Z).
+?- link(X, Y).
+?- unlocked(X, Y).

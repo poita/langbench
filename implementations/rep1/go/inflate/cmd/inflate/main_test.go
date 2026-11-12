@@ -2,30 +2,57 @@ package main
 
 import (
 	"bytes"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
 
-func TestRun(t *testing.T) {
-	tests := []struct{ name, in, want string }{
-		{"empty data", "0300\n", "\n"},
-		{"stored", "010100feff41\n", "41\n"},
-		{"backref", "4b4c4a862000\n", "616263616263616263\n"},
-		{"surrounding whitespace", "  4b4c4a862000 \r\n\n", "616263616263616263\n"},
-		{"no newline", "010100feff41", "41\n"},
-		{"empty input", "\n", "error\n"},
-		{"empty input, no newline", "", "error\n"},
-		{"bad distance", "030200\n", "error\n"},
-		{"trailing data", "030000\n", "error\n"},
-		{"bad hex", "zz\n", "error\n"},
+func runString(t *testing.T, in string) string {
+	t.Helper()
+	var out bytes.Buffer
+	if err := run(strings.NewReader(in), &out); err != nil {
+		t.Fatal(err)
 	}
-	for _, tc := range tests {
-		var out bytes.Buffer
-		if err := run(strings.NewReader(tc.in), &out); err != nil {
-			t.Errorf("%s: %v", tc.name, err)
+	return out.String()
+}
+
+func TestRun(t *testing.T) {
+	tests := map[string]string{
+		"0300\n":         "\n",
+		"":               "error\n",
+		"\n":             "error\n",
+		"010100feff41\n": "41\n",
+		"4b4c4a862000\n": "616263616263616263\n",
+		"030200\n":       "error\n",
+		"  0300  \n":     "\n",
+	}
+	for in, want := range tests {
+		if got := runString(t, in); got != want {
+			t.Errorf("run(%q) = %q, want %q", in, got, want)
 		}
-		if out.String() != tc.want {
-			t.Errorf("%s: got %q, want %q", tc.name, out.String(), tc.want)
+	}
+}
+
+// TestConformance runs the shared problem tests when they are available.
+func TestConformance(t *testing.T) {
+	dir := filepath.Join("..", "..", "..", "problems", "inflate", "tests")
+	ins, _ := filepath.Glob(filepath.Join(dir, "*.in"))
+	if len(ins) == 0 {
+		t.Skip("problem tests not found")
+	}
+	for _, in := range ins {
+		input, err := os.ReadFile(in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, err := os.ReadFile(strings.TrimSuffix(in, ".in") + ".out")
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := runString(t, string(input))
+		if strings.TrimSpace(got) != strings.TrimSpace(string(want)) {
+			t.Errorf("%s: mismatch", filepath.Base(in))
 		}
 	}
 }

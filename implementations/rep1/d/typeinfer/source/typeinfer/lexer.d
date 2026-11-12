@@ -1,163 +1,177 @@
 /**
- * One-pass lexer.
+ * Lexical analysis.
  *
- * Turns source text into an array of `Token`s. Keywords and symbols get their
- * own `Tok` kind; identifiers carry a dense integer id from an `Interner`;
- * integer literals carry no value.
+ * Turns program text into an array of $(LREF Token)s. Tokens refer back to the
+ * source by byte offsets, so tokenising allocates only the token array.
  */
 module typeinfer.lexer;
 
-import typeinfer.errors;
-
-/// Token kinds: one per keyword and per symbol.
+/// Kinds of token.
 enum Tok : ubyte
 {
-    eof, integer, ident,
+    eof,        /// end of input
+    error,      /// a character that is not part of the language
+    integer,    /// decimal integer literal
+    ident,      /// identifier
     kwLet, kwRec, kwIn, kwFun, kwIf, kwThen, kwElse, kwTrue, kwFalse,
-    semiSemi, arrow, colonColon, lessEq, greaterEq, andAnd, orOr,
-    lparen, rparen, lbracket, rbracket, semi, comma,
-    plus, minus, star, slash, eq, less, greater,
+    semiSemi,   /// `;;`
+    arrow,      /// `->`
+    colonColon, /// `::`
+    le,         /// `<=`
+    ge,         /// `>=`
+    andAnd,     /// `&&`
+    orOr,       /// `||`
+    lParen, rParen, lBracket, rBracket,
+    semi, comma, plus, minus, star, slash, eq, lt, gt,
 }
 
-/// A lexical token.
+/// A token: its kind and the half-open byte range `[start, end)` in the source.
 struct Token
 {
-    /// Kind of the token.
     Tok kind;
-    /// Interned name id for `Tok.ident`; otherwise 0.
-    int id;
-    /// Byte offset of the token in the source.
-    uint pos;
+    uint start;
+    uint end;
 }
 
-/// Maps identifier text to dense integer ids (0, 1, 2, ...).
-final class Interner
+/// Thrown by the parser (not the lexer) when it meets a `Tok.error` token.
+class SyntaxError : Exception
 {
-    private int[string] ids;
-    private string[] table;
+    /// Byte offset in the source at which the problem was detected.
+    size_t offset;
 
-    /// Id of `name`, assigning the next free id when it is new.
-    int intern(string name)
+    this(string msg, size_t offset, string file = __FILE__, size_t line = __LINE__) @safe nothrow
     {
-        if (auto p = name in ids)
-            return *p;
-        immutable id = cast(int) table.length;
-        ids[name] = id;
-        table ~= name;
-        return id;
+        super(msg, file, line);
+        this.offset = offset;
     }
-
-    /// The text of identifier `id`.
-    string name(int id) const pure nothrow @safe @nogc { return table[id]; }
-
-    /// Number of distinct names interned so far.
-    size_t length() const pure nothrow @safe @nogc { return table.length; }
 }
 
-private Tok keywordKind(string s) pure nothrow @safe @nogc
+private Tok keyword(const(char)[] s) @safe nothrow @nogc
 {
     switch (s)
     {
-    case "let":   return Tok.kwLet;
-    case "rec":   return Tok.kwRec;
-    case "in":    return Tok.kwIn;
-    case "fun":   return Tok.kwFun;
-    case "if":    return Tok.kwIf;
-    case "then":  return Tok.kwThen;
-    case "else":  return Tok.kwElse;
-    case "true":  return Tok.kwTrue;
-    case "false": return Tok.kwFalse;
-    default:      return Tok.ident;
+        case "let": return Tok.kwLet;
+        case "rec": return Tok.kwRec;
+        case "in": return Tok.kwIn;
+        case "fun": return Tok.kwFun;
+        case "if": return Tok.kwIf;
+        case "then": return Tok.kwThen;
+        case "else": return Tok.kwElse;
+        case "true": return Tok.kwTrue;
+        case "false": return Tok.kwFalse;
+        default: return Tok.ident;
     }
 }
 
 /**
- * Tokenise `source`.
- *
- * Params:
- *   source = the program text
- *   names  = interner that receives every identifier
- * Returns: the tokens, terminated by a `Tok.eof` token.
- * Throws: `SyntaxError` on a character that starts no token.
+ * Splits `src` into tokens. The result always ends with a `Tok.eof` token.
+ * An unrecognised character yields a `Tok.error` token and ends the scan
+ * (followed by `Tok.eof`), so a syntax error is reported only when the parser
+ * reaches it.
  */
-Token[] tokenize(string source, Interner names)
+Token[] tokenize(string src) @safe nothrow
 {
-    import std.array : appender;
-
-    auto toks = appender!(Token[]);
-    toks.reserve(source.length / 3 + 2);
-    immutable n = source.length;
+    Token[] toks;
+    toks.reserve(src.length / 3 + 2);
     size_t i = 0;
+    immutable n = src.length;
+
+    void add(Tok k, size_t s, size_t e) { toks ~= Token(k, cast(uint) s, cast(uint) e); }
 
     while (i < n)
     {
-        immutable char c = source[i];
-        immutable uint pos = cast(uint) i;
+        immutable c = src[i];
         if (c == ' ' || c == '\t' || c == '\r' || c == '\n')
         {
             ++i;
         }
         else if (c >= '0' && c <= '9')
         {
-            while (i < n && source[i] >= '0' && source[i] <= '9')
-                ++i;
-            toks.put(Token(Tok.integer, 0, pos));
+            immutable s = i;
+            while (i < n && src[i] >= '0' && src[i] <= '9') ++i;
+            add(Tok.integer, s, i);
         }
         else if (c >= 'a' && c <= 'z')
         {
-            immutable start = i++;
+            immutable s = i;
+            ++i;
             while (i < n)
             {
-                immutable d = source[i];
+                immutable d = src[i];
                 if ((d >= 'a' && d <= 'z') || (d >= 'A' && d <= 'Z')
                         || (d >= '0' && d <= '9') || d == '_')
                     ++i;
                 else
                     break;
             }
-            auto text = source[start .. i];
-            immutable kind = keywordKind(text);
-            toks.put(Token(kind, kind == Tok.ident ? names.intern(text) : 0, pos));
+            add(keyword(src[s .. i]), s, i);
         }
         else
         {
-            immutable char d = i + 1 < n ? source[i + 1] : '\0';
-            Tok kind;
+            immutable next = i + 1 < n ? src[i + 1] : '\0';
+            Tok k = Tok.error;
             size_t len = 1;
             switch (c)
             {
-            case ';': if (d == ';') { kind = Tok.semiSemi; len = 2; } else kind = Tok.semi; break;
-            case '-': if (d == '>') { kind = Tok.arrow; len = 2; } else kind = Tok.minus; break;
-            case ':':
-                if (d != ':')
-                    throw new SyntaxError("unexpected character ':'", i);
-                kind = Tok.colonColon; len = 2; break;
-            case '<': if (d == '=') { kind = Tok.lessEq; len = 2; } else kind = Tok.less; break;
-            case '>': if (d == '=') { kind = Tok.greaterEq; len = 2; } else kind = Tok.greater; break;
-            case '&':
-                if (d != '&')
-                    throw new SyntaxError("unexpected character '&'", i);
-                kind = Tok.andAnd; len = 2; break;
-            case '|':
-                if (d != '|')
-                    throw new SyntaxError("unexpected character '|'", i);
-                kind = Tok.orOr; len = 2; break;
-            case '(': kind = Tok.lparen; break;
-            case ')': kind = Tok.rparen; break;
-            case '[': kind = Tok.lbracket; break;
-            case ']': kind = Tok.rbracket; break;
-            case ',': kind = Tok.comma; break;
-            case '+': kind = Tok.plus; break;
-            case '*': kind = Tok.star; break;
-            case '/': kind = Tok.slash; break;
-            case '=': kind = Tok.eq; break;
-            default:
-                throw new SyntaxError("unexpected character", i);
+                case ';': if (next == ';') { k = Tok.semiSemi; len = 2; } else k = Tok.semi; break;
+                case '-': if (next == '>') { k = Tok.arrow; len = 2; } else k = Tok.minus; break;
+                case ':': if (next == ':') { k = Tok.colonColon; len = 2; } break;
+                case '<': if (next == '=') { k = Tok.le; len = 2; } else k = Tok.lt; break;
+                case '>': if (next == '=') { k = Tok.ge; len = 2; } else k = Tok.gt; break;
+                case '&': if (next == '&') { k = Tok.andAnd; len = 2; } break;
+                case '|': if (next == '|') { k = Tok.orOr; len = 2; } break;
+                case '(': k = Tok.lParen; break;
+                case ')': k = Tok.rParen; break;
+                case '[': k = Tok.lBracket; break;
+                case ']': k = Tok.rBracket; break;
+                case ',': k = Tok.comma; break;
+                case '+': k = Tok.plus; break;
+                case '*': k = Tok.star; break;
+                case '/': k = Tok.slash; break;
+                case '=': k = Tok.eq; break;
+                default: break;
+            }
+            add(k, i, i + len);
+            if (k == Tok.error)
+            {
+                i = n;
+                break;
             }
             i += len;
-            toks.put(Token(kind, 0, pos));
         }
     }
-    toks.put(Token(Tok.eof, 0, cast(uint) n));
-    return toks.data;
+    add(Tok.eof, n, n);
+    return toks;
+}
+
+@safe nothrow unittest
+{
+    auto t = tokenize("let x1 = 12 ;; ->::<=>=&&||");
+    Tok[] kinds;
+    foreach (tk; t) kinds ~= tk.kind;
+    assert(kinds == [Tok.kwLet, Tok.ident, Tok.eq, Tok.integer, Tok.semiSemi,
+            Tok.arrow, Tok.colonColon, Tok.le, Tok.ge, Tok.andAnd, Tok.orOr, Tok.eof]);
+}
+
+@safe nothrow unittest
+{
+    // Keywords only match whole identifiers.
+    auto t = tokenize("letx inx funny let");
+    assert(t[0].kind == Tok.ident && t[1].kind == Tok.ident
+            && t[2].kind == Tok.ident && t[3].kind == Tok.kwLet);
+}
+
+@safe nothrow unittest
+{
+    // Longest match: `;;` is one token, `; ;` is two, `-` followed by `>` is an arrow.
+    auto t = tokenize(";;; ; ;a->b");
+    assert(t[0].kind == Tok.semiSemi && t[1].kind == Tok.semi && t[2].kind == Tok.semi);
+    assert(t[3].kind == Tok.semi && t[5].kind == Tok.arrow);
+}
+
+@safe nothrow unittest
+{
+    auto t = tokenize("1 $ 2");
+    assert(t.length == 3 && t[1].kind == Tok.error && t[2].kind == Tok.eof);
+    assert(tokenize("   \n\t").length == 1);
 }

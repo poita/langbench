@@ -1,135 +1,108 @@
 # jsonschema
 
-A [JSON Schema](https://json-schema.org/) **draft 2020-12** validator written in
-D, with no dependencies beyond the D standard library. The JSON parser, the
-regular-expression engine, the URI machinery and the validator are all
-implemented here; nothing is delegated to `std.json`, `std.regex` or another
-validator.
+A from-scratch validator for [JSON Schema](https://json-schema.org) draft
+2020-12, written in D. It is a small library plus a thin command-line tool, and
+uses nothing but the D standard library: the JSON parser, the regular-expression
+engine, the RFC 3986 URI handling and the validator are all implemented here.
 
 Highlights:
 
-* **Exact numbers.** Numbers are arbitrary-precision decimals, never binary
-  floats: `0.3` is a multiple of `0.0001`, and `1e309` is just a large number.
-* **Full 2020-12 applicator set**, including `$ref`, `$anchor`, `$dynamicRef` /
-  `$dynamicAnchor`, `unevaluatedItems` / `unevaluatedProperties` with
-  annotation collection, `contains` with `minContains` / `maxContains`, and
-  `if` / `then` / `else`.
-* **ECMA-262 regular expressions** for `pattern` / `patternProperties`,
-  matched in O(pattern · subject) time by an NFA simulation (no catastrophic
-  backtracking).
-* `format` is annotation-only; `$vocabulary` is ignored.
-* Schemas refer to other documents only through a caller-supplied bundle of
-  *remotes*; nothing is fetched from the network.
+- Exact decimal arithmetic (`0.3` is a multiple of `0.0001`; `1e309` is just a
+  big number) via arbitrary-precision mantissas.
+- ECMA-262 style regular expressions (`pattern`, `patternProperties`) matched by
+  NFA simulation: O(pattern x subject), no exponential backtracking.
+- `$id`, `$anchor`, `$dynamicAnchor`, `$ref`, `$dynamicRef` and remote
+  documents (nothing is ever fetched), `unevaluatedItems` /
+  `unevaluatedProperties` with annotation collection.
+- `format`, `$vocabulary` and the `content*` keywords are annotations only.
 
-## Layout
+## Build
 
-```
-dub.json                  package manifest (application + unittest configurations)
-build.sh / run.sh         build and run the command-line tool
-source/app.d              the command-line tool (thin wrapper over the library)
-source/jsonschema/
-  package.d               `import jsonschema;` re-exports the public API
-  validator.d             Validator: the main entry point
-  request.d               the CLI's request/response format as a library function
-  json.d                  Value tree, parser, equality, hashing, printer
-  number.d                exact decimal Number
-  regex.d                 ECMA-262 subset regex engine
-  uri.d, pointer.d        RFC 3986 resolution, RFC 6901 pointers
-  compiler.d, node.d      schema compiler / registry and the compiled node type
-  evaluator.d             the evaluator with annotation collection
-tests/                    unit tests (one *_test.d module per area)
-```
-
-## Building
-
-Requires LDC and dub (developed with LDC 1.41.0 and dub 1.40.0).
+Requires LDC and dub (developed with LDC 1.41.0, dub 1.40.0).
 
 ```sh
-./build.sh                                # same as: dub build -b release --compiler=ldc2
-dub test --compiler=ldc2                  # run the unit tests
+./build.sh                       # same as: dub build -b release --compiler=ldc2
+dub test --compiler=ldc2         # unit tests
 ```
 
-The executable is written to `./jsonschema`.
+This produces the executable `./jsonschema`.
 
-## Command-line usage
+## Command-line use
 
-The tool reads one JSON document on stdin and prints `valid` or `invalid` for
-each instance, one per line.
-
-```json
-{
-  "schema":  { "type": "integer", "minimum": 1 },
-  "tests":   [ { "description": "positive", "data": 3 },
-               { "description": "zero",     "data": 0 },
-               { "description": "string",   "data": "3" } ],
-  "remotes": { "http://example.test/other.json": { "type": "string" } }
-}
-```
+`./run.sh` (or `./jsonschema`) reads one JSON document on stdin and prints
+`valid` or `invalid` per test instance on stdout:
 
 ```sh
-$ ./run.sh < request.json
-valid
-invalid
-invalid
+echo '{
+  "schema": {"type": "integer", "minimum": 1},
+  "tests": [{"description": "positive", "data": 3},
+            {"description": "zero", "data": 0},
+            {"description": "string", "data": "3"}]
+}' | ./run.sh
+# valid
+# invalid
+# invalid
 ```
 
-* `schema` (required): the schema, any JSON value (normally an object or boolean).
-* `tests` (required): an array of objects with a `data` member; `description`
-  and other members are ignored.
-* `remotes` (optional): an object mapping absolute URIs to schema documents,
-  available to `$ref` / `$dynamicRef`.
+Input members:
 
-The exit status is 0 on success. A malformed request or an uncompilable schema
-(for example an invalid `pattern`) prints a message on stderr and exits 1.
+| member    | required | meaning                                                   |
+|-----------|----------|-----------------------------------------------------------|
+| `schema`  | yes      | the schema (an object or a boolean)                       |
+| `tests`   | yes      | array of `{"description": ..., "data": <instance>}`       |
+| `remotes` | no       | object mapping absolute URIs to schema documents          |
 
-## Using the library
+Malformed input prints a message on stderr and exits with status 1.
+
+## Library use
 
 ```d
-import std.stdio : writeln;
 import jsonschema;
+import std.stdio;
 
 void main()
 {
-    auto validator = new Validator;
-
-    // Documents that the schema refers to by absolute URI.
-    validator.addRemote("http://example.test/positive.json",
-        parseJson(`{"type": "integer", "exclusiveMinimum": 0}`));
-
-    validator.setSchema(parseJson(`{
+    auto schema = parseJson(`{
+        "$id": "https://example.test/person",
         "type": "object",
+        "required": ["name"],
         "properties": {
-            "id":   {"$ref": "http://example.test/positive.json"},
-            "name": {"type": "string", "pattern": "^[A-Z]"}
+            "name": {"type": "string", "minLength": 1},
+            "age":  {"$ref": "nonneg.json"}
         },
-        "required": ["id"],
         "unevaluatedProperties": false
-    }`));
+    }`);
+    JsonValue[string] remotes;
+    remotes["https://example.test/nonneg.json"] =
+        parseJson(`{"type": "integer", "minimum": 0}`);
 
-    writeln(validator.isValid(parseJson(`{"id": 1, "name": "Ada"}`)));  // true
-    writeln(validator.isValid(parseJson(`{"id": 0}`)));                 // false
-    writeln(validator.isValid(parseJson(`{"id": 1, "extra": true}`)));  // false
+    auto validator = new SchemaValidator(schema, remotes);
+    writeln(validator.isValid(parseJson(`{"name": "Ada", "age": 36}`)));  // true
+    writeln(validator.isValid(parseJson(`{"name": "Ada", "age": -1}`)));  // false
+    writeln(validator.isValid(parseJson(`{"name": "Ada", "x": 1}`)));     // false
 }
 ```
 
-The smaller pieces are usable on their own: `parseJson` / `Value` / `jsonEqual`
-(`jsonschema.json`), `Number` and `isMultipleOf` (`jsonschema.number`),
-`Regex.matches` (`jsonschema.regex`), `resolve` and `percentDecode`
-(`jsonschema.uri`), and `evaluatePointer` (`jsonschema.pointer`).
+Use it as a dub dependency (`dependency "jsonschema" path="..."`, configuration
+`library`).
 
-### Notes
+## Layout
 
-* `Validator` is not thread-safe; use one per thread.
-* Evaluation and parsing are recursive. For deeply nested inputs run them on a
-  thread with a large stack, as `source/app.d` does (1 GiB, reserved lazily).
-* `Validator.setSchema` throws `SchemaException` for an invalid regular
-  expression; `parseJson` throws `JsonException` for malformed JSON.
+| module                   | responsibility                                          |
+|--------------------------|---------------------------------------------------------|
+| `jsonschema.number`      | exact decimal numbers (`Number`)                        |
+| `jsonschema.json`        | JSON data model, parser, equality and hashing           |
+| `jsonschema.uri`         | RFC 3986 resolution, percent-decoding, JSON Pointer     |
+| `jsonschema.regex`       | ECMA-262 subset regex engine (membership tests)         |
+| `jsonschema.schema`      | schema compilation, resource/anchor registry, `$ref`s   |
+| `jsonschema.validator`   | the evaluator with annotation collection                |
+| `jsonschema.runner`      | `SchemaValidator` facade and the CLI document format    |
+| `app.d`                  | the command-line tool                                   |
 
-## Design
+## Notes
 
-Documents are parsed once into a `Value` tree, then compiled in a single walk
-into `Node`s (one per schema object) with keywords decoded, regexes compiled,
-and `$ref` / `$dynamicRef` targets resolved once. Evaluation never looks at the
-raw schema. Annotations (evaluated array indices and object member positions)
-are positional bitsets, built only when an `unevaluated*` keyword can observe
-them. The dynamic scope is a stack of interned base-URI ids.
+- Deeply nested documents are handled by evaluating on a thread with a large
+  stack (see `source/app.d`); library users with very deep inputs should do
+  the same.
+- A `SchemaValidator` and the regex caches are not thread-safe; use one per
+  thread.

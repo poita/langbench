@@ -1,223 +1,258 @@
-/// Formula evaluation against the stored values of the cells it reads.
+/**
+ * Formula evaluation.
+ *
+ * Evaluation walks a syntax tree and reads the *stored* values of the cells
+ * it references through a lookup callback; it never evaluates other cells.
+ */
 module spreadsheet.eval;
 
 import std.math : isFinite;
-
 import spreadsheet.ast;
-import spreadsheet.numfmt : formatNumber;
+import spreadsheet.cellref;
 import spreadsheet.value;
 
-/**
- * Evaluate `f` once.  `values` is indexed by cell handle and must already be
- * current for every cell `f` reads; cells are never evaluated on demand.
- * An empty result becomes the number 0.  Only the selected `IF` branch is
- * evaluated, and the first problem in evaluation order wins.
- */
-Value evaluate(ref const Formula f, const(Value)[] values)
+/// Callback giving the current value of the cell with the given key (empty if unset).
+alias CellLookup = Value delegate(uint key) @safe;
+
+private Value err(ErrorCode c) pure nothrow @nogc @safe
 {
-    if (f.invalid)
-        return Value.error(Kind.badRef);
-    auto ev = Evaluator(&f, values);
-    Value v = ev.eval(f.root);
-    return v.kind == Kind.empty ? Value.number(0) : v;
+    return Value.makeError(c);
 }
 
-private:
-
-struct Evaluator
+/**
+ * Evaluates `e`.
+ *
+ * The result may be empty (a reference to an empty cell, passed through
+ * parentheses and `IF`); callers storing a formula's result turn that
+ * into the number 0.
+ */
+Value evaluate(const Expr e, scope CellLookup lookup) @safe
 {
-    const(Formula)* f;
-    const(Value)[] values;
-
-    /// Coerce an arithmetic operand: false means `v` is the final result.
-    static bool toNumber(ref Value v, out double d) @safe pure nothrow @nogc
+    final switch (e.kind)
     {
-        switch (v.kind)
-        {
-        case Kind.number: d = v.num; return true;
-        case Kind.empty: d = 0; return true;
-        case Kind.text: v = Value.error(Kind.badValue); return false;
-        default: return false;
-        }
+    case ExprKind.number:
+    case ExprKind.text:
+    case ExprKind.error:
+        return e.value;
+    case ExprKind.reference:
+        return lookup(e.cell.key);
+    case ExprKind.range:
+        // Ranges are only legal as aggregate arguments; the parser never produces
+        // one elsewhere.
+        return err(ErrorCode.value);
+    case ExprKind.negate:
+    {
+        double x;
+        Value bad;
+        if (!toNumber(evaluate(e.args[0], lookup), x, bad))
+            return bad;
+        return Value.makeNumber(-x);
     }
-
-    Value eval(uint n)
+    case ExprKind.binary:
+        return evalBinary(e, lookup);
+    case ExprKind.conditional:
     {
-        const node = &f.nodes[n];
-        final switch (node.kind)
-        {
-        case NodeKind.number: return Value.number(node.num);
-        case NodeKind.text: return Value.text(node.str);
-        case NodeKind.cell: return values[node.a];
-        case NodeKind.negate:
-        {
-            Value x = eval(node.a);
-            double d;
-            if (!toNumber(x, d))
-                return x;
-            return Value.number(-d);
-        }
-        case NodeKind.binary: return evalBinary(node);
-        case NodeKind.conditional:
-        {
-            Value c = eval(node.a);
-            double d;
-            if (!toNumber(c, d))
-                return c;
-            return eval(d != 0 ? node.b : node.c);
-        }
-        case NodeKind.aggregate: return evalAggregate(node);
-        }
+        double c;
+        Value bad;
+        if (!toNumber(evaluate(e.args[0], lookup), c, bad))
+            return bad;
+        return evaluate(e.args[c != 0 ? 1 : 2], lookup);
     }
+    case ExprKind.aggregate:
+        return evalAggregate(e, lookup);
+    }
+}
 
-    Value evalBinary(const(Node)* node)
+/**
+ * Arithmetic coercion: an empty value counts as 0.  Returns `false` and sets
+ * `failure` for an error (passed through) or a string (`#VALUE!`).
+ */
+private bool toNumber(const Value v, out double x, out Value failure) pure nothrow @nogc @safe
+{
+    final switch (v.kind)
     {
-        immutable op = cast(BinOp) node.op;
-        Value x = eval(node.a);
-        if (op >= BinOp.concat)
-        {
-            if (x.isError)
-                return x;
-            Value y = eval(node.b);
-            if (y.isError)
-                return y;
-            return op == BinOp.concat ? concat(x, y) : compare(op, x, y);
-        }
-        double da, db;
-        if (!toNumber(x, da))
-            return x;
-        Value y = eval(node.b);
-        if (!toNumber(y, db))
-            return y;
+    case ValueKind.number:
+        x = v.number;
+        return true;
+    case ValueKind.empty:
+        x = 0;
+        return true;
+    case ValueKind.text:
+        failure = err(ErrorCode.value);
+        return false;
+    case ValueKind.error:
+        failure = v;
+        return false;
+    }
+}
+
+private Value evalBinary(const Expr e, scope CellLookup lookup) @safe
+{
+    final switch (e.op)
+    {
+    case BinaryOp.add:
+    case BinaryOp.sub:
+    case BinaryOp.mul:
+    case BinaryOp.div:
+    {
+        double a, b;
+        Value bad;
+        if (!toNumber(evaluate(e.args[0], lookup), a, bad))
+            return bad;
+        if (!toNumber(evaluate(e.args[1], lookup), b, bad))
+            return bad;
         double r;
-        final switch (op)
+        switch (e.op)
         {
-        case BinOp.add: r = da + db; break;
-        case BinOp.sub: r = da - db; break;
-        case BinOp.mul: r = da * db; break;
-        case BinOp.div:
-            if (db == 0)
-                return Value.error(Kind.divZero);
-            r = da / db;
+        case BinaryOp.add: r = a + b; break;
+        case BinaryOp.sub: r = a - b; break;
+        case BinaryOp.mul: r = a * b; break;
+        default:
+            if (b == 0)
+                return err(ErrorCode.divZero);
+            r = a / b;
             break;
-        case BinOp.concat, BinOp.eq, BinOp.ne, BinOp.lt, BinOp.gt, BinOp.le, BinOp.ge:
-            assert(0);
         }
-        if (!isFinite(r))
-            return Value.error(Kind.badValue);
-        return Value.number(r);
+        return isFinite(r) ? Value.makeNumber(r) : err(ErrorCode.value);
     }
-
-    static Value concat(ref const Value x, ref const Value y)
+    case BinaryOp.concat:
     {
-        // Avoid allocating when one side contributes nothing.
-        if (x.kind == Kind.empty && y.kind == Kind.text)
-            return Value.text(y.str);
-        if (y.kind == Kind.empty && x.kind == Kind.text)
-            return Value.text(x.str);
-        import std.array : appender;
-        auto app = appender!string();
-        x.display(app);
-        y.display(app);
-        return Value.text(app.data);
+        const a = evaluate(e.args[0], lookup);
+        if (a.isError)
+            return a;
+        const b = evaluate(e.args[1], lookup);
+        if (b.isError)
+            return b;
+        return Value.makeText(textForm(a) ~ textForm(b));
     }
-
-    static Value compare(BinOp op, Value x, Value y)
+    case BinaryOp.eq:
+    case BinaryOp.ne:
+    case BinaryOp.lt:
+    case BinaryOp.gt:
+    case BinaryOp.le:
+    case BinaryOp.ge:
     {
-        if (x.kind == Kind.empty && y.kind == Kind.empty)
-        {
-            x = Value.number(0);
-            y = Value.number(0);
-        }
-        else if (x.kind == Kind.empty)
-            x = y.kind == Kind.number ? Value.number(0) : Value.text("");
-        else if (y.kind == Kind.empty)
-            y = x.kind == Kind.number ? Value.number(0) : Value.text("");
+        Value a = evaluate(e.args[0], lookup);
+        if (a.isError)
+            return a;
+        Value b = evaluate(e.args[1], lookup);
+        if (b.isError)
+            return b;
+        return compare(e.op, a, b);
+    }
+    }
+}
 
-        int c; // sign of x <=> y
-        if (x.kind != y.kind)
-        {
-            if (op == BinOp.eq)
-                return Value.number(0);
-            if (op == BinOp.ne)
-                return Value.number(1);
-            return Value.error(Kind.badValue);
-        }
-        if (x.kind == Kind.number)
-            c = x.num < y.num ? -1 : (x.num > y.num ? 1 : 0);
+/// The `&` text form of a non-error value.
+private string textForm(const Value v) @safe
+{
+    return v.isText ? v.text : v.toString;
+}
+
+private Value compare(BinaryOp op, Value a, Value b) pure @safe
+{
+    if (a.isEmpty && b.isEmpty)
+    {
+        a = Value.makeNumber(0);
+        b = Value.makeNumber(0);
+    }
+    else if (a.isEmpty)
+        a = b.isNumber ? Value.makeNumber(0) : Value.makeText("");
+    else if (b.isEmpty)
+        b = a.isNumber ? Value.makeNumber(0) : Value.makeText("");
+
+    int order; // sign of a <=> b
+    if (a.isNumber != b.isNumber)
+    {
+        // a number against a string: never converted
+        if (op == BinaryOp.eq)
+            return Value.makeNumber(0);
+        if (op == BinaryOp.ne)
+            return Value.makeNumber(1);
+        return err(ErrorCode.value);
+    }
+    if (a.isNumber)
+        order = a.number < b.number ? -1 : (a.number > b.number ? 1 : 0);
+    else
+    {
+        import std.algorithm.comparison : cmp;
+        import std.string : representation;
+        order = cmp(a.text.representation, b.text.representation); // UTF-8 bytes == code points
+    }
+    bool r;
+    final switch (op)
+    {
+    case BinaryOp.eq: r = order == 0; break;
+    case BinaryOp.ne: r = order != 0; break;
+    case BinaryOp.lt: r = order < 0; break;
+    case BinaryOp.gt: r = order > 0; break;
+    case BinaryOp.le: r = order <= 0; break;
+    case BinaryOp.ge: r = order >= 0; break;
+    case BinaryOp.add, BinaryOp.sub, BinaryOp.mul, BinaryOp.div, BinaryOp.concat:
+        assert(0);
+    }
+    return Value.makeNumber(r ? 1 : 0);
+}
+
+private Value evalAggregate(const Expr e, scope CellLookup lookup) @safe
+{
+    size_t count;
+    double sum = 0, lo = 0, hi = 0;
+
+    // Adds one collected number, in order.
+    void collect(double x) @safe
+    {
+        if (count == 0)
+            lo = hi = x;
         else
-            c = x.str < y.str ? -1 : (x.str > y.str ? 1 : 0);
-
-        bool r;
-        final switch (op)
         {
-        case BinOp.eq: r = c == 0; break;
-        case BinOp.ne: r = c != 0; break;
-        case BinOp.lt: r = c < 0; break;
-        case BinOp.gt: r = c > 0; break;
-        case BinOp.le: r = c <= 0; break;
-        case BinOp.ge: r = c >= 0; break;
-        case BinOp.add, BinOp.sub, BinOp.mul, BinOp.div, BinOp.concat: assert(0);
+            if (x < lo) lo = x;
+            if (x > hi) hi = x;
         }
-        return Value.number(r ? 1 : 0);
+        sum += x;
+        count++;
     }
 
-    Value evalAggregate(const(Node)* node)
+    foreach (arg; e.args)
     {
-        immutable op = cast(AggOp) node.op;
-        size_t count = 0;
-        double sum = 0, lo = 0, hi = 0;
-
-        void collect(double d)
+        if (arg.kind == ExprKind.range)
         {
-            if (count == 0)
-                lo = hi = d;
-            else
+            foreach (key; rangeKeys(arg.cell, arg.cellEnd))
             {
-                if (d < lo) lo = d;
-                if (d > hi) hi = d;
-            }
-            sum += d;
-            count++;
-        }
-
-        foreach (ref const arg; f.args[node.a .. node.a + node.b])
-        {
-            if (arg.isRange)
-            {
-                foreach (h; f.rangeCells[arg.cellsStart .. arg.cellsStart + arg.cellsLen])
-                {
-                    ref const v = values[h];
-                    if (v.kind == Kind.number)
-                        collect(v.num);
-                    else if (v.isError)
-                        return v;
-                }
-            }
-            else
-            {
-                Value v = eval(arg.node);
+                const v = lookup(key);
                 if (v.isError)
                     return v;
-                if (v.kind == Kind.text)
-                    return Value.error(Kind.badValue);
-                if (v.kind == Kind.number)
-                    collect(v.num);
+                if (v.isNumber)
+                    collect(v.number);
             }
         }
-
-        final switch (op)
+        else
         {
-        case AggOp.count: return Value.number(count);
-        case AggOp.min: return Value.number(count ? lo : 0);
-        case AggOp.max: return Value.number(count ? hi : 0);
-        case AggOp.sum:
-            return isFinite(sum) ? Value.number(sum) : Value.error(Kind.badValue);
-        case AggOp.avg:
-            if (count == 0)
-                return Value.error(Kind.divZero);
-            immutable avg = sum / count;
-            return isFinite(sum) && isFinite(avg) ? Value.number(avg) : Value.error(Kind.badValue);
+            const v = evaluate(arg, lookup);
+            if (v.isError)
+                return v;
+            if (v.isText)
+                return err(ErrorCode.value);
+            if (v.isNumber)
+                collect(v.number);
         }
+    }
+
+    final switch (e.fn)
+    {
+    case Aggregate.count:
+        return Value.makeNumber(cast(double) count);
+    case Aggregate.sum:
+        return isFinite(sum) ? Value.makeNumber(sum) : err(ErrorCode.value);
+    case Aggregate.min:
+        return Value.makeNumber(lo);
+    case Aggregate.max:
+        return Value.makeNumber(hi);
+    case Aggregate.avg:
+        if (count == 0)
+            return err(ErrorCode.divZero);
+        if (!isFinite(sum))
+            return err(ErrorCode.value);
+        return Value.makeNumber(sum / count);
     }
 }

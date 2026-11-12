@@ -1,39 +1,33 @@
-/// Command-line tool: reads the batch format on stdin, writes one result line
-/// per subject on stdout.
+/// Command-line front end: reads the batch format on stdin, writes results to stdout.
 module main;
 
-import core.stdc.stdlib : exit;
-import std.stdio : stderr, stdin, stdout;
-import regexvm;
-
-private ubyte[] readAll()
-{
-    ubyte[] buf = new ubyte[1 << 20];
-    size_t len;
-    for (;;)
-    {
-        if (len == buf.length)
-            buf.length = buf.length * 2;
-        auto got = stdin.rawRead(buf[len .. $]);
-        if (got.length == 0)
-            break;
-        len += got.length;
-    }
-    return buf[0 .. len];
-}
+import core.stdc.stdio : fread, fwrite, stderr, stdin, stdout, fprintf;
+import btregex;
 
 int main()
 {
-    auto input = readAll();
-    OutputBuffer output;
+    ubyte[] data = new ubyte[1 << 20];
+    size_t used = 0;
+    while (true)
+    {
+        if (used == data.length)
+            data.length = data.length * 2;
+        const n = fread(data.ptr + used, 1, data.length - used, stdin);
+        if (n == 0)
+            break;
+        used += n;
+    }
+
     try
-        runBatch(input, output);
+    {
+        runBatch(data[0 .. used], (const(ubyte)[] chunk) {
+            fwrite(chunk.ptr, 1, chunk.length, stdout);
+        });
+    }
     catch (Exception e)
     {
-        stderr.writeln("regex: ", e.msg);
-        return 2;
+        fprintf(stderr, "btregex: %.*s\n", cast(int) e.msg.length, e.msg.ptr);
+        return 1;
     }
-    stdout.rawWrite(output.data);
-    stdout.flush();
     return 0;
 }

@@ -1,0 +1,7 @@
+{
+  "n": 4
+}
+--
+=== main
+{{ range(3)|join(",") }} {{ range(1, n)|join(",") }} {{ range(n, 1)|length }} {{ range(0)|length }} {{ range(0, 10, 3)|join(",") }} {{ range(5, 0, -2)|join(",") }}
+{% for i in range(n) %}{{ i }}{{ loop.index }}{% endfor %} {{ range(3)|first }} {{ range(3)|last }} {{ range(3)|reverse|join }} {{ range(3)|sort|join }} {{ 2 in range(3) }} {{ range(4)[2] }} {{ range(4)[-1] }} {{ range(true, 3)|join }}

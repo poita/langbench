@@ -1,13 +1,25 @@
 package kbl
 
-import "strings"
+import (
+	"errors"
+	"strings"
+)
+
+// errSyntax is the generic syntax failure; callers attach the line number of
+// the logical line being processed.
+var errSyntax = errors.New("syntax error")
+
+// syntaxError is an E_PARSE error attributed to a logical line.
+type syntaxError struct{ line int }
+
+func (e *syntaxError) Error() string { return "syntax error" }
 
 type tokKind uint8
 
 const (
 	tIdent tokKind = iota
 	tInt
-	tStr   // a quoted literal, text includes the quotes
+	tStr   // text holds the raw literal, quotes included
 	tPunct // ( ) [ ] { } , =
 	tOp
 )
@@ -15,14 +27,13 @@ const (
 type token struct {
 	kind tokKind
 	text string
-	ival int64 // for tInt
+	num  int64
 }
 
-func (t token) is(kind tokKind, text string) bool { return t.kind == kind && t.text == text }
+func (t token) is(text string) bool { return (t.kind == tPunct || t.kind == tOp) && t.text == text }
 
-// logicalLine is one logical line of a build file, tokenised.
 type logicalLine struct {
-	line int // 1-based number of the first physical line
+	num  int
 	toks []token
 }
 
@@ -33,43 +44,40 @@ var reserved = map[string]bool{
 	"rule": true, "set": true, "step": true, "true": true, "use": true, "when": true,
 }
 
-// skipString scans the string literal that starts at s[i] (a quote) using the
-// shared literal scanner and returns the index just past its closing quote.
-func skipString(s string, i int) (int, bool) {
-	q := s[i]
-	i++
-	if q == '\'' {
-		for i < len(s) {
-			if s[i] == '\'' {
-				if i+1 < len(s) && s[i+1] == '\'' {
-					i += 2
-					continue
-				}
-				return i + 1, true
-			}
-			i++
-		}
-		return 0, false
-	}
+// skipSQ returns the index just after the single-quoted literal whose content
+// starts at s[i], or -1 if it is unterminated.
+func skipSQ(s string, i int) int {
 	for i < len(s) {
-		switch c := s[i]; c {
-		case '\\':
-			if i+1 >= len(s) {
-				return 0, false
+		if s[i] == '\'' {
+			if i+1 < len(s) && s[i+1] == '\'' {
+				i += 2
+				continue
 			}
+			return i + 1
+		}
+		i++
+	}
+	return -1
+}
+
+// skipDQ returns the index just after the double-quoted literal whose content
+// starts at s[i], or -1 if it is unterminated.
+func skipDQ(s string, i int) int {
+	for i < len(s) {
+		switch s[i] {
+		case '\\':
 			i += 2
 		case '"':
-			return i + 1, true
+			return i + 1
 		case '{':
 			if i+1 < len(s) && s[i+1] == '{' {
 				i += 2
 				continue
 			}
-			end, ok := skipRegion(s, i+1)
-			if !ok {
-				return 0, false
+			i = skipRegion(s, i+1)
+			if i < 0 {
+				return -1
 			}
-			i = end
 		case '}':
 			if i+1 < len(s) && s[i+1] == '}' {
 				i += 2
@@ -80,21 +88,25 @@ func skipString(s string, i int) (int, bool) {
 			i++
 		}
 	}
-	return 0, false
+	return -1
 }
 
-// skipRegion scans an interpolation region whose body starts at s[i] and
-// returns the index just past the closing brace.
-func skipRegion(s string, i int) (int, bool) {
+// skipRegion skips an interpolation region whose body starts at s[i] and
+// returns the index just after its closing "}", or -1 if unterminated.
+func skipRegion(s string, i int) int {
 	depth := 1
 	for i < len(s) {
 		switch s[i] {
-		case '"', '\'':
-			end, ok := skipString(s, i)
-			if !ok {
-				return 0, false
+		case '"':
+			i = skipDQ(s, i+1)
+			if i < 0 {
+				return -1
 			}
-			i = end
+		case '\'':
+			i = skipSQ(s, i+1)
+			if i < 0 {
+				return -1
+			}
 		case '{':
 			depth++
 			i++
@@ -102,147 +114,150 @@ func skipRegion(s string, i int) (int, bool) {
 			depth--
 			i++
 			if depth == 0 {
-				return i, true
+				return i
 			}
 		default:
 			i++
 		}
 	}
-	return 0, false
+	return -1
 }
 
-// lexFile runs stages 1-3 over a whole build file. If the file has a lexical
-// error it returns the line number of the logical line it belongs to
-// (errLine > 0); the earliest one wins.
-func lexFile(src string) (lines []logicalLine, errLine int) {
-	physical := strings.Split(src, "\n")
-	var (
-		cur       strings.Builder
-		depth     int
-		startLine int
-		have      bool
-	)
-	flush := func() bool {
-		text := cur.String()
-		cur.Reset()
-		have = false
-		if strings.Trim(text, " \t") == "" {
-			return true
-		}
-		toks, ok := tokenize(text)
-		if !ok {
-			errLine = startLine
-			return false
-		}
-		lines = append(lines, logicalLine{line: startLine, toks: toks})
-		return true
-	}
-	for n, pl := range physical {
-		if !have {
-			startLine = n + 1
-			have = true
-		}
-		stripped, ok := scanPhysical(pl, &depth)
-		if !ok {
-			return nil, startLine
-		}
-		if cur.Len() > 0 {
-			cur.WriteByte(' ')
-		}
-		cur.WriteString(stripped)
-		if depth == 0 {
-			if !flush() {
-				return nil, errLine
+// scanLine scans one physical line with the literal scanner. It returns the
+// line with any comment removed and trailing blanks trimmed, and the updated
+// bracket depth. ok is false on an unterminated literal or negative depth.
+func scanLine(line string, depth int) (out string, newDepth int, ok bool) {
+	i := 0
+	for i < len(line) {
+		switch c := line[i]; c {
+		case '"':
+			i = skipDQ(line, i+1)
+			if i < 0 {
+				return "", depth, false
 			}
-		}
-	}
-	if depth > 0 {
-		return nil, startLine
-	}
-	return lines, 0
-}
-
-// scanPhysical strips the comment from a physical line, updates the bracket
-// depth and trims trailing blanks. ok is false on a lexical error.
-func scanPhysical(s string, depth *int) (string, bool) {
-	for i := 0; i < len(s); {
-		switch c := s[i]; c {
-		case '"', '\'':
-			end, ok := skipString(s, i)
-			if !ok {
-				return "", false
+		case '\'':
+			i = skipSQ(line, i+1)
+			if i < 0 {
+				return "", depth, false
 			}
-			i = end
-			continue
 		case '#':
-			s = s[:i]
+			return strings.TrimRight(line[:i], " \t"), depth, true
 		case '(', '[':
-			*depth++
+			depth++
+			i++
 		case ')', ']':
-			*depth--
-			if *depth < 0 {
-				return "", false
+			depth--
+			if depth < 0 {
+				return "", depth, false
 			}
+			i++
+		default:
+			i++
 		}
-		i++
 	}
-	return strings.TrimRight(s, " \t"), true
+	return strings.TrimRight(line, " \t"), depth, true
 }
 
-// tokenize splits text into tokens. It reports false on a byte that cannot
-// begin a token or an unterminated literal.
-func tokenize(s string) ([]token, bool) {
+func isIdentStart(c byte) bool {
+	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'
+}
+
+func isDigit(c byte) bool { return c >= '0' && c <= '9' }
+
+// tokenize splits text (a logical line or an interpolation body) into tokens.
+func tokenize(text string) ([]token, error) {
 	var toks []token
-	for i := 0; i < len(s); {
-		c := s[i]
+	for i := 0; i < len(text); {
+		c := text[i]
 		switch {
 		case c == ' ' || c == '\t':
 			i++
-		case c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z':
+		case isIdentStart(c):
 			j := i + 1
-			for j < len(s) && (s[j] == '_' || s[j] >= 'a' && s[j] <= 'z' || s[j] >= 'A' && s[j] <= 'Z' || s[j] >= '0' && s[j] <= '9') {
+			for j < len(text) && (isIdentStart(text[j]) || isDigit(text[j])) {
 				j++
 			}
-			toks = append(toks, token{kind: tIdent, text: s[i:j]})
+			toks = append(toks, token{kind: tIdent, text: text[i:j]})
 			i = j
-		case c >= '0' && c <= '9':
+		case isDigit(c):
 			j := i
-			var v int64
-			for j < len(s) && s[j] >= '0' && s[j] <= '9' {
-				v = v*10 + int64(s[j]-'0')
+			var n int64
+			for j < len(text) && isDigit(text[j]) {
+				n = n*10 + int64(text[j]-'0')
 				j++
 			}
-			toks = append(toks, token{kind: tInt, text: s[i:j], ival: v})
+			toks = append(toks, token{kind: tInt, text: text[i:j], num: n})
 			i = j
 		case c == '"' || c == '\'':
-			end, ok := skipString(s, i)
-			if !ok {
-				return nil, false
+			var end int
+			if c == '"' {
+				end = skipDQ(text, i+1)
+			} else {
+				end = skipSQ(text, i+1)
 			}
-			toks = append(toks, token{kind: tStr, text: s[i:end]})
+			if end < 0 {
+				return nil, errSyntax
+			}
+			toks = append(toks, token{kind: tStr, text: text[i:end]})
 			i = end
-		case strings.IndexByte("()[]{},", c) >= 0:
-			toks = append(toks, token{kind: tPunct, text: s[i : i+1]})
-			i++
 		default:
-			if i+1 < len(s) {
-				switch s[i : i+2] {
+			if i+1 < len(text) {
+				switch two := text[i : i+2]; two {
 				case "|>", "||", "&&", "==", "!=", "<=", ">=", "++":
-					toks = append(toks, token{kind: tOp, text: s[i : i+2]})
+					toks = append(toks, token{kind: tOp, text: two})
 					i += 2
 					continue
 				}
 			}
 			switch c {
+			case '(', ')', '[', ']', '{', '}', ',', '=':
+				toks = append(toks, token{kind: tPunct, text: text[i : i+1]})
 			case '~', '+', '-', '*', '/', '%', '!', '<', '>':
-				toks = append(toks, token{kind: tOp, text: s[i : i+1]})
-			case '=':
-				toks = append(toks, token{kind: tPunct, text: "="})
+				toks = append(toks, token{kind: tOp, text: text[i : i+1]})
 			default:
-				return nil, false
+				return nil, errSyntax
 			}
 			i++
 		}
 	}
-	return toks, true
+	return toks, nil
+}
+
+// lexFile runs the three lexical stages over a whole build file. It returns
+// the logical lines with their tokens, or a *syntaxError for the earliest
+// logical line with a lexical error.
+func lexFile(src string) ([]logicalLine, error) {
+	physical := strings.Split(src, "\n")
+	var lines []logicalLine
+	var text strings.Builder
+	depth, start := 0, 0
+	for idx, pl := range physical {
+		if start == 0 {
+			start = idx + 1
+			text.Reset()
+		} else {
+			text.WriteByte(' ')
+		}
+		stripped, d, ok := scanLine(pl, depth)
+		if !ok {
+			return nil, &syntaxError{start}
+		}
+		depth = d
+		text.WriteString(stripped)
+		if depth > 0 {
+			continue
+		}
+		if strings.Trim(text.String(), " \t") != "" {
+			toks, err := tokenize(text.String())
+			if err != nil {
+				return nil, &syntaxError{start}
+			}
+			lines = append(lines, logicalLine{num: start, toks: toks})
+		}
+		start = 0
+	}
+	if start != 0 {
+		return nil, &syntaxError{start}
+	}
+	return lines, nil
 }

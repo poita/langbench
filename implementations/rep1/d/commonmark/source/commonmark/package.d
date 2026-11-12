@@ -1,43 +1,54 @@
 /**
- * A CommonMark-to-HTML converter for the subset of CommonMark 0.31.2 that
- * covers thematic breaks, ATX/setext headings, indented/fenced code, block
- * quotes, lists, paragraphs, backslash escapes, entities, code spans,
- * emphasis, links, images, autolinks and line breaks. Raw HTML, link
- * reference definitions and extensions are not supported.
+ * A CommonMark (subset) to HTML converter.
  *
- * The converter works in three stages, each in its own module:
+ * The library converts a Markdown document to the HTML produced by the
+ * `cmark` reference implementation 0.31.2. It is organised in three stages,
+ * each in its own module:
+ *
  * $(UL
- *   $(LI `commonmark.blocks` builds the block structure line by line,)
- *   $(LI `commonmark.inlines` parses paragraph and heading content into
- *        inline nodes (delimiter stack, bracket stack, process-emphasis),)
- *   $(LI `commonmark.html` renders the tree to HTML.))
+ *   $(LI `commonmark.block`: line-by-line parsing into a tree of `Block`s
+ *        (`commonmark.ast`).)
+ *   $(LI `commonmark.inline`: parsing the text of paragraphs and headings into
+ *        inline nodes (emphasis, links, code spans, ...).)
+ *   $(LI `commonmark.html`: rendering the tree to HTML.)
+ * )
+ *
+ * Supported: ATX and setext headings, thematic breaks, indented and fenced
+ * code blocks, paragraphs, block quotes, lists, backslash escapes, entities
+ * (numeric ones and `&amp;` `&lt;` `&gt;` `&quot;`), code spans, emphasis,
+ * inline links and images, autolinks, hard and soft line breaks. Raw HTML,
+ * link reference definitions and extensions are not supported.
  *
  * Example:
  * ---
  * import commonmark;
- * assert(toHtml("Hello *world*") == "<p>Hello <em>world</em></p>\n");
+ * assert(toHtml("Hello, *world*!") == "<p>Hello, <em>world</em>!</p>\n");
  * ---
  */
 module commonmark;
 
-public import commonmark.ast : Block, BlockKind, Document;
-public import commonmark.blocks : parseBlocks;
-public import commonmark.buffer : Buffer;
-public import commonmark.html : escapeHref, escapeHtml;
+public import commonmark.ast;
+public import commonmark.block : parseBlocks;
+public import commonmark.html : renderHtml;
+public import commonmark.inline : InlineKind, InlineNode, InlineParser, noNode;
 
-import commonmark.html : renderDocument;
-
-/// Convert Markdown to HTML, appending the result to `output`.
-void toHtml(const(char)[] markdown, ref Buffer output)
+/**
+ * Converts a Markdown document to HTML.
+ *
+ * Params:
+ *     markdown = the document, as UTF-8 text with `\n` line endings
+ *
+ * Returns: the HTML, every line terminated by `\n` (empty for an empty document)
+ */
+string toHtml(string markdown)
 {
-    auto doc = parseBlocks(markdown);
-    renderDocument(doc, output);
+    return renderHtml(parseBlocks(markdown));
 }
 
-/// Convert Markdown to an HTML string.
-string toHtml(const(char)[] markdown)
+///
+unittest
 {
-    Buffer b;
-    toHtml(markdown, b);
-    return b.idup;
+    assert(toHtml("") == "");
+    assert(toHtml("Hello, *world*!") == "<p>Hello, <em>world</em>!</p>\n");
+    assert(toHtml("- a\n- b") == "<ul>\n<li>a</li>\n<li>b</li>\n</ul>\n");
 }

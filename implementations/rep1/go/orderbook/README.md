@@ -1,56 +1,88 @@
 # orderbook
 
-A single-instrument limit order book matching engine with price-time priority,
-written in Go using only the standard library. It consists of a reusable
-library (package `orderbook`) and a thin command-line tool that reads a stream
-of order commands on stdin and prints the resulting events on stdout.
+A single-instrument **limit order book matching engine** with price-time
+priority, written in Go. It consists of
 
-Supported: limit orders (plain, IOC, FOK), market orders, cancel, replace
-(with the rule that only a price-preserving, non-increasing quantity change keeps
-queue priority) and book listings. Quantities are 64-bit throughout.
+- a reusable library (`github.com/peteralexander/orderbook`) with limit, IOC,
+  FOK, market, cancel and replace semantics;
+- a `protocol` package that parses the text command format and prints events;
+- a thin command-line tool, `orderbook`, that reads commands on stdin and
+  writes events to stdout.
+
+It uses only the Go standard library (tests use the standard `testing`
+package).
+
+## Layout
+
+| Path                 | Responsibility                                                    |
+|----------------------|-------------------------------------------------------------------|
+| `types.go`           | public types: `Side`, `TimeInForce`, `Command`, `Event`, `Level`  |
+| `book.go`            | `Book`: command processing, matching, snapshots                   |
+| `side.go`            | one side of the book: price levels, best level, add/remove        |
+| `level.go`           | price level and resting order: intrusive FIFO queue, totals       |
+| `tree.go`            | treap over price levels                                           |
+| `protocol/`          | command parser, event formatter, `Run` loop                       |
+| `cmd/orderbook/`     | the CLI                                                           |
 
 ## Build
 
-Requires Go 1.27.1 or newer.
+Requires Go 1.27 or newer.
 
 ```sh
-./build.sh          # builds bin/orderbook (works from any directory)
-go test ./...       # unit tests
+./build.sh          # produces bin/orderbook (runs: go build -o bin/orderbook ./cmd/orderbook)
+./run.sh < in.txt   # runs the built binary
+go test ./...       # runs the tests
 ```
 
-## Command-line use
+## Command-line usage
 
 ```sh
-./run.sh < commands.txt
+orderbook < commands.txt > events.txt
 ```
 
-Input: a line with the command count `N`, then `N` lines, one per command
-(tokens separated by single spaces; the last newline is optional):
+Input: a line with the command count `N`, then `N` command lines, tokens
+separated by single spaces:
 
 ```
-LIMIT <id> <BUY|SELL> <price> <qty> [IOC|FOK]
-MARKET <id> <BUY|SELL> <qty>
+LIMIT <id> <side> <price> <qty> [IOC|FOK]
+MARKET <id> <side> <qty>
 CANCEL <id>
 REPLACE <id> <price> <qty>
 BOOK
 ```
 
-Output: one event per line — `TRADE <taker> <maker> <price> <qty>`,
-`REST <id>`, `CANCEL <id> <remaining>`, `REJECT <id>`, `FILLED <id>`, and for
-`BOOK` the lines `BID|ASK <price> <total-qty> <n-orders>` followed by `--`.
-Malformed input makes the tool print a message to stderr and exit with
-status 1.
+Output: one event per line:
 
-```console
-$ printf '3\nLIMIT a BUY 100 5\nLIMIT b SELL 99 8 IOC\nBOOK\n' | ./run.sh
-REST a
-TRADE b a 100 5
-FILLED a
-CANCEL b 3
---
+```
+TRADE <taker-id> <maker-id> <price> <qty>
+REST <id>
+CANCEL <id> <remaining-qty>
+REJECT <id>
+FILLED <id>
+BID <price> <total-qty> <n-orders>     (BOOK only)
+ASK <price> <total-qty> <n-orders>     (BOOK only)
+--                                     (end of BOOK)
 ```
 
-## Library use
+Example:
+
+```sh
+$ printf '4\nLIMIT s1 SELL 101 5\nLIMIT b1 BUY 102 8\nBOOK\nCANCEL b1\n' | ./run.sh
+REST s1
+TRADE b1 s1 101 5
+FILLED s1
+REST b1
+BID 102 3 1
+--
+CANCEL b1 3
+```
+
+Trades execute at the resting (maker) order's price. `REPLACE` sets the new
+*remaining* quantity; an unchanged price with a non-increased quantity keeps
+queue priority, anything else re-enters the order as a fresh limit order. The
+exit code is 0 on success, 1 on malformed input or I/O errors, 2 on bad usage.
+
+## Library example
 
 ```go
 package main
@@ -58,52 +90,42 @@ package main
 import (
 	"fmt"
 
-	"github.com/example/orderbook"
+	"github.com/peteralexander/orderbook"
 )
 
 func main() {
-	// A book accepts a fixed, ascending table of prices.
-	book, err := orderbook.NewBook([]int64{99, 100, 101})
-	if err != nil {
-		panic(err)
-	}
-	book.Limit([]byte("s1"), orderbook.Sell, 101, 5, orderbook.GTC)
-	book.Limit([]byte("b1"), orderbook.Buy, 101, 8, orderbook.GTC) // trades 5, rests 3
-	book.Snapshot()
-	fmt.Print(string(book.Output()))
+	book := orderbook.New()
+	book.Limit("s1", orderbook.Sell, 101, 5, orderbook.GTC)
 
-	book.EachLevel(orderbook.Buy, func(l orderbook.Level) bool {
-		fmt.Println(l.Price, l.Qty, l.Orders)
-		return true
-	})
+	// Each call returns the events it produced; the slice is only valid until
+	// the next call on the same book.
+	for _, e := range book.Limit("b1", orderbook.Buy, 102, 8, orderbook.GTC) {
+		fmt.Println(e) // TRADE b1 s1 101 5 / FILLED s1 / REST b1
+	}
+
+	fmt.Println(book.Bids()) // [{102 3 1}]
+	book.Replace("b1", 102, 2)
+	book.Cancel("b1")
 }
 ```
 
-To process a whole text stream instead, use `orderbook.Run(input)`, or
-`orderbook.Parse` followed by `(*Script).Run`.
+The `protocol` package drives a book from text:
 
-## Layout
+```go
+err := protocol.Run(os.Stdin, os.Stdout)
+```
 
-| File | Responsibility |
-| --- | --- |
-| `types.go` | public types: `Side`, `TimeInForce`, `Command`, `Level`, errors |
-| `book.go` | the `Book`: levels, order arena, FIFO links, matching, cancel/replace, book listing |
-| `segtree.go` | segment tree over price levels: best level, range sums, next/previous non-empty level |
-| `parse.go` | hand-written parser; collects and ranks the price table |
-| `run.go` | `Run` / `Script.Run` convenience entry points |
-| `cmd/orderbook` | the command-line tool |
+## Design
 
-## How it works
+Each side of the book keeps its price levels in a treap keyed by price, a hash
+map from price to level, and a pointer to the best level. A level holds an
+intrusive doubly linked FIFO queue of orders with a running total quantity and
+order count; a hash map from id to order serves `CANCEL` and `REPLACE`.
 
-Prices are collected from the whole input first, sorted and ranked, so each
-side of the book is a dense array of levels indexed by rank. A segment tree per
-side (quantity sum + non-empty count) finds the best level, answers the
-fill-or-kill liquidity check as one range sum, and walks the non-empty levels
-for `BOOK`, all in O(log P). Orders live in an arena with intrusive doubly
-linked FIFO queues per level, so fills at the head and cancels from the
-middle are O(1); one hash map from id to arena index serves cancel and
-replace.
+- best price: O(1); removal of an emptied level: O(log P);
+- cancel / priority-losing replace: O(1) queue removal, O(log P) if the level
+  empties;
+- FOK check: O(levels crossed) using the maintained level totals;
+- `BOOK`: O(k) for k levels printed.
 
-`Book` methods take prices from its fixed table (`ErrUnknownPrice` otherwise)
-and require ids not to collide with currently resting orders. A `Book` is not
-safe for concurrent use.
+All quantities and sums are `uint64`.

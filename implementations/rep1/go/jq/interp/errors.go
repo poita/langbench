@@ -3,33 +3,38 @@ package interp
 import (
 	"fmt"
 
-	"github.com/peter/jq/value"
+	"example.com/jq/value"
 )
 
-// Error is a runtime error raised by evaluation, either by a failing
-// operation or explicitly by the error builtin.
+// Error is a jq runtime error, as raised by a type mismatch or by the error
+// builtin. Value is the error value (a message string for built-in failures).
 type Error struct {
-	// Value is the error payload: the message string for failing operations,
-	// or the argument of error(f).
 	Value value.Value
 }
 
 func (e *Error) Error() string {
-	if e.Value.Kind() == value.KindString {
-		return e.Value.Str()
+	if s, ok := e.Value.(string); ok {
+		return "jq: error: " + s
 	}
-	return value.JSON(e.Value) + " (not a string)"
+	return "jq: error (not a string): " + value.String(e.Value)
 }
 
-func errorf(format string, args ...any) error {
-	return &Error{Value: value.String(fmt.Sprintf(format, args...))}
+func errf(format string, a ...any) error {
+	return &Error{Value: fmt.Sprintf(format, a...)}
 }
 
-// describe renders a value for use inside an error message.
+// describe renders a value for an error message: its type and a truncated
+// JSON text.
 func describe(v value.Value) string {
-	s := value.JSON(v)
+	s := value.String(v)
 	if len(s) > 11 {
 		s = s[:10] + "..."
 	}
-	return fmt.Sprintf("%s (%s)", v.TypeName(), s)
+	return value.TypeName(v) + " (" + s + ")"
 }
+
+// passThrough wraps an error returned by a downstream consumer while it
+// travels back through a try, so that the try does not swallow it.
+type passThrough struct{ err error }
+
+func (p *passThrough) Error() string { return p.err.Error() }

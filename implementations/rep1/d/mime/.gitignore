@@ -1,5 +1,7 @@
-bin/
 .dub/
+bin/
 *.o
 *.a
+*.lst
 dub.selections.json
+mime-test-*

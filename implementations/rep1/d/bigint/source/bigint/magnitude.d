@@ -1,44 +1,45 @@
 /**
- * Unsigned magnitude arithmetic on little-endian base-10^9 limb arrays.
+ * Unsigned multi-precision arithmetic on little-endian base-10^9 limb vectors.
  *
- * A magnitude is a `uint[]` whose elements are in `[0, 10^9)` and whose most
- * significant element is non-zero; zero is the empty array. All functions
- * here take and return magnitudes in that normalised form. All algorithms are
- * classical quadratic ones (schoolbook multiplication, Knuth Algorithm D).
+ * A "magnitude" is a `uint[]` whose elements are all `< BASE`, least
+ * significant limb first, with no most-significant zero limbs; zero is the
+ * empty array. Every function here expects normalised inputs and returns a
+ * normalised, freshly allocated result (inputs are never modified).
  */
 module bigint.magnitude;
 
-/// The limb base, 10^9. A power of ten keeps decimal I/O linear.
+/// Limb radix.
 enum uint BASE = 1_000_000_000;
 /// Decimal digits per limb.
-enum size_t DIGITS_PER_LIMB = 9;
+enum size_t BASE_DIGITS = 9;
 
-private enum ulong B = BASE;
-
-/// Returns `m` without most-significant zero limbs (no copy).
-inout(uint)[] trimmed(inout(uint)[] m) pure nothrow @nogc @safe
+@safe pure nothrow
 {
-    size_t n = m.length;
-    while (n > 0 && m[n - 1] == 0)
+
+/// Returns `a` without its most significant zero limbs.
+inout(uint)[] trim(return inout(uint)[] a) @nogc
+{
+    size_t n = a.length;
+    while (n > 0 && a[n - 1] == 0)
         --n;
-    return m[0 .. n];
+    return a[0 .. n];
 }
 
-/// Three-way comparison of two normalised magnitudes: -1, 0 or 1.
-int compare(scope const(uint)[] a, scope const(uint)[] b) pure nothrow @nogc @safe
+/// Three-way comparison of two magnitudes: -1, 0 or 1.
+int cmpMag(const(uint)[] a, const(uint)[] b) @nogc
 {
     if (a.length != b.length)
         return a.length < b.length ? -1 : 1;
-    for (size_t i = a.length; i-- > 0;)
+    for (size_t i = a.length; i > 0; --i)
     {
-        if (a[i] != b[i])
-            return a[i] < b[i] ? -1 : 1;
+        if (a[i - 1] != b[i - 1])
+            return a[i - 1] < b[i - 1] ? -1 : 1;
     }
     return 0;
 }
 
-/// Returns `a + b`.
-uint[] add(scope const(uint)[] a, scope const(uint)[] b) pure nothrow @safe
+/// Returns `a + b`. O(a.length + b.length).
+uint[] addMag(const(uint)[] a, const(uint)[] b)
 {
     if (a.length < b.length)
     {
@@ -51,244 +52,317 @@ uint[] add(scope const(uint)[] a, scope const(uint)[] b) pure nothrow @safe
     size_t i = 0;
     for (; i < b.length; ++i)
     {
-        uint s = a[i] + b[i] + carry; // < 2*10^9 fits in uint
-        if (s >= BASE)
-        {
-            s -= BASE;
-            carry = 1;
-        }
-        else
-            carry = 0;
-        r[i] = s;
+        uint s = a[i] + b[i] + carry; // < 2*BASE < 2^32
+        carry = s >= BASE;
+        r[i] = carry ? s - BASE : s;
     }
     for (; i < a.length; ++i)
     {
         uint s = a[i] + carry;
-        if (s >= BASE)
-        {
-            s -= BASE;
-            carry = 1;
-        }
-        else
-            carry = 0;
-        r[i] = s;
+        carry = s >= BASE;
+        r[i] = carry ? s - BASE : s;
     }
     r[i] = carry;
-    return trimmed(r);
+    return trim(r);
 }
 
-/// Returns `a - b`. Requires `a >= b`.
-uint[] sub(scope const(uint)[] a, scope const(uint)[] b) pure nothrow @safe
-in (compare(a, b) >= 0)
+/// Returns `a - b`; requires `a >= b`. O(a.length).
+uint[] subMag(const(uint)[] a, const(uint)[] b)
+in (cmpMag(a, b) >= 0)
 {
     auto r = new uint[a.length];
     uint borrow = 0;
     size_t i = 0;
     for (; i < b.length; ++i)
     {
-        int d = cast(int) a[i] - cast(int) b[i] - cast(int) borrow;
-        if (d < 0)
-        {
-            d += BASE;
-            borrow = 1;
-        }
-        else
-            borrow = 0;
-        r[i] = cast(uint) d;
+        uint x = a[i];
+        uint y = b[i] + borrow; // <= BASE
+        borrow = x < y;
+        r[i] = borrow ? x + BASE - y : x - y;
     }
     for (; i < a.length; ++i)
     {
-        int d = cast(int) a[i] - cast(int) borrow;
-        if (d < 0)
+        const uint x = a[i];
+        if (borrow && x == 0)
         {
-            d += BASE;
-            borrow = 1;
+            r[i] = BASE - 1; // keeps borrowing
         }
         else
+        {
+            r[i] = x - borrow;
             borrow = 0;
-        r[i] = cast(uint) d;
+        }
     }
-    return trimmed(r);
+    return trim(r);
 }
 
-/// Returns `a * b` using the schoolbook method.
-uint[] mul(scope const(uint)[] a, scope const(uint)[] b) pure nothrow @safe
+/// Returns `a * b` by schoolbook long multiplication. O(a.length * b.length).
+uint[] mulMag(const(uint)[] a, const(uint)[] b)
 {
     if (a.length == 0 || b.length == 0)
         return null;
-    // Rows over the shorter operand, columns over the longer one.
-    if (a.length < b.length)
+    if (a.length > b.length)
     {
         auto t = a;
         a = b;
         b = t;
     }
+    // Outer loop over the shorter operand, inner loop over the longer one.
     auto r = new uint[a.length + b.length];
-    foreach (i; 0 .. b.length)
+    foreach (i; 0 .. a.length)
     {
-        immutable ulong bi = b[i];
-        if (bi == 0)
+        const ulong ai = a[i];
+        if (ai == 0)
             continue;
         ulong carry = 0;
-        auto row = r[i .. i + a.length + 1];
-        foreach (j; 0 .. a.length)
+        auto row = r[i .. i + b.length];
+        foreach (j; 0 .. b.length)
         {
-            immutable ulong t = row[j] + a[j] * bi + carry;
-            carry = t / B;
-            row[j] = cast(uint)(t - carry * B);
+            // <= (B-1) + (B-1)^2 + (B-1) < 2^64
+            const ulong cur = row[j] + ai * b[j] + carry;
+            carry = cur / BASE;
+            row[j] = cast(uint)(cur - carry * BASE);
         }
-        row[a.length] = cast(uint) carry; // slot above the row is still zero
+        r[i + b.length] = cast(uint) carry; // untouched by earlier rows
     }
-    return trimmed(r);
+    return trim(r);
 }
 
-/// Quotient and remainder of a magnitude division.
-struct DivMod
+/// Returns `a * m` for a single limb `m < BASE`.
+uint[] mulSmall(const(uint)[] a, uint m)
 {
-    uint[] quotient;
-    uint[] remainder;
+    if (a.length == 0 || m == 0)
+        return null;
+    auto r = new uint[a.length + 1];
+    ulong carry = 0;
+    foreach (i; 0 .. a.length)
+    {
+        const ulong cur = cast(ulong) a[i] * m + carry;
+        carry = cur / BASE;
+        r[i] = cast(uint)(cur - carry * BASE);
+    }
+    r[a.length] = cast(uint) carry;
+    return trim(r);
 }
 
-/// Divides `a` by a single limb `d` (non-zero). O(n).
-DivMod divModLimb(scope const(uint)[] a, uint d) pure nothrow @safe
-in (d != 0)
+/// Divides `a` by the single limb `d` (non-zero); returns the quotient and stores the remainder.
+uint[] divModSmall(const(uint)[] a, uint d, out uint rem)
+in (d != 0 && d < BASE)
 {
     auto q = new uint[a.length];
-    ulong rem = 0;
-    for (size_t i = a.length; i-- > 0;)
+    ulong r = 0;
+    for (size_t i = a.length; i > 0; --i)
     {
-        immutable ulong cur = rem * B + a[i];
-        immutable ulong qd = cur / d;
-        q[i] = cast(uint) qd;
-        rem = cur - qd * d;
+        const ulong cur = r * BASE + a[i - 1];
+        const ulong qd = cur / d;
+        q[i - 1] = cast(uint) qd;
+        r = cur - qd * d;
     }
-    uint[] r = rem == 0 ? null : [cast(uint) rem];
-    return DivMod(trimmed(q), r);
+    rem = cast(uint) r;
+    return trim(q);
 }
 
 /**
- * Divides `a` by `b` (non-zero), returning quotient and remainder, with
- * `a == q*b + r` and `r < b`. Uses short division for a one-limb divisor and
- * Knuth's Algorithm D otherwise.
+ * Quotient and remainder of `a / b` (Knuth, TAOCP vol. 2, 4.3.1, Algorithm D),
+ * with `b` non-zero. Each quotient limb is obtained in constant time from an
+ * estimate that is off by at most one before correction.
+ * Complexity O((a.length - b.length + 1) * b.length).
  */
-DivMod divMod(scope const(uint)[] a, scope const(uint)[] b) pure nothrow @safe
-in (b.length != 0)
+void divModMag(const(uint)[] a, const(uint)[] b, out uint[] quot, out uint[] rem)
+in (b.length > 0)
 {
-    if (compare(a, b) < 0)
-        return DivMod(null, a.dup);
-    if (b.length == 1)
-        return divModLimb(a, b[0]);
-
-    immutable size_t n = b.length;
-    immutable size_t L = a.length;
-    immutable uint d = cast(uint)(B / (b[n - 1] + 1UL));
-
-    // Normalised working copies: u has L+1 limbs, v has n limbs.
-    auto u = new uint[L + 1];
-    auto v = new uint[n];
+    if (cmpMag(a, b) < 0)
     {
-        ulong carry = 0;
-        foreach (i; 0 .. L)
-        {
-            immutable ulong p = a[i] * cast(ulong) d + carry;
-            carry = p / B;
-            u[i] = cast(uint)(p - carry * B);
-        }
-        u[L] = cast(uint) carry;
-        carry = 0;
-        foreach (i; 0 .. n)
-        {
-            immutable ulong p = b[i] * cast(ulong) d + carry;
-            carry = p / B;
-            v[i] = cast(uint)(p - carry * B);
-        }
-        assert(carry == 0);
+        quot = null;
+        rem = a.dup;
+        return;
+    }
+    if (b.length == 1)
+    {
+        uint r;
+        quot = divModSmall(a, b[0], r);
+        rem = r == 0 ? null : [r];
+        return;
     }
 
-    auto q = new uint[L - n + 1];
-    immutable ulong vTop = v[n - 1];
-    immutable ulong vSecond = v[n - 2];
+    const size_t n = b.length;
+    const size_t m = a.length - n;
 
-    for (size_t j = L - n + 1; j-- > 0;)
+    // D1: normalise so that the top divisor limb is >= BASE / 2.
+    const uint d = BASE / (b[n - 1] + 1);
+    auto v = new uint[n];
+    auto u = new uint[a.length + 1];
     {
-        immutable ulong num = u[j + n] * B + u[j + n - 1];
+        ulong carry = 0;
+        foreach (i; 0 .. n)
+        {
+            const ulong cur = cast(ulong) b[i] * d + carry;
+            carry = cur / BASE;
+            v[i] = cast(uint)(cur - carry * BASE);
+        }
+        assert(carry == 0);
+        carry = 0;
+        foreach (i; 0 .. a.length)
+        {
+            const ulong cur = cast(ulong) a[i] * d + carry;
+            carry = cur / BASE;
+            u[i] = cast(uint)(cur - carry * BASE);
+        }
+        u[a.length] = cast(uint) carry;
+    }
+
+    const ulong vTop = v[n - 1];
+    const ulong vSecond = v[n - 2];
+    auto q = new uint[m + 1];
+
+    for (size_t j = m + 1; j-- > 0;)
+    {
+        // D3: estimate the quotient limb.
+        const ulong num = u[j + n] * cast(ulong) BASE + u[j + n - 1];
         ulong qhat = num / vTop;
         ulong rhat = num - qhat * vTop;
-        while (qhat >= B || qhat * vSecond > rhat * B + u[j + n - 2])
+        while (qhat >= BASE || qhat * vSecond > rhat * BASE + u[j + n - 2])
         {
             --qhat;
             rhat += vTop;
-            if (rhat >= B)
+            if (rhat >= BASE)
                 break;
         }
 
-        // u[j .. j+n+1] -= qhat * v, fused multiply-subtract.
-        auto w = u[j .. j + n + 1];
-        ulong carry = 0;
+        // D4: multiply and subtract qhat * v from u[j .. j+n].
         uint borrow = 0;
+        ulong carry = 0;
+        auto uj = u[j .. j + n + 1];
         foreach (i; 0 .. n)
         {
-            immutable ulong p = qhat * v[i] + carry;
-            carry = p / B;
-            immutable uint lo = cast(uint)(p - carry * B);
-            int s = cast(int) w[i] - cast(int) lo - cast(int) borrow;
-            if (s < 0)
-            {
-                s += BASE;
-                borrow = 1;
-            }
-            else
-                borrow = 0;
-            w[i] = cast(uint) s;
+            const ulong p = qhat * v[i] + carry;
+            carry = p / BASE;
+            const uint sub = cast(uint)(p - carry * BASE) + borrow; // <= BASE
+            borrow = uj[i] < sub;
+            uj[i] = borrow ? uj[i] + BASE - sub : uj[i] - sub;
         }
-        long top = cast(long) w[n] - cast(long) carry - borrow;
-        if (top < 0)
         {
-            // qhat was one too large: add v back once.
+            const uint sub = cast(uint) carry + borrow;
+            borrow = uj[n] < sub;
+            uj[n] = borrow ? uj[n] + BASE - sub : uj[n] - sub;
+        }
+
+        // D5/D6: if the subtraction went negative, add the divisor back once.
+        if (borrow)
+        {
             --qhat;
             uint c = 0;
             foreach (i; 0 .. n)
             {
-                uint s = w[i] + v[i] + c;
-                if (s >= BASE)
-                {
-                    s -= BASE;
-                    c = 1;
-                }
-                else
-                    c = 0;
-                w[i] = s;
+                uint s = uj[i] + v[i] + c;
+                c = s >= BASE;
+                uj[i] = c ? s - BASE : s;
             }
-            top += c; // the carry out cancels the earlier borrow
+            // The carry out cancels the earlier borrow.
+            uj[n] = (uj[n] + c) % BASE;
         }
-        w[n] = cast(uint) top;
         q[j] = cast(uint) qhat;
     }
 
-    // Remainder: low n limbs of u, divided by d.
-    auto r = divModLimb(trimmed(u[0 .. n]), d).quotient;
-    return DivMod(trimmed(q), r);
+    // D8: the remainder is u[0 .. n] divided by the normalisation factor.
+    uint dummy;
+    quot = trim(q);
+    rem = divModSmall(trim(u[0 .. n]), d, dummy);
+    assert(dummy == 0);
 }
 
-/// Returns `a ^ e` for a magnitude `a` and machine exponent `e`
-/// (left-to-right binary exponentiation).
-uint[] pow(scope const(uint)[] a, ulong e) pure nothrow @safe
+} // @safe pure nothrow
+
+version (unittest)
 {
-    if (e == 0)
-        return [1u];
-    if (a.length == 0)
-        return null;
-    if (a.length == 1 && a[0] == 1)
-        return [1u];
-    uint[] acc = a.dup;
-    int top = 63;
-    while (((e >> top) & 1) == 0)
-        --top;
-    for (int bit = top - 1; bit >= 0; --bit)
+    private uint[] fromUlong(ulong v)
     {
-        acc = mul(acc, acc);
-        if ((e >> bit) & 1)
-            acc = mul(acc, a);
+        uint[] r;
+        while (v)
+        {
+            r ~= cast(uint)(v % BASE);
+            v /= BASE;
+        }
+        return r;
     }
-    return acc;
+}
+
+unittest
+{
+    // add / sub with carries and borrows across limbs
+    auto a = [BASE - 1, BASE - 1, BASE - 1];
+    assert(addMag(a, [1u]) == [0u, 0, 0, 1]);
+    assert(subMag([0u, 0, 0, 1], [1u]) == a);
+    assert(subMag(a, a).length == 0);
+    assert(addMag(null, null).length == 0);
+    assert(addMag([5u], a) == [4u, 0, 0, 1]);
+}
+
+unittest
+{
+    assert(mulMag([BASE - 1], [BASE - 1]) == [1u, BASE - 2]);
+    assert(mulMag(null, [3u]).length == 0);
+    assert(mulMag(fromUlong(12_345_678_901UL), fromUlong(987_654_321UL))
+            == fromUlong(12_345_678_901UL * 987_654_321UL));
+    assert(mulSmall([BASE - 1, BASE - 1], BASE - 1) == [1u, BASE - 1, BASE - 2]);
+}
+
+unittest
+{
+    // (B^3 - 1) / (B^2 - 1) hits the qhat-correction paths
+    uint[] q, r;
+    auto a = [BASE - 1, BASE - 1, BASE - 1];
+    auto b = [BASE - 1, BASE - 1];
+    divModMag(a, b, q, r);
+    assert(addMag(mulMag(q, b), r) == a);
+    assert(cmpMag(r, b) < 0);
+
+    // the classic add-back case for base 2^32 analogue: u = B^4/2 style values
+    auto big = [0u, 0, 0, BASE / 2 + 0];
+    auto dv = [1u, 0, BASE / 2];
+    divModMag(big, dv, q, r);
+    assert(addMag(mulMag(q, dv), r) == big);
+    assert(cmpMag(r, dv) < 0);
+}
+
+unittest
+{
+    // randomised identity check a == q*b + r, r < b
+    import std.random : Mt19937, uniform;
+
+    auto rng = Mt19937(12345);
+    uint[] randMag(size_t len)
+    {
+        auto r = new uint[len];
+        foreach (ref x; r)
+        {
+            switch (uniform(0, 4, rng))
+            {
+            case 0:
+                x = 0;
+                break;
+            case 1:
+                x = BASE - 1;
+                break;
+            case 2:
+                x = uniform(0, 3u, rng);
+                break;
+            default:
+                x = uniform(0, BASE, rng);
+            }
+        }
+        return trim(r).dup;
+    }
+
+    foreach (iter; 0 .. 3000)
+    {
+        auto a = randMag(uniform(0, 14, rng));
+        auto b = randMag(uniform(1, 9, rng));
+        if (b.length == 0)
+            continue;
+        uint[] q, r;
+        divModMag(a, b, q, r);
+        assert(cmpMag(r, b) < 0);
+        assert(addMag(mulMag(q, b), r) == a);
+    }
 }

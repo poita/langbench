@@ -1,4 +1,3 @@
 #!/bin/sh
-# Run the softfloat CLI: reads operations on stdin, writes results on stdout.
-dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/softfloat" "$@"
+# Run the softfloat tool: reads operations on stdin, writes results to stdout.
+exec "$(dirname "$0")/bin/softfloat" "$@"

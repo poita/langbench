@@ -1,96 +1,89 @@
 # rrule
 
-A small D library and command-line tool that expands recurrence rules — the
-`RRULE` subset of RFC 5545 (`FREQ` = `YEARLY`/`MONTHLY`/`WEEKLY`/`DAILY`,
-`INTERVAL`, `COUNT`, `UNTIL`, `WKST`, `BYMONTH`, `BYMONTHDAY`, `BYYEARDAY`,
-`BYWEEKNO`, `BYDAY` with optional ordinals, `BYSETPOS`) — with the occurrence
-semantics of python-dateutil's `rrule`.
+Expansion of recurrence rules (an RFC 5545 `RRULE` subset) into concrete
+occurrences, with the semantics of python-dateutil's `rrule`. Written in D with
+only the standard library; all calendar arithmetic (leap years, weekdays, week
+numbers) is implemented here with integer day numbers and closed-form
+conversions, so no date/time library is involved.
 
-All calendar arithmetic (leap years, weekdays, week numbers, day-number ⇄ date
-conversion) is implemented in the library itself; it depends only on Phobos
-and does not use `std.datetime`.
+Supported: `FREQ` (YEARLY, MONTHLY, WEEKLY, DAILY), `INTERVAL`, `COUNT`,
+`UNTIL`, `WKST`, `BYMONTH`, `BYMONTHDAY`, `BYYEARDAY`, `BYWEEKNO`, `BYDAY`
+(with ordinals), `BYSETPOS`. Date-times are floating (no time zones), years
+1000–9999.
 
-Dates are floating local date-times (no time zones), years 1000–9999 in the
-proleptic Gregorian calendar.
+Every period (year, month, week or day) is enumerated and each candidate day is
+tested against the filters in O(1), so a rule is expanded in time linear in the
+number of days examined plus the number of occurrences produced.
 
 ## Layout
 
 | Path | Contents |
 |---|---|
-| `source/rrule/calendar.d` | day numbers, leap years, weekdays, civil dates |
-| `source/rrule/timestamp.d` | `YYYYMMDDTHHMMSS` parsing and formatting |
-| `source/rrule/rule.d` | the `Rule` record (lookup tables) and `parseRule` |
-| `source/rrule/expand.d` | `Expander`, `occurrences` |
-| `source/rrule/batch.d` | line-oriented processing used by the CLI |
-| `source/rrule/errors.d` | `RRuleException` |
+| `source/rrule/calendar.d` | day numbers, leap years, weekdays |
+| `source/rrule/datetime.d` | `LocalDateTime` and the `YYYYMMDDTHHMMSS` format |
+| `source/rrule/rule.d` | `Rule` and `parseRule` |
+| `source/rrule/weekno.d` | `BYWEEKNO` week numbering |
+| `source/rrule/expand.d` | `Occurrences` range and `expand` |
+| `source/rrule/query.d` | the `<DTSTART> <RRULE> <N>` line format |
 | `source/app.d` | the command-line tool |
-| `tests/` | unit tests (separate from the library source) |
 
 ## Building
 
 Requires LDC and dub.
 
-```
-./build.sh                                   # dub build -b release --compiler=ldc2 --config=cli
-dub build -b release --compiler=ldc2 --config=library   # library only
-dub test --compiler=ldc2                      # unit tests
+```sh
+dub build -b release --compiler=ldc2   # or ./build.sh
 ```
 
-The executable is written to `bin/rrule`; `run.sh` runs it from any directory.
+This produces the `rrule` executable in the project directory (`./run.sh`
+runs it from anywhere). The library alone: `dub build --compiler=ldc2 -c library`.
+
+Tests (D `unittest` blocks, which also serve as documented examples):
+
+```sh
+dub test --compiler=ldc2
+```
 
 ## Command-line use
 
-`rrule` reads rules from standard input, one per line, and writes one line of
-output per rule:
+The tool reads lines of the form `<DTSTART> <RRULE> <N>` on stdin and writes,
+for each line, the first `N` occurrences separated by spaces (an empty line if
+there are none).
 
 ```
-<DTSTART> <RRULE> <N>
-```
-
-* `DTSTART` — `YYYYMMDDTHHMMSS`
-* `RRULE` — e.g. `FREQ=MONTHLY;INTERVAL=2;BYDAY=-1FR;COUNT=10`
-* `N` — maximum number of occurrences to print (1–100000)
-
-The output line lists the first `N` occurrences (fewer if `COUNT`, `UNTIL` or
-the year-9999 limit ends the rule earlier) as space-separated
-`YYYYMMDDTHHMMSS` stamps; it is empty if there are none. The tool exits with
-status 0, or status 1 with a message on stderr if a line is malformed.
-
-```
-$ echo '19970902T090000 FREQ=MONTHLY;INTERVAL=2;BYDAY=-1FR;COUNT=4 100' | ./run.sh
+$ printf '19970902T090000 FREQ=MONTHLY;INTERVAL=2;BYDAY=-1FR;COUNT=4 100\n' | ./run.sh
 19970926T090000 19971128T090000 19980130T090000 19980327T090000
 ```
+
+* `DTSTART` and `UNTIL` are `YYYYMMDDTHHMMSS`; `N` is 1–100000.
+* A line that cannot be parsed produces an empty output line, a message on
+  stderr, and exit status 1 at the end; other lines are still processed.
 
 ## Library use
 
 ```d
-import std.stdio : writeln;
+import std.stdio;
 import rrule;
 
 void main()
 {
-    auto rule  = parseRule("FREQ=MONTHLY;BYDAY=MO,TU,WE,TH,FR;BYSETPOS=-1;COUNT=3");
-    auto start = parseTimestamp("20240301T080000");
+    auto start = LocalDateTime.parse("19970902T090000");
+    auto rule = parseRule("FREQ=MONTHLY;BYDAY=-1FR;COUNT=3");
 
-    // Convenience API: collect date-times.
-    foreach (dt; occurrences(rule, start, 10))
-        writeln(formatTimestamp(dt));       // 20240329T080000, 20240430T080000, ...
+    // All occurrences as an array (optionally limited)...
+    foreach (t; expand(start, rule))
+        writeln(t); // 19970926T090000, 19971031T090000, 19971128T090000
 
-    // Allocation-free API: reuse an Expander and receive day numbers
-    // through any type with `void put(int dayNumber)`.
-    Expander expander;
-    DayNumberCollector sink;
-    expander.expand(rule, start, 10, sink);
-    writeln(civilFromDayNumber(sink.days[0]));   // CivilDate(2024, 3, 29)
+    // ...or lazily, as an input range.
+    auto occ = new Occurrences(start, parseRule("FREQ=DAILY"));
+    writeln(occ.front); // 19970902T090000
+    occ.popFront();
 }
 ```
 
-## How it works
+## Notes on semantics
 
-A date is an integer day number (0001-01-01 is day 0, a Monday), so weekdays
-are `n % 7`. A rule is parsed into boolean lookup tables, then expanded period
-by period (year, month, week or day); candidate days of each period are walked
-with an incremental calendar cursor, filtered with O(1) table lookups, run
-through `BYSETPOS`, and emitted. `BYMONTH` skips excluded months wholesale,
-week numbering and ordinal weekdays are computed once per year/range, and all
-scratch storage is reused across periods and rules.
+The behaviour follows dateutil, including its quirks: `BYSETPOS` is applied
+before the DTSTART check, `FREQ=MONTHLY` from the 31st yields only 31-day
+months, and days of early January that precede week 1 are numbered as dateutil
+does for `BYWEEKNO`. Enumeration ends after year 9999.

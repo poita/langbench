@@ -1,6 +1,5 @@
 .dub/
-/typeinfer
-*.o
+bin/
 *.a
+*.o
 *-test-*
-dub.selections.json

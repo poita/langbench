@@ -1,0 +1,15 @@
+{
+  "a": 0,
+  "b": "",
+  "c": [
+    0
+  ],
+  "n": 7
+}
+--
+=== main
+{% if a %}A{% elif b %}B{% elif c %}C{% else %}D{% endif %}
+{% if n > 10 %}big{% elif n > 5 %}medium{% else %}small{% endif %}
+{% if a %}yes{% endif %}[{% if not a %}no{% endif %}]
+{% if n == 7 %}{% if n > 3 %}nested{% else %}inner-else{% endif %}{% else %}outer-else{% endif %}
+{% if a %}1{% elif a %}2{% elif a %}3{% endif %}|{% if [] %}x{% else %}empty-list-is-false{% endif %}

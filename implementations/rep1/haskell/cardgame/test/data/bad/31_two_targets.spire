@@ -1,0 +1,2 @@
+(card AAA-001 (name "One") (type rite) (cost 1)
+  (resolve (targets (unit)) (targets (unit)) (destroy (t 1))))

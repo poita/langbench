@@ -1,82 +1,78 @@
 /**
- * One complete `build`: evaluation, graph validation, scheduling and the
- * state-file update.
+ * One complete `build`: evaluate the build files, validate and resolve the
+ * graph, run the scheduler against the workspace and persist the state.
  */
 module kiln.build;
 
-import kiln.errors;
-import kiln.graph;
-import kiln.interp;
-import kiln.paths;
-import kiln.scheduler;
-import kiln.state;
-import kiln.vfs;
+import kiln.errors : KilnError, fail;
+import kiln.eval : Interpreter, mainBuildFile;
+import kiln.graph : Graph;
+import kiln.scheduler : Event, schedule;
+import kiln.state : parseState, renderState;
+import kiln.workspace : Workspace, stateFileName;
 
-public import kiln.scheduler : Event, EventKind;
-
-/// The result of one build.
+/// What a build did.
 struct BuildReport
 {
-    /// True when the build finished without an error.
-    bool ok;
-    /// The error that stopped the build, when `ok` is false.
+    /// True when the build reached its execution phase (so `.kiln-state` was written).
+    bool executed;
+    /// The error that ended the build, or null on success.
     KilnError error;
-    /// Events sorted by start time then step serial; empty for
-    /// configuration errors.
+    /// Execution events, ordered by (start time, step serial).
     Event[] events;
-    /// Commands executed successfully.
-    int ran;
-    /// Cache hits.
-    int hits;
-    /// Completion time of the simulated build.
+    /// Commands that ran successfully, cache hits, and the completion time.
+    long ran;
+    long hits;
     long time;
+
+    /// Whether the build succeeded.
+    bool ok() const @safe pure nothrow @nogc
+    {
+        return error is null;
+    }
 }
 
-/// The name of the root build file.
-enum rootBuildFile = "main.kiln";
-
 /**
- * Runs a build against `vfs`.
+ * Runs one build in `ws`.
  *
  * Params:
- *   vfs = the workspace; commands write their outputs and `.kiln-state` into it
- *   targets = requested targets (paths or `@phony`); empty means the defaults
- *   workers = number of simulated workers, at least 1
- *
- * Configuration errors leave the workspace untouched. Execution errors still
- * update `.kiln-state`. Neither throws: both are reported in the result.
+ *   ws = the workspace; mutated by the build
+ *   targets = requested targets (`path` or `@phony`); empty means the default list
+ *   workers = the number of simulated workers (at least 1)
  */
-BuildReport runBuild(Vfs vfs, const(string)[] targets = null, int workers = 1)
+BuildReport runBuild(Workspace ws, const(string)[] targets, int workers) @safe
 {
-    BuildReport rep;
+    BuildReport report;
     Graph graph;
-    Evaluator ev;
-    bool[] reach;
+    int[] reach;
     try
     {
-        if (!vfs.exists(rootBuildFile))
-            throw new KilnError("E_NO_BUILD_FILE", rootBuildFile);
-        ev = new Evaluator(vfs);
-        ev.run(rootBuildFile);
-        graph = new Graph(ev, vfs);
-        auto roots = graph.requested(targets);
+        if (!ws.exists(mainBuildFile))
+            fail("E_NO_BUILD_FILE", mainBuildFile);
+        auto plan = new Interpreter(ws).evaluate();
+        graph = new Graph(plan, ws);
+        const(string)[] wanted = targets;
+        if (wanted.length == 0)
+            wanted = plan.defaults;
+        if (wanted.length == 0)
+            throw new KilnError("E_NO_DEFAULT", "", false);
+        auto roots = graph.resolveTargets(wanted);
         reach = graph.reachable(roots);
+
+        // Execution phase: from here the state file is always written.
+        report.executed = true;
+        auto state = parseState(ws.find(stateFileName) is null ? "" : ws.read(stateFileName));
+        auto result = schedule(graph, plan, reach, workers < 1 ? 1 : workers, ws, state);
+        ws.write(stateFileName, renderState(state));
+        report.events = result.events;
+        report.ran = result.ran;
+        report.hits = result.hits;
+        report.time = result.time;
+        report.error = result.error;
     }
     catch (KilnError e)
     {
-        rep.error = e;
-        return rep;
+        report.error = e;
     }
-
-    auto state = parseState(vfs);
-    auto result = schedule(graph, reach, ev.steps, vfs, state, workers < 1 ? 1 : workers);
-    vfs.write(stateFileName, renderState(state));
-
-    rep.events = result.events;
-    rep.ran = result.ran;
-    rep.hits = result.hits;
-    rep.time = result.time;
-    rep.error = result.error;
-    rep.ok = result.error is null;
-    return rep;
+    return report;
 }

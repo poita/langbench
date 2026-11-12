@@ -1,0 +1,61 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 6 6
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #7 DSK-031 #17
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 STRIP #17
+14 SPENT #7 DSK-031
+15 PLAY A ~2 #8 DSK-031 #18
+16 PAY A ember 2
+17 PASS A
+18 PASS B
+19 RESOLVE ~2
+20 STRIP #18
+21 SPENT #8 DSK-031
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 20 ember 2 cap 6 vault 6 hand 1 ash 2 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 0 rift 0
+hand A 1 #9 CIN-005
+field A #10 DSK-036 2/4 w0 c0 ready - kw -
+field B #17 DSK-001 1/1 w0 c0 ready - kw -
+field B #18 CIN-018 3/4 w0 c0 ready - kw -
+ash A 1 #7 DSK-031
+ash A 2 #8 DSK-031
+effect 1 ts4 A turn strip on #17
+effect 2 ts5 A turn strip on #18
+STATE END
+22 PLAY A ~3 #9 CIN-005 #17
+23 PAY A ember 2
+24 PASS A
+25 PASS B
+26 RESOLVE ~3
+27 DAMAGE #9 #17 3
+28 SPENT #9 CIN-005
+29 DESTROY #17 DSK-001
+30 TRIGGER B ~4 #17 1
+31 PASS A
+32 PASS B
+33 RESOLVE ~4
+34 SPIRE A -1 19
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 19 ember 0 cap 6 vault 6 hand 0 ash 3 rift 0
+player B spire 20 ember 0 cap 0 vault 6 hand 0 ash 1 rift 0
+field A #10 DSK-036 2/4 w0 c0 ready - kw -
+field B #18 CIN-018 3/4 w0 c0 ready - kw -
+ash A 1 #7 DSK-031
+ash A 2 #8 DSK-031
+ash A 3 #9 CIN-005
+ash B 1 #17 DSK-001
+effect 1 ts4 A turn strip on -
+effect 2 ts5 A turn strip on #18
+STATE END
+35 RESULT pending none

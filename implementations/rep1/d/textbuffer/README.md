@@ -1,64 +1,58 @@
 # textbuffer
 
-The editing core of a text editor, as a D library plus a small command-line
-driver: a document made of lines, any number of cursors (each with an optional
+The editing core of a text editor, as a D library plus a small command-line tool:
+a document made of lines, any number of cursors (each optionally holding a
 selection), insertion and deletion at every cursor, cursor movement with a
 remembered goal column, and undo/redo.
 
-* Lines are stored in a gap buffer of mutable line buffers, so a multi-cursor
-  edit costs O(cursors) plus the size of the text it touches.
-* Positions are `(line, column)` pairs throughout; nothing is converted to a
-  document offset.
-* Only the D standard library is used.
+* Document: lines of printable ASCII, joined by `\n`; positions are `(line, col)`.
+* Cursors merge automatically when their ranges collide; they are always kept in
+  order and exactly one is primary.
+* Undo entries store replacements (position, removed text, inserted text) and the
+  cursor sets before and after the command, never copies of the document.
+* A multi-cursor edit does O(C) cursor work: each cursor is mapped through the
+  composed shift of the replacements before it in O(1). Lines live in a gap
+  buffer, so an edit run that sweeps through the document shifts lines once.
 
-The behaviour is specified in `problems/textbuffer/SPEC.md` of the task
-repository (document model, cursor normalisation, edit rules, the script
-language below).
+The behaviour is specified in full in `SPEC.md` of the task this was written for;
+the design follows `APPROACH.md`.
 
-## Layout
+## Requirements
 
-| path | purpose |
-|---|---|
-| `source/textbuffer/position.d` | `Pos`, text-shape helpers |
-| `source/textbuffer/cursor.d` | `Cursor`, normalisation (sorting and merging) |
-| `source/textbuffer/lines.d` | `Line`, `LineStore` (gap buffer of lines, splice) |
-| `source/textbuffer/history.d` | undo entries, `Stack` |
-| `source/textbuffer/buffer.d` | `TextBuffer`, the public editing API |
-| `source/textbuffer/script.d` | the command language used by the CLI |
-| `source/textbuffer/vec.d` | growable array / character buffer |
-| `source/textbuffer/package.d` | `import textbuffer;` re-exports everything |
-| `app/main.d` | the command-line tool |
-| `tests/` | unit tests (separate from the library sources) |
+LDC (tested with 1.41.0) and dub (tested with 1.40.0). Only the D standard
+library is used; tests use D's built-in `unittest` blocks.
 
 ## Build
 
-Requires LDC and dub (developed with LDC 1.41.0, dub 1.40.0).
+```sh
+dub build -b release --compiler=ldc2     # produces bin/textbuffer
+# or simply
+./build.sh
+```
+
+Run the tests with
 
 ```sh
-./build.sh          # dub build -b release --compiler=ldc2 -c cli  ->  bin/textbuffer
 dub test --compiler=ldc2
 ```
 
-`dub build -c library` builds only the library.
+## Command-line tool
 
-## Command-line use
+`bin/textbuffer` (or `./run.sh`) reads a script on stdin and writes to stdout.
 
-`./run.sh` reads a script on stdin and writes the output of its `print`
-commands to stdout.
-
-The script starts with a line holding the number `N` of initial document
-lines, followed by those `N` lines verbatim; every remaining line is a command:
+Input: a line with the number `N` of document lines, the `N` document lines
+verbatim, then one command per line.
 
 | command | effect |
 |---|---|
 | `insert <text>` | insert at every cursor, replacing selections (`\n` = newline, `\\` = backslash) |
-| `delete` / `delete-forward` | backspace / delete at every cursor, or delete the selections |
-| `move left\|right\|up\|down\|home\|end [select]` | move every cursor, optionally extending selections |
-| `goto <line> <col>` | one cursor at the (clamped) position |
+| `delete` / `delete-forward` | backspace / delete a selection or one character |
+| `move <left\|right\|up\|down\|home\|end> [select]` | move every cursor, optionally extending selections |
+| `goto <line> <col>` | a single cursor at the (clamped) position |
 | `add-cursor <line> <col>` | add a cursor |
 | `clear-cursors` | keep only the primary cursor |
-| `undo`, `redo` | one step per edit command |
-| `print` | write the document, a `cursor <line> <col>` line per cursor, then `--` |
+| `undo` / `redo` | one step per edit command |
+| `print` | write the lines, then `cursor <line> <col>` per cursor, then `--` |
 
 ```console
 $ printf '2\nhello world\nsecond line\nmove end\ninsert !\ngoto 0 5\ninsert ,\nprint\n' | ./run.sh
@@ -68,34 +62,48 @@ cursor 0 6
 --
 ```
 
-A malformed script makes the tool print a message on stderr and exit with
-status 1 (output produced before the error is still written).
+Malformed input is reported on stderr (exit status 1); output produced before the
+error is still written.
 
-## Library use
+## Library
+
+The package `textbuffer` re-exports everything; the modules are split by
+responsibility:
+
+| module | contents |
+|---|---|
+| `textbuffer.pos` | `Pos`, a `(line, col)` position |
+| `textbuffer.line` | `Line`, a growable in-place-editable line |
+| `textbuffer.document` | `Document`, the gap-buffered array of lines, and range replacement |
+| `textbuffer.cursor` | `Cursor` and `normalize`, the merge of colliding cursors |
+| `textbuffer.history` | `Replacement`, `UndoEntry`, `History` |
+| `textbuffer.buffer` | `TextBuffer`: edits, movement, cursors, undo/redo |
+| `textbuffer.script` | the command language used by the CLI (`parseCommand`, `runScript`) |
+
+To use it as a dependency, add `dependency "textbuffer" version="*"` (using its
+`library` configuration, which leaves out the CLI) and:
 
 ```d
 import textbuffer;
 
-auto buf = TextBuffer.fromText("alpha\nbeta\ngamma");
-buf.addCursor(1, 0);
-buf.addCursor(2, 0);
-buf.insert("- ");
-assert(buf.text == "- alpha\n- beta\n- gamma");
+void main()
+{
+    auto buf = new TextBuffer(["alpha", "beta", "gamma"]);
 
-buf.move(Direction.end, true);   // select to the end of each line
-buf.insert("X");
-assert(buf.text == "- X\n- X\n- X");
+    buf.addCursor(1, 0);
+    buf.addCursor(2, 0);
+    buf.insert("- ");                 // one edit, three cursors
+    assert(buf.text == "- alpha\n- beta\n- gamma");
 
-buf.undo();
-assert(buf.text == "- alpha\n- beta\n- gamma");
-buf.redo();
+    buf.move(Direction.end, true);    // select to the end of each line
+    buf.insert("X");
+    assert(buf.text == "- X\n- X\n- X");
 
-CharBuf output;
-buf.render(output);              // document, cursor lines and "--"
+    buf.undo();                       // reverts the whole multi-cursor edit
+    assert(buf.text == "- alpha\n- beta\n- gamma");
+    assert(buf.cursors.length == 3);
+    buf.redo();
+}
 ```
 
-The main entry point is `TextBuffer`: `insert`, `deleteBackward`,
-`deleteForward`, `move`, `goTo`, `addCursor`, `clearCursors`, `undo`, `redo`,
-and the queries `text`, `line`, `lineCount`, `cursors`, `canUndo`, `canRedo`,
-`clamp`. Positions given to the API are clamped, so calls cannot fail.
-`textbuffer.script.runScript` runs a whole script and is what the CLI uses.
+Positions passed to `goTo` and `addCursor` are clamped to the document.

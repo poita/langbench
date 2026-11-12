@@ -1,152 +1,307 @@
 /**
- * The 39 KBL built-in functions.
+ * The 39 built-in functions of KBL.
  *
- * `builtinId` resolves a name once (at parse time); `checkCall` applies the
- * arity and argument-type rules; `callBuiltin` runs the function.
+ * Calls go through $(LREF callBuiltin), which performs the arity check, the
+ * argument type checks (in ascending argument order) and then runs the
+ * function, so every function reports errors in the order the spec fixes.
  */
 module kiln.builtins;
 
+import kiln.bytes;
 import kiln.errors;
-import kiln.glob;
-import kiln.text;
+import kiln.glob : GlobPattern, compileGlob;
 import kiln.value;
-import kiln.vfs;
+import kiln.workspace : Workspace;
 
-import std.algorithm : sort;
-import std.array : appender;
-import std.conv : to;
-
-/// The built-in functions, in table order.
-enum Fn : int
+/// Expected type of a built-in's argument.
+private enum ArgT : ubyte
 {
-    len, count, upper, lower, trim, replace, starts_with, ends_with, contains, substr,
-    split, join, str, int_, dirname, basename, stem, ext, pathjoin, map,
-    filter, reject, sort_, uniq, reverse, first, last, slice, has, indexof,
-    range, sum, flatten, zip, is_str, is_int, is_bool, is_list, glob,
+    any,
+    str,
+    integer,
+    boolean,
+    list,
+    strOrList,
+    strOrInt,
+    strIntBool,
 }
 
-/// Static description of a built-in: name, argument type codes and arity.
-struct BuiltinInfo
+private string expectedToken(ArgT t) @safe pure nothrow @nogc
+{
+    final switch (t)
+    {
+    case ArgT.any:
+        return "any";
+    case ArgT.str:
+        return "str";
+    case ArgT.integer:
+        return "int";
+    case ArgT.boolean:
+        return "bool";
+    case ArgT.list:
+        return "list";
+    case ArgT.strOrList:
+        return "str|list";
+    case ArgT.strOrInt:
+        return "str|int";
+    case ArgT.strIntBool:
+        return "str|int|bool";
+    }
+}
+
+private bool accepts(ArgT t, ValueType v) @safe pure nothrow @nogc
+{
+    final switch (t)
+    {
+    case ArgT.any:
+        return true;
+    case ArgT.str:
+        return v == ValueType.str;
+    case ArgT.integer:
+        return v == ValueType.integer;
+    case ArgT.boolean:
+        return v == ValueType.boolean;
+    case ArgT.list:
+        return v == ValueType.list;
+    case ArgT.strOrList:
+        return v == ValueType.str || v == ValueType.list;
+    case ArgT.strOrInt:
+        return v == ValueType.str || v == ValueType.integer;
+    case ArgT.strIntBool:
+        return v != ValueType.list;
+    }
+}
+
+private alias Impl = Value function(Value[] a, Workspace ws) @safe;
+
+/// A built-in function descriptor.
+struct Builtin
 {
     string name;
-    /// One code per argument: S=str I=int L=list V=any M=str|list X=str|int|bool Y=str|int.
-    string sig;
-    int minArgs;
-    int maxArgs;
+    private immutable(ArgT)[] types; // one per argument; the last repeats when variadic
+    private size_t minArgs, maxArgs;
+    private Impl impl;
 }
 
-/// The function table, indexed by `Fn`.
-immutable BuiltinInfo[] builtinTable = [
-    BuiltinInfo("len", "M", 1, 1), BuiltinInfo("count", "L", 1, 1),
-    BuiltinInfo("upper", "S", 1, 1), BuiltinInfo("lower", "S", 1, 1),
-    BuiltinInfo("trim", "S", 1, 1), BuiltinInfo("replace", "SSS", 3, 3),
-    BuiltinInfo("starts_with", "SS", 2, 2), BuiltinInfo("ends_with", "SS", 2, 2),
-    BuiltinInfo("contains", "SS", 2, 2), BuiltinInfo("substr", "SII", 3, 3),
-    BuiltinInfo("split", "SS", 2, 2), BuiltinInfo("join", "LS", 2, 2),
-    BuiltinInfo("str", "X", 1, 1), BuiltinInfo("int", "Y", 1, 1),
-    BuiltinInfo("dirname", "S", 1, 1), BuiltinInfo("basename", "S", 1, 1),
-    BuiltinInfo("stem", "S", 1, 1), BuiltinInfo("ext", "S", 1, 1),
-    BuiltinInfo("pathjoin", "SSSSSSSS", 1, 8), BuiltinInfo("map", "LS", 2, 2),
-    BuiltinInfo("filter", "LS", 2, 2), BuiltinInfo("reject", "LS", 2, 2),
-    BuiltinInfo("sort", "L", 1, 1), BuiltinInfo("uniq", "L", 1, 1),
-    BuiltinInfo("reverse", "L", 1, 1), BuiltinInfo("first", "L", 1, 1),
-    BuiltinInfo("last", "L", 1, 1), BuiltinInfo("slice", "LII", 3, 3),
-    BuiltinInfo("has", "LV", 2, 2), BuiltinInfo("indexof", "LV", 2, 2),
-    BuiltinInfo("range", "I", 1, 1), BuiltinInfo("sum", "L", 1, 1),
-    BuiltinInfo("flatten", "L", 1, 1), BuiltinInfo("zip", "LL", 2, 2),
-    BuiltinInfo("is_str", "V", 1, 1), BuiltinInfo("is_int", "V", 1, 1),
-    BuiltinInfo("is_bool", "V", 1, 1), BuiltinInfo("is_list", "V", 1, 1),
-    BuiltinInfo("glob", "S", 1, 1),
-];
+private __gshared Builtin[string] table;
 
-static assert(builtinTable.length == 39);
-
-private immutable int[string] ids = () {
-    int[string] r;
-    foreach (i, b; builtinTable)
-        r[b.name] = cast(int) i;
-    return r;
-}();
-
-/// The id of the built-in named `name`, or -1 if there is none.
-int builtinId(string name)
+shared static this()
 {
-    if (auto p = name in ids)
-        return *p;
-    return -1;
-}
-
-private string expectedToken(char code) @safe pure nothrow @nogc
-{
-    switch (code)
+    Builtin[string] t;
+    void add(string name, immutable(ArgT)[] types, Impl impl, size_t lo = size_t.max, size_t hi = size_t.max)
     {
-    case 'S':
-        return "str";
-    case 'I':
-        return "int";
-    case 'L':
-        return "list";
-    case 'M':
-        return "str|list";
-    case 'X':
-        return "str|int|bool";
-    case 'Y':
-        return "str|int";
-    default:
-        return "";
+        if (lo == size_t.max)
+            lo = hi = types.length;
+        t[name] = Builtin(name, types, lo, hi, impl);
     }
+
+    alias A = ArgT;
+    add("len", [A.strOrList], (a, ws) => Value.ofInt(a[0].type == ValueType.str ? a[0].s.length : a[0].l.length));
+    add("count", [A.list], (a, ws) => Value.ofInt(a[0].l.length));
+    add("upper", [A.str], (a, ws) => Value.ofStr(toUpperAscii(a[0].s)));
+    add("lower", [A.str], (a, ws) => Value.ofStr(toLowerAscii(a[0].s)));
+    add("trim", [A.str], &fnTrim);
+    add("replace", [A.str, A.str, A.str], &fnReplace);
+    add("starts_with", [A.str, A.str], (a, ws) => Value.ofBool(startsWith(a[0].s, a[1].s)));
+    add("ends_with", [A.str, A.str], (a, ws) => Value.ofBool(endsWith(a[0].s, a[1].s)));
+    add("contains", [A.str, A.str], (a, ws) => Value.ofBool(contains(a[0].s, a[1].s)));
+    add("substr", [A.str, A.integer, A.integer], &fnSubstr);
+    add("split", [A.str, A.str], &fnSplit);
+    add("join", [A.list, A.str], &fnJoin);
+    add("str", [A.strIntBool], (a, ws) => Value.ofStr(scalarText(a[0])));
+    add("int", [A.strOrInt], &fnInt);
+    add("dirname", [A.str], &fnDirname);
+    add("basename", [A.str], (a, ws) => Value.ofStr(baseName(a[0].s)));
+    add("stem", [A.str], &fnStem);
+    add("ext", [A.str], &fnExt);
+    add("pathjoin", [A.str], &fnPathjoin, 1, 8);
+    add("map", [A.list, A.str], &fnMap);
+    add("filter", [A.list, A.str], &fnFilter);
+    add("reject", [A.list, A.str], &fnReject);
+    add("sort", [A.list], &fnSort);
+    add("uniq", [A.list], &fnUniq);
+    add("reverse", [A.list], &fnReverse);
+    add("first", [A.list], &fnFirst);
+    add("last", [A.list], &fnLast);
+    add("slice", [A.list, A.integer, A.integer], &fnSlice);
+    add("has", [A.list, A.any], (a, ws) => Value.ofBool(indexIn(a[0].l, a[1]) >= 0));
+    add("indexof", [A.list, A.any], (a, ws) => Value.ofInt(indexIn(a[0].l, a[1])));
+    add("range", [A.integer], &fnRange);
+    add("sum", [A.list], &fnSum);
+    add("flatten", [A.list], &fnFlatten);
+    add("zip", [A.list, A.list], &fnZip);
+    add("is_str", [A.any], (a, ws) => Value.ofBool(a[0].type == ValueType.str));
+    add("is_int", [A.any], (a, ws) => Value.ofBool(a[0].type == ValueType.integer));
+    add("is_bool", [A.any], (a, ws) => Value.ofBool(a[0].type == ValueType.boolean));
+    add("is_list", [A.any], (a, ws) => Value.ofBool(a[0].type == ValueType.list));
+    add("glob", [A.str], &fnGlob);
+    table = t;
 }
 
-private bool codeAccepts(char code, VType t) @safe pure nothrow @nogc
+/// The built-in called `name`, or null.
+const(Builtin)* lookupBuiltin(const(char)[] name) @trusted
 {
-    switch (code)
-    {
-    case 'S':
-        return t == VType.str;
-    case 'I':
-        return t == VType.int_;
-    case 'L':
-        return t == VType.list;
-    case 'M':
-        return t == VType.str || t == VType.list;
-    case 'X':
-        return t != VType.list;
-    case 'Y':
-        return t == VType.str || t == VType.int_;
-    default:
-        return true;
-    }
+    return name in table;
 }
 
-/// Applies the arity check and then the argument type checks of function `id`.
-void checkCall(int id, const(Value)[] args) @safe pure
+/// The number of built-in functions.
+size_t builtinCount() @trusted
 {
-    immutable info = &builtinTable[id];
-    if (args.length < info.minArgs || args.length > info.maxArgs)
-    {
-        string exp = info.minArgs == info.maxArgs ? info.minArgs.to!string
-            : info.minArgs.to!string ~ "-" ~ info.maxArgs.to!string;
-        throw arityError("fn", info.name, exp, args.length);
-    }
-    foreach (i, ref a; args)
-    {
-        immutable code = info.sig[i];
-        if (!codeAccepts(code, a.type))
-            throw typeError("fn " ~ info.name ~ " argument " ~ (i + 1).to!string,
-                    expectedToken(code), typeName(a.type));
-    }
+    return table.length;
 }
 
-private string basenameOf(string p) @safe pure nothrow @nogc
+/**
+ * Calls `fn` with already-evaluated `args`: arity, then argument types in
+ * ascending order, then the function itself.
+ */
+Value callBuiltin(const(Builtin)* fn, Value[] args, Workspace ws) @safe
 {
-    foreach_reverse (i, c; p)
-        if (c == '/')
-            return p[i + 1 .. $];
-    return p;
+    if (args.length < fn.minArgs || args.length > fn.maxArgs)
+    {
+        auto expected = fn.minArgs == fn.maxArgs ? decimal(fn.minArgs)
+            : decimal(fn.minArgs) ~ "-" ~ decimal(fn.maxArgs);
+        fail("E_ARITY", "fn " ~ fn.name ~ ": expected " ~ expected ~ ", got " ~ decimal(args.length));
+    }
+    foreach (k, ref v; args)
+    {
+        immutable t = fn.types[k < fn.types.length ? k : fn.types.length - 1];
+        if (!accepts(t, v.type))
+            failType("fn " ~ fn.name ~ " argument " ~ decimal(k + 1), expectedToken(t), typeName(v));
+    }
+    return fn.impl(args, ws);
 }
 
-// Index of the last '.' of b that is not at index 0, or -1.
-private ptrdiff_t extDot(string b) @safe pure nothrow @nogc
+// ---- implementations ------------------------------------------------------
+
+private bool isTrimByte(char c) @safe pure nothrow @nogc
+{
+    return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+private Value fnTrim(Value[] a, Workspace) @safe
+{
+    auto s = a[0].s;
+    size_t lo = 0, hi = s.length;
+    while (lo < hi && isTrimByte(s[lo]))
+        lo++;
+    while (hi > lo && isTrimByte(s[hi - 1]))
+        hi--;
+    return Value.ofStr(s[lo .. hi]);
+}
+
+private Value fnReplace(Value[] a, Workspace) @safe
+{
+    if (a[1].s.length == 0)
+        fail("E_ARG", "fn replace: empty pattern");
+    return Value.ofStr(replaceAll(a[0].s, a[1].s, a[2].s));
+}
+
+/// Clamps `(start, count)` against a sequence of length `n`, per `substr`.
+private void clampRange(long n, long start, long count, out size_t lo, out size_t len) @safe pure nothrow @nogc
+{
+    if (start < 0)
+        start = n + start;
+    if (start < 0)
+        start = 0;
+    if (start > n)
+        start = n;
+    if (count < 0)
+        count = 0;
+    if (count > n - start)
+        count = n - start;
+    lo = cast(size_t) start;
+    len = cast(size_t) count;
+}
+
+private Value fnSubstr(Value[] a, Workspace) @safe
+{
+    size_t lo, len;
+    clampRange(a[0].s.length, a[1].i, a[2].i, lo, len);
+    return Value.ofStr(a[0].s[lo .. lo + len]);
+}
+
+private Value fnSlice(Value[] a, Workspace) @safe
+{
+    size_t lo, len;
+    clampRange(a[0].l.length, a[1].i, a[2].i, lo, len);
+    return Value.ofList(a[0].l[lo .. lo + len]);
+}
+
+private Value fnSplit(Value[] a, Workspace) @safe
+{
+    auto s = a[0].s, sep = a[1].s;
+    if (sep.length == 0)
+        fail("E_ARG", "fn split: empty separator");
+    Value[] parts;
+    size_t cur = 0;
+    while (true)
+    {
+        immutable pos = indexOf(s, sep, cur);
+        if (pos < 0)
+            break;
+        parts ~= Value.ofStr(s[cur .. pos]);
+        cur = pos + sep.length;
+    }
+    parts ~= Value.ofStr(s[cur .. $]);
+    return Value.ofList(parts);
+}
+
+private Value fnJoin(Value[] a, Workspace) @safe
+{
+    char[] buf;
+    foreach (k, ref e; a[0].l)
+    {
+        if (e.type != ValueType.str && e.type != ValueType.integer)
+            failType("fn join element " ~ decimal(k), "str|int", typeName(e));
+        if (k)
+            buf ~= a[1].s;
+        buf ~= scalarText(e);
+    }
+    return Value.ofStr((() @trusted => cast(string) buf)());
+}
+
+private Value fnInt(Value[] a, Workspace) @safe
+{
+    if (a[0].type == ValueType.integer)
+        return a[0];
+    auto s = a[0].s;
+    immutable neg = s.length > 0 && s[0] == '-';
+    auto digits = neg ? s[1 .. $] : s;
+    if (digits.length == 0)
+        fail("E_ARG", "fn int: bad integer");
+    ulong v = 0;
+    immutable limit = neg ? (cast(ulong) long.max) + 1 : cast(ulong) long.max;
+    foreach (c; digits)
+    {
+        if (c < '0' || c > '9')
+            fail("E_ARG", "fn int: bad integer");
+        immutable d = c - '0';
+        if (v > (limit - d) / 10)
+            fail("E_ARG", "fn int: bad integer");
+        v = v * 10 + d;
+    }
+    return Value.ofInt(neg ? cast(long)(0 - v) : cast(long) v);
+}
+
+private string baseName(string s) @safe pure nothrow @nogc
+{
+    foreach_reverse (i; 0 .. s.length)
+        if (s[i] == '/')
+            return s[i + 1 .. $];
+    return s;
+}
+
+private Value fnDirname(Value[] a, Workspace) @safe
+{
+    auto s = a[0].s;
+    foreach_reverse (i; 0 .. s.length)
+        if (s[i] == '/')
+            return Value.ofStr(s[0 .. i]);
+    return Value.ofStr("");
+}
+
+/// Index of the extension's dot in a basename, or -1.
+private ptrdiff_t dotIndex(string b) @safe pure nothrow @nogc
 {
     foreach_reverse (i; 1 .. b.length)
         if (b[i] == '.')
@@ -154,368 +309,247 @@ private ptrdiff_t extDot(string b) @safe pure nothrow @nogc
     return -1;
 }
 
-private bool parseInt64(string s, out long result) @safe pure nothrow @nogc
+private Value fnStem(Value[] a, Workspace) @safe
 {
-    size_t i = 0;
-    bool neg = false;
-    if (s.length > 0 && s[0] == '-')
-    {
-        neg = true;
-        i = 1;
-    }
-    if (i >= s.length)
-        return false;
-    ulong acc = 0;
-    immutable ulong limit = neg ? (1UL << 63) : (1UL << 63) - 1;
-    for (; i < s.length; i++)
-    {
-        immutable c = s[i];
-        if (c < '0' || c > '9')
-            return false;
-        immutable d = c - '0';
-        if (acc > (limit - d) / 10)
-            return false;
-        acc = acc * 10 + d;
-    }
-    result = neg ? cast(long)(0 - acc) : cast(long) acc;
-    return true;
+    auto b = baseName(a[0].s);
+    immutable d = dotIndex(b);
+    return Value.ofStr(d < 0 ? b : b[0 .. d]);
 }
 
-private Value clampWindow(size_t n, long start, long count, out size_t s, out size_t c) @safe pure nothrow @nogc
+private Value fnExt(Value[] a, Workspace) @safe
 {
-    if (start < 0)
-        start += cast(long) n;
-    if (start < 0)
-        start = 0;
-    if (start > cast(long) n)
-        start = cast(long) n;
-    if (count < 0)
-        count = 0;
-    if (count > cast(long) n - start)
-        count = cast(long) n - start;
-    s = cast(size_t) start;
-    c = cast(size_t) count;
-    return Value.init;
+    auto b = baseName(a[0].s);
+    immutable d = dotIndex(b);
+    return Value.ofStr(d < 0 ? "" : b[d .. $]);
 }
 
-private GlobPattern compileOrThrow(string fnName, string pat)
+private Value fnPathjoin(Value[] a, Workspace) @safe
 {
-    auto g = GlobPattern.compile(pat);
-    if (g is null)
-        throw argError("fn", fnName, "bad pattern");
-    return g;
+    char[] buf;
+    bool any = false;
+    foreach (ref e; a)
+    {
+        if (e.s.length == 0)
+            continue;
+        if (any)
+            buf ~= '/';
+        buf ~= e.s;
+        any = true;
+    }
+    return Value.ofStr((() @trusted => cast(string) buf)());
 }
 
-/**
- * Runs built-in `id`. The call must already have passed `checkCall`.
- * `vfs` is consulted by `glob` only.
- */
-Value callBuiltin(int id, Value[] a, Vfs vfs)
+private Value fnMap(Value[] a, Workspace) @safe
 {
-    final switch (cast(Fn) id)
+    auto pat = a[1].s;
+    auto result = new Value[a[0].l.length];
+    foreach (k, ref e; a[0].l)
     {
-    case Fn.len:
-        return Value.ofInt(a[0].type == VType.str ? a[0].s.length : a[0].l.length);
-    case Fn.count:
-        return Value.ofInt(a[0].l.length);
-    case Fn.upper:
-    {
-        auto b = a[0].s.dup;
-        foreach (ref c; b)
-            if (c >= 'a' && c <= 'z')
-                c -= 32;
-        return Value.ofStr(toImmutable(b));
-    }
-    case Fn.lower:
-    {
-        auto b = a[0].s.dup;
-        foreach (ref c; b)
-            if (c >= 'A' && c <= 'Z')
-                c += 32;
-        return Value.ofStr(toImmutable(b));
-    }
-    case Fn.trim:
-    {
-        string s = a[0].s;
-        size_t lo = 0, hi = s.length;
-        bool ws(char c)
+        if (e.type != ValueType.str)
+            failType("fn map element " ~ decimal(k), "str", typeName(e));
+        char[] buf;
+        size_t i = 0;
+        while (i < pat.length)
         {
-            return c == ' ' || c == '\t' || c == '\n' || c == '\r';
-        }
-
-        while (lo < hi && ws(s[lo]))
-            lo++;
-        while (hi > lo && ws(s[hi - 1]))
-            hi--;
-        return Value.ofStr(s[lo .. hi]);
-    }
-    case Fn.replace:
-        if (a[1].s.length == 0)
-            throw argError("fn", "replace", "empty pattern");
-        return Value.ofStr(replaceAll(a[0].s, a[1].s, a[2].s));
-    case Fn.starts_with:
-        return Value.ofBool(startsWithBytes(a[0].s, a[1].s));
-    case Fn.ends_with:
-        return Value.ofBool(endsWithBytes(a[0].s, a[1].s));
-    case Fn.contains:
-        return Value.ofBool(containsBytes(a[0].s, a[1].s));
-    case Fn.substr:
-    {
-        size_t s, c;
-        clampWindow(a[0].s.length, a[1].i, a[2].i, s, c);
-        return Value.ofStr(a[0].s[s .. s + c]);
-    }
-    case Fn.split:
-    {
-        string str = a[0].s, sep = a[1].s;
-        if (sep.length == 0)
-            throw argError("fn", "split", "empty separator");
-        Value[] r;
-        size_t cur = 0;
-        for (;;)
-        {
-            immutable pos = findBytes(str, sep, cur);
-            if (pos < 0)
-                break;
-            r ~= Value.ofStr(str[cur .. pos]);
-            cur = pos + sep.length;
-        }
-        r ~= Value.ofStr(str[cur .. $]);
-        return Value.ofList(r);
-    }
-    case Fn.join:
-    {
-        auto app = appender!(char[]);
-        foreach (i, ref e; a[0].l)
-        {
-            if (e.type != VType.str && e.type != VType.int_)
-                throw typeError("fn join element " ~ i.to!string, "str|int", typeName(e.type));
-            if (i > 0)
-                app.put(a[1].s);
-            app.put(interpolate(e));
-        }
-        return Value.ofStr(toImmutable(app.data));
-    }
-    case Fn.str:
-        return Value.ofStr(interpolate(a[0]));
-    case Fn.int_:
-    {
-        if (a[0].type == VType.int_)
-            return a[0];
-        long n;
-        if (!parseInt64(a[0].s, n))
-            throw argError("fn", "int", "bad integer");
-        return Value.ofInt(n);
-    }
-    case Fn.dirname:
-    {
-        string s = a[0].s;
-        foreach_reverse (i, c; s)
-            if (c == '/')
-                return Value.ofStr(s[0 .. i]);
-        return Value.ofStr("");
-    }
-    case Fn.basename:
-        return Value.ofStr(basenameOf(a[0].s));
-    case Fn.stem:
-    {
-        string b = basenameOf(a[0].s);
-        immutable d = extDot(b);
-        return Value.ofStr(d < 0 ? b : b[0 .. d]);
-    }
-    case Fn.ext:
-    {
-        string b = basenameOf(a[0].s);
-        immutable d = extDot(b);
-        return Value.ofStr(d < 0 ? "" : b[d .. $]);
-    }
-    case Fn.pathjoin:
-    {
-        auto app = appender!(char[]);
-        bool any = false;
-        foreach (ref e; a)
-        {
-            if (e.s.length == 0)
-                continue;
-            if (any)
-                app.put('/');
-            app.put(e.s);
-            any = true;
-        }
-        return Value.ofStr(toImmutable(app.data));
-    }
-    case Fn.map:
-    {
-        string pat = a[1].s;
-        auto r = new Value[a[0].l.length];
-        foreach (i, ref e; a[0].l)
-        {
-            if (e.type != VType.str)
-                throw typeError("fn map element " ~ i.to!string, "str", typeName(e.type));
-            auto app = appender!(char[]);
-            for (size_t k = 0; k < pat.length; k++)
+            if (pat[i] == '%')
             {
-                if (pat[k] == '%')
+                if (i + 1 < pat.length && pat[i + 1] == '%')
                 {
-                    if (k + 1 < pat.length && pat[k + 1] == '%')
-                    {
-                        app.put('%');
-                        k++;
-                    }
-                    else
-                        app.put(e.s);
+                    buf ~= '%';
+                    i += 2;
                 }
                 else
-                    app.put(pat[k]);
-            }
-            r[i] = Value.ofStr(toImmutable(app.data));
-        }
-        return Value.ofList(r);
-    }
-    case Fn.filter:
-    case Fn.reject:
-    {
-        immutable keepMatching = cast(Fn) id == Fn.filter;
-        immutable name = keepMatching ? "filter" : "reject";
-        auto g = compileOrThrow(name, a[1].s);
-        Value[] r;
-        foreach (i, ref e; a[0].l)
-        {
-            if (e.type != VType.str)
-                throw typeError("fn " ~ name ~ " element " ~ i.to!string, "str", typeName(e.type));
-            if (g.matches(e.s) == keepMatching)
-                r ~= e;
-        }
-        return Value.ofList(r);
-    }
-    case Fn.sort_:
-    {
-        auto r = a[0].l.dup;
-        r.sort!((x, y) => compareValues(x, y) < 0);
-        return Value.ofList(r);
-    }
-    case Fn.uniq:
-    {
-        Value[] r;
-        bool allStr = true;
-        foreach (ref e; a[0].l)
-            if (e.type != VType.str)
-            {
-                allStr = false;
-                break;
-            }
-        if (allStr)
-        {
-            bool[string] seen;
-            foreach (ref e; a[0].l)
-                if (e.s !in seen)
                 {
-                    seen[e.s] = true;
-                    r ~= e;
+                    buf ~= e.s;
+                    i++;
                 }
-        }
-        else
-        {
-            foreach (ref e; a[0].l)
+            }
+            else
             {
-                bool dup = false;
-                foreach (ref x; r)
-                    if (valuesEqual(x, e))
-                    {
-                        dup = true;
-                        break;
-                    }
-                if (!dup)
-                    r ~= e;
+                buf ~= pat[i];
+                i++;
             }
         }
-        return Value.ofList(r);
+        result[k] = Value.ofStr((() @trusted => cast(string) buf)());
     }
-    case Fn.reverse:
+    return Value.ofList(result);
+}
+
+private Value filterImpl(Value[] a, string name, bool keepMatches) @safe
+{
+    GlobPattern gp;
+    if (!compileGlob(a[1].s, gp))
+        fail("E_ARG", "fn " ~ name ~ ": bad pattern");
+    Value[] kept;
+    foreach (k, ref e; a[0].l)
     {
-        auto r = new Value[a[0].l.length];
-        foreach (i, ref e; a[0].l)
-            r[$ - 1 - i] = e;
-        return Value.ofList(r);
+        if (e.type != ValueType.str)
+            failType("fn " ~ name ~ " element " ~ decimal(k), "str", typeName(e));
+        if (gp.matches(e.s) == keepMatches)
+            kept ~= e;
     }
-    case Fn.first:
-        if (a[0].l.length == 0)
-            throw argError("fn", "first", "empty list");
-        return a[0].l[0];
-    case Fn.last:
-        if (a[0].l.length == 0)
-            throw argError("fn", "last", "empty list");
-        return a[0].l[$ - 1];
-    case Fn.slice:
+    return Value.ofList(kept);
+}
+
+private Value fnFilter(Value[] a, Workspace) @safe
+{
+    return filterImpl(a, "filter", true);
+}
+
+private Value fnReject(Value[] a, Workspace) @safe
+{
+    return filterImpl(a, "reject", false);
+}
+
+private Value fnSort(Value[] a, Workspace) @safe
+{
+    import std.algorithm.sorting : sort;
+
+    auto items = a[0].l.dup;
+    items.sort!((x, y) => compareValues(x, y) < 0);
+    return Value.ofList(items);
+}
+
+private Value fnUniq(Value[] a, Workspace) @safe
+{
+    bool[string] seen;
+    Value[] kept;
+    char[] key;
+    foreach (ref e; a[0].l)
     {
-        size_t s, c;
-        clampWindow(a[0].l.length, a[1].i, a[2].i, s, c);
-        return Value.ofList(a[0].l[s .. s + c]);
+        key.length = 0;
+        appendKey(key, e);
+        string k = key.idup;
+        if (k in seen)
+            continue;
+        seen[k] = true;
+        kept ~= e;
     }
-    case Fn.has:
-        foreach (ref e; a[0].l)
-            if (valuesEqual(e, a[1]))
-                return Value.ofBool(true);
-        return Value.ofBool(false);
-    case Fn.indexof:
-        foreach (i, ref e; a[0].l)
-            if (valuesEqual(e, a[1]))
-                return Value.ofInt(cast(long) i);
-        return Value.ofInt(-1);
-    case Fn.range:
+    return Value.ofList(kept);
+}
+
+private Value fnReverse(Value[] a, Workspace) @safe
+{
+    auto n = a[0].l.length;
+    auto r = new Value[n];
+    foreach (k; 0 .. n)
+        r[k] = a[0].l[n - 1 - k];
+    return Value.ofList(r);
+}
+
+private Value fnFirst(Value[] a, Workspace) @safe
+{
+    if (a[0].l.length == 0)
+        fail("E_ARG", "fn first: empty list");
+    return a[0].l[0];
+}
+
+private Value fnLast(Value[] a, Workspace) @safe
+{
+    if (a[0].l.length == 0)
+        fail("E_ARG", "fn last: empty list");
+    return a[0].l[$ - 1];
+}
+
+private long indexIn(const(Value)[] items, in Value needle) @safe pure nothrow
+{
+    foreach (k, ref e; items)
+        if (valuesEqual(e, needle))
+            return cast(long) k;
+    return -1;
+}
+
+private Value fnRange(Value[] a, Workspace) @safe
+{
+    if (a[0].i < 0)
+        fail("E_ARG", "fn range: negative");
+    auto r = new Value[cast(size_t) a[0].i];
+    foreach (k; 0 .. r.length)
+        r[k] = Value.ofInt(cast(long) k);
+    return Value.ofList(r);
+}
+
+private Value fnSum(Value[] a, Workspace) @safe
+{
+    long total = 0;
+    foreach (k, ref e; a[0].l)
     {
-        if (a[0].i < 0)
-            throw argError("fn", "range", "negative");
-        auto r = new Value[cast(size_t) a[0].i];
-        foreach (i; 0 .. r.length)
-            r[i] = Value.ofInt(cast(long) i);
-        return Value.ofList(r);
+        if (e.type != ValueType.integer)
+            failType("fn sum element " ~ decimal(k), "int", typeName(e));
+        total += e.i;
     }
-    case Fn.sum:
+    return Value.ofInt(total);
+}
+
+private Value fnFlatten(Value[] a, Workspace) @safe
+{
+    Value[] r;
+    foreach (ref e; a[0].l)
     {
-        long t = 0;
-        foreach (i, ref e; a[0].l)
-        {
-            if (e.type != VType.int_)
-                throw typeError("fn sum element " ~ i.to!string, "int", typeName(e.type));
-            t += e.i;
-        }
-        return Value.ofInt(t);
+        if (e.type == ValueType.list)
+            r ~= e.l;
+        else
+            r ~= e;
     }
-    case Fn.flatten:
+    return Value.ofList(r);
+}
+
+private Value fnZip(Value[] a, Workspace) @safe
+{
+    immutable n = a[0].l.length < a[1].l.length ? a[0].l.length : a[1].l.length;
+    auto r = new Value[n];
+    foreach (k; 0 .. n)
+        r[k] = Value.ofList([a[0].l[k], a[1].l[k]]);
+    return Value.ofList(r);
+}
+
+private Value fnGlob(Value[] a, Workspace ws) @safe
+{
+    GlobPattern gp;
+    if (!compileGlob(a[0].s, gp))
+        fail("E_ARG", "fn glob: bad pattern");
+    return Value.ofStrings(ws.glob(gp));
+}
+
+@safe unittest
+{
+    import std.exception : collectException;
+
+    assert(builtinCount == 39);
+    auto ws = new Workspace;
+    Value call(string name, Value[] args...)
     {
-        Value[] r;
-        foreach (ref e; a[0].l)
-            if (e.type == VType.list)
-                r ~= e.l;
-            else
-                r ~= e;
-        return Value.ofList(r);
+        return callBuiltin(lookupBuiltin(name), args.dup, ws);
     }
-    case Fn.zip:
-    {
-        immutable n = a[0].l.length < a[1].l.length ? a[0].l.length : a[1].l.length;
-        auto r = new Value[n];
-        foreach (i; 0 .. n)
-            r[i] = Value.ofList([a[0].l[i], a[1].l[i]]);
-        return Value.ofList(r);
-    }
-    case Fn.is_str:
-        return Value.ofBool(a[0].type == VType.str);
-    case Fn.is_int:
-        return Value.ofBool(a[0].type == VType.int_);
-    case Fn.is_bool:
-        return Value.ofBool(a[0].type == VType.bool_);
-    case Fn.is_list:
-        return Value.ofBool(a[0].type == VType.list);
-    case Fn.glob:
-    {
-        auto g = compileOrThrow("glob", a[0].s);
-        Value[] r;
-        foreach (p; vfs.globRange(g.literalPrefix))
-            if (g.matches(p))
-                r ~= Value.ofStr(p);
-        return Value.ofList(r);
-    }
-    }
+
+    auto S(string s) => Value.ofStr(s);
+    auto I(long i) => Value.ofInt(i);
+    assert(call("substr", S("abcdef"), I(1), I(3)).s == "bcd");
+    assert(call("substr", S("abcdef"), I(-2), I(5)).s == "ef");
+    assert(call("substr", S("abcdef"), I(10), I(2)).s == "");
+    assert(call("substr", S("abcdef"), I(2), I(-1)).s == "");
+    assert(call("split", S("a,,b"), S(",")).l.length == 3);
+    assert(call("split", S(""), S(",")).l.length == 1);
+    assert(call("stem", S("src/.hidden")).s == ".hidden" && call("ext", S("src/x.")).s == ".");
+    assert(call("stem", S("src/a.b.txt")).s == "a.b" && call("ext", S("src/a.b.txt")).s == ".txt");
+    assert(call("pathjoin", S("out"), S(""), S("a.txt")).s == "out/a.txt");
+    assert(call("pathjoin", S("out/")).s == "out/");
+    assert(call("map", Value.ofStrings(["a"]), S("100%%-%")).l[0].s == "100%-a");
+    assert(call("int", S("-0012")).i == -12);
+    assert(call("int", I(5)).i == 5);
+    auto e = collectException!KilnError(call("int", S("9223372036854775808")));
+    assert(e && e.detail == "fn int: bad integer");
+    assert(call("int", S("-9223372036854775808")).i == long.min);
+    e = collectException!KilnError(call("upper", S("a"), S("b")));
+    assert(e && e.detail == "fn upper: expected 1, got 2");
+    e = collectException!KilnError(call("pathjoin"));
+    assert(e && e.detail == "fn pathjoin: expected 1-8, got 0");
+    e = collectException!KilnError(call("upper", I(1)));
+    assert(e && e.detail == "fn upper argument 1: expected str, got int");
+    e = collectException!KilnError(call("filter", Value.ofList([I(1)]), S("")));
+    assert(e && e.detail == "fn filter: bad pattern");
+    assert(call("uniq", Value.ofList([I(1), S("1"), I(1)])).l.length == 2);
+    assert(call("sort", Value.ofList([S("b"), I(2), Value.ofBool(true), S("a")])).l[3].s == "b");
+    assert(call("flatten", Value.ofList([Value.ofList([I(1)]), I(2)])).l.length == 2);
+    assert(call("trim", S(" \t\r\nx y\n")).s == "x y");
 }

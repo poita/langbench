@@ -1,18 +1,21 @@
-// Package jsoncanon parses strict JSON (RFC 8259) and serializes it in a
-// canonical form.
+// Package jsoncanon parses JSON documents (RFC 8259) strictly and serializes
+// them in a canonical form.
 //
-// The parser is hand written and byte oriented. It accepts exactly the
-// grammar of RFC 8259 with these additional rules: the input must be strictly
-// valid UTF-8 without a byte-order mark, escaped surrogates must form proper
-// pairs, and nesting is limited to [MaxDepth] levels. Numbers are never
-// converted to floating point; they are kept as text, so integers of any size
-// and any number of digits are preserved.
+// The parser and serializer are implemented from scratch, without
+// encoding/json. Numbers are never converted to floating point: they are kept
+// as text, so integers of any size and any number of fraction or exponent
+// digits round-trip exactly.
 //
-// The canonical form has no insignificant whitespace, sorts object members by
-// the UTF-16 code unit order of their keys, keeps only the last of any
-// duplicated keys, escapes only what JSON requires, and normalizes number
-// exponents (see [Canonicalize]).
+// The canonical form has no insignificant whitespace, escapes only what must
+// be escaped, normalizes exponents, removes duplicate object keys (the last
+// occurrence wins) and orders object members by the UTF-16 code units of their
+// keys.
 //
-// Most callers only need [Canonicalize]. [Parse] exposes the value tree for
-// callers that want to inspect a document before serializing it.
+// The typical entry point is [Canonicalize]:
+//
+//	out, err := jsoncanon.Canonicalize([]byte(`{"b":1,"a":[1E+2]}`))
+//	// out == `{"a":[1e2],"b":1}`
+//
+// For finer control use [Parse] to obtain a [Value] tree and
+// [Value.AppendCanonical] to serialize it.
 package jsoncanon

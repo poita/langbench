@@ -1,5 +1,6 @@
 .dub/
 bin/
-*.o
 *.a
-chip8-test-*
+*.o
+*-test-library
+dub.selections.json

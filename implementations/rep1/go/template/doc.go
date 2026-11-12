@@ -1,22 +1,22 @@
-// Package template implements a small Jinja2-style template engine: variables
-// and expressions, a fixed set of filters, if/for/set, macros, include, and
-// template inheritance with extends, block and super().
+// Package template is a Jinja-style template engine.
 //
-// The package is organised by responsibility:
+// It implements a subset of Jinja2 3.1 (with strict undefined handling and
+// no automatic whitespace trimming or escaping): variables and expressions,
+// thirteen filters, if/for/set, macros, include, template inheritance with
+// extends/block/super(), comments and whitespace control.
 //
-//	errors.go, value.go, scope.go   values, errors and scopes
-//	lexer.go, parser.go, ast.go     template source to AST
-//	eval.go, interp.go, ops.go      the tree-walking interpreter
-//	filters.go, print.go            filters and value printing
-//	json.go, bundle.go              ordered JSON and the stdin bundle format
-//	engine.go, convert.go           the public entry points
+// Usage:
 //
-// Typical use:
+//	env := template.NewEnvironment()
+//	env.Add("main", "Hello {{ name|upper }}!")
+//	out, err := env.Render("main", map[string]any{"name": "Ada"})
 //
-//	eng := template.NewEngine(map[string]string{"main": "Hello {{ name|upper }}!"})
-//	out, err := eng.Render("main", template.ContextFromMap(map[string]any{"name": "ada"}))
+// Templates are parsed lazily the first time they are rendered, included or
+// extended, and at most once per Environment. Every failure is a *Error whose
+// Kind is one of Syntax, Filter, Undefined, Template or Type.
 //
-// Failures are returned as *Error values whose Kind is one of ErrSyntax,
-// ErrFilter, ErrUndefined, ErrTemplate and ErrType. Rendering is
-// all-or-nothing: on error no partial output is returned.
+// The engine is organised in layers: package syntax turns source into a
+// tree, package value defines the dynamic values and operators, package
+// filters the built-in filters, package jsonctx reads JSON contexts, and
+// this package interprets the tree.
 package template

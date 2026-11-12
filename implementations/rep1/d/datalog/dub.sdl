@@ -1,0 +1,24 @@
+name "datalog"
+description "A Datalog engine with stratified negation: semi-naive bottom-up evaluation."
+authors "Peter Alexander"
+copyright "Copyright © 2026, Peter Alexander"
+license "MIT"
+targetType "library"
+sourcePaths "source"
+importPaths "source"
+
+configuration "cli" {
+    targetType "executable"
+    targetName "datalog"
+    targetPath "bin"
+    sourcePaths "source" "cli"
+    mainSourceFile "cli/app.d"
+}
+
+configuration "library" {
+    targetType "library"
+}
+
+configuration "unittest" {
+    targetType "library"
+}

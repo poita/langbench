@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Pond Notes</title>
+  <id>https://pond.example/</id>
+  <updated>2024-02-01T00:00:00Z</updated>
+  <link href="https://pond.example/" rel="alternate"/>
+  <link href="https://pond.example/feed.xml" rel="self"/>
+  <author>
+    <name>R. Duck</name>
+  </author>
+  <entry>
+    <title>On Ducks</title>
+    <id>https://pond.example/posts/ducks/</id>
+    <updated>2024-02-01T00:00:00Z</updated>
+    <link href="https://pond.example/posts/ducks/" rel="alternate"/>
+    <content type="html">&lt;p&gt;Ducks are &lt;em&gt;fine&lt;/em&gt;.&lt;/p&gt;
+</content>
+  </entry>
+</feed>

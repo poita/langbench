@@ -1,391 +1,311 @@
 /// A tiny non-validating XML reader: elements and attributes only.
-///
-/// Namespace prefixes are stripped from element and attribute names, comments,
-/// processing instructions, DOCTYPE and CDATA are skipped, and character data
-/// is ignored.
 module svgraster.xml;
 
-/// An attribute with its prefix-stripped name and entity-decoded value.
-struct Attr
-{
-    string name;
-    string value;
-}
+import std.string : indexOf;
+import std.ascii : isWhite, isDigit, isHexDigit;
 
-/// An element in the parsed tree.
+/// An element of the parsed document tree.
 final class Element
 {
     /// Tag name with any namespace prefix removed.
     string tag;
-    /// Attributes in document order; a repeated name keeps only the last value.
-    Attr[] attrs;
-    /// Child elements in document order.
+    /// Attributes keyed by name with the namespace prefix removed. If a name
+    /// occurs twice the last occurrence wins. `xmlns` declarations are dropped.
+    string[string] attrs;
+    /// Child elements in document order. Character data is discarded.
     Element[] children;
-
-    /// True if the element has an attribute called `name`.
-    bool has(string name) const pure nothrow @safe
-    {
-        foreach (ref a; attrs)
-            if (a.name == name)
-                return true;
-        return false;
-    }
+    /// The enclosing element, or `null` for the document element.
+    Element parent;
 
     /// The value of attribute `name`, or `null` if it is absent.
-    string attr(string name) const pure nothrow @safe
+    string get(string name) const
     {
-        foreach (ref a; attrs)
-            if (a.name == name)
-                return a.value;
-        return null;
-    }
-
-    private void set(string name, string value) pure nothrow @safe
-    {
-        foreach (ref a; attrs)
-        {
-            if (a.name == name)
-            {
-                a.value = value;
-                return;
-            }
-        }
-        attrs ~= Attr(name, value);
-    }
-}
-
-/// A parsed document: the root element and an `id` lookup table.
-struct Document
-{
-    /// The document element, or `null` if the text contained no start tag.
-    Element root;
-    /// Map from `id` attribute value to the first element (in document order)
-    /// that carries it.
-    Element[string] ids;
-
-    /// Look up an element by id; `null` if there is none.
-    Element byId(string id) pure nothrow @safe
-    {
-        if (auto p = id in ids)
+        if (auto p = name in attrs)
             return *p;
         return null;
     }
 }
 
-/// Parse `src` into a `Document`. The parser is forgiving: malformed input
-/// yields whatever tree could be recovered.
-Document parseXml(string src) pure @safe
+/// Thrown for input that is not usable XML.
+class XmlException : Exception
 {
-    Document doc;
-    doc.root = parseTree(src);
-    if (doc.root !is null)
-        indexIds(doc.root, doc);
-    return doc;
-}
-
-private void indexIds(Element e, ref Document doc) pure @safe
-{
-    if (e.has("id"))
+    this(string msg, string file = __FILE__, size_t line = __LINE__)
     {
-        auto id = e.attr("id");
-        if (id !in doc.ids)
-            doc.ids[id] = e;
+        super(msg, file, line);
     }
-    foreach (c; e.children)
-        indexIds(c, doc);
 }
 
-private bool startsAt(string s, size_t p, string lit) pure nothrow @nogc @safe
+/// Parse `src` and return the document element (the first start tag).
+/// Throws: `XmlException` if the text contains no element.
+Element parseXml(const(char)[] src)
 {
-    return p + lit.length <= s.length && s[p .. p + lit.length] == lit;
-}
+    Element root, cur;
+    size_t i = 0;
+    immutable n = src.length;
 
-private size_t findFrom(string s, size_t p, string lit) pure nothrow @nogc @safe
-{
-    for (; p + lit.length <= s.length; ++p)
-        if (s[p] == lit[0] && s[p .. p + lit.length] == lit)
-            return p;
-    return s.length;
-}
-
-private bool isWs(char c) pure nothrow @nogc @safe
-{
-    return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f';
-}
-
-private string stripPrefix(string name) pure nothrow @nogc @safe
-{
-    foreach_reverse (i, c; name)
-        if (c == ':')
-            return name[i + 1 .. $];
-    return name;
-}
-
-private Element parseTree(string s) pure @safe
-{
-    Element root;
-    Element[] stack;
-    immutable n = s.length;
-    size_t p = 0;
-    while (p < n)
+    while (i < n)
     {
-        while (p < n && s[p] != '<')
-            ++p;
-        if (p >= n)
+        immutable lt = src.indexOf('<', i);
+        if (lt < 0)
             break;
-        if (startsAt(s, p, "<?"))
+        i = lt;
+        if (startsWith(src, i, "<?"))
         {
-            p = findFrom(s, p + 2, "?>") + 2;
+            i = skipPast(src, i + 2, "?>");
         }
-        else if (startsAt(s, p, "<!--"))
+        else if (startsWith(src, i, "<!--"))
         {
-            p = findFrom(s, p + 4, "-->") + 3;
+            i = skipPast(src, i + 4, "-->");
         }
-        else if (startsAt(s, p, "<![CDATA["))
+        else if (startsWith(src, i, "<![CDATA["))
         {
-            p = findFrom(s, p + 9, "]]>") + 3;
+            i = skipPast(src, i + 9, "]]>");
         }
-        else if (startsAt(s, p, "<!"))
+        else if (startsWith(src, i, "<!"))
         {
-            p = skipDeclaration(s, p + 2);
+            i = skipDeclaration(src, i + 2);
         }
-        else if (startsAt(s, p, "</"))
+        else if (startsWith(src, i, "</"))
         {
-            while (p < n && s[p] != '>')
-                ++p;
-            ++p;
-            if (stack.length > 0)
-                stack = stack[0 .. $ - 1];
-            if (stack.length == 0 && root !is null)
-                break;
+            i = skipPast(src, i + 2, ">");
+            if (cur !is null)
+                cur = cur.parent;
         }
         else
         {
-            ++p;
-            size_t q = p;
-            while (q < n && !isWs(s[q]) && s[q] != '/' && s[q] != '>')
-                ++q;
-            auto e = new Element;
-            e.tag = stripPrefix(s[p .. q]);
-            p = q;
-            bool selfClose = false;
-            while (p < n)
-            {
-                while (p < n && isWs(s[p]))
-                    ++p;
-                if (p >= n)
-                    break;
-                if (s[p] == '>')
-                {
-                    ++p;
-                    break;
-                }
-                if (s[p] == '/')
-                {
-                    selfClose = true;
-                    ++p;
-                    continue;
-                }
-                size_t a = p;
-                while (p < n && !isWs(s[p]) && s[p] != '=' && s[p] != '>' && s[p] != '/')
-                    ++p;
-                string name = stripPrefix(s[a .. p]);
-                while (p < n && isWs(s[p]))
-                    ++p;
-                string value;
-                if (p < n && s[p] == '=')
-                {
-                    ++p;
-                    while (p < n && isWs(s[p]))
-                        ++p;
-                    if (p < n && (s[p] == '"' || s[p] == '\''))
-                    {
-                        immutable quote = s[p];
-                        ++p;
-                        size_t v = p;
-                        while (p < n && s[p] != quote)
-                            ++p;
-                        value = decodeEntities(s[v .. p]);
-                        if (p < n)
-                            ++p;
-                    }
-                    else
-                    {
-                        size_t v = p;
-                        while (p < n && !isWs(s[p]) && s[p] != '>')
-                            ++p;
-                        value = decodeEntities(s[v .. p]);
-                    }
-                }
-                if (name.length)
-                    e.set(name, value);
-            }
-            if (stack.length > 0)
-                stack[$ - 1].children ~= e;
+            ++i;
+            auto el = new Element;
+            size_t j = i;
+            while (j < n && !isWhite(src[j]) && src[j] != '>' && src[j] != '/')
+                ++j;
+            el.tag = stripPrefix(src[i .. j].idup);
+            i = j;
+            bool selfClosing = false;
+            parseAttributes(src, i, el, selfClosing);
             if (root is null)
-                root = e;
-            if (selfClose)
+                root = el;
+            else if (cur !is null)
             {
-                if (stack.length == 0)
-                    break;
+                el.parent = cur;
+                cur.children ~= el;
             }
             else
-                stack ~= e;
+            {
+                // Content after the document element has closed: ignore.
+                continue;
+            }
+            if (!selfClosing)
+                cur = el;
+            else if (cur is null)
+                break; // the document element was empty
         }
     }
+    if (root is null)
+        throw new XmlException("no document element");
     return root;
 }
 
-/// Skip `<!DOCTYPE ...>` (with an optional `[...]` subset) starting after `<!`.
-private size_t skipDeclaration(string s, size_t p) pure nothrow @nogc @safe
+private bool startsWith(const(char)[] s, size_t i, string prefix)
+{
+    return s.length - i >= prefix.length && s[i .. i + prefix.length] == prefix;
+}
+
+private size_t skipPast(const(char)[] s, size_t from, string terminator)
+{
+    immutable p = s[from .. $].indexOf(terminator);
+    return p < 0 ? s.length : from + p + terminator.length;
+}
+
+/// Skip `<!DOCTYPE ...>` including an internal `[...]` subset.
+private size_t skipDeclaration(const(char)[] s, size_t i)
 {
     int depth = 0;
     char quote = 0;
-    for (; p < s.length; ++p)
+    while (i < s.length)
     {
-        immutable c = s[p];
+        immutable ch = s[i++];
         if (quote)
         {
-            if (c == quote)
+            if (ch == quote)
                 quote = 0;
         }
-        else if (c == '"' || c == '\'')
-            quote = c;
-        else if (c == '[')
+        else if (ch == '"' || ch == '\'')
+            quote = ch;
+        else if (ch == '[')
             ++depth;
-        else if (c == ']')
+        else if (ch == ']')
             --depth;
-        else if (c == '>' && depth <= 0)
-            return p + 1;
+        else if (ch == '>' && depth <= 0)
+            break;
+        else if (ch == '<' && startsWith(s, i - 1, "<!--"))
+            i = skipPast(s, i + 3, "-->");
     }
-    return s.length;
+    return i;
 }
 
-/// Resolve `&amp; &lt; &gt; &quot; &apos;` and numeric character references.
-/// Other `&...;` sequences are left untouched. Allocates only when the value
-/// contains an `&`.
-string decodeEntities(string v) pure @safe
+private string stripPrefix(string name)
 {
-    bool any = false;
-    foreach (c; v)
-        if (c == '&')
-        {
-            any = true;
-            break;
-        }
-    if (!any)
-        return v;
-    char[] o;
-    o.reserve(v.length);
-    size_t i = 0;
-    while (i < v.length)
+    immutable c = name.indexOf(':');
+    return c < 0 ? name : name[c + 1 .. $];
+}
+
+private void parseAttributes(const(char)[] s, ref size_t i, Element el, ref bool selfClosing)
+{
+    immutable n = s.length;
+    while (i < n)
     {
-        if (v[i] != '&')
+        while (i < n && isWhite(s[i]))
+            ++i;
+        if (i >= n)
+            return;
+        if (s[i] == '>')
         {
-            o ~= v[i++];
+            ++i;
+            return;
+        }
+        if (s[i] == '/')
+        {
+            selfClosing = true;
+            ++i;
             continue;
         }
-        size_t semi = i + 1;
-        while (semi < v.length && semi - i <= 12 && v[semi] != ';')
-            ++semi;
-        if (semi >= v.length || v[semi] != ';')
+        // attribute name
+        size_t j = i;
+        while (j < n && !isWhite(s[j]) && s[j] != '=' && s[j] != '>' && s[j] != '/')
+            ++j;
+        immutable rawName = s[i .. j].idup;
+        i = j;
+        while (i < n && isWhite(s[i]))
+            ++i;
+        string value;
+        if (i < n && s[i] == '=')
         {
-            o ~= v[i++];
+            ++i;
+            while (i < n && isWhite(s[i]))
+                ++i;
+            if (i < n && (s[i] == '"' || s[i] == '\''))
+            {
+                immutable q = s[i];
+                ++i;
+                j = i;
+                while (j < n && s[j] != q)
+                    ++j;
+                value = decodeEntities(s[i .. j]);
+                i = j < n ? j + 1 : n;
+            }
+        }
+        if (rawName.length == 0)
+        {
+            ++i; // stray character: make progress
             continue;
         }
-        auto name = v[i + 1 .. semi];
+        if (rawName == "xmlns" || (rawName.length > 6 && rawName[0 .. 6] == "xmlns:"))
+            continue;
+        el.attrs[stripPrefix(rawName)] = value;
+    }
+}
+
+/// Resolve the five predefined entities and numeric character references;
+/// any other `&...;` is left unchanged.
+string decodeEntities(const(char)[] s)
+{
+    if (s.indexOf('&') < 0)
+        return s.idup;
+    import std.array : appender;
+
+    auto o = appender!string;
+    size_t i = 0;
+    while (i < s.length)
+    {
+        if (s[i] != '&')
+        {
+            o.put(s[i++]);
+            continue;
+        }
+        immutable semi = s[i .. $].indexOf(';');
+        if (semi < 0)
+        {
+            o.put(s[i++]);
+            continue;
+        }
+        auto name = s[i + 1 .. i + semi];
         bool done = true;
-        if (name == "amp")
-            o ~= '&';
-        else if (name == "lt")
-            o ~= '<';
-        else if (name == "gt")
-            o ~= '>';
-        else if (name == "quot")
-            o ~= '"';
-        else if (name == "apos")
-            o ~= '\'';
-        else if (name.length >= 2 && name[0] == '#')
+        switch (name)
         {
-            uint code = 0;
-            bool ok = true;
-            if (name[1] == 'x' || name[1] == 'X')
-            {
-                ok = name.length > 2;
-                foreach (c; name[2 .. $])
-                {
-                    uint d;
-                    if (c >= '0' && c <= '9')
-                        d = c - '0';
-                    else if (c >= 'a' && c <= 'f')
-                        d = c - 'a' + 10;
-                    else if (c >= 'A' && c <= 'F')
-                        d = c - 'A' + 10;
-                    else
-                    {
-                        ok = false;
-                        break;
-                    }
-                    code = code * 16 + d;
-                    if (code > 0x10FFFF)
-                    {
-                        ok = false;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                foreach (c; name[1 .. $])
-                {
-                    if (c < '0' || c > '9')
-                    {
-                        ok = false;
-                        break;
-                    }
-                    code = code * 10 + (c - '0');
-                    if (code > 0x10FFFF)
-                    {
-                        ok = false;
-                        break;
-                    }
-                }
-            }
-            if (ok)
-                appendUtf8(o, code);
+        case "amp":  o.put('&');  break;
+        case "lt":   o.put('<');  break;
+        case "gt":   o.put('>');  break;
+        case "quot": o.put('"');  break;
+        case "apos": o.put('\''); break;
+        default:
+            dchar cp;
+            if (numericReference(name, cp))
+                o.put(cp);
             else
                 done = false;
         }
-        else
-            done = false;
         if (done)
-            i = semi + 1;
+            i += semi + 1;
         else
-            o ~= v[i++];
+            o.put(s[i++]);
     }
-    return o.idup;
+    return o.data;
 }
 
-private void appendUtf8(ref char[] o, uint c) pure @safe
+private bool numericReference(const(char)[] name, out dchar cp)
 {
-    if (c < 0x80)
-        o ~= cast(char) c;
-    else if (c < 0x800)
+    if (name.length < 2 || name[0] != '#')
+        return false;
+    uint base = 10;
+    auto digits = name[1 .. $];
+    if (digits[0] == 'x')
     {
-        o ~= cast(char)(0xC0 | (c >> 6));
-        o ~= cast(char)(0x80 | (c & 0x3F));
+        base = 16;
+        digits = digits[1 .. $];
     }
-    else if (c < 0x10000)
+    if (digits.length == 0 || digits.length > 8)
+        return false;
+    uint v = 0;
+    foreach (ch; digits)
     {
-        o ~= cast(char)(0xE0 | (c >> 12));
-        o ~= cast(char)(0x80 | ((c >> 6) & 0x3F));
-        o ~= cast(char)(0x80 | (c & 0x3F));
+        uint dv;
+        if (isDigit(ch))
+            dv = ch - '0';
+        else if (base == 16 && isHexDigit(ch))
+            dv = (ch | 0x20) - 'a' + 10;
+        else
+            return false;
+        v = v * base + dv;
     }
-    else
-    {
-        o ~= cast(char)(0xF0 | (c >> 18));
-        o ~= cast(char)(0x80 | ((c >> 12) & 0x3F));
-        o ~= cast(char)(0x80 | ((c >> 6) & 0x3F));
-        o ~= cast(char)(0x80 | (c & 0x3F));
-    }
+    if (v > 0x10FFFF || (v >= 0xD800 && v < 0xE000))
+        return false;
+    cp = cast(dchar) v;
+    return true;
+}
+
+unittest
+{
+    auto root = parseXml(`<?xml version="1.0"?>
+<!DOCTYPE svg [ <!ENTITY x "<y>"> ]>
+<!-- c -->
+<svg:svg xmlns:svg="http://www.w3.org/2000/svg" a = 'x&amp;y' b="1>2" a="last">
+  <![CDATA[ <not-an-element/> ]]>
+  <svg:g xlink:href="#q"/>
+  <g></g>
+</svg:svg>`);
+    assert(root.tag == "svg");
+    assert(root.get("a") == "last");
+    assert(root.get("b") == "1>2");
+    assert(root.get("xmlns") is null);
+    assert(root.children.length == 2);
+    assert(root.children[0].get("href") == "#q");
+    assert(root.children[1].parent is root);
+}
+
+unittest
+{
+    assert(decodeEntities("a&amp;b&lt;&#65;&#x42;&bogus;&") == "a&b<AB&bogus;&");
+    import std.exception : assertThrown;
+
+    assertThrown!XmlException(parseXml("no elements here"));
 }

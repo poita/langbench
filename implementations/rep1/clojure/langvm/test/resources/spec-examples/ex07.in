@@ -1,0 +1,23 @@
+@module main
+fn main() {
+    var counts = #["pear": 1];
+    counts["apple"] = 2;
+    counts["pear"] = counts["pear"] + 10;
+    counts["fig"] = 0;
+    mapDel(counts, "apple");
+    counts["apple"] = 7;
+    for k in keysOf(counts) {
+        emit(fmt("{}={} ", [k, showInt(counts[k])]));
+    }
+    print("");
+    print(showInt(mapLen(counts)));
+    print(showBool(mapHas(counts, "plum")));
+    print(showInt(unwrapOr(mapGet(counts, "plum"), -1)));
+    let a = #[1: "x", 2: "y"];
+    let b = #[2: "y", 1: "x"];
+    print(showBool(a == b));
+    for (k, v) in pairsOf(a) {
+        emit(fmt("{}{} ", [showInt(k), v]));
+    }
+    print("");
+}

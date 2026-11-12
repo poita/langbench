@@ -1,3 +1,3 @@
-module mimedump
+module example.com/mime
 
-go 1.27
+go 1.27.1

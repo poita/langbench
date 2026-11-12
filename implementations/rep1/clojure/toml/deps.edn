@@ -1,0 +1,18 @@
+{:paths ["src"]
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+
+ :aliases
+ {;; clojure -M:run < input      run the command-line tool
+  :run {:main-opts ["-m" "toml.cli"]}
+
+  ;; clojure -M:compile          AOT-compile the tool into classes/ (fast startup)
+  :compile {:extra-paths ["classes"]
+            :main-opts ["-e" "(compile 'toml.cli)"]}
+
+  ;; clojure -X:test             run the unit tests
+  :test {:extra-paths ["test"]
+         :extra-deps {io.github.cognitect-labs/test-runner
+                      {:git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}
+                      org.clojure/test.check {:mvn/version "1.1.1"}}
+         :main-opts ["-m" "cognitect.test-runner"]
+         :exec-fn cognitect.test-runner.api/test}}}

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the kiln command-line tool into bin/kiln. Works from any directory.
+# Builds the kiln command-line tool into bin/kiln.
 set -e
 dir=$(cd "$(dirname "$0")" && pwd)
 cd "$dir"

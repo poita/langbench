@@ -1,0 +1,7 @@
+@module main
+use a;
+fn main() { let x = a::Opt.{ v: 1 }; print(showInt(x.v)); match a::mk() { a::Some(v) -> print("some"), _ -> print("none") } }
+@module a
+pub struct Opt { v: Int }
+pub enum E { Some(Int), Other }
+pub fn mk() -> E { Some(3) }

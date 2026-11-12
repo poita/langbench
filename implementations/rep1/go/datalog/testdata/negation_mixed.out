@@ -1,0 +1,11 @@
+sink(-2)
+sink(c)
+-- 2
+small(-2)
+small(5)
+-- 2
+reach(a, 5)
+reach(a, b)
+-- 2
+reach(5, 5)
+-- 1

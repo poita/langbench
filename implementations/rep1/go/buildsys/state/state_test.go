@@ -1,97 +1,110 @@
-package state_test
+package state
 
 import (
 	"strings"
 	"testing"
 
-	"buildsys/state"
+	"buildsys/cmds"
+	"buildsys/plan"
+	"buildsys/vfs"
 )
 
-const good = `kiln-state 1
-step out/a.txt
-cmd concat()
-in src/a.txt 8943a78b9f342c58
-dep src/z.txt 0000000000000001
-out out/a.txt 5e52e06e8b405ae8
-out out/a.d 5e52e06e8b405ae9
-end
-step out/b.txt
-cmd write("x y")
-out out/b.txt 5e52e06e8b405ae8
-end
-`
+const h1 = "0123456789abcdef"
 
-func TestParseAndMarshalRoundTrip(t *testing.T) {
-	st, ok := state.Parse([]byte(good))
-	if !ok || len(st) != 2 {
-		t.Fatalf("parse failed: %v %v", ok, st)
+func sample() string {
+	return "kiln-state 1\n" +
+		"step out/a\ncmd copy()\nin src/a " + h1 + "\ndep src/d " + h1 + "\nout out/a " + h1 + "\nend\n" +
+		"step out/b\ncmd write(\"x y\")\nout out/b " + h1 + "\nend\n"
+}
+
+func TestRoundTrip(t *testing.T) {
+	s := Parse(sample())
+	if s.Len() != 2 {
+		t.Fatalf("entries = %d", s.Len())
 	}
-	e := st["out/a.txt"]
-	if e.Cmd != "concat()" || len(e.In) != 1 || len(e.Dep) != 1 || len(e.Out) != 2 {
-		t.Fatalf("entry = %+v", e)
+	if got := s.Format(); got != sample() {
+		t.Errorf("round trip:\n%s", got)
 	}
-	if st["out/b.txt"].Cmd != `write("x y")` {
-		t.Error("cmd verbatim")
-	}
-	if got := string(st.Marshal()); got != good {
-		t.Errorf("marshal differs:\n%s", got)
+	if e := s.Get("out/b"); e == nil || e.Cmd != `write("x y")` {
+		t.Errorf("entry = %+v", e)
 	}
 }
 
-func TestMarshalSortsEntries(t *testing.T) {
-	st := state.State{
-		"out/z": {Cmd: "c()", Out: []state.PathHash{{Path: "out/z", Hash: 1}}},
-		"out/a": {Cmd: "c()", Out: []state.PathHash{{Path: "out/a", Hash: 2}}},
+func TestFormatSortsEntries(t *testing.T) {
+	s := New()
+	s.Put(&Entry{Key: "out/z", Cmd: "c()", Out: []PathHash{{"out/z", h1}}})
+	s.Put(&Entry{Key: "out/a", Cmd: "c()", Out: []PathHash{{"out/a", h1}}})
+	if !strings.HasPrefix(s.Format(), "kiln-state 1\nstep out/a\n") {
+		t.Errorf("unsorted:\n%s", s.Format())
 	}
-	want := "kiln-state 1\nstep out/a\ncmd c()\nout out/a 0000000000000002\nend\n" +
-		"step out/z\ncmd c()\nout out/z 0000000000000001\nend\n"
-	if got := string(st.Marshal()); got != want {
-		t.Errorf("got %q", got)
-	}
-	if got := string(state.State{}.Marshal()); got != "kiln-state 1\n" {
-		t.Errorf("empty = %q", got)
+	if New().Format() != "kiln-state 1\n" {
+		t.Error("empty state")
 	}
 }
 
-func TestUnsortedLinesAreAccepted(t *testing.T) {
-	in := "kiln-state 1\nstep out/b\ncmd c()\nin b 0000000000000001\nin a 0000000000000001\n" +
-		"dep z 0000000000000001\ndep a 0000000000000001\ndep a 0000000000000001\nout out/b 0000000000000001\nend\n" +
-		"step out/a\ncmd c()\nout out/a 0000000000000001\nend\n"
-	if st, ok := state.Parse([]byte(in)); !ok || len(st) != 2 {
-		t.Fatal("rejected valid unsorted state")
-	}
-}
-
-func TestRejects(t *testing.T) {
-	h := "0000000000000001"
+func TestParseRejects(t *testing.T) {
+	good := sample()
 	bad := map[string]string{
 		"empty":            "",
-		"bad header":       "kiln-state 2\n",
-		"no final newline": "kiln-state 1",
-		"unterminated":     "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h + "\n",
+		"no trailing nl":   strings.TrimSuffix(good, "\n"),
+		"bad header":       strings.Replace(good, "kiln-state 1", "kiln-state 2", 1),
+		"stray line":       good + "junk\n",
+		"unterminated":     "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h1 + "\n",
 		"no out":           "kiln-state 1\nstep out/a\ncmd c()\nend\n",
-		"no cmd":           "kiln-state 1\nstep out/a\nout out/a " + h + "\nend\n",
-		"two cmds":         "kiln-state 1\nstep out/a\ncmd c()\ncmd d()\nout out/a " + h + "\nend\n",
-		"empty cmd":        "kiln-state 1\nstep out/a\ncmd \nout out/a " + h + "\nend\n",
-		"key mismatch":     "kiln-state 1\nstep out/a\ncmd c()\nout out/b " + h + "\nend\n",
-		"dup entry":        "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h + "\nend\nstep out/a\ncmd c()\nout out/a " + h + "\nend\n",
-		"stray line":       "kiln-state 1\nfoo\n",
-		"uppercase hash":   "kiln-state 1\nstep out/a\ncmd c()\nout out/a 000000000000000A\nend\n",
-		"short hash":       "kiln-state 1\nstep out/a\ncmd c()\nout out/a 1\nend\n",
-		"bad path":         "kiln-state 1\nstep out/a\ncmd c()\nin ../x " + h + "\nout out/a " + h + "\nend\n",
-		"misordered":       "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h + "\nin x " + h + "\nend\n",
-		"dep before in":    "kiln-state 1\nstep out/a\ncmd c()\ndep x " + h + "\nin x " + h + "\nout out/a " + h + "\nend\n",
-		"extra space":      "kiln-state 1\nstep out/a\ncmd c()\nin x  " + h + "\nout out/a " + h + "\nend\n",
-		"end with text":    "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h + "\nend \n",
-		"step bad path":    "kiln-state 1\nstep /out/a\ncmd c()\nout out/a " + h + "\nend\n",
+		"key mismatch":     "kiln-state 1\nstep out/a\ncmd c()\nout out/b " + h1 + "\nend\n",
+		"upper hash":       strings.Replace(good, h1, "0123456789ABCDEF", 1),
+		"short hash":       strings.Replace(good, h1, "0123", 1),
+		"bad path":         strings.Replace(good, "src/a ", "src//a ", 1),
+		"empty cmd":        "kiln-state 1\nstep out/a\ncmd \nout out/a " + h1 + "\nend\n",
+		"two cmds":         "kiln-state 1\nstep out/a\ncmd c()\ncmd d()\nout out/a " + h1 + "\nend\n",
+		"misordered":       "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h1 + "\nin x " + h1 + "\nend\n",
+		"duplicate key":    "kiln-state 1\n" + strings.Repeat("step out/a\ncmd c()\nout out/a "+h1+"\nend\n", 2),
+		"double space":     "kiln-state 1\nstep out/a\ncmd c()\nout  out/a " + h1 + "\nend\n",
+		"extra field":      "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h1 + " x\nend\n",
+		"end with payload": "kiln-state 1\nstep out/a\ncmd c()\nout out/a " + h1 + "\nend x\n",
 	}
-	for name, in := range bad {
-		st, ok := state.Parse([]byte(in))
-		if ok || len(st) != 0 {
+	for name, content := range bad {
+		if s := Parse(content); s.Len() != 0 {
 			t.Errorf("%s: accepted", name)
 		}
 	}
-	if !strings.HasPrefix(good, state.Header) {
-		t.Error("header const")
+}
+
+func TestFresh(t *testing.T) {
+	copySpec, _ := cmds.Lookup("copy")
+	step := &plan.Step{Outputs: []string{"out/a"}, FileInputs: []string{"src/a"}, Spec: copySpec, Command: "copy()"}
+	fs := vfs.New()
+	fs.Write("src/a", "x")
+	fs.Write("out/a", "x")
+	if Fresh(nil, step, fs) {
+		t.Error("fresh without entry")
+	}
+	e := Capture(step, nil, fs)
+	if !Fresh(e, step, fs) {
+		t.Error("captured entry not fresh")
+	}
+	fs.Write("out/a", "tampered")
+	if Fresh(e, step, fs) {
+		t.Error("tampered output still fresh")
+	}
+	fs.Write("out/a", "x")
+	fs.Write("src/a", "y")
+	if Fresh(e, step, fs) {
+		t.Error("changed input still fresh")
+	}
+	fs.Write("src/a", "x")
+	other := *step
+	other.Command = "copy( )"
+	if Fresh(e, &other, fs) {
+		t.Error("changed command still fresh")
+	}
+	other = *step
+	other.FileInputs = []string{"src/a", "src/a"}
+	if Fresh(e, &other, fs) {
+		t.Error("changed input list still fresh")
+	}
+	fs.Delete("out/a")
+	if Fresh(e, step, fs) {
+		t.Error("missing output still fresh")
 	}
 }

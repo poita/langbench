@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the typeinfer tool: program on stdin, results on stdout.
-exec "$(dirname "$0")/typeinfer" "$@"
+# Run the typeinfer CLI: program on stdin, types on stdout.
+exec "$(dirname "$0")/bin/typeinfer" "$@"

@@ -1,100 +1,107 @@
 # typeset
 
-A typesetting engine for the *Codexa* markup language, written in D.
+A typesetting engine for *Codexa*, a small invented markup language. It lays a
+document out on numbered pages using total-fit (Knuth–Plass) line breaking,
+Liang hyphenation, footnotes, floating figures, a generated table of contents
+and running headers, and describes every placed item as text.
 
-It reads a Codexa document and an optional settings file, lays the text out on
-numbered pages — total-fit (Knuth–Plass style) line breaking, Liang
-hyphenation, lists, tables, footnotes, floating figures, a generated table of
-contents, running headers and footers — and writes a complete, deterministic
-description of every placed item. All arithmetic is exact integer arithmetic in
-millipoints, so two correct implementations produce byte-identical output.
-
-The project is a reusable library (`typeset`) plus a thin command-line tool
-(`typeset:cli`). It depends only on the D standard library.
+Everything is integer arithmetic (lengths are millipoints, division is floor
+division), so output is exactly reproducible. The project is a reusable D
+library (`source/typeset/`) with a thin command-line tool on top (`app/main.d`).
+It uses only Phobos/druntime.
 
 ## Building
 
-Requires LDC (tested with 1.41.0) and dub (tested with 1.40.0).
+Requires LDC 1.41 and dub 1.40.
 
 ```sh
-./build.sh          # dub build -b release --compiler=ldc2 :cli  ->  bin/typeset
-dub test --compiler=ldc2   # run the unit tests
+./build.sh          # same as: dub build -b release --compiler=ldc2
 ```
 
-## Command-line use
+This produces `build/typeset`. `run.sh <input dir> <output dir>` runs it from any
+directory.
+
+## Running the tests
 
 ```sh
-./run.sh <input directory> <output directory>
-# or:  bin/typeset [--data DIR] <input directory> <output directory>
+dub test --compiler=ldc2
+```
+
+Tests are D `unittest` blocks next to the code they test, plus end-to-end tests
+in `source/typeset/integration.d` that use a small synthetic font. Set
+`TYPESET_DATA` to the shipped `data/` directory to also run a test against the
+real font metrics.
+
+## Command line
+
+```
+typeset <input directory> <output directory>
 ```
 
 * The input directory holds `document.cdx` (required) and `settings.cfg`
   (optional).
 * Font metrics (`data/faces/*.cfm`) and hyphenation patterns
-  (`data/hyphen/*.chp`) are read from a `data` directory resolved relative to
-  the **current working directory** (override with `--data DIR`).
-* On success the output directory receives `layout.txt` (every placed text run,
-  rule and frame, page by page) and `report.txt` (counters such as pages,
-  lines, total demerits).
-* On invalid input it receives a single `error.txt` containing
-  `<file>:<line>:<col>: <code>`. The exit status is still 0; only I/O failures
-  (for example missing data files) exit non-zero.
+  (`data/hyphen/*.chp`) are read from a `data` directory **relative to the
+  current working directory**.
+* On success the output directory receives `layout.txt` (every text run, rule
+  and frame on every page) and `report.txt` (statistics: pages, lines,
+  demerits, …).
+* On invalid input it receives only `error.txt` with one line
+  `<file>:<line>:<col>: <code>`. The exit status is 0 in both cases; it is
+  nonzero only for usage errors or an unreadable `data` directory.
 
-The input language, the settings keys, the algorithms and the exact output
-format are defined by the problem's `SPEC.md`.
+## Library overview
 
-## Library example
+| module | responsibility |
+|---|---|
+| `typeset.units` | floor division, `scale`, roman numerals, exact badness ratio |
+| `typeset.metrics` | `.cfm` font metrics, kerning, the nine faces |
+| `typeset.hyphenation` | `.chp` patterns, Liang's algorithm |
+| `typeset.settings` | the 126 settings, value parsers, range checks |
+| `typeset.markup` | block parser and inline scanner, with spec-exact errors |
+| `typeset.hlist` | horizontal lists: fragments, glue, hyphenation points |
+| `typeset.linebreak` | total-fit breaking with O(1) line measurement |
+| `typeset.line` | glue distribution, alignment, output runs |
+| `typeset.vlist` | vertical items, space registers, vertical placement |
+| `typeset.compose` | block layout: headings, lists, tables, figures, footnotes, TOC |
+| `typeset.paginate` | page breaking: legality, footnote splitting, floats |
+| `typeset.layout` | placed items, `layout.txt` / `report.txt` formats |
+| `typeset.engine` | the pipeline: `typesetSources`, `typesetDirectory` |
+
+The package module `typeset` re-exports the public API.
+
+### Example
 
 ```d
-import std.stdio;
+import std.stdio : writeln;
 import typeset;
 
 void main()
 {
-    Input input;
-    input.document = "@h1 Hello\nThe quick brown fox jumps over the lazy dog.\n";
-    input.hasDocument = true;
-    // input.settings = "page-width = 200pt\n"; input.hasSettings = true;
-
-    // Fonts and hyphenation patterns come from a directory with faces/ and hyphen/.
-    auto result = typesetDocument(input, new DirectoryData("data"));
+    auto resources = Resources.load("data");        // faces + hyphenation patterns
+    auto result = typesetSources(resources,
+        "@h1 Greetings\nThe quick brown fox{n|A note.} jumps over the lazy dog.\n",
+        "page-width = 300pt\npage-height = 300pt\n");   // settings.cfg text, or null
     if (result.ok)
-        write(result.layout);   // result.report holds the counters
+    {
+        foreach (page; result.layout.pages)
+            foreach (item; page.items)
+                writeln(page.label, ": ", item.format());
+        writeln(result.report.toText());
+    }
     else
-        write(result.error);    // "document.cdx:2:1: unknown-inline\n", ...
+        writeln(result.errorText());                    // e.g. "document.cdx:2:1: unknown-inline"
 }
 ```
 
-`DataSource` is an interface, so fonts and patterns can also be supplied from
-memory (the unit tests do this with a synthetic font). The lower layers are
-usable on their own:
+Add the library to another dub project with the `library` configuration
+(`subConfiguration "typeset" "library"`).
 
-```d
-auto settings = parseSettings("tolerance = 500\n");        // typeset.settings
-auto doc = parseDocument("A paragraph with {b|bold}.\n");   // typeset.markup
-auto patterns = PatternSet.parse(chpText);                  // typeset.hyphen
-auto breaks = patterns.hyphenate("typesetting");            // [7, 8] with the English set
-```
+## Design notes
 
-## Layout of the code
-
-| module | responsibility |
-|---|---|
-| `typeset.arith` | floor division, glyph scaling, numerals, exact badness and fitness |
-| `typeset.errors` | error codes, `Diagnostic`, `TypesetError` |
-| `typeset.values` | length/integer literals, `key = value` lines, column arithmetic |
-| `typeset.fonts` | `.cfm` metrics, the nine-face table, box measurement |
-| `typeset.hyphen` | `.chp` pattern sets, trie-based Liang algorithm with memoisation |
-| `typeset.settings` | the 126-key settings table and the `settings.cfg` parser |
-| `typeset.markup` | block tree, inline scanner, document parser and its error order |
-| `typeset.hlist` | horizontal lists: fragments, glue, sentence rule, hyphenation points, prefix sums |
-| `typeset.linebreak` | two-pass total-fit line breaking over the prefix sums |
-| `typeset.setline` | glue distribution, alignment, output runs, line metrics |
-| `typeset.layout` | block layout into the vertical list: spacing, headings, lists, tables, figures, footnotes, TOC |
-| `typeset.page` | break legality, page scan, float zone, footnote area and splitting, headers/footers |
-| `typeset.output` | output buffer and the sorted per-page item lists |
-| `typeset.engine` | the pipeline: `typesetDocument` / `typesetDirectory` |
-| `cli/source/app.d` | the command-line tool |
-
-Unit tests live in `tests/` (separate from the library sources) and run with
-`dub test`.
+* Every horizontal list is built and broken once (table cells are measured and
+  broken from the same list). Line measurement uses prefix sums. Pass 1 of line
+  breaking prunes overfull nodes for good; pass 2 is unpruned.
+* `100 * d^3` can exceed 64 bits; `cubeRatio100` uses 128-bit arithmetic only
+  when needed.
+* The body is paginated once, then the table of contents, with no iteration.

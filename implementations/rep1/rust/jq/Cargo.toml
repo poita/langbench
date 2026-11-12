@@ -1,0 +1,19 @@
+[package]
+name = "jqlite"
+version = "0.1.0"
+edition = "2021"
+description = "An interpreter for a subset of the jq filter language, as a library and a command-line tool"
+license = "MIT"
+readme = "README.md"
+keywords = ["jq", "json", "query", "interpreter"]
+categories = ["command-line-utilities", "parser-implementations"]
+
+[lib]
+name = "jqlite"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jqlite"
+path = "src/main.rs"
+
+[dependencies]

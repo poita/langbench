@@ -1,17 +1,13 @@
-// Package toml is a from-scratch TOML 1.0.0 parser and serializer.
+// Package toml is a TOML 1.0.0 parser and canonical serializer.
 //
-// It has two halves:
+// [Parse] reads a document into a tree of [*Table], [*Array] and [*Value]
+// nodes. Scalars are kept as canonical text (see [Value]), so nothing is
+// lost by converting dates or numbers to native Go types. [Encode] writes a
+// tree back out as a canonical TOML document, and the subpackage tagged
+// converts trees to and from the tagged JSON format used by the toml-test
+// suite.
 //
-//   - Decoding: [Parse] reads a TOML document into a tree of [*Table],
-//     [*Array] and [*Value] nodes. Scalars are kept in a canonical textual
-//     form (see [Value]), so the tree can be printed as "tagged JSON" — the
-//     interchange format of the toml-test suite — with [Table.TaggedJSON].
-//   - Encoding: [ParseTaggedJSON] reads tagged JSON back into the same kind
-//     of tree and [Table.TOML] renders it as a canonical TOML document.
-//
-// The two directions round-trip: decoding the output of encoding a tree
-// yields the same tree.
-//
-// The package depends only on the Go standard library and does not use any
-// TOML implementation.
+// The parser is strict: every rule of the TOML 1.0.0 grammar and of its
+// table-definition semantics is enforced, and any violation is reported as a
+// [*SyntaxError].
 package toml

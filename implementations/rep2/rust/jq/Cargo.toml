@@ -1,0 +1,17 @@
+[package]
+name = "jq-subset"
+version = "0.1.0"
+edition = "2024"
+description = "An interpreter for a subset of the jq language, with its own JSON parser and serializer"
+license = "MIT"
+readme = "README.md"
+keywords = ["jq", "json", "query", "interpreter"]
+categories = ["command-line-utilities", "parser-implementations"]
+
+[lib]
+name = "jq_subset"
+path = "src/lib.rs"
+
+[[bin]]
+name = "jq"
+path = "src/main.rs"

@@ -1,0 +1,6 @@
+{
+  "e": []
+}
+--
+=== main
+{% for x in e %}{{ x|frobnicate }}{% endfor %}

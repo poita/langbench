@@ -2,79 +2,55 @@ package chess
 
 import "sort"
 
-// Perft returns the number of leaf nodes reached by playing every sequence of
-// depth legal moves from the position. Perft(0) is 1. A position with no legal
-// moves (checkmate or stalemate) contributes no nodes at depth >= 1.
+// Perft returns the number of leaf nodes of the legal-move tree of p at the
+// given depth: the number of distinct sequences of depth legal moves.
+// Perft(p, 0) is 1, and Perft(p, 1) is the number of legal moves. A position
+// with no legal moves (checkmate or stalemate) has no nodes at any depth >= 1.
+// A negative depth is treated as 0.
 //
-// The position is left unchanged. At depth 1 the legal moves are counted
-// without being played.
-func (p *Position) Perft(depth int) uint64 {
+// The whole tree is walked, with no caching. At depth 1 the moves are counted
+// as they are generated, without being played.
+func Perft(p *Position, depth int) uint64 {
 	if depth <= 0 {
 		return 1
 	}
-	buf := make([]Move, MaxMoves*depth)
-	return p.perft(depth, buf)
+	return perft(p, depth)
 }
 
-func (p *Position) perft(depth int, buf []Move) uint64 {
-	n := p.generate(buf[:MaxMoves])
+func perft(p *Position, depth int) uint64 {
+	var l moveList
+	p.generate(&l)
 	if depth == 1 {
-		return uint64(n)
+		return uint64(l.n)
 	}
-	var total uint64
-	next := buf[MaxMoves:]
-	for _, m := range buf[:n] {
-		u := p.Make(m)
-		total += p.perft(depth-1, next)
-		p.Unmake(m, u)
+	var n uint64
+	for _, m := range l.moves[:l.n] {
+		child := p.Make(m)
+		n += perft(&child, depth-1)
 	}
-	return total
+	return n
 }
 
 // DivideEntry is one line of a divide result: a root move and the number of
 // leaf nodes below it.
 type DivideEntry struct {
 	Move  Move
-	Count uint64
+	Nodes uint64
 }
 
-// Divide returns, for every legal root move, the number of leaf nodes Perft
-// would count below it at depth-1, sorted by the move's UCI string in byte
-// order. The sum of the counts equals Perft(depth). depth must be at least 1;
-// for smaller values Divide returns nil.
-func (p *Position) Divide(depth int) []DivideEntry {
+// Divide returns, for every legal move of p, the number of leaf nodes of the
+// subtree below it at depth-1 plies, sorted by the UCI text of the move. The
+// sum of the counts is Perft(p, depth). Divide returns nil if depth < 1.
+func Divide(p *Position, depth int) []DivideEntry {
 	if depth < 1 {
 		return nil
 	}
 	moves := p.LegalMoves()
-	buf := make([]Move, MaxMoves*depth)
-	entries := make([]DivideEntry, len(moves))
+	out := make([]DivideEntry, len(moves))
 	for i, m := range moves {
-		entries[i].Move = m
-		if depth == 1 {
-			entries[i].Count = 1
-			continue
-		}
-		u := p.Make(m)
-		entries[i].Count = p.perft(depth-1, buf)
-		p.Unmake(m, u)
+		child := p.Make(m)
+		out[i] = DivideEntry{m, Perft(&child, depth-1)}
 	}
-	keys := make([]string, len(entries))
-	for i, e := range entries {
-		keys[i] = e.Move.String()
-	}
-	sort.Sort(&byUCI{entries, keys})
-	return entries
-}
-
-type byUCI struct {
-	e []DivideEntry
-	k []string
-}
-
-func (s *byUCI) Len() int           { return len(s.e) }
-func (s *byUCI) Less(i, j int) bool { return s.k[i] < s.k[j] }
-func (s *byUCI) Swap(i, j int) {
-	s.e[i], s.e[j] = s.e[j], s.e[i]
-	s.k[i], s.k[j] = s.k[j], s.k[i]
+	sort.Slice(out, func(i, j int) bool { return out[i].Move.String() < out[j].Move.String() })
+	return out
 }

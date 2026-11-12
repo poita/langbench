@@ -1,0 +1,16 @@
+name "jsonschema"
+description "A from-scratch JSON Schema 2020-12 validator: library and command-line tool"
+authors "Peter Alexander"
+license "MIT"
+copyright "Copyright (c) 2026"
+
+configuration "application" {
+    targetType "executable"
+    targetName "jsonschema"
+    mainSourceFile "source/app.d"
+}
+
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}

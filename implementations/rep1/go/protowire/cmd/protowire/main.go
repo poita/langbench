@@ -1,9 +1,12 @@
-// Command protowire reads a schema and a list of decode/encode requests from
-// standard input and writes one result line per request to standard output.
+// Command protowire reads a message schema and a list of decode/encode
+// requests from standard input and prints one result line per request.
 //
-//	protowire < requests.txt
+// Input is the schema, a line consisting of "--", then one request per line:
 //
-// See the project README for the input format.
+//	decode <Message> <hex>
+//	encode <Message> <text form>
+//
+// A malformed request prints "error". See the README for details.
 package main
 
 import (
@@ -11,22 +14,17 @@ import (
 	"io"
 	"os"
 
-	"protowire/batch"
+	"example.com/protowire/internal/batch"
 )
 
 func main() {
-	input, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "protowire: reading stdin:", err)
-		os.Exit(1)
-	}
-	out, err := batch.Run(input)
+	in, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "protowire:", err)
 		os.Exit(1)
 	}
-	if _, err := os.Stdout.Write(out); err != nil {
-		fmt.Fprintln(os.Stderr, "protowire: writing stdout:", err)
+	if err := batch.Run(in, os.Stdout); err != nil {
+		fmt.Fprintln(os.Stderr, "protowire:", err)
 		os.Exit(1)
 	}
 }

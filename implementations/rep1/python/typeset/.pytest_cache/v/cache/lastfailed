@@ -1,0 +1,6 @@
+{
+  "tests/test_inline.py::test_errors[{n|a{n|b}}-document.cdx:1:6: nested-footnote]": true,
+  "tests/test_parser.py::test_parser_errors[@table cols=0 foo=1\\n-document.cdx:1:16: bad-attribute]": true,
+  "tests/test_parser.py::test_parser_errors[@fig height=10pt width=\"3pt\"x\\n-document.cdx:1:23: bad-attribute-value]": true,
+  "tests/test_parser.py::test_parser_errors[@h1 a {n|x}\\n-document.cdx:1:6: footnote-not-allowed]": true
+}

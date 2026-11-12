@@ -1,0 +1,17 @@
+[package]
+name = "bigint"
+version = "0.1.0"
+edition = "2021"
+description = "Arbitrary-precision signed integer arithmetic on decimal numbers, with a line-oriented CLI"
+license = "MIT"
+readme = "README.md"
+keywords = ["bigint", "arithmetic", "arbitrary-precision"]
+categories = ["mathematics"]
+
+[lib]
+name = "bigint"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bigint"
+path = "src/main.rs"

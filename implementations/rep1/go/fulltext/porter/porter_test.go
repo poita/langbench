@@ -3,78 +3,75 @@ package porter
 import (
 	"bufio"
 	"os"
+	"path/filepath"
 	"testing"
 )
 
-func TestStemExamples(t *testing.T) {
-	cases := map[string]string{
-		"caresses": "caress", "ponies": "poni", "ties": "ti", "caress": "caress", "cats": "cat",
-		"feed": "feed", "agreed": "agre", "bleed": "bleed", "need": "need", "deed": "deed",
-		"plastered": "plaster", "bled": "bled", "motoring": "motor", "sing": "sing",
-		"conflated": "conflat", "troubled": "troubl", "sized": "size", "hopping": "hop",
-		"tanned": "tan", "falling": "fall", "fizzed": "fizz", "filing": "file", "failing": "fail",
-		"happy": "happi", "sky": "sky", "relational": "relat", "conditional": "condit",
-		"digitizer": "digit", "vietnamization": "vietnam", "operator": "oper",
-		"feudalism": "feudal", "decisiveness": "decis", "hopefulness": "hope",
-		"callousness": "callous", "formaliti": "formal", "triplicate": "triplic",
-		"formative": "form", "formalize": "formal", "electriciti": "electr",
-		"electrical": "electr", "goodness": "good", "revival": "reviv",
-		"allowance": "allow", "inference": "infer", "airliner": "airlin",
-		"adjustable": "adjust", "defensible": "defens", "irritant": "irrit",
-		"replacement": "replac", "adjustment": "adjust", "dependent": "depend",
-		"adoption": "adopt", "communism": "commun", "activate": "activ",
-		"effective": "effect", "bowdlerize": "bowdler", "probate": "probat",
-		"rate": "rate", "cease": "ceas", "controll": "control", "roll": "roll",
-		"running": "run", "runs": "run", "runner": "runner", "connection": "connect",
-		"connections": "connect", "connecting": "connect", "dogs": "dog",
-		"happiness": "happi", "happier": "happier", "relativity": "rel",
-		"sensibility": "sensibl", "national": "nation", "controlled": "control",
-		"abandoned": "abandon", "is": "is", "a": "a", "by": "by", "ion": "ion",
+func TestStem(t *testing.T) {
+	tests := []struct{ word, want string }{
+		// Words of one or two letters are untouched.
+		{"a", "a"}, {"is", "is"}, {"as", "as"},
+		// Step 1a.
+		{"caresses", "caress"}, {"ponies", "poni"}, {"ties", "ti"}, {"caress", "caress"}, {"cats", "cat"},
+		// Step 1b selection by suffix: feed/need/bleed must not fall through to ED.
+		{"feed", "feed"}, {"need", "need"}, {"bleed", "bleed"}, {"agreed", "agre"},
+		{"plastered", "plaster"}, {"bled", "bled"}, {"motoring", "motor"}, {"sing", "sing"},
+		{"conflated", "conflat"}, {"troubled", "troubl"}, {"sized", "size"},
+		{"hopping", "hop"}, {"tanned", "tan"}, {"falling", "fall"}, {"fizzed", "fizz"},
+		{"filing", "file"}, {"failing", "fail"},
+		// Step 1c.
+		{"happy", "happi"}, {"sky", "sky"},
+		// Steps 2-4 and the two departures from the paper.
+		{"relational", "relat"}, {"conditional", "condit"}, {"conformabli", "conform"},
+		{"apologi", "apolog"}, {"vietnamization", "vietnam"}, {"sensibility", "sensibl"},
+		{"triplicate", "triplic"}, {"formative", "form"}, {"electrical", "electr"},
+		{"revival", "reviv"}, {"allowance", "allow"}, {"adoption", "adopt"},
+		// Step 5.
+		{"probate", "probat"}, {"rate", "rate"}, {"cease", "ceas"},
+		{"controll", "control"}, {"roll", "roll"},
+		// Worked stems from the specification.
+		{"running", "run"}, {"runs", "run"}, {"runner", "runner"}, {"connection", "connect"},
+		{"connections", "connect"}, {"connecting", "connect"}, {"cats", "cat"}, {"dogs", "dog"},
+		{"happiness", "happi"}, {"happier", "happier"}, {"relativity", "rel"},
+		{"national", "nation"}, {"controlled", "control"}, {"abandoned", "abandon"},
 	}
-	for in, want := range cases {
-		if got := Stem(in); got != want {
-			t.Errorf("Stem(%q) = %q, want %q", in, got, want)
+	for _, tc := range tests {
+		if got := Stem(tc.word); got != tc.want {
+			t.Errorf("Stem(%q) = %q, want %q", tc.word, got, tc.want)
 		}
 	}
 }
 
-func TestStemInPlaceDoesNotGrow(t *testing.T) {
-	b := []byte("troubling")
-	n := StemInPlace(b)
-	if string(b[:n]) != "troubl" {
-		t.Fatalf("got %q", b[:n])
-	}
-}
-
-// TestPorterVocabulary checks Porter's published vocabulary when it is
-// available (set PORTER_DIR to a directory holding voc.txt and output.txt).
-func TestPorterVocabulary(t *testing.T) {
-	dir := os.Getenv("PORTER_DIR")
-	if dir == "" {
-		t.Skip("PORTER_DIR not set")
-	}
-	in, err := os.Open(dir + "/voc.txt")
+// TestVocabulary checks Porter's published vocabulary when the repository
+// vendors it (../../problems/fulltext/corpus/porter); otherwise it is skipped.
+func TestVocabulary(t *testing.T) {
+	dir := filepath.Join("..", "..", "problems", "fulltext", "corpus", "porter")
+	in, err := os.Open(filepath.Join(dir, "voc.txt"))
 	if err != nil {
-		t.Fatal(err)
+		t.Skip("Porter vocabulary not available")
 	}
 	defer in.Close()
-	out, err := os.Open(dir + "/output.txt")
+	out, err := os.Open(filepath.Join(dir, "output.txt"))
 	if err != nil {
-		t.Fatal(err)
+		t.Skip("Porter vocabulary not available")
 	}
 	defer out.Close()
-	a, b := bufio.NewScanner(in), bufio.NewScanner(out)
+	vs, os_ := bufio.NewScanner(in), bufio.NewScanner(out)
 	n := 0
-	for a.Scan() {
-		if !b.Scan() {
-			t.Fatal("output.txt too short")
+	for vs.Scan() {
+		if !os_.Scan() {
+			t.Fatal("output.txt shorter than voc.txt")
 		}
 		n++
-		if got := Stem(a.Text()); got != b.Text() {
-			t.Errorf("Stem(%q) = %q, want %q", a.Text(), got, b.Text())
+		if got := Stem(vs.Text()); got != os_.Text() {
+			t.Errorf("Stem(%q) = %q, want %q", vs.Text(), got, os_.Text())
 		}
 	}
-	if n < 20000 {
-		t.Fatalf("only %d words", n)
+	t.Logf("checked %d words", n)
+}
+
+func BenchmarkStem(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		Stem("generalizations")
 	}
 }

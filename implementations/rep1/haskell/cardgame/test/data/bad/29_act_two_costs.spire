@@ -1,0 +1,2 @@
+(card AAA-001 (name "One") (type unit) (cost 0) (body 1 1)
+  (act (cost (ember 1)) (cost (ember 2)) (draw 1 you)))

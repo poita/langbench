@@ -1,138 +1,50 @@
-// Package analysis turns text into index terms: it tokenises UTF-8 text,
-// folds case and apostrophes, applies the stop-word test and Porter-stems
-// ASCII words.
+// Package analysis turns text into index terms: it tokenises, folds case
+// (ASCII only), removes apostrophes and Porter-stems.
 //
-// A token is a maximal run matching TOKENCHAR+ (APOSTROPHE TOKENCHAR+)*, where
-// token characters are ASCII digits and letters, Latin-1/Latin Extended
-// letters (U+00C0-U+024F except U+00D7 and U+00F7), Greek and Cyrillic
-// (U+0370-U+04FF). The apostrophes are U+0027 and U+2019. Folding deletes
-// apostrophes and lower-cases A-Z only. The term of a token is the Porter
-// stem of its folded text when that is all a-z, else the folded text itself.
+// The same analysis is applied to documents and to query phrases, so the two
+// always agree on what a word is.
 package analysis
 
 import (
+	"sync"
 	"unicode/utf8"
 
-	"example.com/fulltext/porter"
+	"fulltext/porter"
 )
 
-// asciiToken[b] is true for the ASCII token characters.
-var asciiToken [128]bool
-
-func init() {
-	for c := '0'; c <= '9'; c++ {
-		asciiToken[c] = true
-	}
-	for c := 'a'; c <= 'z'; c++ {
-		asciiToken[c] = true
-		asciiToken[c-'a'+'A'] = true
-	}
+// Token is one token of analysed text.
+type Token struct {
+	// Start and End are the half-open byte offsets of the token in the
+	// analysed text (apostrophes included).
+	Start, End int
+	// Text is the folded token text: apostrophes deleted, A-Z mapped to a-z.
+	Text string
+	// Term is the index term: the Porter stem of Text when Text is made only of
+	// the letters a-z, Text itself otherwise.
+	Term string
 }
 
-// IsTokenRune reports whether r is a token character.
-func IsTokenRune(r rune) bool {
+// IsTokenChar reports whether r may occur inside a token.
+func IsTokenChar(r rune) bool {
 	switch {
-	case r < 0x80:
-		return r >= 0 && asciiToken[r]
-	case r >= 0xC0 && r <= 0x24F:
-		return r != 0xD7 && r != 0xF7
-	case r >= 0x370 && r <= 0x4FF:
+	case r >= '0' && r <= '9', r >= 'A' && r <= 'Z', r >= 'a' && r <= 'z':
+		return true
+	case r >= 0xC0 && r <= 0xD6, r >= 0xD8 && r <= 0xF6, r >= 0xF8 && r <= 0x24F:
+		return true
+	case r >= 0x370 && r <= 0x3FF, r >= 0x400 && r <= 0x4FF:
 		return true
 	}
 	return false
 }
 
-// decode returns the code point at text[i] and its encoded size.
-func decode(text []byte, i int) (rune, int) {
-	if c := text[i]; c < 0x80 {
-		return rune(c), 1
-	}
-	return utf8.DecodeRune(text[i:])
-}
+// IsApostrophe reports whether r is U+0027 or U+2019.
+func IsApostrophe(r rune) bool { return r == '\'' || r == '’' }
 
-// apostropheLen returns the byte length of the apostrophe at text[i]
-// (1 for U+0027, 3 for U+2019), or 0 if there is none.
-func apostropheLen(text []byte, i int) int {
-	switch {
-	case text[i] == '\'':
-		return 1
-	case text[i] == 0xE2 && i+2 < len(text) && text[i+1] == 0x80 && text[i+2] == 0x99:
-		return 3
-	}
-	return 0
-}
-
-// Next finds the first token starting at or after byte offset pos and returns
-// its byte span [start, end). ok is false when no token remains. Scanning
-// again from end yields the following token.
-func Next(text []byte, pos int) (start, end int, ok bool) {
-	i := pos
-	for {
-		if i >= len(text) {
-			return 0, 0, false
-		}
-		r, size := decode(text, i)
-		if IsTokenRune(r) {
-			break
-		}
-		i += size
-	}
-	start = i
-	for i < len(text) {
-		r, size := decode(text, i)
-		if IsTokenRune(r) {
-			i += size
-			continue
-		}
-		a := apostropheLen(text, i)
-		if a == 0 || i+a >= len(text) {
-			break
-		}
-		if r2, _ := decode(text, i+a); !IsTokenRune(r2) {
-			break
-		}
-		i += a
-	}
-	return start, i, true
-}
-
-// Fold appends the folded form of the raw token to dst and returns the
-// extended slice: apostrophes are deleted and A-Z become a-z.
-func Fold(dst, raw []byte) []byte {
-	for i := 0; i < len(raw); {
-		c := raw[i]
-		switch {
-		case c >= 'A' && c <= 'Z':
-			dst = append(dst, c+'a'-'A')
-		case c == '\'':
-		case c == 0xE2 && apostropheLen(raw, i) == 3:
-			i += 3
-			continue
-		default:
-			dst = append(dst, c)
-		}
-		i++
-	}
-	return dst
-}
-
-// IsASCIIWord reports whether b is non-empty and consists only of a-z.
-func IsASCIIWord(b []byte) bool {
-	for _, c := range b {
-		if c < 'a' || c > 'z' {
-			return false
-		}
-	}
-	return len(b) > 0
-}
-
-// StemFolded converts folded token text to its term, in place: ASCII words
-// are Porter-stemmed, anything else is returned unchanged.
-func StemFolded(folded []byte) []byte {
-	if IsASCIIWord(folded) {
-		return folded[:porter.StemInPlace(folded)]
-	}
-	return folded
+// IsSpace reports whether r is one of the seven whitespace code points that
+// the query syntax and the snippet builder recognise: U+0009 to U+000D,
+// U+0020 and U+00A0.
+func IsSpace(r rune) bool {
+	return (r >= 0x09 && r <= 0x0D) || r == 0x20 || r == 0xA0
 }
 
 var stopWords = map[string]struct{}{}
@@ -148,45 +60,143 @@ func init() {
 	}
 }
 
-// IsStopWord reports whether the folded token text is one of the 33 stop
-// words. Stop words are still indexed; the set only affects one-term query
-// atoms.
-func IsStopWord(folded string) bool {
-	_, ok := stopWords[folded]
+// IsStopWord reports whether text, a folded token text, is a stop word. The
+// test is made before stemming.
+func IsStopWord(text string) bool {
+	_, ok := stopWords[text]
 	return ok
 }
 
-// Token is an analysed token.
-type Token struct {
-	Start, End int    // byte span in the analysed text
-	Folded     string // folded token text
-	Term       string // index term
+// Fold returns the folded form of a token: apostrophes removed and ASCII upper
+// case mapped to lower case.
+func Fold(token string) string {
+	return string(foldInto(nil, token))
 }
 
-// Analyze tokenises text and returns every token with its folded text and
-// term.
-func Analyze(text string) []Token {
-	b := []byte(text)
-	var toks []Token
-	var buf []byte
-	for pos := 0; ; {
-		s, e, ok := Next(b, pos)
-		if !ok {
-			return toks
+// foldInto appends the folded form of token to dst.
+func foldInto(dst []byte, token string) []byte {
+	for i := 0; i < len(token); {
+		c := token[i]
+		switch {
+		case c >= 'A' && c <= 'Z':
+			dst = append(dst, c+32)
+			i++
+		case c == '\'':
+			i++
+		case c == 0xE2 && i+2 < len(token) && token[i+1] == 0x80 && token[i+2] == 0x99: // U+2019
+			i += 3
+		default:
+			dst = append(dst, c)
+			i++
 		}
-		buf = Fold(buf[:0], b[s:e])
-		folded := string(buf)
-		toks = append(toks, Token{Start: s, End: e, Folded: folded, Term: string(StemFolded(buf))})
-		pos = e
 	}
+	return dst
 }
 
-// Terms returns the index terms of text, in order.
-func Terms(text string) []string {
-	toks := Analyze(text)
-	out := make([]string, len(toks))
-	for i, t := range toks {
-		out[i] = t.Term
+// Term returns the index term for a folded token text.
+func Term(text string) string {
+	if isLowerASCII(text) {
+		return porter.Stem(text)
 	}
-	return out
+	return text
+}
+
+func isLowerASCII(s string) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] < 'a' || s[i] > 'z' {
+			return false
+		}
+	}
+	return len(s) > 0
+}
+
+type entry struct{ text, term string }
+
+// Analyzer analyses text. It memoises folding and stemming, so reuse one
+// Analyzer for a whole corpus. It is safe for concurrent use.
+type Analyzer struct {
+	mu    sync.Mutex
+	cache map[string]entry
+	buf   []byte
+}
+
+// NewAnalyzer returns an Analyzer with an empty cache.
+func NewAnalyzer() *Analyzer {
+	return &Analyzer{cache: make(map[string]entry)}
+}
+
+// Analyze tokenises text and returns its tokens in order; the position of a
+// token is its index in the result.
+//
+// A token is a maximal run of token characters, optionally continued by
+// apostrophes each of which sits between two token characters.
+func (a *Analyzer) Analyze(text string) []Token {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	var toks []Token
+	n := len(text)
+	for i := 0; i < n; {
+		r, sz := decode(text, i)
+		if !IsTokenChar(r) {
+			i += sz
+			continue
+		}
+		start := i
+		end := scanRun(text, i)
+		for end < n {
+			r, sz := decode(text, end)
+			if !IsApostrophe(r) {
+				break
+			}
+			next := scanRun(text, end+sz)
+			if next == end+sz {
+				break
+			}
+			end = next
+		}
+		e := a.lookup(text[start:end])
+		toks = append(toks, Token{Start: start, End: end, Text: e.text, Term: e.term})
+		i = end
+	}
+	return toks
+}
+
+// Terms analyses text and returns just the terms.
+func (a *Analyzer) Terms(text string) []string {
+	toks := a.Analyze(text)
+	terms := make([]string, len(toks))
+	for i, t := range toks {
+		terms[i] = t.Term
+	}
+	return terms
+}
+
+func (a *Analyzer) lookup(raw string) entry {
+	a.buf = foldInto(a.buf[:0], raw)
+	if e, ok := a.cache[string(a.buf)]; ok {
+		return e
+	}
+	text := string(a.buf)
+	e := entry{text: text, term: Term(text)}
+	a.cache[text] = e
+	return e
+}
+
+func decode(s string, i int) (rune, int) {
+	if c := s[i]; c < utf8.RuneSelf {
+		return rune(c), 1
+	}
+	return utf8.DecodeRuneInString(s[i:])
+}
+
+// scanRun returns the end of the run of token characters starting at i.
+func scanRun(s string, i int) int {
+	for i < len(s) {
+		r, sz := decode(s, i)
+		if !IsTokenChar(r) {
+			break
+		}
+		i += sz
+	}
+	return i
 }

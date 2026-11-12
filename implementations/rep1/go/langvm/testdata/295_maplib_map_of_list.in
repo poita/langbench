@@ -1,0 +1,8 @@
+@module main
+fn main() {
+    var m: #[Str: [Int]] = mapNew();
+    m["a"] = [1];
+    push(m["a"], 2);
+    print(showInt(listLen(m["a"])));
+    print(showInt(listLen(mapGetOr(m, "b", []))));
+}

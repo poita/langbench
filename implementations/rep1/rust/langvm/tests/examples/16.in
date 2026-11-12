@@ -1,0 +1,69 @@
+@module main
+enum Tok { Num(Int), Var(Str), Op(Char) }
+
+fn tokenize(src: Str) -> [Tok] {
+    var out: [Tok] = listNew();
+    var i = 0;
+    let n = strLen(src);
+    while i < n {
+        let c = charAt(src, i);
+        if isSpace(c) {
+            i = i + 1;
+        } else if isDigit(c) {
+            var v = 0;
+            while i < n && isDigit(charAt(src, i)) {
+                v = v * 10 + (ord(charAt(src, i)) - 48);
+                i = i + 1;
+            }
+            push(out, Num(v));
+        } else if isAlpha(c) {
+            var j = i;
+            while j < n && isAlnum(charAt(src, j)) { j = j + 1; }
+            push(out, Var(substr(src, i, j)));
+            i = j;
+        } else {
+            push(out, Op(c));
+            i = i + 1;
+        }
+    }
+    out
+}
+
+fn evalRpn(toks: [Tok], env: #[Str: Int]) -> Result<Int, Str> {
+    var stack: [Int] = listNew();
+    for t in toks {
+        match t {
+            Num(v) -> push(stack, v),
+            Var(name) -> match mapGet(env, name) {
+                Some(v) -> push(stack, v),
+                None -> { return Err("unbound " ++ name); }
+            },
+            Op(c) -> {
+                if listLen(stack) < 2 { return Err("stack underflow"); }
+                let b = pop(stack);
+                let a = pop(stack);
+                match c {
+                    '+' -> push(stack, a + b),
+                    '-' -> push(stack, a - b),
+                    '*' -> push(stack, a * b),
+                    '/' -> if b == 0 { return Err("divide by zero"); }
+                           else { push(stack, a / b) },
+                    _ -> { return Err("bad op " ++ showChar(c)); }
+                }
+            },
+        }
+    }
+    if listLen(stack) == 1 { Ok(listLast(stack)) } else { Err("leftover") }
+}
+
+fn main() {
+    let env = #["x": 10, "y": 4];
+    let progs = ["3 4 +", "x y -", "2 3 4 * +", "x 0 /", "z 1 +", "1 2",
+                 "5 1 2 + 4 * + 3 -"];
+    for p in progs {
+        match evalRpn(tokenize(p), env) {
+            Ok(v) -> print(fmt("{} => {}", [p, showInt(v)])),
+            Err(e) -> print(fmt("{} => error: {}", [p, e])),
+        }
+    }
+}

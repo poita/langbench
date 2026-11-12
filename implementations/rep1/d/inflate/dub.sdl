@@ -1,34 +1,8 @@
 name "inflate"
-description "A table-driven DEFLATE (RFC 1951) decoder library and command-line tool"
+description "A from-scratch DEFLATE (RFC 1951) decoder with table-driven Huffman decoding"
 authors "inflate contributors"
 copyright "Copyright © 2026, inflate contributors"
 license "MIT"
-
-# Default configuration: the command-line tool.
-configuration "cli" {
-    targetType "executable"
-    targetName "inflate"
-    targetPath "bin"
-    sourcePaths "source" "app"
-    importPaths "source"
-    mainSourceFile "app/main.d"
-}
-
-# The reusable library (use as a dub dependency).
-configuration "library" {
-    targetType "library"
-    targetName "inflate"
-    targetPath "bin"
-    sourcePaths "source"
-    importPaths "source"
-}
-
-# Used by `dub test`: library sources plus the separate unit-test modules.
-configuration "unittest" {
-    targetType "executable"
-    targetName "inflate-test"
-    targetPath "bin"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-    mainSourceFile "tests/main.d"
-}
+targetType "library"
+targetPath "lib"
+subPackage "./cli"

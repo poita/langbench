@@ -1,17 +1,22 @@
-// Package solver finds solutions for 3x3x3 Rubik's cubes using
-// Thistlethwaite's four-phase algorithm.
+// Package solver solves a 3x3x3 Rubik's cube with Thistlethwaite's
+// four-phase algorithm.
 //
-// The cube is moved through a chain of subgroups
+// The cube is moved through a chain of nested subgroups
 //
-//	G0 = <U D L R F B>  ->  G1 = <U D L R F2 B2>  ->  G2 = <U D L2 R2 F2 B2>
-//	   ->  G3 = <U2 D2 L2 R2 F2 B2>  ->  solved
+//	G0 = <U,D,L,R,F,B>  >  G1 = <U,D,L,R,F2,B2>  >  G2 = <U,D,L2,R2,F2,B2>
+//	   >  G3 = <U2,D2,L2,R2,F2,B2>  >  G4 = {1}
 //
-// Each phase has a small integer coordinate identifying the cube's coset in
-// the next subgroup. Exact distance tables (one byte per coordinate value, filled
-// by breadth-first search from the goal) are built once, and a solution is
-// found by greedy descent in each table, so every phase is solved optimally
-// and a solution has at most 7 + 10 + 13 + 15 = 45 moves.
+// and in each phase a coordinate identifies the coset of the next subgroup
+// that the cube lies in:
 //
-// A [Solver] builds its tables lazily on first use (about a tenth of a
-// second) and is then safe for concurrent use by multiple goroutines.
+//	phase 1: orientation of 11 edges                              2,048 values
+//	phase 2: orientation of 7 corners x E-slice edge positions    2,187 x 495
+//	phase 3: corner permutation class mod the 96 half-turn
+//	         corner permutations x M-slice edge positions         420 x 70
+//	phase 4: half-turn corner permutation x permutation of each
+//	         edge slice                                           96 x 24^3
+//
+// New builds one exact distance table per phase by breadth-first search from
+// the goal; solving a cube is then a greedy descent through the tables, so
+// every phase is optimal and a solution has at most 7+10+13+15 = 45 moves.
 package solver

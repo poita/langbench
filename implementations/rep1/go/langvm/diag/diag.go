@@ -1,19 +1,14 @@
-// Package diag defines the single compile-time diagnostic that the Vellum
-// toolchain reports: a kind (one of the 51 kinds of SPEC section 13.4) and a
-// source position.
+// Package diag defines the single diagnostic a rejected Vellum program
+// produces, and the source positions it carries.
 package diag
 
 import "fmt"
 
-// Pos is a 1-based line and column. Columns count Unicode scalar values.
-type Pos struct {
-	Line, Col int
-}
-
-// Kind names a class of compile error, spelled exactly as printed.
+// Kind names a class of compile-time error. The spelling of each constant is
+// the text printed in the diagnostic line.
 type Kind string
 
-// The diagnostic kinds.
+// The fifty-one diagnostic kinds of SPEC.md section 13.4.
 const (
 	BadModule        Kind = "bad-module"
 	DupModule        Kind = "dup-module"
@@ -68,17 +63,23 @@ const (
 	BadTarget        Kind = "bad-target"
 )
 
-// Error is a compile error. It implements error; its text is the exact
-// diagnostic line (without the trailing newline).
+// Pos is a 1-based line and column. Columns count Unicode scalar values.
+type Pos struct {
+	Line, Col int
+}
+
+// Error is a compile-time diagnostic: a kind and the position it is reported
+// at. It implements the error interface; its text is exactly the line the
+// command-line tool prints.
 type Error struct {
 	Kind Kind
 	Pos  Pos
 }
 
-// Error returns "error: <kind> at <line>:<col>".
+// New returns a diagnostic of the given kind at pos.
+func New(kind Kind, pos Pos) *Error { return &Error{Kind: kind, Pos: pos} }
+
+// Error renders the diagnostic as "error: <kind> at <line>:<col>".
 func (e *Error) Error() string {
 	return fmt.Sprintf("error: %s at %d:%d", e.Kind, e.Pos.Line, e.Pos.Col)
 }
-
-// New builds an *Error.
-func New(k Kind, p Pos) *Error { return &Error{Kind: k, Pos: p} }

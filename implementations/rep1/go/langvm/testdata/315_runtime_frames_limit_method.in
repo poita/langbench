@@ -1,0 +1,9 @@
+@module main
+trait Down { fn down(self) -> Int; }
+impl Down for Int {
+    fn down(self) -> Int { if self == 0 { 0 } else { (self - 1).down() + 1 } }
+}
+fn main() {
+    print(showInt(19998.down()));
+    print(showInt(19999.down()));
+}

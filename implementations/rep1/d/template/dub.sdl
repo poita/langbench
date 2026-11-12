@@ -1,29 +1,29 @@
-name "jtemplate"
-description "A Jinja-style template engine: library and command-line tool"
-authors "template authors"
-copyright "Copyright (c) the jtemplate authors"
+name "jinjalite"
+description "A small Jinja2-style template engine for D: expressions, filters, loops, macros, include and template inheritance."
+authors "jinjalite authors"
+copyright "Copyright © jinjalite authors"
 license "MIT"
 
 sourcePaths "source"
 importPaths "source"
 
-# The default configuration: the command-line tool.
-configuration "cli" {
+// `dub build` builds the first configuration: the command-line tool.
+configuration "application" {
     targetType "executable"
-    targetName "jtemplate"
-    mainSourceFile "app/main.d"
-    sourcePaths "source" "app"
+    targetName "jinjalite"
+    targetPath "bin"
+    sourcePaths "source" "cli"
+    mainSourceFile "cli/main.d"
 }
 
-# The reusable library only (depend on this package from another project).
+// Use this configuration when depending on jinjalite as a library.
 configuration "library" {
     targetType "library"
-    sourcePaths "source"
 }
 
-# `dub test` uses this configuration: library sources plus the unit tests,
-# which live in tests/ rather than next to the library code.
+// `dub test` picks this configuration: library modules plus the tests/ directory.
 configuration "unittest" {
     targetType "library"
     sourcePaths "source" "tests"
+    importPaths "source" "tests"
 }

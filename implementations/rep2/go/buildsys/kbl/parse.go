@@ -1,10 +1,14 @@
 package kbl
 
-import (
-	"strings"
-
-	"kiln/errs"
-)
+// Parse lexes and parses a whole build file into statements. Errors are
+// *ParseError values carrying the offending logical line's number.
+func Parse(src string) ([]Stmt, error) {
+	lines, err := Lex(src)
+	if err != nil {
+		return nil, err
+	}
+	return parseLines(lines)
+}
 
 var reserved = map[string]bool{
 	"abort": true, "after": true, "cmd": true, "cost": true, "default": true,
@@ -13,210 +17,521 @@ var reserved = map[string]bool{
 	"rule": true, "set": true, "step": true, "true": true, "use": true, "when": true,
 }
 
-// IsReserved reports whether name is a KBL reserved word.
+// IsReserved reports whether name is a reserved word.
 func IsReserved(name string) bool { return reserved[name] }
 
-// syntaxError is the panic value used internally to abandon the current
-// logical line.
-type syntaxError struct{}
+type parseFail struct{}
 
-func fail() { panic(syntaxError{}) }
+func fail() { panic(parseFail{}) }
 
-type parser struct {
-	toks []token
+type blockKind uint8
+
+const (
+	blkRoot blockKind = iota
+	blkWhen
+	blkEach
+	blkRule
+	blkStep
+)
+
+type frame struct {
+	kind blockKind
+	line int
+	body []Stmt
+
+	// when
+	when   When
+	cond   Expr
+	inElse bool
+	// each / rule
+	each Each
+	rule Rule
+	// step
+	fields []StepField
+}
+
+func parseLines(lines []Line) (stmts []Stmt, err error) {
+	cur := 0
+	defer func() {
+		if r := recover(); r != nil {
+			if _, ok := r.(parseFail); !ok {
+				panic(r)
+			}
+			stmts, err = nil, &ParseError{Line: cur}
+		}
+	}()
+	stack := []*frame{{kind: blkRoot}}
+	top := func() *frame { return stack[len(stack)-1] }
+	emit := func(s Stmt) { f := top(); f.body = append(f.body, s) }
+
+	for _, l := range lines {
+		cur = l.Num
+		toks := l.Toks
+		n := len(toks)
+		f := top()
+		switch {
+		case isPunct(toks[0], "}"):
+			if f.kind == blkRoot {
+				fail()
+			}
+			switch {
+			case n == 1:
+				stack = stack[:len(stack)-1]
+				emit(closeFrame(f))
+			case isIdent(toks[1], "elsewhen") && isPunct(toks[n-1], "{"):
+				if f.kind != blkWhen || f.inElse {
+					fail()
+				}
+				ep := &exprParser{toks: toks[:n-1], pos: 2}
+				cond := ep.expr()
+				ep.done()
+				f.when.Conds = append(f.when.Conds, f.cond)
+				f.when.Bodies = append(f.when.Bodies, f.body)
+				f.cond, f.body, f.line = cond, nil, l.Num
+			case n == 3 && isIdent(toks[1], "otherwise") && isPunct(toks[2], "{"):
+				if f.kind != blkWhen || f.inElse {
+					fail()
+				}
+				f.when.Conds = append(f.when.Conds, f.cond)
+				f.when.Bodies = append(f.when.Bodies, f.body)
+				f.cond, f.body, f.inElse, f.line = nil, nil, true, l.Num
+			default:
+				fail()
+			}
+		case isPunct(toks[n-1], "{"):
+			if f.kind == blkStep {
+				fail()
+			}
+			stack = append(stack, parseHeader(toks, l.Num))
+		case f.kind == blkStep:
+			f.fields = append(f.fields, parseStepField(toks))
+		default:
+			emit(parseSimple(toks))
+		}
+	}
+	if len(stack) > 1 {
+		cur = top().line
+		fail()
+	}
+	return stack[0].body, nil
+}
+
+func closeFrame(f *frame) Stmt {
+	switch f.kind {
+	case blkWhen:
+		w := f.when
+		if f.inElse {
+			w.Else, w.HasElse = f.body, true
+		} else {
+			w.Conds = append(w.Conds, f.cond)
+			w.Bodies = append(w.Bodies, f.body)
+		}
+		return w
+	case blkEach:
+		e := f.each
+		e.Body = f.body
+		return e
+	case blkRule:
+		r := f.rule
+		r.Body = f.body
+		return r
+	default:
+		return StepStmt{Fields: f.fields}
+	}
+}
+
+func isPunct(t Token, s string) bool { return t.Kind == TokPunct && t.Text == s }
+func isOp(t Token, s string) bool    { return t.Kind == TokOp && t.Text == s }
+func isIdent(t Token, s string) bool { return t.Kind == TokIdent && t.Text == s }
+
+func parseHeader(toks []Token, line int) *frame {
+	n := len(toks)
+	if toks[0].Kind != TokIdent {
+		fail()
+	}
+	f := &frame{line: line}
+	ep := &exprParser{toks: toks[:n-1], pos: 1}
+	switch toks[0].Text {
+	case "step":
+		if n != 2 {
+			fail()
+		}
+		f.kind = blkStep
+	case "when":
+		f.kind = blkWhen
+		f.cond = ep.expr()
+		ep.done()
+	case "each":
+		f.kind = blkEach
+		first := ep.name()
+		var second string
+		if ep.acceptPunct(",") {
+			second = ep.name()
+		}
+		if !ep.acceptIdent("in") {
+			fail()
+		}
+		if second != "" {
+			if first == second {
+				fail()
+			}
+			f.each.Index, f.each.Name = first, second
+		} else {
+			f.each.Name = first
+		}
+		f.each.X = ep.expr()
+		ep.done()
+	case "rule":
+		f.kind = blkRule
+		f.rule.Name = ep.name()
+		if !ep.acceptPunct("(") {
+			fail()
+		}
+		seen := map[string]bool{}
+		sawDefault := false
+		for !ep.acceptPunct(")") {
+			if len(f.rule.Params) > 0 && !ep.acceptPunct(",") {
+				fail()
+			}
+			if ep.acceptPunct(")") {
+				break
+			}
+			p := Param{Name: ep.name()}
+			if seen[p.Name] {
+				fail()
+			}
+			seen[p.Name] = true
+			if ep.acceptPunct("=") {
+				p.Default = ep.expr()
+				sawDefault = true
+			} else if sawDefault {
+				fail()
+			}
+			f.rule.Params = append(f.rule.Params, p)
+		}
+		ep.done()
+	default:
+		fail()
+	}
+	return f
+}
+
+func parseSimple(toks []Token) Stmt {
+	if toks[0].Kind != TokIdent {
+		fail()
+	}
+	ep := &exprParser{toks: toks, pos: 1}
+	switch toks[0].Text {
+	case "let", "set", "phony":
+		name := ep.name()
+		if !ep.acceptPunct("=") {
+			fail()
+		}
+		x := ep.expr()
+		ep.done()
+		switch toks[0].Text {
+		case "let":
+			return Let{Name: name, X: x}
+		case "set":
+			return Set{Name: name, X: x}
+		}
+		return Phony{Name: name, X: x}
+	case "include", "abort", "default":
+		x := ep.expr()
+		ep.done()
+		switch toks[0].Text {
+		case "include":
+			return Include{X: x}
+		case "abort":
+			return Abort{X: x}
+		}
+		return Default{X: x}
+	case "use":
+		if ep.pos >= len(toks) || toks[ep.pos].Kind != TokIdent {
+			fail()
+		}
+		u := Use{Rule: toks[ep.pos].Text}
+		ep.pos++
+		if !ep.acceptPunct("(") {
+			fail()
+		}
+		sawKw := false
+		for !ep.acceptPunct(")") {
+			if len(u.Args) > 0 && !ep.acceptPunct(",") {
+				fail()
+			}
+			if ep.acceptPunct(")") {
+				break
+			}
+			if ep.pos+1 < len(toks) && toks[ep.pos].Kind == TokIdent && !reserved[toks[ep.pos].Text] &&
+				isPunct(toks[ep.pos+1], "=") {
+				name := toks[ep.pos].Text
+				ep.pos += 2
+				u.Args = append(u.Args, UseArg{Name: name, X: ep.expr()})
+				sawKw = true
+			} else {
+				if sawKw {
+					fail()
+				}
+				u.Args = append(u.Args, UseArg{X: ep.expr()})
+			}
+		}
+		ep.done()
+		return u
+	}
+	fail()
+	return nil
+}
+
+func parseStepField(toks []Token) StepField {
+	if toks[0].Kind != TokIdent {
+		fail()
+	}
+	ep := &exprParser{toks: toks, pos: 1}
+	switch kind := toks[0].Text; kind {
+	case "out", "in", "after", "cost", "depfile":
+		x := ep.expr()
+		ep.done()
+		return StepField{Kind: kind, X: x}
+	case "cmd":
+		if ep.pos >= len(toks) || toks[ep.pos].Kind != TokIdent {
+			fail()
+		}
+		name := toks[ep.pos].Text
+		ep.pos++
+		if !ep.acceptPunct("(") {
+			fail()
+		}
+		args := ep.args()
+		ep.done()
+		return StepField{Kind: "cmd", Cmd: name, Args: args}
+	}
+	fail()
+	return StepField{}
+}
+
+// exprParser is a precedence-climbing parser over a token slice.
+type exprParser struct {
+	toks []Token
 	pos  int
 }
 
-func (p *parser) peek() (token, bool) {
-	if p.pos < len(p.toks) {
-		return p.toks[p.pos], true
-	}
-	return token{}, false
-}
+func (p *exprParser) more() bool { return p.pos < len(p.toks) }
 
-func (p *parser) atOp(op string) bool {
-	t, ok := p.peek()
-	return ok && t.is(op)
-}
-
-func (p *parser) next() token {
+func (p *exprParser) peek() Token {
 	if p.pos >= len(p.toks) {
-		fail()
+		return Token{Kind: TokOp, Text: "\x00eof"}
 	}
-	t := p.toks[p.pos]
-	p.pos++
-	return t
+	return p.toks[p.pos]
 }
 
-func (p *parser) expectOp(op string) {
-	if !p.atOp(op) {
+func (p *exprParser) done() {
+	if p.more() {
 		fail()
 	}
-	p.pos++
 }
 
-func (p *parser) done() bool { return p.pos >= len(p.toks) }
-
-// ident consumes an identifier; reserved words are rejected unless anyName.
-func (p *parser) ident(anyName bool) string {
-	t := p.next()
-	if t.kind != tIdent || (!anyName && reserved[t.text]) {
-		fail()
-	}
-	return t.text
-}
-
-// ---- expressions ----
-
-func (p *parser) expr() Expr { return p.pipe() }
-
-func (p *parser) pipe() Expr {
-	l := p.binaryLevel(0)
-	for p.atOp("|>") {
+func (p *exprParser) acceptPunct(s string) bool {
+	if p.more() && isPunct(p.toks[p.pos], s) {
 		p.pos++
-		name := p.ident(true)
-		args := []Expr{l}
-		if p.atOp("(") {
-			p.pos++
-			args = append(args, p.exprList(")")...)
-		}
-		l = newCall(name, args)
+		return true
 	}
-	return l
+	return false
 }
 
-// binary operator levels, lowest first (after the pipe level).
-var levels = [][]string{
-	{"||"},
-	{"&&"},
-	{"==", "!=", "<", "<=", ">", ">="},
-	{"++"},
-	{"~"},
-	{"+", "-"},
-	{"*", "/", "%"},
+func (p *exprParser) acceptIdent(s string) bool {
+	if p.more() && isIdent(p.toks[p.pos], s) {
+		p.pos++
+		return true
+	}
+	return false
 }
 
-func (p *parser) binaryLevel(lv int) Expr {
-	if lv == len(levels) {
+// name consumes a non-reserved identifier.
+func (p *exprParser) name() string {
+	if !p.more() || p.toks[p.pos].Kind != TokIdent || reserved[p.toks[p.pos].Text] {
+		fail()
+	}
+	p.pos++
+	return p.toks[p.pos-1].Text
+}
+
+// args parses `expr {, expr} [,] )` after the opening parenthesis.
+func (p *exprParser) args() []Expr {
+	var out []Expr
+	if p.acceptPunct(")") {
+		return out
+	}
+	for {
+		out = append(out, p.expr())
+		if p.acceptPunct(",") {
+			if p.acceptPunct(")") {
+				return out
+			}
+			continue
+		}
+		if !p.acceptPunct(")") {
+			fail()
+		}
+		return out
+	}
+}
+
+func (p *exprParser) expr() Expr {
+	left := p.binary(2)
+	for p.more() && isOp(p.toks[p.pos], "|>") {
+		p.pos++
+		if !p.more() || p.toks[p.pos].Kind != TokIdent {
+			fail()
+		}
+		call := Call{Name: p.toks[p.pos].Text, Args: []Expr{left}}
+		p.pos++
+		if p.acceptPunct("(") {
+			call.Args = append(call.Args, p.args()...)
+		}
+		left = call
+	}
+	return left
+}
+
+var levelOps = [...][]string{
+	2: {"||"},
+	3: {"&&"},
+	4: {"==", "!=", "<", "<=", ">", ">="},
+	5: {"++"},
+	6: {"~"},
+	7: {"+", "-"},
+	8: {"*", "/", "%"},
+}
+
+func (p *exprParser) binary(level int) Expr {
+	if level > 8 {
 		return p.unary()
 	}
-	l := p.binaryLevel(lv + 1)
+	left := p.binary(level + 1)
 	for {
-		t, ok := p.peek()
-		if !ok || t.kind != tOp {
-			return l
+		t := p.peek()
+		if t.Kind != TokOp {
+			return left
 		}
-		match := false
-		for _, op := range levels[lv] {
-			if t.text == op {
-				match = true
+		matched := false
+		for _, op := range levelOps[level] {
+			if t.Text == op {
+				matched = true
 				break
 			}
 		}
-		if !match {
-			return l
+		if !matched {
+			return left
 		}
 		p.pos++
-		r := p.binaryLevel(lv + 1)
-		l = &binary{op: t.text, l: l, r: r}
+		left = Binary{Op: t.Text, L: left, R: p.binary(level + 1)}
 	}
 }
 
-func (p *parser) unary() Expr {
-	if t, ok := p.peek(); ok && (t.is("!") || t.is("-")) {
+func (p *exprParser) unary() Expr {
+	t := p.peek()
+	if isOp(t, "!") || isOp(t, "-") {
 		p.pos++
-		return &unary{op: t.text, x: p.unary()}
+		return Unary{Op: t.Text, X: p.unary()}
 	}
 	return p.postfix()
 }
 
-func (p *parser) postfix() Expr {
+func (p *exprParser) postfix() Expr {
 	x := p.primary()
 	for {
 		switch {
-		case p.atOp("["):
-			p.pos++
+		case p.acceptPunct("("):
+			fail() // calls apply only to identifiers, handled in primary
+		case p.acceptPunct("["):
 			i := p.expr()
-			p.expectOp("]")
-			x = &index{x: x, i: i}
-		case p.atOp("("):
-			fail() // a call is only legal directly on an identifier
+			if !p.acceptPunct("]") {
+				fail()
+			}
+			x = Index{X: x, I: i}
 		default:
 			return x
 		}
 	}
 }
 
-// exprList parses expr {"," expr} [","] up to and including the closer.
-func (p *parser) exprList(closer string) []Expr {
-	var out []Expr
-	for !p.atOp(closer) {
-		out = append(out, p.expr())
-		if p.atOp(",") {
-			p.pos++
-			continue
-		}
-		break
+func (p *exprParser) primary() Expr {
+	if !p.more() {
+		fail()
 	}
-	p.expectOp(closer)
-	return out
-}
-
-func (p *parser) primary() Expr {
-	t := p.next()
-	switch t.kind {
-	case tInt:
-		return &intLit{v: t.num}
-	case tStr:
-		return parseStringLit(t.text)
-	case tIdent:
-		if p.atOp("(") {
-			p.pos++
-			return newCall(t.text, p.exprList(")"))
+	t := p.toks[p.pos]
+	p.pos++
+	switch t.Kind {
+	case TokInt:
+		return IntLit{V: t.Int}
+	case TokStr:
+		return parseString(t)
+	case TokIdent:
+		if p.acceptPunct("(") {
+			return Call{Name: t.Text, Args: p.args()}
 		}
-		switch t.text {
+		switch t.Text {
 		case "true":
-			return &boolLit{v: true}
+			return BoolLit{V: true}
 		case "false":
-			return &boolLit{v: false}
+			return BoolLit{V: false}
 		}
-		if reserved[t.text] {
+		if reserved[t.Text] {
 			fail()
 		}
-		return &varRef{name: t.text}
-	case tOp:
-		switch t.text {
+		return VarRef{Name: t.Text}
+	case TokPunct:
+		switch t.Text {
 		case "(":
 			x := p.expr()
-			p.expectOp(")")
+			if !p.acceptPunct(")") {
+				fail()
+			}
 			return x
 		case "[":
-			return &listLit{elems: p.exprList("]")}
+			var elems []Expr
+			if p.acceptPunct("]") {
+				return ListLit{Elems: elems}
+			}
+			for {
+				elems = append(elems, p.expr())
+				if p.acceptPunct(",") {
+					if p.acceptPunct("]") {
+						return ListLit{Elems: elems}
+					}
+					continue
+				}
+				if !p.acceptPunct("]") {
+					fail()
+				}
+				return ListLit{Elems: elems}
+			}
 		}
 	}
 	fail()
 	return nil
 }
 
-func newCall(name string, args []Expr) *call {
-	return &call{name: name, fn: builtins[name], args: args}
-}
-
-// ---- string literals ----
-
-// parseStringLit parses a raw literal token (quotes included).
-func parseStringLit(raw string) Expr {
-	if raw[0] == '\'' {
-		body := raw[1 : len(raw)-1]
-		return &strLit{parts: []strPart{{lit: strings.ReplaceAll(body, "''", "'")}}}
+// parseString interprets a string-literal token.
+func parseString(t Token) Expr {
+	s := t.Text
+	if !t.Double {
+		var b []byte
+		for i := 0; i < len(s); i++ {
+			b = append(b, s[i])
+			if s[i] == '\'' { // an escaped '' pair
+				i++
+			}
+		}
+		return StrLit{Parts: []StrPart{{Lit: string(b)}}}
 	}
-	s := raw[1 : len(raw)-1]
-	var parts []strPart
-	var lit strings.Builder
+	var parts []StrPart
+	var lit []byte
 	flush := func() {
-		if lit.Len() > 0 {
-			parts = append(parts, strPart{lit: lit.String()})
-			lit.Reset()
+		if len(lit) > 0 {
+			parts = append(parts, StrPart{Lit: string(lit)})
+			lit = nil
 		}
 	}
 	for i := 0; i < len(s); {
@@ -227,360 +542,58 @@ func parseStringLit(raw string) Expr {
 				fail()
 			}
 			switch s[i+1] {
-			case '\\', '"':
-				lit.WriteByte(s[i+1])
+			case '\\':
+				lit = append(lit, '\\')
+			case '"':
+				lit = append(lit, '"')
 			case 'n':
-				lit.WriteByte('\n')
+				lit = append(lit, '\n')
 			case 't':
-				lit.WriteByte('\t')
+				lit = append(lit, '\t')
 			case 'r':
-				lit.WriteByte('\r')
+				lit = append(lit, '\r')
 			case '0':
-				lit.WriteByte(0)
+				lit = append(lit, 0)
 			default:
 				fail()
 			}
 			i += 2
 		case '{':
 			if i+1 < len(s) && s[i+1] == '{' {
-				lit.WriteByte('{')
+				lit = append(lit, '{')
 				i += 2
 				continue
 			}
-			end := skipInterp(s, i+1)
+			end := skipInterp(s, i)
 			if end < 0 {
 				fail()
 			}
 			body := s[i+1 : end-1]
-			toks, ok := tokenize(body)
-			if !ok || len(toks) == 0 {
+			toks, err := Tokenize(body)
+			if err != nil || len(toks) == 0 {
 				fail()
 			}
-			sub := &parser{toks: toks}
-			x := sub.expr()
-			if !sub.done() {
-				fail()
-			}
+			ep := &exprParser{toks: toks}
+			x := ep.expr()
+			ep.done()
 			flush()
-			parts = append(parts, strPart{expr: x})
+			parts = append(parts, StrPart{X: x})
 			i = end
 		case '}':
 			if i+1 < len(s) && s[i+1] == '}' {
-				lit.WriteByte('}')
+				lit = append(lit, '}')
 				i += 2
 				continue
 			}
 			fail()
 		default:
-			lit.WriteByte(c)
+			lit = append(lit, c)
 			i++
 		}
 	}
 	flush()
-	return &strLit{parts: parts}
-}
-
-// ---- statements ----
-
-type blockKind uint8
-
-const (
-	bWhen blockKind = iota
-	bEach
-	bRule
-	bStep
-)
-
-type frame struct {
-	kind   blockKind
-	header int // line number of the (latest) header line
-	stmts  []Stmt
-
-	// when
-	when      *whenStmt
-	otherwise bool
-	// each
-	each *eachStmt
-	// rule
-	rule *ruleStmt
-	// step
-	fields []stepField
-}
-
-// Parse lexes and parses a whole build file. name is the workspace path used
-// in E_PARSE details.
-func Parse(name, src string) (*File, *errs.Error) {
-	lines, errLine, ok := lexFile(src)
-	if !ok {
-		return nil, parseErr(name, errLine)
+	if len(parts) == 0 {
+		parts = []StrPart{{Lit: ""}}
 	}
-	root := &frame{kind: bWhen}
-	stack := []*frame{root}
-	for _, ll := range lines {
-		if !parseLine(&stack, ll) {
-			return nil, parseErr(name, ll.line)
-		}
-	}
-	if len(stack) > 1 {
-		return nil, parseErr(name, stack[len(stack)-1].header)
-	}
-	return &File{Name: name, Stmts: root.stmts}, nil
-}
-
-func parseLine(stack *[]*frame, ll logicalLine) (ok bool) {
-	defer func() {
-		if r := recover(); r != nil {
-			if _, is := r.(syntaxError); !is {
-				panic(r)
-			}
-			ok = false
-		}
-	}()
-	toks := ll.toks
-	top := (*stack)[len(*stack)-1]
-	switch {
-	case toks[0].is("}"):
-		terminator(stack, top, ll)
-	case toks[len(toks)-1].is("{"):
-		if top.kind == bStep {
-			fail()
-		}
-		header(stack, ll)
-	case top.kind == bStep:
-		top.fields = append(top.fields, stepFieldLine(toks))
-	default:
-		top.stmts = append(top.stmts, simpleStmt(toks))
-	}
-	return true
-}
-
-func terminator(stack *[]*frame, top *frame, ll logicalLine) {
-	toks := ll.toks
-	if len(*stack) == 1 {
-		fail()
-	}
-	if len(toks) == 1 {
-		closeFrame(stack, top)
-		return
-	}
-	if top.kind != bWhen || top.otherwise {
-		fail()
-	}
-	if toks[1].kind == tIdent && toks[1].text == "elsewhen" && len(toks) >= 4 && toks[len(toks)-1].is("{") {
-		p := &parser{toks: toks[2 : len(toks)-1]}
-		cond := p.expr()
-		if !p.done() {
-			fail()
-		}
-		top.when.bodies = append(top.when.bodies, top.stmts)
-		top.when.conds = append(top.when.conds, cond)
-		top.stmts = nil
-		top.header = ll.line
-		return
-	}
-	if toks[1].kind == tIdent && toks[1].text == "otherwise" && len(toks) == 3 && toks[2].is("{") {
-		top.when.bodies = append(top.when.bodies, top.stmts)
-		top.stmts = nil
-		top.otherwise = true
-		top.header = ll.line
-		return
-	}
-	fail()
-}
-
-func closeFrame(stack *[]*frame, top *frame) {
-	var st Stmt
-	switch top.kind {
-	case bWhen:
-		if top.otherwise {
-			top.when.otherwise = top.stmts
-		} else {
-			top.when.bodies = append(top.when.bodies, top.stmts)
-		}
-		st = top.when
-	case bEach:
-		top.each.body = top.stmts
-		st = top.each
-	case bRule:
-		top.rule.body = top.stmts
-		st = top.rule
-	case bStep:
-		st = &stepStmt{fields: top.fields}
-	}
-	*stack = (*stack)[:len(*stack)-1]
-	parent := (*stack)[len(*stack)-1]
-	parent.stmts = append(parent.stmts, st)
-}
-
-func header(stack *[]*frame, ll logicalLine) {
-	toks := ll.toks[:len(ll.toks)-1]
-	if len(toks) == 0 || toks[0].kind != tIdent {
-		fail()
-	}
-	p := &parser{toks: toks, pos: 1}
-	f := &frame{header: ll.line}
-	switch toks[0].text {
-	case "step":
-		if len(toks) != 1 {
-			fail()
-		}
-		f.kind = bStep
-	case "when":
-		f.kind = bWhen
-		cond := p.expr()
-		if !p.done() {
-			fail()
-		}
-		f.when = &whenStmt{conds: []Expr{cond}}
-	case "each":
-		f.kind = bEach
-		e := &eachStmt{}
-		e.name = p.ident(false)
-		if p.atOp(",") {
-			p.pos++
-			e.index = e.name
-			e.name = p.ident(false)
-			if e.index == e.name {
-				fail()
-			}
-		}
-		if t := p.next(); t.kind != tIdent || t.text != "in" {
-			fail()
-		}
-		e.x = p.expr()
-		if !p.done() {
-			fail()
-		}
-		f.each = e
-	case "rule":
-		f.kind = bRule
-		r := &ruleStmt{name: p.ident(false)}
-		p.expectOp("(")
-		seen := map[string]bool{}
-		sawDefault := false
-		for !p.atOp(")") {
-			pm := param{name: p.ident(false)}
-			if seen[pm.name] {
-				fail()
-			}
-			seen[pm.name] = true
-			if p.atOp("=") {
-				p.pos++
-				pm.def = p.expr()
-				sawDefault = true
-			} else if sawDefault {
-				fail()
-			}
-			r.params = append(r.params, pm)
-			if p.atOp(",") {
-				p.pos++
-				continue
-			}
-			break
-		}
-		p.expectOp(")")
-		if !p.done() {
-			fail()
-		}
-		f.rule = r
-	default:
-		fail()
-	}
-	*stack = append(*stack, f)
-}
-
-func stepFieldLine(toks []token) stepField {
-	if toks[0].kind != tIdent {
-		fail()
-	}
-	p := &parser{toks: toks, pos: 1}
-	var f stepField
-	switch toks[0].text {
-	case "out":
-		f.kind = fOut
-	case "in":
-		f.kind = fIn
-	case "after":
-		f.kind = fAfter
-	case "cost":
-		f.kind = fCost
-	case "depfile":
-		f.kind = fDepfile
-	case "cmd":
-		f.kind = fCmd
-		f.cmdName = p.ident(true)
-		p.expectOp("(")
-		f.args = p.exprList(")")
-		if !p.done() {
-			fail()
-		}
-		return f
-	default:
-		fail()
-	}
-	f.x = p.expr()
-	if !p.done() {
-		fail()
-	}
-	return f
-}
-
-func simpleStmt(toks []token) Stmt {
-	if toks[0].kind != tIdent {
-		fail()
-	}
-	p := &parser{toks: toks, pos: 1}
-	var st Stmt
-	switch toks[0].text {
-	case "let":
-		name := p.ident(false)
-		p.expectOp("=")
-		st = &letStmt{name: name, x: p.expr()}
-	case "set":
-		name := p.ident(false)
-		p.expectOp("=")
-		st = &setStmt{name: name, x: p.expr()}
-	case "phony":
-		name := p.ident(false)
-		p.expectOp("=")
-		st = &phonyStmt{name: name, x: p.expr()}
-	case "include":
-		st = &includeStmt{x: p.expr()}
-	case "abort":
-		st = &abortStmt{x: p.expr()}
-	case "default":
-		st = &defaultStmt{x: p.expr()}
-	case "use":
-		st = p.useStmt()
-	default:
-		fail()
-	}
-	if !p.done() {
-		fail()
-	}
-	return st
-}
-
-func (p *parser) useStmt() Stmt {
-	u := &useStmt{name: p.ident(true)}
-	p.expectOp("(")
-	for !p.atOp(")") {
-		t, _ := p.peek()
-		if t.kind == tIdent && !reserved[t.text] && p.pos+1 < len(p.toks) && p.toks[p.pos+1].is("=") {
-			p.pos += 2
-			u.kws = append(u.kws, kwArg{name: t.text, x: p.expr()})
-		} else {
-			if len(u.kws) > 0 {
-				fail()
-			}
-			u.pos = append(u.pos, p.expr())
-		}
-		if p.atOp(",") {
-			p.pos++
-			continue
-		}
-		break
-	}
-	p.expectOp(")")
-	return u
+	return StrLit{Parts: parts}
 }

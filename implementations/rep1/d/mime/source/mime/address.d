@@ -1,274 +1,243 @@
-/// Address-list parsing (`From`, `To`, `Cc`, ...): a tokeniser, an element
-/// splitter and a mailbox/group matcher following the specification's
-/// forgiving grammar.
+/// Address-list parsing: a tolerant tokeniser, element splitting and a
+/// small `[phrase] <addr-spec>` / `addr-spec` matcher.
 module mime.address;
 
-import mime.ascii;
-import mime.buffer;
-import mime.encodedword;
-import mime.syntax;
+import std.array : appender;
+import mime.encodedword : decodeDisplay, decodeEncodedWord, matchEncodedWord;
+import mime.text;
 
-/// One parsed address.
+@safe:
+
+/// One parsed mailbox.
 struct Address
 {
-    string display; /// decoded display name, possibly empty
-    string spec; /// `local@domain`, or the best-effort rendering
+    string display; /// decoded display name (possibly empty)
+    string spec;    /// `local@domain`, or a best-effort rendering of malformed input
 }
 
-/// Token classes of the address tokeniser.
-enum TokenKind : ubyte
-{
-    atom,
-    quoted,
-    literal,
-    encoded,
-    special,
-}
+/// Kinds of token produced by `tokenize`.
+enum TokenKind : ubyte { atom, quoted, literal, encoded, special }
 
-/// A lexical token with the offset of its first character in the value.
+/// An address token.
 struct Token
 {
     TokenKind kind;
-    string text;
-    size_t start;
+    string text;   /// decoded / unescaped text
+    size_t start;  /// byte offset of the token in the source value
+    size_t end;    /// one past the token's last byte
 }
 
-private bool isStop(char c) @safe pure nothrow @nogc
+private bool isSpecialChar(char c) pure nothrow @nogc
 {
     switch (c)
     {
-    case ' ', '\t', '(', ')', '<', '>', '[', ']', '@', ',', ':', ';', '.', '"', '\\':
+    case '<', '>', '@', ',', ':', ';', '.':
         return true;
     default:
         return false;
     }
 }
 
-/// Splits an address-list value into tokens.
-Token[] tokenize(string v) @safe pure nothrow
+private bool isAtomStop(char c) pure nothrow @nogc
+{
+    if (isBlank(c) || isSpecialChar(c))
+        return true;
+    switch (c)
+    {
+    case '(', ')', '[', ']', '"', '\\':
+        return true;
+    default:
+        return false;
+    }
+}
+
+/// Splits an address-list value into tokens; comments are skipped.
+Token[] tokenize(string v) pure nothrow
 {
     Token[] toks;
     size_t i = 0;
-    immutable n = v.length;
+    const n = v.length;
     while (i < n)
     {
-        immutable c = v[i];
+        const c = v[i];
+        size_t end;
         if (isBlank(c))
-        {
-            i++;
-            continue;
-        }
-        if (c == '(')
-        {
+            ++i;
+        else if (c == '(')
             i = skipComment(v, i);
-            continue;
-        }
-        if (c == '"')
+        else if (c == '"')
         {
-            auto q = scanQuoted(v, i);
-            toks ~= Token(TokenKind.quoted, q.text, i);
-            i = q.end;
-            continue;
+            const text = readQuoted(v, i, end);
+            toks ~= Token(TokenKind.quoted, text, i, end);
+            i = end;
         }
-        if (c == '[')
+        else if (c == '[')
         {
             size_t j = i + 1;
             while (j < n && v[j] != ']')
-                j += v[j] == '\\' ? 2 : 1;
-            if (j > n)
-                j = n;
-            immutable end = j < n ? j + 1 : n;
-            toks ~= Token(TokenKind.literal, v[i .. end], i);
+                j += (v[j] == '\\' && j + 1 < n) ? 2 : 1;
+            end = j < n ? j + 1 : n;
+            toks ~= Token(TokenKind.literal, v[i .. end], i, end);
             i = end;
-            continue;
         }
-        if (c == '=')
+        else if (c == '=' && matchEncodedWord(v, i, end))
         {
-            EncodedWord w;
-            if (matchEncodedWord(v, i, w))
-            {
-                toks ~= Token(TokenKind.encoded, w.text, i);
-                i = w.end;
-                continue;
-            }
+            toks ~= Token(TokenKind.encoded, decodeEncodedWord(v[i .. end]), i, end);
+            i = end;
         }
-        switch (c)
+        else if (isSpecialChar(c))
         {
-        case '<', '>', '@', ',', ':', ';', '.':
-            toks ~= Token(TokenKind.special, v[i .. i + 1], i);
-            i++;
-            continue;
-        case ')', ']', '\\':
-            toks ~= Token(TokenKind.atom, v[i .. i + 1], i);
-            i++;
-            continue;
-        default:
-            break;
+            toks ~= Token(TokenKind.special, v[i .. i + 1], i, i + 1);
+            ++i;
         }
-        size_t j = i + 1;
-        while (j < n && !isStop(v[j]))
-            j++;
-        toks ~= Token(TokenKind.atom, v[i .. j], i);
-        i = j;
+        else if (c == ')' || c == ']' || c == '\\')
+        {
+            toks ~= Token(TokenKind.atom, v[i .. i + 1], i, i + 1);
+            ++i;
+        }
+        else
+        {
+            size_t j = i + 1;
+            while (j < n && !isAtomStop(v[j]))
+                ++j;
+            toks ~= Token(TokenKind.atom, v[i .. j], i, j);
+            i = j;
+        }
     }
     return toks;
 }
 
-private bool isSpecial(in Token t, char c) @safe pure nothrow @nogc
+private bool isSpecial(const Token t, char c) pure nothrow @nogc
 {
     return t.kind == TokenKind.special && t.text[0] == c;
 }
 
-/// Tries to match `toks` as an addr-spec; on success stores its rendering.
-private bool matchAddrSpec(const(Token)[] toks, out string rendered) @safe pure nothrow
+private bool alternates(const(Token)[] t, bool delegate(const Token) pure nothrow @safe isItem)
+    pure nothrow @safe
 {
-    if (toks.length == 0)
+    if (t.length == 0 || t.length % 2 == 0)
         return false;
-    auto o = ByteBuffer(64);
-    size_t i = 0;
-    // local part
-    bool expectWord = true;
-    while (i < toks.length && !isSpecial(toks[i], '@'))
+    foreach (i, tok; t)
     {
-        immutable t = toks[i];
-        if (expectWord)
-        {
-            if (t.kind != TokenKind.atom && t.kind != TokenKind.quoted)
-                return false;
-            o.put(t.text);
-        }
-        else
-        {
-            if (!isSpecial(t, '.'))
-                return false;
-            o.put('.');
-        }
-        expectWord = !expectWord;
-        i++;
-    }
-    if (expectWord) // empty local part, or it ended with a '.'
-        return false;
-    if (i == toks.length)
-    {
-        rendered = o.toString();
-        return true;
-    }
-    // toks[i] is '@'
-    i++;
-    o.put('@');
-    if (i >= toks.length)
-        return false;
-    if (toks[i].kind == TokenKind.literal)
-    {
-        if (i + 1 != toks.length)
+        if (i % 2 == 0 ? !isItem(tok) : !isSpecial(tok, '.'))
             return false;
-        o.put(toks[i].text);
-        rendered = o.toString();
-        return true;
     }
-    expectWord = true;
-    for (; i < toks.length; i++)
-    {
-        immutable t = toks[i];
-        if (expectWord)
-        {
-            if (t.kind != TokenKind.atom)
-                return false;
-            o.put(t.text);
-        }
-        else
-        {
-            if (!isSpecial(t, '.'))
-                return false;
-            o.put('.');
-        }
-        expectWord = !expectWord;
-    }
-    if (expectWord)
-        return false;
-    rendered = o.toString();
     return true;
 }
 
-private void parseElement(string v, const(Token)[] toks, ref Address[] result) @safe pure nothrow
+private string joinTexts(const(Token)[] t) pure nothrow
 {
-    // group syntax: a ':' before any '<' or '@'
-    foreach (k, t; toks)
+    auto app = appender!string();
+    foreach (i, tok; t)
     {
-        if (isSpecial(t, '<') || isSpecial(t, '@'))
-            break;
-        if (isSpecial(t, ':'))
-        {
-            toks = toks[k + 1 .. $];
-            break;
-        }
+        if (i % 2 == 1)
+            app.put('.');
+        if (i % 2 == 0)
+            app.put(tok.text);
     }
-    if (toks.length > 0 && isSpecial(toks[$ - 1], ';'))
-        toks = toks[0 .. $ - 1];
-    if (toks.length == 0)
-        return;
-
-    // alternative 1: [phrase] < addr-spec >
-    size_t lt = size_t.max;
-    foreach (k, t; toks)
-        if (isSpecial(t, '<'))
-        {
-            lt = k;
-            break;
-        }
-    if (lt != size_t.max)
-    {
-        size_t gt = size_t.max;
-        foreach_reverse (k; lt + 1 .. toks.length)
-            if (isSpecial(toks[k], '>'))
-            {
-                gt = k;
-                break;
-            }
-        string spec;
-        if (gt != size_t.max && matchAddrSpec(toks[lt + 1 .. gt], spec))
-        {
-            string display;
-            if (lt > 0)
-                display = decodeDisplay(v[toks[0].start .. toks[lt].start]);
-            result ~= Address(display, spec);
-            return;
-        }
-    }
-    else
-    {
-        // alternative 2: addr-spec
-        string spec;
-        if (matchAddrSpec(toks, spec))
-        {
-            result ~= Address("", spec);
-            return;
-        }
-    }
-    auto o = ByteBuffer(64);
-    foreach (t; toks)
-        o.put(t.text);
-    result ~= Address("", o.toString());
+    return app.data;
 }
 
-/// Parses an address-list header value (the unfolded raw text after the
-/// colon) into addresses.
-Address[] parseAddressList(string v) @safe pure nothrow
+/// Matches `local [@ domain]` over exactly the given tokens.
+private bool matchAddrSpec(const(Token)[] t, out string spec) pure nothrow
 {
-    auto toks = tokenize(v);
+    size_t at = t.length;
+    foreach (i, tok; t)
+        if (isSpecial(tok, '@'))
+        {
+            at = i;
+            break;
+        }
+    const local = t[0 .. at];
+    if (!alternates(local, (const Token x) => x.kind == TokenKind.atom || x.kind == TokenKind.quoted))
+        return false;
+    if (at == t.length)
+    {
+        spec = joinTexts(local);
+        return true;
+    }
+    const domain = t[at + 1 .. $];
+    if (domain.length == 1 && domain[0].kind == TokenKind.literal)
+    {
+        spec = joinTexts(local) ~ "@" ~ domain[0].text;
+        return true;
+    }
+    if (!alternates(domain, (const Token x) => x.kind == TokenKind.atom))
+        return false;
+    spec = joinTexts(local) ~ "@" ~ joinTexts(domain);
+    return true;
+}
+
+private void parseElement(string v, const(Token)[] t, ref Address[] result) pure nothrow
+{
+    // Group syntax: drop everything up to a ':' that precedes any '<' or '@'.
+    foreach (i, tok; t)
+    {
+        if (isSpecial(tok, '<') || isSpecial(tok, '@'))
+            break;
+        if (isSpecial(tok, ':'))
+        {
+            t = t[i + 1 .. $];
+            break;
+        }
+    }
+    if (t.length != 0 && isSpecial(t[$ - 1], ';'))
+        t = t[0 .. $ - 1];
+    if (t.length == 0)
+        return;
+
+    string spec;
+    size_t lt = t.length;
+    foreach (i, tok; t)
+        if (isSpecial(tok, '<'))
+        {
+            lt = i;
+            break;
+        }
+    if (lt < t.length)
+    {
+        size_t gt = t.length;
+        foreach_reverse (i; lt + 1 .. t.length)
+            if (isSpecial(t[i], '>'))
+            {
+                gt = i;
+                break;
+            }
+        if (gt < t.length && matchAddrSpec(t[lt + 1 .. gt], spec))
+        {
+            const phrase = decodeDisplay(v[t[0].start .. t[lt].start]);
+            result ~= Address(phrase, spec);
+            return;
+        }
+    }
+    else if (matchAddrSpec(t, spec))
+    {
+        result ~= Address("", spec);
+        return;
+    }
+    auto app = appender!string();
+    foreach (tok; t)
+        app.put(tok.text);
+    result ~= Address("", app.data);
+}
+
+/// Parses an address-list header value (unfolded, undecoded).
+Address[] parseAddressList(string v) pure nothrow
+{
+    const toks = tokenize(v);
     Address[] result;
     size_t start = 0;
-    size_t depth = 0;
-    foreach (i, t; toks)
+    int depth = 0;
+    foreach (i, tok; toks)
     {
-        if (isSpecial(t, '<'))
-            depth++;
-        else if (isSpecial(t, '>'))
+        if (isSpecial(tok, '<'))
+            ++depth;
+        else if (isSpecial(tok, '>'))
         {
             if (depth > 0)
-                depth--;
+                --depth;
         }
-        else if (isSpecial(t, ',') && depth == 0)
+        else if (isSpecial(tok, ',') && depth == 0)
         {
             parseElement(v, toks[start .. i], result);
             start = i + 1;
@@ -276,4 +245,31 @@ Address[] parseAddressList(string v) @safe pure nothrow
     }
     parseElement(v, toks[start .. $], result);
     return result;
+}
+
+pure nothrow unittest
+{
+    static string show(string v)
+    {
+        string r;
+        foreach (a; parseAddressList(v))
+            r ~= a.display ~ "|" ~ a.spec ~ ";";
+        return r;
+    }
+    assert(show("Real Name <user@example.com>") == "Real Name|user@example.com;");
+    assert(show("user@example.com (Real Name)") == "|user@example.com;");
+    assert(show(`"Doe, John" <jd@x.com>`) == "Doe, John|jd@x.com;");
+    assert(show("a@b.com, (c) d@e.com") == "|a@b.com;|d@e.com;");
+    assert(show("Undisclosed recipients:;") == "");
+    assert(show("grp: a@b.com, c@d.com;") == "|a@b.com;|c@d.com;");
+    assert(show("=?utf-8?B?SsO2cmc=?= <j@x.de>") == "Jörg|j@x.de;");
+    assert(show("foo (c (nested)) <a@b>") == "foo|a@b;");
+    assert(show("ed <a@[10.0.0.1]>") == "ed|a@[10.0.0.1];");
+    assert(show("broken <a@@b>") == "|broken<a@@b>;");
+    assert(show("John Q. Public <jqp@example.com>") == "John Q. Public|jqp@example.com;");
+    assert(show("Symantec Email Proxy") == "|SymantecEmailProxy;");
+    assert(show(`"=?utf-8?Q?x?=" <a@b>`) == "=?utf-8?Q?x?=|a@b;");
+    assert(show("a <b <c@d.com> , e@f.com>, g@h.com") == "|a<b<c@d.com>,e@f.com>;|g@h.com;");
+    assert(show("John (the third) Public <jqp@x.com>") == "John   Public|jqp@x.com;");
+    assert(show("") == "");
 }

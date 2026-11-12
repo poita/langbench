@@ -1,0 +1,8 @@
+@module main
+fn print(x: Int) { emit("int:"); emit(showInt(x)); emit("\n"); }
+enum Option<T> { Sum(T), Nada }
+fn main() {
+    print(5);
+    let o = Sum(3);
+    match o { Sum(x) -> print(x), Nada -> print(0) }
+}

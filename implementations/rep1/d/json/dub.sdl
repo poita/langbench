@@ -1,0 +1,19 @@
+name "jsoncanon"
+description "Strict RFC 8259 JSON parser and canonical serializer (sorted keys, textual numbers)"
+authors "Peter Alexander"
+copyright "Copyright © 2026"
+license "MIT"
+sourcePaths "source"
+importPaths "source"
+
+configuration "cli" {
+	targetType "executable"
+	targetName "jsoncanon"
+	targetPath "."
+	mainSourceFile "source/app.d"
+}
+
+configuration "library" {
+	targetType "library"
+	excludedSourceFiles "source/app.d"
+}

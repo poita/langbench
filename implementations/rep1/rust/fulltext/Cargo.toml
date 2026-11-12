@@ -1,0 +1,17 @@
+[package]
+name = "fulltext"
+version = "0.1.0"
+edition = "2021"
+description = "A small full-text search engine: positional index, Porter stemming, boolean/phrase queries, BM25 ranking and snippets"
+license = "MIT"
+readme = "README.md"
+keywords = ["search", "bm25", "porter-stemmer", "inverted-index"]
+categories = ["text-processing"]
+
+[lib]
+name = "fulltext"
+path = "src/lib.rs"
+
+[[bin]]
+name = "fulltext"
+path = "src/main.rs"

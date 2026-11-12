@@ -1,78 +1,69 @@
 package header
 
-import (
-	"testing"
-)
+import "testing"
 
-func TestParse(t *testing.T) {
-	msg := "Subject: hello\n world\nX-A:1\nx-a:2\n\nbody\n"
-	fields, start := Parse([]byte(msg))
-	if len(fields) != 3 {
-		t.Fatalf("got %d fields: %+v", len(fields), fields)
-	}
-	if fields[0].Name != "subject" || fields[0].Raw != " hello world" {
-		t.Errorf("field 0 = %+v", fields[0])
-	}
-	if msg[start:] != "body\n" {
-		t.Errorf("body = %q", msg[start:])
-	}
-	if f, _ := Find(fields, "x-a"); f.Raw != "1" {
-		t.Errorf("Find must return the first field, got %+v", f)
-	}
-}
-
-func TestParseEnds(t *testing.T) {
-	cases := []struct {
-		in         string
-		nfields    int
-		bodyOffset int
+func TestParseBlock(t *testing.T) {
+	tests := []struct {
+		name      string
+		in        string
+		wantNames []string
+		wantBody  string
 	}{
-		{"", 0, 0},
-		{"A: b", 1, 4},
-		{"A: b\nno colon here\nrest", 1, 5},
-		{"A: b\nSubject :x\n", 1, 5},
-		{"A: b\n: novalue\n", 1, 5},
-		{"A: b\nFrom nobody Mon Sep  1\n", 1, 5},
-		{" lead: x\nA: b\n", 0, 0},
-		{"\nA: b\n", 0, 1},
-		{"A: b\n\n", 1, 6},
+		{"simple", "A: 1\nB: 2\n\nbody", []string{"a", "b"}, "body"},
+		{"folded", "Subject: a\n b\n\tc\n\nx", []string{"subject"}, "x"},
+		{"no blank line", "A: 1", []string{"a"}, ""},
+		{"space in name ends block", "A: 1\nSubject :x\nB: 2\n", []string{"a"}, "Subject :x\nB: 2\n"},
+		{"no colon", "A: 1\nno colon here\n", []string{"a"}, "no colon here\n"},
+		{"empty name", ": novalue\n", nil, ": novalue\n"},
+		{"mbox from line", "From nobody Mon Sep  1 00:00:00 2025\nA: 1\n", nil, "From nobody Mon Sep  1 00:00:00 2025\nA: 1\n"},
+		{"leading continuation", " A: 1\nB: 2\n", nil, " A: 1\nB: 2\n"},
+		{"empty message", "", nil, ""},
+		{"blank first line", "\nA: 1\n", nil, "A: 1\n"},
+		{"repeated", "X: 1\nx: 2\n\n", []string{"x", "x"}, ""},
 	}
-	for _, c := range cases {
-		fields, off := Parse([]byte(c.in))
-		if len(fields) != c.nfields || off != c.bodyOffset {
-			t.Errorf("Parse(%q) = %d fields, offset %d; want %d, %d", c.in, len(fields), off, c.nfields, c.bodyOffset)
-		}
-	}
-}
-
-func TestParseDoesNotAliasFolding(t *testing.T) {
-	buf := []byte("A: one\n two\nB: x\n\n")
-	fields, _ := Parse(buf)
-	if string(buf) != "A: one\n two\nB: x\n\n" {
-		t.Errorf("buffer modified: %q", buf)
-	}
-	if fields[1].Raw != " x" {
-		t.Errorf("B = %q", fields[1].Raw)
-	}
-}
-
-func TestCollapse(t *testing.T) {
-	if got := Collapse("  a \t b   c "); got != "a b c" {
-		t.Errorf("Collapse = %q", got)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			fs, off := Parse([]byte(tc.in))
+			if got := tc.in[off:]; got != tc.wantBody {
+				t.Errorf("body = %q, want %q", got, tc.wantBody)
+			}
+			if len(fs) != len(tc.wantNames) {
+				t.Fatalf("fields = %v, want names %v", fs, tc.wantNames)
+			}
+			for i, f := range fs {
+				if f.Key() != tc.wantNames[i] {
+					t.Errorf("field %d name %q, want %q", i, f.Key(), tc.wantNames[i])
+				}
+			}
+		})
 	}
 }
 
-func TestDisplayValue(t *testing.T) {
-	f := Field{Name: "subject", Raw: " =?utf-8?Q?caf=C3=A9?= "}
-	if got := f.DisplayValue(); got != "café" {
-		t.Errorf("subject = %q", got)
+func TestUnfold(t *testing.T) {
+	fs, _ := Parse([]byte("Subject: a\n  b\n\tc\n\n"))
+	if got, want := fs[0].Value, " a  b\tc"; got != want {
+		t.Errorf("value = %q, want %q", got, want)
 	}
-	f = Field{Name: "content-type", Raw: "  text/plain;   x=1 "}
-	if got := f.DisplayValue(); got != "text/plain; x=1" {
-		t.Errorf("content-type = %q", got)
+}
+
+func TestDisplay(t *testing.T) {
+	fs, _ := Parse([]byte("Subject: =?utf-8?Q?Caf=C3=A9?=   report \nContent-Type:  text/plain;\n  charset=x \n\n"))
+	if got := fs[0].Display(); got != "Café   report" {
+		t.Errorf("subject display = %q", got)
 	}
-	f = Field{Name: "date", Raw: " =?utf-8?Q?x?= "}
-	if got := f.DisplayValue(); got != "=?utf-8?Q?x?=" {
-		t.Errorf("date must not be decoded, got %q", got)
+	if got := fs[1].Display(); got != "text/plain; charset=x" {
+		t.Errorf("content-type display = %q", got)
+	}
+}
+
+func TestGet(t *testing.T) {
+	fs, _ := Parse([]byte("X: 1\nContent-Type : no\nContent-type: a\n\n"))
+	f, ok := fs.Get("x")
+	if !ok || f.Value != " 1" {
+		t.Errorf("Get x = %v %v", f, ok)
+	}
+	if _, ok := fs.Get("content-type"); ok {
+		// "Content-Type : no" is not a field line and ends the block.
+		t.Errorf("content-type should not be found")
 	}
 }

@@ -1,5 +1,5 @@
-bin/
 .dub/
-*.o
+bin/
 *.a
-datalog-test-*
+*.o
+dub.selections.json

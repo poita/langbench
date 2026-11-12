@@ -2,51 +2,63 @@ package value
 
 import (
 	"bytes"
+	"encoding/hex"
 	"testing"
-
-	"example.com/kvstore/kverr"
 )
 
-func obj(fs ...Field) Value { return NewObject(fs) }
+func hexOf(b []byte) string { return hex.EncodeToString(b) }
 
 func TestSerializeWorkedExamples(t *testing.T) {
-	v := obj(
-		Field{"name", NewString("ada")},
-		Field{"age", NewInt(36)},
-		Field{"ok", NewBool(true)},
+	obj := ObjectValue(
+		Field{"name", StringValue("ada")},
+		Field{"age", IntValue(36)},
+		Field{"ok", BoolValue(true)},
 	)
-	want := []byte{
-		0x06, 0, 0, 0, 3,
-		0, 0, 0, 3, 'a', 'g', 'e', 0x03, 0, 0, 0, 0, 0, 0, 0, 0x24,
-		0, 0, 0, 4, 'n', 'a', 'm', 'e', 0x04, 0, 0, 0, 3, 'a', 'd', 'a',
-		0, 0, 0, 2, 'o', 'k', 0x02,
+	tests := []struct {
+		name string
+		v    Value
+		want string
+	}{
+		{"1", IntValue(1), "030000000000000001"},
+		{"-1", IntValue(-1), "03ffffffffffffffff"},
+		{"null", NullValue(), "00"},
+		{"true", BoolValue(true), "02"},
+		{"false", BoolValue(false), "01"},
+		{"empty string", StringValue(""), "0400000000"},
+		{"ada", StringValue("ada"), "040000000361" + "6461"},
+		{"list", ListValue(IntValue(1), StringValue("x"), NullValue()),
+			"0500000003" + "030000000000000001" + "040000000178" + "00"},
+		{"object", obj, "0600000003" +
+			"00000003616765" + "030000000000000024" +
+			"000000046e616d65" + "040000000361" + "6461" +
+			"000000026f6b" + "02"},
 	}
-	if got := Serialize(v); !bytes.Equal(got, want) {
-		t.Fatalf("Serialize = %x, want %x", got, want)
+	for _, tc := range tests {
+		got := Serialize(tc.v)
+		if hexOf(got) != tc.want {
+			t.Errorf("%s: got %s, want %s", tc.name, hexOf(got), tc.want)
+		}
+		if SerializedLen(tc.v) != len(got) {
+			t.Errorf("%s: SerializedLen = %d, want %d", tc.name, SerializedLen(tc.v), len(got))
+		}
+		back, err := Deserialize(got)
+		if err != nil || !Equal(back, tc.v) {
+			t.Errorf("%s: round trip failed: %v", tc.name, err)
+		}
 	}
-	if got := Serialize(NewInt(-1)); !bytes.Equal(got, []byte{3, 255, 255, 255, 255, 255, 255, 255, 255}) {
-		t.Fatalf("ser(-1) = %x", got)
-	}
-	if got := len(Serialize(NewList([]Value{NewInt(1), NewString("x"), NewNull()}))); got != 21 {
-		t.Fatalf("list length %d, want 21", got)
+	if n := len(Serialize(obj)); n != 44 {
+		t.Errorf("object length = %d, want 44", n)
 	}
 }
 
-func TestRoundTrip(t *testing.T) {
-	v := obj(
-		Field{"a", NewList([]Value{NewNull(), NewBool(false), NewInt(-9223372036854775808)})},
-		Field{"b", obj(Field{"c", NewString("é\x00😀")})},
-		Field{"", NewList(nil)},
-	)
-	got, err := Deserialize(Serialize(v))
-	if err != nil {
-		t.Fatal(err)
+func TestObjectFieldOrderIsCanonical(t *testing.T) {
+	a := ObjectValue(Field{"b", IntValue(1)}, Field{"a", IntValue(2)})
+	b := ObjectValue(Field{"a", IntValue(2)}, Field{"b", IntValue(1)})
+	if !bytes.Equal(Serialize(a), Serialize(b)) || !Equal(a, b) {
+		t.Fatal("field order must not matter")
 	}
-	if !Equal(v, got) {
-		t.Fatalf("round trip changed value: %s vs %s", Render(v), Render(got))
-	}
-	if _, err := Deserialize([]byte{0x04, 0, 0, 0, 9, 'x'}); err == nil {
-		t.Fatal("truncated string accepted")
+	if got := Render(a); got != `{"a":2,"b":1}` {
+		t.Fatalf("render = %s", got)
 	}
 }
 
@@ -55,88 +67,161 @@ func TestRender(t *testing.T) {
 		v    Value
 		want string
 	}{
-		{NewInt(-9223372036854775808), "-9223372036854775808"},
-		{NewList([]Value{NewInt(1), NewString("x"), NewNull()}), `[1,"x",null]`},
-		{obj(Field{"name", NewString("ada")}, Field{"age", NewInt(36)}), `{"age":36,"name":"ada"}`},
-		{obj(), "{}"},
-		{NewString("a\"b\\c/\b\t\n\f\r\x00\x1f\x7f é😀"), `"a\"b\\c/\b\t\n\f\r\u0000\u001f\u007f é😀"`},
+		{IntValue(-9223372036854775808), "-9223372036854775808"},
+		{IntValue(0), "0"},
+		{ListValue(), "[]"},
+		{ObjectValue(), "{}"},
+		{StringValue("a\"b\\c/d"), `"a\"b\\c/d"`},
+		{StringValue("\b\t\n\f\r"), `"\b\t\n\f\r"`},
+		{StringValue("\x00\x1f\x7f"), `"\u0000\u001f\u007f"`},
+		{StringValue("é😀"), `"é😀"`},
+		{ListValue(IntValue(1), StringValue("x"), NullValue()), `[1,"x",null]`},
 	}
 	for _, tc := range tests {
 		if got := Render(tc.v); got != tc.want {
-			t.Errorf("Render = %s, want %s", got, tc.want)
+			t.Errorf("got %s, want %s", got, tc.want)
+		}
+	}
+}
+
+func TestVKey(t *testing.T) {
+	tests := []struct {
+		v    Value
+		want string
+	}{
+		{NullValue(), "10"},
+		{BoolValue(false), "20"},
+		{BoolValue(true), "21"},
+		{IntValue(0), "308000000000000000"},
+		{IntValue(36), "308000000000000024"},
+		{IntValue(-1), "307fffffffffffffff"},
+		{IntValue(-9223372036854775808), "300000000000000000"},
+		{IntValue(9223372036854775807), "30ffffffffffffffff"},
+		{StringValue(""), "400000"},
+		{StringValue("ada"), "406164610000"},
+		{StringValue("a\x00b"), "4061" + "00ff" + "620000"},
+	}
+	for _, tc := range tests {
+		got, ok := VKey(tc.v)
+		if !ok || hexOf(got) != tc.want {
+			t.Errorf("vkey(%s) = %s, want %s", Render(tc.v), hexOf(got), tc.want)
+		}
+		if VKeyLen(tc.v) != len(got) {
+			t.Errorf("VKeyLen(%s) = %d, want %d", Render(tc.v), VKeyLen(tc.v), len(got))
+		}
+	}
+	if _, ok := VKey(ListValue()); ok {
+		t.Error("lists have no vkey")
+	}
+	if _, ok := VKey(ObjectValue()); ok {
+		t.Error("objects have no vkey")
+	}
+}
+
+func TestVKeyOrderPreserving(t *testing.T) {
+	ordered := []Value{
+		NullValue(), BoolValue(false), BoolValue(true),
+		IntValue(-9223372036854775808), IntValue(-2), IntValue(-1), IntValue(0), IntValue(7),
+		IntValue(9223372036854775807),
+		StringValue(""), StringValue("\x00"), StringValue("\x00a"), StringValue("a"),
+		StringValue("a\x00"), StringValue("ab"), StringValue("b"),
+	}
+	for i := 0; i+1 < len(ordered); i++ {
+		a, _ := VKey(ordered[i])
+		b, _ := VKey(ordered[i+1])
+		if bytes.Compare(a, b) >= 0 {
+			t.Errorf("vkey(%s) should sort before vkey(%s)", Render(ordered[i]), Render(ordered[i+1]))
 		}
 	}
 }
 
 func TestDepth(t *testing.T) {
-	if d := NewInt(1).Depth(); d != 1 {
-		t.Fatal(d)
+	if d := IntValue(1).Depth(); d != 1 {
+		t.Errorf("scalar depth = %d", d)
 	}
-	if d := NewList(nil).Depth(); d != 1 {
-		t.Fatal(d)
+	if d := ListValue().Depth(); d != 1 {
+		t.Errorf("empty list depth = %d", d)
 	}
-	v := NewList([]Value{obj(Field{"x", NewList([]Value{NewInt(1)})})})
+	v := ListValue(ObjectValue(Field{"x", ListValue(IntValue(1))}))
 	if d := v.Depth(); d != 4 {
-		t.Fatalf("depth %d, want 4", d)
+		t.Errorf("depth = %d, want 4", d)
 	}
 }
 
-func TestEqualAndCompare(t *testing.T) {
-	a := obj(Field{"x", NewInt(1)}, Field{"y", NewInt(2)})
-	b := obj(Field{"y", NewInt(2)}, Field{"x", NewInt(1)})
-	if !Equal(a, b) {
-		t.Error("objects differing in field order must be equal")
+func TestLookup(t *testing.T) {
+	doc := ObjectValue(
+		Field{"a", ObjectValue(Field{"b", IntValue(5)})},
+		Field{"l", ListValue(IntValue(1))},
+	)
+	if v, ok := doc.Lookup([]string{"a", "b"}); !ok || v.I != 5 {
+		t.Errorf("a.b = %v, %v", v, ok)
 	}
-	if Equal(NewInt(1), NewBool(true)) {
-		t.Error("different kinds are never equal")
-	}
-	if c, ok := Compare(NewString("a"), NewString("b")); !ok || c != -1 {
-		t.Error("string compare")
-	}
-	if c, ok := Compare(NewBool(false), NewBool(true)); !ok || c != -1 {
-		t.Error("bool compare")
-	}
-	if _, ok := Compare(NewInt(1), NewString("1")); ok {
-		t.Error("cross-kind compare must be undefined")
-	}
-	if _, ok := Compare(NewList(nil), NewList(nil)); ok {
-		t.Error("lists are unordered")
+	for _, p := range [][]string{{"x"}, {"a", "x"}, {"a", "b", "c"}, {"l", "0"}} {
+		if _, ok := doc.Lookup(p); ok {
+			t.Errorf("path %v should be missing", p)
+		}
 	}
 }
 
-func TestPathOps(t *testing.T) {
-	doc := obj(Field{"a", obj(Field{"b", NewInt(1)})}, Field{"l", NewList([]Value{NewInt(1)})})
-	if v, ok := doc.Lookup(ParsePath("a.b")); !ok || v.Int != 1 {
-		t.Error("lookup a.b")
+func TestSetAndUnset(t *testing.T) {
+	doc := ObjectValue(Field{"a", IntValue(1)})
+	got, err := Set(doc, []string{"x", "y"}, IntValue(2))
+	if err != nil || Render(got) != `{"a":1,"x":{"y":2}}` {
+		t.Fatalf("Set = %s, %v", Render(got), err)
 	}
-	if _, ok := doc.Lookup(ParsePath("l.0")); ok {
-		t.Error("paths never traverse lists")
+	if Render(doc) != `{"a":1}` {
+		t.Fatal("Set must not modify its input")
 	}
+	if _, err := Set(doc, []string{"a", "b"}, NullValue()); err != ErrNotObject {
+		t.Errorf("want ErrNotObject, got %v", err)
+	}
+	if _, err := Set(IntValue(1), []string{"a"}, NullValue()); err != ErrNotObject {
+		t.Errorf("want ErrNotObject, got %v", err)
+	}
+	got, err = Unset(got, []string{"x", "y"})
+	if err != nil || Render(got) != `{"a":1,"x":{}}` {
+		t.Fatalf("Unset = %s, %v", Render(got), err)
+	}
+	if _, err := Unset(got, []string{"zz"}); err != ErrNoField {
+		t.Errorf("want ErrNoField, got %v", err)
+	}
+	if _, err := Unset(got, []string{"a", "b"}); err != ErrNotObject {
+		t.Errorf("want ErrNotObject, got %v", err)
+	}
+}
 
-	got, err := Set(doc, ParsePath("x.y.z"), NewInt(5))
-	if err != nil {
-		t.Fatal(err)
+func TestCompareAndEqual(t *testing.T) {
+	if c, ok := Compare(IntValue(1), IntValue(2)); !ok || c != -1 {
+		t.Error("1 < 2")
 	}
-	if r := Render(got); r != `{"a":{"b":1},"l":[1],"x":{"y":{"z":5}}}` {
-		t.Errorf("auto-vivify: %s", r)
+	if c, ok := Compare(StringValue("b"), StringValue("a")); !ok || c != 1 {
+		t.Error("b > a")
 	}
-	if _, err := Set(doc, ParsePath("l.q"), NewInt(1)); err != kverr.NotObject {
-		t.Errorf("set through list: %v", err)
+	if c, ok := Compare(NullValue(), NullValue()); !ok || c != 0 {
+		t.Error("null == null")
 	}
-	if _, err := Set(NewInt(1), ParsePath("q"), NewInt(1)); err != kverr.NotObject {
-		t.Errorf("set on scalar: %v", err)
+	if _, ok := Compare(IntValue(1), StringValue("1")); ok {
+		t.Error("different kinds are not ordered")
 	}
-	if Render(doc) != `{"a":{"b":1},"l":[1]}` {
-		t.Error("Set modified its input")
+	if _, ok := Compare(ListValue(), ListValue()); ok {
+		t.Error("lists are not ordered")
 	}
+	if !Equal(ListValue(IntValue(1)), ListValue(IntValue(1))) || Equal(ListValue(IntValue(1)), ListValue()) {
+		t.Error("list equality")
+	}
+	if Equal(IntValue(1), BoolValue(true)) {
+		t.Error("1 != true")
+	}
+}
 
-	if got, err := Unset(doc, ParsePath("a.b")); err != nil || Render(got) != `{"a":{},"l":[1]}` {
-		t.Errorf("unset: %v %v", got, err)
+func TestDeserializeRejectsGarbage(t *testing.T) {
+	for _, in := range []string{"", "07", "03000000", "0400000005ab", "050000000200", "00ff"} {
+		b, _ := hex.DecodeString(in)
+		if _, err := Deserialize(b); err == nil {
+			t.Errorf("Deserialize(%q) should fail", in)
+		}
 	}
-	if _, err := Unset(doc, ParsePath("a.c")); err != kverr.NoField {
-		t.Errorf("unset missing: %v", err)
-	}
-	if _, err := Unset(doc, ParsePath("a.b.c")); err != kverr.NotObject {
-		t.Errorf("unset through int: %v", err)
+	if _, err := Deserialize(bytes.Repeat([]byte{tagList, 0, 0, 0, 1}, 2000)); err == nil {
+		t.Error("absurd nesting should fail")
 	}
 }

@@ -1,0 +1,20 @@
+
+CREATE TABLE books (id INTEGER, title TEXT, author INTEGER, year INTEGER, pages INTEGER);
+CREATE TABLE authors (id INTEGER, name TEXT, born INTEGER);
+INSERT INTO authors VALUES (1, 'Orwell', 1903), (2, 'Austen', 1775), (3, 'Tolkien', 1892), (4, 'Anonymous', NULL);
+INSERT INTO books VALUES (1, '1984', 1, 1949, 328), (2, 'Animal Farm', 1, 1945, 112), (3, 'Emma', 2, 1815, 474), (4, 'Persuasion', 2, 1817, 249), (5, 'The Hobbit', 3, 1937, 310), (6, 'Beowulf', 4, NULL, 213), (7, 'Untitled', NULL, 2001, NULL), (8, 'Pride and Prejudice', 2, 1813, 432);
+SELECT a.name, COUNT(*) AS n, SUM(b.pages) AS p FROM books b JOIN authors a ON b.author = a.id GROUP BY a.name ORDER BY p DESC;
+SELECT b.title, a.name, b.year - a.born AS age FROM books b JOIN authors a ON b.author = a.id WHERE b.year - a.born < 40 ORDER BY age, b.title;
+SELECT title FROM books WHERE title LIKE '%e%' AND title NOT LIKE 'P%' ORDER BY pages DESC;
+SELECT author, MIN(year), MAX(year), MAX(year) - MIN(year) FROM books GROUP BY author HAVING COUNT(*) > 1 ORDER BY author DESC;
+SELECT a.name FROM authors a JOIN books b ON a.id = b.author WHERE b.pages > 300 GROUP BY a.name HAVING COUNT(*) >= 2;
+SELECT title, pages FROM books WHERE pages IS NOT NULL ORDER BY pages % 100, title LIMIT 4 OFFSET 2;
+SELECT year / 100 + 1 AS century, COUNT(*), AVG(pages) FROM books WHERE year IS NOT NULL GROUP BY year ORDER BY century, year;
+SELECT COUNT(*), COUNT(year), COUNT(pages), SUM(pages), AVG(pages), MIN(title), MAX(title) FROM books;
+UPDATE books SET year = 1000, pages = pages + 10 WHERE year IS NULL;
+SELECT id, year, pages FROM books WHERE id = 6 OR id = 7;
+DELETE FROM authors WHERE born IS NULL;
+SELECT b.title FROM books b, authors a WHERE b.author = a.id ORDER BY a.born DESC, b.year;
+SELECT b1.title, b2.title FROM books b1 JOIN books b2 ON b1.author = b2.author AND b1.year < b2.year ORDER BY b1.title, b2.title;
+SELECT a.name, b.title FROM authors a, books b WHERE a.born < 1800 AND b.year > 1940 ORDER BY 1, 2;
+SELECT name FROM authors WHERE id NOT LIKE '%' OR name LIKE '%en';

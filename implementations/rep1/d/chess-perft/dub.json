@@ -1,27 +1,31 @@
 {
 	"name": "chess-perft",
-	"description": "Legal chess move generator (bitboards, classical ray attacks) with perft and divide",
+	"description": "Legal chess move generator with perft and divide",
 	"license": "MIT",
 	"copyright": "Copyright © 2026",
-	"authors": ["chess-perft contributors"],
-	"targetPath": ".",
+	"authors": ["Peter Alexander"],
+	"targetType": "executable",
+	"targetName": "chess-perft",
 	"configurations": [
 		{
 			"name": "cli",
 			"targetType": "executable",
-			"targetName": "chess-perft",
+			"mainSourceFile": "app/main.d",
 			"sourcePaths": ["source", "app"],
-			"mainSourceFile": "app/main.d"
+			"importPaths": ["source"]
 		},
 		{
 			"name": "library",
 			"targetType": "library",
-			"sourcePaths": ["source"]
+			"sourcePaths": ["source"],
+			"importPaths": ["source"],
+			"excludedSourceFiles": ["app/*"]
 		},
 		{
 			"name": "unittest",
 			"targetType": "library",
-			"sourcePaths": ["source", "tests"]
+			"sourcePaths": ["source"],
+			"importPaths": ["source"]
 		}
 	]
 }

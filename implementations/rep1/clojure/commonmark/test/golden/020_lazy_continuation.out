@@ -1,0 +1,56 @@
+<blockquote>
+<p>foo
+bar
+baz</p>
+</blockquote>
+<blockquote>
+<ul>
+<li>a
+b</li>
+</ul>
+</blockquote>
+<ul>
+<li>a</li>
+</ul>
+<blockquote>
+<p>b
+c</p>
+</blockquote>
+<blockquote>
+<ol>
+<li>one
+two
+three</li>
+</ol>
+</blockquote>
+<blockquote>
+<p>foo</p>
+</blockquote>
+<hr />
+<blockquote>
+<p>foo
+- bar</p>
+</blockquote>
+<blockquote>
+<pre><code></code></pre>
+</blockquote>
+<p>foo</p>
+<pre><code>
+- foo
+  - bar
+baz
+
+1. a
+
+   b
+c
+
+&gt; &gt; &gt; deep
+lazy
+&gt; also
+
+&gt; - x
+&gt;   y
+&gt; z
+  w
+</code></pre>

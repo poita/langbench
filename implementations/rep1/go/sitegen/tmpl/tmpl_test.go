@@ -1,41 +1,76 @@
 package tmpl
 
 import (
+	"encoding/json"
 	"errors"
 	"strings"
 	"testing"
 )
 
-// testCtx is the root scope used by most tests.
-func testCtx() *Dict {
-	d := NewDict()
-	d.Set("n", 3)
-	d.Set("f", 2.5)
-	d.Set("s", "Hello")
-	d.Set("e", "")
-	d.Set("nn", nil)
-	d.Set("t", true)
-	d.Set("l", List{int64(3), int64(1), int64(2)})
-	d.Set("sl", StringList([]string{"b", "A", "c", "B"}))
-	dd := NewDict()
-	dd.Set("a", 1)
-	dd.Set("b", "x")
-	dd.Set("c", List{int64(1), int64(2)})
-	d.Set("d", dd)
-	d.Set("words", "  padded\t\n")
-	return d
+// decodeOrdered decodes JSON into template values, keeping object key order.
+func decodeOrdered(t *testing.T, dec *json.Decoder) Value {
+	t.Helper()
+	tok, err := dec.Token()
+	if err != nil {
+		t.Fatal(err)
+	}
+	switch v := tok.(type) {
+	case json.Delim:
+		switch v {
+		case '{':
+			d := NewDict(0)
+			for dec.More() {
+				k, _ := dec.Token()
+				d.Set(k.(string), decodeOrdered(t, dec))
+			}
+			dec.Token()
+			return d
+		case '[':
+			l := []Value{}
+			for dec.More() {
+				l = append(l, decodeOrdered(t, dec))
+			}
+			dec.Token()
+			return l
+		}
+	case json.Number:
+		if i, err := v.Int64(); err == nil && !strings.ContainsAny(v.String(), ".eE") {
+			return i
+		}
+		f, _ := v.Float64()
+		return f
+	case nil:
+		return None
+	}
+	return tok
 }
 
-// run renders template "main" (plus extra templates) and returns the output
-// or the error kind as "error: kind".
-func run(t *testing.T, main string, extra map[string]string) string {
+// run executes a case in the layout "JSON context, a line --, then templates
+// introduced by === name lines" and returns the output or "error: <kind>".
+func run(t *testing.T, input string) string {
 	t.Helper()
-	e := New()
-	e.Add("main", main)
-	for k, v := range extra {
-		e.Add(k, v)
+	ctxSrc, rest, ok := strings.Cut(input, "\n--\n")
+	if !ok {
+		t.Fatal("missing -- line")
 	}
-	out, err := e.Render("main", testCtx())
+	dec := json.NewDecoder(strings.NewReader(ctxSrc))
+	dec.UseNumber()
+	ctx := decodeOrdered(t, dec).(*Dict)
+	vars := map[string]Value{}
+	for _, k := range ctx.Keys() {
+		vars[k], _ = ctx.Get(k)
+	}
+	set := NewSet()
+	first := ""
+	parts := strings.Split("\n"+strings.TrimSuffix(rest, "\n"), "\n=== ")
+	for _, p := range parts[1:] {
+		name, body, _ := strings.Cut(p, "\n")
+		if first == "" {
+			first = name
+		}
+		set.Add(name, body)
+	}
+	out, err := set.Render(first, vars)
 	if err != nil {
 		var te *Error
 		if !errors.As(err, &te) {
@@ -46,447 +81,389 @@ func run(t *testing.T, main string, extra map[string]string) string {
 	return out
 }
 
+func TestSpecExamples(t *testing.T) {
+	tests := []struct{ name, in, want string }{
+		{"unclosed for", `{"user": {"name": "Ada", "tags": ["x", "y"]}, "n": 3}
+--
+=== main
+Hi {{ user.name|upper }}!
+{% for t in user.tags -%}
+  {{ loop.index }}. {{ t }}
+{% if n > 2 %}big{% endif %}
+`, "error: syntax"},
+		{"loop and arithmetic", `{"user": {"name": "Ada", "tags": ["x", "y"]}, "n": 3}
+--
+=== main
+Hi {{ user.name|upper }}!
+{% for t in user.tags -%}
+  {{ loop.index }}. {{ t }}
+{% endfor -%}
+{% if n > 2 and user.tags|length == 2 %}big{% elif n %}small{% else %}none{% endif %} {{ 7 / 2 }} {{ 7 // 2 }} {{ [n, "s"] }}
+`, "Hi ADA!\n1. x\n2. y\nbig 3.5 3 [3, 's']"},
+		{"inheritance", `{"title": "T", "items": [3, 1, 2]}
+--
+=== page
+{% extends "base" %}
+{% set count = items|length %}
+{% block body %}{{ super() }}<ul>{% for i in items|sort %}<li>{{ item(i) }}</li>{% endfor %}</ul>{% endblock %}
+=== base
+{% macro item(v) %}#{{ v }}{% endmacro -%}
+<h1>{% block title %}{{ title }}{% endblock %}</h1>
+{% block body %}{{ count }} items{% endblock %}
+{% include "footer" %}
+=== footer
+-- {{ title|lower }} {{ missing|default("end") }}
+`, "<h1>T</h1>\n3 items<ul><li>#1</li><li>#2</li><li>#3</li></ul>\n-- t end"},
+		{"undefined attribute", `{"a": {"b": 1}}
+--
+=== main
+{{ a.b }}{{ a.c.d }}
+`, "error: undefined"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := run(t, tc.in); got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// expr checks the value of a single expression against a context.
 func TestExpressions(t *testing.T) {
 	tests := []struct{ expr, want string }{
-		{"1 + 2", "3"},
-		{"1 + 2.5", "3.5"},
-		{"7 / 2", "3.5"},
-		{"6 / 3", "2.0"},
-		{"7 // 2", "3"},
-		{"-7 // 2", "-4"},
-		{"7.0 // 2", "3.0"},
-		{"-7 % 3", "2"},
-		{"7 % -3", "-2"},
-		{"2 ** 10", "1024"},
-		{"2 ** -1", "0.5"},
-		{"-2 ** 2", "4"},
-		{"2 ** 3 ** 2", "64"},
-		{"1 + 2 * 3 - 4 / 2", "5.0"},
-		{"'a' ~ 1 ~ 2.5", "a12.5"},
-		{"'ab' * 3", "ababab"},
-		{"3 * 'ab'", "ababab"},
-		{"'ab' * -1", ""},
-		{"[1] + [2, 3]", "[1, 2, 3]"},
-		{"true + true", "2"},
-		{"n == 3.0", "True"},
-		{"t == 1", "True"},
-		{"'1' == 1", "False"},
-		{"nn == nn", "True"},
-		{"nn == 0", "False"},
-		{"l == [3, 1, 2]", "True"},
-		{"1 < 2 < 3", "True"},
-		{"3 > 2 > 2", "False"},
-		{"'B' < 'a'", "True"},
-		{"'ab' < 'abc'", "True"},
-		{"3 in l", "True"},
-		{"'a' in d", "True"},
-		{"'z' in d", "False"},
-		{"'ell' in s", "True"},
-		{"'' in s", "True"},
-		{"2 not in l", "False"},
-		{"0 or 'x'", "x"},
-		{"'' and 1", ""},
-		{"1 and 2", "2"},
-		{"not l == l", "False"},
-		{"not e", "True"},
-		{"l[0]", "3"},
-		{"l[-1]", "2"},
-		{"s[0]", "H"},
-		{"s[-1]", "o"},
-		{"d.a", "1"},
-		{"d['b']", "x"},
-		{"d.c[1]", "2"},
-		{"nope|default('dd')", "dd"},
-		{"nope is defined", "False"},
-		{"n is defined", "True"},
-		{"d.zz is not defined", "True"},
-		{"s|upper", "HELLO"},
-		{"s|lower", "hello"},
-		{"words|trim|upper", "PADDED"},
-		{"'<a href=\"x\">&\\'</a>'|escape", "&lt;a href=&#34;x&#34;&gt;&amp;&#39;&lt;/a&gt;"},
-		{"s|replace('l', 'L')", "HeLLo"},
-		{"s|length", "5"},
-		{"d|length", "3"},
-		{"'42'|int", "42"},
-		{"' 12 '|int", "12"},
-		{"'3.7'|int", "3"},
-		{"'abc'|int", "0"},
-		{"'1e3'|int", "1000"},
-		{"'-5.9'|int", "-5"},
-		{"f|int", "2"},
-		{"l|join(', ')", "3, 1, 2"},
-		{"d|join('+')", "a+b+c"},
-		{"s|join('-')", "H-e-l-l-o"},
-		{"l|first", "3"},
-		{"l|last", "2"},
-		{"s|first", "H"},
-		{"d|last", "c"},
-		{"l|reverse|join", "213"},
-		{"s|reverse", "olleH"},
-		{"l|sort|join", "123"},
-		{"sl|sort|join", "AbBc"},
-		{"[2.5, 1, 3]|sort|join(' ')", "1 2.5 3"},
-		{"e|default('x')", ""},
-		{"nope|default", ""},
-		{"nn|default('x')", "None"},
-		{"1.0", "1.0"},
-		{"0.1 + 0.2", "0.30000000000000004"},
-		{"1000000000000000.0 * 10", "1e+16"},
-		{"0.0001 * 1", "0.0001"},
-		{"0.00001 * 1", "1e-05"},
-		{"3 * 0.5", "1.5"},
-		{"-0.0", "-0.0"},
-		{"range(3)|join(',')", "0,1,2"},
-		{"range(2, 5)|join(',')", "2,3,4"},
-		{"range(5, 0, -2)|join(',')", "5,3,1"},
-		{"[1, 'a', true, none, 1.5, \"it's\"]", `[1, 'a', True, None, 1.5, "it's"]`},
-		{"d", "{'a': 1, 'b': 'x', 'c': [1, 2]}"},
-		{"['a\\nb']", `['a\nb']`},
-		{"t", "True"},
-		{"nn", "None"},
-		{"n|int + 1", "4"},
-		{"n * s|length", "15"},
-		{"-n|int", "-3"},
-		{"1 + nope is defined", "1"},
+		// Arithmetic and printing.
+		{`1 + 2`, "3"},
+		{`7 / 2`, "3.5"},
+		{`6 / 3`, "2.0"},
+		{`7 // 2`, "3"},
+		{`-7 // 2`, "-4"},
+		{`7.0 // 2`, "3.0"},
+		{`-7 % 3`, "2"},
+		{`7 % -3`, "-2"},
+		{`2 ** 10`, "1024"},
+		{`2 ** -1`, "0.5"},
+		{`-2 ** 2`, "4"},
+		{`2 ** 3 ** 2`, "64"},
+		{`1 + 2 * 3`, "7"},
+		{`(1 + 2) * 3`, "9"},
+		{`1.5 + 1`, "2.5"},
+		{`0.1 + 0.2`, "0.30000000000000004"},
+		{`1000000000000000.0 * 10`, "1e+16"},
+		{`0.0001`, "0.0001"},
+		{`0.00001`, "1e-05"},
+		{`10.0 ** 300 * 1.5`, "1.5e+300"},
+		{`3.0`, "3.0"},
+		{`true + true`, "2"},
+		{`"ab" * 3`, "ababab"},
+		{`3 * "ab"`, "ababab"},
+		{`"ab" * -1`, ""},
+		{`"a" + "b"`, "ab"},
+		{`[1] + [2, 3]`, "[1, 2, 3]"},
+		{`"x" ~ 1 ~ true ~ none`, "x1TrueNone"},
+		{`1 + 2 ~ 3`, "33"}, // ~ binds tighter than +: 1 + (2 ~ 3) is a type error
+		// Booleans and logic.
+		{`true`, "True"},
+		{`not true`, "False"},
+		{`not 1 == 2`, "True"},
+		{`0 or "x"`, "x"},
+		{`"" and 1`, ""},
+		{`1 and 2`, "2"},
+		{`none or 0 or []`, "[]"},
+		{`1 < 2 < 3`, "True"},
+		{`1 < 3 < 2`, "False"},
+		{`1 == 1.0`, "True"},
+		{`true == 1`, "True"},
+		{`1 == "1"`, "False"},
+		{`none == 0`, "False"},
+		{`[1, 2] == [1, 2.0]`, "True"},
+		{`"abc" < "abd"`, "True"},
+		{`"ab" < "abc"`, "True"},
+		{`"b" in "abc"`, "True"},
+		{`"" in "abc"`, "True"},
+		{`2 in [1, 2]`, "True"},
+		{`"a" in d`, "True"},
+		{`"z" not in d`, "True"},
+		{`1 in range(3)`, "True"},
+		// Access.
+		{`d.a`, "1"},
+		{`d["b"]`, "2"},
+		{`l[0]`, "10"},
+		{`l[-1]`, "30"},
+		{`l[true]`, "20"},
+		{`"héllo"[1]`, "é"},
+		{`"abc"[-1]`, "c"},
+		{`(l[5] is defined)`, "False"},
+		{`(l[0] is defined)`, "True"},
+		{`(l[5] is not defined)`, "True"},
+		{`(d.zzz is defined)`, "False"},
+		{`(l["a"] is defined)`, "False"},
+		{`(l[1.0] is defined)`, "False"},
+		{`(none.x is defined)`, "False"},
+		{`(nosuch is defined)`, "False"},
+		{`nosuch|default("d")`, "d"},
+		{`nosuch|default`, ""},
+		{`1 + (nosuch is defined)`, "1"},
+		// Printing containers.
+		{`[1, "a", true, none, 1.5, "it's", d]`, `[1, 'a', True, None, 1.5, "it's", {'a': 1, 'b': 2}]`},
+		{`["a\"b'c"]`, `['a"b\'c']`},
+		{`["a\nb\tc\\"]`, `['a\nb\tc\\']`},
+		{`[]`, "[]"},
+		// Filters.
+		{`"aBc"|upper`, "ABC"},
+		{`"aBc"|lower`, "abc"},
+		{`"  x y \n"|trim`, "x y"},
+		{`"<a href=\"x\">&'</a>"|escape`, "&lt;a href=&#34;x&#34;&gt;&amp;&#39;&lt;/a&gt;"},
+		{`"a-b-c"|replace("-", "+")`, "a+b+c"},
+		{`"héllo"|length`, "5"},
+		{`l|length`, "3"},
+		{`d|length`, "2"},
+		{`"12"|int + 1`, "13"},
+		{`"  -5 "|int`, "-5"},
+		{`"3.9"|int`, "3"},
+		{`"-3.9"|int`, "-3"},
+		{`"1e3"|int`, "1000"},
+		{`".5"|int`, "0"},
+		{`"abc"|int`, "0"},
+		{`"1.2.3"|int`, "0"},
+		{`3.99|int`, "3"},
+		{`-3.99|int`, "-3"},
+		{`true|int`, "1"},
+		{`none|int`, "0"},
+		{`l|join(", ")`, "10, 20, 30"},
+		{`l|join`, "102030"},
+		{`"abc"|join("-")`, "a-b-c"},
+		{`d|join(",")`, "a,b"},
+		{`l|first`, "10"},
+		{`l|last`, "30"},
+		{`"abc"|first`, "a"},
+		{`([]|first) is defined`, "False"},
+		{`"abc"|reverse`, "cba"},
+		{`l|reverse|join(",")`, "30,20,10"},
+		{`[3, 1.5, 2]|sort|join(",")`, "1.5,2,3"},
+		{`["b", "A", "a", "C"]|sort|join(",")`, "A,a,b,C"},
+		{`[]|sort`, "[]"},
+		{`"b"|default("x")`, "b"},
+		{`"A"|lower|upper|trim`, "A"},
+		{`-d.a|int`, "-1"},
+		{`1 + "3"|int`, "4"},
+		// range
+		{`range(3)|join(",")`, "0,1,2"},
+		{`range(1, 4)|join(",")`, "1,2,3"},
+		{`range(5, 0, -2)|join(",")`, "5,3,1"},
+		{`range(3)|length`, "3"},
+		{`range(3)[1]`, "1"},
+		// Strings.
+		{`'it\'s'`, "it's"},
+		{`"tab\there"`, "tab\there"},
+		{`"%}"`, "%}"},
 	}
 	for _, tc := range tests {
-		got := run(t, "{{ "+tc.expr+" }}", nil)
-		if got != tc.want {
-			t.Errorf("{{ %s }} = %q, want %q", tc.expr, got, tc.want)
-		}
-	}
-}
-
-func TestExpressionErrors(t *testing.T) {
-	tests := []struct{ tpl, want string }{
-		{"{{ nope }}", "undefined"},
-		{"{{ d.zz }}", "undefined"},
-		{"{{ d.zz.y }}", "undefined"},
-		{"{{ nope.x }}", "undefined"},
-		{"{{ nope + 1 }}", "undefined"},
-		{"{{ nope == 1 }}", "undefined"},
-		{"{{ nope|length }}", "undefined"},
-		{"{% if nope %}{% endif %}", "undefined"},
-		{"{{ nope and 1 }}", "undefined"},
-		{"{% for i in nope %}{% endfor %}", "undefined"},
-		{"{{ nope() }}", "undefined"},
-		{"{{ loop }}", "undefined"},
-		{"{{ super() }}", "undefined"},
-		{"{{ 1 + 'a' }}", "type"},
-		{"{{ 'a' - 'b' }}", "type"},
-		{"{{ 1 < 'a' }}", "type"},
-		{"{{ n / 0 }}", "type"},
-		{"{{ n // 0 }}", "type"},
-		{"{{ n % 0 }}", "type"},
-		{"{{ 0 ** -1 }}", "type"},
-		{"{{ -s }}", "type"},
-		{"{{ n() }}", "type"},
-		{"{{ 1 in 'abc' }}", "type"},
-		{"{{ 1 in 5 }}", "type"},
-		{"{{ n|length }}", "type"},
-		{"{{ s|upper(1) }}", "type"},
-		{"{{ nope|default(1, 2) }}", "type"},
-		{"{{ s|replace('a') }}", "type"},
-		{"{{ ['b', 1]|sort }}", "type"},
-		{"{{ n|join }}", "type"},
-		{"{% for c in n %}{% endfor %}", "type"},
-		{"{{ range() }}", "type"},
-		{"{{ range(1, 2, 0) }}", "type"},
-		{"{{ range('a') }}", "type"},
-		{"{{ range(nope) }}", "undefined"},
-		{"{{ s|nofilter }}", "filter"},
-		{"{% if false %}{{ s|nofilter }}{% endif %}", "filter"},
-		{"{{ ( }}", "syntax"},
-		{"{{ 1 + }}", "syntax"},
-		{"{{ n - }}", "syntax"},
-		{"{{ {} }}", "syntax"},
-		{"{{ 'a' if n else 'b' }}", "syntax"},
-		{"{{ 'bad \\q escape' }}", "syntax"},
-		{"{{ 'unterminated }}", "syntax"},
-		{"{{ n is odd }}", "syntax"},
-		{"{{{ 1 }}}", "syntax"},
-		{"{{ 1 }", "syntax"},
-		{"{# open", "syntax"},
-		{"{% if true %}x", "syntax"},
-		{"{% endif %}", "syntax"},
-		{"{% for x in l %}{% endif %}", "syntax"},
-		{"{% foo %}", "syntax"},
-		{"{% %}", "syntax"},
-		{"{% raw %}x{% endraw %}", "syntax"},
-		{"{% for a, b in l %}{% endfor %}", "syntax"},
-		{"{% set a, b = 1, 2 %}", "syntax"},
-		{"{% include 'x' ignore missing %}", "syntax"},
-		{"{% if true %}{% else %}{% else %}{% endif %}", "syntax"},
-		{"{% if true %}{% else %}{% elif true %}{% endif %}", "syntax"},
-		{"{% block a %}{% endblock b %}", "syntax"},
-		{"{% block a %}{% endblock %}{% block a %}{% endblock %}", "syntax"},
-		{"{% if true %}{% extends 'x' %}{% endif %}", "syntax"},
-		{"{% extends 'x' %}{% extends 'x' %}", "syntax"},
-		{"{% macro m(a, a) %}{% endmacro %}", "syntax"},
-		{"{% macro m %}{% endmacro %}", "syntax"},
-		{"{{ f(a=1, 2) }}", "syntax"},
-		{"{{ f(a=1, a=2) }}", "syntax"},
-		{"{{ [1, 2,] }}", "syntax"},
-		{"{% include 'nope' %}", "template"},
-		{"{% extends 'nope' %}", "template"},
-		{"{% include 3 %}", "type"},
-		{"{% include nope %}", "undefined"},
-		{"{% include 'bad' %}", "syntax"},
-	}
-	extra := map[string]string{"bad": "{% if %}"}
-	for _, tc := range tests {
-		got := run(t, tc.tpl, extra)
-		if got != "error: "+tc.want {
-			t.Errorf("%s = %q, want error: %s", tc.tpl, got, tc.want)
-		}
-	}
-}
-
-func TestStatements(t *testing.T) {
-	tests := []struct{ name, tpl, want string }{
-		{"set", "{% set x = 5 %}{{ x }}{% set x = x + 1 %}{{ x }}", "56"},
-		{"for", "{% for i in l %}{{ i }}{% if not loop.last %},{% endif %}{% endfor %}", "3,1,2"},
-		{"loop members", "{% for i in l %}{{ loop.index }}/{{ loop.index0 }}/{{ loop.first }}/{{ loop.last }}/{{ loop.length }};{% endfor %}",
-			"1/0/True/False/3;2/1/False/False/3;3/2/False/True/3;"},
-		{"for else", "{% for i in [] %}x{% else %}empty{% endfor %}", "empty"},
-		{"for else not used", "{% for i in l %}{{ i }}{% else %}no{% endfor %}", "312"},
-		{"nested loops", "{% for i in l %}{% for j in l %}{{ loop.index }}{% endfor %}-{{ loop.index }} {% endfor %}", "123-1 123-2 123-3 "},
-		{"dict iteration", "{% for k in d %}{{ k }}={{ d[k] }};{% endfor %}", "a=1;b=x;c=[1, 2];"},
-		{"string iteration", "{% for c in 'ab' %}[{{ c }}]{% endfor %}", "[a][b]"},
-		{"set in loop is local", "{% set y = 1 %}{% for i in l %}{% set y = i %}{{ y }}{% endfor %}{{ y }}", "3121"},
-		{"if elif else", "{% if n > 5 %}a{% elif n > 2 %}b{% else %}c{% endif %}", "b"},
-		{"truthiness", "{% if l %}a{% endif %}{% if [] %}b{% endif %}{% if 0.0 %}d{% endif %}{% if d %}e{% endif %}", "ae"},
-		{"comment", "a{# hidden #}b{#- x -#}  c", "abc"},
-		{"whitespace control", "a   {{- 1 -}}   b", "a1b"},
-		{"trim block tags", "a\n  {%- if true -%}\n  x\n  {%- endif -%}\n  b", "axb"},
-		{"no automatic trim", "a\n{% if true %}\nx\n{% endif %}\nb", "a\n\nx\n\nb"},
-		{"braces are text", "{ {{ 1 }} } {x} {", "{ 1 } {x} {"},
-		{"string with closer", "{{ '%}' }}{{ \"}}\" }}", "%}}}"},
-		{"closer before operator", "{{ n -}}  !", "3!"},
-		{"range loop", "{% for i in range(3) %}{{ i }}{% endfor %}", "012"},
-	}
-	for _, tc := range tests {
-		if got := run(t, tc.tpl, nil); got != tc.want {
-			t.Errorf("%s: got %q, want %q", tc.name, got, tc.want)
-		}
-	}
-}
-
-func TestMacros(t *testing.T) {
-	tests := []struct{ name, tpl, want string }{
-		{"basic", "{% macro m(a) %}<{{ a }}>{% endmacro %}{{ m(1) }}{{ m(a=2) }}", "<1><2>"},
-		{"defaults", "{% macro m(a, b=2) %}{{ a }}{{ b }}{% endmacro %}{{ m(1) }}{{ m(1, 3) }}{{ m(b=5, a=6) }}", "121365"},
-		{"default sees earlier params", "{% macro m(a, b=a) %}{{ a }}{{ b }}{% endmacro %}{{ m(1) }}", "11"},
-		{"missing arg is undefined", "{% macro m(a) %}{{ a|default('dd') }}{{ a is defined }}{% endmacro %}{{ m() }}", "ddFalse"},
-		{"too many args", "{% macro m(a) %}{% endmacro %}{{ m(1, 2) }}", "error: type"},
-		{"unknown keyword", "{% macro m(a) %}{% endmacro %}{{ m(c=2) }}", "error: type"},
-		{"duplicate binding", "{% macro m(a) %}{% endmacro %}{{ m(1, a=2) }}", "error: type"},
-		{"recursion", "{% macro fact(n) %}{% if n <= 1 %}1{% else %}{{ n * fact(n - 1)|int }}{% endif %}{% endmacro %}{{ fact(10) }}", "3628800"},
-		{"late binding of defining scope", "{% set k = 10 %}{% macro m() %}{{ k }}{% endmacro %}{% set k = 11 %}{{ m() }}", "11"},
-		{"does not see caller locals", "{% macro m() %}{{ y }}{% endmacro %}{% for y in l %}{{ m() }}{% endfor %}", "error: undefined"},
-		{"local set is local", "{% macro m(x) %}{% set q = x * 2 %}{{ q }}{% endmacro %}{{ m(4) }}{{ q }}", "error: undefined"},
-		{"whitespace kept", "{% macro m() %} x {% endmacro %}[{{ m() }}]", "[ x ]"},
-		{"macros call macros", "{% macro a() %}A{{ b() }}{% endmacro %}{% macro b() %}B{% endmacro %}{{ a() }}", "AB"},
-	}
-	for _, tc := range tests {
-		got := run(t, tc.tpl, nil)
-		if strings.HasPrefix(tc.want, "error: ") {
-			if got != tc.want {
-				t.Errorf("%s: got %q, want %q", tc.name, got, tc.want)
+		t.Run(tc.expr, func(t *testing.T) {
+			in := `{"d": {"a": 1, "b": 2}, "l": [10, 20, 30]}` + "\n--\n=== m\n{{ " + tc.expr + " }}"
+			if tc.expr == `1 + 2 ~ 3` {
+				// 2 ~ 3 is "23"; 1 + "23" is a type error.
+				if got := run(t, in); got != "error: type" {
+					t.Errorf("got %q", got)
+				}
+				return
 			}
-			continue
-		}
-		if got != tc.want {
-			t.Errorf("%s: got %q, want %q", tc.name, got, tc.want)
-		}
+			if got := run(t, in); got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
 	}
 }
 
-func TestIncludeAndInheritance(t *testing.T) {
-	base := map[string]string{"base": "[{% block b %}base{% endblock %}]"}
-	tests := []struct {
-		name, tpl string
-		extra     map[string]string
-		want      string
-	}{
-		{"include", "{% include 'inc' %}", map[string]string{"inc": "inc:{{ n }}"}, "inc:3"},
-		{"include sets are private", "{% include 'inc' %}{{ zz }}", map[string]string{"inc": "{% set zz = 1 %}{{ zz }}"}, "error: undefined"},
-		{"include sees includer scope", "{% set loc = 7 %}{% include 'inc' %}", map[string]string{"inc": "{{ loc }}"}, "7"},
-		{"include in loop sees loop var", "{% for i in l %}{% include 'inc' %}{% endfor %}", map[string]string{"inc": "[{{ i }}]"}, "[3][1][2]"},
-		{"nested includes", "{% include 'a' %}", map[string]string{"a": "a{% include 'b' %}", "b": "b"}, "ab"},
-		{"include sees macros of includer", "{% macro m() %}M{% endmacro %}{% include 'inc' %}", map[string]string{"inc": "{{ m() }}"}, "M"},
-		{"computed name", "{% include 'a' ~ 'b' %}", map[string]string{"ab": "AB"}, "AB"},
-		{"override", "{% extends 'base' %}{% block b %}child{% endblock %}", base, "[child]"},
-		{"no override", "{% extends 'base' %}", base, "[base]"},
-		{"super", "{% extends 'base' %}{% block b %}{{ super() }}+child{% endblock %}", base, "[base+child]"},
-		{"super twice", "{% extends 'base' %}{% block b %}{{ super() }}{{ super() }}{% endblock %}", base, "[basebase]"},
-		{"text before extends", "x{% extends 'base' %}y{% block b %}c{% endblock %}z", base, "x[c]"},
-		{"three levels", "{% extends 'mid' %}{% block b %}G{{ super() }}{% endblock %}",
-			map[string]string{"mid": "{% extends 'base' %}{% block b %}M{{ super() }}{% endblock %}", "base": "[{% block b %}B{% endblock %}]"}, "[GMB]"},
-		{"child set visible to parent blocks", "{% extends 'base' %}{% set v = 5 %}{% block b %}{{ v }}{% endblock %}", base, "[5]"},
-		{"child macro visible in block", "{% extends 'base' %}{% macro m() %}M{% endmacro %}{% block b %}{{ m() }}{% endblock %}", base, "[M]"},
-		{"parent macro visible in child block", "{% extends 'base' %}{% block b %}{{ bm() }}{% endblock %}",
-			map[string]string{"base": "{% macro bm() %}BM{% endmacro %}[{% block b %}base{% endblock %}]"}, "[BM]"},
-		{"set via macro after extends", "{% extends 'base' %}{% macro m() %}hi{% endmacro %}{% set v = m() %}{% block b %}{{ v }}{% endblock %}", base, "[hi]"},
-		{"block never sees loop var", "{% extends 'base' %}{% block b %}{{ i }}{% endblock %}",
-			map[string]string{"base": "{% for i in l %}{% block b %}x{% endblock %}{% endfor %}"}, "error: undefined"},
-		{"nested blocks", "{% extends 'base' %}{% block inner %}J{% endblock %}",
-			map[string]string{"base": "<{% block b %}b[{% block inner %}i{% endblock %}]{% endblock %}>"}, "<b[J]>"},
-		{"block without extends", "{% block a %}A{% block b %}B{% endblock %}{% endblock %}", nil, "AB"},
-		{"super without parent", "{% block a %}{{ super() }}{% endblock %}", nil, "error: undefined"},
-		{"super with args", "{% extends 'base' %}{% block b %}{{ super(1) }}{% endblock %}", base, "error: type"},
-		{"unused child block", "{% extends 'base' %}{% block other %}c{% endblock %}", base, "[base]"},
-		{"broken parent", "{% extends 'bad' %}", map[string]string{"bad": "{{ ( }}"}, "error: syntax"},
-		{"unused broken template", "ok", map[string]string{"bad": "{{ ( }}"}, "ok"},
-		{"parent filter error", "{% extends 'bad' %}", map[string]string{"bad": "{{ 1|nofilter }}"}, "error: filter"},
+func TestErrors(t *testing.T) {
+	tests := []struct{ name, tmpl, want string }{
+		{"undefined print", `{{ x }}`, "undefined"},
+		{"undefined truthiness", `{% if x %}{% endif %}`, "undefined"},
+		{"undefined operator", `{{ x + 1 }}`, "undefined"},
+		{"undefined eq", `{{ x == 1 }}`, "undefined"},
+		{"undefined in", `{{ 1 in x }}`, "undefined"},
+		{"undefined iteration", `{% for i in x %}{% endfor %}`, "undefined"},
+		{"undefined call", `{{ x() }}`, "undefined"},
+		{"undefined filter input", `{{ x|upper(1) }}`, "undefined"},
+		{"undefined default arity", `{{ x|default(1, 2) }}`, "type"},
+		{"undefined set then print", `{% set y = x %}{{ y }}`, "undefined"},
+		{"undefined attr of undefined", `{{ d.q.r }}`, "undefined"},
+		{"loop outside", `{{ loop.index }}`, "undefined"},
+		{"super outside", `{{ super() }}`, "undefined"},
+		{"unknown filter", `{{ 1|nope }}`, "filter"},
+		{"unknown filter in macro", `{% macro m() %}{{ 1|nope }}{% endmacro %}`, "filter"},
+		{"syntax before filter", `{{ 1|nope }}{{ }}`, "syntax"},
+		{"missing include", `{% include "zzz" %}`, "template"},
+		{"missing extends", `{% extends "zzz" %}`, "template"},
+		{"include non-string", `{% include 1 %}`, "type"},
+		{"include undefined", `{% include nope %}`, "undefined"},
+		{"type add", `{{ 1 + "a" }}`, "type"},
+		{"type sub", `{{ "a" - 1 }}`, "type"},
+		{"type lt", `{{ 1 < "a" }}`, "type"},
+		{"type neg", `{{ -"a" }}`, "type"},
+		{"div zero", `{{ 1 / 0 }}`, "type"},
+		{"floor div zero", `{{ 1 // 0 }}`, "type"},
+		{"mod zero", `{{ 1 % 0 }}`, "type"},
+		{"zero neg pow", `{{ 0 ** -1 }}`, "type"},
+		{"in string with int", `{{ 1 in "abc" }}`, "type"},
+		{"in int", `{{ 1 in 5 }}`, "type"},
+		{"for over int", `{% for i in 5 %}{% endfor %}`, "type"},
+		{"call int", `{{ 5() }}`, "type"},
+		{"filter arity", `{{ "a"|upper(1) }}`, "type"},
+		{"replace arity", `{{ "a"|replace("a") }}`, "type"},
+		{"length of int", `{{ 5|length }}`, "type"},
+		{"sort mixed", `{{ [1, "a"]|sort }}`, "type"},
+		{"range zero step", `{{ range(1, 2, 0) }}`, "type"},
+		{"range string", `{{ range("a") }}`, "type"},
+		{"range kw", `{{ range(1, stop=2) }}`, "type"},
+		{"range none", `{{ range() }}`, "type"},
+		{"macro too many", `{% macro m(a) %}{% endmacro %}{{ m(1, 2) }}`, "type"},
+		{"macro unknown kw", `{% macro m(a) %}{% endmacro %}{{ m(b=1) }}`, "type"},
+		{"macro dup kw", `{% macro m(a) %}{% endmacro %}{{ m(1, a=1) }}`, "type"},
+		{"macro unbound param used", `{% macro m(a) %}{{ a }}{% endmacro %}{{ m() }}`, "undefined"},
+		{"super args", `{% block b %}{{ super(1) }}{% endblock %}`, "type"},
+		{"super no parent", `{% block b %}{{ super() }}{% endblock %}`, "undefined"},
+		{"arg error beats callee", `{{ nope(1 + "a") }}`, "type"},
+		{"unclosed var", `{{ 1`, "syntax"},
+		{"unclosed stmt", `{% if 1 `, "syntax"},
+		{"unclosed comment", `{# x`, "syntax"},
+		{"triple brace", `{{{ 1 }}}`, "syntax"},
+		{"bad escape", `{{ "\q" }}`, "syntax"},
+		{"unterminated string", `{{ "abc }}`, "syntax"},
+		{"unknown statement", `{% raw %}`, "syntax"},
+		{"empty statement", `{% %}`, "syntax"},
+		{"empty print", `{{ }}`, "syntax"},
+		{"dangling operator", `{{ 1 - }}`, "syntax"},
+		{"extra tokens", `{% if 1 2 %}{% endif %}`, "syntax"},
+		{"stray endif", `{% endif %}`, "syntax"},
+		{"else after else", `{% if 1 %}{% else %}{% else %}{% endif %}`, "syntax"},
+		{"elif after else", `{% if 1 %}{% else %}{% elif 1 %}{% endif %}`, "syntax"},
+		{"for tuple", `{% for a, b in x %}{% endfor %}`, "syntax"},
+		{"for filter", `{% for a in x if a %}{% endfor %}`, "syntax"},
+		{"set tuple", `{% set a, b = 1 %}`, "syntax"},
+		{"include ignore missing", `{% include "x" ignore missing %}`, "syntax"},
+		{"block scoped", `{% block x scoped %}{% endblock %}`, "syntax"},
+		{"endblock wrong name", `{% block x %}{% endblock y %}`, "syntax"},
+		{"duplicate block", `{% block x %}{% endblock %}{% block x %}{% endblock %}`, "syntax"},
+		{"extends in if", `{% if 1 %}{% extends "m" %}{% endif %}`, "syntax"},
+		{"extends twice", `{% extends "a" %}{% extends "b" %}`, "syntax"},
+		{"conditional expression", `{{ 1 if 2 else 3 }}`, "syntax"},
+		{"unknown test", `{{ 1 is even }}`, "syntax"},
+		{"keyword name", `{% set and = 1 %}`, "syntax"},
+		{"positional after keyword", `{{ f(a=1, 2) }}`, "syntax"},
+		{"repeated keyword", `{{ f(a=1, a=2) }}`, "syntax"},
+		{"trailing comma in call", `{{ f(1,) }}`, "syntax"},
+		{"dict literal", `{{ {"a": 1} }}`, "syntax"},
+		{"space before closer minus", `{{ x - }}`, "syntax"},
+		{"duplicate macro param", `{% macro m(a, a) %}{% endmacro %}`, "syntax"},
 	}
 	for _, tc := range tests {
-		if got := run(t, tc.tpl, tc.extra); got != tc.want {
-			t.Errorf("%s: got %q, want %q", tc.name, got, tc.want)
+		t.Run(tc.name, func(t *testing.T) {
+			in := `{"d": {"a": 1}}` + "\n--\n=== main\n" + tc.tmpl
+			if got, want := run(t, in), "error: "+tc.want; got != want {
+				t.Errorf("got %q, want %q", got, want)
+			}
+		})
+	}
+}
+
+func TestRendering(t *testing.T) {
+	tests := []struct{ name, in, want string }{
+		{"whitespace control", "{}\n--\n=== m\na  {%- if 1 -%}  b  {%- endif -%}  c\n  {{- 'd' }}  {{ 'e' -}}  \n f {#- note -#}  g", "ab" + "c" + "d  e" + "f" + "g"},
+		{"no automatic trimming", "{}\n--\n=== m\n  {% if 1 %}\nx\n  {% endif %}\n", "  \nx\n  "},
+		{"minus before closer is operator when spaced", "{\"x\": 5}\n--\n=== m\n{{ x - 1 }}{{ x -1 }}{{ x-1 }}", "444"},
+		{"comment", "{}\n--\n=== m\na{# {{ x }} {% bad #}b", "ab"},
+		{"closer in string", "{}\n--\n=== m\n{{ \"%}}\" }}{% set a = '}}' %}{{ a }}", "%}}}}"},
+		{"lone braces", "{}\n--\n=== m\n{ } {x} {%", "error: syntax"},
+		{"trailing brace text", "{}\n--\n=== m\n{ } {x} }}", "{ } {x} }}"},
+		{"for else keeps no loop", "{\"e\": []}\n--\n=== m\n{% for x in e %}a{% else %}empty{{ loop is defined }}{% endfor %}", "emptyFalse"},
+		{"for else", "{\"e\": []}\n--\n=== m\n{% for x in e %}a{% else %}empty{% endfor %}", "empty"},
+		{"loop vars", "{\"l\": [1,2,3]}\n--\n=== m\n{% for x in l %}{{ loop.index }}{{ loop.index0 }}{{ loop.first }}{{ loop.last }}{{ loop.length }} {% endfor %}", "10TrueFalse3 21FalseFalse3 32FalseTrue3 "},
+		{"nested loop", "{}\n--\n=== m\n{% for i in range(2) %}{% for j in range(2) %}{{ loop.index }}{% endfor %}{{ loop.index }}{% endfor %}", "12112" + "2"},
+		{"loop over string and dict", "{\"d\": {\"k\": 1, \"j\": 2}}\n--\n=== m\n{% for c in 'ab' %}{{ c }}{% endfor %}{% for k in d %}{{ k }}{% endfor %}", "abkj"},
+		{"set in loop is local", "{}\n--\n=== m\n{% set a = 1 %}{% for i in range(2) %}{% set a = 2 %}{{ a }}{% endfor %}{{ a }}", "221"},
+		{"if scope shared", "{}\n--\n=== m\n{% if 1 %}{% set a = 5 %}{% endif %}{{ a }}", "5"},
+		{"macro", "{}\n--\n=== m\n{% macro m(a, b=a ~ '!') %}[{{ a }}{{ b }}]{% endmacro %}{{ m(1) }}{{ m(1, 2) }}{{ m(b=3, a=4) }}", "[11!][12][43]"},
+		{"macro default sees later positional", "{}\n--\n=== m\n{% macro m(a=b, b=2) %}{{ a }}{{ b }}{% endmacro %}{{ m(b=5) }}", "55"},
+		{"macro unbound is undefined", "{}\n--\n=== m\n{% macro m(a) %}{{ a is defined }}{% endmacro %}{{ m() }}", "False"},
+		{"macro recursion", "{}\n--\n=== m\n{% macro f(n) %}{% if n < 2 %}1{% else %}{{ n * f(n - 1)|int }}{% endif %}{% endmacro %}{{ f(10) }}", "3628800"},
+		{"macro does not see caller locals", "{}\n--\n=== m\n{% macro f() %}{{ x is defined }}{% endmacro %}{% for x in [1] %}{{ f() }}{% endfor %}", "False"},
+		{"macro sees later set in definition scope", "{}\n--\n=== m\n{% macro f() %}{{ y }}{% endmacro %}{% set y = 3 %}{{ f() }}", "3"},
+		{"macro output is string", "{}\n--\n=== m\n{% macro f() %}12{% endmacro %}{{ f() + 1 }}", "error: type"},
+		{"include sees scope", "{\"x\": 1}\n--\n=== m\n{% set a = 2 %}{% for i in [3] %}{% include 'i' %}{% endfor %}{{ b is defined }}\n=== i\n{{ x }}{{ a }}{{ i }}{% set b = 1 %}", "123False"},
+		{"include dynamic name", "{\"n\": \"i\"}\n--\n=== m\n{% include n ~ '' %}\n=== i\nI", "I"},
+		{"extends basics", "{}\n--\n=== c\nbefore{% extends 'p' %}ignored{{ nope }}{% block b %}[C]{% endblock %}\n=== p\n<{% block b %}P{% endblock %}>", "before<[C]>"},
+		{"extends skips text but runs set", "{}\n--\n=== c\n{% extends 'p' %}{% set v = 'V' %}{% macro m() %}M{% endmacro %}{% set w = m() %}{% block b %}{{ v }}{{ w }}{% endblock %}\n=== p\n{% block b %}{% endblock %}", "VM"},
+		{"three level super", "{}\n--\n=== g\n{% extends 'c' %}{% block b %}G({{ super() }}){% endblock %}\n=== c\n{% extends 'p' %}{% block b %}C({{ super() }}){% endblock %}\n=== p\n{% block b %}P{% endblock %}", "G(C(P))"},
+		{"block not in parent", "{}\n--\n=== c\n{% extends 'p' %}{% block zz %}Z{% endblock %}\n=== p\nP", "P"},
+		{"nested blocks", "{}\n--\n=== c\n{% extends 'p' %}{% block inner %}I{% endblock %}\n=== p\n{% block outer %}[{% block inner %}i{% endblock %}]{% endblock %}", "[I]"},
+		{"block does not see loop var", "{}\n--\n=== m\n{% for x in [1] %}{% block b %}{{ x is defined }}{% endblock %}{% endfor %}", "False"},
+		{"parent macro visible in child block", "{}\n--\n=== c\n{% extends 'p' %}{% block b %}{{ m() }}{% endblock %}\n=== p\n{% macro m() %}M{% endmacro %}{% block b %}{% endblock %}", "M"},
+		{"endblock name", "{}\n--\n=== m\n{% block x %}a{% endblock x %}", "a"},
+		{"sort stable by lowered key", "{}\n--\n=== m\n{{ ['b', 'B', 'a', 'A']|sort|join('') }}", "aAbB"},
+		{"dict iteration order", "{\"d\": {\"z\": 1, \"a\": 2}}\n--\n=== m\n{{ d }}{% for k in d %}{{ k }}{% endfor %}", "{'z': 1, 'a': 2}za"},
+		{"json float and int", "{\"a\": 2.0, \"b\": 2, \"c\": 1e2}\n--\n=== m\n{{ a }} {{ b }} {{ c }}", "2.0 2 100.0"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := run(t, tc.in); got != tc.want {
+				t.Errorf("got %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
+
+func TestSetCachesAndReplaces(t *testing.T) {
+	s := NewSet()
+	s.Add("a", "{{ x }}")
+	for i := 0; i < 2; i++ {
+		got, err := s.Render("a", map[string]Value{"x": int64(i)})
+		if err != nil || got != string(rune('0'+i)) {
+			t.Fatalf("render %d = %q, %v", i, got, err)
 		}
 	}
-}
-
-// The worked examples of the specification.
-func TestSpecExamples(t *testing.T) {
-	ctx := NewDict()
-	user := NewDict()
-	user.Set("name", "Ada")
-	user.Set("tags", StringList([]string{"x", "y"}))
-	ctx.Set("user", user)
-	ctx.Set("n", 3)
-
-	e := New()
-	e.Add("main", "Hi {{ user.name|upper }}!\n{% for t in user.tags -%}\n  {{ loop.index }}. {{ t }}\n{% if n > 2 %}big{% endif %}")
-	if _, err := e.Render("main", ctx); err == nil || err.(*Error).Kind != SyntaxError {
-		t.Errorf("unclosed for: err = %v", err)
+	s.Add("a", "[{{ x }}]")
+	if got, _ := s.Render("a", map[string]Value{"x": "y"}); got != "[y]" {
+		t.Errorf("after replace got %q", got)
 	}
-
-	e = New()
-	e.Add("main", "Hi {{ user.name|upper }}!\n{% for t in user.tags -%}\n  {{ loop.index }}. {{ t }}\n{% endfor -%}\n{% if n > 2 and user.tags|length == 2 %}big{% elif n %}small{% else %}none{% endif %} {{ 7 / 2 }} {{ 7 // 2 }} {{ [n, \"s\"] }}")
-	out, err := e.Render("main", ctx)
-	if err != nil || out != "Hi ADA!\n1. x\n2. y\nbig 3.5 3 [3, 's']" {
-		t.Errorf("example 2: %q, %v", out, err)
-	}
-
-	ctx = NewDict()
-	ctx.Set("title", "T")
-	ctx.Set("items", List{int64(3), int64(1), int64(2)})
-	e = New()
-	e.Add("page", "{% extends \"base\" %}\n{% set count = items|length %}\n{% block body %}{{ super() }}<ul>{% for i in items|sort %}<li>{{ item(i) }}</li>{% endfor %}</ul>{% endblock %}")
-	e.Add("base", "{% macro item(v) %}#{{ v }}{% endmacro -%}\n<h1>{% block title %}{{ title }}{% endblock %}</h1>\n{% block body %}{{ count }} items{% endblock %}\n{% include \"footer\" %}")
-	e.Add("footer", "-- {{ title|lower }} {{ missing|default(\"end\") }}")
-	out, err = e.Render("page", ctx)
-	want := "<h1>T</h1>\n3 items<ul><li>#1</li><li>#2</li><li>#3</li></ul>\n-- t end"
-	if err != nil || out != want {
-		t.Errorf("example 3: %q, %v", out, err)
-	}
-
-	ctx = NewDict()
-	a := NewDict()
-	a.Set("b", 1)
-	ctx.Set("a", a)
-	e = New()
-	e.Add("main", "{{ a.b }}{{ a.c.d }}")
-	_, err = e.Render("main", ctx)
-	if err == nil || err.(*Error).Kind != UndefinedError {
-		t.Errorf("example 4: err = %v", err)
+	_, err := s.Render("missing", nil)
+	var te *Error
+	if !errors.As(err, &te) || te.Kind != KindTemplate {
+		t.Errorf("missing template error = %v", err)
 	}
 }
 
-func TestFormatFloat(t *testing.T) {
-	tests := map[float64]string{
-		0: "0.0", 3: "3.0", 0.5: "0.5", 1000000000000000: "1000000000000000.0", 0.0001: "0.0001",
-		1e16: "1e+16", 1e-5: "1e-05", 1.5e300: "1.5e+300",
-		-2.5: "-2.5", 123456.789: "123456.789", 1e15 + 0.5: "1000000000000000.5", 5e-324: "5e-324",
-		12345678901234567890: "1.2345678901234567e+19",
+func TestUnusedTemplateNotChecked(t *testing.T) {
+	s := NewSet()
+	s.Add("main", "ok")
+	s.Add("broken", "{% if %}")
+	if got, err := s.Render("main", nil); err != nil || got != "ok" {
+		t.Errorf("got %q, %v", got, err)
 	}
-	a, b := 0.1, 0.2
-	tests[a+b] = "0.30000000000000004"
-	for f, want := range tests {
-		if got := formatFloat(f); got != want {
-			t.Errorf("formatFloat(%v) = %q, want %q", f, got, want)
+}
+
+func TestLargeLoop(t *testing.T) {
+	s := NewSet()
+	s.Add("n", "{% for i in range(100000) %}{{ i }},{% endfor %}")
+	if _, err := s.Render("n", nil); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func BenchmarkRenderLoop(b *testing.B) {
+	s := NewSet()
+	s.Add("m", "{% for i in items %}<li>{{ i.name|upper }} {{ i.n * 2 }}</li>\n{% endfor %}")
+	items := make([]Value, 20000)
+	for i := range items {
+		d := NewDict(2)
+		d.Set("name", "item")
+		d.Set("n", int64(i))
+		items[i] = d
+	}
+	vars := map[string]Value{"items": items}
+	for b.Loop() {
+		if _, err := s.Render("m", vars); err != nil {
+			b.Fatal(err)
 		}
-	}
-}
-
-func TestDict(t *testing.T) {
-	d := NewDict()
-	for i := 0; i < 20; i++ {
-		d.Set(string(rune('a'+i)), i)
-	}
-	d.Set("c", "replaced")
-	if d.Len() != 20 {
-		t.Errorf("Len = %d", d.Len())
-	}
-	if v, ok := d.Get("c"); !ok || v != "replaced" {
-		t.Errorf("Get(c) = %v, %v", v, ok)
-	}
-	if v, ok := d.Get("t"); !ok || v != int64(19) {
-		t.Errorf("Get(t) = %v (%T), %v", v, v, ok)
-	}
-	if _, ok := d.Get("zz"); ok {
-		t.Error("Get(zz) should miss")
-	}
-	if keys := d.Keys(); keys[0] != "a" || keys[19] != "t" {
-		t.Errorf("keys not in insertion order: %v", keys)
-	}
-}
-
-func TestEngineCachingAndReplace(t *testing.T) {
-	e := New()
-	e.Add("main", "v1")
-	if out, _ := e.Render("main", nil); out != "v1" {
-		t.Errorf("got %q", out)
-	}
-	e.Add("main", "v2")
-	if out, _ := e.Render("main", nil); out != "v2" {
-		t.Errorf("after replace got %q", out)
-	}
-	if !e.Has("main") || e.Has("other") {
-		t.Error("Has")
-	}
-	if _, err := e.Render("other", nil); err == nil {
-		t.Error("expected a template error")
-	}
-	// Errors do not leave partial output.
-	e.Add("part", "before {{ nope }}")
-	if out, err := e.Render("part", nil); out != "" || err == nil {
-		t.Errorf("partial render: %q, %v", out, err)
-	}
-}
-
-func TestErrorFormatting(t *testing.T) {
-	e := New()
-	e.Add("main", "{{ nope }}")
-	_, err := e.Render("main", nil)
-	if err == nil || !strings.Contains(err.Error(), "undefined") {
-		t.Errorf("error = %v", err)
-	}
-	for k, name := range map[ErrorKind]string{SyntaxError: "syntax", FilterError: "filter", UndefinedError: "undefined", TemplateError: "template", TypeError: "type"} {
-		if k.String() != name {
-			t.Errorf("%d.String() = %q", k, k.String())
-		}
-	}
-}
-
-func TestNormalize(t *testing.T) {
-	if Normalize(5) != int64(5) || Normalize(float32(1.5)) != float64(1.5) {
-		t.Error("numbers not normalised")
-	}
-	if l, ok := Normalize([]string{"a"}).(List); !ok || l[0] != "a" {
-		t.Error("[]string not converted")
-	}
-	if !IsUndefined(Undefined) || IsUndefined(nil) {
-		t.Error("IsUndefined")
-	}
-}
-
-func TestLargeLoops(t *testing.T) {
-	e := New()
-	e.Add("main", "{% macro sq(x) %}{{ x * x }}{% endmacro %}{% for i in range(20000) %}{{ sq(i)|int % 10 }}{% endfor %}")
-	out, err := e.Render("main", nil)
-	if err != nil || len(out) != 20000 {
-		t.Errorf("len = %d, err = %v", len(out), err)
 	}
 }

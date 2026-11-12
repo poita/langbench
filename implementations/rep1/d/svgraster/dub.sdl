@@ -1,29 +1,19 @@
 name "svgraster"
-description "A small SVG 1.1 subset rasteriser that renders to binary PPM images"
+description "A small, dependency-free rasteriser for a subset of SVG 1.1 that writes binary PPM images."
 authors "svgraster authors"
-copyright "Copyright (c) svgraster authors"
+copyright "Copyright © svgraster authors"
 license "MIT"
 
-targetPath "bin"
-sourcePaths "source"
-importPaths "source"
-
+# `dub build` produces the command-line tool; projects that depend on
+# "svgraster" automatically get the `library` configuration.
 configuration "cli" {
     targetType "executable"
     targetName "svgraster"
-    sourcePaths "source" "cli"
-    mainSourceFile "cli/main.d"
+    mainSourceFile "source/app.d"
 }
 
 configuration "library" {
     targetType "library"
     targetName "svgraster"
-}
-
-configuration "unittest" {
-    targetType "executable"
-    targetName "svgraster-test"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
-    mainSourceFile "tests/runner.d"
+    excludedSourceFiles "source/app.d"
 }

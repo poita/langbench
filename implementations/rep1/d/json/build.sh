@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the canonjson command-line tool (bin/canonjson).
+# Build the jsoncanon CLI (release mode, LDC). Works from any directory.
 set -e
 cd "$(dirname "$0")"
-exec dub build -b release --compiler=ldc2 --config=cli --quiet
+dub build -b release --compiler=ldc2 --quiet

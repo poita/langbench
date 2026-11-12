@@ -1,24 +1,34 @@
-# typeset
+# typeset — the Codexa typesetting engine
 
-`typeset` is a typesetting engine for *Codexa*, a small invented markup
-language. It reads a document and an optional settings file and lays the text
-out on numbered pages using total-fit line breaking, Liang hyphenation,
-footnotes, floating figures, tables, a generated table of contents and
-running headers and footers. The output is an exact, integer-only description
-of every placed item (no floating point is used anywhere, so output is
-byte-for-byte reproducible).
+`typeset` reads a *Codexa* document (a small invented markup language) and an
+optional settings file, lays the document out on numbered pages, and writes an
+exact, integer-only description of every placed text run, rule and box.
 
-It is a Go library plus a thin command-line tool, using only the standard
-library.
+It implements:
 
-## Build
+- total-fit (Knuth–Plass) line breaking with two passes and exact 128-bit
+  badness arithmetic;
+- Liang hyphenation with pattern sets, exceptions and explicit `\-` points;
+- justified, left, right and centred lines with floor-division glue
+  distribution;
+- headings, nested lists, block quotes, `@block` overrides, preformatted text
+  and tables with automatic column widths;
+- footnotes that may split across pages, floating figures with captions, widow,
+  orphan and keep-with-next control;
+- a generated table of contents with leaders, roman-numbered front pages and
+  running headers and footers with placeholders.
 
-Requires Go 1.27 or later.
+Everything is integer arithmetic (lengths are millipoints), so output is
+byte-for-byte reproducible. Only the Go standard library is used.
 
-```sh
-./build.sh          # builds bin/typeset
-go test ./...       # unit tests
+## Building
+
 ```
+./build.sh          # builds bin/typeset with `go build`
+go test ./...       # runs the unit and golden tests
+```
+
+Go 1.27 or later is required.
 
 ## Command line
 
@@ -26,45 +36,56 @@ go test ./...       # unit tests
 typeset <input directory> <output directory>
 ```
 
-* The input directory holds `document.cdx` (required) and `settings.cfg`
-  (optional).
-* Font metrics (`data/faces/*.cfm`) and hyphenation patterns
-  (`data/hyphen/*.chp`) are read from a `data` directory **relative to the
-  current working directory**.
-* On success `layout.txt` (every placed text run, rule and box, page by page)
-  and `report.txt` (counters such as lines, pages and total demerits) are
-  written to the output directory.
-* An invalid document or settings file produces a single `error.txt` with one
-  line, `<file>:<line>:<col>: <code>`, and no other output. The exit status
-  is still 0; it is non-zero only for usage errors or unreadable data files.
+The input directory holds `document.cdx` and, optionally, `settings.cfg`. The
+output directory receives:
 
-`run.sh` wraps the binary and can be called from any directory:
+- `layout.txt` and `report.txt` for a valid document, or
+- `error.txt` (one line, `<file>:<line>:<col>: <code>`) for an invalid one.
 
-```sh
-./run.sh path/to/input path/to/output
+The exit status is 0 in both cases; a nonzero status means an I/O failure.
+Font metrics and hyphenation patterns are read from `data/faces/*.cfm` and
+`data/hyphen/*.chp` **relative to the current working directory**; a copy of
+the data files is in this repository's `data/` directory, so run the tool from
+the project root (`./run.sh` simply executes `bin/typeset`):
+
+```
+./build.sh
+mkdir -p /tmp/out
+./run.sh testdata/001_ex_05_one_line/input /tmp/out
+cat /tmp/out/layout.txt
 ```
 
-## Library layout
+```
+layout 1
+pages 1
+page 1 1 200000 120000 20000 20000 160000 80000
+  text body serif 10000 38000 27310 15630 "The"
+  ...
+```
+
+Each `text` line is `text <region> <face> <size> <x> <y> <width> "<string>"`;
+see the specification for the complete `layout.txt` and `report.txt` formats.
+
+## Library
+
+The engine is a set of small packages with one responsibility each:
 
 | package | responsibility |
 |---|---|
-| `typeset` | façade: `LoadResources`, `Typeset(Input, *Resources) *Result` |
-| `units` | floor division, `Scale`, length/integer literals, roman and alphabetic numerals |
-| `diag` | the located input error type (`file:line:col: code`) |
-| `metrics` | `.cfm` font metric files: advances, kerns, glue and vertical metrics |
-| `hyphen` | `.chp` pattern files and Liang's algorithm with exceptions |
-| `settings` | `settings.cfg` parser, defaults, ranges and derived geometry |
-| `markup` | Codexa parser: block tree with inline text resolved into styled units |
-| `layout` | horizontal lists, line breaking, line setting, vertical lists, tables, footnotes, floats, page breaking, TOC, headers |
-| `render` | formats `layout.txt` and `report.txt` |
+| `typeset` | top-level entry point: files in, output files out |
+| `dim` | floor division, `scale`, length and integer literals |
+| `diag` | the located input error type and its codes |
+| `metric` | font metric (`.cfm`) loading, face resolution, text measurement |
+| `hyphen` | Liang pattern (`.chp`) loading and hyphenation points |
+| `settings` | `settings.cfg` parsing, defaults, ranges, error positions |
+| `codexa` | the markup parser; produces a block tree with resolved inline text |
+| `hlist` | horizontal lists (boxes, glue, penalties) and line setting |
+| `linebreak` | the total-fit line breaker |
+| `layout` | vertical lists, tables, footnotes, figures, pagination, TOC, headers |
+| `render` | `layout.txt`, `report.txt` and `error.txt` formatting |
+| `numeral` | roman and alphabetic numerals |
 
-The pipeline is strictly layered: `settings` and `markup` validate the input
-and report the first error; `layout` builds each horizontal list once, breaks
-it with a total-fit algorithm over prefix sums, flattens the block tree into
-one vertical list, paginates the body, then builds and paginates the table of
-contents; `render` sorts and prints the items.
-
-## Using the library
+The simplest use is the top-level function, which works on any `fs.FS`:
 
 ```go
 package main
@@ -72,37 +93,55 @@ package main
 import (
 	"fmt"
 	"os"
+	"testing/fstest"
 
 	"typeset"
 )
 
 func main() {
-	res, err := typeset.LoadResources("data") // data/faces and data/hyphen
-	if err != nil {
-		panic(err)
+	input := fstest.MapFS{
+		"document.cdx": {Data: []byte("@h1 Hello\nThe quick brown fox jumps over the lazy dog.\n")},
+		"settings.cfg": {Data: []byte("page-width = 200pt\npage-height = 120pt\nmargin-top = 20pt\nmargin-bottom = 20pt\nmargin-left = 20pt\nmargin-right = 20pt\n")},
 	}
-	out := typeset.Typeset(typeset.Input{
-		Document:    []byte("@h1 Hello\nThe quick brown fox jumps over the lazy dog.\n"),
-		HasDocument: true,
-		Settings:    []byte("page-width = 200pt\npage-height = 120pt\n"),
-		HasSettings: true,
-	}, res)
-	if out.Err != nil { // invalid input: out.Err is a *diag.Error
-		fmt.Fprint(os.Stderr, out.ErrorText())
+	out, err := typeset.Typeset(input, os.DirFS("data"))
+	if err != nil {
+		panic(err) // the data files could not be read
+	}
+	if out.Err != nil {
+		fmt.Println("invalid input:", out.Err) // also in out.Files["error.txt"]
 		return
 	}
-	fmt.Print(out.Layout) // contents of layout.txt
-	fmt.Print(out.Report) // contents of report.txt
+	fmt.Print(string(out.Files["layout.txt"]))
+	fmt.Print(string(out.Files["report.txt"]))
 }
 ```
 
-Lower-level pieces are importable too: `markup.Parse` returns the block tree,
-`settings.Parse` the resolved settings, and `layout.Layout` the placed pages
-(`layout.Result`), which `render.Layout` and `render.Report` format.
+The stages can also be used on their own. For example, to break one paragraph:
 
-## Tests
+```go
+faces, _ := metric.LoadSet(os.DirFS("data"), "faces")
+env := &hlist.Env{Faces: faces, HyphenPenalty: 50, ExHyphenPenalty: 50, RaggedStretch: 3,
+	MarkSize: 7000, MarkRaise: 3000}
+b := hlist.NewBuilder(env, hlist.Context{
+	Style: metric.Style{Family: metric.Serif}, Size: 10000, Align: hlist.Justify,
+})
+b.Inline(codexa.Literal("The quick brown fox jumps over the lazy dog."))
+list := b.List()
+res := linebreak.Break(list, 142000, 0, linebreak.Params{
+	Tolerance: 1000, LinePenalty: 10, AdjDemerits: 10000,
+	DoubleHyphenDemerits: 10000, FinalHyphenDemerits: 5000,
+})
+lines := hlist.SetLines(env, list, res.Breaks, hlist.Geometry{Left: 0, Measure: 142000})
+```
 
-`go test ./...` runs the unit tests of every package. The end-to-end tests in
-the root package use the real font and pattern files and are skipped unless
-they can be found at `../problems/typeset/data` or in the directory named by
-`TYPESET_DATA`.
+## Layout of the repository
+
+```
+cmd/typeset/   the command-line tool
+data/          font metrics and hyphenation patterns
+testdata/      golden test cases (input/ and expected/ directories)
+*/             the library packages listed above, each with its own tests
+```
+
+`TestGolden` in the root package runs every directory under `testdata/`
+through the whole engine and compares the produced files with `expected/`.

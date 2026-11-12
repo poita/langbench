@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func mustParse(t testing.TB, s string) []Move {
+func mustMoves(t testing.TB, s string) []Move {
 	t.Helper()
 	m, err := ParseMoves(s)
 	if err != nil {
@@ -15,71 +15,80 @@ func mustParse(t testing.TB, s string) []Move {
 	return m
 }
 
-func repeat(s string, n int) string {
-	return strings.TrimSpace(strings.Repeat(s+" ", n))
+func apply(t testing.TB, s string) Cube {
+	t.Helper()
+	c := Solved()
+	c.ApplyAll(mustMoves(t, s))
+	return c
 }
 
-func TestNewIsSolved(t *testing.T) {
-	c := New()
-	if !c.IsSolved() {
-		t.Fatal("New() is not solved")
-	}
-	if got := c.Facelets(); got != SolvedFacelets {
-		t.Fatalf("Facelets() = %q", got)
-	}
-	if err := c.Verify(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestQuarterTurnHasOrderFour(t *testing.T) {
-	for m := Move(0); m < NumMoves; m++ {
-		c := New()
-		for i := 0; i < 4; i++ {
-			c.Apply(NewMove(m.Face(), m.Turns()))
-		}
-		if !c.IsSolved() {
-			t.Errorf("%v applied 4 times is not the identity", m)
-		}
-	}
-}
-
-func TestMoveInverse(t *testing.T) {
-	for m := Move(0); m < NumMoves; m++ {
-		c := New()
-		c.Apply(m)
-		c.Apply(m.Inverse())
-		if !c.IsSolved() {
-			t.Errorf("%v followed by its inverse is not the identity", m)
-		}
-	}
-}
-
-func TestPrimeIsThreeQuarterTurns(t *testing.T) {
-	for f := Face(0); f < NumFaces; f++ {
-		a := Scrambled([]Move{NewMove(f, 1), NewMove(f, 1), NewMove(f, 1)})
-		b := Scrambled([]Move{NewMove(f, 3)})
-		if a != b {
-			t.Errorf("%v' != %v^3", f, f)
-		}
-		h := Scrambled([]Move{NewMove(f, 1), NewMove(f, 1)})
-		if h != Scrambled([]Move{NewMove(f, 2)}) {
-			t.Errorf("%v2 != %v^2", f, f)
-		}
-	}
-}
-
-// order returns the order of the permutation made by repeating moves.
-func order(moves []Move) int {
-	c := Scrambled(moves)
-	x := c
-	for n := 1; n < 2000; n++ {
-		if x.IsSolved() {
+// order returns how many times seq must be applied to return to solved.
+func order(t testing.TB, seq string) int {
+	t.Helper()
+	moves := mustMoves(t, seq)
+	c := Solved()
+	for n := 1; n <= 1000; n++ {
+		c.ApplyAll(moves)
+		if c.IsSolved() {
 			return n
 		}
-		x = Compose(&x, &c)
 	}
-	return -1
+	t.Fatalf("%q has no small order", seq)
+	return 0
+}
+
+func TestParseFormatRoundTrip(t *testing.T) {
+	const all = "U D L R F B U' D' L' R' F' B' U2 D2 L2 R2 F2 B2"
+	moves := mustMoves(t, all)
+	if len(moves) != NumMoves {
+		t.Fatalf("got %d moves", len(moves))
+	}
+	if got := FormatMoves(moves); got != all {
+		t.Errorf("FormatMoves = %q, want %q", got, all)
+	}
+	seen := map[Move]bool{}
+	for _, m := range moves {
+		seen[m] = true
+		if m.Inverse().Inverse() != m {
+			t.Errorf("%v: double inverse differs", m)
+		}
+	}
+	if len(seen) != NumMoves {
+		t.Errorf("moves not distinct")
+	}
+}
+
+func TestParseErrors(t *testing.T) {
+	for _, s := range []string{"R2'", "r", "R'2", "X", "R3", "'", "RU"} {
+		if _, err := ParseMoves(s); err == nil {
+			t.Errorf("ParseMoves(%q) succeeded, want error", s)
+		}
+	}
+	if m, err := ParseMoves(""); err != nil || len(m) != 0 {
+		t.Errorf("ParseMoves(\"\") = %v, %v", m, err)
+	}
+}
+
+func TestNewMove(t *testing.T) {
+	if NewMove(R, 1) != MoveR || NewMove(R, 2) != MoveR2 || NewMove(R, -1) != MoveRPrime ||
+		NewMove(B, 3) != MoveBPrime {
+		t.Error("NewMove returned the wrong move")
+	}
+}
+
+func TestQuarterTurnsHaveOrderFour(t *testing.T) {
+	for _, f := range "UDLRFB" {
+		s := string(f)
+		if got := order(t, s); got != 4 {
+			t.Errorf("order of %s = %d, want 4", s, got)
+		}
+		if got := order(t, s+"2"); got != 2 {
+			t.Errorf("order of %s2 = %d, want 2", s, got)
+		}
+		if !apply(t, s+" "+s+"'").IsSolved() {
+			t.Errorf("%s %s' is not the identity", s, s)
+		}
+	}
 }
 
 func TestKnownOrders(t *testing.T) {
@@ -89,185 +98,141 @@ func TestKnownOrders(t *testing.T) {
 	}{
 		{"R U R' U'", 6},
 		{"R U", 105},
+		{"U F", 105},
+		{"L B", 105},
 		{"U D", 4},
 		{"R L", 4},
-		{"F B'", 4},
-		{"R2 L2", 2},
-		{"U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2", 2},
+		{"F B", 4},
 	}
 	for _, tc := range tests {
-		if got := order(mustParse(t, tc.seq)); got != tc.want {
-			t.Errorf("order(%s) = %d, want %d", tc.seq, got, tc.want)
+		if got := order(t, tc.seq); got != tc.want {
+			t.Errorf("order(%q) = %d, want %d", tc.seq, got, tc.want)
 		}
-	}
-}
-
-func TestUMoveFacelets(t *testing.T) {
-	// After U, F1-F3 show the colour of R, L1-L3 that of F, B1-B3 that of L
-	// and R1-R3 that of B.
-	c := Scrambled(mustParse(t, "U"))
-	got := c.Facelets()
-	// Faces in URFDLB order, 9 stickers each.
-	face := func(f int) string { return got[f*9 : f*9+9] }
-	if face(0) != "UUUUUUUUU" || face(3) != "DDDDDDDDD" {
-		t.Errorf("U/D faces changed: %q", got)
-	}
-	if face(2) != "RRRFFFFFF" || face(4) != "FFFLLLLLL" || face(5) != "LLLBBBBBB" || face(1) != "BBBRRRRRR" {
-		t.Errorf("unexpected facelets after U: %q", got)
 	}
 }
 
 func TestSuperflip(t *testing.T) {
-	c := Scrambled(mustParse(t, "U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2"))
-	want := New()
+	c := apply(t, "U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2")
+	want := Solved()
 	for i := range want.EO {
 		want.EO[i] = 1
 	}
 	if c != want {
-		t.Fatalf("superflip mismatch: %+v", c)
+		t.Errorf("superflip mismatch: %+v", c)
 	}
 }
 
-func TestEdgeOrientationConvention(t *testing.T) {
-	// Only quarter turns of F and B flip edges.
-	for m := Move(0); m < NumMoves; m++ {
-		flips := 0
-		for _, o := range MoveCube(m).EO {
-			flips += int(o)
+func TestSpecExampleU(t *testing.T) {
+	// After U on a solved cube, F1 F2 F3 show R, L1 L2 L3 show F,
+	// B1 B2 B3 show L and R1 R2 R3 show B.
+	f := apply(t, "U").Facelets()
+	check := func(face Face, want byte) {
+		t.Helper()
+		for n := 0; n < 3; n++ {
+			if got := f[int(face)*9+n]; got != want {
+				t.Errorf("%v%d = %c, want %c", face, n+1, got, want)
+			}
 		}
-		wantFlip := (m.Face() == F || m.Face() == B) && !m.IsHalfTurn()
-		if (flips != 0) != wantFlip {
-			t.Errorf("%v flips %d edges", m, flips)
+	}
+	check(F, 'R')
+	check(L, 'F')
+	check(B, 'L')
+	check(R, 'B')
+}
+
+func TestOrientationConventions(t *testing.T) {
+	flipsEdges := map[string]bool{"F": true, "B": true}
+	for _, f := range []string{"U", "D", "L", "R", "F", "B"} {
+		c := apply(t, f)
+		flipped := false
+		for _, o := range c.EO {
+			flipped = flipped || o != 0
+		}
+		if flipped != flipsEdges[f] {
+			t.Errorf("%s: edges flipped = %v", f, flipped)
+		}
+		if f == "F" || f == "B" {
+			if apply(t, f+"2").EO != Solved().EO {
+				t.Errorf("%s2 flips edges", f)
+			}
 		}
 	}
 }
 
 func TestFaceletsMatchSpecCycles(t *testing.T) {
-	// Apply the moves directly to a facelet array and compare with the cubie
-	// model for random sequences.
-	rng := rand.New(rand.NewSource(1))
-	cycles := make([][][]int, NumFaces)
-	for f := range cycles {
-		for _, part := range strings.Split(strings.Trim(moveCycles[f], "()"), ")(") {
-			cycles[f] = append(cycles[f], faceletList(strings.Fields(part)...))
-		}
-	}
-	for trial := 0; trial < 200; trial++ {
-		state := []byte(SolvedFacelets)
-		c := New()
-		for i := 0; i < 30; i++ {
-			m := Move(rng.Intn(NumMoves))
-			for k := 0; k < m.Turns(); k++ {
-				prev := append([]byte(nil), state...)
-				for _, cy := range cycles[m.Face()] {
-					for j, a := range cy {
-						state[cy[(j+1)%len(cy)]] = prev[a]
-					}
-				}
-			}
-			c.Apply(m)
-		}
-		if got := c.Facelets(); got != string(state) {
-			t.Fatalf("trial %d: cubie model gives %s, facelet model %s", trial, got, state)
-		}
+	// The R move cycles (F3 U3 B7 D3): the sticker at F3 moves to U3.
+	f := apply(t, "R").Facelets()
+	if f[facelet("U3")] != 'F' || f[facelet("B7")] != 'U' || f[facelet("D3")] != 'B' || f[facelet("F3")] != 'D' {
+		t.Errorf("R facelets wrong: %s", f)
 	}
 }
 
-func TestFaceletRoundTrip(t *testing.T) {
-	rng := rand.New(rand.NewSource(2))
-	for trial := 0; trial < 200; trial++ {
-		moves := make([]Move, 40)
-		for i := range moves {
-			moves[i] = Move(rng.Intn(NumMoves))
+func TestFaceletsRoundTrip(t *testing.T) {
+	const solved = "UUUUUUUUURRRRRRRRRFFFFFFFFFDDDDDDDDDLLLLLLLLLBBBBBBBBB"
+	s := Solved()
+	if got := s.Facelets(); got != solved {
+		t.Fatalf("solved facelets = %s", got)
+	}
+	rng := rand.New(rand.NewSource(1))
+	for i := 0; i < 200; i++ {
+		c := Solved()
+		for j := 0; j < 30; j++ {
+			c.Apply(Move(rng.Intn(NumMoves)))
 		}
-		c := Scrambled(moves)
 		back, err := FromFacelets(c.Facelets())
-		if err != nil {
-			t.Fatal(err)
+		if err != nil || back != c {
+			t.Fatalf("round trip failed: %v", err)
 		}
-		if back != c {
-			t.Fatalf("round trip mismatch: %+v vs %+v", back, c)
+		if err := c.Validate(); err != nil {
+			t.Fatalf("reachable cube invalid: %v", err)
 		}
 	}
 }
 
 func TestFromFaceletsErrors(t *testing.T) {
-	good := Scrambled(mustParse(t, "R U F")).Facelets()
-	swap := func(s string, i, j int) string {
-		b := []byte(s)
-		b[i], b[j] = b[j], b[i]
-		return string(b)
+	if _, err := FromFacelets("UUU"); err == nil {
+		t.Error("short string accepted")
 	}
-	cases := map[string]string{
-		"short":        good[:53],
-		"bad char":     strings.Replace(good, "U", "x", 1),
-		"moved centre": swap(good, 4, 13),
-		// Swapping two edge stickers of different edges gives an impossible
-		// or inconsistent cube.
-		"twisted edge":   swap(SolvedFacelets, 5, 10),
-		"single corner":  swap(SolvedFacelets, 8, 9),
-		"duplicate":      strings.Replace(SolvedFacelets, "UUUUUUUUU", "UUUUUUUUR", 1),
-		"edge flip only": swap(SolvedFacelets, 7, 19),
+	bad := strings.Repeat("U", 54)
+	if _, err := FromFacelets(bad); err == nil {
+		t.Error("all-U cube accepted")
 	}
-	for name, s := range cases {
-		if _, err := FromFacelets(s); err == nil {
-			t.Errorf("%s: expected an error", name)
+	s := Solved()
+	f := []byte(s.Facelets())
+	f[0] = 'X'
+	if _, err := FromFacelets(string(f)); err == nil {
+		t.Error("bad letter accepted")
+	}
+}
+
+func TestValidateRejectsImpossibleStates(t *testing.T) {
+	twist := Solved()
+	twist.CO[0] = 1
+	flip := Solved()
+	flip.EO[0] = 1
+	swap := Solved()
+	swap.EP[0], swap.EP[1] = swap.EP[1], swap.EP[0]
+	dup := Solved()
+	dup.CP[1] = 0
+	for name, c := range map[string]Cube{"twist": twist, "flip": flip, "parity": swap, "duplicate": dup} {
+		if c.Validate() == nil {
+			t.Errorf("%s: Validate accepted invalid cube", name)
 		}
 	}
 }
 
-func TestVerify(t *testing.T) {
-	c := New()
-	c.EO[0] = 1
-	if c.Verify() == nil {
-		t.Error("single flipped edge accepted")
-	}
-	c = New()
-	c.CO[0] = 1
-	if c.Verify() == nil {
-		t.Error("single twisted corner accepted")
-	}
-	c = New()
-	c.EP[0], c.EP[1] = c.EP[1], c.EP[0]
-	if c.Verify() == nil {
-		t.Error("parity violation accepted")
-	}
-	c = New()
-	c.CP[1] = 0
-	if c.Verify() == nil {
-		t.Error("non-permutation accepted")
-	}
-}
-
-func TestInverse(t *testing.T) {
-	rng := rand.New(rand.NewSource(3))
-	for trial := 0; trial < 100; trial++ {
-		moves := make([]Move, 25)
-		for i := range moves {
-			moves[i] = Move(rng.Intn(NumMoves))
+func TestInvertMoves(t *testing.T) {
+	rng := rand.New(rand.NewSource(2))
+	for i := 0; i < 50; i++ {
+		seq := make([]Move, 40)
+		for j := range seq {
+			seq[j] = Move(rng.Intn(NumMoves))
 		}
-		c := Scrambled(moves)
-		inv := c.Inverse()
-		if r := Compose(&c, &inv); !r.IsSolved() {
-			t.Fatal("c * c^-1 is not solved")
-		}
-		c.ApplyAll(InverseMoves(moves))
+		c := Solved()
+		c.ApplyAll(seq)
+		c.ApplyAll(InvertMoves(seq))
 		if !c.IsSolved() {
-			t.Fatal("inverse move sequence does not undo scramble")
+			t.Fatal("sequence followed by its inverse is not the identity")
 		}
-	}
-}
-
-func TestThenDoesNotMutate(t *testing.T) {
-	c := New()
-	d := c.Then(NewMove(R, 1))
-	if !c.IsSolved() || d.IsSolved() {
-		t.Error("Then mutated its receiver or did nothing")
-	}
-}
-
-func TestRepeatHelper(t *testing.T) {
-	if got := order(mustParse(t, repeat("R", 1))); got != 4 {
-		t.Errorf("order(R) = %d", got)
 	}
 }

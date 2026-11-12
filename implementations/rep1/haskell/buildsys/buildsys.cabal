@@ -1,0 +1,83 @@
+cabal-version:      3.0
+name:               buildsys
+version:            0.1.0.0
+synopsis:           Kiln, a deterministic incremental build-system simulator
+description:
+  Kiln reads a workspace of build files written in the Kiln Build Language
+  (KBL), evaluates them into a graph of build steps, and executes the
+  out-of-date steps on a simulated set of parallel workers against a virtual
+  file system.  The library exposes every stage (lexer, parser, evaluator,
+  graph, state file, scheduler, session driver); the @buildsys@ executable
+  drives a whole session from a directory.
+license:            MIT
+author:             buildsys contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Build
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall -Wno-name-shadowing
+  default-extensions: OverloadedStrings
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Kiln
+    Kiln.Build
+    Kiln.Command
+    Kiln.Error
+    Kiln.Eval
+    Kiln.Glob
+    Kiln.Graph
+    Kiln.Hash
+    Kiln.Builtins
+    Kiln.Lexer
+    Kiln.Parser
+    Kiln.Path
+    Kiln.Scheduler
+    Kiln.Session
+    Kiln.State
+    Kiln.Step
+    Kiln.Syntax
+    Kiln.Value
+    Kiln.Workspace
+  build-depends:
+    base >=4.18 && <5,
+    bytestring,
+    containers,
+    array,
+    directory,
+    filepath
+
+executable buildsys
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    base,
+    bytestring,
+    buildsys
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+
+test-suite buildsys-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    GlobSpec
+    LexParseSpec
+    EvalSpec
+    CommandSpec
+    StateSpec
+    SessionSpec
+  build-depends:
+    base,
+    bytestring,
+    containers,
+    buildsys,
+    hspec,
+    QuickCheck

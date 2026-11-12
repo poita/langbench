@@ -1,264 +1,169 @@
-/// The 39 KBL built-in functions.
+/**
+ * The 39 built-in functions of KBL.
+ */
 module kiln.builtins;
 
-import std.algorithm.sorting : sort;
-
-import kiln.bytes;
 import kiln.errors;
 import kiln.glob;
+import kiln.text;
 import kiln.value;
 import kiln.vfs;
 
-/// Bit for each value type, used in argument type masks.
-enum ubyte tBool = 1, tInt = 2, tStr = 4, tList = 8, tAny = 0;
-
-/// Signature of a built-in implementation; arguments are already type-checked.
-alias BuiltinFn = Value function(Vfs vfs, Value[] a) @safe;
+/// Parameter type constraints.
+enum ArgType : ubyte { any, str, int_, bool_, list, strOrList, strOrInt, strIntBool }
 
 /// A built-in function descriptor.
 struct Builtin
 {
+    ///
     string name;
-    int minArgs;
-    int maxArgs;
-    ubyte[] masks; /// allowed types per argument; the last entry repeats
-    BuiltinFn fn;
+    ///
+    ArgType[] params;
+    ///
+    size_t minArgs, maxArgs;
+    ///
+    Value function(Value[] args, Vfs fs) run;
 }
 
-private Builtin[string] table;
+private __gshared Builtin[string] table;
 
 /// Looks up a built-in by name; null if there is none.
-const(Builtin)* findBuiltin(const(char)[] name) @safe
+const(Builtin)* findBuiltin(const(char)[] name)
 {
-    if (auto p = name in table)
-        return p;
-    return null;
+    auto p = name in table;
+    return p ? p : null;
 }
 
-/// The text of a `str`, `int` or `bool` value, as interpolation renders it.
-string textOf(const ref Value v) @safe
+/// Names of all built-in functions.
+string[] builtinNames()
 {
-    final switch (v.type)
+    return table.keys;
+}
+
+private string expectedName(ArgType t) @safe pure nothrow
+{
+    final switch (t)
     {
-    case Value.Type.str:
-        return v.s;
-    case Value.Type.integer:
-        return decimal(v.num);
-    case Value.Type.boolean:
-        return v.num ? "true" : "false";
-    case Value.Type.list:
-        assert(false, "lists have no text form");
+    case ArgType.any: return "any";
+    case ArgType.str: return "str";
+    case ArgType.int_: return "int";
+    case ArgType.bool_: return "bool";
+    case ArgType.list: return "list";
+    case ArgType.strOrList: return "str|list";
+    case ArgType.strOrInt: return "str|int";
+    case ArgType.strIntBool: return "str|int|bool";
     }
 }
 
-/// The type token naming an allowed-type mask, e.g. `str|list`.
-string maskName(ubyte m) @safe
+private bool accepts(ArgType t, Value.Type v) @safe pure nothrow @nogc
 {
-    string r;
-    void add(string s)
+    final switch (t)
     {
-        r = r.length ? r ~ "|" ~ s : s;
+    case ArgType.any: return true;
+    case ArgType.str: return v == Value.Type.str;
+    case ArgType.int_: return v == Value.Type.integer;
+    case ArgType.bool_: return v == Value.Type.boolean;
+    case ArgType.list: return v == Value.Type.list;
+    case ArgType.strOrList: return v == Value.Type.str || v == Value.Type.list;
+    case ArgType.strOrInt: return v == Value.Type.str || v == Value.Type.integer;
+    case ArgType.strIntBool: return v != Value.Type.list;
     }
+}
 
-    if (m & tStr)
-        add("str");
-    if (m & tInt)
-        add("int");
-    if (m & tBool)
-        add("bool");
-    if (m & tList)
-        add("list");
+/**
+ * Checks the arity and the argument types of a call (steps 3 and 4 of a call).
+ *
+ * Throws: `KilnError` (`E_ARITY` or `E_TYPE`).
+ */
+void checkCall(const(Builtin)* b, const(Value)[] args)
+{
+    import std.conv : to;
+
+    if (args.length < b.minArgs || args.length > b.maxArgs)
+    {
+        const expected = b.minArgs == b.maxArgs ? b.minArgs.to!string : b.minArgs.to!string ~ "-" ~ b.maxArgs.to!string;
+        throw new KilnError("E_ARITY", "fn " ~ b.name ~ ": expected " ~ expected ~ ", got " ~ args.length.to!string);
+    }
+    foreach (i, ref a; args)
+        if (!accepts(b.params[i], a.type))
+            throw typeError("fn " ~ b.name ~ " argument " ~ (i + 1).to!string, expectedName(b.params[i]), a.typeName);
+}
+
+private KilnError argError(string fn, string reason) @safe pure nothrow
+{
+    return new KilnError("E_ARG", "fn " ~ fn ~ ": " ~ reason);
+}
+
+private void clampRange(size_t n, long start, long count, out size_t s, out size_t c) @safe pure nothrow @nogc
+{
+    long st = start;
+    if (st < 0)
+        st = cast(long) n + st;
+    if (st < 0)
+        st = 0;
+    if (st > cast(long) n)
+        st = cast(long) n;
+    long cn = count;
+    const room = cast(long) n - st;
+    if (cn < 0)
+        cn = 0;
+    if (cn > room)
+        cn = room;
+    s = cast(size_t) st;
+    c = cast(size_t) cn;
+}
+
+private string[] stringElements(string fn, const(Value)[] items)
+{
+    import std.conv : to;
+
+    string[] r;
+    foreach (i, ref e; items)
+    {
+        if (e.type != Value.Type.str)
+            throw typeError("fn " ~ fn ~ " element " ~ i.to!string, "str", e.typeName);
+        r ~= e.text;
+    }
     return r;
 }
 
-private string str_(const ref Value v) @safe
+private Value filterImpl(string fn, Value[] a, bool keep)
 {
-    return v.s;
-}
+    import std.conv : to;
 
-private ubyte[] M(ubyte[] m...) pure nothrow @safe
-{
-    return m.dup;
-}
-
-shared static this()
-{
-    Builtin[string] t;
-    void reg(string name, int lo, int hi, ubyte[] masks, BuiltinFn fn)
-    {
-        t[name] = Builtin(name, lo, hi, masks, fn);
-    }
-
-    reg("len", 1, 1, M(tStr | tList), &fnLen);
-    reg("count", 1, 1, M(tList), &fnLen);
-    reg("upper", 1, 1, M(tStr), &fnUpper);
-    reg("lower", 1, 1, M(tStr), &fnLower);
-    reg("trim", 1, 1, M(tStr), &fnTrim);
-    reg("replace", 3, 3, M(tStr), &fnReplace);
-    reg("starts_with", 2, 2, M(tStr), &fnStartsWith);
-    reg("ends_with", 2, 2, M(tStr), &fnEndsWith);
-    reg("contains", 2, 2, M(tStr), &fnContains);
-    reg("substr", 3, 3, M(tStr, tInt, tInt), &fnSubstr);
-    reg("split", 2, 2, M(tStr), &fnSplit);
-    reg("join", 2, 2, M(tList, tStr), &fnJoin);
-    reg("str", 1, 1, M(tStr | tInt | tBool), &fnStr);
-    reg("int", 1, 1, M(tStr | tInt), &fnInt);
-    reg("dirname", 1, 1, M(tStr), &fnDirname);
-    reg("basename", 1, 1, M(tStr), &fnBasename);
-    reg("stem", 1, 1, M(tStr), &fnStem);
-    reg("ext", 1, 1, M(tStr), &fnExt);
-    reg("pathjoin", 1, 8, M(tStr), &fnPathjoin);
-    reg("map", 2, 2, M(tList, tStr), &fnMap);
-    reg("filter", 2, 2, M(tList, tStr), &fnFilter);
-    reg("reject", 2, 2, M(tList, tStr), &fnReject);
-    reg("sort", 1, 1, M(tList), &fnSort);
-    reg("uniq", 1, 1, M(tList), &fnUniq);
-    reg("reverse", 1, 1, M(tList), &fnReverse);
-    reg("first", 1, 1, M(tList), &fnFirst);
-    reg("last", 1, 1, M(tList), &fnLast);
-    reg("slice", 3, 3, M(tList, tInt, tInt), &fnSlice);
-    reg("has", 2, 2, M(tList, tAny), &fnHas);
-    reg("indexof", 2, 2, M(tList, tAny), &fnIndexof);
-    reg("range", 1, 1, M(tInt), &fnRange);
-    reg("sum", 1, 1, M(tList), &fnSum);
-    reg("flatten", 1, 1, M(tList), &fnFlatten);
-    reg("zip", 2, 2, M(tList), &fnZip);
-    reg("is_str", 1, 1, M(tAny), &fnIsStr);
-    reg("is_int", 1, 1, M(tAny), &fnIsInt);
-    reg("is_bool", 1, 1, M(tAny), &fnIsBool);
-    reg("is_list", 1, 1, M(tAny), &fnIsList);
-    reg("glob", 1, 1, M(tStr), &fnGlob);
-    table = t;
-}
-
-private:
-
-alias V = Value;
-
-V fnLen(Vfs, V[] a) @safe
-{
-    return V.ofInt(a[0].type == V.Type.str ? cast(long) a[0].s.length : cast(long) a[0].items.length);
-}
-
-V fnUpper(Vfs, V[] a) @safe
-{
-    auto s = a[0].s;
-    char[] r = new char[s.length];
-    foreach (i; 0 .. s.length)
-        r[i] = (s[i] >= 'a' && s[i] <= 'z') ? cast(char)(s[i] - 32) : s[i];
-    return V.ofStr((() @trusted => cast(string) r)());
-}
-
-V fnLower(Vfs, V[] a) @safe
-{
-    auto s = a[0].s;
-    char[] r = new char[s.length];
-    foreach (i; 0 .. s.length)
-        r[i] = (s[i] >= 'A' && s[i] <= 'Z') ? cast(char)(s[i] + 32) : s[i];
-    return V.ofStr((() @trusted => cast(string) r)());
-}
-
-V fnTrim(Vfs, V[] a) @safe
-{
-    auto s = a[0].s;
-    bool ws(char c) => c == ' ' || c == '\t' || c == '\n' || c == '\r';
-    size_t b = 0, e = s.length;
-    while (b < e && ws(s[b]))
-        ++b;
-    while (e > b && ws(s[e - 1]))
-        --e;
-    return V.ofStr(s[b .. e]);
-}
-
-V fnReplace(Vfs, V[] a) @safe
-{
-    if (a[1].s.length == 0)
-        throw argError("fn", "replace", "empty pattern");
-    return V.ofStr(replaceAll(a[0].s, a[1].s, a[2].s));
-}
-
-V fnStartsWith(Vfs, V[] a) @safe
-{
-    return V.ofBool(a[0].s.length >= a[1].s.length && a[0].s[0 .. a[1].s.length] == a[1].s);
-}
-
-V fnEndsWith(Vfs, V[] a) @safe
-{
-    return V.ofBool(a[0].s.length >= a[1].s.length && a[0].s[$ - a[1].s.length .. $] == a[1].s);
-}
-
-V fnContains(Vfs, V[] a) @safe
-{
-    return V.ofBool(containsBytes(a[0].s, a[1].s));
-}
-
-/// Clamps `(start, count)` against length `n` per the substr/slice rules.
-private void clampRange(long n, long start, long count, out size_t b, out size_t len) pure nothrow @safe
-{
-    if (start < 0)
-        start += n;
-    if (start < 0)
-        start = 0;
-    if (start > n)
-        start = n;
-    if (count < 0)
-        count = 0;
-    if (count > n - start)
-        count = n - start;
-    b = cast(size_t) start;
-    len = cast(size_t) count;
-}
-
-V fnSubstr(Vfs, V[] a) @safe
-{
-    size_t b, l;
-    clampRange(cast(long) a[0].s.length, a[1].num, a[2].num, b, l);
-    return V.ofStr(a[0].s[b .. b + l]);
-}
-
-V fnSplit(Vfs, V[] a) @safe
-{
-    const s = a[0].s, sep = a[1].s;
-    if (sep.length == 0)
-        throw argError("fn", "split", "empty separator");
-    V[] r;
-    size_t i = 0;
-    while (true)
-    {
-        const j = findBytes(s, sep, i);
-        if (j == size_t.max)
-            break;
-        r ~= V.ofStr(a[0].s[i .. j]);
-        i = j + sep.length;
-    }
-    r ~= V.ofStr(a[0].s[i .. $]);
-    return V.ofList(r);
-}
-
-V fnJoin(Vfs, V[] a) @safe
-{
-    char[] r;
+    GlobPattern pat;
+    if (!GlobPattern.compile(a[1].text, pat))
+        throw argError(fn, "bad pattern");
+    Value[] r;
     foreach (i, ref e; a[0].items)
     {
-        if (e.type != V.Type.str && e.type != V.Type.integer)
-            throw typeError("fn join element " ~ decimal(cast(long) i), "str|int", e.typeName);
-        if (i)
-            r ~= a[1].s;
-        r ~= textOf(e);
+        if (e.type != Value.Type.str)
+            throw typeError("fn " ~ fn ~ " element " ~ i.to!string, "str", e.typeName);
+        if (pat.matches(e.text) == keep)
+            r ~= e;
     }
-    return V.ofStr((() @trusted => cast(string) r)());
+    return Value.ofList(r);
 }
 
-V fnStr(Vfs, V[] a) @safe
+private string baseName(string p) @safe pure nothrow
 {
-    return V.ofStr(textOf(a[0]));
+    foreach_reverse (i, char c; p)
+        if (c == '/')
+            return p[i + 1 .. $];
+    return p;
 }
 
-V fnInt(Vfs, V[] a) @safe
+/// Splits a basename at its last dot that is not at index 0; returns the dot index or -1.
+private ptrdiff_t extDot(string b) @safe pure nothrow @nogc
 {
-    if (a[0].type == V.Type.integer)
-        return a[0];
-    const s = a[0].s;
+    foreach_reverse (i, char c; b)
+        if (c == '.' && i != 0)
+            return cast(ptrdiff_t) i;
+    return -1;
+}
+
+private Value parseIntValue(string s)
+{
     size_t i = 0;
     bool neg = false;
     if (s.length && s[0] == '-')
@@ -267,306 +172,344 @@ V fnInt(Vfs, V[] a) @safe
         i = 1;
     }
     if (i >= s.length)
-        throw argError("fn", "int", "bad integer");
+        throw argError("int", "bad integer");
     const ulong limit = neg ? (1UL << 63) : (1UL << 63) - 1;
-    ulong acc = 0;
-    for (; i < s.length; ++i)
+    ulong mag = 0;
+    foreach (char c; s[i .. $])
     {
-        if (s[i] < '0' || s[i] > '9')
-            throw argError("fn", "int", "bad integer");
-        const d = cast(ulong)(s[i] - '0');
-        if (acc > (limit - d) / 10)
-            throw argError("fn", "int", "bad integer");
-        acc = acc * 10 + d;
+        if (c < '0' || c > '9')
+            throw argError("int", "bad integer");
+        const d = c - '0';
+        if (mag > (limit - d) / 10)
+            throw argError("int", "bad integer");
+        mag = mag * 10 + d;
     }
-    return V.ofInt(neg ? cast(long)(0 - acc) : cast(long) acc);
+    return Value.ofInt(neg ? cast(long)(0 - mag) : cast(long) mag);
 }
 
-private size_t lastSlash(const(char)[] s) pure nothrow @safe
+private void reg(string name, ArgType[] params, Value function(Value[], Vfs) fn)
 {
-    foreach_reverse (i; 0 .. s.length)
-        if (s[i] == '/')
-            return i;
-    return size_t.max;
+    table[name] = Builtin(name, params, params.length, params.length, fn);
 }
 
-private string baseOf(string s) pure nothrow @safe
+shared static this()
 {
-    const k = lastSlash(s);
-    return k == size_t.max ? s : s[k + 1 .. $];
-}
+    import std.algorithm.sorting : sort;
+    import std.conv : to;
 
-V fnDirname(Vfs, V[] a) @safe
-{
-    const k = lastSlash(a[0].s);
-    return V.ofStr(k == size_t.max ? "" : a[0].s[0 .. k]);
-}
+    alias T = ArgType;
+    alias V = Value;
 
-V fnBasename(Vfs, V[] a) @safe
-{
-    return V.ofStr(baseOf(a[0].s));
-}
-
-private size_t extStart(const(char)[] b) pure nothrow @safe
-{
-    foreach_reverse (i; 1 .. b.length)
-        if (b[i] == '.')
-            return i;
-    return size_t.max;
-}
-
-V fnStem(Vfs, V[] a) @safe
-{
-    const b = baseOf(a[0].s);
-    const k = extStart(b);
-    return V.ofStr(k == size_t.max ? b : b[0 .. k]);
-}
-
-V fnExt(Vfs, V[] a) @safe
-{
-    const b = baseOf(a[0].s);
-    const k = extStart(b);
-    return V.ofStr(k == size_t.max ? "" : b[k .. $]);
-}
-
-V fnPathjoin(Vfs, V[] a) @safe
-{
-    char[] r;
-    bool first = true;
-    foreach (ref e; a)
-    {
-        if (e.s.length == 0)
-            continue;
-        if (!first)
-            r ~= '/';
-        r ~= e.s;
-        first = false;
-    }
-    return V.ofStr((() @trusted => cast(string) r)());
-}
-
-V fnMap(Vfs, V[] a) @safe
-{
-    V[] r;
-    r.reserve(a[0].items.length);
-    const pat = a[1].s;
-    foreach (i, ref e; a[0].items)
-    {
-        if (e.type != V.Type.str)
-            throw typeError("fn map element " ~ decimal(cast(long) i), "str", e.typeName);
-        char[] b;
-        size_t k = 0;
-        while (k < pat.length)
+    reg("len", [T.strOrList], (a, fs) => V.ofInt(a[0].type == V.Type.str ? a[0].text.length : a[0].items.length));
+    reg("count", [T.list], (a, fs) => V.ofInt(a[0].items.length));
+    reg("upper", [T.str], (a, fs) {
+        char[] r = a[0].text.dup;
+        foreach (ref c; r)
+            if (c >= 'a' && c <= 'z')
+                c -= 32;
+        return V.ofStr(r.idup);
+    });
+    reg("lower", [T.str], (a, fs) {
+        char[] r = a[0].text.dup;
+        foreach (ref c; r)
+            if (c >= 'A' && c <= 'Z')
+                c += 32;
+        return V.ofStr(r.idup);
+    });
+    reg("trim", [T.str], (a, fs) {
+        static bool ws(char c) { return c == ' ' || c == '\t' || c == '\n' || c == '\r'; }
+        string s = a[0].text;
+        size_t lo = 0, hi = s.length;
+        while (lo < hi && ws(s[lo]))
+            ++lo;
+        while (hi > lo && ws(s[hi - 1]))
+            --hi;
+        return V.ofStr(s[lo .. hi]);
+    });
+    reg("replace", [T.str, T.str, T.str], (a, fs) {
+        if (a[1].text.length == 0)
+            throw argError("replace", "empty pattern");
+        return V.ofStr(replaceAllBytes(a[0].text, a[1].text, a[2].text));
+    });
+    reg("starts_with", [T.str, T.str], (a, fs) => V.ofBool(startsWithBytes(a[0].text, a[1].text)));
+    reg("ends_with", [T.str, T.str], (a, fs) => V.ofBool(endsWithBytes(a[0].text, a[1].text)));
+    reg("contains", [T.str, T.str], (a, fs) => V.ofBool(containsBytes(a[0].text, a[1].text)));
+    reg("substr", [T.str, T.int_, T.int_], (a, fs) {
+        size_t s, c;
+        clampRange(a[0].text.length, a[1].num, a[2].num, s, c);
+        return V.ofStr(a[0].text[s .. s + c]);
+    });
+    reg("split", [T.str, T.str], (a, fs) {
+        const sep = a[1].text;
+        if (sep.length == 0)
+            throw argError("split", "empty separator");
+        const s = a[0].text;
+        Value[] r;
+        size_t i = 0;
+        while (true)
         {
-            if (pat[k] == '%')
+            const j = findBytes(s, sep, i);
+            if (j < 0)
             {
-                if (k + 1 < pat.length && pat[k + 1] == '%')
+                r ~= V.ofStr(s[i .. $]);
+                break;
+            }
+            r ~= V.ofStr(s[i .. j]);
+            i = j + sep.length;
+        }
+        return V.ofList(r);
+    });
+    reg("join", [T.list, T.str], (a, fs) {
+        char[] r;
+        foreach (i, ref e; a[0].items)
+        {
+            if (e.type != V.Type.str && e.type != V.Type.integer)
+                throw typeError("fn join element " ~ i.to!string, "str|int", e.typeName);
+            if (i > 0)
+                r ~= a[1].text;
+            r ~= scalarText(e);
+        }
+        return V.ofStr(r.idup);
+    });
+    reg("str", [T.strIntBool], (a, fs) => V.ofStr(scalarText(a[0])));
+    reg("int", [T.strOrInt], (a, fs) => a[0].type == V.Type.integer ? a[0] : parseIntValue(a[0].text));
+    reg("dirname", [T.str], (a, fs) {
+        const s = a[0].text;
+        foreach_reverse (i, char c; s)
+            if (c == '/')
+                return V.ofStr(s[0 .. i]);
+        return V.ofStr("");
+    });
+    reg("basename", [T.str], (a, fs) => V.ofStr(baseName(a[0].text)));
+    reg("stem", [T.str], (a, fs) {
+        const b = baseName(a[0].text);
+        const d = extDot(b);
+        return V.ofStr(d < 0 ? b : b[0 .. d]);
+    });
+    reg("ext", [T.str], (a, fs) {
+        const b = baseName(a[0].text);
+        const d = extDot(b);
+        return V.ofStr(d < 0 ? "" : b[d .. $]);
+    });
+    table["pathjoin"] = Builtin("pathjoin", [T.str, T.str, T.str, T.str, T.str, T.str, T.str, T.str], 1, 8, (a, fs) {
+        string r;
+        bool first = true;
+        foreach (ref e; a)
+        {
+            if (e.text.length == 0)
+                continue;
+            if (!first)
+                r ~= "/";
+            r ~= e.text;
+            first = false;
+        }
+        return V.ofStr(r);
+    });
+    reg("map", [T.list, T.str], (a, fs) {
+        const strs = stringElements("map", a[0].items);
+        const pat = a[1].text;
+        Value[] r;
+        foreach (s; strs)
+        {
+            char[] o;
+            size_t i = 0;
+            while (i < pat.length)
+            {
+                if (pat[i] == '%')
                 {
-                    b ~= '%';
-                    k += 2;
+                    if (i + 1 < pat.length && pat[i + 1] == '%')
+                    {
+                        o ~= '%';
+                        i += 2;
+                    }
+                    else
+                    {
+                        o ~= s;
+                        ++i;
+                    }
                 }
                 else
                 {
-                    b ~= e.s;
-                    ++k;
+                    o ~= pat[i];
+                    ++i;
                 }
             }
-            else
+            r ~= V.ofStr(o.idup);
+        }
+        return V.ofList(r);
+    });
+    reg("filter", [T.list, T.str], (a, fs) => filterImpl("filter", a, true));
+    reg("reject", [T.list, T.str], (a, fs) => filterImpl("reject", a, false));
+    reg("sort", [T.list], (a, fs) {
+        auto r = a[0].items.dup;
+        r.sort!((x, y) => compareValues(x, y) < 0);
+        return V.ofList(r);
+    });
+    reg("uniq", [T.list], (a, fs) {
+        bool[string] seen;
+        Value[] r;
+        foreach (ref e; a[0].items)
+        {
+            const k = valueKey(e);
+            if (k !in seen)
             {
-                b ~= pat[k];
-                ++k;
+                seen[k] = true;
+                r ~= e;
             }
         }
-        r ~= V.ofStr((() @trusted => cast(string) b)());
-    }
-    return V.ofList(r);
-}
-
-private V filterImpl(V[] a, bool keepMatching, string fname) @safe
-{
-    auto g = GlobPattern.compile(a[1].s);
-    if (g is null)
-        throw argError("fn", fname, "bad pattern");
-    V[] r;
-    foreach (i, ref e; a[0].items)
-    {
-        if (e.type != V.Type.str)
-            throw typeError("fn " ~ fname ~ " element " ~ decimal(cast(long) i), "str", e.typeName);
-        if (g.matches(e.s) == keepMatching)
-            r ~= e;
-    }
-    return V.ofList(r);
-}
-
-V fnFilter(Vfs, V[] a) @safe
-{
-    return filterImpl(a, true, "filter");
-}
-
-V fnReject(Vfs, V[] a) @safe
-{
-    return filterImpl(a, false, "reject");
-}
-
-V fnSort(Vfs, V[] a) @safe
-{
-    auto r = a[0].items.dup;
-    r.sort!((x, y) => compareValues(x, y) < 0);
-    return V.ofList(r);
-}
-
-V fnUniq(Vfs, V[] a) @safe
-{
-    V[] r;
-    bool[string] seen;
-    foreach (ref e; a[0].items)
-    {
-        if (e.type == V.Type.str)
+        return V.ofList(r);
+    });
+    reg("reverse", [T.list], (a, fs) {
+        auto r = a[0].items.dup;
+        foreach (i; 0 .. r.length / 2)
         {
-            if (e.s in seen)
-                continue;
-            seen[e.s] = true;
-            r ~= e;
+            auto t = r[i];
+            r[i] = r[r.length - 1 - i];
+            r[r.length - 1 - i] = t;
         }
-        else
+        return V.ofList(r);
+    });
+    reg("first", [T.list], (a, fs) {
+        if (a[0].items.length == 0)
+            throw argError("first", "empty list");
+        return a[0].items[0];
+    });
+    reg("last", [T.list], (a, fs) {
+        if (a[0].items.length == 0)
+            throw argError("last", "empty list");
+        return a[0].items[$ - 1];
+    });
+    reg("slice", [T.list, T.int_, T.int_], (a, fs) {
+        size_t s, c;
+        clampRange(a[0].items.length, a[1].num, a[2].num, s, c);
+        return V.ofList(a[0].items[s .. s + c]);
+    });
+    reg("has", [T.list, T.any], (a, fs) {
+        foreach (ref e; a[0].items)
+            if (valuesEqual(e, a[1]))
+                return V.ofBool(true);
+        return V.ofBool(false);
+    });
+    reg("indexof", [T.list, T.any], (a, fs) {
+        foreach (i, ref e; a[0].items)
+            if (valuesEqual(e, a[1]))
+                return V.ofInt(cast(long) i);
+        return V.ofInt(-1);
+    });
+    reg("range", [T.int_], (a, fs) {
+        if (a[0].num < 0)
+            throw argError("range", "negative");
+        auto r = new Value[cast(size_t) a[0].num];
+        foreach (i, ref e; r)
+            e = V.ofInt(cast(long) i);
+        return V.ofList(r);
+    });
+    reg("sum", [T.list], (a, fs) {
+        long total = 0;
+        foreach (i, ref e; a[0].items)
         {
-            bool dup = false;
-            foreach (ref o; r)
-                if (valuesEqual(o, e))
-                {
-                    dup = true;
-                    break;
-                }
-            if (!dup)
+            if (e.type != V.Type.integer)
+                throw typeError("fn sum element " ~ i.to!string, "int", e.typeName);
+            total += e.num;
+        }
+        return V.ofInt(total);
+    });
+    reg("flatten", [T.list], (a, fs) {
+        Value[] r;
+        foreach (ref e; a[0].items)
+        {
+            if (e.type == V.Type.list)
+                r ~= e.items;
+            else
                 r ~= e;
         }
-    }
-    return V.ofList(r);
-}
-
-V fnReverse(Vfs, V[] a) @safe
-{
-    auto r = a[0].items.dup;
-    foreach (i; 0 .. r.length / 2)
-    {
-        auto t = r[i];
-        r[i] = r[r.length - 1 - i];
-        r[r.length - 1 - i] = t;
-    }
-    return V.ofList(r);
-}
-
-V fnFirst(Vfs, V[] a) @safe
-{
-    if (a[0].items.length == 0)
-        throw argError("fn", "first", "empty list");
-    return a[0].items[0];
-}
-
-V fnLast(Vfs, V[] a) @safe
-{
-    if (a[0].items.length == 0)
-        throw argError("fn", "last", "empty list");
-    return a[0].items[$ - 1];
-}
-
-V fnSlice(Vfs, V[] a) @safe
-{
-    size_t b, l;
-    clampRange(cast(long) a[0].items.length, a[1].num, a[2].num, b, l);
-    return V.ofList(a[0].items[b .. b + l]);
-}
-
-V fnHas(Vfs, V[] a) @safe
-{
-    foreach (ref e; a[0].items)
-        if (valuesEqual(e, a[1]))
-            return V.ofBool(true);
-    return V.ofBool(false);
-}
-
-V fnIndexof(Vfs, V[] a) @safe
-{
-    foreach (i, ref e; a[0].items)
-        if (valuesEqual(e, a[1]))
-            return V.ofInt(cast(long) i);
-    return V.ofInt(-1);
-}
-
-V fnRange(Vfs, V[] a) @safe
-{
-    if (a[0].num < 0)
-        throw argError("fn", "range", "negative");
-    V[] r;
-    r.reserve(cast(size_t) a[0].num);
-    foreach (i; 0 .. a[0].num)
-        r ~= V.ofInt(i);
-    return V.ofList(r);
-}
-
-V fnSum(Vfs, V[] a) @safe
-{
-    long s = 0;
-    foreach (i, ref e; a[0].items)
-    {
-        if (e.type != V.Type.integer)
-            throw typeError("fn sum element " ~ decimal(cast(long) i), "int", e.typeName);
-        s += e.num;
-    }
-    return V.ofInt(s);
-}
-
-V fnFlatten(Vfs, V[] a) @safe
-{
-    V[] r;
-    foreach (ref e; a[0].items)
-    {
-        if (e.type == V.Type.list)
-            r ~= e.items;
-        else
-            r ~= e;
-    }
-    return V.ofList(r);
-}
-
-V fnZip(Vfs, V[] a) @safe
-{
-    const n = a[0].items.length < a[1].items.length ? a[0].items.length : a[1].items.length;
-    V[] r;
-    r.reserve(n);
-    foreach (i; 0 .. n)
-        r ~= V.ofList([a[0].items[i], a[1].items[i]]);
-    return V.ofList(r);
-}
-
-V fnIsStr(Vfs, V[] a) @safe
-{
-    return V.ofBool(a[0].type == V.Type.str);
-}
-
-V fnIsInt(Vfs, V[] a) @safe
-{
-    return V.ofBool(a[0].type == V.Type.integer);
-}
-
-V fnIsBool(Vfs, V[] a) @safe
-{
-    return V.ofBool(a[0].type == V.Type.boolean);
-}
-
-V fnIsList(Vfs, V[] a) @safe
-{
-    return V.ofBool(a[0].type == V.Type.list);
-}
-
-V fnGlob(Vfs vfs, V[] a) @safe
-{
-    auto g = GlobPattern.compile(a[0].s);
-    if (g is null)
-        throw argError("fn", "glob", "bad pattern");
-    V[] r;
-    foreach (p; vfs.globRange(g.literalPrefix))
-        if (g.matches(p))
+        return V.ofList(r);
+    });
+    reg("zip", [T.list, T.list], (a, fs) {
+        const n = a[0].items.length < a[1].items.length ? a[0].items.length : a[1].items.length;
+        auto r = new Value[n];
+        foreach (i; 0 .. n)
+            r[i] = V.ofList([a[0].items[i], a[1].items[i]]);
+        return V.ofList(r);
+    });
+    reg("is_str", [T.any], (a, fs) => V.ofBool(a[0].type == V.Type.str));
+    reg("is_int", [T.any], (a, fs) => V.ofBool(a[0].type == V.Type.integer));
+    reg("is_bool", [T.any], (a, fs) => V.ofBool(a[0].type == V.Type.boolean));
+    reg("is_list", [T.any], (a, fs) => V.ofBool(a[0].type == V.Type.list));
+    reg("glob", [T.str], (a, fs) {
+        GlobPattern pat;
+        if (!GlobPattern.compile(a[0].text, pat))
+            throw argError("glob", "bad pattern");
+        Value[] r;
+        foreach (p; fs.glob(pat))
             r ~= V.ofStr(p);
-    return V.ofList(r);
+        return V.ofList(r);
+    });
+}
+
+version (unittest)
+{
+    private Value call(string name, Value[] args, Vfs fs = null)
+    {
+        auto b = findBuiltin(name);
+        assert(b !is null, name);
+        checkCall(b, args);
+        return b.run(args, fs);
+    }
+
+    private string errOf(string name, Value[] args)
+    {
+        try
+        {
+            call(name, args);
+            return "ok";
+        }
+        catch (KilnError e)
+            return e.msg;
+    }
+
+    private Value s(string x) { return Value.ofStr(x); }
+    private Value n(long x) { return Value.ofInt(x); }
+    private Value l(Value[] x...) { return Value.ofList(x.dup); }
+}
+
+unittest
+{
+    assert(builtinNames().length == 39);
+}
+
+unittest
+{
+    assert(call("substr", [s("abcdef"), n(1), n(3)]).text == "bcd");
+    assert(call("substr", [s("abcdef"), n(-2), n(5)]).text == "ef");
+    assert(call("substr", [s("abcdef"), n(10), n(2)]).text == "");
+    assert(call("substr", [s("abcdef"), n(2), n(-1)]).text == "");
+    assert(call("stem", [s("src/.hidden")]).text == ".hidden" && call("ext", [s("src/.hidden")]).text == "");
+    assert(call("stem", [s("src/a.b.txt")]).text == "a.b" && call("ext", [s("src/x.")]).text == ".");
+    assert(call("pathjoin", [s("out"), s(""), s("a.txt")]).text == "out/a.txt");
+    assert(call("pathjoin", [s("out/")]).text == "out/");
+    assert(call("map", [l(s("a")), s("100%%-%")]).items[0].text == "100%-a");
+    assert(call("split", [s(""), s(",")]).items.length == 1);
+    assert(call("join", [l(s("a"), n(2)), s("-")]).text == "a-2");
+    assert(call("int", [s("-0042")]).num == -42);
+    assert(call("int", [s("-9223372036854775808")]).num == long.min);
+    assert(call("uniq", [l(n(1), s("1"), n(1))]).items.length == 2);
+    assert(call("flatten", [l(l(n(1)), n(2))]).items.length == 2);
+    assert(call("sum", [l()]).num == 0);
+}
+
+unittest
+{
+    assert(errOf("upper", [n(1)]) == "E_TYPE fn upper argument 1: expected str, got int");
+    assert(errOf("upper", [s("a"), s("b")]) == "E_ARITY fn upper: expected 1, got 2");
+    assert(errOf("pathjoin", []) == "E_ARITY fn pathjoin: expected 1-8, got 0");
+    assert(errOf("int", [s("+1")]) == "E_ARG fn int: bad integer");
+    assert(errOf("int", [s("9223372036854775808")]) == "E_ARG fn int: bad integer");
+    assert(errOf("filter", [l(n(1)), s("")]) == "E_ARG fn filter: bad pattern");
+    assert(errOf("filter", [l(n(1)), s("*")]) == "E_TYPE fn filter element 0: expected str, got int");
+    assert(errOf("join", [l(l()), s("")]) == "E_TYPE fn join element 0: expected str|int, got list");
+    assert(errOf("first", [l()]) == "E_ARG fn first: empty list");
+    assert(errOf("range", [n(-1)]) == "E_ARG fn range: negative");
+    assert(errOf("replace", [s("a"), s(""), s("b")]) == "E_ARG fn replace: empty pattern");
+    assert(errOf("len", [n(1)]) == "E_TYPE fn len argument 1: expected str|list, got int");
 }

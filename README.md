@@ -45,31 +45,27 @@ Requirements: Python 3.9+, Claude Code (signed in, or with `ANTHROPIC_API_KEY`
 set), and the toolchains of the languages you generate. Hardware counters come
 from `/usr/bin/time -l` on macOS and `perf stat` on Linux.
 
-### Regenerate the committed implementations (D and Go)
+### Regenerate the committed implementations
 
 ```
 git rm -rq implementations    # start empty, so no old files mix with the new ones
 
 # a sandbox outside this checkout; give it a neutral name, since agents see its path
-python3 tools/impl_run.py sandbox ~/work/run1 --langs d,go
-python3 tools/impl_run.py launch ~/work/run1 --auth subscription   # 120 sessions, about 3.5 hours
+python3 tools/impl_run.py sandbox ~/work/run1
+python3 tools/impl_run.py launch ~/work/run1 --auth subscription   # 420 sessions, roughly 12 hours
 python3 tools/impl_run.py finish ~/work/run1 --dest implementations --stage
 
 make results                  # rewrite results/README.md
 ```
 
-`--auth subscription` uses your Claude Code login and plan; leave it out to use
-`ANTHROPIC_API_KEY`. Either way the sessions load none of your settings,
-memory or MCP servers. `run-config.json` sets everything else (model, effort,
-repetitions). Agents are not deterministic, so this repeats the procedure, not
-the exact code. The committed record has a second, six-session run only
-because three problems' test data changed after the first; the problems as
-they are now need just the one run.
-
-### Every language
-
-Leave out `--langs` to run every language in `run-config.json` (C++, Rust, Go,
-D, Python, Haskell and Clojure): 420 sessions and roughly 12 hours.
+`run-config.json` sets the languages (C++, Rust, Go, D, Python, Haskell and
+Clojure), model, effort and repetitions; `--langs` and `--problems` narrow a
+run. `--auth subscription` uses your Claude Code login and plan; leave it out
+to use `ANTHROPIC_API_KEY`. Either way the sessions load none of your
+settings, memory or MCP servers. Agents are not deterministic, so this repeats
+the procedure, not the exact code. The committed run was stopped after 338 of
+its 420 sessions to save usage; the 82 that did not run are all repetitions,
+and rerunning `launch` on its sandbox would add them.
 
 ### Measure
 
@@ -91,21 +87,23 @@ LANG=PATH` for any language), suites, and measurement noise.
 
 ## Results so far
 
-The first run covers D and Go: all 40 problems, plus three repetitions of ten,
-written by Claude Sonnet 5.5 in Claude Code, one sandboxed session per task
-(the three problems whose test data changed since were rerun).
-It measures agent effort; performance on stable hardware and more languages
-will follow.
+The current run covers seven languages: all 40 problems in each, plus most
+second repetitions of ten, written by Claude Sonnet 5.5 in Claude Code, one
+sandboxed session per task. It measures agent effort; performance on stable
+hardware will follow.
 
-| D relative to Go | Paired over 40 problems | 95% interval |
-|---|---:|---:|
-| Output tokens | 1.13× | 1.08–1.19 |
-| Turns | 1.38× | 1.26–1.52 |
-| Cost | 1.19× | 1.13–1.25 |
+| Relative to Go, paired over 40 problems | Output tokens | Turns | Cost |
+|---|---:|---:|---:|
+| Python | 0.89× (0.83–0.96) | 0.94× | 0.91× |
+| Rust | 1.07× (1.02–1.12) | 0.98× | 1.07× |
+| D | 1.15× (1.07–1.25) | 1.48× | 1.22× |
+| C++ | 1.18× (1.11–1.25) | 1.09× | 1.18× |
+| Haskell | 1.19× (1.10–1.28) | 1.49× | 1.26× |
+| Clojure | 1.27× (1.19–1.35) | 1.81× | 1.39× |
 
-On a clean rebuild, D passes every public and held-out test in 60 of 60 tasks
-and Go in 59 of 60. Tables, per-problem numbers and the commands that produce
-them: [results/](results/README.md).
+Brackets are 95% intervals. On a clean rebuild, 335 of the 338 projects pass
+every public and held-out test. Tables, per-problem numbers, code size and the
+commands that produce them: [results/](results/README.md).
 
 ## Held-out tests
 

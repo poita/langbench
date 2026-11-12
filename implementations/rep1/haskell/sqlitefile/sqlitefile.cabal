@@ -1,0 +1,49 @@
+cabal-version:      3.0
+name:               sqlitefile
+version:            0.1.0.0
+synopsis:           Read SQLite 3 database files directly, without SQLite
+description:
+  A from-scratch reader for the SQLite 3 file format: pager, B-tree walker,
+  record decoder, @CREATE TABLE@ / @CREATE INDEX@ parser and a tiny query
+  evaluator (@.tables@, @.schema@, @COUNT@, @SELECT@, @INDEX@).
+category:           Database
+license:            MIT
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  SqliteFile
+                    SqliteFile.Error
+                    SqliteFile.Value
+                    SqliteFile.Format
+                    SqliteFile.Varint
+                    SqliteFile.Pager
+                    SqliteFile.BTree
+                    SqliteFile.Record
+                    SqliteFile.DDL
+                    SqliteFile.Catalog
+                    SqliteFile.Query
+                    SqliteFile.Exec
+  build-depends:    base >=4.18 && <5,
+                    bytestring,
+                    containers
+
+executable sqlitefile
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base, bytestring, directory, filepath, sqlitefile
+
+test-suite sqlitefile-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    TestDb
+  build-depends:    base, bytestring, hspec, QuickCheck, sqlitefile

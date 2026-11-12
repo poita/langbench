@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block body %}<h1>{{ tag.name }} ({{ tag.post_count }})</h1>
+<ul>{% for post in posts %}<li>{{ post.title }}</li>{% endfor %}</ul>{% endblock %}

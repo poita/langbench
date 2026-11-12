@@ -1,0 +1,71 @@
+cabal-version:      3.0
+name:               cardgame
+version:            0.1.0.0
+synopsis:           Rules engine for Spiremark, an invented two-player duelling-card game
+description:
+  A complete, deterministic rules engine for Spiremark: it reads a card
+  database (s-expressions) and a match file (setup plus a script of player
+  actions and inspection directives) and writes the event log.  The package
+  provides a reusable library and a thin command-line tool.
+category:           Game
+license:            MIT
+author:             cardgame contributors
+maintainer:         cardgame contributors
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall -Wno-name-shadowing -Wno-unused-do-bind
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Spiremark
+    Spiremark.SExpr
+    Spiremark.Types
+    Spiremark.Random
+    Spiremark.Match
+    Spiremark.Card.Types
+    Spiremark.Card.Parse
+    Spiremark.Card.Print
+    Spiremark.Engine
+    Spiremark.Engine.Types
+    Spiremark.Engine.Eval
+    Spiremark.Engine.Derive
+    Spiremark.Engine.Core
+    Spiremark.Engine.Target
+    Spiremark.Engine.Effects
+    Spiremark.Engine.Chain
+    Spiremark.Engine.Combat
+    Spiremark.Engine.Report
+  build-depends:
+    base         >= 4.18 && < 5,
+    containers   >= 0.6,
+    mtl          >= 2.3
+
+executable cardgame
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    base,
+    bytestring,
+    text,
+    cardgame
+
+test-suite cardgame-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+    base,
+    containers,
+    directory,
+    filepath,
+    hspec        >= 2.7,
+    QuickCheck   >= 2.14,
+    cardgame

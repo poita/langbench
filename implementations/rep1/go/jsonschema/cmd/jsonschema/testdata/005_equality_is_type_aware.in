@@ -1,0 +1,49 @@
+{
+  "schema": {
+    "enum": [
+      1,
+      "1",
+      null,
+      [
+        1
+      ],
+      {
+        "a": 1
+      }
+    ]
+  },
+  "tests": [
+    {
+      "description": "number one",
+      "data": 1
+    },
+    {
+      "description": "1.0 equals 1",
+      "data": 1.0
+    },
+    {
+      "description": "string one",
+      "data": "1"
+    },
+    {
+      "description": "true is not 1",
+      "data": true
+    },
+    {
+      "description": "false is not 0",
+      "data": false
+    },
+    {
+      "description": "object with same content",
+      "data": {
+        "a": 1.0
+      }
+    },
+    {
+      "description": "array with different content",
+      "data": [
+        2
+      ]
+    }
+  ]
+}

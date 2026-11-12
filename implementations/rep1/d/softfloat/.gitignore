@@ -1,6 +1,7 @@
 .dub/
-softfloat
+bin/
 *.o
 *.a
+*.lst
 dub.selections.json
 softfloat-test-*

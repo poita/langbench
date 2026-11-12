@@ -1,46 +1,38 @@
-/// Structured header values (`Content-Type`, `Content-Disposition`,
-/// `Content-Transfer-Encoding`): a value proper plus `;`-separated
-/// parameters, including RFC 2231 continuations and extended values.
+/// Structured header values (`Content-Type` and friends) with RFC 2231
+/// parameter assembly.
 module mime.params;
 
-import mime.ascii;
-import mime.buffer;
-import mime.charset;
-import mime.encodedword;
-import mime.syntax;
+import std.algorithm : sort;
+import std.array : appender;
+import mime.charset : decode;
+import mime.encodedword : decodeUnstructured;
+import mime.text;
+import mime.transfer : hexDigit;
 
-/// A parsed structured header value.
-struct StructuredValue
+@safe:
+
+/// A parsed `value; name=value; ...` header.
+struct Structured
 {
-    /// The first segment, unmodified (callers strip and lower-case it).
+    /// The first segment, stripped of blanks (case preserved).
     string value;
-    /// Effective parameters, RFC 2231 assembled, in order of first appearance.
-    Param[] params;
+    /// Effective parameters by lower-cased name.
+    string[string] params;
 
-    /// Looks up an effective parameter by lower-case name.
-    bool find(string name, out string result) const @safe pure nothrow @nogc
+    /// Returns the parameter's value, or null when absent.  Use `has` to
+    /// distinguish an absent parameter from an empty one.
+    string get(string name) const pure nothrow
     {
-        foreach (ref p; params)
-            if (p.name == name)
-            {
-                result = p.value;
-                return true;
-            }
-        return false;
+        if (auto p = name in params)
+            return *p;
+        return null;
     }
 
-    /// The value proper, stripped of blanks and lower-cased.
-    string valueProper() const @safe pure nothrow
+    /// Whether the parameter is present.
+    bool has(string name) const pure nothrow
     {
-        return toLowerAscii(stripBlanks(value).idup);
+        return (name in params) !is null;
     }
-}
-
-/// One effective parameter.
-struct Param
-{
-    string name;
-    string value;
 }
 
 private struct RawParam
@@ -49,270 +41,327 @@ private struct RawParam
     string value;
 }
 
-/// Splits `v` at every `;` outside a quoted string.
-private string[] splitSegments(string v) @safe pure nothrow
+private ubyte[] bytesOf(string s) pure nothrow @trusted
+{
+    return cast(ubyte[]) s.dup;
+}
+
+/// Splits `raw` at top-level `;` (not inside a quoted string).
+private string[] splitSegments(string raw) pure nothrow
 {
     string[] segs;
-    size_t start = 0;
-    size_t i = 0;
-    while (i < v.length)
+    size_t start = 0, i = 0;
+    while (i < raw.length)
     {
-        immutable c = v[i];
+        const c = raw[i];
         if (c == '"')
-            i = scanQuoted(v, i).end;
+        {
+            size_t end;
+            readQuoted(raw, i, end);
+            i = end;
+        }
         else if (c == ';')
         {
-            segs ~= v[start .. i];
-            i++;
+            segs ~= raw[start .. i];
+            ++i;
             start = i;
         }
         else
-            i++;
+            ++i;
     }
-    segs ~= v[start .. $];
+    segs ~= raw[start .. $];
     return segs;
 }
 
-private RawParam[] collectRaw(string[] segs) @safe pure nothrow
+private ubyte[] percentDecode(string s) pure nothrow
 {
-    RawParam[] raws;
-    foreach (seg; segs)
+    auto app = appender!(ubyte[])();
+    size_t i = 0;
+    while (i < s.length)
     {
-        size_t eq = size_t.max;
-        foreach (k, c; seg)
-            if (c == '=')
-            {
-                eq = k;
-                break;
-            }
-        if (eq == size_t.max)
-            continue;
-        immutable name = toLowerAscii(stripBlanks(seg[0 .. eq]).idup);
-        auto val = stripBlanks(seg[eq + 1 .. $]);
-        string value = val.idup;
-        if (val.length > 0 && val[0] == '"')
-            value = scanQuoted(val.idup, 0).text;
-        bool dup = false;
-        foreach (ref r; raws)
-            if (r.name == name)
-            {
-                dup = true;
-                break;
-            }
-        if (!dup)
-            raws ~= RawParam(name, value);
+        if (s[i] == '%' && i + 2 < s.length && hexDigit(s[i + 1]) >= 0 && hexDigit(s[i + 2]) >= 0)
+        {
+            app.put(cast(ubyte)(hexDigit(s[i + 1]) * 16 + hexDigit(s[i + 2])));
+            i += 3;
+        }
+        else
+        {
+            app.put(cast(ubyte) s[i]);
+            ++i;
+        }
     }
-    return raws;
+    return app.data;
+}
+
+/// Splits `charset'language'text`; with fewer than two `'` the whole string
+/// is the text.  An empty charset means us-ascii.
+private void splitExtended(string v, out string charset, out string text) pure nothrow
+{
+    charset = "us-ascii";
+    text = v;
+    size_t first = size_t.max;
+    foreach (i, char c; v)
+        if (c == '\'')
+        {
+            first = i;
+            break;
+        }
+    if (first == size_t.max)
+        return;
+    size_t second = size_t.max;
+    foreach (i; first + 1 .. v.length)
+        if (v[i] == '\'')
+        {
+            second = i;
+            break;
+        }
+    if (second == size_t.max)
+        return;
+    if (first > 0)
+        charset = v[0 .. first];
+    text = v[second + 1 .. $];
+}
+
+private enum NameKind { plain, segment, extended }
+
+/// Classifies a parameter name as `base`, `base*N`/`base*N*` or `base*`.
+private NameKind classify(string name, out string base, out string num, out bool extSeg) pure nothrow
+{
+    base = name;
+    num = null;
+    extSeg = false;
+    string rest = name;
+    bool star = false;
+    if (rest.length > 0 && rest[$ - 1] == '*')
+    {
+        star = true;
+        rest = rest[0 .. $ - 1];
+    }
+    // base*N pattern
+    size_t d = rest.length;
+    while (d > 0 && rest[d - 1] >= '0' && rest[d - 1] <= '9') --d;
+    if (d < rest.length && d >= 2 && rest[d - 1] == '*')
+    {
+        base = rest[0 .. d - 1];
+        string digits = rest[d .. $];
+        size_t z = 0;
+        while (z + 1 < digits.length && digits[z] == '0') ++z;
+        num = digits[z .. $];
+        extSeg = star;
+        return NameKind.segment;
+    }
+    if (star && rest.length > 0)
+    {
+        base = rest;
+        return NameKind.extended;
+    }
+    return NameKind.plain;
 }
 
 private struct Segment
 {
-    string number; // decimal digits, no leading zeros (canonical)
-    bool extended;
+    string num;
     string value;
+    bool ext;
 }
 
 private struct Group
 {
     string base;
-    Segment[] segments;
-    bool hasExtended;
-    string extendedValue;
-    bool hasPlain;
-    string plainValue;
-    bool plainFirst; // the plain value appeared first (only affects ordering)
-}
-
-private string stripLeadingZeros(string d) @safe pure nothrow @nogc
-{
-    size_t i = 0;
-    while (i + 1 < d.length && d[i] == '0')
-        i++;
-    return d[i .. $];
-}
-
-private bool numberLess(string a, string b) @safe pure nothrow @nogc
-{
-    if (a.length != b.length)
-        return a.length < b.length;
-    return a < b;
-}
-
-/// Classifies a raw parameter name. Returns 0 for plain, 1 for `base*N`
-/// (`ext` tells whether it ended in `*`), 2 for `base*`.
-private int classify(string name, out string base, out string number, out bool ext) @safe pure nothrow
-{
-    ext = name.length > 0 && name[$ - 1] == '*';
-    string rest = ext ? name[0 .. $ - 1] : name;
-    // base*N
-    size_t k = rest.length;
-    while (k > 0 && isDigit(rest[k - 1]))
-        k--;
-    if (k < rest.length && k >= 2 && rest[k - 1] == '*')
-    {
-        base = rest[0 .. k - 1];
-        number = stripLeadingZeros(rest[k .. $]);
-        return 1;
-    }
-    ext = false;
-    if (name.length >= 2 && name[$ - 1] == '*')
-    {
-        base = name[0 .. $ - 1];
-        return 2;
-    }
-    return 0;
-}
-
-private ubyte[] percentDecode(const(char)[] s) @safe pure nothrow
-{
-    auto o = new ubyte[](s.length);
-    size_t n = 0;
-    for (size_t i = 0; i < s.length;)
-    {
-        if (s[i] == '%' && i + 2 < s.length && hexValue(s[i + 1]) >= 0 && hexValue(s[i + 2]) >= 0)
-        {
-            o[n++] = cast(ubyte)(hexValue(s[i + 1]) * 16 + hexValue(s[i + 2]));
-            i += 3;
-        }
-        else
-            o[n++] = s[i++];
-    }
-    return o[0 .. n];
-}
-
-/// Splits `charset'language'text`; returns the charset and the text.
-private void splitExtended(string v, out string charset, out string text) @safe pure nothrow
-{
-    size_t q1 = size_t.max, q2 = size_t.max;
-    foreach (i, c; v)
-        if (c == '\'')
-        {
-            if (q1 == size_t.max)
-                q1 = i;
-            else
-            {
-                q2 = i;
-                break;
-            }
-        }
-    if (q2 == size_t.max)
-    {
-        charset = "us-ascii";
-        text = v;
-        return;
-    }
-    charset = v[0 .. q1];
-    if (charset.length == 0)
-        charset = "us-ascii";
-    text = v[q2 + 1 .. $];
-}
-
-private string decodeExtended(string v) @safe pure nothrow
-{
-    string cs, text;
-    splitExtended(v, cs, text);
-    return decode(percentDecode(text), cs);
-}
-
-private string assemble(ref Group g) @safe pure nothrow
-{
-    // order by number; first in appearance wins among equal numbers
     Segment[] segs;
-    foreach (s; g.segments)
-    {
-        bool dup = false;
-        foreach (u; segs)
-            if (u.number == s.number)
-            {
-                dup = true;
-                break;
-            }
-        if (!dup)
-            segs ~= s;
-    }
-    // stable insertion sort by numeric value
-    foreach (i; 1 .. segs.length)
-    {
-        auto x = segs[i];
-        size_t j = i;
-        while (j > 0 && numberLess(x.number, segs[j - 1].number))
-        {
-            segs[j] = segs[j - 1];
-            j--;
-        }
-        segs[j] = x;
-    }
-    string charset = "us-ascii";
-    auto o = ByteBuffer(64);
-    foreach (s; segs)
-    {
-        if (s.extended)
-        {
-            string text = s.value;
-            if (s.number == "0")
-            {
-                string cs;
-                splitExtended(s.value, cs, text);
-                charset = cs;
-            }
-            o.put(percentDecode(text));
-        }
-        else
-            o.put(s.value);
-    }
-    return decode(o.data, charset);
+    bool hasExt;
+    string ext;
+    bool hasPlain;
+    string plain;
 }
 
-/// Parses a structured header value from its unfolded raw text.
-StructuredValue parseStructured(string raw) @safe pure nothrow
+private string[string] assemble(RawParam[] raws) pure nothrow
 {
-    auto segs = splitSegments(raw);
-    StructuredValue sv;
-    sv.value = segs[0];
-    auto raws = collectRaw(segs[1 .. $]);
-
     Group[] groups;
-    ref Group groupFor(string base) @safe pure nothrow
+    size_t[string] index;
+    foreach (r; raws)
     {
-        foreach (i; 0 .. groups.length)
-            if (groups[i].base == base)
-                return groups[i];
-        groups ~= Group(base);
-        return groups[$ - 1];
-    }
-
-    // Order of output: by first appearance of each effective name.
-    foreach (ref r; raws)
-    {
-        string base, number;
-        bool ext;
-        immutable kind = classify(r.name, base, number, ext);
-        if (kind == 0)
-        {
-            auto g = &groupFor(r.name);
-            g.hasPlain = true;
-            g.plainValue = decodeUnstructured(r.value);
-        }
-        else if (kind == 1)
-        {
-            auto g = &groupFor(base);
-            g.segments ~= Segment(number, ext, r.value);
-        }
+        string base, num;
+        bool extSeg;
+        const kind = classify(r.name, base, num, extSeg);
+        size_t gi;
+        if (auto p = base in index)
+            gi = *p;
         else
         {
-            auto g = &groupFor(base);
-            g.hasExtended = true;
-            g.extendedValue = r.value;
+            gi = groups.length;
+            index[base] = gi;
+            groups ~= Group(base);
+        }
+        final switch (kind)
+        {
+        case NameKind.plain:
+            groups[gi].hasPlain = true;
+            groups[gi].plain = r.value;
+            break;
+        case NameKind.extended:
+            groups[gi].hasExt = true;
+            groups[gi].ext = r.value;
+            break;
+        case NameKind.segment:
+            groups[gi].segs ~= Segment(num, r.value, extSeg);
+            break;
         }
     }
+
+    string[string] result;
     foreach (ref g; groups)
     {
-        if (g.segments.length > 0)
-            sv.params ~= Param(g.base, assemble(g));
-        else if (g.hasExtended)
-            sv.params ~= Param(g.base, decodeExtended(g.extendedValue));
+        if (g.segs.length != 0)
+        {
+            // Keep the first segment of each number, then order numerically.
+            Segment[] uniq;
+            bool[string] seen;
+            foreach (s; g.segs)
+            {
+                if (s.num in seen)
+                    continue;
+                seen[s.num] = true;
+                uniq ~= s;
+            }
+            uniq.sort!((a, b) => a.num.length != b.num.length
+                       ? a.num.length < b.num.length : a.num < b.num);
+            string charset = "us-ascii";
+            auto bytes = appender!(ubyte[])();
+            foreach (s; uniq)
+            {
+                if (s.ext)
+                {
+                    string text = s.value;
+                    if (s.num == "0")
+                        splitExtended(s.value, charset, text);
+                    bytes.put(percentDecode(text));
+                }
+                else
+                    bytes.put(bytesOf(s.value));
+            }
+            result[g.base] = decode(bytes.data, charset);
+        }
+        else if (g.hasExt)
+        {
+            string charset, text;
+            splitExtended(g.ext, charset, text);
+            result[g.base] = decode(percentDecode(text), charset);
+        }
         else
-            sv.params ~= Param(g.base, g.plainValue);
+            result[g.base] = decodeUnstructured(g.plain);
     }
-    return sv;
+    return result;
+}
+
+/// Parses a `Content-Type`-style header value (the unfolded raw text).
+Structured parseStructured(string raw) pure nothrow
+{
+    auto segs = splitSegments(raw);
+    Structured s;
+    s.value = stripBlanks(segs[0]);
+    RawParam[] raws;
+    bool[string] seen;
+    foreach (seg; segs[1 .. $])
+    {
+        size_t eq = size_t.max;
+        foreach (i, char c; seg)
+            if (c == '=')
+            {
+                eq = i;
+                break;
+            }
+        if (eq == size_t.max)
+            continue;
+        const name = toLowerAscii(stripBlanks(seg[0 .. eq]));
+        if (name in seen)
+            continue;
+        seen[name] = true;
+        string value = stripBlanks(seg[eq + 1 .. $]);
+        if (value.length != 0 && value[0] == '"')
+        {
+            size_t end;
+            value = readQuoted(value, 0, end);
+        }
+        raws ~= RawParam(name, value);
+    }
+    s.params = assemble(raws);
+    return s;
+}
+
+/// Returns `(type, subtype)` if `value` (already stripped and lower-cased)
+/// is `token/token`, otherwise empty strings.
+void splitMediaType(string value, out string type, out string subtype) pure nothrow @nogc
+{
+    static bool isTokenChar(char c) pure nothrow @nogc
+    {
+        switch (c)
+        {
+        case ' ', '\t', '(', ')', '<', '>', '@', ',', ';', ':', '\\', '"', '/', '[', ']', '?', '=':
+            return false;
+        default:
+            return true;
+        }
+    }
+    size_t slash = size_t.max;
+    foreach (i, char c; value)
+    {
+        if (c == '/')
+        {
+            if (slash != size_t.max)
+                return;
+            slash = i;
+        }
+        else if (!isTokenChar(c))
+            return;
+    }
+    if (slash == size_t.max || slash == 0 || slash + 1 == value.length)
+        return;
+    type = value[0 .. slash];
+    subtype = value[slash + 1 .. $];
+}
+
+pure nothrow unittest
+{
+    auto p = parseStructured(`multipart/mixed; boundary="X"; Charset=utf-8`);
+    assert(p.value == "multipart/mixed");
+    assert(p.get("boundary") == "X" && p.get("charset") == "utf-8");
+    assert(!p.has("nothing"));
+}
+
+pure nothrow unittest
+{
+    static string fn(string params)
+    {
+        return parseStructured("x; " ~ params).get("filename");
+    }
+    assert(fn(`filename="report.pdf"`) == "report.pdf");
+    assert(fn("filename*=utf-8''a%C3%A9.txt") == "aé.txt");
+    assert(fn(`filename*0="long"; filename*1="name.txt"`) == "longname.txt");
+    assert(fn(`filename*0*=utf-8''a%C3%A9; filename*1=".txt"`) == "aé.txt");
+    assert(fn(`filename="=?utf-8?Q?a=C3=A9.txt?="`) == "aé.txt");
+    assert(fn(`filename=two words.bin`) == "two words.bin");
+    assert(fn("filename*=''caf%E9.txt") == "caf\uFFFD.txt");
+    assert(fn(`filename*0=a; filename*2=c; filename*10=j`) == "acj");
+    assert(fn(`filename="a\\"; x=1`) == `a\`);
+    assert(fn(`filename*0=a; filename*00=b; filename*1=c; filename*1*=d`) == "ac");
+    assert(fn(`filename=plain; filename*=utf-8''ext`) == "ext");
+    assert(fn(`filename*=utf-8''ext; filename*0=num`) == "num");
+    assert(fn(`filename=one; filename=two`) == "one");
+    assert(fn(`filename*07=x`) == "x");
+    assert(parseStructured(`x; *0=v`).get("*0") == "v");
+    assert(parseStructured("x; a=\"semi;colon\"; b=2").get("b") == "2");
+}
+
+pure nothrow @nogc unittest
+{
+    string t, s;
+    splitMediaType("text/plain", t, s);
+    assert(t == "text" && s == "plain");
+    splitMediaType("text", t, s);
+    assert(t.length == 0);
+    splitMediaType("a/b/c", t, s);
+    assert(t.length == 0);
+    splitMediaType("a/ b", t, s);
+    assert(t.length == 0);
 }

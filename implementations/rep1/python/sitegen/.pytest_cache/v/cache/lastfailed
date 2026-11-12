@@ -1,0 +1,8 @@
+{
+  "tests/test_markdown.py::test_backtick_memo_reports_not_found": true,
+  "tests/test_template.py::test_expression[1 + 2 ~ 3-6]": true,
+  "tests/test_template.py::test_expression['a\\\\nb\\\\t\\\\\\\\' | length-4]": true,
+  "tests/test_template.py::test_type_errors[{{ super(1) }}]": true,
+  "tests/test_template.py::test_filter[['b', 'A', 'a', 'B']|sort|join('')-AaBb]": true,
+  "tests/test_template.py::test_type_errors[{% extends 'base' %}{% block a %}{{ super(1) }}{% endblock %}]": true
+}

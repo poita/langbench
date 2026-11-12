@@ -1,113 +1,124 @@
 /**
- * Linear-time conversion between decimal text and base-10^9 magnitudes.
+ * Conversion between decimal text and base-10^9 magnitudes.
+ *
+ * Because the limb radix is a power of ten, both directions are linear in the
+ * number of digits.
  */
 module bigint.decimal;
 
-import bigint.magnitude : BASE, DIGITS_PER_LIMB, trimmed;
+import bigint.exceptions : ParseException;
+import bigint.magnitude : BASE, BASE_DIGITS, trim;
 
-/// Result of parsing a decimal token.
-struct Parsed
+@safe pure
 {
-    /// True iff the token had a `-` and the value is non-zero.
-    bool negative;
-    /// Normalised little-endian magnitude (empty for zero).
-    uint[] magnitude;
-}
 
 /**
- * Parses `-?[0-9]+` (leading zeros and `-0` allowed). Digits are consumed nine
- * at a time from the right. Input is assumed well formed.
+ * Parses a string of ASCII digits (no sign) into a normalised magnitude.
+ * Leading zeros are accepted. Throws `ParseException` for an empty string or a
+ * non-digit character.
  */
-Parsed parseDecimal(scope const(char)[] token) pure nothrow @safe
+uint[] parseDigits(scope const(char)[] digits)
 {
-    bool neg = false;
-    if (token.length && token[0] == '-')
-    {
-        neg = true;
-        token = token[1 .. $];
-    }
-    size_t lead = 0;
-    while (lead < token.length && token[lead] == '0')
-        ++lead;
-    token = token[lead .. $];
-    if (token.length == 0)
-        return Parsed(false, null);
+    if (digits.length == 0)
+        throw new ParseException("no digits");
+    foreach (c; digits)
+        if (c < '0' || c > '9')
+            throw new ParseException;
 
-    auto mag = new uint[(token.length + DIGITS_PER_LIMB - 1) / DIGITS_PER_LIMB];
-    size_t end = token.length;
-    foreach (i; 0 .. mag.length)
+    size_t start = 0;
+    while (start < digits.length && digits[start] == '0')
+        ++start;
+    digits = digits[start .. $];
+
+    auto limbs = new uint[(digits.length + BASE_DIGITS - 1) / BASE_DIGITS];
+    size_t end = digits.length;
+    foreach (ref limb; limbs)
     {
-        immutable size_t start = end >= DIGITS_PER_LIMB ? end - DIGITS_PER_LIMB : 0;
-        uint limb = 0;
-        foreach (k; start .. end)
-            limb = limb * 10 + (token[k] - '0');
-        mag[i] = limb;
-        end = start;
+        const begin = end >= BASE_DIGITS ? end - BASE_DIGITS : 0;
+        uint v = 0;
+        foreach (c; digits[begin .. end])
+            v = v * 10 + (c - '0');
+        limb = v;
+        end = begin;
     }
-    return Parsed(neg, trimmed(mag));
+    return limbs;
 }
 
-/// Number of characters `formatDecimal` appends for the given value.
-size_t decimalLength(bool negative, scope const(uint)[] mag) pure nothrow @nogc @safe
+/// Number of decimal digits needed to print `mag` (zero needs one digit).
+size_t digitCount(scope const(uint)[] mag) nothrow @nogc
 {
     if (mag.length == 0)
         return 1;
-    uint top = mag[$ - 1];
-    size_t digits = 1;
-    while (top >= 10)
-    {
-        top /= 10;
-        ++digits;
-    }
-    return (negative ? 1 : 0) + digits + (mag.length - 1) * DIGITS_PER_LIMB;
+    size_t n = 1;
+    for (uint top = mag[$ - 1]; top >= 10; top /= 10)
+        ++n;
+    return n + (mag.length - 1) * BASE_DIGITS;
 }
 
-/**
- * Writes the canonical decimal form into `dst`, which must be at least
- * `decimalLength` characters long. Returns the number of characters written.
- */
-size_t formatDecimal(char[] dst, bool negative, scope const(uint)[] mag) pure nothrow @nogc @safe
+/// Formats a magnitude as decimal digits without leading zeros ("0" for zero).
+char[] formatDigits(scope const(uint)[] mag) nothrow
 {
+    auto buf = new char[digitCount(mag)];
     if (mag.length == 0)
     {
-        dst[0] = '0';
-        return 1;
+        buf[0] = '0';
+        return buf;
     }
-    size_t pos = 0;
-    if (negative)
-        dst[pos++] = '-';
-    // Top limb without padding.
+    size_t pos = buf.length;
+    foreach (i, limb; mag)
     {
-        char[10] tmp = void;
-        size_t k = tmp.length;
-        uint v = mag[$ - 1];
-        do
+        uint v = limb;
+        if (i + 1 == mag.length)
         {
-            tmp[--k] = cast(char)('0' + v % 10);
-            v /= 10;
+            do
+            {
+                buf[--pos] = cast(char)('0' + v % 10);
+                v /= 10;
+            }
+            while (v != 0);
         }
-        while (v != 0);
-        foreach (c; tmp[k .. $])
-            dst[pos++] = c;
-    }
-    for (size_t i = mag.length - 1; i-- > 0;)
-    {
-        uint v = mag[i];
-        foreach_reverse (k; 0 .. DIGITS_PER_LIMB)
+        else
         {
-            dst[pos + k] = cast(char)('0' + v % 10);
-            v /= 10;
+            foreach (_; 0 .. BASE_DIGITS)
+            {
+                buf[--pos] = cast(char)('0' + v % 10);
+                v /= 10;
+            }
         }
-        pos += DIGITS_PER_LIMB;
     }
-    return pos;
+    assert(pos == 0);
+    return buf;
 }
 
-/// Convenience: canonical decimal string of a value.
-string toDecimal(bool negative, scope const(uint)[] mag) pure nothrow @safe
+} // @safe pure
+
+unittest
 {
-    auto buf = new char[decimalLength(negative, mag)];
-    immutable n = formatDecimal(buf, negative, mag);
-    assert(n == buf.length);
-    return (() @trusted => cast(string) buf)();
+    assert(parseDigits("0").length == 0);
+    assert(parseDigits("000").length == 0);
+    assert(parseDigits("0007") == [7u]);
+    assert(parseDigits("1000000000") == [0u, 1]);
+    assert(parseDigits("999999999999999999") == [BASE - 1, BASE - 1]);
+    assert(formatDigits(null) == "0");
+    assert(formatDigits([0u, 1]) == "1000000000");
+    assert(formatDigits([5u, 7]) == "7000000005");
+    assert(digitCount([0u, 0, 12]) == 20);
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+
+    assertThrown!ParseException(parseDigits(""));
+    assertThrown!ParseException(parseDigits("12a"));
+    assertThrown!ParseException(parseDigits("-1"));
+}
+
+unittest
+{
+    // round trip on a 1000-digit number
+    char[] s;
+    foreach (i; 0 .. 1000)
+        s ~= cast(char)('1' + i % 9);
+    assert(formatDigits(parseDigits(s)) == s);
 }

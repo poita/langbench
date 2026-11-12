@@ -1,0 +1,17 @@
+[package]
+name = "softfloat"
+version = "0.1.0"
+edition = "2021"
+description = "IEEE-754 binary32 add, sub, mul, div and sqrt in pure integer arithmetic"
+license = "MIT"
+readme = "README.md"
+keywords = ["ieee754", "float", "softfloat", "binary32"]
+categories = ["mathematics"]
+
+[lib]
+name = "softfloat"
+path = "src/lib.rs"
+
+[[bin]]
+name = "softfloat"
+path = "src/main.rs"

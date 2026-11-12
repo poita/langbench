@@ -1,0 +1,15 @@
+rest(1)
+rest(3)
+rest(4)
+rest(b)
+-- 4
+-- 0
+missing(zzz)
+-- 1
+gone(1, 3)
+gone(1, 4)
+gone(1, b)
+gone(3, 4)
+gone(3, b)
+gone(4, b)
+-- 6

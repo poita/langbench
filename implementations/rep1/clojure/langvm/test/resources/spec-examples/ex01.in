@@ -1,0 +1,13 @@
+@module main
+use greet;
+
+fn main() {
+    print(greet::hello("Vellum"));
+    print(greet::hello("world"));
+}
+@module greet
+pub fn hello(who: Str) -> Str {
+    "hello, " ++ who ++ "!"
+}
+
+fn secret() -> Int { 42 }

@@ -1,101 +1,111 @@
-// Package render walks a parsed SVG tree and paints it onto a canvas:
-// property inheritance, transforms, use references, group opacity, shapes,
-// fill and stroke.
+// Package render walks an SVG element tree and paints it onto a canvas:
+// property inheritance, transforms, <use> expansion, fills, strokes and group
+// opacity.
 package render
 
 import (
-	"errors"
+	"math"
 
 	"svgraster/geom"
+	"svgraster/path"
 	"svgraster/raster"
 	"svgraster/stroke"
 	"svgraster/svgparse"
-	"svgraster/svgpath"
 	"svgraster/xmlmini"
 )
 
-// Tolerance is the flattening tolerance in device pixels.
-const Tolerance = 0.01
+// maxDepth is the deepest nesting (including <use> expansion) that is drawn.
+const maxDepth = 64
 
-// MaxUseDepth is the deepest use-expansion nesting that is still rendered.
-const MaxUseDepth = 64
-
-// Renderer renders documents. It reuses scratch memory between documents, so
-// keep one around for many renders. It is not safe for concurrent use.
-type Renderer struct {
-	rast    *raster.Rasterizer
-	stroker stroke.Stroker
-	polys   geom.Polygons
-	free    []*raster.Canvas // spare layers (always cleared)
-
-	w, h int
-	cur  *raster.Canvas
-	ids  map[string]*xmlmini.Element
+// Render draws the document rooted at root (an <svg> element) onto a new
+// width x height canvas and returns it.
+func Render(root *xmlmini.Node, width, height int) *raster.Canvas {
+	r := &renderer{
+		ids:    map[string]*xmlmini.Node{},
+		canvas: raster.NewCanvas(width, height),
+		w:      width,
+		h:      height,
+	}
+	r.collectIDs(root)
+	if root.Tag == "svg" {
+		r.node(root, ViewportMatrix(root, width, height), initialStyle(), 0, true)
+	}
+	return r.canvas
 }
 
-// New returns a Renderer.
-func New() *Renderer { return &Renderer{} }
-
-// Render draws the document with root element root onto a new w x h canvas.
-func (r *Renderer) Render(root *xmlmini.Element, w, h int) (*raster.Canvas, error) {
-	if root == nil || root.Tag != "svg" {
-		return nil, errors.New("render: document element is not <svg>")
-	}
-	if w < 1 || h < 1 {
-		return nil, errors.New("render: invalid image size")
-	}
-	if r.rast == nil {
-		r.rast = raster.NewRasterizer(w)
-	}
-	if r.w != w || r.h != h {
-		r.free = nil
-	}
-	r.w, r.h = w, h
-	r.ids = map[string]*xmlmini.Element{}
-	collectIDs(root, r.ids)
-	canvas := raster.NewCanvas(w, h)
-	r.cur = canvas
-
-	vx, vy, vw, vh := viewport(root, w, h)
-	sx, sy := float64(w)/vw, float64(h)/vh
-	ctm0 := geom.Matrix{A: sx, D: sy, E: -vx * sx, F: -vy * sy}
-	r.walk(root, ctm0, InitialStyle(), 0, true)
-	return canvas, nil
-}
-
-func collectIDs(el *xmlmini.Element, ids map[string]*xmlmini.Element) {
-	if id, ok := el.Attr("id"); ok {
-		if _, dup := ids[id]; !dup {
-			ids[id] = el
+// ViewportMatrix returns the transform from the root element's user space to
+// a width x height pixel grid (SPEC §7.1): the view box is stretched to fill
+// the output.
+func ViewportMatrix(root *xmlmini.Node, width, height int) geom.Matrix {
+	vx, vy := 0.0, 0.0
+	vw, vh := float64(width), float64(height)
+	if s, ok := root.Attr("viewBox"); ok {
+		if x, y, w, h, ok := svgparse.ViewBox(s); ok {
+			vx, vy, vw, vh = x, y, w, h
+			return viewport(vx, vy, vw, vh, width, height)
 		}
 	}
-	for _, c := range el.Children {
-		collectIDs(c, ids)
+	w, wok := lengthAttr(root, "width")
+	h, hok := lengthAttr(root, "height")
+	if wok && hok && w > 0 && h > 0 {
+		vw, vh = w, h
+	}
+	return viewport(vx, vy, vw, vh, width, height)
+}
+
+func viewport(vx, vy, vw, vh float64, width, height int) geom.Matrix {
+	sx, sy := float64(width)/vw, float64(height)/vh
+	return geom.Matrix{A: sx, D: sy, E: -vx * sx, F: -vy * sy}
+}
+
+type renderer struct {
+	ids    map[string]*xmlmini.Node
+	canvas *raster.Canvas // current drawing target
+	pool   []*raster.Canvas
+	w, h   int
+}
+
+func (r *renderer) collectIDs(n *xmlmini.Node) {
+	if id, ok := n.Attr("id"); ok {
+		if _, dup := r.ids[id]; !dup {
+			r.ids[id] = n
+		}
+	}
+	for _, c := range n.Children {
+		r.collectIDs(c)
 	}
 }
 
-// viewport determines the user-space rectangle that is stretched over the
-// output (SPEC 7.1).
-func viewport(root *xmlmini.Element, w, h int) (x, y, vw, vh float64) {
-	if vb, ok := root.Attr("viewBox"); ok {
-		if n := svgparse.NumberList(vb); len(n) >= 4 && n[2] > 0 && n[3] > 0 {
-			return n[0], n[1], n[2], n[3]
-		}
+func lengthAttr(n *xmlmini.Node, name string) (float64, bool) {
+	if s, ok := n.Attr(name); ok {
+		return svgparse.ParseLength(s)
 	}
-	ws, okw := root.Attr("width")
-	hs, okh := root.Attr("height")
-	if okw && okh {
-		wv, ok1 := svgparse.Length(ws)
-		hv, ok2 := svgparse.Length(hs)
-		if ok1 && ok2 && wv > 0 && hv > 0 {
-			return 0, 0, wv, hv
-		}
-	}
-	return 0, 0, float64(w), float64(h)
+	return 0, false
 }
 
-func (r *Renderer) walk(el *xmlmini.Element, parent geom.Matrix, ps Style, useDepth int, isRoot bool) {
-	switch el.Tag {
+func lengthOr(n *xmlmini.Node, name string, def float64) float64 {
+	if v, ok := lengthAttr(n, name); ok {
+		return v
+	}
+	return def
+}
+
+func (r *renderer) layer() *raster.Canvas {
+	if k := len(r.pool); k > 0 {
+		c := r.pool[k-1]
+		r.pool = r.pool[:k-1]
+		return c
+	}
+	return raster.NewCanvas(r.w, r.h)
+}
+
+// node renders one element and its subtree. ctm is the matrix of the parent
+// (for the document element, the viewport transform).
+func (r *renderer) node(n *xmlmini.Node, ctm geom.Matrix, parent style, depth int, isRoot bool) {
+	if depth > maxDepth {
+		return
+	}
+	switch n.Tag {
 	case "svg":
 		if !isRoot {
 			return
@@ -104,179 +114,102 @@ func (r *Renderer) walk(el *xmlmini.Element, parent geom.Matrix, ps Style, useDe
 	default:
 		return
 	}
-	d := collect(el)
-	if d[pDisplay].set && d[pDisplay].val == "none" {
+	p := newProps(n)
+	if hidden(p) {
 		return
 	}
-	opacity := 1.0
-	if d[pOpacity].set {
-		if v, ok := svgparse.Opacity(d[pOpacity].val); ok {
-			opacity = v
+	op := opacityOf(p)
+	if op == 0 {
+		return
+	}
+	if !isRoot {
+		if t, ok := n.Attr("transform"); ok {
+			ctm = ctm.Mul(svgparse.ParseTransform(t))
 		}
 	}
-	if opacity == 0 {
-		return
-	}
-	style := d.apply(ps)
-	ctm := parent
-	if t, ok := el.Attr("transform"); ok {
-		ctm = ctm.Mul(svgparse.Transform(t))
+	st := computeStyle(parent, p)
+
+	target := r.canvas
+	var layer *raster.Canvas
+	if op < 1 {
+		layer = r.layer()
+		r.canvas = layer
 	}
 
-	var saved *raster.Canvas
-	if opacity < 1 {
-		saved = r.cur
-		r.cur = r.layer()
-	}
-	switch el.Tag {
+	switch n.Tag {
 	case "svg", "g":
-		for _, c := range el.Children {
-			r.walk(c, ctm, style, useDepth, false)
+		for _, c := range n.Children {
+			r.node(c, ctm, st, depth+1, false)
 		}
 	case "use":
-		r.use(el, ctm, style, useDepth)
+		r.use(n, ctm, st, depth)
 	default:
-		if p := shapePath(el); p != nil {
-			r.paint(p, ctm, &style, el.Tag != "line")
-		}
+		r.shape(n, ctm, st)
 	}
-	if saved != nil {
-		layer := r.cur
-		r.cur = saved
-		saved.CompositeLayer(layer, opacity)
+
+	if layer != nil {
+		r.canvas = target
+		target.DrawLayer(layer, op)
 		layer.Clear()
-		r.free = append(r.free, layer)
+		r.pool = append(r.pool, layer)
 	}
 }
 
-func (r *Renderer) layer() *raster.Canvas {
-	if n := len(r.free); n > 0 {
-		l := r.free[n-1]
-		r.free = r.free[:n-1]
-		return l
-	}
-	return raster.NewCanvas(r.w, r.h)
-}
-
-func (r *Renderer) use(el *xmlmini.Element, ctm geom.Matrix, style Style, depth int) {
-	if depth >= MaxUseDepth {
-		return
-	}
-	href, ok := el.Attr("href")
+func (r *renderer) use(n *xmlmini.Node, ctm geom.Matrix, st style, depth int) {
+	href, ok := n.Attr("href")
 	if !ok || len(href) < 2 || href[0] != '#' {
 		return
 	}
-	target := r.ids[href[1:]]
-	if target == nil {
+	target, ok := r.ids[href[1:]]
+	if !ok {
 		return
 	}
-	x, y := attrLength(el, "x", 0), attrLength(el, "y", 0)
-	r.walk(target, ctm.Mul(geom.Translate(x, y)), style, depth+1, false)
+	m := ctm.Mul(geom.Translate(lengthOr(n, "x", 0), lengthOr(n, "y", 0)))
+	r.node(target, m, st, depth+1, false)
 }
 
-func attrLength(el *xmlmini.Element, name string, def float64) float64 {
-	if s, ok := el.Attr(name); ok {
-		if v, ok := svgparse.Length(s); ok {
-			return v
-		}
+// shape paints a basic shape or path element.
+func (r *renderer) shape(n *xmlmini.Node, ctm geom.Matrix, st style) {
+	pth := ShapePath(n)
+	if pth == nil || len(pth.Segs) == 0 {
+		return
 	}
-	return def
+	r.fill(pth, ctm, st)
+	r.stroke(pth, ctm, st)
 }
 
-// shapePath converts a shape element to a path in its user space, or nil if
-// it draws nothing.
-func shapePath(el *xmlmini.Element) *svgpath.Path {
-	switch el.Tag {
-	case "path":
-		d, _ := el.Attr("d")
-		return svgpath.ParseData(d)
-	case "rect":
-		x, y := attrLength(el, "x", 0), attrLength(el, "y", 0)
-		w, h := attrLength(el, "width", 0), attrLength(el, "height", 0)
-		if w <= 0 || h <= 0 {
-			return nil
-		}
-		rx, okx := radius(el, "rx")
-		ry, oky := radius(el, "ry")
-		switch {
-		case !okx && !oky:
-			rx, ry = 0, 0
-		case !okx:
-			rx = ry
-		case !oky:
-			ry = rx
-		}
-		rx, ry = min(max(rx, 0), w/2), min(max(ry, 0), h/2)
-		return svgpath.Rect(x, y, w, h, rx, ry)
-	case "circle":
-		rr := attrLength(el, "r", 0)
-		if rr <= 0 {
-			return nil
-		}
-		return svgpath.Ellipse(attrLength(el, "cx", 0), attrLength(el, "cy", 0), rr, rr)
-	case "ellipse":
-		rx, ry := attrLength(el, "rx", 0), attrLength(el, "ry", 0)
-		if rx <= 0 || ry <= 0 {
-			return nil
-		}
-		return svgpath.Ellipse(attrLength(el, "cx", 0), attrLength(el, "cy", 0), rx, ry)
-	case "line":
-		return svgpath.Line(attrLength(el, "x1", 0), attrLength(el, "y1", 0),
-			attrLength(el, "x2", 0), attrLength(el, "y2", 0))
-	case "polyline", "polygon":
-		pts, _ := el.Attr("points")
-		return svgpath.Poly(svgparse.NumberList(pts), el.Tag == "polygon")
+func (r *renderer) fill(pth *path.Path, ctm geom.Matrix, st style) {
+	rgb, ok := st.resolve(st.fill)
+	if !ok || st.fillOpacity == 0 {
+		return
 	}
-	return nil
+	var polys [][]geom.Point
+	for _, sp := range pth.Flatten(ctm, path.DefaultTolerance) {
+		if len(sp.Points) >= 3 {
+			polys = append(polys, sp.Points)
+		}
+	}
+	r.canvas.FillPolygons(polys, st.fillRule, rgb, st.fillOpacity)
 }
 
-// radius reads a rect corner radius; ok is false when absent or "auto".
-func radius(el *xmlmini.Element, name string) (float64, bool) {
-	s, ok := el.Attr(name)
-	if !ok {
-		return 0, false
-	}
-	return svgparse.Length(s)
-}
-
-func (r *Renderer) colour(p svgparse.Paint, s *Style) (cr, cg, cb float64) {
-	c := p.RGB
-	if p.Kind == svgparse.PaintCurrent {
-		c = s.Color
-	}
-	return float64(c.R) / 255, float64(c.G) / 255, float64(c.B) / 255
-}
-
-// paint fills (if fillable) and then strokes the path p under the CTM.
-func (r *Renderer) paint(p *svgpath.Path, ctm geom.Matrix, s *Style, fillable bool) {
-	if fillable && s.Fill.Kind != svgparse.PaintNone && s.FillOpacity > 0 {
-		r.polys.Reset()
-		for _, sub := range svgpath.Flatten(p, ctm, Tolerance) {
-			if len(sub.Pts) < 3 {
-				continue
-			}
-			for _, pt := range sub.Pts {
-				r.polys.Add(pt)
-			}
-			r.polys.End()
-		}
-		cr, cg, cb := r.colour(s.Fill, s)
-		r.rast.Fill(r.cur, &r.polys, s.FillRule, cr, cg, cb, s.FillOpacity)
-	}
-	if s.Stroke.Kind == svgparse.PaintNone || !(s.StrokeWidth > 0) || s.StrokeOpacity <= 0 {
+func (r *renderer) stroke(pth *path.Path, ctm geom.Matrix, st style) {
+	rgb, ok := st.resolve(st.stroke)
+	if !ok || !(st.strokeWidth > 0) || st.strokeOpacity == 0 {
 		return
 	}
 	scale := ctm.MaxScale()
-	if !(scale > 0) {
+	if !(scale > 0) || math.IsInf(scale, 0) {
 		return
 	}
-	tol := Tolerance / scale
-	subs := svgpath.Flatten(p, geom.Identity, tol)
-	r.polys.Reset()
-	r.stroker.Outline(&r.polys, subs, stroke.Options{
-		Width: s.StrokeWidth, Cap: s.Cap, Join: s.Join, MiterLimit: s.MiterLimit, Tol: tol,
-	})
-	r.polys.Transform(ctm)
-	cr, cg, cb := r.colour(s.Stroke, s)
-	r.rast.Fill(r.cur, &r.polys, raster.NonZero, cr, cg, cb, s.StrokeOpacity)
+	tol := path.DefaultTolerance / scale
+	subs := pth.Flatten(geom.Identity, tol)
+	polys := stroke.Outline(subs, stroke.Style{
+		Width: st.strokeWidth, Cap: st.cap, Join: st.join, MiterLimit: st.miterLimit,
+	}, tol)
+	for _, poly := range polys {
+		for i, pt := range poly {
+			poly[i] = ctm.Apply(pt)
+		}
+	}
+	r.canvas.FillPolygons(raster.Orient(polys), raster.NonZero, rgb, st.strokeOpacity)
 }

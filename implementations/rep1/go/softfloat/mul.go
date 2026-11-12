@@ -2,20 +2,22 @@ package softfloat
 
 // Mul returns a * b.
 func Mul(a, b uint32) uint32 {
-	if IsNaN(a) || IsNaN(b) {
+	neg := (a^b)&signMask != 0
+	switch {
+	case IsNaN(a) || IsNaN(b):
 		return QNaN
-	}
-	sign := (a ^ b) & signMask
-	if IsInf(a) || IsInf(b) {
+	case IsInf(a) || IsInf(b):
 		if IsZero(a) || IsZero(b) {
 			return QNaN
 		}
-		return sign | PosInf
+		return signBit(neg) | Inf
+	case IsZero(a) || IsZero(b):
+		return signBit(neg)
 	}
-	if IsZero(a) || IsZero(b) {
-		return sign
-	}
-	ma, ea := unpack(a)
-	mb, eb := unpack(b)
-	return roundPack(sign, ma*mb, ea+eb, false) // 24x24 -> 48 bits, exact
+
+	ma, ea := unpack(a).normalize()
+	mb, eb := unpack(b).normalize()
+	// Exact 48-bit product: value = p * 2^(ea+eb-46).
+	p := uint64(ma) * uint64(mb)
+	return roundPack(neg, ea+eb-46, p)
 }

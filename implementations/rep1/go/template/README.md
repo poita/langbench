@@ -1,106 +1,115 @@
 # template
 
-A small Jinja2-style template engine written in Go, using only the standard
-library. It supports a precisely specified subset of Jinja2: variables and
-expressions, thirteen filters, `if` / `for` / `set`, macros, `include`, and
-template inheritance (`extends`, `block`, `super()`), plus comments and
-whitespace control. The template engine is written from scratch (no
-`text/template`, no third-party code); the JSON context is the only input
-data and is parsed by a small ordered JSON parser.
+A small Jinja-style template engine in Go: a reusable library plus a
+command-line tool. It implements a strict subset of Jinja2 3.1
+(`StrictUndefined`, no automatic trimming, no autoescaping): variables and
+expressions, thirteen filters, `if`/`for`/`set`, macros, `include`, template
+inheritance (`extends`/`block`/`super()`), comments and whitespace control.
+The template engine itself is written from scratch on the Go standard library
+only; there are no third-party dependencies.
 
-The behaviour is defined by `problems/template/SPEC.md` and the design by
-`problems/template/APPROACH.md`: templates are lexed and parsed once into an
-AST (cached by name, loaded lazily) and rendered by a tree-walking
-interpreter over a chain of lexical scopes into a single append buffer.
-Rendering is all-or-nothing.
+## Build
 
-## Layout
+Requires Go 1.27.1.
 
-| Path | Contents |
-|------|----------|
-| `*.go` (package `template`) | the library |
-| `cmd/template` | the command-line tool |
-| `build.sh`, `run.sh` | build the tool to `bin/template` / run it |
-| `*_test.go` | unit tests |
-
-Library modules: `errors.go` (error kinds), `value.go` / `scope.go` (values,
-ordered dicts, scopes), `lexer.go` / `parser.go` / `ast.go` (source to AST),
-`eval.go` / `interp.go` / `ops.go` (interpreter and operators), `filters.go`,
-`print.go` (value printing, shortest round-trip float formatting), `json.go`
-(order-preserving JSON), `bundle.go` (stdin format), `engine.go` /
-`convert.go` (public API).
-
-## Build and test
-
-```
-./build.sh              # go build -o bin/template ./cmd/template
-go test ./...           # unit tests
+```sh
+./build.sh          # builds bin/template
+go test ./...       # runs the unit and golden tests
 ```
 
-Requires Go 1.27.1 or later.
+`build.sh` runs `go build -o bin/template ./cmd/template`; `run.sh` runs the
+resulting binary and can be called from any directory.
 
-## Command line
+## Command-line use
 
-`template` reads everything from stdin and writes to stdout:
+The tool reads everything from stdin: a JSON object (the context), a line
+`--`, then one or more named templates, each introduced by `=== <name>`. The
+first template is rendered; the others can be `include`d or `extends`ed.
 
-```
-<JSON object: the context>
+```sh
+./run.sh <<'EOT'
+{"user": {"name": "Ada", "tags": ["x", "y"]}, "n": 3}
 --
 === main
-Hello {{ name|upper }}!
-=== other
-...templates available to include / extends...
+Hi {{ user.name|upper }}!
+{% for t in user.tags -%}
+  {{ loop.index }}. {{ t }}
+{% endfor -%}
+{% if n > 2 %}big{% else %}small{% endif %} {{ 7 / 2 }}
+EOT
 ```
 
-The first template is rendered and printed followed by a newline. On a
-template error the single line `error: <kind>` is printed instead (kinds:
-`syntax`, `filter`, `undefined`, `template`, `type`). The exit status is 0 in
-both cases; it is non-zero only if the input bundle itself is malformed or
-I/O fails.
-
 ```
-$ printf '{"name": "ada"}\n--\n=== main\nHello {{ name|upper }}!\n' | ./run.sh
-Hello ADA!
+Hi ADA!
+1. x
+2. y
+big 3.5
 ```
 
-## Library
+On success the output is the rendering followed by one newline. If the
+rendering fails, the output is the single line `error: <kind>` with kind one of
+`syntax`, `filter`, `undefined`, `template` or `type`, and nothing else; the
+exit status is 0 either way. Malformed input (no `--` line, invalid JSON)
+is reported on stderr with exit status 2.
+
+## Library use
 
 ```go
 package main
 
 import (
-	"errors"
 	"fmt"
 
 	"example.com/template"
 )
 
 func main() {
-	eng := template.NewEngine(map[string]string{
-		"main": `{% extends "base" %}{% block body %}{{ super() }} and {{ items|length }} items{% endblock %}`,
-		"base": `[{% block body %}{{ title|default("untitled") }}{% endblock %}]`,
-	})
-	ctx := template.ContextFromMap(map[string]any{"items": []any{1, 2, 3}})
-	out, err := eng.Render("main", ctx)
+	env := template.NewEnvironment()
+	env.Add("base", `<h1>{% block title %}Untitled{% endblock %}</h1>`)
+	env.Add("page", `{% extends "base" %}{% block title %}{{ super() }} - {{ name|upper }}{% endblock %}`)
+
+	out, err := env.Render("page", map[string]any{"name": "ada"})
 	if err != nil {
-		var te *template.Error
-		if errors.As(err, &te) {
-			fmt.Println("template failed:", te.Kind)
+		if kind, ok := template.KindOf(err); ok {
+			fmt.Println("template failure:", kind)
 		}
 		return
 	}
-	fmt.Println(out) // [untitled and 3 items]
+	fmt.Println(out) // <h1>Untitled - ADA</h1>
 }
 ```
 
-Main entry points:
+Templates are parsed lazily, at most once per `Environment`, and an
+`Environment` may be used from several goroutines. The context passed to
+`Render` is a `*value.Dict` (insertion-ordered, as produced by
+`jsonctx.Parse`), a `map[string]any`, or `nil`.
 
-- `NewEngine(sources map[string]string) *Engine` and `(*Engine).Render(name, ctx *Dict) (string, error)`.
-  An `Engine` caches parsed templates and is safe for concurrent use.
-- `ParseJSON([]byte) (Value, error)`: JSON to template values, keeping object
-  member order and the integer / float distinction. `NewDict`, `NewList` and
-  `FromGo` / `ContextFromMap` build contexts from Go values.
-- `ParseBundle` / `Process`: the stdin format and the whole CLI contract as a
-  function.
-- `*Error` with `Kind` (`ErrSyntax`, `ErrFilter`, `ErrUndefined`,
-  `ErrTemplate`, `ErrType`).
+## Layout
+
+| Package | Responsibility |
+|---------|----------------|
+| `template` (root) | `Environment`, scopes and the tree-walking interpreter (statements, expressions, macros, inheritance) |
+| `syntax` | lexer, parser and syntax tree; `Parse` reports every `syntax` error |
+| `value` | dynamic values (`Dict`, `List`, ...), printing, equality, ordering, arithmetic, attribute access |
+| `filters` | the thirteen built-in filters |
+| `jsonctx` | JSON reader that keeps member order and tells integers from floats |
+| `bundle` | the stdin format of the command-line tool |
+| `tplerr` | the shared `Error` type and its `Kind`s |
+| `cmd/template` | the command-line tool |
+
+## Language summary
+
+* Tags: `{{ expr }}`, `{% statement %}`, `{# comment #}`; `-` next to a
+  delimiter (`{{-`, `-%}`) strips adjacent whitespace.
+* Expressions: literals, lists, `.attr` and `[index]`, arithmetic
+  (`+ - * / // % **`), `~`, comparisons (chainable, plus `in`/`not in`),
+  `and`/`or`/`not`, `x is [not] defined`, filters (`x|join(", ")`), and calls
+  of macros, `range` and `super`.
+* Statements: `if`/`elif`/`else`, `for`/`else` (with `loop.index`, `index0`,
+  `first`, `last`, `length`), `set`, `macro`, `include`, `extends`, `block`.
+* Filters: `upper lower trim escape replace length int join first last
+  reverse sort default`.
+* Using the undefined value for anything but `is defined` and `|default` is an
+  `undefined` error.
+
+The authoritative description is `problems/template/SPEC.md`.

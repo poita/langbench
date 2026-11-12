@@ -3,212 +3,179 @@ package check
 import (
 	"langvm/ast"
 	"langvm/diag"
+	"langvm/types"
 )
 
-// pattern types p against t (SPEC 12.2) and declares its bindings in the
-// current scope.
-func (b *body) pattern(p ast.Pattern, t *Type) {
-	names := map[string]bool{}
-	b.pat(p, t, names)
+// binds collects the bindings a pattern introduces, in order.
+type binds struct {
+	list  []*types.Local
+	names map[string]bool
 }
 
-func (b *body) bind(names map[string]bool, id ast.Ident, t *Type) *Local {
-	if names[id.Name] {
-		b.fail(diag.DupName, id.Pos)
+func newBinds() *binds { return &binds{names: map[string]bool{}} }
+
+func (fc *fnCtx) bind(bs *binds, name string, pos diag.Pos, t *types.Type) *types.Local {
+	if bs.names[name] {
+		fc.fail(diag.DupName, pos)
 	}
-	names[id.Name] = true
-	return b.declare(id.Name, false, t)
+	bs.names[name] = true
+	l := fc.newLocal(name, t, false)
+	bs.list = append(bs.list, l)
+	return l
 }
 
-// lookupPatValue resolves a pattern's constructor name (locals are not
-// consulted).
-func (b *body) lookupPatValue(mod *ast.Ident, name ast.Ident) any {
-	if mod == nil {
-		if v, ok := b.mod.Values[name.Name]; ok {
-			return v
-		}
-		if v, ok := b.c.prelude.Values[name.Name]; ok {
-			return v
-		}
-		b.fail(diag.UnknownName, name.Pos)
+func (fc *fnCtx) declareBinds(bs *binds) {
+	for _, l := range bs.list {
+		fc.declare(l)
 	}
-	return b.qualifiedValue(mod, name)
 }
 
-func (b *body) variantPattern(v *Variant, t *Type, pos ast.Pos) *Type {
-	t = prune(t)
-	if t.Kind != KNamed || t.Decl != v.Enum {
-		b.fail(diag.TypeMismatch, pos)
-	}
-	return t
-}
-
-func (b *body) pat(p ast.Pattern, t *Type, names map[string]bool) {
-	switch n := p.(type) {
+// pattern types p against the (ground) expected type want (section 12.2).
+func (fc *fnCtx) pattern(p ast.Pattern, want *types.Type, bs *binds) {
+	switch p := p.(type) {
 	case *ast.WildPat:
-	case *ast.NamePat:
-		if n.Mod == nil {
-			if v, ok := b.zeroVariant(n.Name.Name); ok {
-				n.Var = v
-				b.variantPattern(v, t, n.P)
-				return
-			}
-			n.Local = b.bind(names, n.Name, t)
+	case *ast.IdentPat:
+		if v := fc.identVariant(p.Name); v != nil {
+			p.Variant = v
+			fc.variantType(p.Pos, v, want)
 			return
 		}
-		v, ok := b.lookupPatValue(n.Mod, n.Name).(*Variant)
-		if !ok {
-			b.fail(diag.TypeMismatch, n.P)
-		}
-		b.variantPattern(v, t, n.P)
-		if len(v.Payload) != 0 {
-			b.fail(diag.Arity, n.P)
-		}
-		n.Var = v
+		p.Local = fc.bind(bs, p.Name, p.Pos, want)
 	case *ast.LitPat:
-		var want *Type
-		switch n.Kind {
+		var t *types.Type
+		switch p.Kind {
 		case ast.LitFloat:
-			b.fail(diag.BadPattern, n.P)
+			fc.fail(diag.BadPattern, p.Pos)
 		case ast.LitInt:
-			want = TInt
+			t = types.Int
 		case ast.LitStr:
-			want = TStr
+			t = types.Str
 		case ast.LitChar:
-			want = TChar
-		default:
-			want = TBool
+			t = types.Char
+		case ast.LitBool:
+			t = types.Bool
 		}
-		if prune(t) != want {
-			b.fail(diag.TypeMismatch, n.P)
-		}
-	case *ast.VariantPat:
-		v, ok := b.lookupPatValue(n.Mod, n.Name).(*Variant)
-		if !ok {
-			b.fail(diag.TypeMismatch, n.P)
-		}
-		tt := b.variantPattern(v, t, n.P)
-		if len(n.Args) != len(v.Payload) {
-			b.fail(diag.Arity, n.P)
-		}
-		n.Var = v
-		m := declSubst(tt)
-		for i, a := range n.Args {
-			b.pat(a, subst(v.Payload[i], m), names)
-		}
-	case *ast.StructPat:
-		d := b.structDecl(n.Mod, n.Name, n.P)
-		tt := prune(t)
-		if tt.Kind != KNamed || tt.Decl != d {
-			b.fail(diag.TypeMismatch, n.P)
-		}
-		n.Decl = d
-		seen := map[string]bool{}
-		for _, f := range n.Fields {
-			if seen[f.Name.Name] {
-				b.fail(diag.DupField, f.Name.Pos)
-			}
-			seen[f.Name.Name] = true
-			f.Index = -1
-			for j, df := range d.Fields {
-				if df.Name == f.Name.Name {
-					f.Index = j
-					break
-				}
-			}
-			if f.Index < 0 {
-				b.fail(diag.UnknownField, f.Name.Pos)
-			}
-		}
-		if !n.Rest && len(n.Fields) != len(d.Fields) {
-			b.fail(diag.MissingField, n.P)
-		}
-		m := declSubst(tt)
-		for _, f := range n.Fields {
-			ft := subst(d.Fields[f.Index].Type, m)
-			if f.Pat == nil {
-				f.Local = b.bind(names, f.Name, ft)
-			} else {
-				b.pat(f.Pat, ft, names)
-			}
+		if !types.Equal(t, want) {
+			fc.mismatch(p.Pos)
 		}
 	case *ast.TuplePat:
-		tt := prune(t)
-		if tt.Kind != KTuple || len(tt.Elems) != len(n.Elems) {
-			b.fail(diag.TypeMismatch, n.P)
+		w := rs(want)
+		if w.Kind != types.KTuple || len(w.Args) != len(p.Elems) {
+			fc.mismatch(p.Pos)
 		}
-		for i, e := range n.Elems {
-			b.pat(e, tt.Elems[i], names)
+		for i, e := range p.Elems {
+			fc.pattern(e, w.Args[i], bs)
 		}
 	case *ast.ListPat:
-		tt := prune(t)
-		if tt.Kind != KList {
-			b.fail(diag.TypeMismatch, n.P)
+		w := rs(want)
+		if w.Kind != types.KList {
+			fc.mismatch(p.Pos)
 		}
-		for _, e := range n.Elems {
-			b.pat(e, tt.Elems[0], names)
+		for _, e := range p.Elems {
+			fc.pattern(e, w.Args[0], bs)
 		}
-		if n.RestName != nil {
-			n.RestLocal = b.bind(names, *n.RestName, tt)
+		if p.Rest != nil {
+			p.Local = fc.bind(bs, p.Rest.Name, p.Rest.Pos, want)
+		}
+	case *ast.VariantPat:
+		res := fc.resolvePath(p.Path, false)
+		if res.kind != resVariant {
+			fc.mismatch(p.Pos)
+		}
+		v := res.variant
+		p.Variant = v
+		payload := fc.variantType(p.Pos, v, want)
+		if len(p.Args) != len(payload) {
+			fc.fail(diag.Arity, p.Pos)
+		}
+		for i, a := range p.Args {
+			fc.pattern(a, payload[i], bs)
+		}
+	case *ast.StructPat:
+		decl := fc.c.lookupTypeDecl(fc.mod, p.Path)
+		if decl.IsEnum {
+			fc.fail(diag.NotStruct, p.Path.Pos)
+		}
+		w := rs(want)
+		if w.Kind != types.KNamed || w.Decl != decl {
+			fc.mismatch(p.Pos)
+		}
+		p.Decl = decl
+		seen := map[string]bool{}
+		for _, f := range p.Fields {
+			if seen[f.Name.Name] {
+				fc.fail(diag.DupField, f.Name.Pos)
+			}
+			seen[f.Name.Name] = true
+			f.Index = decl.FieldIndex(f.Name.Name)
+			if f.Index < 0 {
+				fc.fail(diag.UnknownField, f.Name.Pos)
+			}
+		}
+		if !p.HasRest && len(p.Fields) != len(decl.Fields) {
+			fc.fail(diag.MissingField, p.Pos)
+		}
+		sub := declSubst(decl, w.Args)
+		for _, f := range p.Fields {
+			ft := types.Subst(decl.Fields[f.Index].Type, sub)
+			if f.Pat != nil {
+				fc.pattern(f.Pat, ft, bs)
+			} else {
+				f.Local = fc.bind(bs, f.Name.Name, f.Name.Pos, ft)
+			}
 		}
 	}
 }
 
-// zeroVariant reports whether name resolves, among module items and the
-// prelude, to an enum variant with no payload.
-func (b *body) zeroVariant(name string) (*Variant, bool) {
-	var v any
-	if x, ok := b.mod.Values[name]; ok {
-		v = x
-	} else if x, ok := b.c.prelude.Values[name]; ok {
-		v = x
+// variantType checks that want is the enum of v and returns the payload types.
+func (fc *fnCtx) variantType(pos diag.Pos, v *types.Variant, want *types.Type) []*types.Type {
+	w := rs(want)
+	if w.Kind != types.KNamed || w.Decl != v.Decl {
+		fc.mismatch(pos)
 	}
-	if vr, ok := v.(*Variant); ok && len(vr.Payload) == 0 {
-		return vr, true
+	sub := declSubst(v.Decl, w.Args)
+	out := make([]*types.Type, len(v.Payload))
+	for i, t := range v.Payload {
+		out[i] = types.Subst(t, sub)
 	}
-	return nil, false
+	return out
 }
 
-// irrefutable implements SPEC 12.6 on a typed pattern.
+// irrefutable implements section 12.6 on a typed pattern.
 func irrefutable(p ast.Pattern) bool {
-	switch n := p.(type) {
+	switch p := p.(type) {
 	case *ast.WildPat:
 		return true
-	case *ast.NamePat:
-		if n.Var != nil {
-			v := n.Var.(*Variant)
-			return len(v.Enum.Variants) == 1
-		}
-		return true
+	case *ast.IdentPat:
+		return p.Variant == nil || len(p.Variant.Decl.Variants) == 1
 	case *ast.LitPat:
 		return false
-	case *ast.VariantPat:
-		v := n.Var.(*Variant)
-		if len(v.Enum.Variants) != 1 {
-			return false
-		}
-		for _, a := range n.Args {
-			if !irrefutable(a) {
-				return false
-			}
-		}
-		return true
-	case *ast.StructPat:
-		for _, f := range n.Fields {
-			if f.Pat != nil && !irrefutable(f.Pat) {
-				return false
-			}
-		}
-		return true
 	case *ast.TuplePat:
-		for _, e := range n.Elems {
+		for _, e := range p.Elems {
 			if !irrefutable(e) {
 				return false
 			}
 		}
 		return true
 	case *ast.ListPat:
-		return len(n.Elems) == 0 && n.HasRest
+		return p.HasRest && len(p.Elems) == 0
+	case *ast.StructPat:
+		for _, f := range p.Fields {
+			if f.Pat != nil && !irrefutable(f.Pat) {
+				return false
+			}
+		}
+		return true
+	case *ast.VariantPat:
+		if len(p.Variant.Decl.Variants) != 1 {
+			return false
+		}
+		for _, a := range p.Args {
+			if !irrefutable(a) {
+				return false
+			}
+		}
+		return true
 	}
 	return false
 }

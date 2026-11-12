@@ -1,118 +1,116 @@
 package layout
 
 import (
-	"typeset/markup"
-	"typeset/settings"
-	"typeset/units"
+	"typeset/codexa"
+	"typeset/dim"
+	"typeset/hlist"
 )
 
-// table lays out a @table and appends its vertical items.
-func (w *walker) table(t *markup.Table, ctx Context) {
-	e, S := w.e, w.e.S
+// table lays out a table and returns its vertical items.
+func (lo *layouter) table(t *codexa.Table, c bctx) []vitem {
+	s := lo.s
 	cols := t.Cols
-	lists := make([][]*HList, len(t.Elems))
 	nat := make([]int64, cols)
 	min := make([]int64, cols)
-	for r, el := range t.Elems {
-		if el.Rule {
+
+	// Build every cell's list once and measure it.
+	lists := make([][]*hlist.List, len(t.Rows))
+	for ri, row := range t.Rows {
+		if row.Rule {
 			continue
 		}
-		lists[r] = make([]*HList, cols)
-		for c, cell := range el.Cells {
-			cc := Context{Family: ctx.Family, Size: ctx.Size, Leading: S.TableLeading,
-				Left: ctx.Left, Measure: ctx.Measure, Hyphenate: ctx.Hyphenate}
-			switch t.Align[c] {
+		lists[ri] = make([]*hlist.List, cols)
+		for ci, cell := range row.Cells {
+			al := hlist.Left
+			switch t.Align[ci] {
 			case 'r':
-				cc.Align = settings.Right
+				al = hlist.Right
 			case 'c':
-				cc.Align = settings.Center
-			default:
-				cc.Align = settings.Left
+				al = hlist.Center
 			}
-			hl := e.BuildList(cell, cc)
-			lists[r][c] = hl
-			cn := hl.cumW[len(hl.Items)]
-			var cm int64
-			prev := int32(-1)
-			for _, b := range hl.BPs {
-				wd, _, _, _ := hl.lineSums(prev, b, true)
-				cm = max64(cm, wd)
-				prev = b
+			bl := hlist.NewBuilder(lo.env, hlist.Context{
+				Style: style(c.family, false, false), Size: c.size, Align: al, Hyphenate: c.hyphenate,
+			})
+			bl.Inline(cell)
+			l := bl.List()
+			lists[ri][ci] = l
+			nat[ci] = dim.Max(nat[ci], l.Natural())
+			bps := l.Breakpoints()
+			for k := 1; k < len(bps); k++ {
+				min[ci] = dim.Max(min[ci], l.Line(bps[k-1], bps[k]).W)
 			}
-			nat[c] = max64(nat[c], cn)
-			min[c] = max64(min[c], cm)
 		}
 	}
-	A := max64(0, ctx.Measure-int64(cols-1)*S.TableColGap)
-	var sn, sm int64
-	for c := 0; c < cols; c++ {
-		sn += nat[c]
-		sm += min[c]
-	}
-	widths := make([]int64, cols)
-	switch {
-	case sn <= A:
-		copy(widths, nat)
-	case sm >= A:
-		copy(widths, min)
-	default:
-		D := sn - A
-		Ssum := sn - sm
-		var P, Cprev int64
-		for c := 0; c < cols; c++ {
-			P += nat[c] - min[c]
-			C := units.FloorDiv(D*P, Ssum)
-			widths[c] = nat[c] - (C - Cprev)
-			Cprev = C
-		}
-	}
-	xs := make([]int64, cols)
-	x := ctx.Left
-	var tw int64
-	for c := 0; c < cols; c++ {
-		xs[c] = x
-		x += widths[c] + S.TableColGap
-		tw += widths[c]
-	}
-	tw += int64(cols-1) * S.TableColGap
 
+	// Column widths.
+	A := dim.Max(0, c.measure-int64(cols-1)*s.TableColGap)
+	var sumNat, sumMin int64
+	for i := 0; i < cols; i++ {
+		sumNat += nat[i]
+		sumMin += min[i]
+	}
+	w := make([]int64, cols)
+	switch {
+	case sumNat <= A:
+		copy(w, nat)
+	case sumMin >= A:
+		copy(w, min)
+	default:
+		D := sumNat - A
+		var S int64
+		for i := 0; i < cols; i++ {
+			S += nat[i] - min[i]
+		}
+		var P, prevC int64
+		for i := 0; i < cols; i++ {
+			P += nat[i] - min[i]
+			C := dim.FloorDiv(D*P, S)
+			w[i] = nat[i] - (C - prevC)
+			prevC = C
+		}
+	}
+	x := make([]int64, cols)
+	var tw int64
+	for i := 0; i < cols; i++ {
+		x[i] = c.left + tw
+		tw += w[i] + s.TableColGap
+	}
+	tw -= s.TableColGap
+	// tw is now sum(w) + (cols-1)*gap
+
+	var items []vitem
 	prevRow := false
-	for r, el := range t.Elems {
-		if el.Rule {
-			if r > 0 {
-				w.push(VItem{Kind: VGlue, H: S.TableRuleSpace})
+	for ri, row := range t.Rows {
+		if row.Rule {
+			if ri > 0 {
+				items = append(items, vitem{kind: vGlue, h: s.TableRuleSpace})
 			}
-			w.push(VItem{Kind: VRule, X: ctx.Left, W: tw, H: S.TableRuleThickness})
-			if r < len(t.Elems)-1 {
-				w.push(VItem{Kind: VGlue, H: S.TableRuleSpace})
+			items = append(items, vitem{kind: vRule, x: c.left, w: tw, h: s.TableRuleThickness})
+			if ri < len(t.Rows)-1 {
+				items = append(items, vitem{kind: vGlue, h: s.TableRuleSpace})
 			}
 			prevRow = false
 			continue
 		}
 		if prevRow {
-			w.push(VItem{Kind: VGlue, H: S.TableRowSpace})
+			items = append(items, vitem{kind: vGlue, h: s.TableRowSpace})
 		}
 		prevRow = true
-		cells := make([][]*Line, cols)
-		var arow, drow int64
-		nrow := 0
-		for c := 0; c < cols; c++ {
-			hl := lists[r][c]
-			hl.Ctx.Left, hl.Ctx.Measure = xs[c], widths[c]
-			ls := e.BreakAndSet(hl)
-			cells[c] = ls
-			arow = max64(arow, ls[0].Ascent)
-			drow = max64(drow, ls[len(ls)-1].Depth)
-			if len(ls) > nrow {
-				nrow = len(ls)
+		rd := &rowData{cells: make([][]*hlist.Line, cols)}
+		var aRow, dRow int64
+		nRow := 0
+		for ci := 0; ci < cols; ci++ {
+			lines := lo.breakAndSet(lists[ri][ci], hlist.Geometry{Left: x[ci], Measure: w[ci]})
+			rd.cells[ci] = lines
+			aRow = dim.Max(aRow, lines[0].Ascent)
+			dRow = dim.Max(dRow, lines[len(lines)-1].Depth)
+			if len(lines) > nRow {
+				nRow = len(lines)
 			}
 		}
-		row := make([][]RowLine, cols)
-		for c := 0; c < cols; c++ {
-			for k, ln := range cells[c] {
-				row[c] = append(row[c], RowLine{Line: ln, Off: arow + int64(k)*S.TableLeading})
-			}
-		}
-		w.push(VItem{Kind: VRow, H: arow + int64(nrow-1)*S.TableLeading + drow, Row: row})
+		rd.ascent = aRow
+		h := aRow + int64(nRow-1)*s.TableLeading + dRow
+		items = append(items, vitem{kind: vRow, row: rd, h: h})
 	}
+	return items
 }

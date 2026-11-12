@@ -1,0 +1,61 @@
+cabal-version:      3.0
+name:               protowire
+version:            0.1.0.0
+synopsis:           Protobuf-style wire codec with a canonical text form
+description:
+  A small library and command-line tool that reads a message schema and
+  encodes or decodes Protocol Buffers wire-format messages (proto3
+  semantics) to and from a canonical text form.
+license:            MIT
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+category:           Data, Serialization
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+  build-depends:    base >=4.18 && <5
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Protowire
+    Protowire.Decode
+    Protowire.Encode
+    Protowire.Hex
+    Protowire.Request
+    Protowire.Schema
+    Protowire.Text.Parse
+    Protowire.Text.Render
+    Protowire.Utf8
+    Protowire.Value
+    Protowire.Wire
+  build-depends:
+    , bytestring  >=0.11 && <0.13
+    , containers  >=0.6  && <0.9
+
+executable protowire
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , bytestring
+    , protowire
+
+test-suite protowire-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    Gen
+  build-depends:
+    , bytestring
+    , containers
+    , hspec       >=2.10
+    , protowire
+    , QuickCheck  >=2.14
+    , text

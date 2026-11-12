@@ -1,250 +1,266 @@
-/// Relations: append-only tuple stores with a hash set for deduplication and
-/// lazily-built, incrementally-extended hash indexes.
+/// Tuple storage: a duplicate-free set of fixed-arity tuples of `Value`s with
+/// incrementally maintained hash indexes.
 module datalog.relation;
 
-import datalog.ast : ConstId;
+/// A constant of the evaluated program, represented by its rank in the total
+/// order on constants (so `<` on values *is* the order of the language).
+alias Value = uint;
 
-/// Largest supported predicate arity.
-enum maxArity = 32;
+/// "No tuple" marker.
+enum uint none = uint.max;
 
-private pragma(inline, true) ulong mix(ulong h, uint v) @safe pure nothrow @nogc
+private enum ulong hashSeed = 0xcbf29ce484222325UL;
+
+/// Mixes one value into a running hash.
+ulong hashStep(ulong h, Value v) @safe pure nothrow @nogc
 {
-    h = (h ^ v) * 0x9E3779B97F4A7C15UL;
+    h = (h ^ (v + 0x9E3779B9UL)) * 0x9E3779B97F4A7C15UL;
     return h ^ (h >> 32);
 }
 
-private pragma(inline, true) size_t finish(ulong h) @safe pure nothrow @nogc
+/// Hash of a sequence of values (used for both keys and whole tuples).
+ulong hashOf(const(Value)[] values) @safe pure nothrow @nogc
 {
-    h ^= h >> 33;
-    h *= 0xff51afd7ed558ccdUL;
-    h ^= h >> 33;
-    return cast(size_t) h;
+    ulong h = hashSeed;
+    foreach (v; values)
+        h = hashStep(h, v);
+    return h;
 }
 
-/// A set of fixed-arity tuples of constant ids, stored contiguously in insertion
-/// order, so every tuple has a stable integer position.
+/// Initial value of an incrementally computed key hash.
+enum ulong hashStart = hashSeed;
+
+/// A hash index over a subset of a relation's columns (given as a bit mask).
+///
+/// Tuples with equal key hash are chained through `next`; the chain visits
+/// tuple ids in descending order. Hash collisions between different keys are
+/// possible, so callers must compare the key columns of every candidate.
+final class Index
+{
+    private Relation owner;
+    /// Bit `i` set: column `i` is part of the key.
+    immutable uint mask;
+    private uint[] heads;
+    private uint[] nexts;
+    private size_t n; // tuples 0 .. n-1 are indexed
+
+    private this(Relation owner, uint mask) @safe pure nothrow
+    {
+        this.owner = owner;
+        this.mask = mask;
+        heads = new uint[16];
+        heads[] = none;
+    }
+
+    private ulong keyHashOf(uint id) const @safe pure nothrow @nogc
+    {
+        auto t = owner.tuple(id);
+        ulong h = hashStart;
+        foreach (i, v; t)
+            if (mask & (1u << i))
+                h = hashStep(h, v);
+        return h;
+    }
+
+    private void add(uint id) @safe pure nothrow
+    {
+        if (n >= heads.length)
+            grow();
+        if (nexts.length <= id)
+            nexts.length = nexts.length * 2 > id + 1 ? nexts.length * 2 : id + 1;
+        auto b = keyHashOf(id) & (heads.length - 1);
+        nexts[id] = heads[b];
+        heads[b] = id;
+        ++n;
+    }
+
+    private void grow() @safe pure nothrow
+    {
+        heads = new uint[heads.length * 2];
+        heads[] = none;
+        foreach (uint id; 0 .. cast(uint) n)
+        {
+            auto b = keyHashOf(id) & (heads.length - 1);
+            nexts[id] = heads[b];
+            heads[b] = id;
+        }
+    }
+
+    /// First candidate of the bucket for a key hash (`none` if empty).
+    uint first(ulong keyHash) const @safe pure nothrow @nogc
+    {
+        return heads[keyHash & (heads.length - 1)];
+    }
+
+    /// Next candidate in the chain after `id` (`none` at the end).
+    uint next(uint id) const @safe pure nothrow @nogc
+    {
+        return nexts[id];
+    }
+}
+
+/// A set of tuples of a fixed arity, stored contiguously in insertion order.
+/// A tuple's id is its insertion number.
 final class Relation
 {
-    /// Number of components per tuple.
+    /// Number of columns.
     immutable uint arity;
-    /// Flat tuple storage (stride `arity`); only the first `length * arity` entries are valid.
-    uint[] data;
-    private size_t count;
-    private uint[] table;      // open addressing; position + 1, 0 = empty
-    private Index[uint] indexes;
 
-    ///
+    /// Start (inclusive) and end (exclusive) of the tuple ids that form the
+    /// current delta; maintained by the evaluator.
+    uint deltaStart, deltaEnd;
+
+    private Value[] data;
+    private uint[] table; // open-addressing set of tuple ids
+    private uint count_;
+    private uint indexed_;
+    private Index[uint] indexes;
+    private Index[] indexList;
+
     this(uint arity) @safe pure nothrow
     {
         this.arity = arity;
-        table = new uint[16];
+        table = new uint[32];
+        table[] = none;
     }
 
     /// Number of tuples.
-    size_t length() const @safe pure nothrow @nogc { return count; }
-
-    /// The tuple at insertion position `pos`.
-    const(uint)[] tuple(size_t pos) const @safe pure nothrow @nogc
+    @property uint length() const @safe pure nothrow @nogc
     {
-        return data[pos * arity .. (pos + 1) * arity];
+        return count_;
     }
 
-    private size_t hashOf(const(uint)* t) const @trusted pure nothrow @nogc
+    /// Number of tuples already visible in the indexes (a prefix of the ids).
+    @property uint indexedLength() const @safe pure nothrow @nogc
     {
-        ulong h = 0x243F6A8885A308D3UL;
-        foreach (i; 0 .. arity) h = mix(h, t[i]);
-        return finish(h);
+        return indexed_;
     }
 
-    private bool sameAt(size_t pos, const(uint)* t) const @trusted pure nothrow @nogc
+    /// Tuple number `id`.
+    const(Value)[] tuple(uint id) const @safe pure nothrow @nogc
     {
-        auto p = data.ptr + pos * arity;
-        foreach (i; 0 .. arity)
-            if (p[i] != t[i]) return false;
+        return data[id * arity .. (id + 1) * arity];
+    }
+
+    /// Id of `t` or `none` when it is not in the relation.
+    uint find(scope const(Value)[] t) const @safe pure nothrow @nogc
+    {
+        auto mask = table.length - 1;
+        auto s = hashOf(t) & mask;
+        for (;; s = (s + 1) & mask)
+        {
+            auto id = table[s];
+            if (id == none)
+                return none;
+            if (tuple(id) == t)
+                return id;
+        }
+    }
+
+    /// Adds `t`; returns false if it was already present. The tuple becomes
+    /// visible to indexes only after the next `flush`.
+    bool insert(scope const(Value)[] t) @safe pure nothrow
+    in (t.length == arity)
+    {
+        auto mask = table.length - 1;
+        auto s = hashOf(t) & mask;
+        for (;; s = (s + 1) & mask)
+        {
+            auto id = table[s];
+            if (id == none)
+                break;
+            if (tuple(id) == t)
+                return false;
+        }
+        table[s] = count_;
+        data ~= t;
+        ++count_;
+        if (count_ * 2 > table.length)
+            rehash();
         return true;
     }
 
-    /// Membership test.
-    bool contains(const(uint)[] t) const @trusted pure nothrow @nogc
+    private void rehash() @safe pure nothrow
     {
-        return containsPtr(t.ptr);
-    }
-
-    /// ditto
-    bool containsPtr(const(uint)* t) const @trusted pure nothrow @nogc
-    {
-        immutable m = table.length - 1;
-        size_t i = hashOf(t) & m;
-        while (true)
+        table = new uint[table.length * 2];
+        table[] = none;
+        auto mask = table.length - 1;
+        foreach (uint id; 0 .. count_)
         {
-            immutable s = table[i];
-            if (s == 0) return false;
-            if (sameAt(s - 1, t)) return true;
-            i = (i + 1) & m;
+            auto s = hashOf(tuple(id)) & mask;
+            while (table[s] != none)
+                s = (s + 1) & mask;
+            table[s] = id;
         }
     }
 
-    /// Insert a tuple; returns false if it was already present.
-    bool insert(const(uint)[] t) @trusted pure nothrow
+    /// The index on the columns in `mask`, created (and filled with the
+    /// indexed prefix) on first request.
+    Index index(uint mask) @safe pure nothrow
     {
-        assert(t.length == arity);
-        if ((count + 1) * 2 > table.length) growTable();
-        immutable m = table.length - 1;
-        size_t i = hashOf(t.ptr) & m;
-        while (true)
-        {
-            immutable s = table[i];
-            if (s == 0) break;
-            if (sameAt(s - 1, t.ptr)) return false;
-            i = (i + 1) & m;
-        }
-        if ((count + 1) * arity > data.length)
-        {
-            auto n = data.length * 2;
-            if (n < 64) n = 64 + arity;
-            data.length = n;
-        }
-        data[count * arity .. (count + 1) * arity] = t[];
-        table[i] = cast(uint)(count + 1);
-        ++count;
-        return true;
-    }
-
-    private void growTable() @trusted pure nothrow
-    {
-        auto nt = new uint[table.length * 2];
-        immutable m = nt.length - 1;
-        foreach (pos; 0 .. count)
-        {
-            size_t i = hashOf(data.ptr + pos * arity) & m;
-            while (nt[i] != 0) i = (i + 1) & m;
-            nt[i] = cast(uint)(pos + 1);
-        }
-        table = nt;
-    }
-
-    /// Get (creating if necessary) the index keyed on the argument positions whose
-    /// bits are set in `keyMask`. The index is not brought up to date; call
-    /// `Index.update` before using it.
-    Index index(uint keyMask) @safe pure nothrow
-    {
-        if (auto p = keyMask in indexes) return *p;
-        auto ix = new Index(this, keyMask);
-        indexes[keyMask] = ix;
+        if (auto p = mask in indexes)
+            return *p;
+        auto ix = new Index(this, mask);
+        foreach (uint id; 0 .. indexed_)
+            ix.add(id);
+        indexes[mask] = ix;
+        indexList ~= ix;
         return ix;
+    }
+
+    /// Makes all tuples inserted so far visible to the indexes.
+    void flush() @safe pure nothrow
+    {
+        foreach (ix; indexList)
+            foreach (uint id; indexed_ .. count_)
+                ix.add(id);
+        indexed_ = count_;
     }
 }
 
-/// A hash index over a subset of a relation's argument positions. It maps the key
-/// values to the positions of matching tuples, in ascending order.
-final class Index
+@("relation: set semantics")
+@safe pure nothrow unittest
 {
-    /// Marks the end of a position chain / a missing group.
-    enum uint none = uint.max;
+    auto r = new Relation(2);
+    assert(r.insert([1, 2]));
+    assert(!r.insert([1, 2]));
+    assert(r.insert([2, 1]));
+    assert(r.length == 2);
+    assert(r.find([2, 1]) == 1);
+    assert(r.find([3, 3]) == none);
+}
 
-    private Relation rel;
-    private uint[] keyPos;
-    private uint[] table;       // group + 1, 0 = empty
-    private uint[] first, last; // per group: first / last tuple position
-    private uint[] nextPos;     // per tuple position: next position in the same group
-    private size_t indexed;
+@("relation: growth keeps every tuple findable")
+@safe pure nothrow unittest
+{
+    auto r = new Relation(2);
+    foreach (uint i; 0 .. 5000)
+        assert(r.insert([i, i * 7]));
+    foreach (uint i; 0 .. 5000)
+        assert(r.find([i, i * 7]) == i);
+    assert(r.length == 5000);
+}
 
-    this(Relation r, uint keyMask) @safe pure nothrow
-    {
-        rel = r;
-        foreach (i; 0 .. r.arity)
-            if (keyMask & (1u << i)) keyPos ~= i;
-        table = new uint[16];
-    }
-
-    /// Index the tuples appended to the relation since the last update.
-    void update() @trusted pure nothrow
-    {
-        immutable n = rel.length;
-        if (indexed == n) return;
-        if (nextPos.length < n)
-        {
-            auto len = nextPos.length * 2;
-            nextPos.length = len < n ? n : len;
-        }
-        immutable ar = rel.arity;
-        foreach (pos; indexed .. n)
-        {
-            auto t = rel.data.ptr + pos * ar;
-            ulong h = 0x13198A2E03707344UL;
-            foreach (k; keyPos) h = mix(h, t[k]);
-            if ((first.length + 1) * 2 > table.length) growTable();
-            immutable m = table.length - 1;
-            size_t i = finish(h) & m;
-            nextPos[pos] = none;
-            while (true)
-            {
-                immutable s = table[i];
-                if (s == 0)
-                {
-                    first ~= cast(uint) pos;
-                    last ~= cast(uint) pos;
-                    table[i] = cast(uint) first.length;
-                    break;
-                }
-                immutable g = s - 1;
-                auto ft = rel.data.ptr + first[g] * ar;
-                bool same = true;
-                foreach (k; keyPos)
-                    if (ft[k] != t[k]) { same = false; break; }
-                if (same)
-                {
-                    nextPos[last[g]] = cast(uint) pos;
-                    last[g] = cast(uint) pos;
-                    break;
-                }
-                i = (i + 1) & m;
-            }
-        }
-        indexed = n;
-    }
-
-    private void growTable() @trusted pure nothrow
-    {
-        auto nt = new uint[table.length * 2];
-        immutable m = nt.length - 1;
-        immutable ar = rel.arity;
-        foreach (g; 0 .. first.length)
-        {
-            auto t = rel.data.ptr + first[g] * ar;
-            ulong h = 0x13198A2E03707344UL;
-            foreach (k; keyPos) h = mix(h, t[k]);
-            size_t i = finish(h) & m;
-            while (nt[i] != 0) i = (i + 1) & m;
-            nt[i] = cast(uint)(g + 1);
-        }
-        table = nt;
-    }
-
-    /// Find the group whose key equals `key` (the values at the key positions, in
-    /// ascending position order). Returns the first tuple position of the group,
-    /// or `none`. Follow the chain with `next`.
-    uint find(const(uint)* key) const @trusted pure nothrow @nogc
-    {
-        ulong h = 0x13198A2E03707344UL;
-        immutable nk = keyPos.length;
-        foreach (j; 0 .. nk) h = mix(h, key[j]);
-        immutable m = table.length - 1;
-        size_t i = finish(h) & m;
-        immutable ar = rel.arity;
-        while (true)
-        {
-            immutable s = table[i];
-            if (s == 0) return none;
-            auto ft = rel.data.ptr + first[s - 1] * ar;
-            bool same = true;
-            foreach (j; 0 .. nk)
-                if (ft[keyPos[j]] != key[j]) { same = false; break; }
-            if (same) return first[s - 1];
-            i = (i + 1) & m;
-        }
-    }
-
-    /// The next position in the same group after `pos`, or `none`.
-    uint next(uint pos) const @safe pure nothrow @nogc { return nextPos[pos]; }
+@("relation: indexes are maintained by flush")
+@safe pure nothrow unittest
+{
+    auto r = new Relation(2);
+    auto ix = r.index(0b01);
+    foreach (uint i; 0 .. 1000)
+        r.insert([i % 10, i]);
+    assert(r.indexedLength == 0);
+    r.flush();
+    assert(r.indexedLength == 1000);
+    uint hits;
+    for (auto id = ix.first(hashOf([3])); id != none; id = ix.next(id))
+        if (r.tuple(id)[0] == 3)
+            ++hits;
+    assert(hits == 100);
+    // an index created late covers the existing tuples
+    auto iy = r.index(0b10);
+    hits = 0;
+    for (auto id = iy.first(hashOf([42])); id != none; id = iy.next(id))
+        if (r.tuple(id)[1] == 42)
+            ++hits;
+    assert(hits == 1);
 }

@@ -1,0 +1,5 @@
+include(GoogleTest)
+file(GLOB KILN_TEST_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/*_test.cpp)
+add_executable(kiln_tests ${KILN_TEST_SOURCES})
+target_link_libraries(kiln_tests PRIVATE kiln::kiln GTest::gtest GTest::gtest_main)
+gtest_discover_tests(kiln_tests)

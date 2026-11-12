@@ -57,6 +57,10 @@ class Excluded(unittest.TestCase):
         self.assertTrue(ir.is_build_output("/target/release/x", "rust"))
         self.assertTrue(ir.is_build_output("r/rep1/haskell/x/dist-newstyle/cache/plan.json"))
         self.assertTrue(ir.is_build_output("r/rep1/clojure/x/.cpcache/1.cp"))
+        self.assertTrue(ir.is_build_output("r/rep1/clojure/x/.classpath"))
+        self.assertTrue(ir.is_build_output("r/rep1/clojure/x/.cp"))
+        self.assertTrue(ir.is_build_output("r/rep1/cpp/x/build.log"))
+        self.assertFalse(ir.is_build_output("r/rep1/go/x/log.go"))
         self.assertFalse(ir.is_build_output("r/rep1/clojure/x/src/x/core.clj"))
 
     def test_sources_are_kept(self):

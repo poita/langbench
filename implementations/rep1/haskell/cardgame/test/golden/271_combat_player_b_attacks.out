@@ -1,0 +1,82 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PASS B
+10 PHASE clash-attack
+11 PHASE main2
+12 PASS A
+13 PASS B
+14 PHASE dusk-trigger
+15 PASS A
+16 PASS B
+17 PHASE dusk-discard
+18 PHASE dusk-cleanup
+19 TURN 2 B
+20 PHASE dawn
+21 EMBER A 1 1
+22 EMBER B 1 1
+23 PHASE draw
+24 DRAW B #23 TID-001
+25 PHASE main1
+26 PASS B
+27 PASS A
+28 PHASE clash-attack
+LEGAL BEGIN B attackers
+CANATTACK #43
+CANATTACK #44
+LEGAL END
+29 EXHAUST #43
+30 ATTACK #43
+31 EXHAUST #44
+32 ATTACK #44
+33 PASS B
+34 PASS A
+35 PHASE clash-block
+LEGAL BEGIN A blockers
+CANBLOCK #21 #43
+CANBLOCK #21 #44
+CANBLOCK #22 #43
+LEGAL END
+36 BLOCK #21 #44
+37 BLOCK #22 #43
+STATE BEGIN
+turn 2 active B phase clash-block decision B priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 0 rift 0
+player B spire 30 ember 1 cap 1 vault 19 hand 1 ash 0 rift 0
+hand B 1 #23 TID-001
+field A #21 TOK-007 1/2 w0 c0 ready blocking kw skyhook
+field A #22 NEU-018 2/5 w0 c0 ready blocking kw provoke,vigil
+field B #43 CIN-001 2/1 w0 c0 exhausted attacking,blocked kw vanguard
+field B #44 TID-006 2/2 w0 c0 exhausted attacking,blocked kw ghostwalk,vanguard
+STATE END
+38 PASS B
+39 PASS A
+40 PHASE clash-damage
+41 DAMAGE #21 #44 1
+42 DAMAGE #22 #43 2
+43 DAMAGE #43 #22 2
+44 DAMAGE #44 #21 2
+45 DESTROY #21 TOK-007
+46 DESTROY #43 CIN-001
+47 PASS B
+48 PASS A
+49 PHASE clash-end
+50 PASS B
+51 PASS A
+52 PHASE main2
+STATE BEGIN
+turn 2 active B phase main2 decision B priority
+player A spire 30 ember 1 cap 1 vault 20 hand 0 ash 1 rift 0
+player B spire 30 ember 1 cap 1 vault 19 hand 1 ash 1 rift 0
+hand B 1 #23 TID-001
+field A #22 NEU-018 2/5 w2 c0 ready - kw provoke,vigil
+field B #44 TID-006 2/2 w1 c0 exhausted - kw ghostwalk,vanguard
+ash A 1 #21 TOK-007
+ash B 1 #43 CIN-001
+STATE END
+53 RESULT pending none

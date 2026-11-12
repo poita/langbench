@@ -1,146 +1,155 @@
 package spreadsheet
 
-import (
-	"math"
+import "math"
 
-	"example.com/spreadsheet/formula"
-	"example.com/spreadsheet/numfmt"
-)
-
-// eval interprets node i of e against the stored values of the cells it
-// reads. References never trigger evaluation of other cells. The result may
-// be Empty (a bare reference to an empty cell); the caller turns that into 0.
-func (s *Sheet) eval(e *formula.Expr, i int32) Value {
-	if e.Invalid {
-		return ErrorValue(ErrRef)
-	}
-	return s.evalNode(e, i)
+// node is a syntax tree node. Evaluation reads the stored values of the cells
+// it references and never evaluates them on demand.
+type node interface {
+	eval() Value
 }
 
-// operand coerces v for arithmetic. ok == false means the operation stops
-// with result err.
-func operand(v Value) (f float64, err Value, ok bool) {
-	switch v.kind {
-	case Number:
-		return v.num, Value{}, true
-	case Empty:
-		return 0, Value{}, true
-	case Error:
-		return 0, v, false
+type (
+	numNode   struct{ v float64 }
+	strNode   struct{ s string }
+	refNode   struct{ c *cell }
+	negNode   struct{ x node }
+	arithNode struct {
+		op   byte // + - * /
+		l, r node
 	}
-	return 0, ErrorValue(ErrValue), false
+	catNode struct{ l, r node }
+	cmpNode struct {
+		op   string
+		l, r node
+	}
+	ifNode  struct{ cond, a, b node }
+	aggNode struct {
+		fn   aggFunc
+		args []aggArg
+	}
+	aggArg struct {
+		expr  node    // set for an expression argument
+		cells []*cell // set for a range argument, in row-major order
+	}
+)
+
+type aggFunc uint8
+
+const (
+	aggSum aggFunc = iota
+	aggMin
+	aggMax
+	aggAvg
+	aggCount
+)
+
+func (n *numNode) eval() Value { return Number(n.v) }
+func (n *strNode) eval() Value { return String(n.s) }
+func (n *refNode) eval() Value { return n.c.value }
+
+// operand evaluates x as an arithmetic operand. The returned error Value is
+// meaningful only when ok is false.
+func operand(x node) (f float64, bad Value, ok bool) {
+	v := x.eval()
+	switch v.kind {
+	case KindError:
+		return 0, v, false
+	case KindString:
+		return 0, Error(ErrValue), false
+	case KindNumber:
+		return v.num, Value{}, true
+	}
+	return 0, Value{}, true
+}
+
+func (n *negNode) eval() Value {
+	f, bad, ok := operand(n.x)
+	if !ok {
+		return bad
+	}
+	return Number(-f)
+}
+
+func (n *arithNode) eval() Value {
+	a, bad, ok := operand(n.l)
+	if !ok {
+		return bad
+	}
+	b, bad, ok := operand(n.r)
+	if !ok {
+		return bad
+	}
+	var r float64
+	switch n.op {
+	case '+':
+		r = a + b
+	case '-':
+		r = a - b
+	case '*':
+		r = a * b
+	default:
+		if b == 0 {
+			return Error(ErrDiv0)
+		}
+		r = a / b
+	}
+	return finite(r)
+}
+
+func finite(f float64) Value {
+	if math.IsInf(f, 0) || math.IsNaN(f) {
+		return Error(ErrValue)
+	}
+	return Number(f)
+}
+
+func (n *catNode) eval() Value {
+	a := n.l.eval()
+	if a.kind == KindError {
+		return a
+	}
+	b := n.r.eval()
+	if b.kind == KindError {
+		return b
+	}
+	return String(a.String() + b.String())
 }
 
 func boolValue(b bool) Value {
 	if b {
-		return Value{kind: Number, num: 1}
+		return Number(1)
 	}
-	return Value{kind: Number, num: 0}
+	return Number(0)
 }
 
-func (s *Sheet) evalNode(e *formula.Expr, i int32) Value {
-	n := &e.Nodes[i]
-	switch n.Kind {
-	case formula.KindNum:
-		return Value{kind: Number, num: n.Num}
-	case formula.KindStr:
-		return Value{kind: String, str: n.Str}
-	case formula.KindRef:
-		return s.cells[n.Cell].val
-	case formula.KindNeg:
-		f, err, ok := operand(s.evalNode(e, n.A))
-		if !ok {
-			return err
-		}
-		return NumberValue(-f)
-	case formula.KindIf:
-		f, err, ok := operand(s.evalNode(e, n.A))
-		if !ok {
-			return err
-		}
-		if f != 0 {
-			return s.evalNode(e, n.B)
-		}
-		return s.evalNode(e, n.C)
-	case formula.KindAgg:
-		return s.evalAgg(e, n)
-	case formula.KindBin:
-		return s.evalBin(e, n)
-	}
-	return ErrorValue(ErrValue)
-}
-
-func (s *Sheet) evalBin(e *formula.Expr, n *formula.Node) Value {
-	op := formula.BinOp(n.Op)
-	a := s.evalNode(e, n.A)
-	switch op {
-	case formula.OpAdd, formula.OpSub, formula.OpMul, formula.OpDiv:
-		x, err, ok := operand(a)
-		if !ok {
-			return err
-		}
-		y, err, ok := operand(s.evalNode(e, n.B))
-		if !ok {
-			return err
-		}
-		var r float64
-		switch op {
-		case formula.OpAdd:
-			r = x + y
-		case formula.OpSub:
-			r = x - y
-		case formula.OpMul:
-			r = x * y
-		default:
-			if y == 0 {
-				return ErrorValue(ErrDiv0)
-			}
-			r = x / y
-		}
-		if math.IsInf(r, 0) || math.IsNaN(r) {
-			return ErrorValue(ErrValue)
-		}
-		return NumberValue(r)
-	case formula.OpCat:
-		if a.kind == Error {
-			return a
-		}
-		b := s.evalNode(e, n.B)
-		if b.kind == Error {
-			return b
-		}
-		buf := appendText(s.scratch[:0], a)
-		buf = appendText(buf, b)
-		s.scratch = buf
-		return Value{kind: String, str: string(buf)}
-	}
-	// Comparisons.
-	if a.kind == Error {
+func (n *cmpNode) eval() Value {
+	a := n.l.eval()
+	if a.kind == KindError {
 		return a
 	}
-	b := s.evalNode(e, n.B)
-	if b.kind == Error {
+	b := n.r.eval()
+	if b.kind == KindError {
 		return b
 	}
 	switch {
-	case a.kind == Empty && b.kind == Empty:
-		a, b = Value{kind: Number}, Value{kind: Number}
-	case a.kind == Empty:
-		a = emptyLike(b)
-	case b.kind == Empty:
-		b = emptyLike(a)
+	case a.kind == KindEmpty && b.kind == KindEmpty:
+		a, b = Number(0), Number(0)
+	case a.kind == KindEmpty:
+		a = zeroLike(b)
+	case b.kind == KindEmpty:
+		b = zeroLike(a)
 	}
+	var c int // sign of a - b
 	if a.kind != b.kind {
-		switch op {
-		case formula.OpEq:
-			return boolValue(false)
-		case formula.OpNe:
-			return boolValue(true)
+		switch n.op {
+		case "=":
+			return Number(0)
+		case "<>":
+			return Number(1)
 		}
-		return ErrorValue(ErrValue)
+		return Error(ErrValue)
 	}
-	var c int
-	if a.kind == Number {
+	if a.kind == KindNumber {
 		switch {
 		case a.num < b.num:
 			c = -1
@@ -155,97 +164,93 @@ func (s *Sheet) evalBin(e *formula.Expr, n *formula.Node) Value {
 			c = 1
 		}
 	}
-	switch op {
-	case formula.OpEq:
+	switch n.op {
+	case "=":
 		return boolValue(c == 0)
-	case formula.OpNe:
+	case "<>":
 		return boolValue(c != 0)
-	case formula.OpLt:
+	case "<":
 		return boolValue(c < 0)
-	case formula.OpGt:
+	case ">":
 		return boolValue(c > 0)
-	case formula.OpLe:
+	case "<=":
 		return boolValue(c <= 0)
+	default:
+		return boolValue(c >= 0)
 	}
-	return boolValue(c >= 0)
 }
 
-// emptyLike returns the value an empty operand takes when compared with o.
-func emptyLike(o Value) Value {
-	if o.kind == String {
-		return Value{kind: String}
+// zeroLike returns the value an empty operand takes when compared with o.
+func zeroLike(o Value) Value {
+	if o.kind == KindString {
+		return String("")
 	}
-	return Value{kind: Number}
+	return Number(0)
 }
 
-// appendText appends the text form of v (as used by '&').
-func appendText(dst []byte, v Value) []byte {
-	switch v.kind {
-	case String:
-		return append(dst, v.str...)
-	case Number:
-		return numfmt.Append(dst, v.num)
+func (n *ifNode) eval() Value {
+	c, bad, ok := operand(n.cond)
+	if !ok {
+		return bad
 	}
-	return dst
+	if c != 0 {
+		return n.a.eval()
+	}
+	return n.b.eval()
 }
 
-// evalAgg streams over the arguments of SUM/MIN/MAX/AVG/COUNT in one pass.
-func (s *Sheet) evalAgg(e *formula.Expr, n *formula.Node) Value {
-	var count int
-	var sum, lo, hi float64
+func (n *aggNode) eval() Value {
+	var (
+		sum, lo, hi float64
+		count       int
+	)
 	collect := func(f float64) {
 		if count == 0 {
 			lo, hi = f, f
 		} else {
-			lo = math.Min(lo, f)
-			hi = math.Max(hi, f)
+			lo, hi = math.Min(lo, f), math.Max(hi, f)
 		}
-		count++
 		sum += f
+		count++
 	}
-	for _, a := range n.Args {
-		an := &e.Nodes[a]
-		if an.Kind == formula.KindRange {
-			for _, h := range an.Cells {
-				v := &s.cells[h].val
-				switch v.kind {
-				case Error:
-					return *v
-				case Number:
-					collect(v.num)
+	for _, a := range n.args {
+		if a.expr == nil {
+			for _, c := range a.cells {
+				switch c.value.kind {
+				case KindError:
+					return c.value
+				case KindNumber:
+					collect(c.value.num)
 				}
 			}
 			continue
 		}
-		v := s.evalNode(e, a)
+		v := a.expr.eval()
 		switch v.kind {
-		case Error:
+		case KindError:
 			return v
-		case String:
-			return ErrorValue(ErrValue)
-		case Number:
+		case KindString:
+			return Error(ErrValue)
+		case KindNumber:
 			collect(v.num)
 		}
 	}
-	switch formula.AggFn(n.Op) {
-	case formula.FnCount:
-		return NumberValue(float64(count))
-	case formula.FnMin:
-		return NumberValue(lo)
-	case formula.FnMax:
-		return NumberValue(hi)
-	case formula.FnSum:
-		if math.IsInf(sum, 0) || math.IsNaN(sum) {
-			return ErrorValue(ErrValue)
+	switch n.fn {
+	case aggCount:
+		return Number(float64(count))
+	case aggSum:
+		return finite(sum)
+	case aggMin:
+		return Number(lo)
+	case aggMax:
+		return Number(hi)
+	default:
+		if count == 0 {
+			return Error(ErrDiv0)
 		}
-		return NumberValue(sum)
+		if math.IsInf(sum, 0) || math.IsNaN(sum) {
+			return Error(ErrValue)
+		}
+		return Number(sum / float64(count))
 	}
-	// FnAvg
-	if count == 0 {
-		return ErrorValue(ErrDiv0)
-	}
-	if math.IsInf(sum, 0) || math.IsNaN(sum) {
-		return ErrorValue(ErrValue)
-	}
-	return NumberValue(sum / float64(count))
 }

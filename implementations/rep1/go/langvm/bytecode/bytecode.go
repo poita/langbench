@@ -1,29 +1,28 @@
-// Package bytecode defines the instruction set and the compiled program of
-// the Vellum virtual machine (SPEC section 16).
+// Package bytecode defines the instruction set of the Vellum virtual machine
+// and the shape of a compiled program (SPEC.md section 16).
 package bytecode
 
 // Op is an opcode.
 type Op uint8
 
-// Opcodes. Operands are in Instr.A, B and C as described per opcode.
+// The instruction set. Operands are named A, B and C in Instr.
 const (
-	PushConst Op = iota // A=const index
+	PushConst Op = iota // A: constant index
 	PushTrue
 	PushFalse
 	PushUnit
-	LoadLocal  // A=slot
-	StoreLocal // A=slot (pops)
-	LoadUpval  // A=upvalue index
+	LoadLocal  // A: slot
+	StoreLocal // A: slot
+	LoadUpval  // A: upvalue index
 	Pop
 	Dup
-	MakeClosure // A=function, B=number of captured values (popped)
-	Call        // A=function, B=argc
-	CallValue   // A=argc (closure sits under the arguments)
-	CallBuiltin // A=built-in id, B=argc
-	CallMethod  // A=trait id, B=method index, C=argc (receiver under the arguments)
+	MakeClosure // A: function, B: number of upvalues
+	Call        // A: function, B: argc
+	CallValue   // A: argc
+	CallBuiltin // A: built-in id, B: argc
+	CallMethod  // A: trait, B: method, C: argc (receiver excluded)
 	Ret
 	RetUnit
-
 	AddI
 	SubI
 	MulI
@@ -50,67 +49,40 @@ const (
 	Ge
 	ConcatStr
 	ConcatList
-
-	Jump        // A=target
-	JumpIfFalse // A=target (pops a Bool)
-	JumpIfTrue  // A=target (pops a Bool)
-
-	MakeList   // A=n
-	MakeMap    // A=number of entries (pops 2n values)
-	MakeTuple  // A=n
-	MakeStruct // A=declaration, B=n
-	MakeEnum   // A=declaration, B=variant, C=n
-	GetField   // A=index
-	GetPayload // A=index
-	GetTuple   // A=index
+	Jump        // A: target
+	JumpIfFalse // A: target
+	JumpIfTrue  // A: target
+	MakeList    // A: n
+	MakeMap     // A: n entries
+	MakeTuple   // A: n
+	MakeStruct  // A: decl, B: n
+	MakeEnum    // A: decl, B: variant, C: n
+	GetField    // A: index
+	GetPayload  // A: index
+	GetTuple    // A: index
 	IndexGet
-	IndexSet // pops value, index, container
+	IndexSet
+	IsVariant // A: variant
+	SeqLen
+	SeqGet
+	ListRest // A: index
 	NoMatch
-	Panic // pops a Str
+	Panic
 	Halt
 
-	// Fused forms (APPROACH.md item 6).
-	JumpUnlessVariant // A=slot, B=variant, C=target
-	JumpUnlessLen     // A=slot, B=n, C=target (list length == n)
-	JumpUnlessLenGE   // A=slot, B=n, C=target (list length >= n)
-	PushPayload       // A=slot, B=index
-	PushField         // A=slot, B=index
-	PushTuple         // A=slot, B=index
-	PushElem          // A=slot, B=index (list element)
-	PushRest          // A=slot, B=index (new list of elements from index)
-	SeqLenSlot        // A=slot (list or string)
-	SeqGetSlot        // A=sequence slot, B=index slot
-	IncLocal          // A=slot
+	// Private instructions used by the compiler for loops.
+	SaveSP    // A: slot; remembers the stack height
+	RestoreSP // A: slot; restores the stack height (used by break/continue)
+	IterNext  // A: index slot, B: sequence slot, C: exit target
 )
 
-var opNames = [...]string{
-	"PUSH_CONST", "PUSH_TRUE", "PUSH_FALSE", "PUSH_UNIT", "LOAD_LOCAL", "STORE_LOCAL",
-	"LOAD_UPVAL", "POP", "DUP", "MAKE_CLOSURE", "CALL", "CALL_VALUE", "CALL_BUILTIN",
-	"CALL_METHOD", "RET", "RET_UNIT", "ADD_I", "SUB_I", "MUL_I", "DIV_I", "MOD_I",
-	"NEG_I", "BNOT", "BAND", "BOR", "BXOR", "SHL", "SHR", "ADD_F", "SUB_F", "MUL_F",
-	"DIV_F", "NEG_F", "NOT_B", "EQ", "NE", "LT", "LE", "GT", "GE", "CONCAT_STR",
-	"CONCAT_LIST", "JUMP", "JUMP_IF_FALSE", "JUMP_IF_TRUE", "MAKE_LIST", "MAKE_MAP",
-	"MAKE_TUPLE", "MAKE_STRUCT", "MAKE_ENUM", "GET_FIELD", "GET_PAYLOAD", "GET_TUPLE",
-	"INDEX_GET", "INDEX_SET", "NO_MATCH", "PANIC", "HALT", "JUMP_UNLESS_VARIANT",
-	"JUMP_UNLESS_LEN", "JUMP_UNLESS_LEN_GE", "PUSH_PAYLOAD", "PUSH_FIELD", "PUSH_TUPLE",
-	"PUSH_ELEM", "PUSH_REST", "SEQ_LEN_SLOT", "SEQ_GET_SLOT", "INC_LOCAL",
-}
-
-// String returns the mnemonic of an opcode.
-func (o Op) String() string {
-	if int(o) < len(opNames) {
-		return opNames[o]
-	}
-	return "?"
-}
-
-// Instr is one fixed-format instruction.
+// Instr is one instruction.
 type Instr struct {
 	Op      Op
 	A, B, C int32
 }
 
-// ConstKind tags a constant-pool entry.
+// ConstKind is the type of a constant-pool entry.
 type ConstKind uint8
 
 // Constant kinds.
@@ -123,44 +95,48 @@ const (
 
 // Const is a constant-pool entry.
 type Const struct {
-	Kind  ConstKind
-	Int   int64 // Int and Char
-	Float float64
-	Str   []rune
+	Kind ConstKind
+	I    int64   // Int, Char
+	F    float64 // Float
+	S    []rune  // Str
 }
 
-// Func is one compiled function, method, default body or lambda.
-type Func struct {
-	Name     string
-	NParams  int // includes self for methods
-	NSlots   int // parameters plus locals
-	MaxStack int // upper bound on the operand stack depth
-	Code     []Instr
+// Function is a compiled function, method, default body or lambda.
+type Function struct {
+	Name    string
+	NParams int // including self
+	NLocals int // parameters plus other local slots
+	Code    []Instr
 }
 
-// TypeInfo describes a struct or enum declaration.
-type TypeInfo struct {
+// DeclInfo describes a struct or enum declaration.
+type DeclInfo struct {
 	Name     string
 	IsEnum   bool
-	NFields  int
-	Variants []VariantInfo
+	Fields   []string  // struct field names
+	Variants []Variant // enum variants
 }
 
-// VariantInfo describes an enum variant.
-type VariantInfo struct {
+// Variant describes an enum variant.
+type Variant struct {
 	Name     string
 	NPayload int
 }
 
+// ImplEntry is one impl: for the given trait and head constructor, the
+// function index of each trait method (defaults filled in).
+type ImplEntry struct {
+	Trait   int
+	Ctor    int
+	Methods []int32
+}
+
 // Program is a compiled program.
 type Program struct {
-	Consts   []Const
-	Funcs    []*Func
-	Types    []TypeInfo
-	Main     int
-	NumCtors int
-	NumTrait int
-	// Methods[trait*NumCtors+ctor] lists, per trait method index, the
-	// function implementing it for that head constructor; nil if no impl.
-	Methods [][]int32
+	Consts    []Const
+	Funcs     []*Function
+	Decls     []DeclInfo // indexed by declaration id; 0 is Option, 1 is Result
+	NumTraits int
+	Impls     []ImplEntry
+	Main      int
 }

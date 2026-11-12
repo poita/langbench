@@ -1,328 +1,196 @@
 package chip8_test
 
 import (
-	"bytes"
-	"encoding/hex"
+	"errors"
+	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/example/chip8"
 )
 
-func runInput(t *testing.T, in string) string {
+// runHex parses "rom\ncycles\n[schedule]" and returns the final report.
+func runHex(t *testing.T, in string) (*chip8.Machine, string) {
 	t.Helper()
-	p, err := chip8.ParseInput([]byte(in))
+	p, err := chip8.ParseProgram(strings.NewReader(in))
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("ParseProgram: %v", err)
 	}
-	m, err := p.Run()
+	m, err := p.Execute()
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("Execute: %v", err)
 	}
-	return string(m.Report())
+	return m, m.Report()
 }
 
-func blank(rows int) string { return strings.Repeat(strings.Repeat(".", 64)+"\n", rows) }
+func blank() string { return strings.Repeat(strings.Repeat(".", 64)+"\n", 32) }
 
-func TestExample1(t *testing.T) {
-	got := runInput(t, "60ff7001610180141208\n6\n")
-	want := blank(32) + "PC=0208 I=0000 SP=0 DT=00 ST=00\nV=01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n"
-	if got != want {
-		t.Errorf("got\n%s\nwant\n%s", got, want)
+func TestExamples(t *testing.T) {
+	tests := []struct{ name, in, want string }{
+		{"arithmetic", "60ff7001610180141208\n6\n",
+			blank() + "PC=0208 I=0000 SP=0 DT=00 ST=00\nV=01 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00\n"},
+		{"draw twice", "6a3e6b1e6000f029dab5dab5\n6\n",
+			blank() + "PC=020c I=0050 SP=0 DT=00 ST=00\nV=00 00 00 00 00 00 00 00 00 00 3e 1e 00 00 00 01\n"},
+		{"rng timers keys", "c0ffc1ffc20f6408f415f007e2a11200e4a1120af00a\n14\n9:0300\n",
+			blank() + "PC=021e I=0000 SP=0 DT=07 ST=00\nV=08 47 0d 00 08 00 00 00 00 00 00 00 00 00 00 00\n"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if _, got := runHex(t, tc.in); got != tc.want {
+				t.Errorf("got:\n%s\nwant:\n%s", got, tc.want)
+			}
+		})
 	}
 }
 
-func TestExample2DrawWrapAndCollision(t *testing.T) {
-	got := runInput(t, "6a3e6b1e6000f029dab5dab5\n5\n")
-	lines := strings.Split(got, "\n")
-	top := ".#............................................................#."
-	for i, w := range []string{top, top, "##............................................................##"} {
-		if lines[i] != w {
-			t.Errorf("row %d = %q, want %q", i, lines[i], w)
+func TestDrawWrap(t *testing.T) {
+	m, out := runHex(t, "6a3e6b1e6000f029dab5\n5\n")
+	lines := strings.Split(out, "\n")
+	for row, want := range map[int]string{
+		0:  ".#............................................................#.",
+		2:  "##............................................................##",
+		30: "##............................................................##",
+		31: ".#............................................................#.",
+	} {
+		if lines[row] != want {
+			t.Errorf("row %d = %q, want %q", row, lines[row], want)
 		}
 	}
-	if lines[30] != "##............................................................##" || lines[31] != top {
-		t.Errorf("bottom rows wrong: %q %q", lines[30], lines[31])
-	}
-	if lines[32] != "PC=020a I=0050 SP=0 DT=00 ST=00" {
-		t.Errorf("state line %q", lines[32])
-	}
-	got = runInput(t, "6a3e6b1e6000f029dab5dab5\n6\n")
-	if !strings.HasPrefix(got, blank(32)+"PC=020c I=0050 SP=0 DT=00 ST=00\nV=00 00 00 00 00 00 00 00 00 00 3e 1e 00 00 00 01") {
-		t.Errorf("collision run:\n%s", got)
+	if m.V[0xF] != 0 {
+		t.Errorf("VF = %d, want 0", m.V[0xF])
 	}
 }
 
-func TestExample3RandomTimersKeys(t *testing.T) {
-	got := runInput(t, "c0ffc1ffc20f6408f415f007e2a11200e4a1120af00a\n14\n9:0300\n")
-	want := blank(32) + "PC=021e I=0000 SP=0 DT=07 ST=00\nV=08 47 0d 00 08 00 00 00 00 00 00 00 00 00 00 00\n"
-	if got != want {
-		t.Errorf("got\n%s\nwant\n%s", got, want)
+func TestRNGSequence(t *testing.T) {
+	m, _ := runHex(t, "c0ffc1ffc2ff\n3\n")
+	if m.V[0] != 0x71 || m.V[1] != 0x47 || m.V[2] != 0x1d {
+		t.Errorf("V0..V2 = %02x %02x %02x, want 71 47 1d", m.V[0], m.V[1], m.V[2])
 	}
-}
-
-// machine returns a machine with the given opcodes loaded at 0x200.
-func machine(t testing.TB, ops ...uint16) *chip8.Machine {
-	t.Helper()
-	var rom []byte
-	for _, o := range ops {
-		rom = append(rom, byte(o>>8), byte(o))
-	}
-	m := chip8.New()
-	if err := m.LoadROM(rom); err != nil {
-		t.Fatal(err)
-	}
-	return m
 }
 
 func TestFlagWinsWhenXIsF(t *testing.T) {
-	m := machine(t, 0x6FFF, 0x6001, 0x8F04, 0x6F80, 0x8F6E)
-	m.Run(3)
+	// VF = 0xFF; VF += VF -> flag 1 overwrites the sum.
+	m, _ := runHex(t, "6fff8ff4\n2\n")
 	if m.V[0xF] != 1 {
-		t.Errorf("8F04 flag: VF=%d, want 1", m.V[0xF])
-	}
-	m.Run(2)
-	if m.V[0xF] != 1 { // 0x80<<1 overflows, flag 1 wins over result 0
-		t.Errorf("8F6E: VF=%d, want 1", m.V[0xF])
+		t.Errorf("VF = %02x, want 01", m.V[0xF])
 	}
 }
 
-func TestSubtractAndShifts(t *testing.T) {
-	m := machine(t, 0x6005, 0x6103, 0x8015, 0x6005, 0x8017, 0x6003, 0x8006, 0x6081, 0x800E)
-	m.Run(3)
-	if m.V[0] != 2 || m.V[0xF] != 1 {
-		t.Errorf("8015: V0=%d VF=%d", m.V[0], m.V[0xF])
+func TestALU(t *testing.T) {
+	cases := []struct {
+		rom      string
+		v0, flag byte
+	}{
+		{"600561038015", 2, 1},    // 8XY5: 5-3
+		{"600361058015", 0xfe, 0}, // 8XY5: 3-5 borrows
+		{"600561038017", 0xfe, 0}, // 8XY7: 3-5 borrows
+		{"600361058017", 2, 1},    // 8XY7: 5-3
+		{"600380f6", 1, 1},        // 8XY6
+		{"608180fe", 2, 1},        // 8XYE
+		{"60ff61028014", 1, 1},    // 8XY4 overflow
 	}
-	m.Run(2) // V0=5, V0 = V1-V0 = 3-5 borrows
-	if m.V[0] != 0xFE || m.V[0xF] != 0 {
-		t.Errorf("8017: V0=%#x VF=%d", m.V[0], m.V[0xF])
-	}
-	m.Run(2)
-	if m.V[0] != 1 || m.V[0xF] != 1 {
-		t.Errorf("8006: V0=%d VF=%d", m.V[0], m.V[0xF])
-	}
-	m.Run(2)
-	if m.V[0] != 2 || m.V[0xF] != 1 {
-		t.Errorf("800E: V0=%#x VF=%d", m.V[0], m.V[0xF])
+	for _, c := range cases {
+		m, _ := runHex(t, c.rom+"\n"+strconv.Itoa(len(c.rom)/4)+"\n")
+		if m.V[0] != c.v0 || m.V[0xF] != c.flag {
+			t.Errorf("%s: V0=%02x VF=%02x, want %02x %02x", c.rom, m.V[0], m.V[0xF], c.v0, c.flag)
+		}
 	}
 }
 
-func TestCallReturnAndFullStack(t *testing.T) {
-	m := machine(t, 0x2204, 0x1200, 0x00EE)
-	m.Run(1)
-	if m.SP != 1 || m.PC != 0x204 {
-		t.Fatalf("after call SP=%d PC=%#x", m.SP, m.PC)
+func TestMemoryWrapAndBCD(t *testing.T) {
+	// V0=254; I=0xFFF; FX33 writes mem[FFF], mem[000], mem[001].
+	m, _ := runHex(t, "60feaffff033\n3\n")
+	if m.Mem[0xFFF] != 2 || m.Mem[0] != 5 || m.Mem[1] != 4 {
+		t.Errorf("BCD = %d %d %d, want 2 5 4", m.Mem[0xFFF], m.Mem[0], m.Mem[1])
 	}
-	m.Run(1)
-	if m.SP != 0 || m.PC != 0x202 {
-		t.Fatalf("after return SP=%d PC=%#x", m.SP, m.PC)
+}
+
+func TestFetchWrapAtTop(t *testing.T) {
+	// Jump to 0xFFF: high byte from mem[FFF], low byte from mem[000]; PC -> 001.
+	m, err := chip8.New([]byte{0x1f, 0xff})
+	if err != nil {
+		t.Fatal(err)
 	}
-	// 16 nested calls, each to the next instruction.
-	var ops []uint16
+	m.Run(2, nil)
+	if m.PC != 0x001 {
+		t.Errorf("PC = %04x, want 0001", m.PC)
+	}
+}
+
+func TestCallReturnFullStack(t *testing.T) {
+	// Sixteen nested calls, each to the next instruction.
+	var rom []byte
 	for i := 0; i < 16; i++ {
-		ops = append(ops, 0x2202+uint16(2*i))
+		addr := 0x202 + 2*i
+		rom = append(rom, byte(0x20|addr>>8), byte(addr))
 	}
-	m = machine(t, ops...)
-	m.Run(16)
+	m, _ := chip8.New(rom)
+	m.Run(16, nil)
 	if m.SP != 16 {
-		t.Errorf("SP=%d, want 16", m.SP)
+		t.Fatalf("SP = %d, want 16", m.SP)
 	}
-}
-
-func TestBNNNWrapsAndOddPC(t *testing.T) {
-	m := machine(t, 0x6001+0x0000, 0xBFFF)
-	m.Run(2)
-	if m.PC != 0x000 {
-		t.Errorf("PC=%#x, want 0", m.PC)
-	}
-}
-
-func TestFetchWrapAtFFF(t *testing.T) {
-	m := chip8.New()
-	m.Mem[0xFFF] = 0x60 // 6000|NN where NN = mem[0] = 0
-	m.Mem[0x000] = 0x2A
-	m.PC = 0xFFF
-	m.Run(1)
-	if m.V[0] != 0x2A || m.PC != 0x001 {
-		t.Errorf("V0=%#x PC=%#x", m.V[0], m.PC)
-	}
-}
-
-func TestMemoryOps(t *testing.T) {
-	// V0=234, I=0xFFF, BCD wraps to 0x000/0x001, then store/load V0..V2.
-	m := machine(t, 0x60EA, 0xAFFF, 0xF033, 0x6101, 0x6202, 0xF255, 0xF065)
-	m.Run(3)
-	if m.Mem[0xFFF] != 2 || m.Mem[0] != 3 || m.Mem[1] != 4 {
-		t.Errorf("BCD memory: %d %d %d", m.Mem[0xFFF], m.Mem[0], m.Mem[1])
-	}
-	m.Run(4) // FX55 stores V0..V2 across the wrap, FX65 loads V0 back
-	if m.Mem[0xFFF] != 0xEA || m.Mem[0] != 1 || m.Mem[1] != 2 || m.V[0] != 0xEA {
-		t.Errorf("FX55/FX65: %d %d %d V0=%d", m.Mem[0xFFF], m.Mem[0], m.Mem[1], m.V[0])
-	}
-	if m.I != 0xFFF {
-		t.Errorf("I=%#x changed", m.I)
-	}
-}
-
-func TestFX1EAndFX29(t *testing.T) {
-	m := machine(t, 0xAFFF, 0x60FF, 0xF01E)
-	m.Run(3)
-	if m.I != 0x10FE {
-		t.Errorf("I=%#x, want 0x10fe", m.I)
-	}
-	m = machine(t, 0x60FF, 0xF01E)
-	m.I = 0xFFFF
-	m.Run(2)
-	if m.I != 0x00FE {
-		t.Errorf("I=%#x, want 0xfe", m.I)
-	}
-	m = machine(t, 0x601F, 0xF029)
-	m.Run(2)
-	if m.I != 0x050+15*5 {
-		t.Errorf("FX29: I=%#x", m.I)
-	}
-}
-
-func TestKeySkipsAndSchedule(t *testing.T) {
-	m := machine(t, 0x6003, 0xE09E, 0x6101, 0x6201)
-	m.RunSchedule(4, []chip8.KeyEvent{{Cycle: 1, Mask: 1 << 3}})
-	if m.V[1] != 0 || m.V[2] != 1 {
-		t.Errorf("EX9E did not skip: V1=%d V2=%d", m.V[1], m.V[2])
-	}
-	// An event at cycle N never has an effect on registers.
-	m = machine(t, 0x6003, 0xE09E, 0x6101)
-	m.RunSchedule(2, []chip8.KeyEvent{{Cycle: 2, Mask: 1 << 3}})
-	if m.PC != 0x204 {
-		t.Errorf("PC=%#x", m.PC)
+	if m.Stack[0] != 0x202 || m.Stack[15] != 0x220 {
+		t.Errorf("stack = %x ... %x", m.Stack[0], m.Stack[15])
 	}
 }
 
 func TestTimerTick(t *testing.T) {
-	// FX15 in cycle 7 is decremented immediately.
-	ops := []uint16{0x6008}
-	for i := 0; i < 6; i++ {
-		ops = append(ops, 0x6100)
-	}
-	ops = append(ops, 0xF015, 0xF018)
-	m := machine(t, ops...)
-	m.Run(8)
-	if m.DT != 7 || m.ST != 0 {
-		t.Errorf("DT=%d ST=%d, want 7 0", m.DT, m.ST)
-	}
-	m.Run(8) // ST=8 set in cycle 8, ticks after cycle 15
-	if m.DT != 6 || m.ST != 7 {
-		t.Errorf("DT=%d ST=%d, want 6 7", m.DT, m.ST)
+	// V0=20; DT=V0 in cycle 1; one tick after cycle 7 leaves 19.
+	m, _ := runHex(t, "6014f0151204\n8\n")
+	if m.DT != 19 {
+		t.Errorf("DT = %d, want 19", m.DT)
 	}
 }
 
-func TestRNG(t *testing.T) {
-	m := machine(t, 0xC0FF, 0xC1FF, 0xC200, 0xC3FF)
-	m.Run(4)
-	if m.V[0] != 0x71 || m.V[1] != 0x47 || m.V[2] != 0 {
-		t.Errorf("V=%v", m.V[:4])
+func TestWaitForKey(t *testing.T) {
+	m, _ := runHex(t, "f00a\n5\n3:0050\n")
+	if m.V[0] != 4 {
+		t.Errorf("V0 = %d, want lowest key 4", m.V[0])
 	}
-	if m.RNG == 0x12345678 {
-		t.Error("RNG did not advance")
-	}
-	if m.V[3] != byte(m.RNG>>16) {
-		t.Errorf("V3=%#x", m.V[3])
+	if m.PC != 0x204 {
+		t.Errorf("PC = %04x, want 0204", m.PC)
 	}
 }
 
-func TestNoOpsLeaveStateAlone(t *testing.T) {
-	m := machine(t, 0x0123, 0x5121, 0x8128, 0x9121, 0xE000, 0xF0FF, 0x9120)
-	m.V[1], m.V[2] = 5, 5
-	m.Run(6)
-	if m.PC != 0x20C {
-		t.Errorf("PC=%#x, want 0x20c", m.PC)
-	}
-	m.Run(1) // 9120 with equal registers does not skip
-	if m.PC != 0x20E {
-		t.Errorf("PC=%#x, want 0x20e", m.PC)
+func TestKeyEventAtN(t *testing.T) {
+	m, _ := runHex(t, "f00a\n2\n2:0001\n")
+	if m.PC != 0x200 {
+		t.Errorf("PC = %04x, want 0200 (event at N has no effect)", m.PC)
 	}
 }
 
-func TestDrawCollisionAndZeroRows(t *testing.T) {
-	m := machine(t, 0xA300, 0xD001, 0xD001, 0xD000)
-	m.Mem[0x300] = 0x81
-	m.Run(3)
-	if m.V[0xF] != 1 || m.Display.Lit() != 0 {
-		t.Errorf("VF=%d lit=%d", m.V[0xF], m.Display.Lit())
-	}
-	m.Run(1)
-	if m.V[0xF] != 0 {
-		t.Errorf("N=0 VF=%d", m.V[0xF])
+func TestSelfModifyingCode(t *testing.T) {
+	// Write 6107 over the instruction at 0x208 then execute it.
+	// A208 sets I; V0=61; V1=07; F155 stores V0,V1; then 0x208 runs.
+	rom := "a208" + "6061" + "6107" + "f155" + "0000"
+	m, _ := runHex(t, rom+"\n6\n")
+	if m.V[1] != 7 {
+		t.Errorf("V1 = %d, want 7", m.V[1])
 	}
 }
 
-func TestDisplayPixelAPI(t *testing.T) {
-	var d chip8.Display
-	d.Set(63, 31, true)
-	d.Set(0, 0, true)
-	if !d.Pixel(63, 31) || !d.Pixel(0, 0) || d.Pixel(1, 0) || d.Lit() != 2 {
-		t.Error("pixel set/get mismatch")
-	}
-	d.Clear()
-	if d.Lit() != 0 {
-		t.Error("Clear left pixels")
-	}
-}
-
-func TestParseInput(t *testing.T) {
-	p, err := chip8.ParseInput([]byte("00e0\n10\n0:0001 5:ffff"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.Equal(p.ROM, []byte{0x00, 0xE0}) || p.Cycles != 10 || len(p.Events) != 2 ||
-		p.Events[1] != (chip8.KeyEvent{Cycle: 5, Mask: 0xFFFF}) {
-		t.Errorf("parsed %+v", p)
-	}
-	p, err = chip8.ParseInput([]byte("00e0\n10\n\n"))
-	if err != nil || len(p.Events) != 0 {
-		t.Errorf("empty schedule: %+v %v", p, err)
-	}
-	for _, bad := range []string{"", "00e0\n", "0\n1\n", "zz\n1\n", "00e0\nx\n", "00e0\n1\n1:0001 1:0002", "00e0\n1\n1:01", "00e0\n4000000001\n"} {
-		if _, err := chip8.ParseInput([]byte(bad)); err == nil {
-			t.Errorf("input %q: expected error", bad)
+func TestParseErrors(t *testing.T) {
+	for _, in := range []string{"", "6000\n", "zz\n1\n", "6000\nx\n", "6000\n1\n5:0001 4:0001\n", "6000\n1\n5-0001\n"} {
+		if _, err := chip8.ParseProgram(strings.NewReader(in)); err == nil {
+			t.Errorf("ParseProgram(%q) succeeded, want error", in)
 		}
 	}
-	big := hex.EncodeToString(make([]byte, 3585)) + "\n1\n"
-	if _, err := chip8.ParseInput([]byte(big)); err == nil {
-		t.Error("oversized ROM accepted")
-	}
-	full := hex.EncodeToString(make([]byte, 3584)) + "\n1\n"
-	if p, err := chip8.ParseInput([]byte(full)); err != nil {
-		t.Error(err)
-	} else if _, err := p.Run(); err != nil {
-		t.Error(err)
-	}
 }
 
-func TestLoadROMTooBig(t *testing.T) {
-	if err := chip8.New().LoadROM(make([]byte, chip8.MaxROMSize+1)); err == nil {
-		t.Error("expected error")
+func TestROMTooLarge(t *testing.T) {
+	_, err := chip8.New(make([]byte, chip8.MaxROMSize+1))
+	if !errors.Is(err, chip8.ErrROMTooLarge) {
+		t.Errorf("err = %v, want ErrROMTooLarge", err)
 	}
-}
-
-func TestReportFormat(t *testing.T) {
-	m := chip8.New()
-	m.PC, m.I, m.SP, m.DT, m.ST = 0xABC, 0xFFFF, 16, 0x0A, 0xFF
-	m.V[15] = 0x0F
-	lines := strings.Split(string(m.Report()), "\n")
-	if len(lines) != 35 || lines[34] != "" {
-		t.Fatalf("got %d lines", len(lines))
-	}
-	if lines[32] != "PC=0abc I=ffff SP=16 DT=0a ST=ff" {
-		t.Errorf("line 33: %q", lines[32])
-	}
-	if lines[33] != "V=00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0f" {
-		t.Errorf("line 34: %q", lines[33])
+	if _, err := chip8.New(make([]byte, chip8.MaxROMSize)); err != nil {
+		t.Errorf("max-size ROM rejected: %v", err)
 	}
 }
 
 func BenchmarkRun(b *testing.B) {
+	rom := []byte{0x60, 0x00, 0xf0, 0x29, 0xd0, 0x05, 0x12, 0x00}
 	for i := 0; i < b.N; i++ {
-		m := machine(b, 0x6001, 0xA050, 0xD015, 0x7001, 0x1202)
-		m.Run(1_000_000)
+		m, _ := chip8.New(rom)
+		m.Run(1_000_000, nil)
 	}
 }

@@ -1,0 +1,17 @@
+{:paths ["src"]
+
+ :deps {org.clojure/clojure {:mvn/version "1.12.6"}}
+
+ :aliases
+ {;; clojure -M:test
+  :test {:extra-paths ["test"]
+         :extra-deps  {org.clojure/test.check {:mvn/version "1.1.1"}
+                       io.github.cognitect-labs/test-runner
+                       {:git/sha "dfb30dd6605cb6c0efc275e1df1736f6e90d4d73"}}
+         :main-opts   ["-m" "cognitect.test-runner"]
+         ;; check every derived-characteristics cache hit against a fresh derivation
+         :jvm-opts    ["-Dcardgame.verify=true"]
+         :exec-fn     cognitect.test-runner.api/test}
+
+  ;; clojure -M:run < match-file
+  :run {:main-opts ["-m" "cardgame.cli"]}}}

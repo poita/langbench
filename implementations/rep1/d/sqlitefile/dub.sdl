@@ -1,0 +1,19 @@
+name "sqlitefile"
+description "A from-scratch reader for SQLite 3 database files with a tiny query engine"
+authors "sqlitefile contributors"
+license "MIT"
+copyright "Copyright © 2026, sqlitefile contributors"
+targetPath "."
+
+# The command-line tool (default configuration, built by `dub build`).
+configuration "cli" {
+    targetType "executable"
+    targetName "sqlitefile"
+    mainSourceFile "source/app.d"
+}
+
+# The reusable library only (what a dependent package gets).
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}

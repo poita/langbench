@@ -1,0 +1,225 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 10 10
+5 EMBER B 10 10
+6 PHASE draw
+7 PHASE main1
+8 PASS A
+9 PLAY B ~1 #23 EXT-003
+10 PAY B ember 1
+11 PASS B
+12 PASS A
+13 RESOLVE ~1
+14 DAMAGE #23 #11 1
+15 DAMAGE #23 #12 1
+16 DAMAGE #23 #25 1
+17 PREVENT #26 1
+18 SPENT #23 EXT-003
+19 DESTROY #25 EXT-001
+20 TRIGGER A ~2 #11 1
+21 TRIGGER A ~3 #12 1
+22 PASS A
+23 PASS B
+24 RESOLVE ~2
+25 WARD #11 1 1
+26 PASS A
+27 PASS B
+28 RESOLVE ~3
+29 WARD #12 1 1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+player B spire 30 ember 9 cap 10 vault 10 hand 1 ash 2 rift 0
+hand B 1 #24 EXT-003
+field A #11 EXT-025 2/4 w1 c0 ready ward1 kw -
+field A #12 EXT-025 2/4 w1 c0 ready ward1 kw -
+field B #26 EXT-011 1/4 w0 c0 ready - kw plating:1
+ash B 1 #23 EXT-003
+ash B 2 #25 EXT-001
+STATE END
+30 PASS A
+31 PLAY B ~4 #24 EXT-003
+32 PAY B ember 1
+33 PASS B
+34 PASS A
+35 RESOLVE ~4
+36 PREVENT #11 1
+37 PREVENT #12 1
+38 PREVENT #26 1
+39 SPENT #24 EXT-003
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+player B spire 30 ember 8 cap 10 vault 10 hand 0 ash 3 rift 0
+field A #11 EXT-025 2/4 w1 c0 ready - kw -
+field A #12 EXT-025 2/4 w1 c0 ready - kw -
+field B #26 EXT-011 1/4 w0 c0 ready - kw plating:1
+ash B 1 #23 EXT-003
+ash B 2 #25 EXT-001
+ash B 3 #24 EXT-003
+STATE END
+40 PASS A
+41 PASS B
+42 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #11
+CANATTACK #12
+LEGAL END
+43 EXHAUST #11
+44 ATTACK #11
+45 PASS A
+46 PASS B
+47 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #26 #11
+LEGAL END
+48 BLOCK #26 #11
+STATE BEGIN
+turn 1 active A phase clash-block decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+player B spire 30 ember 8 cap 10 vault 10 hand 0 ash 3 rift 0
+field A #11 EXT-025 2/4 w1 c0 exhausted attacking,blocked kw -
+field A #12 EXT-025 2/4 w1 c0 ready - kw -
+field B #26 EXT-011 1/4 w0 c0 ready blocking kw plating:1
+ash B 1 #23 EXT-003
+ash B 2 #25 EXT-001
+ash B 3 #24 EXT-003
+STATE END
+49 PASS A
+50 PASS B
+51 PHASE clash-damage
+52 PREVENT #26 1
+53 DAMAGE #11 #26 1
+54 DAMAGE #26 #11 1
+55 TRIGGER A ~5 #11 1
+56 TRIGGER A ~6 #11 2
+57 PASS A
+58 PASS B
+59 RESOLVE ~5
+60 WARD #11 2 2
+61 PASS A
+62 PASS B
+63 RESOLVE ~6
+64 COUNTERS #26 +1 1
+65 PASS A
+66 PASS B
+67 PHASE clash-end
+68 PASS A
+69 PASS B
+70 PHASE main2
+STATE BEGIN
+turn 1 active A phase main2 decision A priority
+player A spire 30 ember 10 cap 10 vault 10 hand 0 ash 0 rift 0
+player B spire 30 ember 8 cap 10 vault 10 hand 0 ash 3 rift 0
+field A #11 EXT-025 2/4 w2 c0 exhausted ward2 kw -
+field A #12 EXT-025 2/4 w1 c0 ready - kw -
+field B #26 EXT-011 2/5 w1 c1 ready - kw plating:1
+ash B 1 #23 EXT-003
+ash B 2 #25 EXT-001
+ash B 3 #24 EXT-003
+STATE END
+71 PASS A
+72 PASS B
+73 PHASE dusk-trigger
+74 PASS A
+75 PASS B
+76 PHASE dusk-discard
+77 PHASE dusk-cleanup
+78 TURN 2 B
+79 PHASE dawn
+80 EMBER A 10 10
+81 EMBER B 10 10
+82 TRIGGER B ~7 #26 1
+83 RESOLVE ~7
+84 COUNTERS #26 +2 3
+85 PHASE draw
+86 DRAW B #13 EXT-001
+87 PHASE main1
+88 PASS B
+89 PASS A
+90 PHASE clash-attack
+91 PHASE main2
+92 PASS B
+93 PASS A
+94 PHASE dusk-trigger
+95 PASS B
+96 PASS A
+97 PHASE dusk-discard
+98 PHASE dusk-cleanup
+99 TURN 3 A
+100 PHASE dawn
+101 EMBER A 10 10
+102 EMBER B 10 10
+103 READY #11
+104 PHASE draw
+105 DRAW A #1 EXT-001
+106 PHASE main1
+107 PASS A
+108 PASS B
+109 PHASE clash-attack
+LEGAL BEGIN A attackers
+CANATTACK #11
+CANATTACK #12
+LEGAL END
+110 EXHAUST #11
+111 ATTACK #11
+112 EXHAUST #12
+113 ATTACK #12
+114 PASS A
+115 PASS B
+116 PHASE clash-block
+LEGAL BEGIN B blockers
+CANBLOCK #26 #11
+CANBLOCK #26 #12
+LEGAL END
+117 UNBLOCKED #11
+118 UNBLOCKED #12
+STATE BEGIN
+turn 3 active A phase clash-block decision A priority
+player A spire 30 ember 10 cap 10 vault 9 hand 1 ash 0 rift 0
+player B spire 30 ember 10 cap 10 vault 9 hand 1 ash 3 rift 0
+hand A 1 #1 EXT-001
+hand B 1 #13 EXT-001
+field A #11 EXT-025 2/4 w0 c0 exhausted attacking kw -
+field A #12 EXT-025 2/4 w0 c0 exhausted attacking kw -
+field B #26 EXT-011 4/7 w0 c3 ready - kw plating:1
+ash B 1 #23 EXT-003
+ash B 2 #25 EXT-001
+ash B 3 #24 EXT-003
+STATE END
+119 PASS A
+120 PASS B
+121 PHASE clash-damage
+122 DAMAGE #11 B 2
+123 SPIRE B -2 28
+124 DAMAGE #12 B 2
+125 SPIRE B -2 26
+126 TRIGGER A ~8 #11 2
+127 TRIGGER A ~9 #12 2
+128 PASS A
+129 PASS B
+130 RESOLVE ~8
+131 PASS A
+132 PASS B
+133 RESOLVE ~9
+134 PASS A
+135 PASS B
+136 PHASE clash-end
+137 PASS A
+138 PASS B
+139 PHASE main2
+STATE BEGIN
+turn 3 active A phase main2 decision A priority
+player A spire 30 ember 10 cap 10 vault 9 hand 1 ash 0 rift 0
+player B spire 26 ember 10 cap 10 vault 9 hand 1 ash 3 rift 0
+hand A 1 #1 EXT-001
+hand B 1 #13 EXT-001
+field A #11 EXT-025 2/4 w0 c0 exhausted - kw -
+field A #12 EXT-025 2/4 w0 c0 exhausted - kw -
+field B #26 EXT-011 4/7 w0 c3 ready - kw plating:1
+ash B 1 #23 EXT-003
+ash B 2 #25 EXT-001
+ash B 3 #24 EXT-003
+STATE END
+140 RESULT pending none

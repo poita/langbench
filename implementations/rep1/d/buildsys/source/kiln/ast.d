@@ -1,164 +1,116 @@
-/// Abstract syntax tree of KBL.
+/**
+ * Syntax trees for KBL build files.
+ */
 module kiln.ast;
 
-/// Expression node kinds.
-enum ExprKind : ubyte
-{
-    intLit,
-    strLit,
-    boolLit,
-    interp, /// double-quoted literal with interpolations
-    variable,
-    list,
-    call,
-    index,
-    unary,
-    binary,
-    logicalAnd,
-    logicalOr
-}
+import kiln.value : Value;
 
-/// Unary and binary operators.
-enum Op : ubyte
-{
-    add,
-    sub,
-    mul,
-    div,
-    mod,
-    eq,
-    ne,
-    lt,
-    le,
-    gt,
-    ge,
-    concatStr,
-    concatList,
-    neg,
-    not
-}
-
-/// The spelling of an operator, used in error sites.
-string opSpelling(Op op) pure nothrow @safe
-{
-    final switch (op)
-    {
-    case Op.add:
-        return "+";
-    case Op.sub:
-        return "-";
-    case Op.mul:
-        return "*";
-    case Op.div:
-        return "/";
-    case Op.mod:
-        return "%";
-    case Op.eq:
-        return "==";
-    case Op.ne:
-        return "!=";
-    case Op.lt:
-        return "<";
-    case Op.le:
-        return "<=";
-    case Op.gt:
-        return ">";
-    case Op.ge:
-        return ">=";
-    case Op.concatStr:
-        return "~";
-    case Op.concatList:
-        return "++";
-    case Op.neg:
-        return "-";
-    case Op.not:
-        return "!";
-    }
-}
-
-/// A piece of a double-quoted literal: literal text or an interpolated expression.
-struct StrPart
-{
-    string text;
-    Expr expr; /// null for a literal part
-}
-
-/// An expression.
+/// An expression node.
 final class Expr
 {
-    ExprKind kind;
-    long ival; /// integer / bool literal
-    string name; /// string literal text, variable name or called function name
-    Op op; /// for unary / binary
-    Expr[] kids; /// operands, list elements, call arguments, index operands
-    StrPart[] parts; /// for `interp`
-}
+    /// Node kinds.
+    enum Kind : ubyte
+    {
+        literal,  /// a constant `Value` (`lit`)
+        interp,   /// a double-quoted string with interpolations (`parts`)
+        variable, /// a variable reference (`name`)
+        list,     /// a list display (`args`)
+        unary,    /// `!x` / `-x` (`name` is the operator, `args[0]` the operand)
+        binary,   /// `a op b` (`name` is the operator, `args` the two operands)
+        call,     /// `f(args...)` (`name`); also the desugaring of `x |> f(...)`
+        index,    /// `x[i]` (`args[0]` is x, `args[1]` is i)
+    }
 
-/// Statement node kinds.
-enum StmtKind : ubyte
-{
-    let,
-    set,
-    include,
-    abort,
-    default_,
-    phony,
-    use,
-    when,
-    each,
-    rule,
-    step
-}
+    /// One piece of an interpolated string: either literal bytes or an expression.
+    struct Part
+    {
+        string literal;
+        Expr expr;
+    }
 
-/// Step field kinds.
-enum FieldKind : ubyte
-{
-    out_,
-    in_,
-    after,
-    cost,
-    depfile,
-    cmd
-}
-
-/// A `field expr` or `cmd name(args)` line inside a step block.
-struct StepField
-{
-    FieldKind kind;
-    Expr expr;
-    string cmdName;
+    ///
+    Kind kind;
+    ///
+    Value lit;
+    ///
+    string name;
+    ///
     Expr[] args;
+    ///
+    Part[] parts;
 }
 
-/// A rule parameter with an optional default.
+/// A rule parameter.
 struct Param
 {
+    ///
     string name;
-    Expr def; /// null when there is no default
+    /// Default value expression, or null.
+    Expr defaultValue;
 }
 
-/// A keyword argument of a `use` statement.
-struct KwArg
+/// An argument of a `use` statement.
+struct UseArg
 {
-    string name;
+    /// The keyword, or null for a positional argument.
+    string keyword;
+    ///
     Expr value;
 }
 
-/// A statement.
+/// One field of a `step` block.
+struct StepField
+{
+    /// Field kinds.
+    enum Kind : ubyte { out_, in_, after, cost, depfile, cmd }
+
+    ///
+    Kind kind;
+    ///
+    Expr expr;
+    /// For `cmd`: the command name.
+    string cmdName;
+    /// For `cmd`: the argument expressions.
+    Expr[] cmdArgs;
+}
+
+/// A statement node.
 final class Stmt
 {
-    StmtKind kind;
+    /// Statement kinds.
+    enum Kind : ubyte { let, set, include, abort, default_, phony, use, when, each, rule, step }
+
+    ///
+    Kind kind;
+    /// 1-based line of the statement's first physical line.
     int line;
-    string name; /// let/set/phony/use/rule name; each element variable
-    string indexName; /// `each` index variable (null if absent)
-    Expr expr; /// the main expression (let, set, include, abort, default, phony, each subject)
-    Expr[] posArgs; /// use: positional arguments
-    KwArg[] kwArgs; /// use: keyword arguments
-    Expr[] conds; /// when/elsewhen conditions
-    Stmt[][] bodies; /// when/elsewhen bodies (same length as conds)
-    Stmt[] otherwise; /// `otherwise` body
+    /// The bound name (`let`, `set`, `phony`, `each` value variable, `rule` name, `use` rule name).
+    string name;
+    /// `each`: the index variable, or null.
+    string indexName;
+    /// The expression of simple statements, the `each` subject.
+    Expr expr;
+    /// `when`: conditions of the `when` and `elsewhen` branches.
+    Expr[] conds;
+    /// `when`: bodies, one per condition, then the `otherwise` body if `hasOtherwise`.
+    Stmt[][] bodies;
+    ///
     bool hasOtherwise;
-    Stmt[] body; /// each/rule body
-    Param[] params; /// rule parameters
-    StepField[] fields; /// step fields
+    /// `each` / `rule`: the body.
+    Stmt[] body_;
+    /// `rule`: parameters.
+    Param[] params;
+    /// `use`: arguments.
+    UseArg[] useArgs;
+    /// `step`: fields in source order.
+    StepField[] fields;
+}
+
+/// A parsed build file.
+final class BuildFile
+{
+    ///
+    string path;
+    ///
+    Stmt[] statements;
 }

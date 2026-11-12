@@ -1,0 +1,23 @@
+[message]
+id 0002
+source "qp-crlf.eml"
+
+[headers]
+content-type: "text/plain; charset=us-ascii"
+content-transfer-encoding: "quoted-printable"
+
+[addresses]
+
+[date]
+none
+
+[structure]
+0 text/plain charset=us-ascii cte=quoted-printable size=26 adler32=77ca08fa role=text
+
+[body]
+text 0 chars 26
+| hard\r
+| break and softbreak
+html none
+
+[attachments]

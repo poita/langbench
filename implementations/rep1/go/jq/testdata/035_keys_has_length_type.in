@@ -1,0 +1,2 @@
+keys, (.arr | keys), ([has("a"), has("zz")]), (.arr | [has(0), has(2), has(-1), has(3)]), [.[] | length], [.[] | type], ({} | keys), ([] | keys), ("" | length), (null | length), (-2.5 | length), ("😀é" | length), [.n | has("a"), has(0), has(null)], [.q | has("a")], (.arr | [has(0.5), has(1.5)])
+{"b":1,"a":"héllo","arr":[1,[2,3],{"x":1}],"n":null,"neg":-4}

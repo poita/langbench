@@ -1,209 +1,147 @@
-package regexvm
+package regex
 
-import "errors"
+import (
+	"errors"
 
-// Opcodes of the backtracking virtual machine.
-const (
-	opChar     uint8 = iota // match byte ch
-	opAny                   // match any byte
-	opClass                 // match a byte in class x
-	opBol                   // succeed at position 0
-	opEol                   // succeed at end of subject
-	opSplit                 // try x first, then y
-	opJmp                   // continue at x
-	opSave                  // slot x = position (trailed)
-	opMark                  // loop register x = position (trailed)
-	opCheck                 // if position == register x, jump to y
-	opCharLoop              // greedy loop over one single-character matcher
-	opMatch                 // overall success
+	"example.com/regex/syntax"
 )
 
-// Kinds of single-character matcher used by opCharLoop.
-const (
-	kindChar uint8 = iota
-	kindAny
-	kindClass
-)
+// maxInsts bounds the size of a compiled program. Counted repetitions are
+// expanded into copies of their operand, so deeply nested counts can
+// otherwise grow without limit.
+const maxInsts = 1 << 20
 
-// maxProgram bounds the program size so hostile counted quantifiers cannot
-// exhaust memory.
-const maxProgram = 1 << 21
+// ErrTooLarge is returned by Compile when counted repetitions expand into a
+// program larger than the implementation limit.
+var ErrTooLarge = errors.New("regex: pattern too large after expanding repetitions")
 
-var errTooLarge = errors.New("regexvm: pattern too large after expanding counted quantifiers")
-
-// inst is one VM instruction. Operand meaning depends on op.
-type inst struct {
-	op   uint8
-	kind uint8 // opCharLoop: matcher kind
-	ch   byte  // opChar, opCharLoop with kindChar
-	x, y int32 // jump targets, slot numbers or class index
-	min  int32 // opCharLoop
-	max  int32 // opCharLoop; -1 means unbounded
-}
-
-// compiler translates a syntax tree into a flat program.
 type compiler struct {
-	insts   []inst
-	classes []*charSet
-	ngroups int
-	nregs   int
-	err     error
+	prog   *program
+	marks  int
+	failed bool
 }
 
-func (c *compiler) emit(i inst) int {
-	if len(c.insts) >= maxProgram {
-		c.err = errTooLarge
-		return len(c.insts) - 1
+func compile(root *syntax.Node, groups int) (*program, error) {
+	c := &compiler{prog: &program{groups: groups}}
+	c.emit(root)
+	c.add(inst{op: opMatch})
+	if c.failed {
+		return nil, ErrTooLarge
 	}
-	c.insts = append(c.insts, i)
-	return len(c.insts) - 1
+	c.prog.slots = 3*groups + c.marks
+	return c.prog, nil
 }
 
-func (c *compiler) pc() int32 { return int32(len(c.insts)) }
-
-func (c *compiler) classIndex(s *charSet) int32 {
-	for i, o := range c.classes {
-		if o == s {
-			return int32(i)
-		}
+// add appends an instruction and returns its index.
+func (c *compiler) add(i inst) int {
+	if len(c.prog.insts) >= maxInsts {
+		c.failed = true
+		return 0
 	}
-	c.classes = append(c.classes, s)
-	return int32(len(c.classes) - 1)
+	c.prog.insts = append(c.prog.insts, i)
+	return len(c.prog.insts) - 1
 }
 
-// single emits an instruction matching exactly one character.
-func (c *compiler) single(n *node) inst {
-	switch n.kind {
-	case nLit:
-		return inst{op: opChar, ch: n.ch}
-	case nAny:
-		return inst{op: opAny}
-	}
-	return inst{op: opClass, x: c.classIndex(n.set)}
-}
+func (c *compiler) pc() int32 { return int32(len(c.prog.insts)) }
 
-func (c *compiler) compile(n *node) {
-	if c.err != nil {
+func (c *compiler) emit(n *syntax.Node) {
+	if c.failed {
 		return
 	}
-	switch n.kind {
-	case nLit, nAny, nClass:
-		c.emit(c.single(n))
-	case nBol:
-		c.emit(inst{op: opBol})
-	case nEol:
-		c.emit(inst{op: opEol})
-	case nSeq:
-		for _, s := range n.subs {
-			c.compile(s)
+	switch n.Kind {
+	case syntax.Empty:
+	case syntax.Literal:
+		c.add(inst{op: opChar, arg: int32(n.Char)})
+	case syntax.AnyChar:
+		c.add(inst{op: opAny})
+	case syntax.Class:
+		c.prog.sets = append(c.prog.sets, n.Set)
+		c.add(inst{op: opSet, arg: int32(len(c.prog.sets) - 1)})
+	case syntax.StartAnchor:
+		c.add(inst{op: opBol})
+	case syntax.EndAnchor:
+		c.add(inst{op: opEol})
+	case syntax.Concat:
+		for _, s := range n.Subs {
+			c.emit(s)
 		}
-	case nAlt:
-		var jumps []int
-		for i, b := range n.subs {
-			if i == len(n.subs)-1 {
-				c.compile(b)
-				break
-			}
-			sp := c.emit(inst{op: opSplit})
-			c.insts[sp].x = c.pc()
-			c.compile(b)
-			jumps = append(jumps, c.emit(inst{op: opJmp}))
-			c.insts[sp].y = c.pc()
-		}
-		for _, j := range jumps {
-			c.insts[j].x = c.pc()
-		}
-	case nGroup:
-		c.emit(inst{op: opSave, x: int32(2 * (n.group - 1))})
-		c.compile(n.subs[0])
-		c.emit(inst{op: opSave, x: int32(2*(n.group-1) + 1)})
-	case nRep:
-		c.compileRep(n)
+	case syntax.Alternate:
+		c.emitAlternate(n)
+	case syntax.Group:
+		c.add(inst{op: opSave, arg: int32(tmpStart(c.prog.groups, n.Index))})
+		c.emit(n.Subs[0])
+		c.add(inst{op: opEnd, arg: int32(n.Index)})
+	case syntax.Repeat:
+		c.emitRepeat(n)
 	}
 }
 
-func (c *compiler) compileRep(n *node) {
-	body := n.subs[0]
-	if n.max == 0 {
-		return // x{0} never runs its atom
+// emitAlternate lays out  split L1,L2; L1: b1; jmp end; L2: split ...; bn; end:
+func (c *compiler) emitAlternate(n *syntax.Node) {
+	var jumps []int
+	for i, b := range n.Subs {
+		if i == len(n.Subs)-1 {
+			c.emit(b)
+			break
+		}
+		split := c.add(inst{op: opSplit, arg: c.pc() + 1})
+		c.emit(b)
+		jumps = append(jumps, c.add(inst{op: opJmp}))
+		if !c.failed {
+			c.prog.insts[split].alt = c.pc()
+		}
 	}
-	if body.singleChar() {
-		if n.min == 1 && n.max == 1 {
-			c.emit(c.single(body))
-			return
-		}
-		in := c.single(body)
-		switch in.op {
-		case opChar:
-			in.kind = kindChar
-		case opAny:
-			in.kind = kindAny
-		default:
-			in.kind = kindClass
-		}
-		in.op = opCharLoop
-		in.min, in.max = int32(n.min), int32(n.max)
-		c.emit(in)
+	if c.failed {
 		return
 	}
-	for i := 0; i < n.min; i++ {
-		c.compile(body)
+	for _, j := range jumps {
+		c.prog.insts[j].arg = c.pc()
 	}
-	canBeEmpty := body.nullable()
-	if n.max < 0 {
-		// L: split body, exit; [mark r]; body; [check r -> exit]; jmp L
-		l := c.emit(inst{op: opSplit})
-		c.insts[l].x = c.pc()
-		reg := c.mark(canBeEmpty)
-		c.compile(body)
-		chk := c.check(canBeEmpty, reg)
-		c.emit(inst{op: opJmp, x: int32(l)})
-		exit := c.pc()
-		c.insts[l].y = exit
-		if chk >= 0 {
-			c.insts[chk].y = exit
-		}
+}
+
+// emitRepeat expands x{min,max} by copying the operand: min mandatory copies
+// (which run even when they match empty), then either a loop (max unbounded)
+// or max-min nested optional copies. An optional copy that matches the empty
+// string ends the repetition, which is what opMark/opCheck implement.
+func (c *compiler) emitRepeat(n *syntax.Node) {
+	x := n.Subs[0]
+	for i := 0; i < n.Min && !c.failed; i++ {
+		c.emit(x)
+	}
+	if n.Max == 0 || c.failed {
 		return
 	}
-	var splits, checks []int
-	for i := 0; i < n.max-n.min; i++ {
-		sp := c.emit(inst{op: opSplit})
-		c.insts[sp].x = c.pc()
-		splits = append(splits, sp)
-		reg := c.mark(canBeEmpty)
-		c.compile(body)
-		if chk := c.check(canBeEmpty, reg); chk >= 0 {
-			checks = append(checks, chk)
+	reg := -1
+	if x.CanBeEmpty() {
+		reg = 3*c.prog.groups + c.marks
+		c.marks++
+	}
+	var exits []int // instructions whose alt must point past the repetition
+	optionalCopy := func() int {
+		split := c.add(inst{op: opSplit, arg: c.pc() + 1})
+		exits = append(exits, split)
+		if reg >= 0 {
+			c.add(inst{op: opMark, arg: int32(reg)})
 		}
-		if c.err != nil {
-			return
+		c.emit(x)
+		if reg >= 0 {
+			exits = append(exits, c.add(inst{op: opCheck, arg: int32(reg)}))
+		}
+		return split
+	}
+	if n.Max == syntax.Unbounded {
+		loop := optionalCopy()
+		c.add(inst{op: opJmp, arg: int32(loop)})
+	} else {
+		for i := n.Min; i < n.Max && !c.failed; i++ {
+			optionalCopy()
 		}
 	}
-	exit := c.pc()
-	for _, s := range splits {
-		c.insts[s].y = exit
+	if c.failed {
+		return
 	}
-	for _, k := range checks {
-		c.insts[k].y = exit
+	end := c.pc()
+	for _, e := range exits {
+		c.prog.insts[e].alt = end
 	}
-}
-
-// mark emits a loop-register store when needed and returns the register slot.
-func (c *compiler) mark(needed bool) int32 {
-	if !needed {
-		return -1
-	}
-	slot := int32(2*c.ngroups + c.nregs)
-	c.nregs++
-	c.emit(inst{op: opMark, x: slot})
-	return slot
-}
-
-// check emits the empty-iteration test (target patched by the caller) and
-// returns its index, or -1 if none is needed.
-func (c *compiler) check(needed bool, reg int32) int {
-	if !needed {
-		return -1
-	}
-	return c.emit(inst{op: opCheck, x: reg})
 }

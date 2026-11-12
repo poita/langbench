@@ -1,59 +1,76 @@
-/// The document value model: construction, serialisation, comparison and
-/// field-path access.
+/// The document value model (SPEC §4): construction, serialisation,
+/// deserialisation, deep comparison, canonical rendering and field paths.
 module tessera.value;
 
-import tessera.bytes;
-import tessera.constants;
+import std.array : Appender;
 
-/// The six value kinds, in type-rank order.
+import tessera.bytes;
+import tessera.errors;
+
+/// Maximum nesting depth of a document (SPEC §4.1).
+enum MAX_DEPTH = 32;
+/// Maximum serialised document length in bytes.
+enum MAX_DOC = 65_536;
+
+/// The six value kinds, in type-rank order (SPEC §4).
 enum Kind : ubyte
 {
     null_,
-    boolean,
-    integer,
+    bool_,
+    int_,
     string_,
     list,
     object,
 }
 
+/// One named member of an object value.
+struct Field
+{
+    string name;
+    Value value;
+}
+
 /// A document value. Objects keep their fields sorted by name (byte-wise),
-/// so equal objects have identical representations.
+/// so equal objects always have identical layouts.
 struct Value
 {
-    /// The kind of value.
+    /// Which of the six kinds this is.
     Kind kind;
-    /// The boolean (0/1) or integer payload.
+    /// The integer, or 0/1 for a bool.
     long num;
-    /// The string payload (UTF-8 bytes).
+    /// The UTF-8 bytes of a string.
     string str;
-    /// List elements, or object field values (parallel to `names`).
+    /// Elements of a list.
     Value[] items;
-    /// Object field names, ascending byte-wise and distinct.
-    string[] names;
+    /// Fields of an object, ascending by name.
+    Field[] fields;
 
     /// The `null` value.
-    static Value nullValue() pure nothrow @safe { return Value(Kind.null_); }
+    static Value nul() @safe pure nothrow
+    {
+        return Value(Kind.null_);
+    }
 
     /// A boolean.
-    static Value boolean(bool b) pure nothrow @safe
+    static Value boolean(bool b) @safe pure nothrow
     {
         Value v;
-        v.kind = Kind.boolean;
+        v.kind = Kind.bool_;
         v.num = b ? 1 : 0;
         return v;
     }
 
     /// A signed 64-bit integer.
-    static Value integer(long n) pure nothrow @safe
+    static Value integer(long n) @safe pure nothrow
     {
         Value v;
-        v.kind = Kind.integer;
+        v.kind = Kind.int_;
         v.num = n;
         return v;
     }
 
-    /// A string (UTF-8).
-    static Value string_(string s) pure nothrow @safe
+    /// A string holding the given UTF-8 text.
+    static Value text(string s) @safe pure nothrow
     {
         Value v;
         v.kind = Kind.string_;
@@ -61,205 +78,206 @@ struct Value
         return v;
     }
 
-    /// A list.
-    static Value list(Value[] elems) pure nothrow @safe
+    /// A list of the given elements.
+    static Value list(Value[] items) @safe pure nothrow
     {
         Value v;
         v.kind = Kind.list;
-        v.items = elems;
+        v.items = items;
         return v;
     }
 
-    /// An object from parallel arrays of names and values. The names must be
-    /// distinct; they need not be sorted.
-    static Value object(string[] fieldNames, Value[] values) pure @safe
+    /// An empty object.
+    static Value object() @safe pure nothrow
     {
-        assert(fieldNames.length == values.length);
         Value v;
         v.kind = Kind.object;
-        if (fieldNames.length == 0)
-            return v;
-        auto order = new size_t[fieldNames.length];
-        foreach (i, ref o; order)
-            o = i;
-        sortIndices(order, fieldNames);
-        v.names = new string[fieldNames.length];
-        v.items = new Value[fieldNames.length];
-        foreach (i, o; order)
-        {
-            v.names[i] = fieldNames[o];
-            v.items[i] = values[o];
-        }
         return v;
     }
 
-    /// An object from a name→value associative array.
-    static Value object(Value[string] fields) pure @safe
+    /// Insert a field into an object. Returns `false`, changing nothing, when
+    /// a field of that name already exists.
+    bool insertField(string name, Value value) @safe pure
+    in (kind == Kind.object)
     {
-        string[] ns;
-        Value[] vs;
-        foreach (k, val; fields)
+        immutable i = lowerBound(name);
+        if (i < fields.length && fields[i].name == name)
+            return false;
+        fields = fields[0 .. i] ~ Field(name, value) ~ fields[i .. $];
+        return true;
+    }
+
+    /// The field called `name`, or `null` when this object has none.
+    inout(Value)* field(const(char)[] name) inout @safe pure nothrow
+    {
+        immutable i = lowerBound(name);
+        if (i < fields.length && fields[i].name == name)
+            return &fields[i].value;
+        return null;
+    }
+
+    /// Index of the first field whose name is not below `name`.
+    private size_t lowerBound(const(char)[] name) const @safe pure nothrow
+    {
+        size_t lo = 0, hi = fields.length;
+        while (lo < hi)
         {
-            ns ~= k;
-            vs ~= val;
+            immutable mid = (lo + hi) / 2;
+            if (compareBytes(asBytes(fields[mid].name), asBytes(name)) < 0)
+                lo = mid + 1;
+            else
+                hi = mid;
         }
-        return object(ns, vs);
+        return lo;
     }
-
-    /// True for `null`.
-    bool isNull() const pure nothrow @nogc @safe { return kind == Kind.null_; }
 }
 
-private void sortIndices(size_t[] order, const string[] keys) pure @safe
+/// Depth of a value (SPEC §4.1): 1 for scalars and empty containers.
+size_t depthOf(const Value v) @safe pure nothrow
 {
-    import std.algorithm.sorting : sort;
-
-    order.sort!((a, b) => keys[a] < keys[b]);
-}
-
-/// Index of field `name` in an object's sorted names, or -1.
-ptrdiff_t fieldIndex(ref Value obj, const(char)[] name) pure nothrow @nogc @safe
-{
-    size_t lo = 0, hi = obj.names.length;
-    while (lo < hi)
+    size_t d = 0;
+    final switch (v.kind)
     {
-        immutable mid = (lo + hi) / 2;
-        immutable c = compareBytes(asBytes(obj.names[mid]), asBytes(name));
-        if (c == 0)
-            return mid;
-        if (c < 0)
-            lo = mid + 1;
-        else
-            hi = mid;
-    }
-    return -1;
-}
-
-/// The depth of a value (1 for scalars and empty containers).
-int depthOf(Value v) pure nothrow @safe
-{
-    if (v.kind != Kind.list && v.kind != Kind.object)
+    case Kind.null_, Kind.bool_, Kind.int_, Kind.string_:
         return 1;
-    int d = 0;
-    foreach (ref e; v.items)
-    {
-        immutable ed = depthOf(e);
-        if (ed > d)
-            d = ed;
+    case Kind.list:
+        foreach (ref e; v.items)
+        {
+            immutable x = depthOf(e);
+            if (x > d)
+                d = x;
+        }
+        return d + 1;
+    case Kind.object:
+        foreach (ref f; v.fields)
+        {
+            immutable x = depthOf(f.value);
+            if (x > d)
+                d = x;
+        }
+        return d + 1;
     }
-    return d + 1;
 }
 
 // ---------------------------------------------------------------- serialise
 
-/// Append the stored form of `v` to `out_`.
-void serializeInto(ref ByteBuffer out_, Value v) pure nothrow @safe
+private void put32(ref Appender!(ubyte[]) o, uint n) @safe pure nothrow
+{
+    o.put(cast(ubyte)(n >> 24));
+    o.put(cast(ubyte)(n >> 16));
+    o.put(cast(ubyte)(n >> 8));
+    o.put(cast(ubyte) n);
+}
+
+/// Append the stored form `ser(v)` (SPEC §4.2) to `o`.
+void serialiseInto(const Value v, ref Appender!(ubyte[]) o) @safe pure nothrow
 {
     final switch (v.kind)
     {
     case Kind.null_:
-        out_.put(0x00);
+        o.put(cast(ubyte) 0);
         break;
-    case Kind.boolean:
-        out_.put(v.num ? 0x02 : 0x01);
+    case Kind.bool_:
+        o.put(cast(ubyte)(v.num ? 2 : 1));
         break;
-    case Kind.integer:
-        out_.put(0x03);
-        out_.putU64(cast(ulong) v.num);
+    case Kind.int_:
+        o.put(cast(ubyte) 3);
+        foreach_reverse (i; 0 .. 8)
+            o.put(cast(ubyte)(cast(ulong) v.num >> (8 * i)));
         break;
     case Kind.string_:
-        out_.put(0x04);
-        out_.putU32(cast(uint) v.str.length);
-        out_.putText(v.str);
+        o.put(cast(ubyte) 4);
+        put32(o, cast(uint) v.str.length);
+        o.put(asBytes(v.str));
         break;
     case Kind.list:
-        out_.put(0x05);
-        out_.putU32(cast(uint) v.items.length);
+        o.put(cast(ubyte) 5);
+        put32(o, cast(uint) v.items.length);
         foreach (ref e; v.items)
-            serializeInto(out_, e);
+            serialiseInto(e, o);
         break;
     case Kind.object:
-        out_.put(0x06);
-        out_.putU32(cast(uint) v.items.length);
-        foreach (i, ref e; v.items)
+        o.put(cast(ubyte) 6);
+        put32(o, cast(uint) v.fields.length);
+        foreach (ref f; v.fields)
         {
-            out_.putU32(cast(uint) v.names[i].length);
-            out_.putText(v.names[i]);
-            serializeInto(out_, e);
+            put32(o, cast(uint) f.name.length);
+            o.put(asBytes(f.name));
+            serialiseInto(f.value, o);
         }
         break;
     }
 }
 
 /// The stored form of a value.
-ubyte[] serialize(Value v) pure nothrow @safe
+ubyte[] serialise(const Value v) @safe pure nothrow
 {
-    ByteBuffer b;
-    serializeInto(b, v);
-    return b.data.dup;
+    Appender!(ubyte[]) o;
+    serialiseInto(v, o);
+    return o[];
 }
 
-/// Decode a value from its stored form (the inverse of `serialize`).
-Value deserialize(const(ubyte)[] bytes) pure nothrow @safe
+/// Rebuild a value from its stored form. The input must be well formed
+/// (SPEC §4.3: a database never contains anything else).
+Value deserialise(const(ubyte)[] data) @safe pure
 {
     size_t pos = 0;
-    return readValue(bytes, pos);
+    return readValue(data, pos);
 }
 
-private Value readValue(const(ubyte)[] b, ref size_t pos) pure nothrow @safe
+private Value readValue(const(ubyte)[] d, ref size_t pos) @safe pure
 {
-    immutable tag = b[pos++];
+    immutable tag = d[pos++];
     switch (tag)
     {
-    case 0x00:
-        return Value.nullValue();
-    case 0x01:
+    case 0:
+        return Value.nul();
+    case 1:
         return Value.boolean(false);
-    case 0x02:
+    case 2:
         return Value.boolean(true);
-    case 0x03:
-        auto n = cast(long) getU64(b, pos);
+    case 3:
+        immutable n = getU64(d, pos);
         pos += 8;
-        return Value.integer(n);
-    case 0x04:
-        immutable len = getU32(b, pos);
+        return Value.integer(cast(long) n);
+    case 4:
+        immutable n = getU32(d, pos);
         pos += 4;
-        auto s = toStr(b[pos .. pos + len]);
-        pos += len;
-        return Value.string_(s);
-    case 0x05:
-        immutable cnt = getU32(b, pos);
+        auto s = cast(string) d[pos .. pos + n].idup;
+        pos += n;
+        return Value.text(s);
+    case 5:
+        immutable n = getU32(d, pos);
         pos += 4;
-        auto elems = new Value[cnt];
-        foreach (ref e; elems)
-            e = readValue(b, pos);
-        return Value.list(elems);
-    default: // 0x06
-        immutable cnt = getU32(b, pos);
+        auto items = new Value[n];
+        foreach (i; 0 .. n)
+            items[i] = readValue(d, pos);
+        return Value.list(items);
+    case 6:
+        immutable n = getU32(d, pos);
         pos += 4;
+        auto fields = new Field[n];
+        foreach (i; 0 .. n)
+        {
+            immutable len = getU32(d, pos);
+            pos += 4;
+            auto name = cast(string) d[pos .. pos + len].idup;
+            pos += len;
+            fields[i] = Field(name, readValue(d, pos));
+        }
         Value v;
         v.kind = Kind.object;
-        if (cnt)
-        {
-            v.names = new string[cnt];
-            v.items = new Value[cnt];
-        }
-        foreach (i; 0 .. cnt)
-        {
-            immutable nl = getU32(b, pos);
-            pos += 4;
-            v.names[i] = toStr(b[pos .. pos + nl]);
-            pos += nl;
-            v.items[i] = readValue(b, pos);
-        }
+        v.fields = fields;
         return v;
+    default:
+        throw new Exception("corrupt document");
     }
 }
 
-// ---------------------------------------------------------------- comparison
+// ----------------------------------------------------------------- compare
 
-/// Deep equality (same kind and equal content).
-bool valuesEqual(Value a, Value b) pure nothrow @safe
+/// Deep equality (SPEC §17.2). Values of different kinds are never equal.
+bool deepEqual(const Value a, const Value b) @safe pure nothrow
 {
     if (a.kind != b.kind)
         return false;
@@ -267,8 +285,7 @@ bool valuesEqual(Value a, Value b) pure nothrow @safe
     {
     case Kind.null_:
         return true;
-    case Kind.boolean:
-    case Kind.integer:
+    case Kind.bool_, Kind.int_:
         return a.num == b.num;
     case Kind.string_:
         return a.str == b.str;
@@ -276,141 +293,264 @@ bool valuesEqual(Value a, Value b) pure nothrow @safe
         if (a.items.length != b.items.length)
             return false;
         foreach (i; 0 .. a.items.length)
-            if (!valuesEqual(a.items[i], b.items[i]))
+            if (!deepEqual(a.items[i], b.items[i]))
                 return false;
         return true;
     case Kind.object:
-        if (a.items.length != b.items.length)
+        if (a.fields.length != b.fields.length)
             return false;
-        foreach (i; 0 .. a.items.length)
-            if (a.names[i] != b.names[i] || !valuesEqual(a.items[i], b.items[i]))
+        foreach (i; 0 .. a.fields.length)
+        {
+            if (a.fields[i].name != b.fields[i].name
+                || !deepEqual(a.fields[i].value, b.fields[i].value))
                 return false;
+        }
         return true;
     }
 }
 
-/// Ordering of two scalar values of the same kind: negative, zero, positive.
-/// Only meaningful for null, bool, int and string.
-int compareScalars(Value a, Value b) pure nothrow @safe
+/// Three-way comparison of two scalars of the same kind (null, bool, int,
+/// string). Lists and objects are not ordered; callers exclude them.
+int compareScalars(const Value a, const Value b) @safe pure nothrow
+in (a.kind == b.kind && a.kind <= Kind.string_)
 {
-    switch (a.kind)
+    final switch (a.kind)
     {
-    case Kind.boolean:
-    case Kind.integer:
+    case Kind.null_:
+        return 0;
+    case Kind.bool_, Kind.int_:
         return a.num < b.num ? -1 : (a.num > b.num ? 1 : 0);
     case Kind.string_:
         return compareBytes(asBytes(a.str), asBytes(b.str));
-    default:
-        return 0;
+    case Kind.list, Kind.object:
+        assert(0);
     }
 }
 
-// ---------------------------------------------------------------- paths
+// ------------------------------------------------------------------ render
 
-/// Resolve a field path; null when it is missing. Lists are never traversed.
-Value* resolvePath(return ref Value doc, const string[] segments) pure nothrow @trusted
+private immutable hexDigits = "0123456789abcdef";
+
+/// Render a string with the escaping of SPEC §4.5, including the quotes.
+void renderString(const(char)[] s, ref Appender!string o) @safe pure nothrow
 {
-    Value* cur = &doc;
+    o.put('"');
+    foreach (char c; s)
+    {
+        switch (c)
+        {
+        case '"':
+            o.put(`\"`);
+            break;
+        case '\\':
+            o.put(`\\`);
+            break;
+        case '\b':
+            o.put(`\b`);
+            break;
+        case '\t':
+            o.put(`\t`);
+            break;
+        case '\n':
+            o.put(`\n`);
+            break;
+        case '\f':
+            o.put(`\f`);
+            break;
+        case '\r':
+            o.put(`\r`);
+            break;
+        default:
+            if (c < 0x20 || c == 0x7F)
+            {
+                o.put(`\u00`);
+                o.put(hexDigits[c >> 4]);
+                o.put(hexDigits[c & 15]);
+            }
+            else
+                o.put(c);
+        }
+    }
+    o.put('"');
+}
+
+/// Render a value on one line with no whitespace (SPEC §4.4).
+void render(const Value v, ref Appender!string o) @safe pure nothrow
+{
+    import std.conv : to;
+
+    final switch (v.kind)
+    {
+    case Kind.null_:
+        o.put("null");
+        break;
+    case Kind.bool_:
+        o.put(v.num ? "true" : "false");
+        break;
+    case Kind.int_:
+        o.put(v.num.to!string);
+        break;
+    case Kind.string_:
+        renderString(v.str, o);
+        break;
+    case Kind.list:
+        o.put('[');
+        foreach (i, ref e; v.items)
+        {
+            if (i)
+                o.put(',');
+            render(e, o);
+        }
+        o.put(']');
+        break;
+    case Kind.object:
+        o.put('{');
+        foreach (i, ref f; v.fields)
+        {
+            if (i)
+                o.put(',');
+            renderString(f.name, o);
+            o.put(':');
+            render(f.value, o);
+        }
+        o.put('}');
+        break;
+    }
+}
+
+/// Render a value to a new string.
+string renderToString(const Value v) @safe pure nothrow
+{
+    Appender!string o;
+    render(v, o);
+    return o[];
+}
+
+// ------------------------------------------------------------------- paths
+
+/// Resolve a field path against a document (SPEC §6.4). Returns `null` when
+/// the path is missing. Lists are never traversed.
+inout(Value)* resolvePath(return ref inout Value doc, const(string)[] segments) @trusted pure nothrow
+{
+    inout(Value)* cur = &doc;
     foreach (seg; segments)
     {
         if (cur.kind != Kind.object)
             return null;
-        immutable i = fieldIndex(*cur, seg);
-        if (i < 0)
+        cur = cur.field(seg);
+        if (cur is null)
             return null;
-        cur = &cur.items[i];
     }
     return cur;
 }
 
-/// Outcome of `unsetPath`.
-enum PathStatus
+/// Set the value at `segments` (`update`, SPEC §18.3): missing intermediate
+/// fields are created as empty objects. Throws `notObject` when the document
+/// or a value reached before the last segment exists and is not an object.
+void setPath(ref Value doc, const(string)[] segments, Value value) @trusted pure
+in (segments.length > 0)
 {
-    ok,
-    notObject,
-    noField,
+    Value* cur = &doc;
+    foreach (i, seg; segments)
+    {
+        if (cur.kind != Kind.object)
+            fail(ErrorKind.notObject);
+        if (i + 1 == segments.length)
+        {
+            if (auto f = cur.field(seg))
+                *f = value;
+            else
+                cur.insertField(seg, value);
+            return;
+        }
+        auto next = cur.field(seg);
+        if (next is null)
+        {
+            cur.insertField(seg, Value.object());
+            next = cur.field(seg);
+        }
+        cur = next;
+    }
 }
 
-private size_t lowerBound(const string[] names, const(char)[] name) pure nothrow @nogc @safe
+/// Remove the field at `segments` (`unset`, SPEC §18.3). Throws `notObject`
+/// when a value on the way is not an object and `noField` when a field is
+/// missing; the first failure along the path decides.
+void unsetPath(ref Value doc, const(string)[] segments) @trusted pure
+in (segments.length > 0)
 {
-    size_t lo = 0, hi = names.length;
-    while (lo < hi)
+    Value* cur = &doc;
+    foreach (i, seg; segments)
     {
-        immutable mid = (lo + hi) / 2;
-        if (compareBytes(asBytes(names[mid]), asBytes(name)) < 0)
-            lo = mid + 1;
-        else
-            hi = mid;
+        if (cur.kind != Kind.object)
+            fail(ErrorKind.notObject);
+        auto next = cur.field(seg);
+        if (next is null)
+            fail(ErrorKind.noField);
+        if (i + 1 == segments.length)
+        {
+            size_t at = 0;
+            while (cur.fields[at].name != seg)
+                at++;
+            cur.fields = cur.fields[0 .. at] ~ cur.fields[at + 1 .. $];
+            return;
+        }
+        cur = next;
     }
-    return lo;
 }
 
-/// Set `segments` to `nv` inside `doc`, creating missing intermediate objects.
-/// Returns false (leaving `result` unspecified) when the walk meets a value
-/// that is not an object. `doc` itself is not modified.
-bool setPath(Value doc, const string[] segments, Value nv, out Value result) pure nothrow @safe
+@safe pure unittest
 {
-    return setAt(doc, segments, 0, nv, result);
+    // SPEC §4.2 worked serialisations
+    assert(serialise(Value.integer(1)) == [3, 0, 0, 0, 0, 0, 0, 0, 1]);
+    assert(serialise(Value.integer(-1)) == [3, 255, 255, 255, 255, 255, 255, 255, 255]);
+    assert(serialise(Value.text("ada")) == [4, 0, 0, 0, 3, 'a', 'd', 'a']);
+
+    auto o = Value.object();
+    assert(o.insertField("name", Value.text("ada")));
+    assert(o.insertField("age", Value.integer(36)));
+    assert(o.insertField("ok", Value.boolean(true)));
+    assert(!o.insertField("age", Value.integer(1)));
+    assert(serialise(o).length == 44);
+    assert(renderToString(o) == `{"age":36,"name":"ada","ok":true}`);
+    assert(deepEqual(deserialise(serialise(o)), o));
+    assert(depthOf(o) == 2);
 }
 
-private bool setAt(Value cur, const string[] segs, size_t i, Value nv, out Value result)
-    pure nothrow @safe
+@safe pure unittest
 {
-    if (cur.kind != Kind.object)
-        return false;
-    immutable pos = lowerBound(cur.names, segs[i]);
-    immutable found = pos < cur.names.length && cur.names[pos] == segs[i];
-    Value child;
-    if (i + 1 == segs.length)
-        child = nv;
-    else
-    {
-        Value base = found ? cur.items[pos] : Value(Kind.object);
-        if (!setAt(base, segs, i + 1, nv, child))
-            return false;
-    }
-    result.kind = Kind.object;
-    if (found)
-    {
-        result.names = cur.names.dup;
-        result.items = cur.items.dup;
-        result.items[pos] = child;
-    }
-    else
-    {
-        result.names = cur.names[0 .. pos] ~ segs[i] ~ cur.names[pos .. $];
-        result.items = cur.items[0 .. pos] ~ child ~ cur.items[pos .. $];
-    }
-    return true;
+    auto l = Value.list([Value.integer(1), Value.text("x"), Value.nul()]);
+    assert(serialise(l).length == 21);
+    assert(renderToString(l) == `[1,"x",null]`);
+    assert(renderToString(Value.text("a\"b\u007f\u0001/é")) == "\"a\\\"b\\u007f\\u0001/é\"");
+    assert(renderToString(Value.integer(long.min)) == "-9223372036854775808");
+    assert(renderToString(Value.object()) == "{}");
 }
 
-/// Remove the field at `segments` from `doc`. `doc` itself is not modified.
-PathStatus unsetPath(Value doc, const string[] segments, out Value result) pure nothrow @safe
+@safe pure unittest
 {
-    return unsetAt(doc, segments, 0, result);
-}
+    auto doc = Value.object();
+    setPath(doc, ["a", "b"], Value.integer(1));
+    assert(renderToString(doc) == `{"a":{"b":1}}`);
+    assert(resolvePath(doc, ["a", "b"]) !is null);
+    assert(resolvePath(doc, ["a", "c"]) is null);
+    assert(resolvePath(doc, ["a", "b", "c"]) is null);
+    unsetPath(doc, ["a", "b"]);
+    assert(renderToString(doc) == `{"a":{}}`);
 
-private PathStatus unsetAt(Value cur, const string[] segs, size_t i, out Value result)
-    pure nothrow @safe
-{
-    if (cur.kind != Kind.object)
-        return PathStatus.notObject;
-    immutable pos = lowerBound(cur.names, segs[i]);
-    if (!(pos < cur.names.length && cur.names[pos] == segs[i]))
-        return PathStatus.noField;
-    result.kind = Kind.object;
-    if (i + 1 == segs.length)
+    bool threw;
+    try
+        setPath(doc, ["a", "x", "y"], Value.integer(1));
+    catch (TesseraError e)
+        assert(false);
+    try
     {
-        result.names = cur.names[0 .. pos] ~ cur.names[pos + 1 .. $];
-        result.items = cur.items[0 .. pos] ~ cur.items[pos + 1 .. $];
-        return PathStatus.ok;
+        auto d2 = Value.integer(1);
+        setPath(d2, ["a"], Value.nul());
     }
-    Value child;
-    immutable st = unsetAt(cur.items[pos], segs, i + 1, child);
-    if (st != PathStatus.ok)
-        return st;
-    result.names = cur.names.dup;
-    result.items = cur.items.dup;
-    result.items[pos] = child;
-    return PathStatus.ok;
+    catch (TesseraError e)
+    {
+        threw = e.kind == ErrorKind.notObject;
+    }
+    assert(threw);
 }

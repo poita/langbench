@@ -1,68 +1,37 @@
 package layout
 
 import (
-	"typeset/metrics"
+	"typeset/dim"
+	"typeset/hlist"
 )
 
-// Regions of a page, in output order.
-const (
-	RHeader = iota
-	RFloat
-	RBody
-	RFootnote
-	RFooter
-)
-
-// Kinds of output item, in output order.
-const (
-	KText = iota
-	KRule
-	KBox
-)
-
-// OutItem is one placed item of a page. For text items Y is the baseline;
-// for rules and boxes it is the top edge.
-type OutItem struct {
-	Region, Kind uint8
-	Face         int
-	Size         int64
-	X, Y, W, H   int64
-	Text         string
+// rawPage is a page before headers and footers are added.
+type rawPage struct {
+	items   []PlacedItem
+	chapter string // the current @h1 text for {chapter}
+	section string // the current @h2 text for {section}
 }
 
-// Page is one output page.
-type Page struct {
-	Label string
-	Num   int // numeric value of the label (for even/odd selection)
-	Items []OutItem
+type paginator struct {
+	lo               *layouter
+	items            []vitem
+	legal            []bool
+	body             bool // the body (floats and footnotes apply); false for the TOC
+	queue            []*figure
+	carry            []*noteGroup
+	pages            []rawPage
+	chapter, section string
 }
 
-type pageRec struct {
-	page       *Page
-	first, cut int
+func newPaginator(lo *layouter, items []vitem, body bool) *paginator {
+	p := &paginator{lo: lo, items: items, body: body}
+	p.legal = computeLegal(items, int(lo.s.Widows), int(lo.s.Orphans), lo.s.KeepWithNext)
+	return p
 }
 
-type fnGroup struct {
-	lines []*Line
-	num   int32
-	mark  bool
-}
-
-func emitLine(out *[]OutItem, region uint8, ln *Line, baseline int64) {
-	for _, r := range ln.Runs {
-		*out = append(*out, OutItem{Region: region, Kind: KText, Face: r.Face, Size: r.Size,
-			X: r.X, Y: baseline - r.Raise, W: r.W, Text: r.Text})
-	}
-	for _, r := range ln.Extra {
-		*out = append(*out, OutItem{Region: region, Kind: KText, Face: r.Face, Size: r.Size,
-			X: r.X, Y: baseline - r.Raise, W: r.W, Text: r.Text})
-	}
-}
-
-// legality computes, for every position j (before item j), whether a page
-// break is legal there.
-func (e *Env) legality(items []VItem) []bool {
-	S := e.S
+// computeLegal marks, for every position j in 0..n, whether a page break
+// before item j is legal.
+func computeLegal(items []vitem, widows, orphans int, keep bool) []bool {
 	n := len(items)
 	legal := make([]bool, n+1)
 	for j := 1; j <= n; j++ {
@@ -70,347 +39,290 @@ func (e *Env) legality(items []VItem) []bool {
 	}
 	for j := 1; j < n; j++ {
 		it := &items[j]
-		if it.Kind != VLine {
+		if it.kind != vLine {
 			continue
 		}
-		if it.Heading {
-			if it.K != 1 {
+		if it.heading {
+			if it.k != 1 {
 				legal[j] = false
 			}
-		} else if it.K > 1 {
-			if int64(it.K-1) < S.Orphans || int64(it.N-it.K+1) < S.Widows {
+		} else if it.k > 1 {
+			if !(it.k-1 >= orphans && it.n-it.k+1 >= widows) {
 				legal[j] = false
 			}
 		}
 	}
-	if S.KeepWithNext {
-		for f := 0; f < n; f++ {
-			it := &items[f]
-			if it.Kind != VLine || !it.Heading || it.K != 1 {
+	if keep {
+		for e := 0; e < n; e++ {
+			it := &items[e]
+			if it.kind != vLine || !it.heading || it.k != it.n {
 				continue
 			}
-			l := f + int(it.N) - 1
-			for j := f + 1; j <= l && j < n; j++ {
-				legal[j] = false
+			t := e + 1
+			for t < n && (items[t].kind == vGlue || items[t].kind == vFloat) {
+				legal[t] = false
+				t++
 			}
-			k := l + 1
-			for k < n && (items[k].Kind == VGlue || items[k].Kind == VFloat) {
-				legal[k] = false
-				k++
-			}
-			if k < n {
-				legal[k] = false
+			if t < n {
+				legal[t] = false
+				if x := &items[t]; x.kind == vLine {
+					m := orphans
+					if x.n < m {
+						m = x.n
+					}
+					for q := t + 1; q <= t+m-1 && q < n; q++ {
+						legal[q] = false
+					}
+				}
 			}
 		}
 	}
-	if n == 0 {
-		return legal
-	}
-	legal[0] = false
 	return legal
 }
 
-type stackSim struct {
-	cursor, prevBase, prevDepth int64
-	fresh                       bool
-	groups, lines               int
+// noteStack computes the height of a stack of footnote groups.
+type noteStack struct {
+	st     vstate
+	groups int
 }
 
-func newStack() stackSim { return stackSim{fresh: true} }
-
-// add appends a group of footnote lines to the stack, recording the stack
-// height after each line in cum when it is non-nil.
-func (e *Env) stackAdd(s *stackSim, lines []*Line, cum *[]int64) {
-	S := e.S
-	if s.groups > 0 {
-		s.cursor += S.FootnoteItemSpace
-		s.fresh = true
+func (ns *noteStack) startGroup(itemSpace int64) {
+	if ns.groups > 0 {
+		ns.st.skip(itemSpace)
+	} else {
+		ns.st = newVstate(0)
 	}
-	s.groups++
-	for _, ln := range lines {
-		var base int64
-		if s.fresh {
-			base = s.cursor + ln.Ascent
-		} else {
-			base = s.prevBase + max64(S.FootnoteLeading, s.prevDepth+S.LineSkip+ln.Ascent)
-		}
-		s.cursor = base + ln.Depth
-		s.prevBase, s.prevDepth = base, ln.Depth
-		s.fresh = false
-		s.lines++
-		if cum != nil {
-			*cum = append(*cum, s.cursor)
-		}
-	}
+	ns.groups++
 }
 
-func (e *Env) fnArea(s *stackSim) int64 {
-	if s.lines == 0 {
+func (p *paginator) addNoteLine(ns *noteStack, ln *hlist.Line) int64 {
+	return ns.st.line(p.lo.s.FootnoteLeading, p.lo.s.LineSkip, ln.Ascent, ln.Depth)
+}
+
+// area returns A_fn for the stack.
+func (p *paginator) area(ns *noteStack) int64 {
+	if ns.groups == 0 {
 		return 0
 	}
-	S := e.S
-	return S.FootnoteSpaceBefore + S.FootnoteRuleThick + S.FootnoteSpaceAfter + s.cursor
+	s := p.lo.s
+	return s.FootnoteSpaceBefore + s.FootnoteRuleThickness + s.FootnoteSpaceAfter + ns.st.cursor
 }
 
-// paginate breaks a vertical list into pages.
-func (e *Env) paginate(items []VItem) []*pageRec {
-	S := e.S
-	n := len(items)
-	legal := e.legality(items)
-	bodyH, bodyY := S.BodyHeight(), S.BodyY()
-	var recs []*pageRec
-	var queue []int32
-	var carried []fnGroup
+func (p *paginator) run() []rawPage {
+	lo, s := p.lo, p.lo.s
+	n := len(p.items)
 	i := 0
 	for {
-		for i < n && (items[i].Kind == VGlue || items[i].Kind == VForce) {
+		for i < n && (p.items[i].kind == vGlue || p.items[i].kind == vForce) {
 			i++
 		}
-		if i == n && len(queue) == 0 && len(carried) == 0 {
+		if i == n && len(p.queue) == 0 && len(p.carry) == 0 {
 			break
 		}
-		pg := &Page{}
-		// Step 1: figures.
-		k, zone := 0, int64(0)
-		for k < len(queue) {
-			fb := e.figs[queue[k]]
-			z1 := zone + fb.H + S.FloatSpaceAfter
-			var take bool
-			if i < n {
-				take = bodyH-z1 >= S.FloatMinBody
-			} else {
-				take = k == 0 || z1 <= bodyH
-			}
-			if !take {
+		pg := rawPage{}
+
+		// Step 1: floats.
+		bodyLeft := i < n
+		k := 0
+		var zone int64
+		for k < len(p.queue) {
+			z := zone + p.queue[k].block + s.FloatSpaceAfter
+			ok := (bodyLeft && lo.bodyH-z >= s.FloatMinBody) ||
+				(!bodyLeft && k == 0) || (!bodyLeft && z <= lo.bodyH)
+			if !ok {
 				break
 			}
-			zone = z1
+			zone = z
 			k++
 		}
-		taken := queue[:k]
-		queue = queue[k:]
-		bodyTop := bodyY + zone
-		goal := bodyH - zone
-		y := bodyY
-		for _, fi := range taken {
-			fb := e.figs[fi]
-			if fb.Frame {
-				pg.Items = append(pg.Items, OutItem{Region: RFloat, Kind: KBox, X: fb.FX, Y: y, W: fb.FW, H: fb.FH})
-			}
-			for li, ln := range fb.Lines {
-				emitLine(&pg.Items, RFloat, ln, y+fb.Offs[li])
-			}
-			y += fb.H + S.FloatSpaceAfter
+		bodyTop := lo.bodyY + zone
+		goal := lo.bodyH - zone
+		y := lo.bodyY
+		for _, f := range p.queue[:k] {
+			pg.items = append(pg.items, lo.figureItems(f, y)...)
+			y += f.block + s.FloatSpaceAfter
 		}
+		p.queue = p.queue[k:]
 
 		// Steps 2-3: choose the cut.
 		cut := n
 		if i < n {
-			sim := newStack()
-			for _, g := range carried {
-				e.stackAdd(&sim, g.lines, nil)
-			}
-			var cursor, prevBase, prevDepth, usedNG int64
-			fresh := true
-			best, forced := -1, -1
-			for j := i + 1; ; j++ {
-				it := &items[j-1]
-				if it.Kind == VForce {
-					forced = j - 1
-					break
-				}
-				switch it.Kind {
-				case VLine:
-					ln := it.Line
-					var base int64
-					if fresh {
-						base = cursor + ln.Ascent
-					} else {
-						base = prevBase + max64(ln.Leading, prevDepth+S.LineSkip+ln.Ascent)
-					}
-					cursor = base + ln.Depth
-					prevBase, prevDepth = base, ln.Depth
-					fresh = false
-					usedNG = cursor
-					for _, fn := range ln.Fns {
-						e.stackAdd(&sim, e.fnLines[fn-1], nil)
-					}
-				case VGlue:
-					cursor += it.H
-					fresh = true
-				case VRule, VRow:
-					cursor += it.H
-					fresh = true
-					usedNG = cursor
-				case VFloat:
-					usedNG = cursor
-				}
-				used := usedNG + min64(e.fnArea(&sim), S.FootnoteMaxHeight)
-				if used <= goal && legal[j] {
-					best = j
-				}
-				if used > goal || j == n {
-					break
-				}
-			}
-			switch {
-			case forced >= 0:
-				cut = forced
-			case best >= 0:
-				cut = best
-			default:
-				for j := i + 1; j <= n; j++ {
-					if legal[j] {
-						cut = j
-						break
-					}
-				}
-			}
+			cut = p.chooseCut(i, goal)
 		}
 
 		// Step 4: place the body.
 		end := cut
-		for end > i && items[end-1].Kind == VGlue {
+		for end > i && p.items[end-1].kind == vGlue {
 			end--
 		}
 		bodyEmpty := end == i
-		cursor := bodyTop
-		var prevBase, prevDepth int64
-		fresh := true
-		var refs []int32
-		for _, it := range items[i:end] {
-			switch it.Kind {
-			case VLine:
-				ln := it.Line
-				var base int64
-				if fresh {
-					base = cursor + ln.Ascent
-				} else {
-					base = prevBase + max64(ln.Leading, prevDepth+S.LineSkip+ln.Ascent)
+		st := newVstate(bodyTop)
+		var groups []*noteGroup
+		groups = append(groups, p.carry...)
+		for j := i; j < end; j++ {
+			it := &p.items[j]
+			switch it.kind {
+			case vLine:
+				base := st.line(it.leading, s.LineSkip, it.line.Ascent, it.line.Depth)
+				p.placeLine(&pg, it, base)
+				for _, num := range it.line.Notes {
+					groups = append(groups, &noteGroup{note: num, lines: lo.notes[num-1], mark: true})
 				}
-				emitLine(&pg.Items, RBody, ln, base)
-				cursor = base + ln.Depth
-				prevBase, prevDepth = base, ln.Depth
-				fresh = false
-				refs = append(refs, ln.Fns...)
-			case VGlue:
-				cursor += it.H
-				fresh = true
-			case VRule:
-				pg.Items = append(pg.Items, OutItem{Region: RBody, Kind: KRule, X: it.X, Y: cursor, W: it.W, H: it.H})
-				cursor += it.H
-				fresh = true
-			case VRow:
-				for _, cell := range it.Row {
-					for _, rl := range cell {
-						emitLine(&pg.Items, RBody, rl.Line, cursor+rl.Off)
-					}
-				}
-				cursor += it.H
-				fresh = true
+			case vGlue:
+				st.skip(it.h)
+			case vRule:
+				pg.items = append(pg.items, PlacedItem{Region: RegionBody, Kind: ItemRule, X: it.x, Y: st.cursor, W: it.w, H: it.h})
+				st.skip(it.h)
+			case vRow:
+				lo.rowItems(&pg, it, st.cursor)
+				st.skip(it.h)
 			}
 		}
-		B := cursor - bodyTop
+		B := st.cursor - bodyTop
 
 		// Step 5: footnotes.
-		groups := append([]fnGroup(nil), carried...)
-		for _, fn := range refs {
-			groups = append(groups, fnGroup{lines: e.fnLines[fn-1], num: fn, mark: true})
+		var tail []*noteGroup
+		if len(groups) > 0 {
+			var placed []*noteGroup
+			placed, tail = p.splitNotes(groups, goal-B, bodyEmpty)
+			p.placeNotes(&pg, placed)
 		}
-		var cum []int64
-		var gstart []int // index of each line's group's first line
-		var gidx []int
-		{
-			sim := newStack()
-			pos := 0
-			for gi, g := range groups {
-				e.stackAdd(&sim, g.lines, &cum)
-				for range g.lines {
-					gidx = append(gidx, gi)
-					gstart = append(gstart, pos)
-				}
-				pos += len(g.lines)
-			}
-		}
-		M := len(cum)
-		avail := goal - B - S.FootnoteSpaceBefore - S.FootnoteRuleThick - S.FootnoteSpaceAfter
-		m := 0
-		for m < M && cum[m] <= avail {
-			m++
-		}
-		if m > 0 && m < M && gidx[m] == gidx[m-1] {
-			if placed := m - gstart[m]; placed < int(S.FootnoteMinSplit) && gstart[m] > 0 {
-				m = gstart[m]
-			}
-		}
-		if bodyEmpty && M > 0 && m == 0 {
-			m = 1
-		}
-		var next []fnGroup
-		if m > 0 {
-			hfn := cum[m-1]
-			ruleTop := S.BodyBottom() - hfn - S.FootnoteSpaceAfter - S.FootnoteRuleThick
-			pg.Items = append(pg.Items, OutItem{Region: RFootnote, Kind: KRule, X: S.BodyX(), Y: ruleTop,
-				W: S.FootnoteRuleWidth, H: S.FootnoteRuleThick})
-			cursor := ruleTop + S.FootnoteRuleThick + S.FootnoteSpaceAfter
-			var prevBase, prevDepth int64
-			fresh := true
-			left := m
-			for gi, g := range groups {
-				if left <= 0 {
-					next = append(next, groups[gi:]...)
-					break
-				}
-				if gi > 0 {
-					cursor += S.FootnoteItemSpace
-					fresh = true
-				}
-				cnt := len(g.lines)
-				if cnt > left {
-					cnt = left
-				}
-				for li := 0; li < cnt; li++ {
-					ln := g.lines[li]
-					var base int64
-					if fresh {
-						base = cursor + ln.Ascent
-					} else {
-						base = prevBase + max64(S.FootnoteLeading, prevDepth+S.LineSkip+ln.Ascent)
-					}
-					emitLine(&pg.Items, RFootnote, ln, base)
-					if li == 0 && g.mark {
-						face := metrics.FaceIndex(S.FootnoteFont, false, false)
-						txt := itoa(int64(g.num))
-						wd := e.textWidth(face, S.FootnoteMarkSize, []rune(txt))
-						pg.Items = append(pg.Items, OutItem{Region: RFootnote, Kind: KText, Face: face,
-							Size: S.FootnoteMarkSize, X: S.BodyX() + S.FootnoteIndent - S.FootnoteMarkGap - wd,
-							Y: base - S.FootnoteMarkRaise, W: wd, Text: txt})
-					}
-					cursor = base + ln.Depth
-					prevBase, prevDepth = base, ln.Depth
-					fresh = false
-				}
-				left -= cnt
-				if cnt < len(g.lines) {
-					next = append(next, fnGroup{lines: g.lines[cnt:], num: g.num, mark: false})
-					next = append(next, groups[gi+1:]...)
-					break
-				}
-			}
-		} else {
-			next = groups
-		}
-		e.Stats.FootnoteSplitLines += M - m
-		carried = next
+		p.carry = tail
 
 		// Step 6: queue the figures referenced on this page.
-		for _, it := range items[i:cut] {
-			if it.Kind == VFloat {
-				queue = append(queue, it.Fig)
+		if p.body {
+			for j := i; j < cut; j++ {
+				if p.items[j].kind == vFloat {
+					p.queue = append(p.queue, lo.figures[p.items[j].fig])
+				}
 			}
 		}
-		recs = append(recs, &pageRec{page: pg, first: i, cut: cut})
+		pg.chapter, pg.section = p.chapter, p.section
+		p.pages = append(p.pages, pg)
 		i = cut
 	}
-	return recs
+	return p.pages
+}
+
+// chooseCut implements step 2 of page breaking.
+func (p *paginator) chooseCut(i int, goal int64) int {
+	lo, s := p.lo, p.lo.s
+	n := len(p.items)
+	st := newVstate(0)
+	var trail int64
+	var ns noteStack
+	for _, g := range p.carry {
+		ns.startGroup(s.FootnoteItemSpace)
+		for _, ln := range g.lines {
+			p.addNoteLine(&ns, ln)
+		}
+	}
+	best := -1
+	for j := i + 1; j <= n; j++ {
+		it := &p.items[j-1]
+		if it.kind == vForce {
+			return j - 1
+		}
+		switch it.kind {
+		case vLine:
+			st.line(it.leading, s.LineSkip, it.line.Ascent, it.line.Depth)
+			trail = 0
+			for _, num := range it.line.Notes {
+				ns.startGroup(s.FootnoteItemSpace)
+				for _, ln := range lo.notes[num-1] {
+					p.addNoteLine(&ns, ln)
+				}
+			}
+		case vGlue:
+			st.skip(it.h)
+			trail += it.h
+		case vRule, vRow:
+			st.skip(it.h)
+			trail = 0
+		case vFloat:
+			trail = 0
+		}
+		used := st.cursor - trail + dim.Min(p.area(&ns), s.FootnoteMaxHeight)
+		if used > goal {
+			break
+		}
+		if p.legal[j] {
+			best = j
+		}
+		if j == n {
+			break
+		}
+	}
+	if best >= 0 {
+		return best
+	}
+	for j := i + 1; j < n; j++ {
+		if p.legal[j] {
+			return j
+		}
+	}
+	return n
+}
+
+// splitNotes performs step 5: it returns the groups placed on the page and
+// the groups carried to the next page.
+func (p *paginator) splitNotes(groups []*noteGroup, room int64, bodyEmpty bool) (placed, tail []*noteGroup) {
+	s := p.lo.s
+	avail := room - s.FootnoteSpaceBefore - s.FootnoteRuleThickness - s.FootnoteSpaceAfter
+	var ns noteStack
+	m := 0     // lines in the longest prefix that fits
+	total := 0 // all candidate lines
+	// groupEnd[g] is the number of lines up to and including group g.
+	for _, g := range groups {
+		total += len(g.lines)
+	}
+	fits := true
+	count := 0
+	for _, g := range groups {
+		ns.startGroup(s.FootnoteItemSpace)
+		for _, ln := range g.lines {
+			p.addNoteLine(&ns, ln)
+			count++
+			if fits && ns.st.cursor <= avail {
+				m = count
+			} else {
+				fits = false
+			}
+		}
+	}
+	// Min-split: the prefix ends strictly inside a group?
+	if m > 0 && m < total {
+		off := 0
+		for _, g := range groups {
+			if m < off+len(g.lines) {
+				inGroup := m - off
+				if inGroup > 0 && int64(inGroup) < s.FootnoteMinSplit && off > 0 {
+					m = off
+				}
+				break
+			}
+			off += len(g.lines)
+		}
+	}
+	if bodyEmpty && m == 0 && total > 0 {
+		m = 1
+	}
+	off := 0
+	for _, g := range groups {
+		switch {
+		case off+len(g.lines) <= m:
+			placed = append(placed, g)
+		case off >= m:
+			tail = append(tail, g)
+		default:
+			c := m - off
+			placed = append(placed, &noteGroup{note: g.note, lines: g.lines[:c], mark: g.mark})
+			tail = append(tail, &noteGroup{note: g.note, lines: g.lines[c:], mark: false})
+		}
+		off += len(g.lines)
+	}
+	for _, g := range tail {
+		p.lo.stats.FootnoteSplitLines += len(g.lines)
+	}
+	return placed, tail
 }

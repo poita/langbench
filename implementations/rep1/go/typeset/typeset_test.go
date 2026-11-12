@@ -1,107 +1,109 @@
-package typeset_test
+package typeset
 
 import (
+	"bytes"
 	"os"
-	"strings"
+	"path/filepath"
+	"sort"
 	"testing"
-
-	"typeset"
+	"testing/fstest"
 )
 
-// The real font and pattern data ships with the problem, not with the
-// library; the end-to-end tests are skipped when it is not available.
-func resources(t *testing.T) *typeset.Resources {
-	t.Helper()
-	dir := os.Getenv("TYPESET_DATA")
-	if dir == "" {
-		dir = "../problems/typeset/data"
+// TestGolden runs every case under testdata: testdata/<name>/input holds the
+// document (and settings), testdata/<name>/expected the expected files.
+func TestGolden(t *testing.T) {
+	cases, err := filepath.Glob("testdata/*/input")
+	if err != nil || len(cases) == 0 {
+		t.Fatalf("no golden cases found: %v", err)
 	}
-	if _, err := os.Stat(dir); err != nil {
-		t.Skipf("no data directory at %s (set TYPESET_DATA)", dir)
+	data := os.DirFS("data")
+	for _, in := range cases {
+		dir := filepath.Dir(in)
+		t.Run(filepath.Base(dir), func(t *testing.T) {
+			out, err := Typeset(os.DirFS(in), data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			expDir := filepath.Join(dir, "expected")
+			entries, err := os.ReadDir(expDir)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var want []string
+			for _, e := range entries {
+				want = append(want, e.Name())
+				exp, err := os.ReadFile(filepath.Join(expDir, e.Name()))
+				if err != nil {
+					t.Fatal(err)
+				}
+				got, ok := out.Files[e.Name()]
+				if !ok {
+					t.Fatalf("missing output %s", e.Name())
+				}
+				if !bytes.Equal(bytes.TrimRight(got, "\n"), bytes.TrimRight(exp, "\n")) {
+					t.Errorf("%s differs from expected", e.Name())
+				}
+			}
+			var have []string
+			for name := range out.Files {
+				have = append(have, name)
+			}
+			sort.Strings(have)
+			sort.Strings(want)
+			if len(have) != len(want) {
+				t.Errorf("files %v, want %v", have, want)
+			}
+		})
 	}
-	r, err := typeset.LoadResources(dir)
+}
+
+func TestMissingDocument(t *testing.T) {
+	out, err := Typeset(fstest.MapFS{}, os.DirFS("data"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return r
-}
-
-const small = `page-width   = 200pt
-page-height  = 120pt
-margin-top   = 20pt
-margin-bottom = 20pt
-margin-left  = 20pt
-margin-right = 20pt
-`
-
-func TestExampleOneLine(t *testing.T) {
-	res := typeset.Typeset(typeset.Input{Document: []byte("The quick brown fox.\n"), HasDocument: true,
-		Settings: []byte(small), HasSettings: true}, resources(t))
-	if res.Err != nil {
-		t.Fatal(res.Err)
-	}
-	want := `layout 1
-pages 1
-page 1 1 200000 120000 20000 20000 160000 80000
-  text body serif 10000 38000 27310 15630 "The"
-  text body serif 10000 56170 27310 22240 "quick"
-  text body serif 10000 80950 27310 25140 "brown"
-  text body serif 10000 108630 27310 15810 "fox."
-`
-	if res.Layout != want {
-		t.Errorf("layout mismatch:\n%s", res.Layout)
-	}
-	if !strings.Contains(res.Report, "lines 1\n") || !strings.HasSuffix(res.Report, "total-demerits 100\n") {
-		t.Errorf("report mismatch:\n%s", res.Report)
-	}
-}
-
-func TestExampleTwoLines(t *testing.T) {
-	res := typeset.Typeset(typeset.Input{Document: []byte("The quick brown fox jumps over the lazy dog.\n"), HasDocument: true,
-		Settings: []byte(small), HasSettings: true}, resources(t))
-	if res.Err != nil {
-		t.Fatal(res.Err)
-	}
-	if !strings.Contains(res.Layout, `text body serif 10000 55521 27310 22240 "quick"`) ||
-		!strings.HasSuffix(res.Report, "total-demerits 3016\n") {
-		t.Errorf("unexpected output:\n%s\n%s", res.Layout, res.Report)
+	if got := string(out.Files["error.txt"]); got != "-:0:0: missing-document\n" || len(out.Files) != 1 {
+		t.Errorf("got %q", got)
 	}
 }
 
 func TestEmptyDocument(t *testing.T) {
-	res := typeset.Typeset(typeset.Input{HasDocument: true}, resources(t))
-	if res.Err != nil || res.Layout != "layout 1\npages 0\n" {
-		t.Errorf("empty document: %v %q", res.Err, res.Layout)
+	in := fstest.MapFS{"document.cdx": {Data: nil}}
+	out, err := Typeset(in, os.DirFS("data"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := string(out.Files["layout.txt"]); got != "layout 1\npages 0\n" {
+		t.Errorf("layout %q", got)
 	}
 }
 
-func TestErrors(t *testing.T) {
-	r := resources(t)
-	cases := []struct {
-		in   typeset.Input
-		want string
-	}{
-		{typeset.Input{}, "-:0:0: missing-document\n"},
-		{typeset.Input{HasDocument: true, HasSettings: true, Settings: []byte("page-width = 200pt\nmargin-left = 20px\n")},
-			"settings.cfg:2:15: bad-length\n"},
-		{typeset.Input{HasDocument: true, Document: []byte("@h1 Title\n{z|oops}\n")}, "document.cdx:2:1: unknown-inline\n"},
+func TestSettingsErrorBeatsDocumentError(t *testing.T) {
+	in := fstest.MapFS{
+		"document.cdx": {Data: []byte("@bogus\n")},
+		"settings.cfg": {Data: []byte("tolerance = x\n")},
 	}
-	for _, c := range cases {
-		res := typeset.Typeset(c.in, r)
-		if res.Err == nil || res.ErrorText() != c.want {
-			t.Errorf("got %v want %q", res.Err, c.want)
-		}
+	out, _ := Typeset(in, os.DirFS("data"))
+	if out.Err == nil || out.Err.File != "settings.cfg" {
+		t.Errorf("err = %v", out.Err)
 	}
 }
 
-func TestTableOfContents(t *testing.T) {
-	doc := "@toc\n@h1 Introduction\nAlpha one.\n@newpage\n@h1 Results\nBeta two.\n"
-	res := typeset.Typeset(typeset.Input{Document: []byte(doc), HasDocument: true, Settings: []byte(small), HasSettings: true}, resources(t))
-	if res.Err != nil {
-		t.Fatal(res.Err)
+func TestOneLine(t *testing.T) {
+	in := fstest.MapFS{
+		"document.cdx": {Data: []byte("The quick brown fox.\n")},
+		"settings.cfg": {Data: []byte("page-width = 200pt\npage-height = 120pt\nmargin-top = 20pt\nmargin-bottom = 20pt\nmargin-left = 20pt\nmargin-right = 20pt\n")},
 	}
-	if !strings.Contains(res.Layout, "page 1 i ") || !strings.Contains(res.Layout, "page 3 2 ") ||
-		!strings.Contains(res.Report, "front-pages 1\n") || !strings.HasSuffix(res.Report, "total-demerits 700\n") {
-		t.Errorf("unexpected output:\n%s\n%s", res.Layout, res.Report)
+	out, err := Typeset(in, os.DirFS("data"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "layout 1\npages 1\npage 1 1 200000 120000 20000 20000 160000 80000\n" +
+		"  text body serif 10000 38000 27310 15630 \"The\"\n" +
+		"  text body serif 10000 56170 27310 22240 \"quick\"\n" +
+		"  text body serif 10000 80950 27310 25140 \"brown\"\n" +
+		"  text body serif 10000 108630 27310 15810 \"fox.\"\n"
+	if got := string(out.Files["layout.txt"]); got != want {
+		t.Errorf("layout:\n%s", got)
 	}
 }

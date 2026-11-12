@@ -3,57 +3,64 @@ package xmlmini
 import "testing"
 
 func TestParseBasics(t *testing.T) {
-	src := `<?xml version="1.0"?><!DOCTYPE svg [<!ENTITY x "<a>">]><!-- c -->
-<svg:svg xmlns:svg="u" xlink:href='#a' a="1" a="2">
-  <![CDATA[ <ignored> ]]>
-  <rect title="a&gt;b &amp; &#65;&#x42; &bogus;" d="x>y"/>
-  <g><path/></g >
+	src := `<?xml version="1.0"?>
+<!DOCTYPE svg [ <!ENTITY x "<a>"> ]>
+<!-- a <comment> -->
+<svg:svg xmlns:svg="http://www.w3.org/2000/svg" xmlns:xlink="x" a = 'b' c="d>e">
+  text <![CDATA[ <ignored/> ]]>
+  <g id="1"><rect xlink:href="#r" x="1" x="2"/></g>
+  <circle/>
 </svg:svg>`
 	root, err := Parse([]byte(src))
 	if err != nil {
 		t.Fatal(err)
 	}
 	if root.Tag != "svg" {
-		t.Fatalf("tag %q", root.Tag)
+		t.Fatalf("root tag = %q", root.Tag)
 	}
-	if v, _ := root.Attr("href"); v != "#a" {
-		t.Errorf("href = %q", v)
+	if v, _ := root.Attr("a"); v != "b" {
+		t.Errorf("a = %q", v)
 	}
-	if v, _ := root.Attr("a"); v != "2" {
-		t.Errorf("duplicate attribute: last must win, got %q", v)
+	if v, _ := root.Attr("c"); v != "d>e" {
+		t.Errorf("c = %q, want quoted > preserved", v)
+	}
+	if _, ok := root.Attr("xlink"); ok {
+		t.Error("xmlns:xlink should be dropped")
 	}
 	if len(root.Children) != 2 {
-		t.Fatalf("children = %d", len(root.Children))
+		t.Fatalf("children = %d, want 2", len(root.Children))
 	}
-	rect := root.Children[0]
-	if v, _ := rect.Attr("title"); v != "a>b & AB &bogus;" {
-		t.Errorf("title = %q", v)
+	rect := root.Children[0].Children[0]
+	if rect.Tag != "rect" {
+		t.Fatalf("tag = %q", rect.Tag)
 	}
-	if v, _ := rect.Attr("d"); v != "x>y" {
-		t.Errorf("d = %q", v)
+	if v, _ := rect.Attr("href"); v != "#r" {
+		t.Errorf("href = %q", v)
 	}
-	if g := root.Children[1]; g.Tag != "g" || len(g.Children) != 1 || g.Children[0].Tag != "path" {
-		t.Errorf("bad g subtree: %+v", g)
+	if v, _ := rect.Attr("x"); v != "2" {
+		t.Errorf("duplicate attribute: last should win, got %q", v)
 	}
 }
 
-func TestSelfClosingWithSpace(t *testing.T) {
-	root, err := Parse([]byte(`<svg><rect a = "1" /><circle/></svg>`))
+func TestEntities(t *testing.T) {
+	root, err := Parse([]byte(`<svg a="&amp;&lt;&gt;&quot;&apos;&#65;&#x42;&nbsp;&#xZZ;"/>`))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(root.Children) != 2 {
-		t.Fatalf("children = %d", len(root.Children))
-	}
-	if v, _ := root.Children[0].Attr("a"); v != "1" {
+	if v, _ := root.Attr("a"); v != `&<>"'AB&nbsp;&#xZZ;` {
 		t.Errorf("a = %q", v)
 	}
 }
 
-func TestErrors(t *testing.T) {
-	for _, s := range []string{"", "no tags", "<svg", "<!-- x", `<svg a="1>`} {
-		if _, err := Parse([]byte(s)); err == nil {
-			t.Errorf("Parse(%q) succeeded", s)
-		}
+func TestNoRoot(t *testing.T) {
+	if _, err := Parse([]byte("just text <!-- c -->")); err != ErrNoRoot {
+		t.Errorf("err = %v, want ErrNoRoot", err)
+	}
+}
+
+func TestUnclosed(t *testing.T) {
+	root, err := Parse([]byte(`<svg><g><rect/>`))
+	if err != nil || len(root.Children) != 1 || len(root.Children[0].Children) != 1 {
+		t.Errorf("lenient parse failed: %v %+v", err, root)
 	}
 }

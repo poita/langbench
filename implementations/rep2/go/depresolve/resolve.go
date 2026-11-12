@@ -2,218 +2,224 @@ package depresolve
 
 import (
 	"errors"
-	"slices"
 	"sort"
-	"strings"
 )
 
-// ErrUnsatisfiable is returned by Resolve when no resolution exists.
+// ErrUnsatisfiable is returned by Resolve when the search space contains no
+// complete resolution.
 var ErrUnsatisfiable = errors.New("depresolve: unsatisfiable")
 
-// Package is one entry of a Resolution: a package and its chosen version.
+// Package is a package pinned to one version.
 type Package struct {
 	Name    string
 	Version Version
 }
 
-// Resolution is the set of chosen packages, sorted by name in ascending byte
-// order.
+// Resolution is the set of chosen packages, sorted by name in ascending
+// byte order.
 type Resolution []Package
 
-// Get returns the chosen version of the named package.
-func (res Resolution) Get(name string) (Version, bool) {
-	i := sort.Search(len(res), func(i int) bool { return res[i].Name >= name })
-	if i < len(res) && res[i].Name == name {
-		return res[i].Version, true
+// Lookup returns the chosen version of name, if any.
+func (r Resolution) Lookup(name string) (Version, bool) {
+	i := sort.Search(len(r), func(i int) bool { return r[i].Name >= name })
+	if i < len(r) && r[i].Name == name {
+		return r[i].Version, true
 	}
 	return Version{}, false
 }
 
-// String formats the resolution as one "name version\n" line per package, the
-// format the command-line tool prints. An empty resolution is the empty
-// string.
-func (res Resolution) String() string {
-	var b strings.Builder
-	for _, p := range res {
-		b.WriteString(p.Name)
-		b.WriteByte(' ')
-		b.Write(p.Version.appendTo(nil))
-		b.WriteByte('\n')
-	}
-	return b.String()
+// compiled form of the registry used by the search. Package names are
+// replaced by dense integer ids and every requirement carries the half-open
+// range [lo, hi) of indices into its target's newest-first version list that
+// satisfy it, so the search never scans versions.
+
+type cReq struct {
+	pkg    int32
+	lo, hi int32
 }
 
-// cell is one node of the persistent pending list.
-type cell struct {
-	req  int32 // index into compiled.reqs
-	next int32 // index of the next cell, or -1
+type cVersion struct {
+	version Version
+	reqs    []cReq
 }
 
-// frame is a choice point: the package whose candidates are being tried.
-type frame struct {
-	pkg  int32
-	cur  int32 // current candidate index in the package's newest-first list
-	end  int32 // one past the last candidate of the window
-	rest int32 // pending list after the requirement that opened the frame
-	mark int32 // arena length when the frame was opened
+type cPackage struct {
+	name     string
+	versions []cVersion // newest first
 }
 
-// creq is a requirement resolved to a window [first, last) of candidate
-// indices in the target package's newest-first version list.
-type creq struct {
-	pkg         int32
-	first, last int32
+// choice is one choice point: the package being decided, the candidate
+// currently tried (cur, within [.., end)) and the position in the pending
+// list that the search continues with once this package's own requirements
+// are used up.
+type choice struct {
+	pkg, cur, end  int32
+	parent, parPos int32
 }
 
-// cver is a version in a package's newest-first list.
-type cver struct {
-	reqStart, reqCount int32
-}
+// Resolve finds the resolution defined by the search described in the
+// package documentation. It returns ErrUnsatisfiable if there is none.
+//
+// The registry is not modified; Resolve may be called many times, with
+// different roots, and concurrently from several goroutines as long as the
+// registry is not being modified.
+func (g *Registry) Resolve(root []Requirement) (Resolution, error) {
+	pkgs, rootReqs := g.compile(root)
 
-// compiled is the immutable, search-ready form of a Registry plus a root.
-type compiled struct {
-	vers     [][]cver // per package, newest first
-	versions [][]Version
-	reqs     []creq // registry requirements, then root requirements
-	rootBeg  int32
-	rootCnt  int32
-	names    []string
-}
-
-func sortVersionsDesc(vs []Version) {
-	slices.SortFunc(vs, func(a, b Version) int { return b.Compare(a) })
-}
-
-func (r *Registry) compile(root []Requirement) *compiled {
-	np := len(r.pkgs)
-	c := &compiled{
-		vers:     make([][]cver, np+1), // +1: ghost package for unknown root names
-		versions: make([][]Version, np+1),
-		names:    make([]string, np+1),
-	}
-	keys := make([][]Key, np+1)
-	for id := range r.pkgs {
-		p := &r.pkgs[id]
-		c.names[id] = p.name
-		sorted := slices.Clone(p.versions)
-		slices.SortFunc(sorted, func(a, b verInfo) int {
-			switch {
-			case a.key > b.key:
-				return -1
-			case a.key < b.key:
-				return 1
-			}
-			return 0
-		})
-		cv := make([]cver, len(sorted))
-		ks := make([]Key, len(sorted))
-		vv := make([]Version, len(sorted))
-		for i, s := range sorted {
-			cv[i] = cver{s.reqStart, s.reqCount}
-			ks[i] = s.key
-			vv[i] = s.version
-		}
-		c.vers[id], keys[id], c.versions[id] = cv, ks, vv
-	}
-
-	window := func(pkg int32, rng Range) creq {
-		if int(pkg) >= np || rng.Empty() {
-			return creq{pkg, 0, 0}
-		}
-		ks := keys[pkg]
-		// ks is descending: candidates are those with lo <= key < hi.
-		first := sort.Search(len(ks), func(i int) bool { return ks[i] < rng.hi })
-		last := sort.Search(len(ks), func(i int) bool { return ks[i] < rng.lo })
-		if last <= first {
-			return creq{pkg, 0, 0}
-		}
-		return creq{pkg, int32(first), int32(last)}
-	}
-
-	c.reqs = make([]creq, 0, len(r.reqs)+len(root))
-	for _, q := range r.reqs {
-		c.reqs = append(c.reqs, window(q.pkg, q.rng))
-	}
-	c.rootBeg = int32(len(c.reqs))
-	c.rootCnt = int32(len(root))
-	for _, q := range root {
-		id, ok := r.ids[q.Name]
-		if !ok {
-			id = int32(np)
-		}
-		c.reqs = append(c.reqs, window(id, q.Range))
-	}
-	return c
-}
-
-// Resolve returns the first complete solution of the specified search for the
-// root requirements: depth-first in requirement order, newest candidate
-// first, with chronological backtracking. It returns ErrUnsatisfiable if no
-// solution exists.
-func (r *Registry) Resolve(root []Requirement) (Resolution, error) {
-	c := r.compile(root)
-
-	reqs := c.reqs
-	vers := c.vers
-	chosen := make([]int32, len(vers)) // candidate index, or -1
+	// The pending requirement list is a persistent linked list of "frames".
+	// Frame 0 is the root manifest; frame k+1 is the requirement list of the
+	// version currently picked by choice point k. A position is a pair
+	// (frame, index into that frame's list); each choice point records the
+	// position it continues with, so choosing a version is O(1) and nothing
+	// is copied. Frames of popped choice points are never referenced again.
+	stack := make([]choice, 0, len(pkgs))
+	chosen := make([]int32, len(pkgs)) // picked version index, or -1
 	for i := range chosen {
 		chosen[i] = -1
 	}
-	arena := make([]cell, 0, 1024)
-	frames := make([]frame, 0, 256)
-
-	// prepend pushes the requirements [start, start+count) in front of head,
-	// last first, and returns the new head.
-	prepend := func(head, start, count int32) int32 {
-		for i := start + count - 1; i >= start; i-- {
-			arena = append(arena, cell{i, head})
-			head = int32(len(arena) - 1)
+	frameReqs := func(f int32) []cReq {
+		if f == 0 {
+			return rootReqs
 		}
-		return head
+		c := &stack[f-1]
+		return pkgs[c.pkg].versions[c.cur].reqs
 	}
 
-	head := prepend(-1, c.rootBeg, c.rootCnt)
-	for head >= 0 {
-		cl := arena[head]
-		q := reqs[cl.req]
-		head = cl.next
-
-		if cur := chosen[q.pkg]; cur >= 0 {
-			if cur >= q.first && cur < q.last {
-				continue
+	var frame, pos int32
+	reqs := rootReqs
+	for {
+		if int(pos) == len(reqs) {
+			if frame == 0 {
+				break // success
 			}
-		} else if q.first < q.last {
-			frames = append(frames, frame{q.pkg, q.first, q.last, head, int32(len(arena))})
-			chosen[q.pkg] = q.first
-			v := vers[q.pkg][q.first]
-			head = prepend(head, v.reqStart, v.reqCount)
+			c := &stack[frame-1]
+			frame, pos = c.parent, c.parPos
+			reqs = frameReqs(frame)
 			continue
 		}
-
-		// Backtrack: advance the most recent choice point with a candidate
-		// left, discarding the choice points above it.
+		r := reqs[pos]
+		pos++
+		ok := true
+		if cur := chosen[r.pkg]; cur >= 0 {
+			ok = cur >= r.lo && cur < r.hi
+		} else if r.lo < r.hi {
+			chosen[r.pkg] = r.lo
+			stack = append(stack, choice{pkg: r.pkg, cur: r.lo, end: r.hi, parent: frame, parPos: pos})
+			frame, pos = int32(len(stack)), 0
+			reqs = pkgs[r.pkg].versions[r.lo].reqs
+			continue
+		} else {
+			ok = false
+		}
+		if ok {
+			continue
+		}
+		// Backtrack to the most recent choice point with a candidate left.
 		for {
-			if len(frames) == 0 {
+			n := len(stack)
+			if n == 0 {
 				return nil, ErrUnsatisfiable
 			}
-			f := &frames[len(frames)-1]
-			arena = arena[:f.mark]
-			f.cur++
-			if f.cur < f.end {
-				chosen[f.pkg] = f.cur
-				v := vers[f.pkg][f.cur]
-				head = prepend(f.rest, v.reqStart, v.reqCount)
+			c := &stack[n-1]
+			c.cur++
+			if c.cur < c.end {
+				chosen[c.pkg] = c.cur
+				frame, pos = int32(n), 0
+				reqs = pkgs[c.pkg].versions[c.cur].reqs
 				break
 			}
-			chosen[f.pkg] = -1
-			frames = frames[:len(frames)-1]
+			chosen[c.pkg] = -1
+			stack = stack[:n-1]
 		}
 	}
 
-	res := make(Resolution, len(frames))
-	for i, f := range frames {
-		res[i] = Package{c.names[f.pkg], c.versions[f.pkg][f.cur]}
+	out := make(Resolution, 0, len(stack))
+	for i := range stack {
+		c := &stack[i]
+		out = append(out, Package{pkgs[c.pkg].name, pkgs[c.pkg].versions[c.cur].version})
 	}
-	slices.SortFunc(res, func(a, b Package) int { return strings.Compare(a.Name, b.Name) })
-	return res, nil
+	sort.Slice(out, func(i, j int) bool { return out[i].Name < out[j].Name })
+	return out, nil
+}
+
+// compile converts the registry and root requirements to the compiled form.
+// Names that are required but never declared get a package with no versions.
+func (g *Registry) compile(root []Requirement) ([]cPackage, []cReq) {
+	ids := make(map[string]int32, len(g.names))
+	pkgs := make([]cPackage, 0, len(g.names))
+	for i, name := range g.names {
+		ids[name] = int32(i)
+		pkgs = append(pkgs, cPackage{name: name})
+	}
+	idOf := func(name string) int32 {
+		id, ok := ids[name]
+		if !ok {
+			id = int32(len(pkgs))
+			ids[name] = id
+			pkgs = append(pkgs, cPackage{name: name})
+		}
+		return id
+	}
+
+	// Sort each package's versions newest first. Requirement index ranges
+	// need the final order of every target, so they are resolved in a second
+	// pass.
+	order := make([][]packageVersion, len(g.names))
+	for i, vs := range g.versions {
+		sorted := append([]packageVersion(nil), vs...)
+		sort.Slice(sorted, func(a, b int) bool { return sorted[b].version.Less(sorted[a].version) })
+		order[i] = sorted
+		pkgs[i].versions = make([]cVersion, len(sorted))
+	}
+	// Assign ids for undeclared targets before the slice header is captured.
+	for _, vs := range order {
+		for _, pv := range vs {
+			for _, r := range pv.reqs {
+				idOf(r.Name)
+			}
+		}
+	}
+	for _, r := range root {
+		idOf(r.Name)
+	}
+
+	compileReqs := func(rs []Requirement) []cReq {
+		if len(rs) == 0 {
+			return nil
+		}
+		out := make([]cReq, len(rs))
+		for i, r := range rs {
+			id := ids[r.Name]
+			out[i] = cReq{pkg: id}
+			if int(id) < len(order) {
+				out[i].lo, out[i].hi = candidateSpan(order[id], r.Range)
+			}
+		}
+		return out
+	}
+	for i, vs := range order {
+		for j, pv := range vs {
+			pkgs[i].versions[j] = cVersion{pv.version, compileReqs(pv.reqs)}
+		}
+	}
+	return pkgs, compileReqs(root)
+}
+
+// candidateSpan returns the indices [lo, hi) of the versions in vs (sorted
+// newest first) that lie in the range, found by binary search.
+func candidateSpan(vs []packageVersion, r Range) (lo, hi int32) {
+	if r.Empty() {
+		return 0, 0
+	}
+	// lo: first index whose version is below r's upper bound.
+	l := 0
+	if !r.hiInf {
+		l = sort.Search(len(vs), func(i int) bool { return vs[i].version.Less(r.hi) })
+	}
+	// hi: first index whose version is below r's lower bound.
+	h := sort.Search(len(vs), func(i int) bool { return vs[i].version.Less(r.lo) })
+	if h < l {
+		h = l
+	}
+	return int32(l), int32(h)
 }

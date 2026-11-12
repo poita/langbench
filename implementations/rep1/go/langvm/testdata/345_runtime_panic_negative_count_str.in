@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(strRepeat("a", -1));
+}

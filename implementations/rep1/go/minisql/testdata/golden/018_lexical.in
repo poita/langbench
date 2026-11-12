@@ -1,0 +1,51 @@
+
+create table Mixed (Id integer, Name TEXT);
+INSERT INTO mixed VALUES (1, 'A'), (2, 'b');
+select ID, NAME from MIXED where id = 1;
+SeLeCt iD FrOm mIxEd WhErE nAmE = 'b';
+SELECT
+  id,
+  name
+FROM
+  mixed
+WHERE
+  id > 0
+ORDER BY
+  id DESC;
+SELECT id FROM mixed WHERE id=1;SELECT id FROM mixed WHERE id=2;
+SELECT id,name FROM mixed WHERE(id=1)OR(id=2);
+SELECT id FROM mixed WHERE id=1 -- trailing comment
+;
+-- a comment line; with a semicolon
+SELECT id FROM mixed -- comment before clause
+WHERE id = 2;
+SELECT 'it''s', '', '''', 'a''b''c', ' padded ', 'semi;colon', 'dash--dash', 'x--y';
+SELECT '--not a comment', 1 -- but this is; SELECT 2;
+;
+SELECT 1;;SELECT 2;
+;
+;
+SELECT 1--comment
++2;
+SELECT id FROM mixed WHERE name = 'A' ;
+	SELECT		id	FROM	mixed	WHERE	id	=	2	;
+SELECT id FROM mixed WHERE name='A'AND id=1;
+SELECT 1+1,2-1,3*2,8/2,7%4,-1,(1);
+SELECT id FROM mixed WHERE id<2;
+SELECT id FROM mixed WHERE id>=2;
+SELECT id FROM mixed WHERE id<>2;
+SELECT id FROM mixed WHERE id!=2;
+SELECT 007, 010 + 1, 0;
+CREATE TABLE _u (_a INTEGER, b2 TEXT, C_3 INTEGER);
+INSERT INTO _u VALUES (1, 'x', 2);
+SELECT c_3, B2, _A FROM _U;
+SELECT count(*), Count(_a), COUNT(*) FROM _u;
+SELECT count (*), COUNT  ( * ), sum ( _a ), MAX -- comment between name and paren
+  (c_3) FROM _u;
+CREATE TABLE f (count INTEGER, sum INTEGER, avg TEXT, min INTEGER, max INTEGER);
+INSERT INTO f VALUES (5, 6, 'x', 7, 8), (1, 2, 'y', NULL, 4);
+SELECT count, sum, avg, min, max FROM f ORDER BY count;
+SELECT count(*), sum(sum), max(avg), min(count), avg(max), count(min) FROM f;
+SELECT count + sum, max - min FROM f WHERE avg LIKE 'x';
+SELECT f.count, f.sum FROM f WHERE f.min IS NULL;
+SELECT 1 FROM mixed WHERE id = 1 LIMIT 1

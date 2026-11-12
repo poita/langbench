@@ -1,243 +1,175 @@
+// Package jsonvalue provides an immutable JSON data model with exact decimal
+// numbers, a strict RFC 8259 parser, and structural JSON equality and hashing.
+//
+// It exists because JSON Schema validation needs semantics that
+// encoding/json does not offer: numbers are exact rationals (1, 1.0 and 1e0
+// are the same number, and nothing is ever rounded to a float64), objects
+// keep their members in document order, and equality ignores member order.
 package jsonvalue
 
-// Kind identifies the JSON type of a Value.
+import "strconv"
+
+// Kind identifies the type of a Value.
 type Kind uint8
 
-// The JSON types.
+// The JSON value kinds. Integers are not a separate kind: a Number is an
+// integer when Number.IsInteger reports so.
 const (
-	KindNull Kind = iota
-	KindBool
-	KindNumber
-	KindString
-	KindArray
-	KindObject
+	Null Kind = iota
+	Bool
+	NumberKind
+	String
+	Array
+	ObjectKind
 )
 
 func (k Kind) String() string {
 	switch k {
-	case KindNull:
+	case Null:
 		return "null"
-	case KindBool:
+	case Bool:
 		return "boolean"
-	case KindNumber:
+	case NumberKind:
 		return "number"
-	case KindString:
+	case String:
 		return "string"
-	case KindArray:
+	case Array:
 		return "array"
-	case KindObject:
+	case ObjectKind:
 		return "object"
 	}
 	return "invalid"
 }
 
-// Value is a JSON value. The zero Value is null. Values are small and cheap
-// to copy; arrays and objects share their backing storage between copies and
-// must be treated as immutable once built.
+// Value is a JSON value. The zero Value is null. Values are small and are
+// passed by value; they share their underlying arrays and objects, which
+// must not be modified.
 type Value struct {
 	kind Kind
 	b    bool
 	s    string
+	a    []Value
+	o    *Object
 	n    *Number
-	arr  []Value
-	obj  *Object
 }
 
-// Null returns the JSON null value.
-func Null() Value { return Value{} }
+// Constructors.
 
-// NewBool returns a JSON boolean.
-func NewBool(b bool) Value { return Value{kind: KindBool, b: b} }
+// NullValue returns the JSON null.
+func NullValue() Value { return Value{} }
 
-// NewNumber returns a JSON number.
-func NewNumber(n Number) Value { return Value{kind: KindNumber, n: &n} }
+// BoolValue returns a JSON boolean.
+func BoolValue(b bool) Value { return Value{kind: Bool, b: b} }
 
-// NewString returns a JSON string.
-func NewString(s string) Value { return Value{kind: KindString, s: s} }
+// NumberValue returns a JSON number.
+func NumberValue(n Number) Value { return Value{kind: NumberKind, n: &n} }
 
-// NewArray returns a JSON array holding elems (not copied).
-func NewArray(elems []Value) Value { return Value{kind: KindArray, arr: elems} }
+// StringValue returns a JSON string.
+func StringValue(s string) Value { return Value{kind: String, s: s} }
 
-// NewObjectValue returns a JSON object value wrapping o.
-func NewObjectValue(o *Object) Value { return Value{kind: KindObject, obj: o} }
+// ArrayValue returns a JSON array holding elems (the slice is not copied).
+func ArrayValue(elems []Value) Value { return Value{kind: Array, a: elems} }
 
-// Kind returns the JSON type of v.
+// ObjectValue returns a JSON object holding the given members in order.
+// keys and vals must have equal length and keys must be distinct; neither
+// slice is copied.
+func ObjectValue(keys []string, vals []Value) Value {
+	return Value{kind: ObjectKind, o: newObject(keys, vals)}
+}
+
+// Accessors.
+
+// Kind returns the kind of v.
 func (v Value) Kind() Kind { return v.kind }
 
-// Bool returns the boolean held by v (false if v is not a boolean).
-func (v Value) Bool() bool { return v.b }
+// IsNull reports whether v is null.
+func (v Value) IsNull() bool { return v.kind == Null }
 
-// Number returns the number held by v (zero if v is not a number).
-func (v Value) Number() Number {
-	if v.n == nil {
-		return Number{}
+// Bool returns the boolean held by v and whether v is a boolean.
+func (v Value) Bool() (bool, bool) { return v.b, v.kind == Bool }
+
+// Number returns the number held by v and whether v is a number.
+func (v Value) Number() (Number, bool) {
+	if v.kind != NumberKind {
+		return Number{}, false
 	}
-	return *v.n
+	return *v.n, true
 }
 
-// Str returns the string held by v ("" if v is not a string).
-func (v Value) Str() string { return v.s }
+// Str returns the string held by v and whether v is a string.
+func (v Value) Str() (string, bool) { return v.s, v.kind == String }
 
-// Array returns the elements of v (nil if v is not an array). The slice is
-// shared with v and must not be modified.
-func (v Value) Array() []Value { return v.arr }
+// Array returns the elements of v and whether v is an array. The slice must
+// not be modified.
+func (v Value) Array() ([]Value, bool) { return v.a, v.kind == Array }
 
-// Object returns the object held by v (nil if v is not an object).
-func (v Value) Object() *Object { return v.obj }
+// Object returns the object held by v and whether v is an object.
+func (v Value) Object() (*Object, bool) { return v.o, v.kind == ObjectKind }
 
-// Member is one key/value pair of an object.
-type Member struct {
-	Key   string
-	Value Value
-}
-
-// indexThreshold is the member count above which an Object builds a hash
-// index; below it a linear scan is faster.
-const indexThreshold = 8
-
-// Object is an ordered JSON object. Member i has the stable position i.
+// Object is a JSON object whose members keep their document order.
 type Object struct {
-	members []Member
-	index   map[string]int
+	keys []string
+	vals []Value
+	idx  map[string]int // built for larger objects only
 }
 
-// NewObject builds an Object from members, which must have distinct keys.
-// The slice is retained, not copied.
-func NewObject(members []Member) *Object {
-	o := &Object{members: members}
-	if len(members) > indexThreshold {
-		o.index = make(map[string]int, len(members))
-		for i := range members {
-			o.index[members[i].Key] = i
+const linearLookupMax = 8
+
+func newObject(keys []string, vals []Value) *Object {
+	o := &Object{keys: keys, vals: vals}
+	if len(keys) > linearLookupMax {
+		o.idx = make(map[string]int, len(keys))
+		for i, k := range keys {
+			o.idx[k] = i
 		}
 	}
 	return o
 }
 
 // Len returns the number of members.
-func (o *Object) Len() int {
-	if o == nil {
-		return 0
+func (o *Object) Len() int { return len(o.keys) }
+
+// Get returns the value of the member called name.
+func (o *Object) Get(name string) (Value, bool) {
+	if o.idx != nil {
+		if i, ok := o.idx[name]; ok {
+			return o.vals[i], true
+		}
+		return Value{}, false
 	}
-	return len(o.members)
+	for i, k := range o.keys {
+		if k == name {
+			return o.vals[i], true
+		}
+	}
+	return Value{}, false
 }
 
-// Members returns the members in document order. The slice is shared with the
-// object and must not be modified.
-func (o *Object) Members() []Member {
-	if o == nil {
-		return nil
-	}
-	return o.members
+// Has reports whether the object has a member called name.
+func (o *Object) Has(name string) bool {
+	_, ok := o.Get(name)
+	return ok
 }
 
-// Get returns a pointer to the value stored under key, or nil if absent.
-func (o *Object) Get(key string) *Value {
-	if o == nil {
-		return nil
-	}
-	if o.index != nil {
-		if i, ok := o.index[key]; ok {
-			return &o.members[i].Value
-		}
-		return nil
-	}
-	for i := range o.members {
-		if o.members[i].Key == key {
-			return &o.members[i].Value
-		}
-	}
-	return nil
+// At returns the i'th member in document order.
+func (o *Object) At(i int) (string, Value) { return o.keys[i], o.vals[i] }
+
+// Keys returns the member names in document order. The slice must not be
+// modified.
+func (o *Object) Keys() []string { return o.keys }
+
+// SyntaxError describes malformed JSON input.
+type SyntaxError struct {
+	Msg    string
+	Offset int // byte offset of the error in the input, or -1 if unknown
 }
 
-// Has reports whether key is a member of the object.
-func (o *Object) Has(key string) bool { return o.Get(key) != nil }
-
-// Equal implements JSON equality: values of different types are never equal,
-// numbers are compared exactly, arrays element-wise and objects by key set
-// and per-key values, regardless of member order.
-func Equal(a, b Value) bool {
-	if a.kind != b.kind {
-		return false
+func (e *SyntaxError) Error() string {
+	if e.Offset >= 0 {
+		return "json: " + e.Msg + " at offset " + strconv.Itoa(e.Offset)
 	}
-	switch a.kind {
-	case KindNull:
-		return true
-	case KindBool:
-		return a.b == b.b
-	case KindNumber:
-		return a.n.Equal(*b.n)
-	case KindString:
-		return a.s == b.s
-	case KindArray:
-		if len(a.arr) != len(b.arr) {
-			return false
-		}
-		for i := range a.arr {
-			if !Equal(a.arr[i], b.arr[i]) {
-				return false
-			}
-		}
-		return true
-	case KindObject:
-		if a.obj.Len() != b.obj.Len() {
-			return false
-		}
-		for _, m := range a.obj.members {
-			o := b.obj.Get(m.Key)
-			if o == nil || !Equal(m.Value, *o) {
-				return false
-			}
-		}
-		return true
-	}
-	return false
+	return "json: " + e.Msg
 }
 
-// Hash returns a hash of v that is consistent with Equal: equal values have
-// equal hashes. Object hashing is independent of member order.
-func Hash(v Value) uint64 {
-	const prime = 1099511628211
-	switch v.kind {
-	case KindNull:
-		return 0x9e3779b97f4a7c15
-	case KindBool:
-		if v.b {
-			return 0x1234567
-		}
-		return 0x7654321
-	case KindNumber:
-		return v.n.hash()
-	case KindString:
-		return hashString(v.s)
-	case KindArray:
-		h := uint64(0xcbf29ce484222325)
-		for i := range v.arr {
-			h ^= Hash(v.arr[i])
-			h *= prime
-			h ^= h >> 31
-		}
-		return h
-	case KindObject:
-		var h uint64 = 0xabcdef
-		for _, m := range v.obj.Members() {
-			// Commutative combination so that member order is irrelevant.
-			x := hashString(m.Key)*31 ^ Hash(m.Value)
-			x ^= x >> 29
-			x *= 0xbf58476d1ce4e5b9
-			x ^= x >> 32
-			h += x
-		}
-		return h
-	}
-	return 0
-}
-
-func hashString(s string) uint64 {
-	h := uint64(14695981039346656037)
-	for i := 0; i < len(s); i++ {
-		h ^= uint64(s[i])
-		h *= 1099511628211
-	}
-	return h
-}
+func quote(s string) string { return strconv.Quote(s) }
+func itoa(n int) string     { return strconv.Itoa(n) }

@@ -1,0 +1,2 @@
+[.[] | tostring], [.[] | tostring | type], [.[] | tonumber?], ({"k":[1,{"z":"q"}]} | tostring), (.[0] | tostring | tonumber), [.[7:] | .[] | tonumber?]
+[1.5,true,null,"s",[1,"a"],{"b":[],"a":{}},-3,"0","-0.5","12","3.25","x",""]

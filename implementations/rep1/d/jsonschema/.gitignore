@@ -1,6 +1,6 @@
 .dub/
-/jsonschema
-/jsonschema-test
+jsonschema
 *.o
 *.a
 dub.selections.json
+jsonschema-test-library

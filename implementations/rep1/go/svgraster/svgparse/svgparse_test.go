@@ -2,118 +2,150 @@ package svgparse
 
 import (
 	"math"
-	"reflect"
 	"testing"
 
 	"svgraster/geom"
 )
 
 func TestScanNumber(t *testing.T) {
-	cases := []struct {
-		in   string
-		v    float64
-		rest string
-		ok   bool
+	tests := []struct {
+		in string
+		v  float64
+		n  int
 	}{
-		{"5", 5, "", true},
-		{".5", .5, "", true},
-		{"5.", 5, "", true},
-		{"-5.25e2x", -525, "x", true},
-		{"1e", 1, "e", true},
-		{"1e+", 1, "e+", true},
-		{"1.5.5", 1.5, ".5", true},
-		{"+.", 0, "", false},
-		{"e5", 0, "", false},
+		{"5", 5, 1}, {".5", .5, 2}, {"5.", 5, 2}, {"-5.25x", -5.25, 5},
+		{"1e3", 1000, 3}, {"1e", 1, 1}, {"1e+", 1, 1}, {"2E-2", .02, 4},
+		{"+.5e1", 5, 5}, {".", 0, 0}, {"-", 0, 0}, {"abc", 0, 0}, {"1.5.5", 1.5, 3},
 	}
-	for _, c := range cases {
-		v, n, ok := ScanNumber(c.in, 0)
-		if ok != c.ok || (ok && (v != c.v || c.in[n:] != c.rest)) {
-			t.Errorf("ScanNumber(%q) = %v,%q,%v", c.in, v, c.in[n:], ok)
+	for _, tc := range tests {
+		v, n := ScanNumber(tc.in)
+		if v != tc.v || n != tc.n {
+			t.Errorf("ScanNumber(%q) = %v, %d; want %v, %d", tc.in, v, n, tc.v, tc.n)
 		}
 	}
 }
 
-func TestNumberList(t *testing.T) {
-	got := NumberList(" 1,2 3 ,-4.5e1 x 9")
-	if !reflect.DeepEqual(got, []float64{1, 2, 3, -45}) {
-		t.Errorf("got %v", got)
+func TestParseLength(t *testing.T) {
+	for in, want := range map[string]float64{" 12px ": 12, "3": 3, "-1.5": -1.5} {
+		if v, ok := ParseLength(in); !ok || v != want {
+			t.Errorf("ParseLength(%q) = %v, %v", in, v, ok)
+		}
+	}
+	if _, ok := ParseLength("px"); ok {
+		t.Error("expected failure")
 	}
 }
 
-func TestLengthOpacity(t *testing.T) {
-	if v, ok := Length(" 12px "); !ok || v != 12 {
-		t.Errorf("Length = %v %v", v, ok)
+func TestParseOpacity(t *testing.T) {
+	cases := []struct {
+		in string
+		v  float64
+		ok bool
+	}{
+		{"0.5", .5, true}, {"50%", .5, true}, {"2", 1, true}, {"-1", 0, true},
+		{"150%", 1, true}, {"0.5x", 0, false}, {"", 0, false}, {"abc", 0, false},
 	}
-	if _, ok := Length("abc"); ok {
-		t.Error("Length(abc) ok")
-	}
-	for in, want := range map[string]float64{"0.5": .5, "50%": .5, "2": 1, "-1": 0, " 25% ": .25} {
-		if v, ok := Opacity(in); !ok || math.Abs(v-want) > 1e-12 {
-			t.Errorf("Opacity(%q) = %v %v", in, v, ok)
-		}
-	}
-	for _, in := range []string{"", "x", "0.5px", "5%%"} {
-		if _, ok := Opacity(in); ok {
-			t.Errorf("Opacity(%q) ok", in)
+	for _, tc := range cases {
+		v, ok := ParseOpacity(tc.in)
+		if ok != tc.ok || (ok && v != tc.v) {
+			t.Errorf("ParseOpacity(%q) = %v, %v; want %v, %v", tc.in, v, ok, tc.v, tc.ok)
 		}
 	}
 }
 
 func TestColors(t *testing.T) {
-	cases := map[string]Paint{
-		"#f39":                 {PaintRGB, RGB{0xff, 0x33, 0x99}},
-		"#FF3399":              {PaintRGB, RGB{0xff, 0x33, 0x99}},
-		"rgb(10, 20 ,300)":     {PaintRGB, RGB{10, 20, 255}},
-		"rgb(50% 100% -5%)":    {PaintRGB, RGB{128, 255, 0}},
-		"rgb(0.5,1.5,2.5)":     {PaintRGB, RGB{1, 2, 3}},
-		"RED":                  {PaintRGB, RGB{255, 0, 0}},
-		"  CornflowerBlue ":    {PaintRGB, RGB{0x64, 0x95, 0xed}},
-		"none":                 {Kind: PaintNone},
-		"CurrentColor":         {Kind: PaintCurrent},
-		"lightgoldenrodyellow": {PaintRGB, RGB{0xfa, 0xfa, 0xd2}},
+	if len(namedColors) != 147 {
+		t.Errorf("named colours = %d, want 147", len(namedColors))
+	}
+	cases := map[string]Color{
+		"#f39":                 {255, 51, 153},
+		"#FF3399":              {255, 51, 153},
+		"RED":                  {255, 0, 0},
+		"rebeccapurple":        {},
+		"rgb(1, 2, 3)":         {1, 2, 3},
+		"rgb(300 -5 127.5)":    {255, 0, 128},
+		"rgb(50%,100%,0.5%)":   {128, 255, 1},
+		"LightGoldenRodYellow": {250, 250, 210},
 	}
 	for in, want := range cases {
-		got, ok := ParseColor(in)
-		if !ok || got != want {
-			t.Errorf("ParseColor(%q) = %+v %v, want %+v", in, got, ok, want)
+		c, ok := ParseColor(in)
+		if want == (Color{}) {
+			if ok {
+				t.Errorf("ParseColor(%q) should fail", in)
+			}
+			continue
+		}
+		if !ok || c != want {
+			t.Errorf("ParseColor(%q) = %v, %v; want %v", in, c, ok, want)
 		}
 	}
-	for _, in := range []string{"", "#12", "#gggggg", "rgb(1,2)", "notacolor", "url(#a)"} {
-		if _, ok := ParseColor(in); ok {
-			t.Errorf("ParseColor(%q) ok", in)
+	for _, bad := range []string{"#12", "#12345g", "rgb(1,2)", "", "url(#a)"} {
+		if _, ok := ParseColor(bad); ok {
+			t.Errorf("ParseColor(%q) should fail", bad)
 		}
 	}
 }
 
-func TestColorTableSize(t *testing.T) {
-	if len(namedColors) != 147 {
-		t.Errorf("%d colour names, want 147", len(namedColors))
+func TestParsePaint(t *testing.T) {
+	if p, ok := ParsePaint(" None "); !ok || !p.None {
+		t.Error("none")
+	}
+	if p, ok := ParsePaint("currentcolor"); !ok || !p.Current {
+		t.Error("currentColor")
+	}
+	if p, ok := ParsePaint("blue"); !ok || p.Color != (Color{0, 0, 255}) {
+		t.Error("blue")
 	}
 }
 
-func TestTransform(t *testing.T) {
-	m := Transform("translate(10 20), scale(2) bogus(1) rotate(90)")
-	p := m.Apply(geom.Point{X: 1, Y: 0}) // rotate -> (0,1); scale -> (0,2); translate -> (10,22)
-	if math.Abs(p.X-10) > 1e-9 || math.Abs(p.Y-22) > 1e-9 {
-		t.Errorf("got %+v", p)
+func TestParseStyle(t *testing.T) {
+	d := ParseStyle("Fill : red;;stroke:blue; junk ; opacity: ;fill-rule:evenodd;")
+	want := Declarations{"fill": "red", "stroke": "blue", "fill-rule": "evenodd"}
+	if len(d) != len(want) {
+		t.Fatalf("got %v", d)
 	}
-	r := Transform("rotate(90 5 5)").Apply(geom.Point{X: 6, Y: 5})
-	if math.Abs(r.X-5) > 1e-9 || math.Abs(r.Y-6) > 1e-9 {
-		t.Errorf("rotate about centre: %+v", r)
-	}
-	if got := Transform("translate()"); got != geom.Identity {
-		t.Errorf("empty args not skipped: %+v", got)
-	}
-	if got := Transform("skewX(45)"); math.Abs(got.C-1) > 1e-12 {
-		t.Errorf("skewX: %+v", got)
+	for k, v := range want {
+		if d[k] != v {
+			t.Errorf("%s = %q, want %q", k, d[k], v)
+		}
 	}
 }
 
-func TestStyle(t *testing.T) {
-	var got [][2]string
-	Style("Fill : red;; stroke:blue;bad;empty: ;", func(n, v string) { got = append(got, [2]string{n, v}) })
-	want := [][2]string{{"fill", "red"}, {"stroke", "blue"}}
-	if !reflect.DeepEqual(got, want) {
-		t.Errorf("got %v", got)
+func approx(a, b geom.Matrix) bool {
+	return math.Abs(a.A-b.A) < 1e-9 && math.Abs(a.B-b.B) < 1e-9 && math.Abs(a.C-b.C) < 1e-9 &&
+		math.Abs(a.D-b.D) < 1e-9 && math.Abs(a.E-b.E) < 1e-9 && math.Abs(a.F-b.F) < 1e-9
+}
+
+func TestParseTransform(t *testing.T) {
+	cases := []struct {
+		in   string
+		want geom.Matrix
+	}{
+		{"", geom.Identity},
+		{"translate(3)", geom.Matrix{A: 1, D: 1, E: 3}},
+		{"scale(2)", geom.Matrix{A: 2, D: 2}},
+		{"matrix(1 2 3 4 5 6)", geom.Matrix{A: 1, B: 2, C: 3, D: 4, E: 5, F: 6}},
+		{"translate(10,20) scale(2 3)", geom.Matrix{A: 2, D: 3, E: 10, F: 20}},
+		{"rotate(90)", geom.Matrix{B: 1, C: -1}},
+		{"rotate(90 1 1)", geom.Matrix{B: 1, C: -1, E: 2}},
+		{"skewX(45)", geom.Matrix{A: 1, C: 1, D: 1}},
+		{"bogus(1) translate(1 2),translate(1)", geom.Matrix{A: 1, D: 1, E: 2, F: 2}},
+		{"matrix(1 2 3)", geom.Identity},
+	}
+	for _, tc := range cases {
+		if got := ParseTransform(tc.in); !approx(got, tc.want) {
+			t.Errorf("ParseTransform(%q) = %+v, want %+v", tc.in, got, tc.want)
+		}
+	}
+}
+
+func TestViewBox(t *testing.T) {
+	if x, y, w, h, ok := ViewBox("0,0 10 20"); !ok || x != 0 || y != 0 || w != 10 || h != 20 {
+		t.Error("simple view box")
+	}
+	for _, bad := range []string{"0 0 0 5", "0 0 5", "a b c d"} {
+		if _, _, _, _, ok := ViewBox(bad); ok {
+			t.Errorf("ViewBox(%q) should fail", bad)
+		}
 	}
 }

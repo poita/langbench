@@ -1,7 +1,6 @@
 #!/bin/sh
 # Build the sitegen command-line tool into bin/sitegen.
-set -eu
-dir=$(cd "$(dirname "$0")" && pwd)
-cd "$dir"
+set -e
+cd "$(dirname "$0")"
 mkdir -p bin
 go build -o bin/sitegen ./cmd/sitegen

@@ -1,5 +1,6 @@
 #!/bin/sh
-# Builds the buildsys command-line tool. Works from any current directory.
+# Build the kiln command-line tool (release mode, LDC) inside this directory.
 set -e
-cd "$(dirname "$0")"
+HERE=$(cd "$(dirname "$0")" && pwd)
+cd "$HERE"
 dub build -b release --compiler=ldc2 --quiet

@@ -1,0 +1,55 @@
+cabal-version:      3.0
+name:               json-canon
+version:            0.1.0.0
+synopsis:           Strict RFC 8259 JSON parser and canonical serializer
+description:
+  A from-scratch, strict JSON parser (RFC 8259 plus strict UTF-8 validation and
+  a nesting limit of 512) and a canonical serializer: no insignificant
+  whitespace, object keys sorted in UTF-16 code unit order with duplicates
+  resolved (last one wins), minimal string escaping and textually preserved
+  numbers (exponents normalised).
+category:           Text, Data
+license:            BSD-3-Clause
+author:             json-canon authors
+maintainer:         peter.alexander.au@gmail.com
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+  build-depends:    base >=4.14 && <5
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Json.Canon
+                    Json.Canon.Types
+                    Json.Canon.Utf8
+                    Json.Canon.Parser
+                    Json.Canon.Key
+                    Json.Canon.Render
+  build-depends:    bytestring >=0.11 && <0.13
+                  , text >=2.0 && <2.2
+
+executable json-canon
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts "-with-rtsopts=-A32m"
+  build-depends:    json-canon
+                  , bytestring
+
+test-suite spec
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  other-modules:    ExamplesSpec
+                    PropertiesSpec
+  build-depends:    json-canon
+                  , bytestring
+                  , containers
+                  , text
+                  , hspec >=2.7
+                  , QuickCheck >=2.14

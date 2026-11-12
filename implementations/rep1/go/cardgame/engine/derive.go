@@ -1,172 +1,209 @@
 package engine
 
-import "cardgame/cards"
+import "github.com/spiremark/cardgame/cards"
 
-// derive recomputes the current characteristics of every Field object in one
-// whole-board pass following SPEC 14.3. It does nothing unless the cached
-// results are stale.
+// derive recomputes the current characteristics of every Field object from
+// the continuous-effect records (SPEC 14.3): controllers, stripping, aura
+// records, then layers 2 to 6.
 func (g *Game) derive() {
-	if !g.stale {
+	g.dirty = false
+	for _, o := range g.field {
+		o.ctrl = o.baseCtrl
+		o.stripped = false
+	}
+	// Layer 1.
+	for _, r := range g.records {
+		if r.kind != rControl {
+			continue
+		}
+		for _, o := range r.affected {
+			if o.zone == ZField {
+				o.ctrl = r.ctrl
+			}
+		}
+	}
+	// Which objects are stripped.
+	for _, r := range g.records {
+		if r.kind != rStrip {
+			continue
+		}
+		for _, o := range r.affected {
+			if o.zone == ZField {
+				o.stripped = true
+			}
+		}
+	}
+	// Aura records.
+	for _, r := range g.records {
+		if r.kind == rAura {
+			g.evalAura(r)
+		}
+	}
+	// Starting values.
+	for _, o := range g.field {
+		o.edge, o.core = o.Card.Edge, o.Card.Core
+		o.kwMask, o.plating = 0, 0
+		for _, k := range o.Card.Keywords {
+			o.kwMask |= kwBit(k.K)
+			if k.K == cards.Plating {
+				o.plating += k.N
+			}
+		}
+	}
+	// Layer 2.
+	g.eachLayerEffect(func(kind recKind, a, b int, kw cards.KW, objs []*Obj) {
+		switch kind {
+		case rGrant:
+			for _, o := range objs {
+				if o.zone == ZField {
+					o.kwMask |= kwBit(kw.K)
+					if kw.K == cards.Plating {
+						o.plating += kw.N
+					}
+				}
+			}
+		case rStrip:
+			for _, o := range objs {
+				if o.zone == ZField {
+					o.kwMask, o.plating = 0, 0
+				}
+			}
+		}
+	})
+	// Layers 3, 4.
+	g.eachLayerEffect(func(kind recKind, a, b int, kw cards.KW, objs []*Obj) {
+		if kind == rSetbody {
+			for _, o := range objs {
+				if o.zone == ZField {
+					o.edge, o.core = a, b
+				}
+			}
+		}
+	})
+	g.eachLayerEffect(func(kind recKind, a, b int, kw cards.KW, objs []*Obj) {
+		if kind == rModify {
+			for _, o := range objs {
+				if o.zone == ZField {
+					o.edge += a
+					o.core += b
+				}
+			}
+		}
+	})
+	// Layer 5.
+	for _, o := range g.field {
+		o.edge += o.counters
+		o.core += o.counters
+	}
+	// Layer 6.
+	g.eachLayerEffect(func(kind recKind, a, b int, kw cards.KW, objs []*Obj) {
+		if kind == rSwap {
+			for _, o := range objs {
+				if o.zone == ZField {
+					o.edge, o.core = o.core, o.edge
+				}
+			}
+		}
+	})
+}
+
+// eachLayerEffect walks every active record's layer effects in
+// (timestamp, eid) order, which is the order of g.records.
+func (g *Game) eachLayerEffect(f func(kind recKind, a, b int, kw cards.KW, objs []*Obj)) {
+	for _, r := range g.records {
+		if r.kind != rAura {
+			f(r.kind, r.a, r.b, r.kw, r.affected)
+			continue
+		}
+		for i := range r.parts {
+			p := &r.parts[i]
+			if !p.active {
+				continue
+			}
+			switch p.kind {
+			case cards.StModify:
+				f(rModify, p.a, p.b, p.kw, p.objs)
+			case cards.StSetbody:
+				f(rSetbody, p.a, p.b, p.kw, p.objs)
+			case cards.StSwap:
+				f(rSwap, p.a, p.b, p.kw, p.objs)
+			case cards.StGrant:
+				f(rGrant, p.a, p.b, p.kw, p.objs)
+			}
+		}
+	}
+}
+
+// evalAura evaluates an aura record's statics against the current board
+// using base characteristics.
+func (g *Game) evalAura(r *record) {
+	r.parts = r.parts[:0]
+	src := r.src
+	r.ctrl = src.ctrl
+	c := &ctx{ctrl: src.ctrl, src: src, aura: true}
+	live := src.zone == ZField && !src.stripped
+	for _, st := range r.ab.Statics {
+		g.flattenStatic(r, st, live, c)
+	}
+}
+
+func (g *Game) flattenStatic(r *record, st *cards.Static, active bool, c *ctx) {
+	if st.Kind == cards.StWhen {
+		ok := g.cond(st.Cond, c)
+		for _, sub := range st.Body {
+			g.flattenStatic(r, sub, active && ok, c)
+		}
 		return
 	}
-	g.stale = false
-
-	for _, id := range g.field {
-		o := g.objs[id]
-		o.CurCtrl = o.Ctrl
-		o.Stripped = false
-		o.Edge, o.Core = int(o.Card.Edge), int(o.Card.Core)
-		o.KwMask = o.Card.KwMask
-		o.Plating = 0
-		for _, k := range o.Card.Keywords {
-			if k.K == cards.Plating {
-				o.Plating += k.N
-			}
-		}
+	p := auraPart{kind: st.Kind, active: active}
+	switch st.Kind {
+	case cards.StModify, cards.StSetbody:
+		p.a, p.b = g.amt(st.A1, c), g.amt(st.A2, c)
+	case cards.StGrant:
+		p.kw = st.KW
+	case cards.StCheaper:
+		p.n, p.cf = st.N, st.CardFilters
 	}
+	if active && st.Sel != nil {
+		p.objs = g.objs(st.Sel, c)
+	}
+	r.parts = append(r.parts, p)
+}
 
-	// Layer 1: controllers.
+// printedCostAfterAuras computes the Ember cost player p pays for card c.
+func (g *Game) playCost(p Player, c *cards.Card) int {
+	g.ensure()
+	cost := c.Cost
 	for _, r := range g.records {
-		if r.Aura {
+		if r.kind != rAura || r.ctrl != p {
 			continue
 		}
-		e := &r.Effs[0]
-		if e.Kind == RControl {
-			for _, id := range e.Affected {
-				if g.objs[id].Zone == ZField {
-					g.objs[id].CurCtrl = r.Ctrl
+		for i := range r.parts {
+			pt := &r.parts[i]
+			if pt.kind != cards.StCheaper || !pt.active {
+				continue
+			}
+			match := true
+			for _, f := range pt.cf {
+				switch f.Kind {
+				case cards.FType:
+					match = c.Type == f.Type
+				case cards.FTag:
+					match = c.HasTag(f.Tag)
+				case cards.FCost:
+					match = f.Cmp.Test(c.Cost, f.N)
 				}
-			}
-		}
-	}
-	// Stripped objects.
-	for _, r := range g.records {
-		if r.Aura {
-			continue
-		}
-		if e := &r.Effs[0]; e.Kind == RStrip {
-			for _, id := range e.Affected {
-				if g.objs[id].Zone == ZField {
-					g.objs[id].Stripped = true
-				}
-			}
-		}
-	}
-
-	// Aura records: activity, arguments and affected lists.
-	var deps cards.Dep
-	c := ctx{aura: true}
-	for _, r := range g.records {
-		if !r.Aura {
-			continue
-		}
-		src := g.objs[r.Source]
-		r.Ctrl = src.CurCtrl
-		c.ctrl, c.source = r.Ctrl, r.Source
-		srcActive := !src.Stripped
-		for i := range r.Effs {
-			e := &r.Effs[i]
-			leaf := e.leaf
-			deps |= leaf.Deps
-			active := srcActive
-			for _, cd := range leaf.Conds {
-				if !g.cond(cd, &c) {
-					active = false
+				if !match {
 					break
 				}
 			}
-			e.Active = active
-			s := leaf.S
-			switch e.Kind {
-			case RModify, RSetbody:
-				e.A, e.B = g.amount(&s.A, &c), g.amount(&s.B, &c)
-			case RGrant:
-				e.Kw = s.Kw
-			case RCheaper:
-				e.Cheaper, e.CardF = int(s.Cheaper), s.CardF
-			}
-			e.Affected = e.Affected[:0]
-			if active && e.Kind != RCheaper {
-				e.Affected = g.selObjs(s.Sel, &c, e.Affected)
+			if match {
+				cost -= pt.n
 			}
 		}
 	}
-	g.liveDeps = deps
-
-	// Layer 2: keywords.
-	for _, r := range g.records {
-		for i := range r.Effs {
-			e := &r.Effs[i]
-			if r.Aura && !e.Active {
-				continue
-			}
-			switch e.Kind {
-			case RGrant:
-				for _, id := range e.Affected {
-					o := g.objs[id]
-					if o.Zone != ZField {
-						continue
-					}
-					o.KwMask |= 1 << e.Kw.K
-					if e.Kw.K == cards.Plating {
-						o.Plating += e.Kw.N
-					}
-				}
-			case RStrip:
-				for _, id := range e.Affected {
-					o := g.objs[id]
-					if o.Zone == ZField {
-						o.KwMask, o.Plating = 0, 0
-					}
-				}
-			}
-		}
+	if cost < 0 {
+		cost = 0
 	}
-	// Layers 3 and 4.
-	for layer := RSetbody; ; layer = RModify {
-		for _, r := range g.records {
-			for i := range r.Effs {
-				e := &r.Effs[i]
-				if e.Kind != layer || (r.Aura && !e.Active) {
-					continue
-				}
-				for _, id := range e.Affected {
-					o := g.objs[id]
-					if o.Zone != ZField {
-						continue
-					}
-					if layer == RSetbody {
-						o.Edge, o.Core = e.A, e.B
-					} else {
-						o.Edge += e.A
-						o.Core += e.B
-					}
-				}
-			}
-		}
-		if layer == RModify {
-			break
-		}
-	}
-	// Layer 5: charge counters.
-	for _, id := range g.field {
-		o := g.objs[id]
-		o.Edge += o.Counters
-		o.Core += o.Counters
-	}
-	// Layer 6: swapstats.
-	for _, r := range g.records {
-		for i := range r.Effs {
-			e := &r.Effs[i]
-			if e.Kind != RSwap || (r.Aura && !e.Active) {
-				continue
-			}
-			for _, id := range e.Affected {
-				o := g.objs[id]
-				if o.Zone == ZField {
-					o.Edge, o.Core = o.Core, o.Edge
-				}
-			}
-		}
-	}
+	return cost
 }

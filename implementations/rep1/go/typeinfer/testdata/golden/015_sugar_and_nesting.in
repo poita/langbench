@@ -1,0 +1,15 @@
+let f x y z = (x, y, z);;
+let g = fun x -> fun y -> (x, y);;
+let h x = fun y -> (x, y);;
+let k = fun x y -> (x, y);;
+(let x = 1 in x);;
+(let x = 1 in let y = true in (x, y));;
+(let f x = x in f);;
+(let rec f x = f x in f);;
+let a = let b = let c = 1 in c in b;;
+let outer = let inner x = x in inner inner;;
+let nest = fun a -> let b = fun c -> (a, c) in let d = b 1 in let e = b true in (d, e);;
+fun x -> let x = (x, x) in let x = (x, x) in x;;
+let shadow x = let x = true in x;;
+let shadow2 = fun x -> fun x -> x;;
+(let z = 3 in let z = z + 1 in z);;

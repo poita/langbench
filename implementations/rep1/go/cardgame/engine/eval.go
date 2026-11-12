@@ -1,69 +1,101 @@
 package engine
 
-import "cardgame/cards"
+import (
+	"sort"
 
-// ctx is the evaluation context of an ability: who controls it, which
-// object it is printed on, its targets and trigger subject, and the object
-// bound by the innermost `each`.
+	"github.com/spiremark/cardgame/cards"
+)
+
+// ctx is the evaluation context of an ability: who controls it, what its
+// source is, and what its triggers and targets are bound to.
 type ctx struct {
 	ctrl    Player
-	source  int
-	subj    Subject
-	targets []Target
+	src     *Obj
+	it      target
+	that    *Obj
+	targets []target
 	specs   []cards.TargetSpec
-	that    int
-	hasThat bool
-	aura    bool // inside an aura: edge/core amounts use base values
+	aura    bool // inside an aura derivation: edge/core amounts are base
 }
 
-// baseEdge and baseCore are printed values plus charge counters (SPEC 6.2).
-func (g *Game) baseEdge(oid int) int {
-	o := g.objs[oid]
-	return int(o.Card.Edge) + o.Counters
-}
+func kwBit(k cards.Keyword) uint32 { return 1 << uint(k) }
 
-func (g *Game) baseCore(oid int) int {
-	o := g.objs[oid]
-	return int(o.Card.Core) + o.Counters
-}
-
-// curEdge and curCore are the values the game rules use.
-func (g *Game) curEdge(oid int) int {
-	o := g.objs[oid]
-	if o.Zone != ZField {
-		return int(o.Card.Edge)
-	}
-	g.derive()
-	return o.Edge
-}
-
-func (g *Game) curCore(oid int) int {
-	o := g.objs[oid]
-	if o.Zone != ZField {
-		return int(o.Card.Core)
-	}
-	g.derive()
-	return o.Core
-}
-
-// holder of an object for scope and (mine)/(enemy) purposes: controller on
-// the Field, owner elsewhere.
-func (g *Game) scopeOwner(oid int) Player {
-	o := g.objs[oid]
-	if o.Zone == ZField {
+// ensure re-derives characteristics when state changed since the last time.
+func (g *Game) ensure() {
+	if g.dirty {
 		g.derive()
-		return o.CurCtrl
 	}
-	return o.Owner
 }
 
-func (g *Game) filterOK(f *cards.Filter, oid int, c *ctx) bool {
-	o := g.objs[oid]
+func (g *Game) ctrlOf(o *Obj) Player {
+	if o.zone != ZField {
+		return o.lastCtrl
+	}
+	g.ensure()
+	return o.ctrl
+}
+
+func (g *Game) edgeOf(o *Obj) int {
+	if o.zone != ZField {
+		return o.Card.Edge
+	}
+	g.ensure()
+	return o.edge
+}
+
+func (g *Game) coreOf(o *Obj) int {
+	if o.zone != ZField {
+		return o.Card.Core
+	}
+	g.ensure()
+	return o.core
+}
+
+func (g *Game) hasKW(o *Obj, k cards.Keyword) bool {
+	if o.zone != ZField {
+		return o.Card.HasPrinted(k)
+	}
+	g.ensure()
+	return o.kwMask&kwBit(k) != 0
+}
+
+func (g *Game) strippedOf(o *Obj) bool {
+	if o.zone != ZField {
+		return false
+	}
+	g.ensure()
+	return o.stripped
+}
+
+func (g *Game) settling(o *Obj) bool { return o.zone == ZField && o.since >= g.turn }
+
+func (g *Game) isUnitOnField(o *Obj) bool {
+	return o.zone == ZField && o.Card.Type == cards.Unit
+}
+
+// inCombat reports whether o is on the Field and attacking or blocking.
+func (g *Game) inCombat(o *Obj) bool { return o.zone == ZField && (o.attacking || o.blocking) }
+
+// ---------------------------------------------------------------- filters
+
+func baseEdge(o *Obj) int { return o.Card.Edge + o.counters }
+func baseCore(o *Obj) int { return o.Card.Core + o.counters }
+
+func (g *Game) matchFilters(o *Obj, fs []cards.Filter, c *ctx) bool {
+	for i := range fs {
+		if !g.matchFilter(o, &fs[i], c) {
+			return false
+		}
+	}
+	return true
+}
+
+func (g *Game) matchFilter(o *Obj, f *cards.Filter, c *ctx) bool {
 	switch f.Kind {
 	case cards.FKw:
-		return o.Card.HasKeyword(f.Kw)
+		return o.Card.HasPrinted(f.KW)
 	case cards.FNoKw:
-		return !o.Card.HasKeyword(f.Kw)
+		return !o.Card.HasPrinted(f.KW)
 	case cards.FTag:
 		return o.Card.HasTag(f.Tag)
 	case cards.FType:
@@ -71,160 +103,167 @@ func (g *Game) filterOK(f *cards.Filter, oid int, c *ctx) bool {
 	case cards.FCost:
 		return f.Cmp.Test(o.Card.Cost, f.N)
 	case cards.FEdge:
-		return f.Cmp.Test(int64(g.baseEdge(oid)), f.N)
+		return f.Cmp.Test(baseEdge(o), f.N)
 	case cards.FCore:
-		return f.Cmp.Test(int64(g.baseCore(oid)), f.N)
+		return f.Cmp.Test(baseCore(o), f.N)
 	case cards.FWounded:
-		return o.Zone == ZField && o.Wounds > 0
+		return o.zone == ZField && o.wounds > 0
 	case cards.FReady:
-		return o.Zone == ZField && !o.Exhausted
+		return o.zone == ZField && o.ready
 	case cards.FExhausted:
-		return o.Zone == ZField && o.Exhausted
+		return o.zone == ZField && !o.ready
 	case cards.FSettling:
-		return o.Zone == ZField && o.Since >= g.turn
+		return g.settling(o)
 	case cards.FAttacking:
-		return o.Zone == ZField && o.Attacking
+		return o.zone == ZField && o.attacking
 	case cards.FBlocking:
-		return o.Zone == ZField && o.Blocking
+		return o.zone == ZField && o.blocking
 	case cards.FMine:
-		return g.scopeOwner(oid) == c.ctrl
+		return g.sideOf(o) == c.ctrl
 	case cards.FEnemy:
-		return g.scopeOwner(oid) != c.ctrl
+		return g.sideOf(o) != c.ctrl
 	case cards.FOther:
-		return oid != c.source
+		return o != c.src
 	case cards.FNot:
-		return !g.filterOK(f.Inner, oid, c)
+		return !g.matchFilter(o, f.Not, c)
 	}
 	return false
 }
 
-func (g *Game) filtersOK(fs []cards.Filter, oid int, c *ctx) bool {
-	for i := range fs {
-		if !g.filterOK(&fs[i], oid, c) {
-			return false
-		}
+// sideOf is the current controller for Field objects and the owner elsewhere.
+func (g *Game) sideOf(o *Obj) Player {
+	if o.zone == ZField {
+		return g.ctrlOf(o)
 	}
-	return true
+	return o.Owner
 }
 
-func scopeOK(s cards.Scope, who, ctrl Player) bool {
-	switch s {
+func scopeOK(sc cards.Scope, side, ctrl Player) bool {
+	switch sc {
 	case cards.Yours:
-		return who == ctrl
+		return side == ctrl
 	case cards.Theirs:
-		return who != ctrl
+		return side != ctrl
 	}
 	return true
 }
 
-// fieldMatches appends the Field objects of the given type that satisfy the
-// scope and filters, in canonical order.
-func (g *Game) fieldMatches(typ cards.Type, scope cards.Scope, fs []cards.Filter, c *ctx, out []int) []int {
-	if !c.aura {
-		g.derive()
+// ------------------------------------------------------------- selectors
+
+func (g *Game) zoneList(p Player, z cards.CardZone) []*Obj {
+	switch z {
+	case cards.ZHand:
+		return g.pl[p].hand
+	case cards.ZAsh:
+		return g.pl[p].ash
+	case cards.ZVault:
+		return g.pl[p].vault
 	}
-	for _, id := range g.field {
-		o := g.objs[id]
-		if o.Card.Type != typ || !scopeOK(scope, o.CurCtrl, c.ctrl) {
+	return g.pl[p].rift
+}
+
+// fieldUnits lists matching Field objects of the given type in canonical order.
+func (g *Game) fieldMatching(typ cards.Type, sel *cards.Selector, c *ctx) []*Obj {
+	g.ensure()
+	var out []*Obj
+	for _, o := range g.field {
+		if o.Card.Type != typ || !scopeOK(sel.Scope, o.ctrl, c.ctrl) {
 			continue
 		}
-		if g.filtersOK(fs, id, c) {
-			out = append(out, id)
+		if g.matchFilters(o, sel.Filters, c) {
+			out = append(out, o)
 		}
 	}
 	return out
 }
 
-// selObjs evaluates an object selector, appending to out. Results are in
-// canonical object order.
-func (g *Game) selObjs(s *cards.Sel, c *ctx, out []int) []int {
-	switch s.Kind {
+// objs evaluates an object selector, in canonical order.
+func (g *Game) objs(sel *cards.Selector, c *ctx) []*Obj {
+	switch sel.Kind {
 	case cards.SelSelf:
-		return append(out, c.source)
+		if c.src == nil {
+			return nil
+		}
+		return []*Obj{c.src}
 	case cards.SelIt:
-		if c.subj.Kind == SubjObj {
-			out = append(out, c.subj.ID)
+		if c.it.kind == tObj {
+			return []*Obj{c.it.o}
 		}
+		return nil
 	case cards.SelThat:
-		if c.hasThat {
-			out = append(out, c.that)
+		if c.that == nil {
+			return nil
 		}
-	case cards.SelT:
-		if s.N <= len(c.targets) {
-			t := c.targets[s.N-1]
-			if t.Kind == TObject && !t.Removed {
-				out = append(out, t.ID)
+		return []*Obj{c.that}
+	case cards.SelTarget:
+		if sel.N <= len(c.targets) {
+			t := c.targets[sel.N-1]
+			if t.kind == tObj && !t.removed {
+				return []*Obj{t.o}
 			}
 		}
+		return nil
 	case cards.SelUnits:
-		out = g.fieldMatches(cards.Unit, s.Scope, s.Filters, c, out)
+		return g.fieldMatching(cards.Unit, sel, c)
 	case cards.SelRelics:
-		out = g.fieldMatches(cards.Relic, s.Scope, s.Filters, c, out)
+		return g.fieldMatching(cards.Relic, sel, c)
 	case cards.SelRandomUnit:
-		list := g.fieldMatches(cards.Unit, s.Scope, s.Filters, c, nil)
-		if len(list) > 0 {
-			out = append(out, list[g.rnd.Below(uint64(len(list)))])
+		list := g.fieldMatching(cards.Unit, sel, c)
+		if len(list) == 0 {
+			return nil
 		}
+		return []*Obj{list[g.rng.Below(uint64(len(list)))]}
 	case cards.SelCards:
-		start := len(out)
-		for p := Player(0); p < 2; p++ {
-			if !scopeOK(s.Scope, p, c.ctrl) {
+		var out []*Obj
+		for p := A; p <= B; p++ {
+			if !scopeOK(sel.Scope, p, c.ctrl) {
 				continue
 			}
-			var zone []int
-			switch s.Zone {
-			case cards.ZoneHand:
-				zone = g.pl[p].Hand
-			case cards.ZoneAsh:
-				zone = g.pl[p].Ash
-			case cards.ZoneVault:
-				zone = g.pl[p].Vault
-			default:
-				zone = g.pl[p].Rift
-			}
-			for _, id := range zone {
-				if g.filtersOK(s.Filters, id, c) {
-					out = append(out, id)
+			for _, o := range g.zoneList(p, sel.Zone) {
+				if g.matchFilters(o, sel.Filters, c) {
+					out = append(out, o)
 				}
 			}
 		}
-		g.canonical(out[start:])
+		sortObjs(out)
+		return out
 	}
-	return out
+	return nil
 }
 
-// selPlayers evaluates a player selector.
-func (g *Game) selPlayers(s *cards.Sel, c *ctx) []Player {
-	switch s.Kind {
-	case cards.SelYou:
+// players evaluates a player selector.
+func (g *Game) players(ps *cards.PlayerSel, c *ctx) []Player {
+	switch ps.Kind {
+	case cards.PYou:
 		return []Player{c.ctrl}
-	case cards.SelFoe:
+	case cards.PFoe:
 		return []Player{c.ctrl.Opp()}
-	case cards.SelBoth:
+	case cards.PBoth:
 		return []Player{A, B}
-	case cards.SelT:
-		if s.N <= len(c.targets) {
-			t := c.targets[s.N-1]
-			if t.Kind == TPlayer && !t.Removed {
-				return []Player{Player(t.ID)}
+	case cards.PTarget:
+		if ps.N <= len(c.targets) {
+			t := c.targets[ps.N-1]
+			if t.kind == tPlayer && !t.removed {
+				return []Player{t.p}
 			}
 		}
-	case cards.SelOwnerOf:
-		in := s.Inner
-		if in.Kind == cards.SelT && in.N <= len(c.targets) {
-			if t := c.targets[in.N-1]; t.Kind == TPlayer {
-				if t.Removed {
+		return nil
+	case cards.POwnerOf:
+		if ps.Sel.Kind == cards.SelTarget && ps.Sel.N <= len(c.targets) {
+			t := c.targets[ps.Sel.N-1]
+			if t.kind == tPlayer {
+				if t.removed {
 					return nil
 				}
-				return []Player{Player(t.ID)}
+				return []Player{t.p}
 			}
 		}
 		var seen [2]bool
-		for _, id := range g.selObjs(in, c, nil) {
-			seen[g.objs[id].Owner] = true
+		for _, o := range g.objs(ps.Sel, c) {
+			seen[o.Owner] = true
 		}
 		var out []Player
-		for p := Player(0); p < 2; p++ {
+		for p := A; p <= B; p++ {
 			if seen[p] {
 				out = append(out, p)
 			}
@@ -234,110 +273,108 @@ func (g *Game) selPlayers(s *cards.Sel, c *ctx) []Player {
 	return nil
 }
 
-// dmgTargets evaluates a damage selector: players first, then objects, in
-// ascending target-key order.
-func (g *Game) dmgTargets(s *cards.Sel, c *ctx) []Target {
-	var out []Target
-	switch s.Kind {
-	case cards.SelYou, cards.SelFoe, cards.SelBoth, cards.SelOwnerOf:
-		for _, p := range g.selPlayers(s, c) {
-			out = append(out, Target{Kind: TPlayer, ID: int(p)})
+// dselTargets evaluates a damage selector into targets in ascending key order.
+func (g *Game) dselTargets(d *cards.DSel, c *ctx) []target {
+	var out []target
+	if d.Player != nil {
+		for _, p := range g.players(d.Player, c) {
+			out = append(out, playerTarget(p))
 		}
-		return out
-	case cards.SelT:
-		if s.N <= len(c.targets) {
-			t := c.targets[s.N-1]
-			if !t.Removed && t.Kind != TChain {
-				out = append(out, Target{Kind: t.Kind, ID: t.ID})
+	} else if d.Obj.Kind == cards.SelTarget {
+		if d.Obj.N <= len(c.targets) {
+			t := c.targets[d.Obj.N-1]
+			if !t.removed && (t.kind == tPlayer || t.kind == tObj) {
+				out = append(out, t)
 			}
 		}
-		return out
+	} else {
+		for _, o := range g.objs(d.Obj, c) {
+			out = append(out, objTarget(o))
+		}
 	}
-	for _, id := range g.selObjs(s, c, nil) {
-		out = append(out, Target{Kind: TObject, ID: id})
-	}
+	sort.SliceStable(out, func(i, j int) bool { return keyLess(out[i].key(), out[j].key()) })
 	return out
 }
 
-func (g *Game) playerSum(s *cards.Sel, c *ctx, f func(*playerState) int) int {
-	sum := 0
-	for _, p := range g.selPlayers(s, c) {
-		sum += f(&g.pl[p])
+// ---------------------------------------------------------------- amounts
+
+func (g *Game) sumPlayers(ps *cards.PlayerSel, c *ctx, f func(Player) int) int {
+	n := 0
+	for _, p := range g.players(ps, c) {
+		n += f(p)
 	}
-	return sum
+	return n
 }
 
-func (g *Game) amount(a *cards.Amount, c *ctx) int {
+func (g *Game) amt(a *cards.Amount, c *ctx) int {
 	switch a.Kind {
-	case cards.AmtConst:
-		return int(a.N)
-	case cards.AmtCount:
-		return len(g.selObjs(a.Sel, c, nil))
-	case cards.AmtHand:
-		return g.playerSum(a.Sel, c, func(p *playerState) int { return len(p.Hand) })
-	case cards.AmtAsh:
-		return g.playerSum(a.Sel, c, func(p *playerState) int { return len(p.Ash) })
-	case cards.AmtVault:
-		return g.playerSum(a.Sel, c, func(p *playerState) int { return len(p.Vault) })
-	case cards.AmtEdge, cards.AmtCore:
-		sum := 0
-		for _, id := range g.selObjs(a.Sel, c, nil) {
+	case cards.AConst:
+		return a.N
+	case cards.ACount:
+		return len(g.objs(a.Sel, c))
+	case cards.AHand:
+		return g.sumPlayers(a.PSel, c, func(p Player) int { return len(g.pl[p].hand) })
+	case cards.AAsh:
+		return g.sumPlayers(a.PSel, c, func(p Player) int { return len(g.pl[p].ash) })
+	case cards.AVault:
+		return g.sumPlayers(a.PSel, c, func(p Player) int { return len(g.pl[p].vault) })
+	case cards.AEdge, cards.ACore:
+		n := 0
+		for _, o := range g.objs(a.Sel, c) {
 			switch {
-			case c.aura && a.Kind == cards.AmtEdge:
-				sum += g.baseEdge(id)
+			case c.aura && a.Kind == cards.AEdge:
+				n += baseEdge(o)
 			case c.aura:
-				sum += g.baseCore(id)
-			case a.Kind == cards.AmtEdge:
-				sum += g.curEdge(id)
+				n += baseCore(o)
+			case a.Kind == cards.AEdge:
+				n += g.edgeOf(o)
 			default:
-				sum += g.curCore(id)
+				n += g.coreOf(o)
 			}
 		}
-		return sum
-	case cards.AmtWounds:
-		sum := 0
-		for _, id := range g.selObjs(a.Sel, c, nil) {
-			if g.objs[id].Zone == ZField {
-				sum += g.objs[id].Wounds
-			}
+		return n
+	case cards.AWounds:
+		n := 0
+		for _, o := range g.objs(a.Sel, c) {
+			n += o.wounds
 		}
-		return sum
+		return n
 	}
 	return 0
 }
 
-func (g *Game) cond(cd *cards.Cond, c *ctx) bool {
-	switch cd.Kind {
-	case cards.CondCount:
-		return cd.Cmp.Test(int64(len(g.selObjs(cd.Sel, c, nil))), cd.N)
-	case cards.CondSpire:
-		return cd.Cmp.Test(int64(g.playerSum(cd.Sel, c, func(p *playerState) int { return p.Spire })), cd.N)
-	case cards.CondHand:
-		return cd.Cmp.Test(int64(g.playerSum(cd.Sel, c, func(p *playerState) int { return len(p.Hand) })), cd.N)
-	case cards.CondAsh:
-		return cd.Cmp.Test(int64(g.playerSum(cd.Sel, c, func(p *playerState) int { return len(p.Ash) })), cd.N)
-	case cards.CondVault:
-		return cd.Cmp.Test(int64(g.playerSum(cd.Sel, c, func(p *playerState) int { return len(p.Vault) })), cd.N)
-	case cards.CondEmber:
-		return cd.Cmp.Test(int64(g.playerSum(cd.Sel, c, func(p *playerState) int { return p.Ember })), cd.N)
-	case cards.CondMyTurn:
+func (g *Game) cond(k *cards.Cond, c *ctx) bool {
+	switch k.Kind {
+	case cards.CCount:
+		return k.Cmp.Test(len(g.objs(k.Sel, c)), k.N)
+	case cards.CSpire:
+		return k.Cmp.Test(g.sumPlayers(k.PSel, c, func(p Player) int { return g.pl[p].spire }), k.N)
+	case cards.CHand:
+		return k.Cmp.Test(g.sumPlayers(k.PSel, c, func(p Player) int { return len(g.pl[p].hand) }), k.N)
+	case cards.CAsh:
+		return k.Cmp.Test(g.sumPlayers(k.PSel, c, func(p Player) int { return len(g.pl[p].ash) }), k.N)
+	case cards.CVault:
+		return k.Cmp.Test(g.sumPlayers(k.PSel, c, func(p Player) int { return len(g.pl[p].vault) }), k.N)
+	case cards.CEmber:
+		return k.Cmp.Test(g.sumPlayers(k.PSel, c, func(p Player) int { return g.pl[p].ember }), k.N)
+	case cards.CMyTurn:
 		return g.active == c.ctrl
-	case cards.CondAnd:
-		for _, s := range cd.Subs {
+	case cards.CAnd:
+		for _, s := range k.Subs {
 			if !g.cond(s, c) {
 				return false
 			}
 		}
 		return true
-	case cards.CondOr:
-		for _, s := range cd.Subs {
+	case cards.COr:
+		for _, s := range k.Subs {
 			if g.cond(s, c) {
 				return true
 			}
 		}
 		return false
-	case cards.CondNot:
-		return !g.cond(cd.Subs[0], c)
+	case cards.CNot:
+		return !g.cond(k.Subs[0], c)
 	}
 	return false
 }

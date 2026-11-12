@@ -1,47 +1,60 @@
 # chess-perft
 
-A fully legal chess move generator in Go, with a `perft` / `divide` command-line
-tool on top. It uses only the standard library.
+A legal move generator for standard chess in Go, with a command-line tool that
+answers **perft** and **divide** queries. The library has no dependencies
+outside the Go standard library.
 
-- Bitboards plus a mailbox; precomputed knight, king and pawn tables.
-- Sliders use classical ray lookups (nearest blocker found with a bit-scan).
-  There are no magic bitboards.
-- Legal moves are generated directly from the checkers, a check-evasion mask and
-  pin masks, so no move is played just to test legality. King moves are tested
-  with the king removed from the occupancy. En passant is tested with an
-  explicit king-safety check.
-- `Perft` counts the legal moves at depth 1 without playing them. Interior nodes
-  use in-place `Make`/`Unmake` with a small undo record and a preallocated move
-  stack. The search is single-threaded with no caching.
+- Bitboard position representation, copy-make (no unmake).
+- Legal move generation from checkers and pins: ordinary moves are legal by
+  construction; only king moves, en passant captures and castling are tested
+  explicitly.
+- Bulk counting at depth 1 (moves are generated and counted, not played).
+- The whole tree is walked: no transposition table, no caching, no parallelism.
+
+## Layout
+
+```
+chess/              the library (package chess)
+  bitboard.go         Bitboard and Square
+  piece.go            Color, PieceType, Piece
+  move.go             Move and its UCI text form
+  tables.go           attack/ray/between/line tables, slider attacks
+  position.go         Position and accessors, attack queries
+  fen.go              FEN parsing and formatting
+  movegen.go          legal move generation
+  makemove.go         playing a move
+  perft.go            Perft and Divide
+cmd/chess-perft/    the command-line tool
+build.sh, run.sh    build and run scripts
+```
 
 ## Build
 
 Requires Go 1.27.1 or newer.
 
-```sh
-./build.sh          # writes bin/chess-perft
-go test ./...       # unit tests
 ```
-
-`build.sh` and `run.sh` work from any directory.
+./build.sh          # writes bin/chess-perft
+go test ./...       # run the tests (add -short to skip the slowest perfts)
+```
 
 ## Command-line use
 
-`run.sh` (or `bin/chess-perft`) reads queries from stdin, one per line, and
-writes one result per query to stdout. A query is a six-field FEN record
-followed by a depth, or by `divide` and a depth:
+`chess-perft` reads queries from stdin, one per line, and writes one result per
+query to stdout (`./run.sh` runs the built binary from any directory).
 
 ```
 <placement> <side> <castling> <ep> <halfmove> <fullmove> <depth>
 <placement> <side> <castling> <ep> <halfmove> <fullmove> divide <depth>
 ```
 
-The halfmove and fullmove counters are ignored.
+The first six fields are a FEN record (the move counters are ignored). A perft
+query prints the number of leaf nodes at that depth. A divide query prints
+`<move> <count>` for each legal move, sorted by move text, then `total <n>`.
+Moves are in UCI notation (`e2e4`, `e1g1` for castling, `a7a8q` for promotion).
+Malformed input is reported on stderr with exit status 1.
 
-```console
-$ printf '%s\n' \
-    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 3' \
-    '8/P1k5/K7/8/8/8/8/8 w - - 0 1 divide 1' | ./run.sh
+```
+$ printf 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 3\n8/P1k5/K7/8/8/8/8/8 w - - 0 1 divide 1\n' | ./run.sh
 8902
 a6a5 1
 a6b5 1
@@ -52,24 +65,7 @@ a7a8r 1
 total 6
 ```
 
-A perft query prints the leaf count. A divide query prints `<move> <count>` for
-every legal root move in byte order of the UCI move string, then `total <n>`.
-A position with no legal moves prints `total 0`. The tool exits with status 1
-and a message on stderr if a query is malformed.
-
-## Library
-
-The `chessperft/chess` package:
-
-| File | Contents |
-|------|----------|
-| `bitboard.go` | `Bitboard`, `Square`, `Color`, `Piece` types and bit helpers |
-| `tables.go` | attack tables, `Between`, `Line`, `RookAttacks`, `BishopAttacks`, `QueenAttacks` |
-| `move.go` | the 16-bit `Move`, UCI formatting, `Position.ParseMove` |
-| `position.go` | `Position`, `ParseFEN`, `FEN`, attack queries |
-| `makemove.go` | `Make` / `Unmake` |
-| `movegen.go` | `LegalMoves`, `CountMoves` |
-| `perft.go` | `Perft`, `Divide` |
+## Library use
 
 ```go
 package main
@@ -77,7 +73,7 @@ package main
 import (
 	"fmt"
 
-	"chessperft/chess"
+	"github.com/example/chess-perft/chess"
 )
 
 func main() {
@@ -85,31 +81,26 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(pos.Perft(3)) // 97862
+	fmt.Println(chess.Perft(pos, 3)) // 97862
 
-	// Play a move, then take it back.
-	m, _ := pos.ParseMove("e1g1")
-	undo := pos.Make(m)
-	fmt.Println(pos.FEN())
-	pos.Unmake(m, undo)
+	m, _ := pos.ParseMove("e1g1") // castle kingside
+	next := pos.Make(m)           // pos itself is unchanged
+	fmt.Println(next.FEN(), len(next.LegalMoves()))
 
-	// Per-move node counts, sorted by UCI string.
-	for _, e := range pos.Divide(2)[:3] {
-		fmt.Println(e.Move, e.Count)
+	for _, e := range chess.Divide(&next, 2)[:3] {
+		fmt.Println(e.Move, e.Nodes)
 	}
 }
 ```
 
-`ParseFEN` rejects positions that are not legal (missing or extra kings, pawns
-on the first or last rank, castling rights without king and rook in place, the
-side not to move in check). A `Position` is mutated in place and must not be
-shared between goroutines. The halfmove and fullmove counters are kept as
-parsed and never updated by `Make`.
+Main entry points: `ParseFEN`, `StartPosition`, `Position.LegalMoves`,
+`Position.Make`, `Position.ParseMove`, `Position.InCheck`, `Position.FEN`,
+`Perft`, `Divide`, plus the attack functions `RookAttacks`, `BishopAttacks`,
+`QueenAttacks`, `KnightAttacks`, `KingAttacks` and `PawnAttacks`. See
+`go doc ./chess`.
 
-## Project layout
+## Testing
 
-```
-chess/               library and its tests (*_test.go)
-cmd/chess-perft/     command-line tool and its tests
-build.sh, run.sh     build and run helpers
-```
+Besides the well-known perft reference positions and unit tests for FEN, moves,
+castling and en passant, the test suite cross-checks the generator against an
+independent naive generator (`chess/naive_test.go`) over many random games.

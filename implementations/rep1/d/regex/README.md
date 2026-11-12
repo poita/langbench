@@ -1,150 +1,104 @@
-# regexvm
+# btregex
 
-A small backtracking regular-expression engine written in D, with Perl-style
-**leftmost, greedy, ordered-choice** semantics.  It reports the first match in
-a subject together with the position of **every capture group**, and includes
-a batch command-line tool that matches many subjects against many patterns.
-
-The engine is written from scratch (no `std.regex`): patterns are parsed into
-a syntax tree, analysed, compiled to a flat program, and run by an iterative
-virtual machine with an explicit choice-point stack and an undo trail — no
-recursion in the matcher, so very long subjects are fine.
+A small, dependency-free regular-expression engine written in D. It is a
+backtracking matcher with Perl-style semantics (leftmost match, greedy
+quantifiers, ordered alternation) for a fixed pattern subset, and it reports the
+offsets of **every capture group**. It comes as a library plus a command-line
+tool that matches many subjects against many patterns in one run.
 
 ## Supported syntax
 
-| Construct | Meaning |
-|---|---|
-| `a`, ` `, … | literal (any char except `\ . [ ] ( ) \| * + ? { } ^ $`) |
-| `.` | any single character |
-| `^`, `$` | start / end of subject (zero width, may appear anywhere) |
-| `\d \w \s`, `\D \W \S` | digit / word / space sets and their complements |
-| `\` + non-alphanumeric | that character literally (`\.`, `\\`, `\(`, `\ `, …) |
-| `[abc]`, `[^a-z0-9_]`, `[\d.\]-]` | classes: characters, ranges, set escapes, negation |
-| `( … )` | capturing group, numbered by opening parenthesis |
-| `x\|y` | ordered alternation (empty branches allowed) |
-| `* + ? {n} {n,} {n,m}` | greedy quantifiers (`0 ≤ n ≤ m`) |
+Literals, `.`, `^`, `$`, classes (`[a-z_]`, `[^...]`, with `\d \w \s` and their
+complements inside), escapes (`\d \D \w \W \s \S`, `\.` and any other escaped
+punctuation), capturing groups `( )`, alternation `|`, and the greedy
+quantifiers `* + ? {n} {n,} {n,m}`. Matching is case-sensitive over ASCII.
+Back-references, lazy/possessive quantifiers, look-around and flags are not
+supported.
 
-Semantics are exactly those of "section 3" of the specification: ordered
-choice, greedy quantifiers that give iterations back one at a time, an empty
-optional iteration ends a repetition, a group keeps the value from the last
-iteration that completed it, and values set on abandoned paths are discarded.
-There are no lazy quantifiers, back-references, lookaround or flags.
+Semantics are the continuation-passing definition in the problem specification:
+alternatives are tried left to right, optional iterations greedily, an optional
+iteration that matches the empty string ends the loop, and captures written on
+an abandoned path are undone.
 
 ## Building
 
-Requires LDC and dub (developed with LDC 1.41.0 and dub 1.40.0); only the D
-standard library is used.
-
-```sh
-./build.sh          # dub build -b release --compiler=ldc2 --config=cli  -> bin/regex-cli
-dub test --compiler=ldc2          # run the library's unit tests
-```
-
-## Command-line tool
-
-`./run.sh` reads the whole of stdin and writes one result line per subject to
-stdout.
-
-Input (lines end with `\n`; patterns and subjects are taken verbatim, spaces
-and all, and may be empty):
+Requires LDC and dub.
 
 ```
-N                    number of patterns
+./build.sh          # builds bin/btregex (dub build -b release --compiler=ldc2 -c cli)
+dub build -b release --compiler=ldc2   # builds just the library
+dub test --compiler=ldc2               # runs the unit tests
+```
+
+## Command-line use
+
+`./run.sh` (or `bin/btregex`) reads the batch format on stdin:
+
+```
+N
 pattern_1
-M_1                  number of subjects for pattern 1
+M_1
 subject_1_1
 ...
-pattern_2
-...
 ```
 
-Output, one line per subject in input order:
+and prints one line per subject: `no`, or `match <start> <end>` followed by
+`|<gs>,<ge>` (or `|-` when unset) for each group.
 
-* `no` — no match anywhere in the subject;
-* `match <start> <end>` followed, for each group `1..G`, by `|<gs>,<ge>` or
-  `|-` if the group is unset.  Offsets are 0-based; ends are exclusive.
-
-```console
-$ printf '2\n(a|(b))+\n2\nba\nab\n[^a-c]\\d{2,3}x?\n2\nzz123xx\nabc9\n' | ./run.sh
+```
+$ printf '2\n(a|(b))+\n2\nba\nab\n[^a-c]\\d{2,3}x?\n1\nzz123xx\n' | ./run.sh
 match 0 2|1,2|0,1
 match 0 2|1,2|1,2
 match 1 6
-no
 ```
 
-Exit status is 0 on success; on malformed input or an invalid pattern a message
-goes to stderr and the status is 2.
+Exit status is 0 on success and 1 on malformed input or an invalid pattern.
 
-## Using the library
+## Library use
 
 ```d
-import regexvm;
+import btregex;
 
 void main()
 {
-    auto re = new Regex(`(a|ab)(c|bcd)(d*)`);   // throws RegexException if invalid
-
-    auto m = re.matchFirst("xabcd");
-    assert(m.matched);
-    assert(m.begin == 1 && m.end == 5);
-    assert(m.groups.length == 3);                // groups[0] is group 1
-    assert(m.groups[1].of("xabcd") == "bcd");
-    assert(m.groups[2].begin == 5 && m.groups[2].end == 5);  // empty, but set
-
-    // Reuse a Match (and its storage) when matching many subjects:
-    Match reuse;
-    foreach (subject; ["abcd", "zzz"])
-        if (re.matchFirst(subject, reuse)) { /* use reuse.begin, reuse.groups … */ }
-
-    // A group that did not take part in the match is unset:
-    auto m2 = new Regex("(a)|(b)").matchFirst("b");
-    assert(!m2.groups[0].isSet && m2.groups[1].isSet);
+    auto re = new Regex(`(\w+)@(\w+)\.com`);   // throws RegexException if invalid
+    auto m = re.search("mail bob@example.com now");
+    if (m.matched)
+    {
+        // m.start == 5, m.end == 20
+        // m.groups[0] == Group(5, 8), m.groups[1] == Group(9, 16)
+    }
 }
 ```
 
-The batch driver is also available: `runBatch(inputBytes, outputBuffer)`.
+`Regex.search(subject, ref Match)` reuses the caller's `Match` to avoid
+allocation in loops. A `Regex` holds scratch buffers, so do not share one
+instance between threads.
 
-A `Regex` owns reusable scratch memory and is not safe to share between threads.
+## Design
 
-## Layout
+| Module | Responsibility |
+| --- | --- |
+| `btregex.parser` | recursive-descent parser to a syntax tree; `RegexException` |
+| `btregex.ast`, `btregex.charset` | tree nodes and 256-bit character sets |
+| `btregex.analysis` | first-character set and start-anchor analysis |
+| `btregex.program` | compiles the tree to a small backtracking VM program |
+| `btregex.engine` | the VM: explicit backtrack stack and an undo trail |
+| `btregex.batch` | the line-oriented batch format used by the CLI |
 
-```
-dub.sdl             project manifest (configurations: cli, library, unittest)
-build.sh run.sh     build / run the CLI
-source/regexvm/     the library
-  package.d         public imports
-  regex.d           Regex, Match, Span — the public API
-  errors.d          RegexException, InputFormatException
-  charset.d         256-entry byte sets for classes and escapes
-  ast.d             syntax-tree nodes (+ S-expression dump)
-  parser.d          recursive-descent pattern parser
-  analysis.d        nullability, ^-anchoring, first-byte sets
-  program.d         instruction set, Program, disassembler
-  compiler.d        tree -> flat program (counted quantifiers expanded)
-  vm.d              iterative backtracking interpreter
-  input.d output.d  zero-copy line reader, buffered result formatting
-  batch.d           the N-patterns/M-subjects driver
-app/main.d          thin CLI over runBatch
-tests/regexvm/      unit tests (separate from the library sources)
-```
+The matcher uses an explicit choice stack, so deep backtracking (e.g. `.*` over
+10 000 characters) does not consume call stack. Capture and loop registers are
+written through a trail, so undoing a failed path costs time proportional to the
+writes it made. Counted repeats are expanded at compile time. Start positions
+whose character cannot begin a match are skipped, and patterns that must start
+with `^` are tried only at offset 0.
 
-## How it works
+## Tests
 
-* **Compilation.** `seq` concatenates; `a|b|c` becomes `split`/`jmp` chains
-  with the preferred branch first; a group is `save 2g … save 2g+1`.
-  `x{min,max}` emits `min` inline copies, then either a `split`/`jmp` loop
-  (unbounded) or `max-min` nested optional copies.  `mark`/`check` are emitted
-  only when the body can match the empty string, implementing "an empty
-  optional iteration ends the repetition".
-* **Single-character loops.** `a*`, `.+`, `[^,]{2,5}` compile to one
-  `charloop` instruction that scans greedily and pushes a *single* choice point;
-  backtracking gives back one character at a time.
-* **VM.** One `pc` loop; a choice-point stack plus an undo trail of
-  `(slot, old value)` pairs restores captures on backtracking; stack, trail and
-  capture array are allocated once per `Regex` and reused.
-* **Start positions.** Patterns that must begin with `^` only try position 0;
-  non-nullable patterns skip start positions whose byte is not in the
-  first-byte set.
+Unit tests live next to the code (`unittest` blocks) and in
+`source/btregex/tests.d`, which checks the matching semantics, including all
+worked examples from the specification. Run them with
+`dub test --compiler=ldc2`.
 
 ## License
 

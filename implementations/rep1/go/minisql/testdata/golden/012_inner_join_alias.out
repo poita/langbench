@@ -1,0 +1,63 @@
+ann	3
+bob	3
+cy	1
+dee	3
+fay	1
+-- 5 rows
+cy	1
+fay	1
+ann	3
+bob	3
+dee	3
+-- 5 rows
+ann	3
+bob	3
+dee	3
+-- 3 rows
+bob	ann
+cy	ann
+dee	bob
+eve	cy
+-- 4 rows
+bob	ann
+cy	ann
+dee	bob
+eve	cy
+-- 4 rows
+1	2
+1	4
+2	4
+3	6
+-- 4 rows
+bob
+cy
+-- 2 rows
+1	ann	NULL	eng	eng	3
+1	ann	NULL	eng	ops	1
+1	ann	NULL	eng	hr	2
+-- 3 rows
+5
+-- 1 rows
+eng	3	ann	4
+ops	2	cy	6
+-- 2 rows
+eng	2
+NULL	1
+ops	1
+-- 3 rows
+1	3
+2	3
+3	1
+4	3
+6	1
+-- 5 rows
+ann
+bob
+dee
+-- 3 rows
+bob	eng
+cy	ops
+dee	eng
+eve	NULL
+fay	ops
+-- 5 rows

@@ -1,0 +1,13 @@
+{
+  "words": [
+    "banana",
+    "Apple",
+    "cherry"
+  ],
+  "s": "  Mixed Case  "
+}
+--
+=== main
+{{ s|trim|lower|replace("case", "text")|upper }} {{ s|trim|length }} {{ words|join(" ")|upper|replace("A", "4") }}
+{{ words|sort|first|upper }} {{ words|sort|last }} {{ words|reverse|join("+") }} {{ words|first|reverse|upper }} {{ words|join|length }}
+{{ "3"|int + "4"|int }} {{ ("3" ~ "4")|int * 2 }} {{ [1, 2, 3]|reverse|first + [1, 2, 3]|last }} {{ (words|sort)[1] }} {{ words|sort|join(",")|length }}

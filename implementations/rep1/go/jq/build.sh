@@ -1,7 +1,5 @@
 #!/bin/sh
-# Build the jq command into bin/jq. Works from any current directory.
+# Build the jq command into ./bin/jq.
 set -e
-dir=$(cd "$(dirname "$0")" && pwd)
-cd "$dir"
-mkdir -p bin
+cd "$(dirname "$0")"
 go build -o bin/jq ./cmd/jq

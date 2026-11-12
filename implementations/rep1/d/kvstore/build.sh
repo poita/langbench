@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the kvstore command-line tool into bin/kvstore.
+# Build the Tessera command-line tool (bin/tessera) from any directory.
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 --config=cli
+dub build -b release --compiler=ldc2 --quiet

@@ -1,4 +1,4 @@
 #!/bin/sh
-# Run the jtemplate command-line tool: stdin -> stdout.
+# Run the jinjalite command-line tool: stdin -> stdout.
 dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/jtemplate" "$@"
+exec "$dir/bin/jinjalite" "$@"

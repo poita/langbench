@@ -1,0 +1,65 @@
+cabal-version:      3.0
+name:               textbuffer
+version:            0.1.0.0
+synopsis:           Text buffer with multiple cursors, selections, undo and redo
+description:
+  The editing core of a text editor: a document of lines, a set of cursors
+  (each optionally holding a selection), insertion and deletion at every
+  cursor, cursor movement with a remembered goal column, and undo/redo.
+  Includes a small command-line driver that replays a script of commands.
+license:            MIT
+author:             textbuffer contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Text
+build-type:         Simple
+extra-doc-files:    README.md
+extra-source-files: test/golden/*.in
+                    test/golden/*.out
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  TextBuffer
+                    TextBuffer.Buffer
+                    TextBuffer.Command
+                    TextBuffer.Cursor
+                    TextBuffer.Document
+                    TextBuffer.Movement
+                    TextBuffer.Position
+                    TextBuffer.Script
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    containers
+
+executable textbuffer
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    textbuffer
+
+test-suite textbuffer-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    BufferSpec
+                    CommandSpec
+                    CursorSpec
+                    DocumentSpec
+                    GoldenSpec
+                    PropertySpec
+  build-depends:    base >=4 && <5,
+                    bytestring,
+                    containers,
+                    directory,
+                    filepath,
+                    hspec,
+                    QuickCheck,
+                    textbuffer

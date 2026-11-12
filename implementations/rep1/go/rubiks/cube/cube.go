@@ -1,11 +1,14 @@
 package cube
 
-import (
-	"errors"
-	"fmt"
+import "errors"
+
+// Slot and piece counts.
+const (
+	NumCorners = 8
+	NumEdges   = 12
 )
 
-// Corner positions (and pieces), in the order used by [Cube.CP].
+// Corner slot/piece indices.
 const (
 	URF = iota
 	UFL
@@ -15,10 +18,9 @@ const (
 	DLF
 	DBL
 	DRB
-	NumCorners
 )
 
-// Edge positions (and pieces), in the order used by [Cube.EP].
+// Edge slot/piece indices.
 const (
 	UR = iota
 	UF
@@ -32,18 +34,14 @@ const (
 	FL
 	BL
 	BR
-	NumEdges
 )
 
-// Cube is a cubie-level state of a 3x3x3 cube.
+// Cube is a cube state at the cubie level.
 //
-// CP[i] is the corner piece sitting at corner position i and CO[i] its
-// orientation (0-2); EP[i] and EO[i] are the same for edges (orientation 0-1).
-// Pieces are numbered like the positions they occupy on the solved cube. See
-// the package documentation for the orientation conventions.
-//
-// The zero value is not a valid cube; use [New]. Cube is a small value type
-// and is copied by assignment.
+// CP[i] is the corner piece sitting in corner slot i and CO[i] its twist
+// (0, 1 or 2); EP[i] is the edge piece in edge slot i and EO[i] its flip
+// (0 or 1). See the package documentation for the orientation conventions.
+// The zero value is not a valid cube; use [Solved].
 type Cube struct {
 	CP [NumCorners]uint8
 	CO [NumCorners]uint8
@@ -51,8 +49,8 @@ type Cube struct {
 	EO [NumEdges]uint8
 }
 
-// New returns the solved cube.
-func New() Cube {
+// Solved returns the solved cube.
+func Solved() Cube {
 	var c Cube
 	for i := range c.CP {
 		c.CP[i] = uint8(i)
@@ -63,118 +61,85 @@ func New() Cube {
 	return c
 }
 
-// IsSolved reports whether the cube is solved.
-func (c Cube) IsSolved() bool { return c == New() }
+// IsSolved reports whether c is the solved cube.
+func (c Cube) IsSolved() bool { return c == Solved() }
 
-// Compose returns the cube obtained by applying the permutation described by
-// a and then the one described by b. Moves are cubes too: Compose(c,
-// MoveCube(m)) is c followed by m.
-func Compose(a, b *Cube) Cube {
+// Mul returns the cube obtained by taking c and then applying to it the
+// permutation that b represents (b is read as "the effect of a move
+// sequence on a solved cube").
+func (c Cube) Mul(b Cube) Cube {
 	var r Cube
 	for i := 0; i < NumCorners; i++ {
 		j := b.CP[i]
-		r.CP[i] = a.CP[j]
-		o := a.CO[j] + b.CO[i]
-		if o >= 3 {
-			o -= 3
-		}
-		r.CO[i] = o
+		r.CP[i] = c.CP[j]
+		r.CO[i] = (c.CO[j] + b.CO[i]) % 3
 	}
 	for i := 0; i < NumEdges; i++ {
 		j := b.EP[i]
-		r.EP[i] = a.EP[j]
-		r.EO[i] = a.EO[j] ^ b.EO[i]
+		r.EP[i] = c.EP[j]
+		r.EO[i] = c.EO[j] ^ b.EO[i]
 	}
 	return r
 }
-
-// MoveCube returns the cubie state produced by applying m to a solved cube.
-// The returned pointer refers to shared data and must not be modified.
-func MoveCube(m Move) *Cube { return &moveCubes[m] }
 
 // Apply turns the cube by m.
-func (c *Cube) Apply(m Move) { *c = Compose(c, &moveCubes[m]) }
+func (c *Cube) Apply(m Move) { *c = c.Mul(moveCubes[m]) }
 
-// ApplyAll applies the moves in order.
-func (c *Cube) ApplyAll(moves []Move) {
-	for _, m := range moves {
-		*c = Compose(c, &moveCubes[m])
+// ApplyAll turns the cube by every move of seq in order.
+func (c *Cube) ApplyAll(seq []Move) {
+	for _, m := range seq {
+		*c = c.Mul(moveCubes[m])
 	}
 }
 
-// Then returns the cube after applying m, leaving c unchanged.
-func (c Cube) Then(m Move) Cube { return Compose(&c, &moveCubes[m]) }
+// MoveCube returns the state reached by applying m to a solved cube.
+func MoveCube(m Move) Cube { return moveCubes[m] }
 
-// Scrambled returns a solved cube with moves applied.
-func Scrambled(moves []Move) Cube {
-	c := New()
-	c.ApplyAll(moves)
-	return c
-}
-
-// Inverse returns the cube that, composed with c, gives the solved cube.
-func (c Cube) Inverse() Cube {
-	var r Cube
-	for i := 0; i < NumCorners; i++ {
-		p := c.CP[i]
-		r.CP[p] = uint8(i)
-		r.CO[p] = (3 - c.CO[i]) % 3
-	}
-	for i := 0; i < NumEdges; i++ {
-		p := c.EP[i]
-		r.EP[p] = uint8(i)
-		r.EO[p] = c.EO[i]
-	}
-	return r
-}
-
-// Verify checks that the cube is a reachable state: valid permutations,
-// corner twists summing to 0 mod 3, edge flips summing to 0 mod 2, and equal
-// corner and edge permutation parity.
-func (c Cube) Verify() error {
+// Validate reports whether c is a state reachable from the solved cube by
+// legal turns: pieces form permutations, corner twists sum to 0 mod 3, edge
+// flips sum to 0 mod 2, and corner and edge permutation parities agree.
+func (c Cube) Validate() error {
 	var seenC, seenE uint16
-	twist, flip := 0, 0
+	cornerTwist := 0
 	for i := 0; i < NumCorners; i++ {
-		if c.CP[i] >= NumCorners || c.CO[i] >= 3 {
-			return fmt.Errorf("cube: corner %d out of range", i)
+		if c.CP[i] >= NumCorners || c.CO[i] > 2 {
+			return errors.New("cube: corner out of range")
 		}
 		seenC |= 1 << c.CP[i]
-		twist += int(c.CO[i])
+		cornerTwist += int(c.CO[i])
 	}
+	edgeFlip := 0
 	for i := 0; i < NumEdges; i++ {
-		if c.EP[i] >= NumEdges || c.EO[i] >= 2 {
-			return fmt.Errorf("cube: edge %d out of range", i)
+		if c.EP[i] >= NumEdges || c.EO[i] > 1 {
+			return errors.New("cube: edge out of range")
 		}
 		seenE |= 1 << c.EP[i]
-		flip += int(c.EO[i])
+		edgeFlip += int(c.EO[i])
 	}
-	if seenC != 1<<NumCorners-1 {
-		return errors.New("cube: corners are not a permutation")
-	}
-	if seenE != 1<<NumEdges-1 {
-		return errors.New("cube: edges are not a permutation")
-	}
-	if twist%3 != 0 {
-		return errors.New("cube: corner twist is not a multiple of 3")
-	}
-	if flip%2 != 0 {
-		return errors.New("cube: edge flip is odd")
-	}
-	if parity(c.CP[:]) != parity(c.EP[:]) {
+	switch {
+	case seenC != 1<<NumCorners-1:
+		return errors.New("cube: corner pieces are not a permutation")
+	case seenE != 1<<NumEdges-1:
+		return errors.New("cube: edge pieces are not a permutation")
+	case cornerTwist%3 != 0:
+		return errors.New("cube: corner twist is not a multiple of three")
+	case edgeFlip%2 != 0:
+		return errors.New("cube: edge flip parity is odd")
+	case permParity(c.CP[:]) != permParity(c.EP[:]):
 		return errors.New("cube: corner and edge permutation parities differ")
 	}
 	return nil
 }
 
-// parity returns the parity (0 even, 1 odd) of a permutation.
-func parity(p []uint8) int {
-	inv := 0
+// permParity returns 0 for even permutations and 1 for odd ones.
+func permParity(p []uint8) int {
+	n := 0
 	for i := range p {
 		for j := i + 1; j < len(p); j++ {
 			if p[i] > p[j] {
-				inv++
+				n++
 			}
 		}
 	}
-	return inv & 1
+	return n & 1
 }

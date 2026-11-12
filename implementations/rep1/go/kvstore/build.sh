@@ -1,7 +1,6 @@
 #!/bin/sh
-# Build the kvstore command-line tool into bin/kvstore.
+# Build the tessera command-line tool into ./bin/tessera.
 set -e
 dir=$(cd "$(dirname "$0")" && pwd)
 cd "$dir"
-mkdir -p bin
-go build -o bin/kvstore ./cmd/kvstore
+go build -o bin/tessera ./cmd/tessera

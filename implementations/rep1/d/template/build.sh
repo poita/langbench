@@ -1,6 +1,5 @@
 #!/bin/sh
-# Build the jtemplate command-line tool (release mode, LDC).
+# Build the jinjalite command-line tool into bin/jinjalite.
 set -e
-dir=$(cd "$(dirname "$0")" && pwd)
-cd "$dir"
-exec dub build -b release --compiler=ldc2 --quiet
+cd "$(dirname "$0")"
+exec dub build -b release --compiler=ldc2 --config=application

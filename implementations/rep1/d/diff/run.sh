@@ -1,3 +1,3 @@
-#!/bin/sh
-# Run the mdiff tool: stdin -> stdout. Works from any directory.
-exec "$(dirname "$0")/bin/mdiff" "$@"
+#!/usr/bin/env bash
+# Run the diff/patch tool: reads stdin, writes stdout.
+exec "$(dirname "$0")/bin/diff" "$@"

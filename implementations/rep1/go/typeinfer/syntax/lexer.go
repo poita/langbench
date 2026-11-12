@@ -1,146 +1,176 @@
 package syntax
 
-// Lex splits src into tokens in a single pass. Identifiers are interned in in.
-// The returned slice always ends with an EOF token. On a lexical error the
-// tokens produced so far (terminated by EOF) are returned along with the
-// error.
-func Lex(src []byte, in *Interner) ([]Token, error) {
-	toks := make([]Token, 0, len(src)/3+8)
-	n := len(src)
-	i := 0
-	emit := func(k TokenKind, pos, width int) {
-		toks = append(toks, Token{Kind: k, Pos: int32(pos)})
-		i = pos + width
-	}
-	for i < n {
-		c := src[i]
-		switch {
-		case c == ' ' || c == '\t' || c == '\n' || c == '\r':
-			i++
-		case c >= '0' && c <= '9':
-			j := i + 1
-			for j < n && src[j] >= '0' && src[j] <= '9' {
-				j++
-			}
-			emit(IntLit, i, j-i)
-		case c >= 'a' && c <= 'z':
-			j := i + 1
-			for j < n && isIdentByte(src[j]) {
-				j++
-			}
-			word := src[i:j]
-			if k, ok := keyword(word); ok {
-				emit(k, i, j-i)
-			} else {
-				toks = append(toks, Token{Kind: Ident, ID: in.internBytes(word), Pos: int32(i)})
-				i = j
-			}
-		default:
-			var next byte
-			if i+1 < n {
-				next = src[i+1]
-			}
-			switch c {
-			case ';':
-				if next == ';' {
-					emit(SemiSemi, i, 2)
-				} else {
-					emit(Semi, i, 1)
-				}
-			case '-':
-				if next == '>' {
-					emit(Arrow, i, 2)
-				} else {
-					emit(Minus, i, 1)
-				}
-			case ':':
-				if next != ':' {
-					return finish(toks, n), &Error{Pos: i, Msg: "unexpected ':'"}
-				}
-				emit(ColonColon, i, 2)
-			case '<':
-				if next == '=' {
-					emit(Le, i, 2)
-				} else {
-					emit(Lt, i, 1)
-				}
-			case '>':
-				if next == '=' {
-					emit(Ge, i, 2)
-				} else {
-					emit(Gt, i, 1)
-				}
-			case '&':
-				if next != '&' {
-					return finish(toks, n), &Error{Pos: i, Msg: "unexpected '&'"}
-				}
-				emit(AndAnd, i, 2)
-			case '|':
-				if next != '|' {
-					return finish(toks, n), &Error{Pos: i, Msg: "unexpected '|'"}
-				}
-				emit(OrOr, i, 2)
-			case '(':
-				emit(LParen, i, 1)
-			case ')':
-				emit(RParen, i, 1)
-			case '[':
-				emit(LBrack, i, 1)
-			case ']':
-				emit(RBrack, i, 1)
-			case ',':
-				emit(Comma, i, 1)
-			case '+':
-				emit(Plus, i, 1)
-			case '*':
-				emit(Star, i, 1)
-			case '/':
-				emit(Slash, i, 1)
-			case '=':
-				emit(Eq, i, 1)
-			default:
-				return finish(toks, n), &Error{Pos: i, Msg: "unexpected character " + quote(c)}
-			}
+import "fmt"
+
+// TokenKind classifies a token.
+type TokenKind uint8
+
+// The token kinds.
+const (
+	TokEOF TokenKind = iota
+	TokInt
+	TokIdent
+	TokLet
+	TokRec
+	TokIn
+	TokFun
+	TokIf
+	TokThen
+	TokElse
+	TokTrue
+	TokFalse
+	TokDSemi  // ;;
+	TokArrow  // ->
+	TokCons   // ::
+	TokLe     // <=
+	TokGe     // >=
+	TokAnd    // &&
+	TokOr     // ||
+	TokLParen // (
+	TokRParen // )
+	TokLBrack // [
+	TokRBrack // ]
+	TokSemi   // ;
+	TokComma  // ,
+	TokPlus   // +
+	TokMinus  // -
+	TokStar   // *
+	TokSlash  // /
+	TokEq     // =
+	TokLt     // <
+	TokGt     // >
+)
+
+var keywords = map[string]TokenKind{
+	"let": TokLet, "rec": TokRec, "in": TokIn, "fun": TokFun, "if": TokIf,
+	"then": TokThen, "else": TokElse, "true": TokTrue, "false": TokFalse,
+}
+
+// Token is a lexical token. Text is set for integers and identifiers.
+type Token struct {
+	Kind TokenKind
+	Text string
+	Pos  int // byte offset in the source
+}
+
+// Error is a syntax error.
+type Error struct {
+	Pos int // byte offset in the source
+	Msg string
+}
+
+func (e *Error) Error() string { return fmt.Sprintf("syntax error at offset %d: %s", e.Pos, e.Msg) }
+
+// Lexer splits source text into tokens.
+type Lexer struct {
+	src string
+	pos int
+}
+
+// NewLexer returns a Lexer reading src.
+func NewLexer(src string) *Lexer { return &Lexer{src: src} }
+
+func isDigit(c byte) bool { return c >= '0' && c <= '9' }
+func isLower(c byte) bool { return c >= 'a' && c <= 'z' }
+func isIdentRest(c byte) bool {
+	return isLower(c) || (c >= 'A' && c <= 'Z') || isDigit(c) || c == '_'
+}
+
+// Next returns the next token; at the end of input it returns TokEOF forever.
+func (l *Lexer) Next() (Token, error) {
+	s := l.src
+	for l.pos < len(s) {
+		switch s[l.pos] {
+		case ' ', '\t', '\r', '\n':
+			l.pos++
+			continue
 		}
+		break
 	}
-	return finish(toks, n), nil
-}
-
-func finish(toks []Token, n int) []Token {
-	return append(toks, Token{Kind: EOF, Pos: int32(n)})
-}
-
-func quote(c byte) string {
-	if c >= 0x20 && c < 0x7f {
-		return "'" + string(rune(c)) + "'"
+	start := l.pos
+	if start >= len(s) {
+		return Token{Kind: TokEOF, Pos: start}, nil
 	}
-	return "0x" + string("0123456789abcdef"[c>>4]) + string("0123456789abcdef"[c&15])
-}
-
-func isIdentByte(c byte) bool {
-	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_'
-}
-
-func keyword(w []byte) (TokenKind, bool) {
-	switch string(w) {
-	case "let":
-		return KwLet, true
-	case "rec":
-		return KwRec, true
-	case "in":
-		return KwIn, true
-	case "fun":
-		return KwFun, true
-	case "if":
-		return KwIf, true
-	case "then":
-		return KwThen, true
-	case "else":
-		return KwElse, true
-	case "true":
-		return KwTrue, true
-	case "false":
-		return KwFalse, true
+	c := s[start]
+	switch {
+	case isDigit(c):
+		for l.pos < len(s) && isDigit(s[l.pos]) {
+			l.pos++
+		}
+		return Token{Kind: TokInt, Text: s[start:l.pos], Pos: start}, nil
+	case isLower(c):
+		for l.pos < len(s) && isIdentRest(s[l.pos]) {
+			l.pos++
+		}
+		text := s[start:l.pos]
+		if k, ok := keywords[text]; ok {
+			return Token{Kind: k, Pos: start}, nil
+		}
+		return Token{Kind: TokIdent, Text: text, Pos: start}, nil
 	}
-	return 0, false
+	var next byte
+	if start+1 < len(s) {
+		next = s[start+1]
+	}
+	two := func(k TokenKind) (Token, error) {
+		l.pos += 2
+		return Token{Kind: k, Pos: start}, nil
+	}
+	one := func(k TokenKind) (Token, error) {
+		l.pos++
+		return Token{Kind: k, Pos: start}, nil
+	}
+	switch c {
+	case ';':
+		if next == ';' {
+			return two(TokDSemi)
+		}
+		return one(TokSemi)
+	case '-':
+		if next == '>' {
+			return two(TokArrow)
+		}
+		return one(TokMinus)
+	case ':':
+		if next == ':' {
+			return two(TokCons)
+		}
+	case '<':
+		if next == '=' {
+			return two(TokLe)
+		}
+		return one(TokLt)
+	case '>':
+		if next == '=' {
+			return two(TokGe)
+		}
+		return one(TokGt)
+	case '&':
+		if next == '&' {
+			return two(TokAnd)
+		}
+	case '|':
+		if next == '|' {
+			return two(TokOr)
+		}
+	case '(':
+		return one(TokLParen)
+	case ')':
+		return one(TokRParen)
+	case '[':
+		return one(TokLBrack)
+	case ']':
+		return one(TokRBrack)
+	case ',':
+		return one(TokComma)
+	case '+':
+		return one(TokPlus)
+	case '*':
+		return one(TokStar)
+	case '/':
+		return one(TokSlash)
+	case '=':
+		return one(TokEq)
+	}
+	return Token{}, &Error{Pos: start, Msg: fmt.Sprintf("unexpected character %q", c)}
 }

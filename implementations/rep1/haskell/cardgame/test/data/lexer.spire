@@ -1,0 +1,6 @@
+(card LEX-001	(name "Odd (Name); with ;punctuation")   (type
+unit)(cost 0)(body 0 0)(tags)(keywords)
+  (on arrive (modify -2 -3 self)) ; a comment inside the card
+  (act (cost (once)) (spire -1 you)))
+(card LEX-002 (name "") (type relic) (cost 7) (tags a b c)
+  (aura (when (and (not (myturn)) (or (spire you le 5) (vault foe ge 0))) (grant (plating 3) (units all)))))

@@ -1,146 +1,176 @@
-/// Write-ahead log records, and recovery of the committed prefix of a log.
+/// The write-ahead log: record encoding and recovery scan (SPEC §15, §16).
 module tessera.wal;
 
 import tessera.bytes;
 import tessera.constants;
 import tessera.crc;
 
-/// The log's record types.
-enum ubyte recordPage = 1, recordCommit = 2;
+/// Size of the log header in bytes.
+enum WAL_HEADER_SIZE = 32;
+/// Size of a record header in bytes.
+enum RECORD_HEADER_SIZE = 24;
 
-/// The 32-byte log header.
-ubyte[] makeWalHeader() pure nothrow @safe
+/// Record types.
+enum RecordType : ubyte
 {
-    auto h = new ubyte[walHeaderSize];
-    h[0 .. 8] = ['T', 'E', 'S', 'S', 'W', 'A', 'L', '1'];
-    setU16(h, 8, 1);
-    setU16(h, 10, cast(uint) pageSize);
-    setU32(h, 28, crc32(h[0 .. 28]));
+    pageImage = 1,
+    commit = 2,
+}
+
+/// The constant 32-byte log header (SPEC §15.1).
+ubyte[] walHeader() @safe pure nothrow
+{
+    auto h = new ubyte[WAL_HEADER_SIZE];
+    h[0 .. 8] = cast(const(ubyte)[]) "TESSWAL1";
+    putU16(h, 8, 1);
+    putU16(h, 10, PAGE_SIZE);
+    putU32(h, 28, crc32(h[0 .. 28]));
     return h;
 }
 
-private void appendRecord(ref ByteBuffer wal, ubyte type, ulong txn, uint arg, const(ubyte)[] payload)
-    pure nothrow @safe
+/// Append one record to `log`. `field` is the page number of a page image or
+/// the frame count of a commit record (SPEC §15.2).
+void appendRecord(ref ubyte[] log, RecordType type, ulong txnId, uint field,
+        const(ubyte)[] payload) @safe pure nothrow
 {
-    ubyte[walRecordHeader] hdr;
-    hdr[0] = type;
-    setU64(hdr[], 4, txn);
-    setU32(hdr[], 12, arg);
-    setU32(hdr[], 16, cast(uint) payload.length);
+    ubyte[RECORD_HEADER_SIZE] h;
+    h[0] = type;
+    putU64(h[], 4, txnId);
+    putU32(h[], 12, field);
+    putU32(h[], 16, cast(uint) payload.length);
     Crc32 c;
-    c.put(hdr[0 .. 20]);
+    c.put(h[0 .. 20]);
     c.put(payload);
-    setU32(hdr[], 20, c.value);
-    wal.put(hdr[]);
-    wal.put(payload);
+    putU32(h[], 20, c.finish());
+    log ~= h[];
+    log ~= payload;
 }
 
-/// Append a page-image record.
-void appendPageImage(ref ByteBuffer wal, ulong txn, uint page, const(ubyte)[] image) pure nothrow @safe
+/// What recovery learned from an input log.
+struct RecoveredLog
 {
-    appendRecord(wal, recordPage, txn, page, image);
-}
-
-/// Append a commit record.
-void appendCommit(ref ByteBuffer wal, ulong txn, uint frames) pure nothrow @safe
-{
-    appendRecord(wal, recordCommit, txn, frames, null);
-}
-
-/// What recovery makes of an input log.
-struct Recovered
-{
-    /// The log to continue with: the valid prefix, or a fresh header.
-    ByteBuffer wal;
-    /// Newest committed image of each page the log holds.
+    /// The log as the engine continues with it: the valid prefix of the input,
+    /// or a fresh header.
+    ubyte[] log;
+    /// Newest committed image of each page.
     ubyte[][uint] overlay;
 }
 
-private bool headerValid(const(ubyte)[] w) pure nothrow @safe
+/// Whether the first bytes of `data` form a valid log header (SPEC §16.2).
+bool validHeader(const(ubyte)[] data) @safe pure nothrow
 {
-    if (w.length < walHeaderSize)
+    if (data.length < WAL_HEADER_SIZE)
         return false;
-    if (w[0 .. 8] != cast(const(ubyte)[]) "TESSWAL1")
+    if (data[0 .. 8] != cast(const(ubyte)[]) "TESSWAL1")
         return false;
-    if (getU16(w, 8) != 1 || getU16(w, 10) != pageSize)
+    if (getU16(data, 8) != 1 || getU16(data, 10) != PAGE_SIZE)
         return false;
-    foreach (b; w[12 .. 28])
+    foreach (b; data[12 .. 28])
         if (b != 0)
             return false;
-    return getU32(w, 28) == crc32(w[0 .. 28]);
+    return getU32(data, 28) == crc32(data[0 .. 28]);
 }
 
-/// Scan a log: replay every transaction whose commit record is intact and
-/// trim the log after the last such record.
-Recovered recoverLog(const(ubyte)[] input) pure nothrow @safe
+/// Replay every committed transaction of `input` (SPEC §16.3, §16.4).
+RecoveredLog recoverLog(const(ubyte)[] input) @safe pure
 {
-    Recovered r;
-    if (!headerValid(input))
+    RecoveredLog r;
+    if (!validHeader(input))
     {
-        r.wal.put(makeWalHeader());
+        r.log = walHeader();
         return r;
     }
-    size_t off = walHeaderSize;
-    size_t validEnd = walHeaderSize;
-    bool open = false;
-    ulong groupTxn;
-    struct Img
+
+    struct Image
     {
         uint page;
-        const(ubyte)[] bytes;
+        const(ubyte)[] data;
     }
 
-    Img[] group;
+    Image[] group;
+    bool open;
+    ulong groupTxn;
+    size_t off = WAL_HEADER_SIZE;
+    size_t validEnd = off;
+
     scan: while (true)
     {
         immutable rem = input.length - off;
-        if (rem < walRecordHeader)
+        if (rem < RECORD_HEADER_SIZE)
             break;
-        auto h = input[off .. off + walRecordHeader];
-        immutable type = h[0];
-        if (type != recordPage && type != recordCommit)
+        immutable type = input[off];
+        if (type != 1 && type != 2)
             break;
-        if (h[1] != 0 || h[2] != 0 || h[3] != 0)
+        if (input[off + 1] != 0 || input[off + 2] != 0 || input[off + 3] != 0)
             break;
-        immutable txn = getU64(h, 4);
-        immutable arg = getU32(h, 12);
-        immutable plen = getU32(h, 16);
-        if (type == recordPage ? plen != pageSize : plen != 0)
+        immutable txn = getU64(input, off + 4);
+        immutable field = getU32(input, off + 12);
+        immutable payloadLen = getU32(input, off + 16);
+        if (type == 1 ? payloadLen != PAGE_SIZE : payloadLen != 0)
             break;
-        if (arg < 1)
+        if (field < 1)
             break;
-        if (rem < walRecordHeader + plen)
+        if (rem < RECORD_HEADER_SIZE + cast(size_t) payloadLen)
             break;
-        auto payload = input[off + walRecordHeader .. off + walRecordHeader + plen];
         Crc32 c;
-        c.put(h[0 .. 20]);
-        c.put(payload);
-        if (c.value != getU32(h, 20))
+        c.put(input[off .. off + 20]);
+        c.put(input[off + RECORD_HEADER_SIZE .. off + RECORD_HEADER_SIZE + payloadLen]);
+        if (c.finish() != getU32(input, off + 20))
             break;
-        if (type == recordPage)
+
+        if (type == 1)
         {
             if (open && groupTxn != txn)
-                break scan;
+                break;
             if (!open)
             {
                 open = true;
                 groupTxn = txn;
             }
-            group ~= Img(arg, payload);
-            off += walRecordHeader + plen;
+            group ~= Image(field, input[off + RECORD_HEADER_SIZE .. off + RECORD_HEADER_SIZE + PAGE_SIZE]);
+            off += RECORD_HEADER_SIZE + PAGE_SIZE;
         }
         else
         {
-            if (!open || groupTxn != txn || group.length != arg)
+            if (!open || groupTxn != txn || group.length != field)
                 break;
-            foreach (ref g; group)
-                r.overlay[g.page] = g.bytes.dup;
+            foreach (ref im; group)
+                r.overlay[im.page] = im.data.dup;
             group.length = 0;
             open = false;
-            off += walRecordHeader;
+            off += RECORD_HEADER_SIZE;
             validEnd = off;
         }
     }
-    r.wal.put(input[0 .. validEnd]);
+    r.log = input[0 .. validEnd].dup;
     return r;
+}
+
+@safe pure unittest
+{
+    // SPEC §15.1: the log header bytes
+    auto h = walHeader();
+    assert(h[28 .. 32] == [0x51, 0xe7, 0x21, 0x53]);
+    assert(validHeader(h));
+}
+
+@safe pure unittest
+{
+    // a committed transaction survives; a trailing torn one is dropped
+    auto page = new ubyte[PAGE_SIZE];
+    page[5] = 7;
+    ubyte[] log = walHeader();
+    appendRecord(log, RecordType.pageImage, 1, 1, page);
+    appendRecord(log, RecordType.commit, 1, 1, null);
+    immutable good = log.length;
+    appendRecord(log, RecordType.pageImage, 2, 1, page);
+    auto r = recoverLog(log);
+    assert(r.log.length == good);
+    assert(r.overlay.length == 1 && r.overlay[1][5] == 7);
+
+    // a damaged header discards everything
+    log[3] ^= 1;
+    auto bad = recoverLog(log);
+    assert(bad.log.length == 32 && bad.overlay.length == 0);
+    assert(recoverLog([]).log.length == 32);
 }

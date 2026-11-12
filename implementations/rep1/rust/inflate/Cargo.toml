@@ -1,0 +1,17 @@
+[package]
+name = "inflate"
+version = "0.1.0"
+edition = "2021"
+description = "A from-scratch DEFLATE (RFC 1951) decoder with a hex-in/hex-out command-line tool"
+license = "MIT"
+readme = "README.md"
+keywords = ["deflate", "inflate", "rfc1951", "decompression"]
+categories = ["compression"]
+
+[lib]
+name = "inflate"
+path = "src/lib.rs"
+
+[[bin]]
+name = "inflate"
+path = "src/main.rs"

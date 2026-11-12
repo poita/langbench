@@ -1,6 +1,7 @@
 #!/bin/sh
-# Build the langvm command into ./bin/langvm. Works from any directory.
+# Builds the langvm command into bin/langvm. Works from any directory.
 set -e
-cd "$(dirname "$0")"
+dir=$(cd "$(dirname "$0")" && pwd)
+cd "$dir"
 mkdir -p bin
 go build -o bin/langvm ./cmd/langvm

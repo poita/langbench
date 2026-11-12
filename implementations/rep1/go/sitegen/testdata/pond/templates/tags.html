@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block body %}<ul>{% for t in tags %}<li><a href="{{ t.url }}">{{ t.name }}</a> {{ t.post_count }}</li>{% endfor %}</ul>{% endblock %}

@@ -1,310 +1,150 @@
 /**
- * A JSON value tree, parser, equality and printer.
+ * A small JSON data model and a recursive-descent parser for RFC 8259.
  *
- * Numbers are kept exact (see $(MREF jsonschema.number)). Objects keep their
- * members in document order, so every member has a stable position; larger
- * objects also carry a hash index for key lookup.
+ * Numbers are kept exactly (see `jsonschema.number`); objects remember their
+ * members in document order and also offer O(1) lookup by name.
  */
 module jsonschema.json;
 
-import std.array : appender;
-import std.utf : encode;
-
 import jsonschema.number;
 
-/// The six JSON types.
-enum Kind : ubyte
+/// The JSON type of a `JsonValue`.
+enum JsonType : ubyte
 {
     null_,
     boolean,
     number,
     string,
     array,
-    object
+    object,
 }
 
-/// Thrown when JSON text is malformed.
+/// Thrown for malformed JSON text.
 class JsonException : Exception
 {
-    /// Byte offset of the error in the input.
-    size_t offset;
-
     this(string msg, size_t offset, string file = __FILE__, size_t line = __LINE__)
     {
         import std.conv : to;
 
         super(msg ~ " at offset " ~ offset.to!string, file, line);
-        this.offset = offset;
     }
 }
 
-/// One member of a JSON object.
-struct Member
+/// An immutable-by-convention JSON value.
+final class JsonValue
 {
-    string key;
-    Value value;
-}
+    /// Which member below is meaningful.
+    JsonType type;
+    /// Payload of a boolean.
+    bool boolean;
+    /// Payload of a number.
+    Number number;
+    /// Payload of a string (UTF-8).
+    string str;
+    /// Elements of an array.
+    JsonValue[] items;
+    /// Member names of an object, in document order.
+    string[] keys;
+    /// Member values of an object, parallel to `keys`.
+    JsonValue[] values;
+    /// Name lookup table for objects.
+    JsonValue[string] map;
 
-/// The members of a JSON object, in document order.
-struct JsonObject
-{
-    /// Objects with more members than this get a hash index.
-    enum indexThreshold = 8;
-
-    Member[] members;
-    private size_t[string] index;
-
-    /// Builds the object from its members (the slice is adopted, not copied).
-    this(Member[] members)
+    /// Creates `null`.
+    static JsonValue makeNull()
     {
-        this.members = members;
-        if (members.length > indexThreshold)
-        {
-            foreach (i, ref m; members)
-                index[m.key] = i;
-        }
+        return new JsonValue;
     }
 
-    /// Number of members.
-    size_t length() const
+    /// Creates a boolean.
+    static JsonValue makeBool(bool b)
     {
-        return members.length;
+        auto v = new JsonValue;
+        v.type = JsonType.boolean;
+        v.boolean = b;
+        return v;
     }
 
-    /// The value stored under `key`, or null.
-    inout(Value)* find(string key) inout
+    /// Creates a number.
+    static JsonValue makeNumber(Number n)
     {
-        if (members.length > indexThreshold)
-        {
-            if (auto p = key in index)
-                return &members[*p].value;
+        auto v = new JsonValue;
+        v.type = JsonType.number;
+        v.number = n;
+        return v;
+    }
+
+    /// Creates a string.
+    static JsonValue makeString(string s)
+    {
+        auto v = new JsonValue;
+        v.type = JsonType.string;
+        v.str = s;
+        return v;
+    }
+
+    /// Creates an array.
+    static JsonValue makeArray(JsonValue[] items)
+    {
+        auto v = new JsonValue;
+        v.type = JsonType.array;
+        v.items = items;
+        return v;
+    }
+
+    /// Creates an empty object; fill it with `put`.
+    static JsonValue makeObject()
+    {
+        auto v = new JsonValue;
+        v.type = JsonType.object;
+        return v;
+    }
+
+    /// Adds a member to an object (the key must not be present yet).
+    void put(string key, JsonValue value)
+    {
+        keys ~= key;
+        values ~= value;
+        map[key] = value;
+    }
+
+    /// True for objects.
+    bool isObject() const
+    {
+        return type == JsonType.object;
+    }
+
+    /// True for arrays.
+    bool isArray() const
+    {
+        return type == JsonType.array;
+    }
+
+    /// True for strings.
+    bool isString() const
+    {
+        return type == JsonType.string;
+    }
+
+    /// True for numbers.
+    bool isNumber() const
+    {
+        return type == JsonType.number;
+    }
+
+    /// Looks up an object member; returns `null` when absent or not an object.
+    JsonValue get(string key)
+    {
+        if (type != JsonType.object)
             return null;
-        }
-        foreach (ref m; members)
-            if (m.key == key)
-                return &m.value;
+        if (auto p = key in map)
+            return *p;
         return null;
     }
 }
 
-/// A JSON value.
-struct Value
-{
-    /// The type of the value.
-    Kind kind;
-
-    private union Payload
-    {
-        bool b;
-        Number n;
-        string s;
-        Value[] a;
-        JsonObject* o;
-    }
-
-    private Payload p;
-
-    /// The `null` value.
-    static Value makeNull()
-    {
-        return Value.init;
-    }
-
-    /// A boolean value.
-    static Value makeBool(bool b)
-    {
-        Value v;
-        v.kind = Kind.boolean;
-        v.p.b = b;
-        return v;
-    }
-
-    /// A number value.
-    static Value makeNumber(Number n)
-    {
-        Value v;
-        v.kind = Kind.number;
-        v.p.n = n;
-        return v;
-    }
-
-    /// A string value.
-    static Value makeString(string s)
-    {
-        Value v;
-        v.kind = Kind.string;
-        v.p.s = s;
-        return v;
-    }
-
-    /// An array value (the slice is adopted).
-    static Value makeArray(Value[] a)
-    {
-        Value v;
-        v.kind = Kind.array;
-        v.p.a = a;
-        return v;
-    }
-
-    /// An object value (the members are adopted).
-    static Value makeObject(Member[] members)
-    {
-        Value v;
-        v.kind = Kind.object;
-        v.p.o = new JsonObject(members);
-        return v;
-    }
-
-    /// Kind predicates.
-    bool isNull() const
-    {
-        return kind == Kind.null_;
-    }
-    /// ditto
-    bool isBool() const
-    {
-        return kind == Kind.boolean;
-    }
-    /// ditto
-    bool isNumber() const
-    {
-        return kind == Kind.number;
-    }
-    /// ditto
-    bool isString() const
-    {
-        return kind == Kind.string;
-    }
-    /// ditto
-    bool isArray() const
-    {
-        return kind == Kind.array;
-    }
-    /// ditto
-    bool isObject() const
-    {
-        return kind == Kind.object;
-    }
-
-    /// The boolean payload; only valid for booleans.
-    bool boolean() const
-    {
-        assert(kind == Kind.boolean);
-        return p.b;
-    }
-
-    /// The number payload; only valid for numbers.
-    ref const(Number) number() const return
-    {
-        assert(kind == Kind.number);
-        return p.n;
-    }
-
-    /// The string payload; only valid for strings.
-    string str() const
-    {
-        assert(kind == Kind.string);
-        return p.s;
-    }
-
-    /// The array elements; only valid for arrays.
-    inout(Value)[] array() inout
-    {
-        assert(kind == Kind.array);
-        return p.a;
-    }
-
-    /// The object payload; only valid for objects.
-    inout(JsonObject)* object() inout
-    {
-        assert(kind == Kind.object);
-        return p.o;
-    }
-
-    /// Member lookup that is null for non-objects and missing keys.
-    inout(Value)* opBinaryRight(string op : "in")(string key) inout
-    {
-        if (kind != Kind.object)
-            return null;
-        return p.o.find(key);
-    }
-}
-
-/// JSON equality (section 3.4 of the specification): structural, numbers by value.
-bool jsonEqual()(auto ref const Value a, auto ref const Value b)
-{
-    if (a.kind != b.kind)
-        return false;
-    final switch (a.kind)
-    {
-    case Kind.null_:
-        return true;
-    case Kind.boolean:
-        return a.boolean == b.boolean;
-    case Kind.number:
-        return a.number == b.number;
-    case Kind.string:
-        return a.str == b.str;
-    case Kind.array:
-        auto x = a.array, y = b.array;
-        if (x.length != y.length)
-            return false;
-        foreach (i; 0 .. x.length)
-            if (!jsonEqual(x[i], y[i]))
-                return false;
-        return true;
-    case Kind.object:
-        auto x = a.object, y = b.object;
-        if (x.length != y.length)
-            return false;
-        foreach (ref m; x.members)
-        {
-            auto o = y.find(m.key);
-            if (o is null || !jsonEqual(m.value, *o))
-                return false;
-        }
-        return true;
-    }
-}
-
-/// A hash consistent with $(LREF jsonEqual).
-size_t jsonHash()(auto ref const Value v)
-{
-    final switch (v.kind)
-    {
-    case Kind.null_:
-        return 0x1234567;
-    case Kind.boolean:
-        return v.boolean ? 0x2345678 : 0x3456789;
-    case Kind.number:
-        return v.number.toHash();
-    case Kind.string:
-        return hashOf(v.str);
-    case Kind.array:
-        size_t h = 0x4567890 + v.array.length;
-        foreach (ref e; v.array)
-            h = h * 1000003 + jsonHash(e);
-        return h;
-    case Kind.object:
-        size_t h = 0x5678901 + v.object.length;
-        foreach (ref m; v.object.members)
-            h += hashOf(m.key) * 31 ^ jsonHash(m.value) * 17;
-        return h;
-    }
-}
-
-/// Number of code points in a UTF-8 string (counts non-continuation bytes).
-size_t codePointLength(const(char)[] s) pure nothrow @nogc
-{
-    size_t n = 0;
-    foreach (c; cast(const(ubyte)[]) s)
-        if ((c & 0xC0) != 0x80)
-            n++;
-    return n;
-}
-
-/// Parses a JSON document. Throws $(LREF JsonException) on malformed input.
-Value parseJson(string text)
+/// Parses `text` (a complete JSON document).
+JsonValue parseJson(const(char)[] text)
 {
     auto p = Parser(text);
     p.skipWs();
@@ -317,12 +157,10 @@ Value parseJson(string text)
 
 private struct Parser
 {
-    string src;
+    const(char)[] src;
     size_t pos;
-    Value[] vstack;
-    Member[] mstack;
 
-    this(string s)
+    this(const(char)[] s)
     {
         src = s;
     }
@@ -332,17 +170,22 @@ private struct Parser
         while (pos < src.length)
         {
             immutable c = src[pos];
-            if (c == ' ' || c == '\n' || c == '\t' || c == '\r')
+            if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
                 pos++;
             else
                 break;
         }
     }
 
-    Value parseValue()
+    JsonException fail(string msg)
+    {
+        return new JsonException(msg, pos);
+    }
+
+    JsonValue parseValue()
     {
         if (pos >= src.length)
-            throw new JsonException("unexpected end of input", pos);
+            throw fail("unexpected end of input");
         switch (src[pos])
         {
         case '{':
@@ -350,16 +193,16 @@ private struct Parser
         case '[':
             return parseArray();
         case '"':
-            return Value.makeString(parseString());
+            return JsonValue.makeString(parseString());
         case 't':
             expectWord("true");
-            return Value.makeBool(true);
+            return JsonValue.makeBool(true);
         case 'f':
             expectWord("false");
-            return Value.makeBool(false);
+            return JsonValue.makeBool(false);
         case 'n':
             expectWord("null");
-            return Value.makeNull();
+            return JsonValue.makeNull();
         default:
             return parseNumber();
         }
@@ -368,112 +211,45 @@ private struct Parser
     void expectWord(string w)
     {
         if (pos + w.length > src.length || src[pos .. pos + w.length] != w)
-            throw new JsonException("invalid literal", pos);
+            throw fail("invalid literal");
         pos += w.length;
     }
 
-    Value parseNumber()
+    JsonValue parseObject()
     {
-        immutable start = pos;
-        if (pos < src.length && src[pos] == '-')
-            pos++;
-        immutable intStart = pos;
-        while (pos < src.length && isDigit(src[pos]))
-            pos++;
-        if (pos == intStart)
-            throw new JsonException("invalid value", start);
-        if (src[intStart] == '0' && pos - intStart > 1)
-            throw new JsonException("leading zero", start);
-        if (pos < src.length && src[pos] == '.')
-        {
-            pos++;
-            immutable fs = pos;
-            while (pos < src.length && isDigit(src[pos]))
-                pos++;
-            if (pos == fs)
-                throw new JsonException("digits expected after decimal point", pos);
-        }
-        if (pos < src.length && (src[pos] == 'e' || src[pos] == 'E'))
-        {
-            pos++;
-            if (pos < src.length && (src[pos] == '+' || src[pos] == '-'))
-                pos++;
-            immutable es = pos;
-            while (pos < src.length && isDigit(src[pos]))
-                pos++;
-            if (pos == es)
-                throw new JsonException("digits expected in exponent", pos);
-        }
-        return Value.makeNumber(Number.fromLiteral(src[start .. pos]));
-    }
-
-    static bool isDigit(char c)
-    {
-        return c >= '0' && c <= '9';
-    }
-
-    Value parseArray()
-    {
-        pos++;
-        immutable base = vstack.length;
-        skipWs();
-        if (pos < src.length && src[pos] == ']')
-        {
-            pos++;
-            return Value.makeArray(null);
-        }
-        for (;;)
-        {
-            skipWs();
-            auto v = parseValue();
-            vstack ~= v;
-            skipWs();
-            if (pos >= src.length)
-                throw new JsonException("unterminated array", pos);
-            if (src[pos] == ',')
-            {
-                pos++;
-                continue;
-            }
-            if (src[pos] == ']')
-            {
-                pos++;
-                break;
-            }
-            throw new JsonException("expected ',' or ']'", pos);
-        }
-        auto arr = vstack[base .. $].dup;
-        vstack.length = base;
-        vstack.assumeSafeAppend();
-        return Value.makeArray(arr);
-    }
-
-    Value parseObject()
-    {
-        pos++;
-        immutable base = mstack.length;
+        pos++; // {
+        auto obj = JsonValue.makeObject();
         skipWs();
         if (pos < src.length && src[pos] == '}')
         {
             pos++;
-            return Value.makeObject(null);
+            return obj;
         }
-        for (;;)
+        while (true)
         {
             skipWs();
             if (pos >= src.length || src[pos] != '"')
-                throw new JsonException("expected object key", pos);
+                throw fail("expected object key");
             auto key = parseString();
             skipWs();
             if (pos >= src.length || src[pos] != ':')
-                throw new JsonException("expected ':'", pos);
+                throw fail("expected ':'");
             pos++;
             skipWs();
-            auto v = parseValue();
-            mstack ~= Member(key, v);
+            auto val = parseValue();
+            if (key in obj.map)
+            {
+                // Duplicate keys do not occur in valid inputs; last one wins.
+                foreach (i, k; obj.keys)
+                    if (k == key)
+                        obj.values[i] = val;
+                obj.map[key] = val;
+            }
+            else
+                obj.put(key, val);
             skipWs();
             if (pos >= src.length)
-                throw new JsonException("unterminated object", pos);
+                throw fail("unterminated object");
             if (src[pos] == ',')
             {
                 pos++;
@@ -482,34 +258,65 @@ private struct Parser
             if (src[pos] == '}')
             {
                 pos++;
-                break;
+                return obj;
             }
-            throw new JsonException("expected ',' or '}'", pos);
+            throw fail("expected ',' or '}'");
         }
-        auto mem = mstack[base .. $].dup;
-        mstack.length = base;
-        mstack.assumeSafeAppend();
-        return Value.makeObject(mem);
+    }
+
+    JsonValue parseArray()
+    {
+        pos++; // [
+        JsonValue[] items;
+        skipWs();
+        if (pos < src.length && src[pos] == ']')
+        {
+            pos++;
+            return JsonValue.makeArray(items);
+        }
+        while (true)
+        {
+            skipWs();
+            items ~= parseValue();
+            skipWs();
+            if (pos >= src.length)
+                throw fail("unterminated array");
+            if (src[pos] == ',')
+            {
+                pos++;
+                continue;
+            }
+            if (src[pos] == ']')
+            {
+                pos++;
+                return JsonValue.makeArray(items);
+            }
+            throw fail("expected ',' or ']'");
+        }
+    }
+
+    static int hexVal(char c)
+    {
+        if (c >= '0' && c <= '9')
+            return c - '0';
+        if (c >= 'a' && c <= 'f')
+            return c - 'a' + 10;
+        if (c >= 'A' && c <= 'F')
+            return c - 'A' + 10;
+        return -1;
     }
 
     uint parseHex4()
     {
         if (pos + 4 > src.length)
-            throw new JsonException("bad \\u escape", pos);
+            throw fail("bad \\u escape");
         uint v = 0;
         foreach (i; 0 .. 4)
         {
-            immutable c = src[pos + i];
-            uint d;
-            if (c >= '0' && c <= '9')
-                d = c - '0';
-            else if (c >= 'a' && c <= 'f')
-                d = c - 'a' + 10;
-            else if (c >= 'A' && c <= 'F')
-                d = c - 'A' + 10;
-            else
-                throw new JsonException("bad \\u escape", pos);
-            v = v * 16 + d;
+            immutable h = hexVal(src[pos + i]);
+            if (h < 0)
+                throw fail("bad \\u escape");
+            v = v * 16 + h;
         }
         pos += 4;
         return v;
@@ -519,179 +326,292 @@ private struct Parser
     {
         pos++; // opening quote
         immutable start = pos;
-        while (pos < src.length)
+        // Fast path: no escapes.
+        while (pos < src.length && src[pos] != '"' && src[pos] != '\\')
         {
-            immutable c = src[pos];
-            if (c == '"')
-            {
-                auto r = src[start .. pos];
-                pos++;
-                return r;
-            }
-            if (c == '\\')
-                break;
-            if (c < 0x20)
-                throw new JsonException("control character in string", pos);
+            if (cast(ubyte) src[pos] < 0x20)
+                throw fail("control character in string");
             pos++;
         }
-        auto app = appender!string();
-        app.put(src[start .. pos]);
-        while (pos < src.length)
+        if (pos >= src.length)
+            throw fail("unterminated string");
+        if (src[pos] == '"')
         {
+            auto s = src[start .. pos].idup;
+            pos++;
+            return s;
+        }
+        char[] buf;
+        buf ~= src[start .. pos];
+        while (true)
+        {
+            if (pos >= src.length)
+                throw fail("unterminated string");
             immutable c = src[pos];
             if (c == '"')
             {
                 pos++;
-                return app.data;
+                break;
             }
-            if (c < 0x20)
-                throw new JsonException("control character in string", pos);
+            if (cast(ubyte) c < 0x20)
+                throw fail("control character in string");
             if (c != '\\')
             {
-                app.put(c);
+                buf ~= c;
                 pos++;
                 continue;
             }
             pos++;
             if (pos >= src.length)
-                break;
-            immutable esc = src[pos++];
-            switch (esc)
+                throw fail("unterminated escape");
+            immutable e = src[pos++];
+            switch (e)
             {
             case '"':
-                app.put('"');
+                buf ~= '"';
                 break;
             case '\\':
-                app.put('\\');
+                buf ~= '\\';
                 break;
             case '/':
-                app.put('/');
+                buf ~= '/';
                 break;
             case 'b':
-                app.put('\b');
+                buf ~= '\b';
                 break;
             case 'f':
-                app.put('\f');
+                buf ~= '\f';
                 break;
             case 'n':
-                app.put('\n');
+                buf ~= '\n';
                 break;
             case 'r':
-                app.put('\r');
+                buf ~= '\r';
                 break;
             case 't':
-                app.put('\t');
+                buf ~= '\t';
                 break;
             case 'u':
                 {
                     uint cp = parseHex4();
-                    if (cp >= 0xD800 && cp < 0xDC00 && pos + 1 < src.length
+                    if (cp >= 0xD800 && cp <= 0xDBFF && pos + 1 < src.length
                             && src[pos] == '\\' && src[pos + 1] == 'u')
                     {
                         immutable save = pos;
                         pos += 2;
                         immutable lo = parseHex4();
-                        if (lo >= 0xDC00 && lo < 0xE000)
+                        if (lo >= 0xDC00 && lo <= 0xDFFF)
                             cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
                         else
                             pos = save;
                     }
-                    if (cp >= 0xD800 && cp < 0xE000)
-                        cp = 0xFFFD; // lone surrogate: cannot occur in valid input
-                    char[4] buf;
-                    immutable n = encode(buf, cast(dchar) cp);
-                    app.put(buf[0 .. n]);
+                    appendUtf8(buf, cp);
                     break;
                 }
             default:
-                throw new JsonException("invalid escape", pos - 1);
+                throw fail("invalid escape");
             }
         }
-        throw new JsonException("unterminated string", pos);
+        return cast(string) buf;
     }
-}
 
-/// Serialises a value as compact JSON text (numbers in canonical `<mantissa>e<exp>` form).
-string toJson()(auto ref const Value v)
-{
-    auto app = appender!string();
-    writeJson(app, v);
-    return app.data;
-}
-
-private void writeJsonString(R)(ref R app, string s)
-{
-    app.put('"');
-    foreach (char c; s)
+    JsonValue parseNumber()
     {
-        switch (c)
+        immutable start = pos;
+        bool neg = false;
+        if (pos < src.length && src[pos] == '-')
         {
-        case '"':
-            app.put(`\"`);
-            break;
-        case '\\':
-            app.put(`\\`);
-            break;
-        case '\n':
-            app.put(`\n`);
-            break;
-        case '\r':
-            app.put(`\r`);
-            break;
-        case '\t':
-            app.put(`\t`);
-            break;
-        default:
-            if (c < 0x20)
+            neg = true;
+            pos++;
+        }
+        char[] digits;
+        immutable intStart = pos;
+        while (pos < src.length && src[pos] >= '0' && src[pos] <= '9')
+            pos++;
+        if (pos == intStart)
+            throw fail("invalid number");
+        digits ~= src[intStart .. pos];
+        long exp10 = 0;
+        if (pos < src.length && src[pos] == '.')
+        {
+            pos++;
+            immutable fs = pos;
+            while (pos < src.length && src[pos] >= '0' && src[pos] <= '9')
+                pos++;
+            if (pos == fs)
+                throw fail("invalid number");
+            digits ~= src[fs .. pos];
+            exp10 -= cast(long)(pos - fs);
+        }
+        if (pos < src.length && (src[pos] == 'e' || src[pos] == 'E'))
+        {
+            pos++;
+            bool eneg = false;
+            if (pos < src.length && (src[pos] == '+' || src[pos] == '-'))
             {
-                import std.format : format;
-
-                app.put(format!`\u%04x`(cast(uint) c));
+                eneg = src[pos] == '-';
+                pos++;
             }
-            else
-                app.put(c);
+            immutable es = pos;
+            long e = 0;
+            while (pos < src.length && src[pos] >= '0' && src[pos] <= '9')
+            {
+                if (e < 100_000_000)
+                    e = e * 10 + (src[pos] - '0');
+                pos++;
+            }
+            if (pos == es)
+                throw fail("invalid number");
+            exp10 += eneg ? -e : e;
         }
+        cast(void) start;
+        return JsonValue.makeNumber(Number.fromDigits(neg, digits, exp10));
     }
-    app.put('"');
 }
 
-private void writeJson(R)(ref R app, ref const Value v)
+/// Appends the UTF-8 encoding of code point `cp` (surrogates are encoded as-is).
+void appendUtf8(ref char[] buf, uint cp)
 {
-    final switch (v.kind)
+    if (cp < 0x80)
+        buf ~= cast(char) cp;
+    else if (cp < 0x800)
     {
-    case Kind.null_:
-        app.put("null");
-        break;
-    case Kind.boolean:
-        app.put(v.boolean ? "true" : "false");
-        break;
-    case Kind.number:
-        app.put(v.number.toString());
-        break;
-    case Kind.string:
-        writeJsonString(app, v.str);
-        break;
-    case Kind.array:
-        app.put('[');
-        foreach (i, ref e; v.array)
-        {
-            if (i)
-                app.put(',');
-            writeJson(app, e);
-        }
-        app.put(']');
-        break;
-    case Kind.object:
-        app.put('{');
-        foreach (i, ref m; v.object.members)
-        {
-            if (i)
-                app.put(',');
-            writeJsonString(app, m.key);
-            app.put(':');
-            writeJson(app, m.value);
-        }
-        app.put('}');
-        break;
+        buf ~= cast(char)(0xC0 | (cp >> 6));
+        buf ~= cast(char)(0x80 | (cp & 0x3F));
     }
+    else if (cp < 0x10000)
+    {
+        buf ~= cast(char)(0xE0 | (cp >> 12));
+        buf ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
+        buf ~= cast(char)(0x80 | (cp & 0x3F));
+    }
+    else
+    {
+        buf ~= cast(char)(0xF0 | (cp >> 18));
+        buf ~= cast(char)(0x80 | ((cp >> 12) & 0x3F));
+        buf ~= cast(char)(0x80 | ((cp >> 6) & 0x3F));
+        buf ~= cast(char)(0x80 | (cp & 0x3F));
+    }
+}
+
+/// JSON equality (RFC-style, with exact numbers): different types are never
+/// equal, objects compare irrespective of member order.
+bool jsonEqual(JsonValue a, JsonValue b)
+{
+    if (a is b)
+        return true;
+    if (a.type != b.type)
+        return false;
+    final switch (a.type)
+    {
+    case JsonType.null_:
+        return true;
+    case JsonType.boolean:
+        return a.boolean == b.boolean;
+    case JsonType.number:
+        return a.number == b.number;
+    case JsonType.string:
+        return a.str == b.str;
+    case JsonType.array:
+        if (a.items.length != b.items.length)
+            return false;
+        foreach (i, x; a.items)
+            if (!jsonEqual(x, b.items[i]))
+                return false;
+        return true;
+    case JsonType.object:
+        if (a.keys.length != b.keys.length)
+            return false;
+        foreach (i, k; a.keys)
+        {
+            auto p = k in b.map;
+            if (p is null || !jsonEqual(a.values[i], *p))
+                return false;
+        }
+        return true;
+    }
+}
+
+/// A hash consistent with `jsonEqual`.
+ulong jsonHash(JsonValue v)
+{
+    enum ulong mul = 0x9E3779B97F4A7C15UL;
+    static ulong mix(ulong h)
+    {
+        h ^= h >> 33;
+        h *= 0xff51afd7ed558ccdUL;
+        h ^= h >> 33;
+        h *= 0xc4ceb9fe1a85ec53UL;
+        h ^= h >> 33;
+        return h;
+    }
+    final switch (v.type)
+    {
+    case JsonType.null_:
+        return 0x1234;
+    case JsonType.boolean:
+        return v.boolean ? 0x2345 : 0x3456;
+    case JsonType.number:
+        return mix(v.number.toHash() + 7);
+    case JsonType.string:
+        return mix(hashString(v.str) + 11);
+    case JsonType.array:
+        {
+            ulong h = 0x4567;
+            foreach (x; v.items)
+                h = mix(h * mul + jsonHash(x));
+            return h;
+        }
+    case JsonType.object:
+        {
+            ulong h = 0x5678;
+            foreach (i, k; v.keys)
+                h += mix(hashString(k) * mul + jsonHash(v.values[i]));
+            return mix(h);
+        }
+    }
+}
+
+private ulong hashString(const(char)[] s)
+{
+    ulong h = 0xcbf29ce484222325UL;
+    foreach (c; s)
+    {
+        h ^= cast(ubyte) c;
+        h *= 0x100000001b3UL;
+    }
+    return h;
+}
+
+unittest
+{
+    auto v = parseJson(` {"a": [1, 2.5e1, "xé💩"], "b": null, "c": true} `);
+    assert(v.isObject && v.keys == ["a", "b", "c"]);
+    auto a = v.get("a");
+    assert(a.items.length == 3);
+    assert(a.items[1].number == Number.fromLong(25));
+    assert(a.items[2].str == "xé\U0001F4A9");
+    assert(v.get("b").type == JsonType.null_);
+    assert(v.get("zzz") is null);
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+
+    assertThrown!JsonException(parseJson("[1,]"));
+    assertThrown!JsonException(parseJson("{\"a\" 1}"));
+    assertThrown!JsonException(parseJson("01 2"));
+    assertThrown!JsonException(parseJson("\"abc"));
+}
+
+unittest
+{
+    assert(jsonEqual(parseJson("1"), parseJson("1.00")));
+    assert(jsonEqual(parseJson("100"), parseJson("1e2")));
+    assert(!jsonEqual(parseJson("true"), parseJson("1")));
+    assert(jsonEqual(parseJson(`{"a":1,"b":[2]}`), parseJson(`{"b":[2.0],"a":1.0}`)));
+    assert(!jsonEqual(parseJson(`{"a":1}`), parseJson(`{"b":1}`)));
+    assert(jsonHash(parseJson(`{"a":1,"b":[2]}`)) == jsonHash(parseJson(`{"b":[2.0],"a":1.0}`)));
+    assert(jsonHash(parseJson("1")) == jsonHash(parseJson("1e0")));
 }

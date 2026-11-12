@@ -1,0 +1,17 @@
+[package]
+name = "qrcode"
+version = "0.1.0"
+edition = "2021"
+description = "A from-scratch QR Code Model 2 encoder (ISO/IEC 18004) with a text-matrix command-line tool"
+license = "MIT"
+readme = "README.md"
+keywords = ["qr", "qrcode", "encoder"]
+categories = ["encoding"]
+
+[lib]
+name = "qrcode"
+path = "src/lib.rs"
+
+[[bin]]
+name = "qrcode"
+path = "src/main.rs"

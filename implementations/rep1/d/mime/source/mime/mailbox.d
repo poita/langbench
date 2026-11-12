@@ -1,112 +1,92 @@
-/// Mailbox input: splits an mbox file, or lists a directory of `.eml` files,
-/// into raw messages.
+/// Reading mailboxes: mbox files and directories of `.eml` files.
 module mime.mailbox;
 
-import std.algorithm.sorting : sort;
-import std.file : DirEntry, dirEntries, isDir, isFile, read, SpanMode;
+import std.algorithm : endsWith, sort;
+import std.array : array;
+import std.conv : to;
+import std.file : DirEntry, dirEntries, isDir, read, SpanMode;
 import std.path : baseName, buildPath;
+import mime.lines;
 
-/// One raw message: where it came from and its bytes.
+@safe:
+
+/// One message as extracted from a mailbox.
 struct RawMessage
 {
-    string sourceId; /// file name, or `mbox:<i>`
-    const(ubyte)[] data; /// the message bytes (CRLF line endings untouched)
+    string sourceId;       /// `mbox:<n>` or the `.eml` file name
+    const(ubyte)[] bytes;  /// the message bytes (line endings untouched)
 }
 
-/// Splits an mbox archive into messages; message *i* has source id `mbox:i`.
-///
-/// A separator line starts with `From ` and is the first line or follows an
-/// empty line. The returned messages are slices of `file`.
-RawMessage[] splitMbox(const(ubyte)[] file) @safe pure
+/// Splits mbox data into messages (numbered from 1).
+RawMessage[] splitMbox(const(ubyte)[] data) pure
 {
     RawMessage[] result;
-    immutable n = file.length;
-
     size_t pos = 0;
-    bool prevEmpty = true; // "first line" counts like "after an empty line"
-    size_t msgStart = size_t.max;
-    size_t sepStart = 0;
+    bool prevEmpty = false;    // the previous line was empty
+    bool first = true;         // we are on the first line of the file
+    size_t msgStart = 0;
+    bool inMessage = false;
 
-    void finish(size_t end) @safe pure
+    void finish(size_t end)
     {
-        if (msgStart == size_t.max)
+        if (!inMessage)
             return;
-        auto bytes = file[msgStart .. end];
+        auto bytes = data[msgStart .. end];
         if (bytes.length >= 2 && bytes[$ - 1] == '\n' && bytes[$ - 2] == '\n')
             bytes = bytes[0 .. $ - 1];
-        result ~= RawMessage(mboxId(result.length + 1), bytes);
+        result ~= RawMessage("mbox:" ~ (result.length + 1).to!string, bytes);
     }
 
-    while (pos < n)
+    while (pos < data.length)
     {
-        size_t e = pos;
-        while (e < n && file[e] != '\n')
-            e++;
-        immutable next = e < n ? e + 1 : n;
-        immutable isSep = prevEmpty && e - pos >= 5 && file[pos .. pos + 5] == cast(const(ubyte)[]) "From ";
-        if (isSep)
+        const ln = nextLine(data, pos);
+        const line = data[ln.start .. ln.end];
+        const isSeparator = (first || prevEmpty) && line.length >= 5 && line[0 .. 5] == cast(const(ubyte)[]) "From ";
+        if (isSeparator)
         {
-            finish(pos);
-            msgStart = next;
+            finish(ln.start);
+            inMessage = true;
+            msgStart = ln.next;
         }
-        // an empty line has no bytes once a single CR before the LF is dropped
-        immutable lineLen = (e > pos && file[e - 1] == '\r' && e < n) ? e - pos - 1 : e - pos;
-        prevEmpty = lineLen == 0 && e < n;
-        pos = next;
+        first = false;
+        prevEmpty = line.length == 0;
+        pos = ln.next;
     }
-    finish(n);
+    finish(data.length);
     return result;
 }
 
-private string mboxId(size_t i) @safe pure
+/// Reads a mailbox: a directory of `.eml` files (sorted by name) or an mbox
+/// file.
+RawMessage[] readMailbox(string path) @trusted
 {
-    import std.conv : to;
-
-    return "mbox:" ~ i.to!string;
+    if (isDir(path))
+    {
+        string[] names;
+        foreach (DirEntry e; dirEntries(path, SpanMode.shallow))
+            if (e.isFile && baseName(e.name).endsWith(".eml"))
+                names ~= baseName(e.name);
+        sort(names);
+        RawMessage[] result;
+        foreach (n; names)
+            result ~= RawMessage(n, cast(const(ubyte)[]) read(buildPath(path, n)));
+        return result;
+    }
+    return splitMbox(cast(const(ubyte)[]) read(path));
 }
 
-/// A mailbox on disk. Messages are loaded one at a time.
-final class Mailbox
+pure unittest
 {
-    private string[] names; // directory mode: sorted file names
-    private string dir;
-    private const(ubyte)[] mbox; // mbox mode: the whole file
-    private RawMessage[] mboxMessages;
-    private bool isDirectory;
-
-    /// Opens `path`, which is a regular file (mbox) or a directory of `.eml` files.
-    this(string path)
-    {
-        if (isDir(path))
-        {
-            isDirectory = true;
-            dir = path;
-            foreach (DirEntry e; dirEntries(path, SpanMode.shallow))
-            {
-                immutable name = baseName(e.name);
-                if (name.length >= 4 && name[$ - 4 .. $] == ".eml" && e.isFile)
-                    names ~= name;
-            }
-            names.sort!((a, b) => a < b);
-        }
-        else
-        {
-            mbox = cast(const(ubyte)[]) read(path);
-            mboxMessages = splitMbox(mbox);
-        }
-    }
-
-    /// Number of messages.
-    size_t length() const @safe pure nothrow @nogc
-    {
-        return isDirectory ? names.length : mboxMessages.length;
-    }
-
-    /// Returns message `i` (0-based), reading the file in directory mode.
-    RawMessage opIndex(size_t i)
-    {
-        if (isDirectory)
-            return RawMessage(names[i], cast(const(ubyte)[]) read(buildPath(dir, names[i])));
-        return mboxMessages[i];
-    }
+    static const(ubyte)[] u(string s) @trusted { return cast(const(ubyte)[]) s; }
+    auto r = splitMbox(u("junk\nFrom a\nS: 1\n\nbody\n\nFrom b\nS: 2\n\n"));
+    // "From a" is neither the first line nor after a blank line: not a separator.
+    assert(r.length == 1 && r[0].bytes == u("S: 2\n"));
+    r = splitMbox(u("From a\nS: 1\n\nbody\n\nFrom b\nS: 2\n\nx\n\n\n"));
+    assert(r.length == 2);
+    assert(r[0].sourceId == "mbox:1" && r[0].bytes == u("S: 1\n\nbody\n"));
+    assert(r[1].sourceId == "mbox:2" && r[1].bytes == u("S: 2\n\nx\n\n"));
+    assert(splitMbox(u("")).length == 0);
+    assert(splitMbox(u("no separator\n")).length == 0);
+    r = splitMbox(u("junk\n\nFrom a\nx\nFrom not separator\n"));
+    assert(r.length == 1 && r[0].bytes == u("x\nFrom not separator\n"));
 }

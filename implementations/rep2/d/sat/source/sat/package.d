@@ -1,16 +1,27 @@
 /**
- * `sat` — a CDCL SAT solver library.
+ * A CDCL SAT solver for formulas in DIMACS CNF.
+ *
+ * Importing `sat` gives the whole public API:
  *
  * $(UL
- *   $(LI $(MREF sat.solver): the solver itself ($(D Solver), $(D SolveResult)))
- *   $(LI $(MREF sat.dimacs): DIMACS parsing and result formatting)
- *   $(LI $(MREF sat.heap): the VSIDS variable heap)
- *   $(LI $(MREF sat.types): literal encoding helpers)
+ *   $(LI `sat.dimacs`: parse DIMACS text into a $(D Cnf) and render a result.)
+ *   $(LI `sat.solver`: the $(D Solver) class (incremental clause addition, `solve`).)
+ *   $(LI `sat.types`: literal and tri-state value types.)
+ *   $(LI `sat.model`: check an assignment against a formula.)
  * )
+ *
+ * Example:
+ * ---
+ * import sat;
+ * auto cnf = parseDimacs("p cnf 2 2\n1 2 0\n-1 0\n");
+ * auto res = solveCnf(cnf);
+ * assert(res.satisfiable);
+ * assert(satisfies(cnf, res.model));
+ * ---
  */
 module sat;
 
-public import sat.dimacs;
-public import sat.heap;
-public import sat.solver;
 public import sat.types;
+public import sat.dimacs;
+public import sat.solver;
+public import sat.model;

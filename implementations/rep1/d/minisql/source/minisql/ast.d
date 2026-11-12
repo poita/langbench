@@ -1,49 +1,39 @@
-/// Syntax trees produced by the parser. They are purely syntactic: names are
-/// not yet resolved against any schema (see `minisql.binder`).
+/**
+ * Syntax trees produced by the parser.
+ *
+ * Nothing here is resolved against a schema; that is the job of the binder
+ * (see `minisql.binder`).
+ */
 module minisql.ast;
 
-/// Binary operators, in no particular order.
+import minisql.value : Value;
+
+/// Binary operators of expressions.
 enum BinOp : ubyte
 {
-    add,
-    sub,
-    mul,
-    div,
-    mod,
-    eq,
-    ne,
-    lt,
-    le,
-    gt,
-    ge,
-    and,
-    or,
-    like,
+    add, sub, mul, div, mod,
+    eq, ne, lt, le, gt, ge,
+    and, or,
 }
 
-/// The aggregate functions.
-enum AggFn : ubyte
+/// The five aggregate functions.
+enum AggFunc : ubyte
 {
-    count,
-    sum,
-    min,
-    max,
-    avg,
+    count, sum, min, max, avg,
 }
 
-/// What an `Expr` node is.
+/// The shape of an $(LREF Expr) node.
 enum ExprKind : ubyte
 {
-    intLit, /// `intValue`
-    strLit, /// `text`
-    nullLit,
-    column, /// `qualifier` (may be null) and `text` (the column name)
-    neg, /// unary minus on `lhs`
-    not, /// NOT `lhs`
-    binary, /// `lhs op rhs`
-    isNull, /// `lhs` IS NULL
-    isNotNull, /// `lhs` IS NOT NULL
-    aggregate, /// `fn`(`lhs`), or COUNT(*) when `star`
+    literal,   /// `value`
+    column,    /// `qualifier`, `name`
+    negate,    /// `-lhs`
+    not,       /// `NOT lhs`
+    binary,    /// `lhs op rhs`
+    isNull,    /// `lhs IS NULL`
+    isNotNull, /// `lhs IS NOT NULL`
+    like,      /// `lhs LIKE rhs`
+    aggregate, /// `func(lhs)`, or `COUNT(*)` when `star`
 }
 
 /// An expression tree node.
@@ -51,24 +41,16 @@ final class Expr
 {
     ExprKind kind;
     BinOp op;
-    AggFn fn;
+    AggFunc func;
     bool star;
-    Expr lhs, rhs;
-    long intValue;
-    string text;
+    Value value;
     string qualifier;
-}
-
-/// A table in a FROM clause, with its optional alias.
-struct TableRef
-{
     string name;
-    string alias_;
+    Expr lhs, rhs;
 
-    /// The name columns are qualified with: the alias if given, else the table.
-    string effective() const pure nothrow @nogc @safe
+    this(ExprKind kind) @safe pure nothrow @nogc
     {
-        return alias_ !is null ? alias_ : name;
+        this.kind = kind;
     }
 }
 
@@ -80,66 +62,73 @@ struct SelectItem
     string alias_;
 }
 
-/// A possibly qualified column name.
+/// `name [[AS] alias]` in a FROM clause.
+struct TableRef
+{
+    string name;
+    string alias_;
+
+    /// The name under which the table's columns are qualified.
+    string effectiveName() const @safe pure nothrow @nogc
+    {
+        return alias_.length ? alias_ : name;
+    }
+}
+
+/// One term of an ORDER BY clause.
+struct OrderTerm
+{
+    Expr expr;
+    bool descending;
+}
+
+/// A column reference, as written in GROUP BY.
 struct ColumnRef
 {
     string qualifier;
     string name;
 }
 
-/// One ORDER BY term.
-struct OrderTerm
+/// The kind of a statement.
+enum StmtKind : ubyte
 {
-    Expr expr;
-    bool desc;
+    createTable, insert, delete_, update, select,
 }
 
-/// Base class of all statements.
-abstract class Statement
+/// A parsed statement; only the members relevant to `kind` are meaningful.
+final class Stmt
 {
-}
+    StmtKind kind;
 
-/// `CREATE TABLE name (col type, ...)`.
-final class CreateStmt : Statement
-{
+    /// Target table of CREATE / INSERT / DELETE / UPDATE.
     string table;
-    string[] columns;
-}
 
-/// `INSERT INTO name VALUES (...), (...)`.
-final class InsertStmt : Statement
-{
-    string table;
+    // CREATE TABLE
+    string[] columnNames;
+
+    // INSERT
     Expr[][] rows;
-}
 
-/// `DELETE FROM name [WHERE expr]`.
-final class DeleteStmt : Statement
-{
-    string table;
-    Expr where_;
-}
+    // UPDATE
+    string[] setColumns;
+    Expr[] setValues;
 
-/// `UPDATE name SET col = expr, ... [WHERE expr]`.
-final class UpdateStmt : Statement
-{
-    string table;
-    string[] columns;
-    Expr[] values;
-    Expr where_;
-}
+    // DELETE / UPDATE / SELECT
+    Expr where;
 
-/// A SELECT statement.
-final class SelectStmt : Statement
-{
+    // SELECT
     SelectItem[] items;
-    TableRef[] from; /// zero, one or two tables
-    Expr on; /// the JOIN ... ON expression, if any
-    Expr where_;
+    TableRef[] from;
+    Expr joinOn;
     ColumnRef[] groupBy;
     Expr having;
     OrderTerm[] orderBy;
     bool hasLimit;
     long limit;
     long offset;
+
+    this(StmtKind kind) @safe pure nothrow @nogc
+    {
+        this.kind = kind;
+    }
 }

@@ -1,369 +1,342 @@
 package rrule
 
-import "fmt"
+import (
+	"errors"
+	"sort"
+)
 
-// Expander expands rules. It owns the scratch buffers the algorithm needs,
-// so reusing one Expander across many rules avoids all per-period and
-// per-rule allocation. An Expander must not be used concurrently; a Rule can
-// be shared freely.
-type Expander struct {
-	c compiled
+// maxDay is the last day number that may be enumerated: 31 December 9999.
+var maxDay = daysFromYear(10000) - 1
 
-	// Per-expansion emit state.
-	dtDay    int  // day number of DTSTART
-	lastDay  int  // last day number that may be printed (when hasUntil)
-	hasUntil bool // UNTIL present
-	limit    int  // combined COUNT / N limit
-	printed  int
-	yield    func(day int) bool
+// plan is a Rule compiled against a DTSTART: defaults applied and every
+// filter turned into a lookup table so that testing a day is O(1).
+type plan struct {
+	freq     Frequency
+	interval int
+	wkst     int
+	count    int
 
-	// Reused scratch buffers.
-	kept      []int // kept day numbers of the current period
-	sel       []int // BYSETPOS selection indices
-	ordMask   [366]bool
-	ordMarked []int
-	week      weekInfo
+	hasUntil bool
+	until    int64 // DateTime.ordinal() of UNTIL
+
+	startDay int   // day number of DTSTART
+	tod      int   // DTSTART's time of day in seconds
+	startOrd int64 // DTSTART as an ordinal
+	startY   int
+	startM   int
+
+	hasMonth    bool
+	months      [13]bool
+	hasMonthDay bool
+	mdayPos     [32]bool
+	mdayNeg     [32]bool
+	hasYearDay  bool
+	ydayPos     [367]bool
+	ydayNeg     [367]bool
+	hasWeekNo   bool
+	weekNo      weekSet
+	hasWeekday  bool
+	weekdays    [7]bool
+	ordinals    []WeekdaySpec
+	setPos      []int
 }
 
-// NewExpander returns an Expander ready for use.
-func NewExpander() *Expander { return &Expander{} }
-
-// cursor is an incremental calendar position: advancing it by one day is an
-// increment with month and year rollover, never a full date conversion.
-type cursor struct {
-	day   int // day number
-	year  int
-	month int
-	dom   int // day of month, 1-based
-	doy   int // day of year, 0-based
-	mlen  int // length of the current month
-	ylen  int // length of the current year
-	wd    int // weekday, Monday = 0
-}
-
-// cursorAt builds a cursor for an arbitrary day number using the closed-form
-// conversion.
-func cursorAt(day int) cursor {
-	y, m, d := civilFromDay(day)
-	return cursor{
-		day: day, year: y, month: m, dom: d,
-		doy:  day - daysBeforeYear(y),
-		mlen: DaysInMonth(y, m), ylen: DaysInYear(y),
-		wd: day % 7,
+func compile(r *Rule, start DateTime) (*plan, error) {
+	if err := r.Validate(); err != nil {
+		return nil, err
 	}
-}
-
-func (c *cursor) advance() {
-	c.day++
-	c.doy++
-	c.dom++
-	c.wd++
-	if c.wd == 7 {
-		c.wd = 0
+	if !start.Valid() {
+		return nil, errors.New("rrule: invalid DTSTART")
 	}
-	if c.dom > c.mlen {
-		c.dom = 1
-		c.month++
-		if c.month > 12 {
-			c.month = 1
-			c.year++
-			c.doy = 0
-			c.ylen = DaysInYear(c.year)
+	p := &plan{
+		freq: r.Freq, interval: r.Interval, wkst: int(r.WeekStart),
+		count: r.Count, hasUntil: r.HasUntil,
+		startDay: daysFromCivil(start.Year, start.Month, start.Day),
+		tod:      start.timeOfDay(),
+		startY:   start.Year, startM: start.Month,
+		setPos: r.BySetPos,
+	}
+	p.startOrd = start.ordinal()
+	if r.HasUntil {
+		p.until = r.Until.ordinal()
+	}
+
+	monthDays := r.ByMonthDay
+	months := r.ByMonth
+	byDay := r.ByDay
+	// Step 1: defaults derived from DTSTART.
+	if len(r.ByMonthDay) == 0 && len(r.ByYearDay) == 0 && len(r.ByWeekNo) == 0 && len(r.ByDay) == 0 {
+		switch r.Freq {
+		case Yearly:
+			if len(months) == 0 {
+				months = []int{start.Month}
+			}
+			monthDays = []int{start.Day}
+		case Monthly:
+			monthDays = []int{start.Day}
+		case Weekly:
+			byDay = []WeekdaySpec{{Day: start.Weekday()}}
 		}
-		c.mlen = DaysInMonth(c.year, c.month)
+	}
+
+	if len(months) > 0 {
+		p.hasMonth = true
+		for _, m := range months {
+			p.months[m] = true
+		}
+	}
+	if len(monthDays) > 0 {
+		p.hasMonthDay = true
+		for _, d := range monthDays {
+			if d > 0 {
+				p.mdayPos[d] = true
+			} else {
+				p.mdayNeg[-d] = true
+			}
+		}
+	}
+	if len(r.ByYearDay) > 0 {
+		p.hasYearDay = true
+		for _, d := range r.ByYearDay {
+			if d > 0 {
+				p.ydayPos[d] = true
+			} else {
+				p.ydayNeg[-d] = true
+			}
+		}
+	}
+	if len(r.ByWeekNo) > 0 {
+		p.hasWeekNo = true
+		for _, w := range r.ByWeekNo {
+			if w > 0 {
+				p.weekNo.pos[w] = true
+			} else {
+				p.weekNo.neg[-w] = true
+			}
+		}
+	}
+	for _, s := range byDay {
+		if s.N == 0 {
+			p.hasWeekday = true
+			p.weekdays[s.Day] = true
+		} else {
+			p.ordinals = append(p.ordinals, s)
+		}
+	}
+	return p, nil
+}
+
+// period describes the candidate days of one period: n consecutive days
+// starting at day number first.
+type period struct {
+	first, n int
+}
+
+// periodAt returns period k, or ok=false when enumeration is over because the
+// period would start after year 9999.
+func (p *plan) periodAt(k int) (per period, ok bool) {
+	switch p.freq {
+	case Yearly:
+		y := p.startY + k*p.interval
+		if y > 9999 {
+			return period{}, false
+		}
+		return period{daysFromYear(y), DaysInYear(y)}, true
+	case Monthly:
+		idx := p.startY*12 + (p.startM - 1) + k*p.interval
+		y, m := idx/12, idx%12+1
+		if y > 9999 {
+			return period{}, false
+		}
+		return period{daysFromCivil(y, m, 1), DaysInMonth(y, m)}, true
+	case Weekly:
+		a := p.startDay - mod7(weekdayOf(p.startDay)-p.wkst)
+		var per period
+		if k == 0 {
+			per = period{p.startDay, 7 - (p.startDay - a)}
+		} else {
+			per = period{a + 7*k*p.interval, 7}
+		}
+		return per, per.first <= maxDay
+	default: // Daily
+		d := p.startDay + k*p.interval
+		return period{d, 1}, d <= maxDay
 	}
 }
 
-// Each calls fn for each occurrence of r from start, in chronological order,
-// until at most n occurrences have been produced (and never more than the
-// rule's COUNT) or fn returns false.
-func (e *Expander) Each(r *Rule, start DateTime, n int, fn func(DateTime) bool) error {
-	return e.run(r, start, n, func(day int) bool {
-		y, m, d := civilFromDay(day)
-		return fn(DateTime{y, m, d, start.Hour, start.Minute, start.Second})
-	})
+// markOrdinals fills marks[0:per.n] with the days designated by the ordinal
+// BYDAY codes (SPEC.md section 5).
+func (p *plan) markOrdinals(per period, marks []bool) {
+	for i := range marks[:per.n] {
+		marks[i] = false
+	}
+	if p.freq == Monthly || !p.hasMonth {
+		// The whole period (month or year) is the range.
+		p.markRange(per.first, per.n, per.first, marks)
+		return
+	}
+	y, _, _, _ := civilFromDays(per.first)
+	l := leapIndex(y)
+	for m := 1; m <= 12; m++ {
+		if p.months[m] {
+			p.markRange(per.first+monthStart[l][m], monthLen[l][m], per.first, marks)
+		}
+	}
 }
 
-// Expand returns up to n occurrences of r from start.
-func (e *Expander) Expand(r *Rule, start DateTime, n int) ([]DateTime, error) {
+// markRange marks, for each ordinal code, its designated day within the range
+// of n days starting at day number start. base is the day number of marks[0].
+func (p *plan) markRange(start, n, base int, marks []bool) {
+	last := start + n - 1
+	for _, s := range p.ordinals {
+		wd := int(s.Day)
+		var day int
+		if s.N > 0 {
+			day = start + mod7(wd-weekdayOf(start)) + 7*(s.N-1)
+		} else {
+			day = last - mod7(weekdayOf(last)-wd) + 7*(s.N+1)
+		}
+		if day >= start && day <= last {
+			marks[day-base] = true
+		}
+	}
+}
+
+// Each calls yield with the occurrences of the rule for the given DTSTART in
+// chronological order, until yield returns false, the rule is exhausted, or
+// limit occurrences have been produced. A limit of zero or less means no
+// limit other than those of the rule itself. Occurrences never fall after
+// 31 December 9999.
+//
+// Every period is enumerated and each of its days is tested against the
+// filters in constant time; the cost is O(periods + days + occurrences).
+func (r Rule) Each(start DateTime, limit int, yield func(DateTime) bool) error {
+	p, err := compile(&r, start)
+	if err != nil {
+		return err
+	}
+	p.run(limit, func(day int) bool {
+		y, m, d, _ := civilFromDays(day)
+		return yield(DateTime{y, m, d, start.Hour, start.Minute, start.Second})
+	})
+	return nil
+}
+
+// Expand returns up to limit occurrences of the rule (all of them if limit is
+// zero or less). See Each for the semantics.
+func (r Rule) Expand(start DateTime, limit int) ([]DateTime, error) {
 	var out []DateTime
-	err := e.Each(r, start, n, func(dt DateTime) bool {
-		out = append(out, dt)
+	err := r.Each(start, limit, func(t DateTime) bool {
+		out = append(out, t)
 		return true
 	})
 	return out, err
 }
 
-// AppendText appends the occurrences as YYYYMMDDTHHMMSS stamps separated by
-// single spaces (no trailing newline) and returns the extended slice.
-func (e *Expander) AppendText(dst []byte, r *Rule, start DateTime, n int) ([]byte, error) {
-	secs := start.secondsOfDay()
-	first := true
-	err := e.run(r, start, n, func(day int) bool {
-		if !first {
-			dst = append(dst, ' ')
+// run walks the periods and reports occurrence day numbers (SPEC.md
+// sections 2, 3, 6 and 7).
+func (p *plan) run(limit int, emit func(day int) bool) {
+	emitted := 0
+	// offer applies the UNTIL / DTSTART / COUNT / limit rules of section 7 to
+	// one occurrence. It returns false when the expansion must stop.
+	offer := func(day int) bool {
+		ord := int64(day)*secondsPerDay + int64(p.tod)
+		if p.hasUntil && ord > p.until {
+			return false
 		}
-		first = false
-		y, m, d := civilFromDay(day)
-		dst = appendStamp(dst, y, m, d, secs)
-		return true
-	})
-	return dst, err
-}
-
-// Expand returns up to n occurrences of r from start; see [Expander.Expand].
-func (r *Rule) Expand(start DateTime, n int) ([]DateTime, error) {
-	return NewExpander().Expand(r, start, n)
-}
-
-// run is the expansion engine; it reports each occurrence as a day number.
-func (e *Expander) run(r *Rule, start DateTime, n int, yield func(day int) bool) error {
-	if err := r.Validate(); err != nil {
-		return err
-	}
-	if !start.Valid() {
-		return fmt.Errorf("%w: DTSTART %+v", ErrInvalidDateTime, start)
-	}
-	e.limit = n
-	if r.Count > 0 && r.Count < e.limit {
-		e.limit = r.Count
-	}
-	if e.limit <= 0 {
-		return nil
-	}
-	e.c.compile(r, start)
-	e.dtDay = dayNumber(start.Year, start.Month, start.Day)
-	e.hasUntil = r.Until != nil
-	if e.hasUntil {
-		e.lastDay = dayNumber(r.Until.Year, r.Until.Month, r.Until.Day)
-		if r.Until.secondsOfDay() < start.secondsOfDay() {
-			e.lastDay--
-		}
-	}
-	e.printed = 0
-	e.yield = yield
-	e.ordMarked = e.ordMarked[:0]
-
-	switch e.c.freq {
-	case Yearly:
-		e.runYearly(start)
-	case Monthly:
-		e.runMonthly(start)
-	case Weekly:
-		e.runWeekly()
-	case Daily:
-		e.runDaily()
-	}
-	e.yield = nil
-	return nil
-}
-
-// pastUntil reports whether a period whose first day is startDay can be
-// abandoned because nothing in it can be printed.
-func (e *Expander) pastUntil(startDay int) bool {
-	return e.hasUntil && startDay > e.lastDay
-}
-
-func (e *Expander) runYearly(start DateTime) {
-	c := &e.c
-	prevLen := DaysInYear(start.Year - 1)
-	for y := start.Year; y <= maxYear; y += c.interval {
-		ylen := DaysInYear(y)
-		jan1 := daysBeforeYear(y)
-		if y != start.Year {
-			prevLen = DaysInYear(y - 1)
-		}
-		if e.pastUntil(jan1) {
-			return
-		}
-		if c.hasWeekNo {
-			e.week = yearWeekInfo(c.wkst, jan1, ylen, prevLen)
-		}
-		if c.hasOrdinal && !c.hasMonth {
-			e.markOrdinals(jan1, ylen, 0)
-		}
-		leap := ylen == 366
-		e.kept = e.kept[:0]
-		for _, m := range c.months[:c.monthCount] {
-			doy := daysBeforeMonth[m]
-			mlen := monthLengths[m]
-			if leap && m > 2 {
-				doy++
-			}
-			if leap && m == 2 {
-				mlen = 29
-			}
-			if c.hasOrdinal && c.hasMonth {
-				e.markOrdinals(jan1+doy, mlen, doy)
-			}
-			cur := cursor{
-				day: jan1 + doy, year: y, month: m, dom: 1, doy: doy,
-				mlen: mlen, ylen: ylen, wd: (jan1 + doy) % 7,
-			}
-			e.walk(cur, mlen, true)
-		}
-		e.clearOrdinals()
-		if e.finishPeriod() {
-			return
-		}
-	}
-}
-
-func (e *Expander) runMonthly(start DateTime) {
-	c := &e.c
-	idx0 := start.Year*12 + start.Month - 1
-	step := c.interval
-	for idx := idx0; ; idx += step {
-		y, m := idx/12, idx%12+1
-		if y > maxYear {
-			return
-		}
-		first := dayNumber(y, m, 1)
-		if e.pastUntil(first) {
-			return
-		}
-		if c.hasMonth && !c.month[m] {
-			continue
-		}
-		cur := cursorAt(first)
-		if c.hasOrdinal {
-			e.markOrdinals(first, cur.mlen, 0)
-		}
-		e.kept = e.kept[:0]
-		e.walk(cur, cur.mlen, false)
-		e.clearOrdinals()
-		if e.finishPeriod() {
-			return
-		}
-	}
-}
-
-func (e *Expander) runWeekly() {
-	c := &e.c
-	end := daysBeforeYear(maxYear + 1)
-	anchor := e.dtDay - mod7(e.dtDay%7-c.wkst)
-	for k := 0; ; k++ {
-		first, length := e.dtDay, anchor+7-e.dtDay
-		if k > 0 {
-			first, length = anchor+7*k*c.interval, 7
-		}
-		if first >= end || e.pastUntil(first) {
-			return
-		}
-		e.kept = e.kept[:0]
-		e.walk(cursorAt(first), length, false)
-		if e.finishPeriod() {
-			return
-		}
-	}
-}
-
-func (e *Expander) runDaily() {
-	c := &e.c
-	end := daysBeforeYear(maxYear + 1)
-	for day := e.dtDay; day < end; day += c.interval {
-		if e.pastUntil(day) {
-			return
-		}
-		e.kept = e.kept[:0]
-		e.walk(cursorAt(day), 1, false)
-		if e.finishPeriod() {
-			return
-		}
-	}
-}
-
-// walk examines n consecutive candidate days starting at cur and appends the
-// ones that pass every filter to e.kept. ordByDoy says whether the ordinal
-// mask is indexed by day of year (YEARLY) or by day of month (MONTHLY).
-func (e *Expander) walk(cur cursor, n int, ordByDoy bool) {
-	c := &e.c
-	for i := 0; i < n; i++ {
-		if c.hasMonth && !c.month[cur.month] {
-			goto next
-		}
-		if c.hasMonthDay && !c.monthDay[cur.dom] && !c.monthDayN[cur.mlen-cur.dom+1] {
-			goto next
-		}
-		if c.hasWeekday && !c.weekday[cur.wd] {
-			goto next
-		}
-		if c.hasOrdinal {
-			idx := cur.dom - 1
-			if ordByDoy {
-				idx = cur.doy
-			}
-			if !e.ordMask[idx] {
-				goto next
-			}
-		}
-		if c.hasYearDay && !c.yearDay[cur.doy+1] && !c.yearDayN[cur.ylen-cur.doy] {
-			goto next
-		}
-		if c.hasWeekNo && !e.week.matches(c, cur.doy) {
-			goto next
-		}
-		e.kept = append(e.kept, cur.day)
-	next:
-		cur.advance()
-	}
-}
-
-// finishPeriod applies BYSETPOS to e.kept and emits the period's
-// occurrences. It reports whether the whole expansion is finished.
-func (e *Expander) finishPeriod() bool {
-	c := &e.c
-	if len(c.setPos) == 0 {
-		for _, day := range e.kept {
-			if e.emit(day) {
-				return true
-			}
-		}
-		return false
-	}
-	l := len(e.kept)
-	e.sel = e.sel[:0]
-	for _, p := range c.setPos {
-		i := p - 1
-		if p < 0 {
-			i = l + p
-		}
-		if i < 0 || i >= l {
-			continue
-		}
-		// Insertion into a sorted list; duplicates are skipped below.
-		j := len(e.sel)
-		e.sel = append(e.sel, i)
-		for ; j > 0 && e.sel[j-1] > i; j-- {
-			e.sel[j] = e.sel[j-1]
-		}
-		e.sel[j] = i
-	}
-	prev := -1
-	for _, i := range e.sel {
-		if i == prev {
-			continue
-		}
-		prev = i
-		if e.emit(e.kept[i]) {
+		if ord < p.startOrd {
 			return true
 		}
+		if !emit(day) {
+			return false
+		}
+		emitted++
+		return !(p.count > 0 && emitted >= p.count) && !(limit > 0 && emitted >= limit)
 	}
-	return false
-}
 
-// emit applies the UNTIL / DTSTART / limit rules of SPEC step 7 to one
-// occurrence. It reports whether the expansion must stop.
-func (e *Expander) emit(day int) bool {
-	if e.hasUntil && day > e.lastDay {
-		return true
+	var marks []bool
+	if len(p.ordinals) > 0 {
+		marks = make([]bool, 366)
 	}
-	if day < e.dtDay {
-		return false
+	var kept []int
+	var picks []int
+
+	for k := 0; ; k++ {
+		per, ok := p.periodAt(k)
+		if !ok {
+			return
+		}
+		if p.hasUntil && int64(per.first)*secondsPerDay+int64(p.tod) > p.until {
+			return
+		}
+		if marks != nil {
+			p.markOrdinals(per, marks)
+		}
+
+		y, m, d, yd := civilFromDays(per.first)
+		leap := leapIndex(y)
+		ml := monthLen[leap][m]
+		yl := 365 + leap
+		wd := weekdayOf(per.first)
+		var wy weekYear
+		if p.hasWeekNo {
+			wy = newWeekYear(y, Weekday(p.wkst))
+		}
+		kept = kept[:0]
+
+		for off := 0; off < per.n; off++ {
+			keep := (!p.hasMonth || p.months[m]) &&
+				(!p.hasWeekNo || p.weekNo.matches(&wy, yd)) &&
+				(!p.hasWeekday || p.weekdays[wd]) &&
+				(marks == nil || marks[off]) &&
+				(!p.hasMonthDay || p.mdayPos[d] || p.mdayNeg[ml-d+1]) &&
+				(!p.hasYearDay || p.ydayPos[yd+1] || p.ydayNeg[yl-yd])
+			if keep {
+				if len(p.setPos) > 0 {
+					kept = append(kept, per.first+off)
+				} else if !offer(per.first + off) {
+					return
+				}
+			}
+			// Advance to the next day.
+			wd++
+			if wd == 7 {
+				wd = 0
+			}
+			yd++
+			if d++; d > ml {
+				d = 1
+				if m++; m > 12 {
+					m = 1
+					y++
+					yd = 0
+					leap = leapIndex(y)
+					yl = 365 + leap
+				}
+				ml = monthLen[leap][m]
+			}
+		}
+
+		if len(p.setPos) > 0 {
+			picks = picks[:0]
+			for _, sp := range p.setPos {
+				idx := sp - 1
+				if sp < 0 {
+					idx = len(kept) + sp
+				}
+				if idx >= 0 && idx < len(kept) {
+					picks = append(picks, idx)
+				}
+			}
+			sort.Ints(picks)
+			for i, idx := range picks {
+				if i > 0 && idx == picks[i-1] {
+					continue
+				}
+				if !offer(kept[idx]) {
+					return
+				}
+			}
+		}
 	}
-	if !e.yield(day) {
-		return true
-	}
-	e.printed++
-	return e.printed >= e.limit
 }

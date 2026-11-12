@@ -6,38 +6,19 @@ import (
 	"testing"
 )
 
-func runCLI(input string) (string, int) {
-	var out, errb bytes.Buffer
-	code := run(strings.NewReader(input), &out, &errb)
-	return out.String(), code
-}
-
-func TestSplitsFilterAndDocument(t *testing.T) {
-	out, code := runCLI(".users | map(.n)\n{\"users\":[{\"n\":1},\n{\"n\":2}]}\n")
-	if code != 0 || out != "[1,2]\n" {
-		t.Errorf("got %q code %d", out, code)
+func TestRun(t *testing.T) {
+	tests := []struct{ in, want string }{
+		{".users | map(.n) | add\n{\"users\":[{\"n\":1},{\"n\":2}]}\n", "3\n"},
+		{"[(1,2) + (10,20)], (.[] | .a.b?)\n[{\"a\":{\"b\":1}},{\"a\":5},3]", "[11,12,21,22]\n1\nerror\n"},
+		{"empty\n[]", ""},
+		{".\n  {\"b\":1,\n\"a\":2}\n", "{\"b\":1,\"a\":2}\n"},
+		{"1, error, 2\nnull", "1\nerror\n"},
 	}
-}
-
-func TestErrorAfterPartialOutput(t *testing.T) {
-	out, code := runCLI("1, 2, error, 3\nnull")
-	if code != 0 || out != "1\n2\nerror\n" {
-		t.Errorf("got %q code %d", out, code)
-	}
-}
-
-func TestNoOutput(t *testing.T) {
-	out, code := runCLI("empty\n[]")
-	if code != 0 || out != "" {
-		t.Errorf("got %q code %d", out, code)
-	}
-}
-
-func TestBadFilterOrDocument(t *testing.T) {
-	if _, code := runCLI(".[\nnull"); code == 0 {
-		t.Error("bad filter should fail")
-	}
-	if _, code := runCLI(".\n{"); code == 0 {
-		t.Error("bad document should fail")
+	for _, tc := range tests {
+		var out bytes.Buffer
+		run(strings.NewReader(tc.in), &out)
+		if out.String() != tc.want {
+			t.Errorf("input %q:\n got %q\nwant %q", tc.in, out.String(), tc.want)
+		}
 	}
 }

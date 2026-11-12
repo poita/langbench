@@ -1,202 +1,215 @@
-/// Renders a `Node` tree as canonical TOML.
+/**
+ * The canonical TOML encoder.
+ *
+ * Given a `Node` tree it writes a deterministic TOML document: plain
+ * key/value pairs first (sorted), then sub-tables and arrays of tables
+ * (sorted), each with an explicit header.
+ */
 module toml.encoder;
 
 import std.array : Appender, appender;
-import std.algorithm.sorting : sort;
+
 import toml.node;
+import toml.utf8 : encodeUtf8;
 
-/**
- * Renders `root` (a table) as the canonical TOML document described in the
- * README: scalar pairs first in key order, then sub-tables and arrays of
- * tables with explicit headers, each preceded by a blank line unless it is
- * the first line of the document.
- */
-string toToml(Node root)
+/// True when `s` can be written as a bare key.
+private bool isBareKey(const(char)[] s) @safe pure nothrow @nogc
 {
-    auto app = appender!(char[]);
-    app.reserve(4096);
-    renderTable(app, root, "");
-    if (app.data.length == 0)
-        app.put('\n');
-    return cast(string) app.data;
+    if (s.length == 0)
+        return false;
+    foreach (c; s)
+    {
+        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')
+                || c == '_' || c == '-'))
+            return false;
+    }
+    return true;
 }
 
-private:
-
-enum Class : ubyte { inlineValue, subTable, tableArray }
-
-Class classify(Node n)
+/// Appends `s` as a TOML basic string (always single-line, always escaped).
+void writeBasicString(ref Appender!string sink, const(char)[] s)
 {
-    if (n.kind == Kind.table)
-        return Class.subTable;
-    if (n.kind == Kind.array && n.items.length > 0)
+    static immutable hexDigits = "0123456789abcdef";
+    sink.put('"');
+    size_t runStart = 0;
+    foreach (i, char c; s)
     {
-        foreach (e; n.items)
-            if (e.kind != Kind.table)
-                return Class.inlineValue;
-        return Class.tableArray;
-    }
-    return Class.inlineValue;
-}
-
-void renderTable(ref Appender!(char[]) o, Node t, string path)
-{
-    auto keys = t.members.keys;
-    keys.sort();
-    auto classes = new Class[keys.length];
-    bool anyHeader = false;
-    foreach (i, k; keys)
-    {
-        auto c = classify(t.members[k]);
-        classes[i] = c;
-        if (c == Class.inlineValue)
-        {
-            writeKey(o, k);
-            o.put(" = ");
-            writeInline(o, t.members[k]);
-            o.put('\n');
-        }
-        else
-            anyHeader = true;
-    }
-    if (!anyHeader)
-        return;
-    foreach (i, k; keys)
-    {
-        immutable c = classes[i];
-        if (c == Class.inlineValue)
+        if (c >= 0x20 && c != 0x7F && c != '"' && c != '\\')
             continue;
-        auto child = t.members[k];
-        auto childPath = path.length ? path ~ "." ~ renderKey(k) : renderKey(k);
-        if (c == Class.subTable)
+        sink.put(s[runStart .. i]);
+        runStart = i + 1;
+        switch (c)
         {
-            header(o, childPath, false);
-            renderTable(o, child, childPath);
+        case '"': sink.put(`\"`); break;
+        case '\\': sink.put(`\\`); break;
+        case '\b': sink.put(`\b`); break;
+        case '\t': sink.put(`\t`); break;
+        case '\n': sink.put(`\n`); break;
+        case '\f': sink.put(`\f`); break;
+        case '\r': sink.put(`\r`); break;
+        default:
+            sink.put(`\u00`);
+            sink.put(hexDigits[c >> 4]);
+            sink.put(hexDigits[c & 15]);
         }
+    }
+    sink.put(s[runStart .. $]);
+    sink.put('"');
+}
+
+private void writeKey(ref Appender!string sink, const(char)[] key)
+{
+    if (isBareKey(key))
+        sink.put(key);
+    else
+        writeBasicString(sink, key);
+}
+
+/// A sub-table node, i.e. a table (value nodes are scalars in this model).
+private bool isSubTable(Node n) @safe pure nothrow @nogc
+{
+    return n.isTable;
+}
+
+/// A non-empty array whose elements are all tables.
+private bool isArrayOfTables(Node n) @safe pure nothrow @nogc
+{
+    if (!n.isArray || n.items.length == 0)
+        return false;
+    foreach (e; n.items)
+        if (!e.isTable)
+            return false;
+    return true;
+}
+
+private void writeInline(ref Appender!string sink, Node n)
+{
+    final switch (n.kind)
+    {
+    case NodeKind.scalar:
+        if (n.scalarType == ScalarType.string_)
+            writeBasicString(sink, n.text);
         else
+            sink.put(n.text);
+        break;
+    case NodeKind.array:
+        sink.put('[');
+        foreach (i, e; n.items)
         {
-            foreach (e; child.items)
+            if (i)
+                sink.put(", ");
+            writeInline(sink, e);
+        }
+        sink.put(']');
+        break;
+    case NodeKind.table:
+        sink.put('{');
+        bool first = true;
+        foreach (k; n.sortedKeys)
+        {
+            if (!first)
+                sink.put(", ");
+            first = false;
+            writeKey(sink, k);
+            sink.put(" = ");
+            writeInline(sink, n.entries[k]);
+        }
+        sink.put('}');
+        break;
+    }
+}
+
+private void writeHeader(ref Appender!string sink, string[] path, bool isArray)
+{
+    if (sink.data.length != 0)
+        sink.put('\n');
+    sink.put(isArray ? "[[" : "[");
+    foreach (i, k; path)
+    {
+        if (i)
+            sink.put('.');
+        writeKey(sink, k);
+    }
+    sink.put(isArray ? "]]\n" : "]\n");
+}
+
+private void writeTable(ref Appender!string sink, Node t, string[] path)
+{
+    auto keys = t.sortedKeys;
+    foreach (k; keys)
+    {
+        auto v = t.entries[k];
+        if (isSubTable(v) || isArrayOfTables(v))
+            continue;
+        writeKey(sink, k);
+        sink.put(" = ");
+        writeInline(sink, v);
+        sink.put('\n');
+    }
+    foreach (k; keys)
+    {
+        auto v = t.entries[k];
+        if (isSubTable(v))
+        {
+            auto sub = path ~ k;
+            writeHeader(sink, sub, false);
+            writeTable(sink, v, sub);
+        }
+        else if (isArrayOfTables(v))
+        {
+            auto sub = path ~ k;
+            foreach (e; v.items)
             {
-                header(o, childPath, true);
-                renderTable(o, e, childPath);
+                writeHeader(sink, sub, true);
+                writeTable(sink, e, sub);
             }
         }
     }
 }
 
-void header(ref Appender!(char[]) o, string path, bool array)
+/**
+ * Renders a root table as canonical TOML.
+ *
+ * Params:
+ *     root = the root table
+ * Returns: the document, ending in a single newline
+ */
+string toToml(Node root)
 {
-    if (o.data.length != 0)
-        o.put('\n');
-    o.put(array ? "[[" : "[");
-    o.put(path);
-    o.put(array ? "]]\n" : "]\n");
+    assert(root.isTable, "the root of a document must be a table");
+    auto sink = appender!string();
+    writeTable(sink, root, null);
+    if (sink.data.length == 0)
+        sink.put('\n');
+    return sink.data;
 }
 
-void writeInline(ref Appender!(char[]) o, Node n)
+unittest
 {
-    switch (n.kind)
-    {
-    case Kind.table:
-        o.put('{');
-        auto keys = n.members.keys;
-        keys.sort();
-        foreach (i, k; keys)
-        {
-            if (i)
-                o.put(", ");
-            writeKey(o, k);
-            o.put(" = ");
-            writeInline(o, n.members[k]);
-        }
-        o.put('}');
-        break;
-    case Kind.array:
-        o.put('[');
-        foreach (i, e; n.items)
-        {
-            if (i)
-                o.put(", ");
-            writeInline(o, e);
-        }
-        o.put(']');
-        break;
-    case Kind.string_:
-        writeBasicString(o, n.text);
-        break;
-    default:
-        o.put(n.text);
-    }
+    import toml.json : fromTaggedJson;
+
+    assert(toToml(table()) == "\n");
+
+    auto doc = fromTaggedJson(`{"db":{"enabled":{"type":"bool","value":"true"},
+        "ports":[{"type":"integer","value":"8001"},{"type":"integer","value":"8002"}]},
+        "dob":{"type":"datetime","value":"1979-05-27T07:32:00-08:00"},
+        "fruit":[{"name":{"type":"string","value":"apple"}},{"name":{"type":"string","value":"banana"}}],
+        "name":{"type":"string","value":"Tom"}}`);
+    assert(toToml(doc) ==
+        "dob = 1979-05-27T07:32:00-08:00\nname = \"Tom\"\n\n[db]\nenabled = true\n"
+        ~ "ports = [8001, 8002]\n\n[[fruit]]\nname = \"apple\"\n\n[[fruit]]\nname = \"banana\"\n");
 }
 
-bool isBareKey(const(char)[] k) pure nothrow @nogc
+unittest
 {
-    if (k.length == 0)
-        return false;
-    foreach (c; k)
-        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_' || c == '-'))
-            return false;
-    return true;
-}
+    import toml.json : fromTaggedJson;
 
-void writeKey(ref Appender!(char[]) o, const(char)[] k)
-{
-    if (isBareKey(k))
-        o.put(k);
-    else
-        writeBasicString(o, k);
-}
-
-string renderKey(const(char)[] k)
-{
-    if (isBareKey(k))
-        return k.idup;
-    auto a = appender!(char[]);
-    writeBasicString(a, k);
-    return cast(string) a.data;
-}
-
-/// Writes a TOML basic string, escaping only what must be escaped.
-void writeBasicString(ref Appender!(char[]) o, const(char)[] s)
-{
-    static immutable hexd = "0123456789abcdef";
-    o.put('"');
-    size_t start = 0;
-    foreach (i, c; s)
-    {
-        if (c >= 0x20 && c != '"' && c != '\\' && c != 0x7F)
-            continue;
-        o.put(s[start .. i]);
-        start = i + 1;
-        switch (c)
-        {
-        case '"':
-            o.put(`\"`);
-            break;
-        case '\\':
-            o.put(`\\`);
-            break;
-        case '\b':
-            o.put(`\b`);
-            break;
-        case '\t':
-            o.put(`\t`);
-            break;
-        case '\n':
-            o.put(`\n`);
-            break;
-        case '\f':
-            o.put(`\f`);
-            break;
-        case '\r':
-            o.put(`\r`);
-            break;
-        default:
-            o.put(`\u00`);
-            o.put(hexd[c >> 4]);
-            o.put(hexd[c & 15]);
-        }
-    }
-    o.put(s[start .. $]);
-    o.put('"');
+    // Header first on the very first line has no blank line; nested empty
+    // tables get headers; mixed arrays and key quoting.
+    auto doc = fromTaggedJson(`{"a":{"b":{}},"x y":[{"k":{"type":"integer","value":"1"}}, {"type":"integer","value":"2"}],
+        "":{"type":"string","value":"q\"\u0001\u007f"}, "e":[], "t":[[{}],[]]}`);
+    assert(toToml(doc) ==
+        "\"\" = \"q\\\"\\u0001\\u007f\"\ne = []\nt = [[{}], []]\n\"x y\" = [{k = 1}, 2]\n\n[a]\n\n[a.b]\n");
+    auto d2 = fromTaggedJson(`{"a":{"b":{}}}`);
+    assert(toToml(d2) == "[a]\n\n[a.b]\n");
 }

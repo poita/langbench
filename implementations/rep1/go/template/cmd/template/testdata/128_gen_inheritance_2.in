@@ -1,0 +1,42 @@
+{
+  "x": "X"
+}
+--
+=== main
+{% extends "mid2" %}
+{% set lvl_main = "main" %}{% block b1 %}main[{{ super() }}{{ x }}]{% endblock %}
+{% block b2 %}main[{{ super() }}{{ lvl_main }}]{% endblock %}
+{% block b3 %}main[{{ super() }}{{ lvl_main }}]{% endblock %}
+{% block b6 %}main[{{ m() }}]{% endblock %}
+{% block b2_in %}main[]{% endblock %}
+{% block b5_in %}main[{{ x }}]{% endblock %}
+{% block tail %}main[{{ super() }}{% for i in range(2) %}{{ i }}{% endfor %}]{% endblock %}
+{% macro m() %}M-main{% endmacro %}
+=== mid2
+{% extends "mid1" %}
+{% set lvl_mid2 = "mid2" %}{% block b2 %}mid2[{{ super() }}]{% endblock %}
+{% block b3 %}mid2[{{ super() }}]{% endblock %}
+{% block b6 %}mid2[{{ super() }}{{ lvl_mid2 }}]{% endblock %}
+{% block b2_in %}mid2[{{ super() }}]{% endblock %}
+{% block b3_in %}mid2[{{ super() }}{{ lvl_mid2 }}]{% endblock %}
+{% block b6_in %}mid2[{{ super() }}]{% endblock %}
+{% macro m() %}M-mid2{% endmacro %}
+=== mid1
+{% extends "base" %}
+{% set lvl_mid1 = "mid1" %}{% block b1 %}mid1[]{% endblock %}
+{% block b7 %}mid1[]{% endblock %}
+{% block b2_in %}mid1[{{ x }}]{% endblock %}
+{% block b5_in %}mid1[{{ x }}]{% endblock %}
+{% block b7_in %}mid1[{{ lvl_mid1 }}]{% endblock %}
+{% block tail %}mid1[{{ x }}]{% endblock %}
+
+=== base
+<base>{% block b0 %}base-b0{% endblock %}
+{% block b1 %}base-b1{% endblock %}
+{% block b2 %}base-b2{% endblock %}
+{% block b3 %}base-b3{% endblock %}
+{% block b4 %}base-b4({% block b4_in %}in-b4{% endblock %}){% endblock %}
+{% block b5 %}base-b5({% block b5_in %}in-b5{% endblock %}){% endblock %}
+{% block b6 %}base-b6{% endblock %}
+{% block b7 %}base-b7{% endblock %}
+{% block tail %}tail{% endblock %}

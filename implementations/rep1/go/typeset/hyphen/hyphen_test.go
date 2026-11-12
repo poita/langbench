@@ -1,54 +1,53 @@
 package hyphen
 
 import (
+	"os"
 	"reflect"
 	"testing"
 )
 
-const sample = `chp 1
-left 2
-right 3
-pattern n1t
-pattern t1t
-pattern 3ing
-pattern n1g
-pattern .in3
-pattern 3tion
-pattern i1o
-exception al-go-rithm
-`
-
-func TestPositions(t *testing.T) {
-	s, err := Parse(sample)
+func load(t *testing.T) *Patterns {
+	t.Helper()
+	f, err := os.Open("../data/hyphen/english.chp")
 	if err != nil {
 		t.Fatal(err)
 	}
-	cases := map[string][]int{
-		"winter":      {3},
-		"typesetting": {7, 8},
-		"national":    {2, 4},
-		"algorithm":   {2, 4},
-		"abc":         nil,
+	defer f.Close()
+	p, err := Parse(f)
+	if err != nil {
+		t.Fatal(err)
 	}
-	for w, want := range cases {
-		got := s.Positions(w)
-		if !reflect.DeepEqual(got, want) {
-			t.Errorf("Positions(%q) = %v want %v", w, got, want)
-		}
+	return p
+}
+
+func TestPatternParsing(t *testing.T) {
+	key, vals := parsePattern(".anti3")
+	if key != ".anti" || !reflect.DeepEqual(vals, []uint8{0, 0, 0, 0, 0, 3}) {
+		t.Errorf("got %q %v", key, vals)
+	}
+	key, vals = parsePattern("c2h")
+	if key != "ch" || !reflect.DeepEqual(vals, []uint8{0, 2, 0}) {
+		t.Errorf("got %q %v", key, vals)
+	}
+	key, vals = parsePattern("3tion")
+	if key != "tion" || !reflect.DeepEqual(vals, []uint8{3, 0, 0, 0, 0}) {
+		t.Errorf("got %q %v", key, vals)
 	}
 }
 
-func TestSplitPattern(t *testing.T) {
-	k, v := splitPattern(".anti3")
-	if k != ".anti" || !reflect.DeepEqual(v, []uint8{0, 0, 0, 0, 0, 3}) {
-		t.Errorf(".anti3 -> %q %v", k, v)
+func TestPoints(t *testing.T) {
+	p := load(t)
+	cases := map[string][]int{
+		"winter":       {3},
+		"typesetting":  {7, 8},
+		"national":     {2, 4},
+		"introduction": {2, 8},
+		"algorithm":    {2, 4}, // exception al-go-rithm
+		"a":            nil,
 	}
-	k, v = splitPattern("c2h")
-	if k != "ch" || !reflect.DeepEqual(v, []uint8{0, 2, 0}) {
-		t.Errorf("c2h -> %q %v", k, v)
-	}
-	k, v = splitPattern("3tion")
-	if k != "tion" || !reflect.DeepEqual(v, []uint8{3, 0, 0, 0, 0}) {
-		t.Errorf("3tion -> %q %v", k, v)
+	for w, want := range cases {
+		if got := p.Points(w); !reflect.DeepEqual(got, want) {
+			t.Errorf("Points(%q) = %v, want %v", w, got, want)
+		}
 	}
 }

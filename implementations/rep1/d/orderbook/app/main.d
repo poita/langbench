@@ -1,33 +1,40 @@
-/// Command-line front end: read commands on stdin, write events on stdout.
-module main;
+/// Command-line front end: reads commands on stdin, writes events to stdout.
+module app.main;
 
-import std.stdio : stdin, stdout;
-import orderbook.driver : processStream;
-import orderbook.outbuf : OutBuf;
+import std.array : appender;
+import std.exception : assumeUnique;
+import std.stdio : stderr, stdin, stdout;
 
-/// Read all of standard input into one buffer.
-private char[] readAll()
+import orderbook;
+
+/// Read all of standard input.
+string readAll()
 {
-    char[] buf = new char[](1 << 20);
-    size_t len = 0;
+    auto data = appender!(ubyte[]);
+    ubyte[] chunk = new ubyte[1 << 20];
     for (;;)
     {
-        if (len == buf.length)
-            buf.length = buf.length * 2;
-        auto got = stdin.rawRead(buf[len .. $]);
+        auto got = stdin.rawRead(chunk);
         if (got.length == 0)
             break;
-        len += got.length;
+        data.put(got);
     }
-    return buf[0 .. len];
+    return cast(string) assumeUnique(data[]);
 }
 
 int main()
 {
     auto input = readAll();
-    OutBuf output;
-    processStream(input, output);
-    stdout.rawWrite(output.data);
-    stdout.flush();
-    return 0;
+    auto writer = BufferedWriter(stdout);
+    auto sink = textSink(writer);
+    int status = 0;
+    try
+        processStream(new OrderBook, input, sink);
+    catch (ProtocolException e)
+    {
+        stderr.writeln("orderbook: ", e.msg);
+        status = 1;
+    }
+    writer.flush();
+    return status;
 }

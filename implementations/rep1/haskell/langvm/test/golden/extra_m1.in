@@ -1,0 +1,8 @@
+@module main
+use shapes;
+use shapes as sh;
+impl shapes::Area for Int { fn area(self) -> Int { self * 2 } }
+fn main() { print(showInt(5.area())); print(showInt(Area::area(8)));  print(showInt(sh::mk(3))); }
+@module shapes
+pub trait Area { fn area(self) -> Int; }
+pub fn mk(x: Int) -> Int { Area::area(x) }

@@ -1,56 +1,47 @@
-/// Command-line front end: reads a request on stdin, prints one verdict per test.
+/// Command-line front end: reads one JSON document on stdin, prints
+/// `valid` / `invalid` per test instance on stdout.
 module app;
 
 import core.thread : Thread;
-import std.stdio : stderr, stdin, stdout;
+import std.stdio : File, stderr, stdin, stdout;
 
 import jsonschema;
 
-private string readAll()
-{
-    import core.stdc.stdio : fread, stdin;
+private int exitCode;
 
-    ubyte[] buf = new ubyte[1 << 20];
-    size_t len = 0;
-    for (;;)
+private void run()
+{
+    ubyte[] data;
+    ubyte[65536] buf;
+    while (true)
     {
-        if (len == buf.length)
-            buf.length = buf.length * 2;
-        immutable n = fread(buf.ptr + len, 1, buf.length - len, stdin);
-        if (n == 0)
+        auto got = stdin.rawRead(buf[]);
+        if (got.length == 0)
             break;
-        len += n;
+        data ~= got;
     }
-    return cast(string) buf[0 .. len];
+    try
+    {
+        auto lines = validateDocument(cast(const(char)[]) data);
+        auto w = stdout.lockingBinaryWriter;
+        foreach (l; lines)
+        {
+            w.put(l);
+            w.put('\n');
+        }
+    }
+    catch (Exception e)
+    {
+        stderr.writeln("error: ", e.msg);
+        exitCode = 1;
+    }
 }
 
 int main()
 {
-    int status = 0;
-    string result;
-    string error;
-
-    void work()
-    {
-        try
-            result = processRequest(readAll());
-        catch (Exception e)
-        {
-            error = e.msg;
-            status = 1;
-        }
-    }
-
-    // Evaluation is recursive and schemas can nest deeply: use a big stack.
-    auto t = new Thread(&work, 1024UL * 1024 * 1024);
+    // Schemas can nest hundreds of levels deep: evaluate on a big stack.
+    auto t = new Thread(&run, 1024 * 1024 * 1024);
     t.start();
     t.join();
-
-    if (status != 0)
-    {
-        stderr.writeln("jsonschema: ", error);
-        return status;
-    }
-    stdout.rawWrite(result);
-    return 0;
+    return exitCode;
 }

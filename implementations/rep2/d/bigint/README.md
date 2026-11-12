@@ -1,47 +1,49 @@
 # bigint
 
-Arbitrary-precision signed integer arithmetic in pure D (standard library only).
-Supports `+`, `-`, `*`, truncating `/` and `%`, `^` (exponentiation) and
-three-way comparison on integers with tens of thousands of digits.
+Arbitrary-precision signed integer arithmetic in D, with no dependencies
+beyond Phobos: a small library plus a command-line calculator built on it.
 
-Numbers are stored as sign + magnitude; the magnitude is a little-endian array of
-base-10⁹ limbs (`uint`), so parsing and printing decimal are linear. Algorithms
-are the classical quadratic ones: schoolbook multiplication, short division and
-Knuth's Algorithm D for long division, and left-to-right binary exponentiation.
-No built-in or library big-integer type is used.
+Numbers are a sign and a magnitude in base 10^9 (little-endian `uint` limbs), so
+decimal parsing and printing are linear. Algorithms are the classical ones:
+
+| operation     | algorithm                                              |
+|---------------|--------------------------------------------------------|
+| `+`, `-`, cmp | linear limb passes                                     |
+| `*`           | schoolbook, O(n·m)                                     |
+| `/`, `%`      | Knuth Algorithm D, quotient and remainder together     |
+| `^`           | binary exponentiation (repeated squaring)              |
+
+Division truncates toward zero and `%` takes the sign of the dividend.
 
 ## Layout
 
-| Path                    | Purpose                                                     |
-|-------------------------|-------------------------------------------------------------|
-| `source/bigint/limbs.d`   | unsigned magnitude algorithms (add, sub, mul, divmod, parse, print) |
-| `source/bigint/integer.d` | the signed `BigInt` type, `divMod`, `pow`                   |
-| `source/bigint/queries.d` | evaluator for the `<a> <op> <b>` line format                |
-| `source/bigint/package.d` | `import bigint;` re-exports everything                      |
-| `app/main.d`              | thin command-line tool                                      |
-| `tests/`                  | unit tests (run with `dub test`)                            |
+```
+dub.sdl                  package manifest
+source/bigint/package.d  `import bigint;` re-exports the public API
+source/bigint/bigint.d   BigInt (signed), divMod, pow
+source/bigint/natural.d  unsigned limb-array algorithms
+source/bigint/decimal.d  decimal text <-> limbs
+source/bigint/query.d    "<a> <op> <b>" evaluator
+source/app.d             the CLI (thin wrapper over bigint.query)
+build.sh, run.sh         build / run helpers
+```
 
 ## Build
 
-Requires LDC 1.41 and dub 1.40.
-
-```sh
-./build.sh          # dub build -b release --compiler=ldc2 --config=cli
-dub test --compiler=ldc2
-```
-
-The default dub configuration is `cli` (executable `bigint-cli`). Depend on the
-`library` configuration when using it as a package, e.g. in `dub.sdl`:
+Requires LDC and dub.
 
 ```
-dependency "bigint" path="../bigint"
-subConfiguration "bigint" "library"
+./build.sh                       # same as: dub build -b release --compiler=ldc2
+dub test --compiler=ldc2         # unit tests (D's built-in `unittest` blocks)
 ```
 
-## Command-line use
+The default dub configuration is `cli` (the executable `./bigint`). Use the
+`library` configuration when depending on the package.
 
-`./run.sh` reads queries from standard input, one per line, and writes one result
-line per query to standard output:
+## Command line
+
+`./run.sh` (or `./bigint`) reads queries from standard input, one per line, and
+prints one result per line:
 
 ```
 $ printf '12 + 30\n-7 / 2\n-7 %% 2\n2 ^ 100\n007 cmp 7\n1 / 0\n' | ./run.sh
@@ -53,13 +55,12 @@ $ printf '12 + 30\n-7 / 2\n-7 %% 2\n2 ^ 100\n007 cmp 7\n1 / 0\n' | ./run.sh
 error
 ```
 
-Each line is `<a> <op> <b>` with `op` one of `+ - * / % ^ cmp`; operands match
-`-?[0-9]+` (leading zeros and `-0` allowed). Results are canonical (no leading
-zeros, never `-0`). `cmp` prints `-1`, `0` or `1`. Division or remainder by zero
-and a negative exponent print `error`. Input is read in one bulk read and the
-output is written in one write. Malformed input makes the tool exit with status 1.
+A line is `<a> <op> <b>` with `op` one of `+ - * / % ^ cmp`. Operands are
+`-?[0-9]+`; leading zeros and `-0` are accepted. Results are canonical (no
+leading zeros, never `-0`); `cmp` prints `-1`, `0` or `1`. Division or
+remainder by zero and negative exponents print `error`. `0 ^ 0` is `1`.
 
-## Library use
+## Library
 
 ```d
 import std.stdio;
@@ -67,17 +68,19 @@ import bigint;
 
 void main()
 {
-    auto a = BigInt("123456789012345678901234567890");
-    auto b = BigInt("-987654321");
+    auto a = BigInt("-123456789012345678901234567890");
+    auto b = BigInt("987654321098765432109876543210");
 
-    writeln(a * b);                 // product
-    writeln(a + b, " ", a - b);
-    auto qr = divMod(a, b);         // truncating: a == q*b + r, r has the sign of a
-    writeln(qr.quotient, " ", qr.remainder);
-    writeln(pow(BigInt(2), 100));   // 1267650600228229401496703205376
-    writeln(a < b, " ", a == BigInt("0123456789012345678901234567890"));
+    writeln(a * b);          // -121932631137021795226185032733622923332237463801111263526900
+    writeln(BigInt(-7) / BigInt(2));   // -3  (truncating)
+    writeln(BigInt(-7) % BigInt(2));   // -1  (sign of the dividend)
+    writeln(BigInt(2) ^^ 100);         // 1267650600228229401496703205376
+
+    BigInt q, r;
+    divMod(a * b + BigInt(5), b, q, r);   // quotient and remainder together
+    assert(q * b + r == a * b + BigInt(5));
 }
 ```
 
-Division by zero throws `BigIntException`. Values are never mutated by
-operations, so copies share their magnitude storage cheaply.
+Division by zero and negative exponents throw `BigIntException`; malformed
+text throws `ParseException`.

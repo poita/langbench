@@ -1,15 +1,13 @@
-// Package toml implements the small TOML subset used by sitegen for
-// site.toml and for the front matter of content files.
+// Package toml parses the small TOML subset used by sitegen for site
+// configuration and for the front matter of content files.
 //
-// A document is a sequence of lines. Each line is blank, a comment (first
-// non-blank character is '#'), or an assignment "key = value". Values are
-// basic strings, integers, booleans or single-line arrays of basic strings.
-// There are no tables, dotted keys or multi-line values.
+// The subset has no tables, dotted keys or multi-line values. A document is a
+// sequence of lines; each line is blank, a comment, or an assignment
 //
-// Use Parse to read a document:
+//	key = value   # optional comment
 //
-//	doc, err := toml.Parse("title = \"Hi\"\nn = 3\n")
-//	title, _ := doc.String("title")
+// where value is a basic string, an integer, a boolean or a single-line array
+// of strings.
 package toml
 
 import (
@@ -20,17 +18,16 @@ import (
 )
 
 // Kind identifies the type of a Value.
-type Kind int
+type Kind uint8
 
-// The value kinds of the TOML subset.
+// The kinds of value in the TOML subset.
 const (
 	String Kind = iota
 	Integer
 	Boolean
-	Array
+	Array // an array of strings
 )
 
-// String returns the lower-case name of the kind.
 func (k Kind) String() string {
 	switch k {
 	case String:
@@ -45,74 +42,83 @@ func (k Kind) String() string {
 	return "unknown"
 }
 
-// Value is one parsed TOML value. Only the field matching Kind is meaningful.
+// A Value is one parsed right-hand side. Exactly one of the fields Str, Int,
+// Bool and Strings is meaningful, as selected by Kind.
 type Value struct {
-	Kind  Kind
-	Str   string   // Kind == String
-	Int   int64    // Kind == Integer
-	Bool  bool     // Kind == Boolean
-	Array []string // Kind == Array
+	Kind    Kind
+	Str     string
+	Int     int64
+	Bool    bool
+	Strings []string
 }
 
-// Entry is a key with its value.
+// An Entry is a key and its value.
 type Entry struct {
 	Key   string
 	Value Value
 }
 
-// Document is a parsed document: its entries in file order.
+// A Document is a parsed TOML-subset document. Entries are kept in the order
+// in which they appear in the source.
 type Document struct {
-	Entries []Entry
+	entries []Entry
+	index   map[string]int
 }
 
-// Lookup returns the value stored under key.
-func (d *Document) Lookup(key string) (Value, bool) {
-	for i := range d.Entries {
-		if d.Entries[i].Key == key {
-			return d.Entries[i].Value, true
-		}
+// Entries returns the assignments in source order. The slice must not be
+// modified.
+func (d *Document) Entries() []Entry { return d.entries }
+
+// Get returns the value of key.
+func (d *Document) Get(key string) (Value, bool) {
+	i, ok := d.index[key]
+	if !ok {
+		return Value{}, false
 	}
-	return Value{}, false
+	return d.entries[i].Value, true
 }
 
-// String returns the string stored under key; ok is false when the key is
-// missing or is not a string.
+// String returns the string value of key. ok is false if the key is absent or
+// not a string.
 func (d *Document) String(key string) (s string, ok bool) {
-	v, found := d.Lookup(key)
+	v, found := d.Get(key)
 	if !found || v.Kind != String {
 		return "", false
 	}
 	return v.Str, true
 }
 
-// Int returns the integer stored under key.
+// Int returns the integer value of key. ok is false if the key is absent or
+// not an integer.
 func (d *Document) Int(key string) (n int64, ok bool) {
-	v, found := d.Lookup(key)
+	v, found := d.Get(key)
 	if !found || v.Kind != Integer {
 		return 0, false
 	}
 	return v.Int, true
 }
 
-// Bool returns the boolean stored under key.
+// Bool returns the boolean value of key. ok is false if the key is absent or
+// not a boolean.
 func (d *Document) Bool(key string) (b bool, ok bool) {
-	v, found := d.Lookup(key)
+	v, found := d.Get(key)
 	if !found || v.Kind != Boolean {
 		return false, false
 	}
 	return v.Bool, true
 }
 
-// Strings returns the string array stored under key.
+// Strings returns the array value of key. ok is false if the key is absent or
+// not an array.
 func (d *Document) Strings(key string) (a []string, ok bool) {
-	v, found := d.Lookup(key)
+	v, found := d.Get(key)
 	if !found || v.Kind != Array {
 		return nil, false
 	}
-	return v.Array, true
+	return v.Strings, true
 }
 
-// SyntaxError describes a malformed line.
+// A SyntaxError reports a malformed line.
 type SyntaxError struct {
 	Line int // 1-based line number
 	Msg  string
@@ -122,83 +128,83 @@ func (e *SyntaxError) Error() string {
 	return fmt.Sprintf("toml: line %d: %s", e.Line, e.Msg)
 }
 
-// Parse parses a document in the TOML subset. Lines are separated by LF.
+// Parse parses a document. Lines are separated by LF; a trailing CR on a line
+// is tolerated and ignored.
 func Parse(src string) (*Document, error) {
-	doc := &Document{}
-	seen := map[string]bool{}
-	lineNo := 0
-	for len(src) > 0 || lineNo == 0 {
-		lineNo++
-		var line string
+	d := &Document{index: make(map[string]int)}
+	line := 0
+	for len(src) > 0 {
+		var text string
 		if i := strings.IndexByte(src, '\n'); i >= 0 {
-			line, src = src[:i], src[i+1:]
+			text, src = src[:i], src[i+1:]
 		} else {
-			line, src = src, ""
+			text, src = src, ""
 		}
-		entry, ok, err := parseLine(line)
+		line++
+		text = strings.TrimSuffix(text, "\r")
+		e, ok, err := parseLine(text)
 		if err != nil {
-			return nil, &SyntaxError{Line: lineNo, Msg: err.Error()}
+			return nil, &SyntaxError{Line: line, Msg: err.Error()}
 		}
 		if !ok {
 			continue
 		}
-		if seen[entry.Key] {
-			return nil, &SyntaxError{Line: lineNo, Msg: "duplicate key " + strconv.Quote(entry.Key)}
+		if _, dup := d.index[e.Key]; dup {
+			return nil, &SyntaxError{Line: line, Msg: "duplicate key " + strconv.Quote(e.Key)}
 		}
-		seen[entry.Key] = true
-		doc.Entries = append(doc.Entries, entry)
+		d.index[e.Key] = len(d.entries)
+		d.entries = append(d.entries, e)
 	}
-	return doc, nil
+	return d, nil
 }
 
 func isBlank(c byte) bool { return c == ' ' || c == '\t' }
 
-func isKeyChar(c byte) bool {
+func isKeyByte(c byte) bool {
 	return c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c >= '0' && c <= '9' || c == '_' || c == '-'
 }
 
-func skipBlanks(s string, i int) int {
+func skipBlank(s string, i int) int {
 	for i < len(s) && isBlank(s[i]) {
 		i++
 	}
 	return i
 }
 
-// parseLine parses one line; ok is false for blank and comment lines.
-func parseLine(line string) (e Entry, ok bool, err error) {
-	i := skipBlanks(line, 0)
-	if i == len(line) || line[i] == '#' {
+// parseLine parses one line. ok is false for blank and comment lines.
+func parseLine(s string) (e Entry, ok bool, err error) {
+	i := skipBlank(s, 0)
+	if i == len(s) || s[i] == '#' {
 		return e, false, nil
 	}
 	start := i
-	for i < len(line) && isKeyChar(line[i]) {
+	for i < len(s) && isKeyByte(s[i]) {
 		i++
 	}
 	if i == start {
 		return e, false, fmt.Errorf("expected a key")
 	}
-	e.Key = line[start:i]
-	i = skipBlanks(line, i)
-	if i >= len(line) || line[i] != '=' {
-		return e, false, fmt.Errorf("expected '=' after key")
+	key := s[start:i]
+	i = skipBlank(s, i)
+	if i >= len(s) || s[i] != '=' {
+		return e, false, fmt.Errorf("expected '=' after key %q", key)
 	}
-	i = skipBlanks(line, i+1)
-	if i >= len(line) {
-		return e, false, fmt.Errorf("missing value")
-	}
-	v, i, err := parseValue(line, i)
+	i = skipBlank(s, i+1)
+	v, i, err := parseValue(s, i)
 	if err != nil {
 		return e, false, err
 	}
-	i = skipBlanks(line, i)
-	if i < len(line) && line[i] != '#' {
+	i = skipBlank(s, i)
+	if i < len(s) && s[i] != '#' {
 		return e, false, fmt.Errorf("unexpected text after value")
 	}
-	e.Value = v
-	return e, true, nil
+	return Entry{Key: key, Value: v}, true, nil
 }
 
 func parseValue(s string, i int) (Value, int, error) {
+	if i >= len(s) {
+		return Value{}, i, fmt.Errorf("missing value")
+	}
 	switch c := s[i]; {
 	case c == '"':
 		str, j, err := parseString(s, i)
@@ -206,80 +212,84 @@ func parseValue(s string, i int) (Value, int, error) {
 	case c == '[':
 		return parseArray(s, i)
 	case c == '-' || c >= '0' && c <= '9':
-		return parseInt(s, i)
+		j := i
+		if s[j] == '-' {
+			j++
+		}
+		k := j
+		for k < len(s) && s[k] >= '0' && s[k] <= '9' {
+			k++
+		}
+		if k == j || (s[j] == '0' && k-j > 1) {
+			return Value{}, i, fmt.Errorf("malformed integer")
+		}
+		n, err := strconv.ParseInt(s[i:k], 10, 64)
+		if err != nil {
+			return Value{}, i, fmt.Errorf("integer out of range")
+		}
+		return Value{Kind: Integer, Int: n}, k, nil
 	case strings.HasPrefix(s[i:], "true"):
 		return Value{Kind: Boolean, Bool: true}, i + 4, nil
 	case strings.HasPrefix(s[i:], "false"):
-		return Value{Kind: Boolean}, i + 5, nil
+		return Value{Kind: Boolean, Bool: false}, i + 5, nil
 	}
-	return Value{}, i, fmt.Errorf("invalid value")
+	return Value{}, i, fmt.Errorf("unrecognised value")
 }
 
-func parseInt(s string, i int) (Value, int, error) {
-	j := i
-	if s[j] == '-' {
-		j++
-	}
-	k := j
-	for k < len(s) && s[k] >= '0' && s[k] <= '9' {
-		k++
-	}
-	if k == j {
-		return Value{}, i, fmt.Errorf("invalid integer")
-	}
-	if s[j] == '0' && k-j > 1 {
-		return Value{}, i, fmt.Errorf("leading zeros are not allowed")
-	}
-	n, err := strconv.ParseInt(s[i:k], 10, 64)
-	if err != nil {
-		return Value{}, i, fmt.Errorf("integer out of range")
-	}
-	return Value{Kind: Integer, Int: n}, k, nil
-}
-
-// parseString parses a basic string starting at the opening quote s[i].
+// parseString parses a basic string whose opening quote is at s[i].
 func parseString(s string, i int) (string, int, error) {
 	i++ // opening quote
-	var sb strings.Builder
+	// Fast path: no escapes.
+	j := i
+	for j < len(s) && s[j] != '"' && s[j] != '\\' {
+		j++
+	}
+	if j < len(s) && s[j] == '"' {
+		return s[i:j], j + 1, nil
+	}
+	var b strings.Builder
+	b.WriteString(s[i:j])
+	i = j
 	for i < len(s) {
 		c := s[i]
 		switch c {
 		case '"':
-			return sb.String(), i + 1, nil
+			return b.String(), i + 1, nil
 		case '\\':
 			if i+1 >= len(s) {
-				return "", i, fmt.Errorf("unterminated escape")
+				return "", i, fmt.Errorf("unterminated string")
 			}
 			switch s[i+1] {
 			case '"':
-				sb.WriteByte('"')
+				b.WriteByte('"')
 			case '\\':
-				sb.WriteByte('\\')
+				b.WriteByte('\\')
 			case 'n':
-				sb.WriteByte('\n')
+				b.WriteByte('\n')
 			case 't':
-				sb.WriteByte('\t')
+				b.WriteByte('\t')
 			case 'r':
-				sb.WriteByte('\r')
+				b.WriteByte('\r')
 			case 'u':
 				if i+6 > len(s) {
 					return "", i, fmt.Errorf("short \\u escape")
 				}
 				n, err := strconv.ParseUint(s[i+2:i+6], 16, 32)
-				if err != nil || strings.ContainsAny(s[i+2:i+6], "+-_") {
-					return "", i, fmt.Errorf("invalid \\u escape")
+				if err != nil {
+					return "", i, fmt.Errorf("bad \\u escape")
 				}
-				if !utf8.ValidRune(rune(n)) {
-					return "", i, fmt.Errorf("\\u escape is not a scalar value")
+				r := rune(n)
+				if !utf8.ValidRune(r) {
+					r = utf8.RuneError
 				}
-				sb.WriteRune(rune(n))
+				b.WriteRune(r)
 				i += 4
 			default:
-				return "", i, fmt.Errorf("invalid escape \\%c", s[i+1])
+				return "", i, fmt.Errorf("unknown escape \\%c", s[i+1])
 			}
 			i += 2
 		default:
-			sb.WriteByte(c)
+			b.WriteByte(c)
 			i++
 		}
 	}
@@ -287,14 +297,15 @@ func parseString(s string, i int) (string, int, error) {
 }
 
 func parseArray(s string, i int) (Value, int, error) {
-	i = skipBlanks(s, i+1)
-	items := []string{}
+	i++ // '['
+	v := Value{Kind: Array, Strings: []string{}}
+	i = skipBlank(s, i)
 	for {
 		if i >= len(s) {
 			return Value{}, i, fmt.Errorf("unterminated array")
 		}
 		if s[i] == ']' {
-			return Value{Kind: Array, Array: items}, i + 1, nil
+			return v, i + 1, nil
 		}
 		if s[i] != '"' {
 			return Value{}, i, fmt.Errorf("arrays may only contain strings")
@@ -303,12 +314,15 @@ func parseArray(s string, i int) (Value, int, error) {
 		if err != nil {
 			return Value{}, i, err
 		}
-		items = append(items, str)
-		i = skipBlanks(s, j)
+		v.Strings = append(v.Strings, str)
+		i = skipBlank(s, j)
 		if i < len(s) && s[i] == ',' {
-			i = skipBlanks(s, i+1)
-		} else if i >= len(s) || s[i] != ']' {
-			return Value{}, i, fmt.Errorf("expected ',' or ']' in array")
+			i = skipBlank(s, i+1)
+			continue
 		}
+		if i < len(s) && s[i] == ']' {
+			return v, i + 1, nil
+		}
+		return Value{}, i, fmt.Errorf("expected ',' or ']' in array")
 	}
 }

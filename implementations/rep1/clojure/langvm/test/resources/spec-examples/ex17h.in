@@ -1,0 +1,7 @@
+@module main
+fn main() {
+    let t = (1, "two");
+    print(showBool(t == (1, "two")));
+    let f = |x: Int| x;
+    print(showBool(f == f));
+}

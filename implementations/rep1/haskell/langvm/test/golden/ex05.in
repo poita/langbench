@@ -1,0 +1,44 @@
+@module main
+use shapes;
+
+trait Render {
+    fn render(self) -> Str;
+    fn tag(self) -> Str { "?" }
+}
+
+impl Render for Int {
+    fn render(self) -> Str { showInt(self) }
+    fn tag(self) -> Str { "int" }
+}
+
+impl Render for Str {
+    fn render(self) -> Str { quoteStr(self) }
+}
+
+impl<T: Render> Render for [T] {
+    fn render(self) -> Str {
+        let parts = listMap(self, |x| x.render());
+        "[" ++ strJoin(parts, ", ") ++ "]"
+    }
+    fn tag(self) -> Str { "list" }
+}
+
+impl Render for shapes::Box {
+    fn render(self) -> Str { fmt("{}x{}", [showInt(self.w), showInt(self.h)]) }
+}
+
+fn show2<T: Render>(x: T) -> Str {
+    fmt("{}:{}", [x.tag(), x.render()])
+}
+
+fn main() {
+    print(show2(42));
+    print(show2("hi"));
+    print(show2([1, 2, 3]));
+    print(show2(shapes::mk(3, 4)));
+    print(Render::render([["a"], ["b", "c"]]));
+}
+@module shapes
+pub struct Box { w: Int, h: Int }
+
+pub fn mk(w: Int, h: Int) -> Box { Box.{ w: w, h: h } }

@@ -1,0 +1,26 @@
+zero : 'a -> 'b -> 'b
+one : ('a -> 'b) -> 'a -> 'b
+two : ('a -> 'a) -> 'a -> 'a
+succ : (('a -> 'b) -> 'c -> 'a) -> ('a -> 'b) -> 'c -> 'b
+add : ('a -> 'b -> 'c) -> ('a -> 'd -> 'b) -> 'a -> 'd -> 'c
+mul : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+exp : 'a -> ('a -> 'b) -> 'b
+three : ('a -> 'a) -> 'a -> 'a
+four : ('a -> 'a) -> 'a -> 'a
+six : ('a -> 'a) -> 'a -> 'a
+tonat : ((int -> int) -> int -> 'a) -> 'a
+- : int
+- : int
+ctrue : 'a -> 'b -> 'a
+cfalse : 'a -> 'b -> 'b
+cif : ('a -> 'b -> 'c) -> 'a -> 'b -> 'c
+- : int
+error: occurs
+error: occurs
+cnot : (('a -> 'b -> 'b) -> ('c -> 'd -> 'c) -> 'e) -> 'e
+iszero : (('a -> 'b -> 'c -> 'c) -> ('d -> 'e -> 'd) -> 'f) -> 'f
+pair : 'a -> 'b -> ('a -> 'b -> 'c) -> 'c
+pfst : (('a -> 'b -> 'a) -> 'c) -> 'c
+psnd : (('a -> 'b -> 'b) -> 'c) -> 'c
+- : int
+- : bool

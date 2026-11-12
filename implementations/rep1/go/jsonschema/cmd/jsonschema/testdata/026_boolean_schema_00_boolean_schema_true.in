@@ -1,0 +1,45 @@
+{
+  "schema": true,
+  "tests": [
+    {
+      "description": "number is valid",
+      "data": 1
+    },
+    {
+      "description": "string is valid",
+      "data": "foo"
+    },
+    {
+      "description": "boolean true is valid",
+      "data": true
+    },
+    {
+      "description": "boolean false is valid",
+      "data": false
+    },
+    {
+      "description": "null is valid",
+      "data": null
+    },
+    {
+      "description": "object is valid",
+      "data": {
+        "foo": "bar"
+      }
+    },
+    {
+      "description": "empty object is valid",
+      "data": {}
+    },
+    {
+      "description": "array is valid",
+      "data": [
+        "foo"
+      ]
+    },
+    {
+      "description": "empty array is valid",
+      "data": []
+    }
+  ]
+}

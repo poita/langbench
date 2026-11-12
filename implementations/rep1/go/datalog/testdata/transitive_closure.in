@@ -1,0 +1,6 @@
+edge(1, 2). edge(2, 3). edge(3, 1). edge(3, 4).
+path(X, Y) :- edge(X, Y).
+path(X, Z) :- edge(X, Y), path(Y, Z).
+?- path(1, X).
+?- path(4, X).
+?- path(X, X).

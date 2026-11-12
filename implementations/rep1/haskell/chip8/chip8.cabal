@@ -1,0 +1,47 @@
+cabal-version:      3.0
+name:               chip8
+version:            0.1.0.0
+synopsis:           A deterministic CHIP-8 interpreter library and command-line tool
+description:
+  A small, fully deterministic CHIP-8 interpreter.  It loads a ROM, runs it
+  for an exact number of instruction cycles while following an optional key
+  schedule, and reports the final display and CPU state.  The library exposes
+  the machine model, the interpreter, an input parser and a renderer; the
+  @chip8@ executable is a thin wrapper around them.
+license:            MIT
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+category:           Emulation
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Chip8
+                    Chip8.Types
+                    Chip8.Font
+                    Chip8.Machine
+                    Chip8.Execute
+                    Chip8.Input
+                    Chip8.Render
+  build-depends:    base >=4.18 && <5,
+                    array >=0.5 && <0.6
+
+executable chip8
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base, chip8
+
+test-suite chip8-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:    base, array, chip8, hspec, QuickCheck

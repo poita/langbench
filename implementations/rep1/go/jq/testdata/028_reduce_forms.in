@@ -1,0 +1,2 @@
+reduce .[] as $x (0; . + $x), reduce .[] as $x ([]; [$x] + .), reduce .[] as $x (0; . + 1), reduce (1,2) as $x ((0,10); . + $x), reduce (1,2,3) as $x (0; if $x == 2 then empty else . + $x end), reduce empty as $x (5; . + 1), reduce .[] as $x (0; (. + $x, . * 10)), reduce .[] as $x (null; . + $x)
+[1,2,3,4.5]

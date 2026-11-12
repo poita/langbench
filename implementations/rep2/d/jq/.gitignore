@@ -1,7 +1,6 @@
 .dub/
-bin/
-*.o
+/jq
 *.a
+*.o
 dub.selections.json
 __test__*
-jq-test-*

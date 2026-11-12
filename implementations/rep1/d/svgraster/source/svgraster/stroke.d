@@ -1,19 +1,28 @@
-/// Stroke outlining (SPEC §8.2): a stroke is the union of per-segment
-/// rectangles, join pieces and cap pieces, emitted as positively oriented
-/// polygons that are filled together with the nonzero rule.
+/// Stroke outlining: turns flattened subpaths into a set of polygons whose
+/// nonzero-union is the stroked region (SPEC.md §8.2).
 module svgraster.stroke;
 
-import std.math : acos, atan2, ceil, cos, sin, sqrt, PI;
-import svgraster.buf;
+import std.math : sqrt, acos, atan2, cos, sin, PI, ceil, abs;
 import svgraster.geom;
 import svgraster.path;
 
-/// Line cap styles.
-enum LineCap : ubyte { butt, round, square }
-/// Line join styles.
-enum LineJoin : ubyte { miter, round, bevel }
+/// Shape of the end of an open subpath.
+enum LineCap : ubyte
+{
+    butt,
+    round,
+    square,
+}
 
-/// Parameters of a stroke, in the coordinate system the outline is built in.
+/// Shape of the corner between two segments.
+enum LineJoin : ubyte
+{
+    miter,
+    round,
+    bevel,
+}
+
+/// Stroke parameters, in user units.
 struct StrokeStyle
 {
     double width = 1;
@@ -22,271 +31,249 @@ struct StrokeStyle
     double miterLimit = 4;
 }
 
-/// A set of polygons stored in one point buffer. Piece `i` occupies
-/// `pts[starts[i] .. starts[i+1]]` (the last piece ends at `pts.length`).
-struct Outline
+/// A convex-ish piece of the outline.
+alias Polygon = Point[];
+
+/// Build the stroke outline of `subpaths` (already flattened, in user space).
+///
+/// Every returned polygon is oriented to have positive signed area, so filling
+/// them all with the nonzero rule gives their union.
+///
+/// Params:
+///   subpaths = flattened subpaths in user space.
+///   style = stroke width, caps, joins and miter limit.
+///   arcTolerance = maximum distance between a round cap/join and its
+///                  polyline approximation, in user units.
+Polygon[] strokeOutline(const Polyline[] subpaths, const StrokeStyle style, double arcTolerance)
 {
-    Buf!Vec2 pts;
-    Buf!size_t starts;
+    Polygon[] pieces;
+    immutable r = style.width / 2;
+    immutable miterLimit = style.miterLimit < 1 ? 1.0 : style.miterLimit;
 
-    /// Remove all pieces, keeping capacity.
-    void clear() pure nothrow @safe
+    void emit(Polygon poly)
     {
-        pts.clear();
-        starts.clear();
-    }
-
-    /// Number of pieces.
-    @property size_t pieces() const pure nothrow @nogc @safe { return starts.length; }
-
-    /// The points of piece `i`.
-    const(Vec2)[] piece(size_t i) const pure nothrow @nogc @safe
-    {
-        immutable b = starts.slice[i];
-        immutable e = i + 1 < starts.length ? starts.slice[i + 1] : pts.length;
-        return pts.slice[b .. e];
-    }
-
-    /// Transform every point by `m` in place.
-    void transform(const Matrix m) pure nothrow @safe
-    {
-        foreach (ref p; pts.slice)
-            p = m.apply(p);
-    }
-
-    private void begin() pure nothrow @safe { starts.push(pts.length); }
-
-    private void add(Vec2 p) pure nothrow @safe { pts.push(p); }
-
-    /// Finish the current piece: orient it to positive signed area.
-    private void end() pure nothrow @safe
-    {
-        immutable b = starts[starts.length - 1];
-        auto v = pts.slice[b .. $];
-        if (v.length < 3)
+        double area2 = 0;
+        foreach (i; 0 .. poly.length)
         {
-            pts.truncate(b);
-            starts.truncate(starts.length - 1);
-            return;
+            immutable a = poly[i], b = poly[(i + 1) % poly.length];
+            area2 += a.x * b.y - b.x * a.y;
         }
-        double area = 0;
-        foreach (i; 0 .. v.length)
+        if (area2 < 0)
         {
-            immutable q = v[(i + 1) % v.length];
-            area += v[i].x * q.y - q.x * v[i].y;
-        }
-        if (area < 0)
-        {
-            foreach (i; 0 .. v.length / 2)
+            foreach (i; 0 .. poly.length / 2)
             {
-                immutable t = v[i];
-                v[i] = v[v.length - 1 - i];
-                v[v.length - 1 - i] = t;
+                immutable t = poly[i];
+                poly[i] = poly[$ - 1 - i];
+                poly[$ - 1 - i] = t;
             }
         }
+        pieces ~= poly;
     }
-}
 
-/// Build the stroke outline of every subpath of `fp` (flattened in the
-/// coordinate system of the stroke) into `o`. `tol` is the tolerance for
-/// circular arcs in that same coordinate system.
-void buildStroke(ref const FlatPath fp, const StrokeStyle st, double tol,
-    ref Outline o, ref Buf!Vec2 scratch) pure nothrow @safe
-{
-    o.clear();
-    immutable r = st.width / 2;
-    foreach (sub; fp.subs.slice)
+    // Polyline approximating the arc of radius r about c from angle a0
+    // sweeping by `sweep` radians (endpoints included).
+    Point[] arc(Point c, double a0, double sweep)
     {
-        // Drop consecutive duplicates (and a final point equal to the first
-        // for closed subpaths).
-        scratch.clear();
-        foreach (p; fp.points(sub))
+        double step = arcStep(r, arcTolerance);
+        int n = cast(int) ceil(abs(sweep) / step);
+        if (n < 1)
+            n = 1;
+        if (n > 4096)
+            n = 4096;
+        Point[] pts;
+        pts.reserve(n + 1);
+        foreach (i; 0 .. n + 1)
         {
-            if (scratch.length == 0 || scratch[scratch.length - 1] != p)
-                scratch.push(p);
+            immutable t = a0 + sweep * i / n;
+            pts ~= Point(c.x + r * cos(t), c.y + r * sin(t));
         }
-        if (sub.closed && scratch.length > 1 && scratch[scratch.length - 1] == scratch[0])
-            scratch.truncate(scratch.length - 1);
-        auto p = scratch.slice;
+        return pts;
+    }
+
+    foreach (ref sp; subpaths)
+    {
+        // Drop repeated points.
+        Point[] p;
+        foreach (pt; sp.points)
+            if (p.length == 0 || pt != p[$ - 1])
+                p ~= pt;
+        if (sp.closed && p.length > 1 && p[$ - 1] == p[0])
+            p = p[0 .. $ - 1];
         immutable n = p.length;
         if (n == 0)
             continue;
+
         if (n == 1)
         {
-            pointPiece(o, p[0], r, st.cap, tol);
+            final switch (style.cap)
+            {
+            case LineCap.butt:
+                break;
+            case LineCap.round:
+                emit(arc(p[0], 0, 2 * PI)[0 .. $ - 1]);
+                break;
+            case LineCap.square:
+                emit([Point(p[0].x - r, p[0].y - r), Point(p[0].x + r, p[0].y - r),
+                        Point(p[0].x + r, p[0].y + r), Point(p[0].x - r, p[0].y + r)]);
+                break;
+            }
             continue;
         }
-        immutable segs = sub.closed ? n : n - 1;
-        foreach (i; 0 .. segs)
+
+        immutable segCount = sp.closed ? n : n - 1;
+        Point[] dir = new Point[segCount];
+        foreach (i; 0 .. segCount)
         {
             immutable a = p[i], b = p[(i + 1) % n];
-            immutable d = unit(b.x - a.x, b.y - a.y);
-            immutable nx = -d.y * r, ny = d.x * r;
-            o.begin();
-            o.add(Vec2(a.x + nx, a.y + ny));
-            o.add(Vec2(b.x + nx, b.y + ny));
-            o.add(Vec2(b.x - nx, b.y - ny));
-            o.add(Vec2(a.x - nx, a.y - ny));
-            o.end();
+            immutable d = b - a;
+            immutable len = d.length;
+            dir[i] = Point(d.x / len, d.y / len);
+            immutable nrm = Point(-dir[i].y * r, dir[i].x * r);
+            emit([a + nrm, b + nrm, b - nrm, a - nrm]);
         }
-        immutable firstJoint = sub.closed ? 0 : 1;
-        immutable lastJoint = sub.closed ? n : n - 1; // exclusive
-        foreach (i; firstJoint .. lastJoint)
+
+        // Joins.
+        immutable firstJoint = sp.closed ? 0 : 1;
+        immutable lastJoint = sp.closed ? n - 1 : n - 2;
+        foreach (i; firstJoint .. lastJoint + 1)
         {
-            immutable prev = p[(i + n - 1) % n], cur = p[i], next = p[(i + 1) % n];
-            joinPiece(o, prev, cur, next, r, st, tol);
+            immutable d0 = dir[(i + segCount - 1) % segCount];
+            immutable d1 = dir[i % segCount];
+            addJoin(&emit, &arc, p[i], d0, d1, r, style.join, miterLimit);
         }
-        if (!sub.closed)
+
+        // Caps.
+        if (!sp.closed && style.cap != LineCap.butt)
         {
-            capPiece(o, p[0], unit(p[0].x - p[1].x, p[0].y - p[1].y), r, st.cap, tol);
-            capPiece(o, p[n - 1], unit(p[n - 1].x - p[n - 2].x, p[n - 1].y - p[n - 2].y), r, st.cap, tol);
+            foreach (end; 0 .. 2)
+            {
+                immutable pt = end == 0 ? p[0] : p[n - 1];
+                immutable u = end == 0 ? Point(-dir[0].x, -dir[0].y) : dir[segCount - 1];
+                immutable nrm = Point(-u.y * r, u.x * r);
+                if (style.cap == LineCap.square)
+                {
+                    immutable ur = u * r;
+                    emit([pt + nrm, pt + nrm + ur, pt - nrm + ur, pt - nrm]);
+                }
+                else
+                {
+                    auto half = arc(pt, atan2(u.y, u.x) + PI / 2, -PI);
+                    emit(half);
+                }
+            }
         }
     }
+    return pieces;
 }
 
-private Vec2 unit(double x, double y) pure nothrow @nogc @trusted
+private double arcStep(double r, double tol)
 {
-    immutable l = sqrt(x * x + y * y);
-    return l > 0 ? Vec2(x / l, y / l) : Vec2(1, 0);
-}
-
-/// Angular step of a circular arc of radius `r` whose chords stay within `tol`.
-private double arcStep(double r, double tol) pure nothrow @nogc @trusted
-{
-    immutable c = 1 - tol / r;
-    if (!(c > -1))
+    if (!(r > 0))
         return PI;
-    immutable s = 2 * acos(c);
-    return s > 0 ? s : PI;
+    immutable q = 1 - tol / r;
+    if (q <= -1)
+        return PI;
+    immutable step = 2 * acos(q < 1 ? q : 1.0);
+    return step < 1e-3 ? 1e-3 : (step > PI / 2 ? PI / 2 : step);
 }
 
-private int arcCount(double sweep, double step, int lo) pure nothrow @nogc @trusted
+private void addJoin(void delegate(Polygon) emit, Point[] delegate(Point, double, double) arc,
+        Point p, Point d0, Point d1, double r, LineJoin join, double miterLimit)
 {
-    immutable q = ceil((sweep < 0 ? -sweep : sweep) / step);
-    int n = q > 2000 ? 2000 : cast(int) q;
-    return n < lo ? lo : n;
-}
-
-private void pointPiece(ref Outline o, Vec2 p, double r, LineCap cap, double tol) pure nothrow @trusted
-{
-    final switch (cap)
-    {
-    case LineCap.butt:
-        break;
-    case LineCap.square:
-        o.begin();
-        o.add(Vec2(p.x - r, p.y - r));
-        o.add(Vec2(p.x + r, p.y - r));
-        o.add(Vec2(p.x + r, p.y + r));
-        o.add(Vec2(p.x - r, p.y + r));
-        o.end();
-        break;
-    case LineCap.round:
-        {
-            immutable step = arcStep(r, tol);
-            immutable n = arcCount(2 * PI, step, 4);
-            o.begin();
-            foreach (i; 0 .. n)
-            {
-                immutable a = 2 * PI * i / n;
-                o.add(Vec2(p.x + r * cos(a), p.y + r * sin(a)));
-            }
-            o.end();
-        }
-        break;
-    }
-}
-
-private void capPiece(ref Outline o, Vec2 p, Vec2 u, double r, LineCap cap, double tol) pure nothrow @trusted
-{
-    immutable nx = -u.y * r, ny = u.x * r;
-    final switch (cap)
-    {
-    case LineCap.butt:
-        break;
-    case LineCap.square:
-        o.begin();
-        o.add(Vec2(p.x + nx, p.y + ny));
-        o.add(Vec2(p.x + nx + u.x * r, p.y + ny + u.y * r));
-        o.add(Vec2(p.x - nx + u.x * r, p.y - ny + u.y * r));
-        o.add(Vec2(p.x - nx, p.y - ny));
-        o.end();
-        break;
-    case LineCap.round:
-        {
-            immutable step = arcStep(r, tol);
-            immutable sweep = -PI; // from N (u rotated +90 degrees) round to -N via u
-            immutable n = arcCount(sweep, step, 1);
-            immutable a0 = atan2(ny, nx);
-            o.begin();
-            foreach (i; 0 .. n + 1)
-            {
-                immutable a = a0 + sweep * i / n;
-                o.add(Vec2(p.x + r * cos(a), p.y + r * sin(a)));
-            }
-            o.end();
-        }
-        break;
-    }
-}
-
-private void joinPiece(ref Outline o, Vec2 prev, Vec2 p, Vec2 next, double r,
-    const StrokeStyle st, double tol) pure nothrow @trusted
-{
-    immutable d0 = unit(p.x - prev.x, p.y - prev.y);
-    immutable d1 = unit(next.x - p.x, next.y - p.y);
-    immutable cross = d0.x * d1.y - d0.y * d1.x;
-    immutable dot = d0.x * d1.x + d0.y * d1.y;
+    immutable cross = d0.cross(d1);
+    immutable dot = d0.dot(d1);
     if (cross == 0 && dot > 0)
         return;
     immutable s = cross > 0 ? 1.0 : -1.0;
-    immutable nax = s * d0.y, nay = -s * d0.x;
-    immutable nbx = s * d1.y, nby = -s * d1.x;
-    immutable A = Vec2(p.x + nax * r, p.y + nay * r);
-    immutable B = Vec2(p.x + nbx * r, p.y + nby * r);
+    immutable A = Point(p.x + s * d0.y * r, p.y - s * d0.x * r);
+    immutable B = Point(p.x + s * d1.y * r, p.y - s * d1.x * r);
 
-    final switch (st.join)
+    final switch (join)
     {
     case LineJoin.round:
         {
-            double sweep = cross == 0 ? s * PI : atan2(nax * nby - nay * nbx, nax * nbx + nay * nby);
-            immutable step = arcStep(r, tol);
-            immutable n = arcCount(sweep, step, 1);
-            immutable a0 = atan2(nay, nax);
-            o.begin();
-            o.add(p);
-            foreach (i; 0 .. n + 1)
-            {
-                immutable a = a0 + sweep * i / n;
-                o.add(Vec2(p.x + r * cos(a), p.y + r * sin(a)));
-            }
-            o.end();
+            immutable va = A - p, vb = B - p;
+            double sweep = cross == 0 ? s * PI : atan2(va.cross(vb), va.dot(vb));
+            auto pts = arc(p, atan2(va.y, va.x), sweep);
+            emit([p] ~ pts);
         }
-        return;
+        break;
     case LineJoin.miter:
         {
-            immutable ratio = 1.0 / sqrt((1 + dot) / 2);
-            double ml = st.miterLimit < 1 ? 1 : st.miterLimit;
-            if (dot > -1 && cross != 0 && ratio <= ml)
+            immutable ratio = 1 / sqrt((1 + dot) / 2);
+            if (dot > -1 && cross != 0 && ratio <= miterLimit)
             {
-                immutable k = r / (1 + dot);
-                immutable M = Vec2(p.x + (nax + nbx) * k, p.y + (nay + nby) * k);
-                o.begin();
-                o.add(p);
-                o.add(A);
-                o.add(M);
-                o.add(B);
-                o.end();
-                return;
+                immutable t = (B - A).cross(d1) / cross;
+                immutable m = A + d0 * t;
+                emit([p, A, m, B]);
             }
+            else
+                emit([p, A, B]);
         }
-        goto case LineJoin.bevel;
+        break;
     case LineJoin.bevel:
-        o.begin();
-        o.add(p);
-        o.add(A);
-        o.add(B);
-        o.end();
-        return;
+        emit([p, A, B]);
+        break;
     }
+}
+
+/// Signed area of a polygon (positive for the orientation produced by
+/// `strokeOutline`).
+double signedArea(const Polygon poly)
+{
+    double a = 0;
+    foreach (i; 0 .. poly.length)
+    {
+        immutable p = poly[i], q = poly[(i + 1) % poly.length];
+        a += p.x * q.y - q.x * p.y;
+    }
+    return a / 2;
+}
+
+unittest
+{
+    import std.math : isClose;
+
+    // A horizontal segment with butt caps is a 10 x 2 rectangle.
+    Polyline pl;
+    pl.points = [Point(0, 0), Point(10, 0)];
+    auto polys = strokeOutline([pl], StrokeStyle(2), 0.01);
+    double total = 0;
+    foreach (q; polys)
+    {
+        assert(signedArea(q) > 0);
+        total += signedArea(q);
+    }
+    assert(polys.length == 1 && isClose(total, 20));
+
+    // Square caps extend by r at both ends.
+    polys = strokeOutline([pl], StrokeStyle(2, LineCap.square), 0.01);
+    assert(polys.length == 3);
+}
+
+unittest
+{
+    // A single-point subpath: nothing for butt, a disc for round, a square for square.
+    Polyline pl;
+    pl.points = [Point(5, 5), Point(5, 5)];
+    assert(strokeOutline([pl], StrokeStyle(2), 0.01).length == 0);
+    auto sq = strokeOutline([pl], StrokeStyle(2, LineCap.square), 0.01);
+    assert(sq.length == 1 && abs(signedArea(sq[0]) - 4) < 1e-12);
+    auto disc = strokeOutline([pl], StrokeStyle(2, LineCap.round), 0.001);
+    assert(disc.length == 1 && abs(signedArea(disc[0]) - PI) < 0.01);
+}
+
+unittest
+{
+    // A right-angle corner: the miter join adds a unit square (r = 1) corner piece.
+    Polyline pl;
+    pl.points = [Point(0, 0), Point(10, 0), Point(10, 10)];
+    auto miter = strokeOutline([pl], StrokeStyle(2, LineCap.butt, LineJoin.miter, 4), 0.01);
+    auto bevel = strokeOutline([pl], StrokeStyle(2, LineCap.butt, LineJoin.bevel, 4), 0.01);
+    assert(miter.length == 3 && bevel.length == 3);
+    assert(abs(signedArea(miter[2]) - 1) < 1e-9); // quad p, A, M, B
+    assert(abs(signedArea(bevel[2]) - 0.5) < 1e-9); // triangle p, A, B
+    // Miter limit below sqrt(2) degrades to a bevel.
+    auto low = strokeOutline([pl], StrokeStyle(2, LineCap.butt, LineJoin.miter, 1.2), 0.01);
+    assert(abs(signedArea(low[2]) - 0.5) < 1e-9);
 }

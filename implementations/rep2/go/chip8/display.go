@@ -1,6 +1,6 @@
 package chip8
 
-import "math/bits"
+import "strings"
 
 // Display dimensions in pixels.
 const (
@@ -8,35 +8,63 @@ const (
 	Height = 32
 )
 
-// Display is a 64x32 monochrome frame buffer. Each row is one 64-bit word;
-// column 0 is the most significant bit.
-type Display [Height]uint64
+// Display is a 64x32 monochrome frame buffer. The zero value is a blank
+// display.
+type Display struct {
+	pix [Height][Width]bool
+}
 
 // Clear turns every pixel off.
-func (d *Display) Clear() { *d = Display{} }
+func (d *Display) Clear() { d.pix = [Height][Width]bool{} }
 
-// Pixel reports whether the pixel at column x, row y is lit.
-// Coordinates outside the display are reduced modulo its size.
+// Pixel reports whether the pixel at column x, row y is lit. Coordinates
+// outside the display report false.
 func (d *Display) Pixel(x, y int) bool {
-	return d[y&(Height-1)]>>(63-uint(x&(Width-1)))&1 != 0
-}
-
-// SetPixel turns the pixel at column x, row y on or off.
-func (d *Display) SetPixel(x, y int, on bool) {
-	bit := uint64(1) << (63 - uint(x&(Width-1)))
-	if on {
-		d[y&(Height-1)] |= bit
-	} else {
-		d[y&(Height-1)] &^= bit
+	if x < 0 || x >= Width || y < 0 || y >= Height {
+		return false
 	}
+	return d.pix[y][x]
 }
 
-// XORRow XORs the 8 bits of b into row y at columns sx..sx+7, wrapping
-// around the right edge, and reports whether any lit pixel was turned off.
-func (d *Display) XORRow(y int, sx uint, b byte) (collision bool) {
-	row := bits.RotateLeft64(uint64(b)<<56, -int(sx&63))
-	r := &d[y&(Height-1)]
-	collision = *r&row != 0
-	*r ^= row
+// xor toggles the pixel at (x, y), wrapping coordinates, and reports whether
+// it was lit before (that is, whether the toggle turned a pixel off).
+func (d *Display) xor(x, y int) bool {
+	p := &d.pix[y&(Height-1)][x&(Width-1)]
+	was := *p
+	*p = !was
+	return was
+}
+
+// DrawSprite XORs the sprite rows onto the display with its origin at
+// (x, y), reduced modulo the display size. Each byte is one row of eight
+// pixels, most significant bit leftmost. Pixels past an edge wrap around. It
+// reports whether any lit pixel was turned off.
+func (d *Display) DrawSprite(x, y int, rows []byte) (collision bool) {
+	sx, sy := x&(Width-1), y&(Height-1)
+	for r, b := range rows {
+		for bit := 0; bit < 8; bit++ {
+			if b>>(7-bit)&1 != 0 && d.xor(sx+bit, sy+r) {
+				collision = true
+			}
+		}
+	}
 	return collision
+}
+
+// String renders the display as 32 lines of 64 characters, '#' for a lit
+// pixel and '.' for an unlit one, each line terminated by a newline.
+func (d *Display) String() string {
+	var sb strings.Builder
+	sb.Grow(Height * (Width + 1))
+	for y := range d.pix {
+		for x := range d.pix[y] {
+			if d.pix[y][x] {
+				sb.WriteByte('#')
+			} else {
+				sb.WriteByte('.')
+			}
+		}
+		sb.WriteByte('\n')
+	}
+	return sb.String()
 }

@@ -1,88 +1,102 @@
-/++
-The line-oriented query protocol used by the command-line tool.
-
-A query line is a FEN record (six fields) followed by either a depth
-(`perft`) or the word `divide` and a depth. See `README.md` for the format.
-+/
+/**
+ * The text query format used by the command-line tool: one line per query,
+ * either `<fen> <depth>` (a perft count) or `<fen> divide <depth>`.
+ */
 module chessperft.query;
 
-import std.array : split;
+import std.array : appender, join, split;
 import std.conv : to;
-import std.range.primitives : isOutputRange, put;
-
+import std.string : stripRight;
 import chessperft.perft;
 import chessperft.position;
 
-/// A parsed query.
+/// A parsed query line.
 struct Query
 {
-    Position position; /// The position to search from.
-    bool isDivide; /// Whether a per-move breakdown is requested.
-    int depth; /// Search depth.
+    /// The position to search from.
+    Position position;
+    /// Search depth in plies.
+    uint depth;
+    /// Whether per-move counts are wanted (`divide`) rather than a single total.
+    bool isDivide;
 }
 
-/++
-Parse one query line.
-Throws: `FenException` or `std.conv.ConvException` if the line is malformed.
-+/
-Query parseQuery(const(char)[] line)
+/**
+ * Parses a query line: six FEN fields, an optional `divide` keyword, a depth.
+ * Throws: `FenException` or `ConvException` if the line is malformed.
+ */
+Query parseQuery(const(char)[] line) @safe
 {
-    auto f = line.split(' ');
+    const fields = line.idup.stripRight("\r\n").split(' ');
+    if (fields.length != 7 && fields.length != 8)
+        throw new FenException("query needs 7 or 8 fields: " ~ line.idup);
     Query q;
-    if (f.length == 8 && f[6] == "divide")
-        q.isDivide = true;
-    else if (f.length != 7)
-        throw new FenException("query must have 7 fields, or 8 with `divide`");
-    q.position = Position.fromFields(f[0], f[1], f[2], f[3]);
-    q.depth = f[$ - 1].to!int;
-    if (q.depth < 0 || (q.isDivide && q.depth < 1))
-        throw new FenException("bad depth");
+    q.isDivide = fields.length == 8;
+    if (q.isDivide && fields[6] != "divide")
+        throw new FenException("expected 'divide': " ~ fields[6]);
+    q.position = Position.fromFen(fields[0 .. 6].join(" "));
+    q.depth = fields[$ - 1].to!uint;
+    if (q.isDivide && q.depth < 1)
+        throw new FenException("divide needs depth >= 1");
     return q;
 }
 
-/++
-Answer a query, writing the result lines (each terminated by `\n`) to `sink`.
-+/
-void answer(Sink)(ref Sink sink, Query q) if (isOutputRange!(Sink, const(char)[]))
+/**
+ * Answers a query as output text, each line terminated by `\n`: either the
+ * perft count, or one `<move> <count>` line per root move (sorted) followed
+ * by `total <n>`.
+ */
+string answer(const ref Query q) @safe
 {
     if (!q.isDivide)
+        return perft(q.position, q.depth).to!string ~ "\n";
+    auto output = appender!string;
+    ulong total = 0;
+    foreach (e; divide(q.position, q.depth))
     {
-        sink.put(perft(q.position, q.depth).to!string);
-        sink.put("\n");
-        return;
+        output ~= e.move.toString;
+        output ~= ' ';
+        output ~= e.nodes.to!string;
+        output ~= '\n';
+        total += e.nodes;
     }
-    auto r = divide(q.position, q.depth);
-    foreach (e; r.entries)
-    {
-        sink.put(e.move);
-        sink.put(" ");
-        sink.put(e.count.to!string);
-        sink.put("\n");
-    }
-    sink.put("total ");
-    sink.put(r.total.to!string);
-    sink.put("\n");
+    output ~= "total ";
+    output ~= total.to!string;
+    output ~= '\n';
+    return output[];
 }
 
-/++
-Answer every non-empty line of `input` in order and return all output as one string.
-Throws: as `parseQuery`.
-+/
-string answerAll(const(char)[] input)
+/// Parses and answers one query line.
+string answerLine(const(char)[] line) @safe
 {
-    import std.array : appender;
-
-    auto o = appender!string;
-    size_t start = 0;
-    foreach (i; 0 .. input.length + 1)
-        if (i == input.length || input[i] == '\n')
-        {
-            auto line = input[start .. i];
-            start = i + 1;
-            if (line.length && line[$ - 1] == '\r')
-                line = line[0 .. $ - 1];
-            if (line.length)
-                answer(o, parseQuery(line));
-        }
-    return o.data;
+    const q = parseQuery(line);
+    return answer(q);
 }
+
+unittest
+{
+    assert(answerLine("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 1") == "20\n");
+    assert(answerLine("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 3") == "8902\n");
+    assert(answerLine("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 0") == "1\n");
+}
+
+unittest
+{
+    assert(answerLine("8/P1k5/K7/8/8/8/8/8 w - - 0 1 divide 1")
+        == "a6a5 1\na6b5 1\na7a8b 1\na7a8n 1\na7a8q 1\na7a8r 1\ntotal 6\n");
+    assert(answerLine("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1 divide 3") == "total 0\n");
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+
+    const q = parseQuery("8/8/8/8/8/8/8/K6k b - - 3 17 divide 5");
+    assert(q.isDivide && q.depth == 5 && q.position.side == Color.black);
+    assert(!parseQuery("8/8/8/8/8/8/8/K6k b - - 3 17 2").isDivide);
+    assertThrown!FenException(parseQuery("8/8/8/8/8/8/8/K6k b - - 3 17"));
+    assertThrown!FenException(parseQuery("8/8/8/8/8/8/8/K6k b - - 3 17 foo 2"));
+    assertThrown!FenException(parseQuery("8/8/8/8/8/8/8/K6k b - - 3 17 divide 0"));
+}
+
+private import chessperft.types : Color;

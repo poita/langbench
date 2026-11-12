@@ -1,0 +1,6 @@
+simulate
+endpoint ep_a whsec_MfKQ9r8GKYqrTwjUPD8ILPZIo2LaLaSw * 500,timeout,200
+endpoint ep_b whsec_c2VjcmV0,whsec_b3RoZXI user.created 200
+event msg_1 1700000000 user.created 7b7d
+event msg_2 1700000100 repo.pushed 7b7d
+end

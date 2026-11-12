@@ -1,105 +1,107 @@
 # sqlitefile
 
-A from-scratch reader for SQLite 3 database files, written in D with no
-dependencies beyond the standard library. It parses the on-disk format itself
-(pages, B-trees, varints, records, overflow chains, the schema table) and
-answers a small query language: `.tables`, `.schema`, `COUNT`, `SELECT` with
-`WHERE` / `ORDER BY` / `LIMIT`, and index point lookups. It does not use
-SQLite or any code that already understands the format.
-
-The project is a library (`source/sqlitefile/`) plus a thin command-line tool
-(`cli/main.d`).
+A from-scratch reader for SQLite 3 database files, written in D. It parses the
+on-disk format directly (pages, B-trees, varints, records, overflow chains) and
+answers a small set of queries without any SQLite library. The code is split
+into a reusable library (`sqlitefile`) and a thin command-line tool on top.
 
 ## Building
 
-Requires LDC 1.41 and dub 1.40.
+Requires LDC (tested with 1.41.0) and dub (tested with 1.40.0). Only the D
+standard library and druntime are used.
 
+```sh
+dub build -b release --compiler=ldc2     # builds ./sqlitefile (the CLI)
+# or
+./build.sh
 ```
-./build.sh                                  # or:
-dub build -b release --compiler=ldc2        # produces ./sqlitefile
-dub test --compiler=ldc2                    # runs the unit tests in tests/
+
+Run the unit tests (from the package root; they read fixtures in `tests/data`):
+
+```sh
+dub test --compiler=ldc2
+tests/cli_test.sh        # end-to-end check of the built CLI (uses sqlite3 if installed)
 ```
+
+`dub.sdl` defines two configurations: `cli` (the executable, default) and
+`library` (what other packages depend on).
 
 ## Command-line use
 
 ```
-sqlitefile <input dir> <output dir>      # or: ./run.sh <input dir> <output dir>
+sqlitefile <input directory> <output directory>
 ```
 
-The input directory contains one `*.sqlite` file and `queries.txt` (one query
-per line). For the *n*-th line the tool writes `NNN.txt` (`001.txt`, …) in the
-output directory, which must already exist. A query that cannot be answered
-produces a file containing `error`; the exit status is still 0.
+The input directory contains exactly one `*.sqlite` file and a `queries.txt`
+with one query per line. For the *n*-th query the tool writes `NNN.txt`
+(`001.txt`, `002.txt`, …) into the existing output directory; a failing query
+produces a file containing the single line `error`. The exit status is 0 even
+when individual queries fail. `run.sh <in> <out>` is a wrapper that locates the
+binary relative to itself.
+
+Query language:
 
 | query | result |
 |-------|--------|
-| `.tables` | user table names, sorted |
-| `.schema <table>` | the `CREATE` statements attached to the table |
-| `COUNT <table>` | row count |
-| `SELECT <cols or *> FROM <table> [WHERE c op lit [AND ...]] [ORDER BY c [ASC\|DESC]] [LIMIT n]` | rows, TAB-separated |
-| `INDEX <index> <literal>` | rows found through a single-column index |
+| `.tables` | user table names, sorted bytewise (no `sqlite_*`, no views) |
+| `.schema <table>` | the stored `CREATE` statements (table, indexes, triggers) of that table, each followed by `;` |
+| `COUNT <table>` | number of rows |
+| `SELECT <*\|col,...> FROM <table> [WHERE c op lit [AND ...]] [ORDER BY col [ASC\|DESC]] [LIMIT n]` | rows, tab-separated; `rowid` is a valid column |
+| `INDEX <index> <literal>` | rows whose indexed (single) column equals the literal, found through the index B-tree |
 
 Operators are `= != < <= > >= IS` and `IS NOT`; literals are numerals,
-`'strings'`, `X'hex'` blobs and `NULL`. Output formatting follows the `sqlite3`
-shell (`NULL`, `%.15g` reals with a forced `.0`, uppercase hex blobs). The full
-format and query semantics are described in the problem's `SPEC.md`.
+`'strings'`, `X'hex'` blobs and `NULL`. Values print as the `sqlite3` shell
+does (`NULL`, decimal integers, `%.15g` reals with a forced `.0`, uppercase hex
+blobs). See `SPEC.md` of the task for the exact rules.
 
 ## Library layout
 
 | module | responsibility |
 |--------|----------------|
-| `sqlitefile.bytes` | big-endian integers and varints |
-| `sqlitefile.database` | the in-memory database image, header and page access |
-| `sqlitefile.btree` | page headers, cells, overflow chains, table scans, rowid seeks, row counts, index search |
-| `sqlitefile.record` | lazy record decoding |
-| `sqlitefile.value` | `Value` and the SQLite ordering |
-| `sqlitefile.affinity` | column affinity and literal conversion |
-| `sqlitefile.ddl` | `CREATE TABLE` / `CREATE INDEX` parser |
-| `sqlitefile.catalog` | `sqlite_schema` entries, tables and indexes |
-| `sqlitefile.query` | query-line parser |
-| `sqlitefile.engine` | query execution |
-| `sqlitefile.output` | value formatting into a byte buffer |
-| `sqlitefile.errors` | exception types |
+| `sqlitefile.database` | the pager: file bytes, header, page access |
+| `sqlitefile.btree` | page/cell decoding, overflow chains, table scan, row count, rowid seek, index equality search |
+| `sqlitefile.record` | record decoding by serial type |
+| `sqlitefile.value`, `.affinity`, `.numeric`, `.render` | value model and ordering, column affinity, numeric constants, output formatting |
+| `sqlitefile.ddl`, `.schema` | tokenizer and `CREATE TABLE` / `CREATE INDEX` parsers; the catalog |
+| `sqlitefile.query`, `.engine` | query parser and executor |
+| `sqlitefile.bytes`, `.errors` | bounds-checked integer/varint reading; exception types |
 
-`import sqlitefile;` brings in everything. The database is read into memory
-once and pages are never copied; TEXT and BLOB values are views into the
-image.
+`import sqlitefile;` publicly imports all of them.
 
 ## Library example
 
 ```d
+import std.stdio : write;
 import sqlitefile;
-import std.stdio : stdout;
 
 void main()
 {
-    auto db  = Database.open("people.sqlite");
-    auto cat = Catalog.load(db);          // reads sqlite_schema once
+    auto db = Database.open("people.sqlite");
+    auto engine = new Engine(db);                 // reads sqlite_schema once
 
-    // High level: run a query line, getting the exact bytes of a result file.
-    stdout.rawWrite(answer(db, cat, "SELECT name, age FROM people WHERE age > 40 ORDER BY age"));
+    // Whole queries, as the CLI runs them:
+    write(cast(string) engine.execute("SELECT name FROM people WHERE age > 40"));
 
-    // Lower level: walk a table B-tree yourself.
-    auto people = cat.table("people");
-    RecordReader rr;
-    walkTable(db, people.rootPage, (long rowid, const(ubyte)[] payload, bool stable) @safe {
-        rr.parse(payload);
-        auto name = people.columnValue(rr, people.resolve("name"), rowid);
-        // name.bytes is a UTF-8 view into the database image
-        return true;                        // false stops the walk
+    // Or use the lower layers directly: walk a table B-tree and decode rows.
+    const table = engine.catalog.findTable("people");
+    auto row = new Value[table.columns.length];
+    walkTable(db, table.rootPage, (long rowid, const(ubyte)[] payload) {
+        table.decodeRow(rowid, payload, row);
+        write(rowid, " ", formatValue(row[1]), "\n");
+        return true;                              // false stops the scan
     });
 }
 ```
 
-Errors surface as `SqliteFileException` (`FormatException` for damaged or
-unsupported files, `QueryException` for bad queries).
+`Engine.execute` throws a `SqliteFileException` subclass (`QueryException`,
+`FormatException`, …) when a query cannot be answered; `executeOrError` returns
+`error\n` instead.
 
-## Layout
+## Design notes
 
-```
-dub.json            package manifest (configurations: application, library, unittest)
-build.sh run.sh     build and run helpers
-source/sqlitefile/  the library
-cli/main.d          the command-line tool
-tests/              unit tests (including a tiny database image builder)
-```
+The whole file is read into memory; TEXT and BLOB values are slices into it, so
+scanning does not copy. `SELECT` always scans the table B-tree (stopping early
+when `LIMIT` is satisfied and there is no `ORDER BY`), `COUNT` sums leaf-page
+cell counts without decoding records, and `INDEX` binary-searches the index
+B-tree (interior pages hold entries too) and then fetches each row by rowid.
+Only the catalog is kept between queries.

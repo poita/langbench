@@ -3,22 +3,18 @@ package commonmark_test
 import (
 	"encoding/json"
 	"os"
-	"strconv"
-	"strings"
 	"testing"
 
 	"example.com/commonmark"
 )
 
 type specExample struct {
-	N    int    `json:"n"`
-	Sec  string `json:"sec"`
-	MD   string `json:"md"`
-	HTML string `json:"html"`
+	N        int    `json:"n"`
+	Section  string `json:"sec"`
+	Markdown string `json:"md"`
+	HTML     string `json:"html"`
 }
 
-// TestSpecExamples runs the examples of the CommonMark specification that
-// fall inside the supported subset (testdata/spec_examples.json).
 func TestSpecExamples(t *testing.T) {
 	data, err := os.ReadFile("testdata/spec_examples.json")
 	if err != nil {
@@ -29,11 +25,10 @@ func TestSpecExamples(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, ex := range examples {
-		t.Run(strings.ReplaceAll(ex.Sec, " ", "_")+"/"+strconv.Itoa(ex.N), func(t *testing.T) {
-			got := commonmark.ToHTMLString(ex.MD)
-			if got != ex.HTML {
-				t.Errorf("input:    %q\nwant:     %q\ngot:      %q", ex.MD, ex.HTML, got)
-			}
-		})
+		got := commonmark.ToHTML(ex.Markdown)
+		if got != ex.HTML {
+			t.Logf("FAIL %d (%s)\n--- md\n%q\n--- want\n%q\n--- got\n%q", ex.N, ex.Section, ex.Markdown, ex.HTML, got)
+			t.Fail()
+		}
 	}
 }

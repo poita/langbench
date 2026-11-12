@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the rrule command-line tool (and library) in release mode.
+# Build the rrule command-line tool (release mode, LDC).
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 --config=cli --quiet
+dub build -b release --compiler=ldc2 --quiet

@@ -1,0 +1,17 @@
+[package]
+name = "chess-perft"
+version = "0.1.0"
+edition = "2024"
+description = "A legal chess move generator with perft and divide, as a library and a CLI"
+license = "MIT"
+readme = "README.md"
+keywords = ["chess", "perft", "movegen"]
+categories = ["game-development", "command-line-utilities"]
+
+[lib]
+name = "chess_perft"
+path = "src/lib.rs"
+
+[[bin]]
+name = "chess-perft"
+path = "src/main.rs"

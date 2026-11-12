@@ -1,21 +1,13 @@
-// Package linediff computes shortest line-oriented edit scripts (diffs) and
-// applies them (patch).
+// Package diff computes shortest line-oriented edit scripts between two texts
+// and applies edit scripts to produce the edited text.
 //
-// The diff is exact: it always returns a script with the minimum possible
-// number of deletions plus insertions. It is built on Myers' O(ND) algorithm
-// in its linear-space "middle snake" form (E. Myers, "An O(ND) Difference
-// Algorithm and Its Variations", 1986), after interning lines to integer ids
-// and trimming common prefixes and suffixes.
+// A script is a sequence of [Edit]s, each one of Keep (the next line of A is
+// also in B), Delete (the next line of A is not in B) or Insert (a new line of
+// B). Its cost is the number of deletions plus insertions. [Diff] returns a
+// script of minimal cost, using Myers' O(ND) algorithm in linear space;
+// [Apply] replays a script on A.
 //
-// The package is organised by responsibility:
-//
-//   - lines.go:  splitting text into line views.
-//   - intern.go: mapping lines to dense integer ids.
-//   - myers.go:  the linear-space Myers search over integer sequences.
-//   - diff.go:   the public Diff entry points and the Op type.
-//   - script.go: rendering and parsing the textual edit-script format.
-//   - patch.go:  applying a parsed script to a file.
-//
-// Lines are plain []byte values without their line terminator; two lines are
-// equal when they are byte-for-byte identical.
-package linediff
+// Scripts have a simple text form, one line per edit, made of a tag character
+// (' ', '-' or '+') directly followed by the line's text. [Script.String]
+// renders it and [ParseScript] reads it back.
+package diff

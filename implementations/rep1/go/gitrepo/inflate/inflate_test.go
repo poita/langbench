@@ -2,142 +2,150 @@ package inflate
 
 import (
 	"bytes"
+	"compress/flate" // oracle encoder, tests only
 	"compress/zlib"
+	"errors"
 	"math/rand"
 	"testing"
 )
 
-// compress uses the standard library's compressor (not its decompressor) to
-// produce test streams.
-func compress(t testing.TB, data []byte, level int) []byte {
-	var b bytes.Buffer
-	w, err := zlib.NewWriterLevel(&b, level)
+func zlibBytes(t *testing.T, data []byte, level int) []byte {
+	t.Helper()
+	var buf bytes.Buffer
+	w, err := zlib.NewWriterLevel(&buf, level)
 	if err != nil {
 		t.Fatal(err)
 	}
 	w.Write(data)
 	w.Close()
-	return b.Bytes()
+	return buf.Bytes()
 }
 
-func sample(n int, seed int64) []byte {
-	r := rand.New(rand.NewSource(seed))
-	words := []string{"alpha ", "beta ", "gamma\n", "delta ", "tree ", "commit ", "\x00\x01\x02"}
-	var b bytes.Buffer
-	for b.Len() < n {
-		b.WriteString(words[r.Intn(len(words))])
-		if r.Intn(10) == 0 {
-			b.WriteByte(byte(r.Intn(256)))
-		}
+func sampleInputs() map[string][]byte {
+	rng := rand.New(rand.NewSource(7))
+	random := make([]byte, 70000)
+	rng.Read(random)
+	text := bytes.Repeat([]byte("the quick brown fox jumps over the lazy dog\n"), 3000)
+	runs := bytes.Repeat([]byte{'a'}, 100000)
+	return map[string][]byte{
+		"empty":  {},
+		"one":    {'x'},
+		"text":   text,
+		"runs":   runs,
+		"random": random,
 	}
-	return b.Bytes()[:n]
 }
 
-func TestRoundTrip(t *testing.T) {
-	d := NewDecoder()
-	inputs := [][]byte{
-		{},
-		[]byte("a"),
-		bytes.Repeat([]byte("a"), 100000), // long overlapping matches
-		bytes.Repeat([]byte("abc"), 5000),
-		sample(300000, 1),
-	}
-	rnd := make([]byte, 70000)
-	rand.New(rand.NewSource(7)).Read(rnd)
-	inputs = append(inputs, rnd) // incompressible: stored blocks
-	for _, level := range []int{zlib.NoCompression, zlib.BestSpeed, zlib.DefaultCompression, zlib.BestCompression, zlib.HuffmanOnly} {
-		for i, in := range inputs {
-			z := compress(t, in, level)
-			got, n, err := d.Zlib(z, 0)
+func TestRoundTripLevels(t *testing.T) {
+	for name, data := range sampleInputs() {
+		for _, level := range []int{zlib.NoCompression, zlib.BestSpeed, zlib.DefaultCompression, zlib.BestCompression, zlib.HuffmanOnly} {
+			comp := zlibBytes(t, data, level)
+			got, n, err := Zlib(comp, len(data))
 			if err != nil {
-				t.Fatalf("level %d input %d: %v", level, i, err)
+				t.Fatalf("%s level %d: %v", name, level, err)
 			}
-			if !bytes.Equal(got, in) {
-				t.Fatalf("level %d input %d: output mismatch", level, i)
+			if !bytes.Equal(got, data) {
+				t.Fatalf("%s level %d: wrong output", name, level)
 			}
-			if n != len(z)-4 {
-				t.Errorf("level %d input %d: consumed %d, want %d", level, i, n, len(z)-4)
+			if n != len(comp) {
+				t.Fatalf("%s level %d: consumed %d of %d", name, level, n, len(comp))
 			}
 		}
 	}
 }
 
-func TestBackToBackStreams(t *testing.T) {
-	d := NewDecoder()
-	a, b := sample(5000, 3), sample(9000, 4)
-	buf := append(compress(t, a, 6), compress(t, b, 6)...)
-	out, n, err := d.Zlib(buf, 5000)
-	if err != nil || !bytes.Equal(out, a) {
-		t.Fatalf("first stream: %v", err)
-	}
-	out, _, err = d.Zlib(buf[n+4:], 0)
-	if err != nil || !bytes.Equal(out, b) {
-		t.Fatalf("second stream: %v", err)
+func TestConsumedStopsAtStreamEnd(t *testing.T) {
+	a := zlibBytes(t, []byte("first object"), zlib.DefaultCompression)
+	b := zlibBytes(t, []byte("second object"), zlib.DefaultCompression)
+	got, n, err := Zlib(append(append([]byte{}, a...), b...), 0)
+	if err != nil || string(got) != "first object" || n != len(a) {
+		t.Fatalf("got %q, %d, %v; want first object, %d", got, n, err, len(a))
 	}
 }
 
-func TestFixedHuffman(t *testing.T) {
-	// "a" compressed with fixed Huffman codes.
-	d := NewDecoder()
-	out, _, err := d.Zlib([]byte{0x78, 0x9c, 0x4b, 0x04, 0x00, 0x00, 0x62, 0x00, 0x62}, 0)
-	if err != nil || string(out) != "a" {
-		t.Fatalf("got %q, %v", out, err)
-	}
-}
-
-func TestBadHeader(t *testing.T) {
-	d := NewDecoder()
-	for _, h := range [][]byte{
-		{0x78, 0x9d, 0x03, 0x00}, // bad check bits
-		{0x79, 0x9c, 0x03, 0x00}, // not deflate
-		{0x78, 0xbb, 0x03, 0x00}, // preset dictionary (0xbb%31==0)
-		{0x78},                   // too short
-	} {
-		if _, _, err := d.Zlib(h, 0); err == nil {
-			t.Errorf("header % x accepted", h)
+func TestRawDeflateBlockTypes(t *testing.T) {
+	// compress/flate emits stored, fixed and dynamic blocks depending on input.
+	for name, data := range sampleInputs() {
+		var buf bytes.Buffer
+		w, _ := flate.NewWriter(&buf, flate.BestCompression)
+		w.Write(data)
+		w.Close()
+		got, n, err := Deflate(buf.Bytes(), 0)
+		if err != nil || !bytes.Equal(got, data) || n != buf.Len() {
+			t.Errorf("%s: err=%v n=%d/%d equal=%v", name, err, n, buf.Len(), bytes.Equal(got, data))
 		}
 	}
 }
 
-func TestCorruptAndTruncated(t *testing.T) {
-	d := NewDecoder()
-	in := sample(20000, 9)
-	z := compress(t, in, 6)
-	// Every truncation must fail cleanly (never panic, never succeed).
-	for cut := 0; cut < len(z)-4; cut += 7 {
-		if out, _, err := d.Zlib(z[:cut], 0); err == nil {
-			t.Fatalf("truncation at %d accepted (%d bytes out)", cut, len(out))
-		}
-	}
-	// Random bit flips must never panic or hang.
-	r := rand.New(rand.NewSource(11))
-	for i := 0; i < 500; i++ {
-		c := append([]byte(nil), z...)
-		c[2+r.Intn(len(c)-2)] ^= 1 << uint(r.Intn(8))
-		d.Zlib(c, 0)
-	}
-}
-
-func TestInvalidBlocks(t *testing.T) {
-	d := NewDecoder()
+func TestBadHeaders(t *testing.T) {
+	good := zlibBytes(t, []byte("hello"), zlib.DefaultCompression)
 	cases := map[string][]byte{
-		"reserved block type": {0x78, 0x9c, 0x07},
-		"stored bad nlen":     {0x78, 0x9c, 0x01, 0x01, 0x00, 0x00, 0x00, 0x41},
-		"distance too far":    {0x78, 0x9c, 0x03, 0x02, 0x00, 0x00}, // match before start
+		"empty":       {},
+		"short":       {0x78},
+		"not deflate": {0x79, 0x9c}, // CM = 9
+		"bad check":   {0x78, 0x9d},
+		"dictionary":  {0x78, 0xbb}, // FDICT set, check bits valid
 	}
-	for name, c := range cases {
-		if _, _, err := d.Zlib(c, 0); err == nil {
-			t.Errorf("%s: accepted", name)
+	for name, in := range cases {
+		if _, _, err := Zlib(append(in, good[2:]...), 0); !errors.Is(err, ErrCorrupt) {
+			t.Errorf("%s: err = %v, want ErrCorrupt", name, err)
 		}
 	}
 }
 
-func BenchmarkInflate(b *testing.B) {
-	in := sample(1<<20, 5)
-	z := compress(b, in, 6)
-	d := NewDecoder()
-	b.SetBytes(int64(len(in)))
+func TestCorruptStreams(t *testing.T) {
+	good := zlibBytes(t, bytes.Repeat([]byte("abcdefgh"), 500), zlib.DefaultCompression)
+
+	bad := append([]byte{}, good...)
+	bad[len(bad)-1] ^= 0xff
+	if _, _, err := Zlib(bad, 0); !errors.Is(err, ErrCorrupt) {
+		t.Errorf("bad adler: err = %v", err)
+	}
+	for _, cut := range []int{3, len(good) / 2, len(good) - 1} {
+		if _, _, err := Zlib(good[:cut], 0); !errors.Is(err, ErrCorrupt) {
+			t.Errorf("truncated to %d: err = %v", cut, err)
+		}
+	}
+	// Reserved block type 3.
+	if _, _, err := Deflate([]byte{0x07}, 0); !errors.Is(err, ErrCorrupt) {
+		t.Errorf("reserved block: err = %v", err)
+	}
+	// Stored block with wrong complement.
+	if _, _, err := Deflate([]byte{0x01, 0x01, 0x00, 0x00, 0x00, 'x'}, 0); !errors.Is(err, ErrCorrupt) {
+		t.Errorf("stored mismatch: err = %v", err)
+	}
+	// Fixed block whose first distance reaches before the output start.
+	if _, _, err := Deflate([]byte{0x03, 0x02, 0x00}, 0); err == nil {
+		t.Error("expected error for fixed block with no end")
+	}
+}
+
+func TestNoPanicOnGarbage(t *testing.T) {
+	rng := rand.New(rand.NewSource(3))
+	for i := 0; i < 2000; i++ {
+		b := make([]byte, rng.Intn(64))
+		rng.Read(b)
+		Deflate(b, 0)
+		Zlib(append([]byte{0x78, 0x9c}, b...), 0)
+	}
+}
+
+func TestAdler32(t *testing.T) {
+	if got := adler32([]byte("Wikipedia")); got != 0x11E60398 {
+		t.Errorf("adler32 = %08x", got)
+	}
+}
+
+func BenchmarkInflateText(b *testing.B) {
+	data := bytes.Repeat([]byte("the quick brown fox jumps over the lazy dog\n"), 20000)
+	var buf bytes.Buffer
+	w := zlib.NewWriter(&buf)
+	w.Write(data)
+	w.Close()
+	b.SetBytes(int64(len(data)))
 	for i := 0; i < b.N; i++ {
-		d.Zlib(z, len(in))
+		if _, _, err := Zlib(buf.Bytes(), len(data)); err != nil {
+			b.Fatal(err)
+		}
 	}
 }

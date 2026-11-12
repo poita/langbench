@@ -5,113 +5,86 @@ import (
 	"testing"
 
 	"svgraster/geom"
-	"svgraster/svgpath"
+	"svgraster/path"
+	"svgraster/raster"
 )
 
-func line(pts ...float64) []svgpath.Subpath {
-	var s svgpath.Subpath
-	for i := 0; i+1 < len(pts); i += 2 {
-		s.Pts = append(s.Pts, geom.Point{X: pts[i], Y: pts[i+1]})
-	}
-	return []svgpath.Subpath{s}
+func sub(closed bool, pts ...geom.Point) path.Subpath {
+	return path.Subpath{Points: pts, Closed: closed}
 }
 
-func area(g *geom.Polygons, i int) float64 {
-	p := g.Poly(i)
-	a := 0.0
-	for k := range p {
-		q := p[(k+1)%len(p)]
-		a += p[k].X*q.Y - q.X*p[k].Y
+// area returns the total area of the outline, measured by rasterising it on a w x h grid.
+func area(t *testing.T, polys [][]geom.Point, w, h int) float64 {
+	t.Helper()
+	c := raster.NewCanvas(w, h)
+	c.FillPolygons(raster.Orient(polys), raster.NonZero, [3]float64{0, 0, 0}, 1)
+	sum := 0.0
+	for i := 3; i < len(c.Pix); i += 4 {
+		sum += c.Pix[i]
 	}
-	return a / 2
+	return sum
 }
 
 func TestSegmentRectangle(t *testing.T) {
-	var g geom.Polygons
-	var s Stroker
-	s.Outline(&g, line(0, 0, 10, 0), Options{Width: 2, Tol: 0.01})
-	if g.Len() != 1 {
-		t.Fatalf("pieces = %d", g.Len())
-	}
-	if a := area(&g, 0); math.Abs(a-20) > 1e-9 {
-		t.Errorf("area = %g, want 20", a)
+	polys := Outline([]path.Subpath{sub(false, geom.Point{X: 2, Y: 5}, geom.Point{X: 12, Y: 5})},
+		Style{Width: 4, MiterLimit: 4}, 0.01)
+	if a := area(t, polys, 20, 10); math.Abs(a-40) > 0.1 {
+		t.Errorf("area = %v, want 40", a)
 	}
 }
 
-func TestPiecesArePositivelyOriented(t *testing.T) {
-	var g geom.Polygons
-	var s Stroker
-	sub := line(0, 0, 10, 0, 10, 10, 0, 10)
-	sub[0].Closed = true
-	for _, j := range []Join{JoinMiter, JoinRound, JoinBevel} {
-		g.Reset()
-		s.Outline(&g, sub, Options{Width: 2, Join: j, MiterLimit: 4, Tol: 0.01})
-		for i := 0; i < g.Len(); i++ {
-			if area(&g, i) < 0 {
-				t.Fatalf("join %d piece %d has negative area", j, i)
-			}
+func TestCaps(t *testing.T) {
+	line := []path.Subpath{sub(false, geom.Point{X: 5, Y: 5}, geom.Point{X: 15, Y: 5})}
+	want := map[Cap]float64{ButtCap: 40, SquareCap: 56, RoundCap: 40 + math.Pi*4}
+	for c, w := range want {
+		a := area(t, Outline(line, Style{Width: 4, Cap: c, MiterLimit: 4}, 0.01), 20, 10)
+		if math.Abs(a-w) > 0.1 {
+			t.Errorf("cap %d area = %v, want %v", c, a, w)
 		}
 	}
 }
 
-func TestCapsAndPoints(t *testing.T) {
-	var s Stroker
-	count := func(sub []svgpath.Subpath, c Cap) int {
-		var g geom.Polygons
-		s.Outline(&g, sub, Options{Width: 2, Cap: c, Tol: 0.01})
-		return g.Len()
+func TestPointSubpath(t *testing.T) {
+	pt := []path.Subpath{sub(false, geom.Point{X: 5, Y: 5}, geom.Point{X: 5, Y: 5})}
+	if p := Outline(pt, Style{Width: 4}, 0.01); len(p) != 0 {
+		t.Error("butt cap point draws nothing")
 	}
-	seg := line(0, 0, 10, 0)
-	if n := count(seg, CapButt); n != 1 {
-		t.Errorf("butt pieces = %d", n)
+	if a := area(t, Outline(pt, Style{Width: 4, Cap: SquareCap}, 0.01), 10, 10); math.Abs(a-16) > 1e-6 {
+		t.Errorf("square point area = %v", a)
 	}
-	if n := count(seg, CapSquare); n != 3 {
-		t.Errorf("square pieces = %d", n)
-	}
-	if n := count(seg, CapRound); n != 3 {
-		t.Errorf("round pieces = %d", n)
-	}
-	dot := line(5, 5, 5, 5)
-	if n := count(dot, CapButt); n != 0 {
-		t.Errorf("butt dot pieces = %d", n)
-	}
-	var g geom.Polygons
-	s.Outline(&g, dot, Options{Width: 2, Cap: CapSquare, Tol: 0.01})
-	if a := area(&g, 0); math.Abs(a-4) > 1e-9 {
-		t.Errorf("square dot area = %g", a)
-	}
-	g.Reset()
-	s.Outline(&g, dot, Options{Width: 2, Cap: CapRound, Tol: 0.01})
-	if a := area(&g, 0); math.Abs(a-math.Pi) > 0.05 {
-		t.Errorf("round dot area = %g", a)
+	if a := area(t, Outline(pt, Style{Width: 4, Cap: RoundCap}, 0.01), 10, 10); math.Abs(a-4*math.Pi) > 0.15 {
+		t.Errorf("round point area = %v", a)
 	}
 }
 
-func TestMiterLimit(t *testing.T) {
-	// A right angle has miter ratio sqrt(2) ~ 1.414; limit 1.2 forces a bevel.
-	sub := line(0, 0, 10, 0, 10, 10)
-	miterArea := func(limit float64) float64 {
-		var g geom.Polygons
-		var s Stroker
-		s.Outline(&g, sub, Options{Width: 2, Join: JoinMiter, MiterLimit: limit, Tol: 0.01})
-		return area(&g, 2) // third piece is the join
+func TestJoins(t *testing.T) {
+	// A right angle with stroke width 2 on the grid; the outer corner of the
+	// join is the only difference between the styles.
+	corner := []path.Subpath{sub(false, geom.Point{X: 2, Y: 8}, geom.Point{X: 2, Y: 2}, geom.Point{X: 8, Y: 2})}
+	base := area(t, Outline(corner, Style{Width: 2, Join: BevelJoin, MiterLimit: 4}, 0.01), 12, 12)
+	miter := area(t, Outline(corner, Style{Width: 2, Join: MiterJoin, MiterLimit: 4}, 0.01), 12, 12)
+	round := area(t, Outline(corner, Style{Width: 2, Join: RoundJoin, MiterLimit: 4}, 0.01), 12, 12)
+	if math.Abs(miter-base-0.5) > 0.05 {
+		t.Errorf("miter - bevel = %v, want 0.5", miter-base)
 	}
-	if a := miterArea(4); math.Abs(a-1) > 1e-9 { // kite p,A,M,B with r=1
-		t.Errorf("miter piece area %g, want 1", a)
+	if want := math.Pi/4 - 0.5; math.Abs(round-base-want) > 0.05 {
+		t.Errorf("round - bevel = %v, want %v", round-base, want)
 	}
-	if a := miterArea(1.2); math.Abs(a-0.5) > 1e-9 { // bevel triangle
-		t.Errorf("bevel piece area %g, want 0.5", a)
+	if !(base < round && round < miter) {
+		t.Errorf("expected bevel < round < miter, got %v %v %v", base, round, miter)
 	}
-	if mi, be := miterArea(4), miterArea(1.2); !(mi > be) {
-		t.Errorf("miter %g should exceed bevel %g", mi, be)
+	// A miter limit below the ratio (sqrt 2) falls back to a bevel.
+	low := area(t, Outline(corner, Style{Width: 2, Join: MiterJoin, MiterLimit: 1.2}, 0.01), 12, 12)
+	if math.Abs(low-base) > 1e-6 {
+		t.Errorf("miter limit fallback = %v, want bevel %v", low, base)
 	}
 }
 
-func TestZeroWidth(t *testing.T) {
-	var g geom.Polygons
-	var s Stroker
-	s.Outline(&g, line(0, 0, 1, 1), Options{Width: 0})
-	if g.Len() != 0 {
-		t.Error("zero width produced geometry")
+func TestClosedSubpath(t *testing.T) {
+	sq := []path.Subpath{sub(true, geom.Point{X: 2, Y: 2}, geom.Point{X: 8, Y: 2},
+		geom.Point{X: 8, Y: 8}, geom.Point{X: 2, Y: 8}, geom.Point{X: 2, Y: 2})}
+	a := area(t, Outline(sq, Style{Width: 2, MiterLimit: 4}, 0.01), 10, 10)
+	if math.Abs(a-(64-16)) > 1e-6 { // 8x8 outer minus 4x4 inner
+		t.Errorf("area = %v, want 48", a)
 	}
 }

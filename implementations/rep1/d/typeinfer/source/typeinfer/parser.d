@@ -1,326 +1,337 @@
 /**
- * Recursive-descent parser producing a flat `Program`.
+ * Recursive-descent parser for the grammar in the specification.
  *
- * `let f x y = e` is desugared to nested `fun`s while parsing, and `::`
- * chains, `fun` parameter lists, tuples and list literals are collected
- * iteratively, so only genuine expression nesting consumes stack.
+ * Precedence, loosest to tightest: `let`/`fun`/`if`, `||`, `&&`, comparison,
+ * `::`, `+ -`, `* /`, application. Parsing is recursive, so very deeply nested
+ * input needs a correspondingly deep call stack.
  */
 module typeinfer.parser;
 
 import typeinfer.ast;
-import typeinfer.errors;
 import typeinfer.lexer;
 
-/**
- * Parse a token array (as produced by `tokenize`) into a program.
- *
- * Throws: `SyntaxError` if the tokens do not form a valid program.
- */
-Program parse(const(Token)[] tokens)
+/// Parses declarations one at a time from source text.
+final class Parser
 {
-    auto p = new Parser(tokens);
-    return p.parseProgram();
-}
+    private string src;
+    private Token[] toks;
+    private size_t pos;
 
-private final class Parser
-{
-    const(Token)[] toks;
-    size_t pos;
-    Program prog;
-    int[] scratch; // stack of pending sibling indices
-
-    this(const(Token)[] toks) { this.toks = toks; }
-
-    @property Tok kind() const { return toks[pos].kind; }
-
-    SyntaxError error(string what)
+    /// Tokenises `source` and positions the parser at its first declaration.
+    this(string source) @safe nothrow
     {
-        return new SyntaxError(what, toks[pos].pos);
+        src = source;
+        toks = tokenize(source);
     }
 
-    void expect(Tok k, string what)
-    {
-        if (kind != k)
-            throw error("expected " ~ what);
-        ++pos;
-    }
+    /// True once all declarations have been consumed.
+    bool atEnd() const @safe nothrow @nogc { return cur.kind == Tok.eof; }
 
-    int add(Expr e)
+    /// Parses the next declaration (including its terminating `;;`).
+    /// Throws $(REF SyntaxError, typeinfer.lexer) on malformed input.
+    Decl parseDecl() @safe 
     {
-        prog.exprs ~= e;
-        return cast(int) prog.exprs.length - 1;
-    }
-
-    Program parseProgram()
-    {
-        prog.exprs.reserve(toks.length);
-        while (kind != Tok.eof)
-            prog.decls ~= parseDecl();
-        return prog;
-    }
-
-    Decl parseDecl()
-    {
-        if (kind == Tok.kwLet)
+        Decl d;
+        if (cur.kind == Tok.kwLet)
         {
-            bool rec;
-            int name, rhs;
-            parseLetHead(rec, name, rhs);
-            expect(Tok.semiSemi, "';;'");
-            return Decl(rec ? DeclKind.letRec : DeclKind.let, name, rhs);
+            advance();
+            d.isRec = accept(Tok.kwRec);
+            d.name = expectIdent();
+            d.expr = parseLetRhs(d.isRec);
         }
-        immutable e = parseExpr();
+        else
+        {
+            d.expr = parseExpr();
+        }
         expect(Tok.semiSemi, "';;'");
-        return Decl(DeclKind.expr, -1, e);
+        return d;
     }
 
-    /// Parses `let [rec] name params* = expr`; the cursor is on `let`.
-    void parseLetHead(out bool rec, out int name, out int rhs)
+    // -- token helpers ------------------------------------------------------
+
+    private ref const(Token) cur() const @safe nothrow @nogc { return toks[pos]; }
+
+    private void advance() @safe nothrow @nogc
     {
-        ++pos;
-        if (kind == Tok.kwRec)
-        {
-            rec = true;
-            ++pos;
-        }
-        if (kind != Tok.ident)
-            throw error("expected a name");
-        name = toks[pos++].id;
-        immutable base = scratch.length;
-        while (kind == Tok.ident)
-            scratch ~= toks[pos++].id;
-        if (rec && scratch.length == base)
-            throw error("'let rec' needs at least one parameter");
+        if (toks[pos].kind != Tok.eof) ++pos;
+    }
+
+    private bool accept(Tok k) @safe nothrow @nogc
+    {
+        if (cur.kind != k) return false;
+        advance();
+        return true;
+    }
+
+    private SyntaxError fail(string what) @safe const
+    {
+        return new SyntaxError("syntax error at offset " ~ itoa(cur.start) ~ ": expected " ~ what, cur.start);
+    }
+
+    private void expect(Tok k, string what) @safe 
+    {
+        if (!accept(k)) throw fail(what);
+    }
+
+    private string expectIdent() @safe 
+    {
+        if (cur.kind != Tok.ident) throw fail("identifier");
+        auto s = src[cur.start .. cur.end];
+        advance();
+        return s;
+    }
+
+    // -- grammar ------------------------------------------------------------
+
+    /// After `let [rec] name`: parameters, `=`, and the right-hand side expression.
+    /// Returns the right-hand side, wrapped in a `Lam` if there are parameters.
+    private Expr parseLetRhs(bool isRec) @safe 
+    {
+        string[] params;
+        while (cur.kind == Tok.ident) params ~= expectIdent();
+        if (isRec && params.length == 0) throw fail("parameter");
         expect(Tok.eq, "'='");
-        rhs = wrapInFuns(base, parseExpr());
+        auto rhs = parseExpr();
+        return params.length ? new Lam(params, rhs) : rhs;
     }
 
-    /// Wraps `body` in `fun` nodes for scratch[base .. $] and pops them.
-    int wrapInFuns(size_t base, int body)
+    private Expr parseExpr() @safe 
     {
-        foreach_reverse (i; base .. scratch.length)
-            body = add(Expr(ExprKind.fun, BinOp.add, scratch[i], body, 0));
-        scratch.length = base;
-        return body;
-    }
-
-    int parseExpr()
-    {
-        switch (kind)
+        switch (cur.kind)
         {
-        case Tok.kwLet:
-        {
-            bool rec;
-            int name, rhs;
-            parseLetHead(rec, name, rhs);
-            expect(Tok.kwIn, "'in'");
-            immutable body = parseExpr();
-            return add(Expr(rec ? ExprKind.letRec : ExprKind.let, BinOp.add, name, rhs, body));
-        }
-        case Tok.kwFun:
-        {
-            ++pos;
-            immutable base = scratch.length;
-            while (kind == Tok.ident)
-                scratch ~= toks[pos++].id;
-            if (scratch.length == base)
-                throw error("expected a parameter");
-            expect(Tok.arrow, "'->'");
-            return wrapInFuns(base, parseExpr());
-        }
-        case Tok.kwIf:
-        {
-            ++pos;
-            immutable c = parseExpr();
-            expect(Tok.kwThen, "'then'");
-            immutable a = parseExpr();
-            expect(Tok.kwElse, "'else'");
-            immutable b = parseExpr();
-            return add(Expr(ExprKind.ifThenElse, BinOp.add, c, a, b));
-        }
-        default:
-            return parseOr();
+            case Tok.kwLet:
+            {
+                advance();
+                immutable isRec = accept(Tok.kwRec);
+                auto name = expectIdent();
+                auto rhs = parseLetRhs(isRec);
+                expect(Tok.kwIn, "'in'");
+                auto body_ = parseExpr();
+                return new Let(name, isRec, rhs, body_);
+            }
+            case Tok.kwFun:
+            {
+                advance();
+                string[] params;
+                while (cur.kind == Tok.ident) params ~= expectIdent();
+                if (params.length == 0) throw fail("parameter");
+                expect(Tok.arrow, "'->'");
+                return new Lam(params, parseExpr());
+            }
+            case Tok.kwIf:
+            {
+                advance();
+                auto c = parseExpr();
+                expect(Tok.kwThen, "'then'");
+                auto t = parseExpr();
+                expect(Tok.kwElse, "'else'");
+                auto e = parseExpr();
+                return new If(c, t, e);
+            }
+            default:
+                return parseOr();
         }
     }
 
-    int binary(BinOp op, int l, int r)
-    {
-        return add(Expr(ExprKind.binary, op, l, r, 0));
-    }
-
-    int parseOr()
+    private Expr parseOr() @safe 
     {
         auto l = parseAnd();
-        while (kind == Tok.orOr)
+        while (cur.kind == Tok.orOr)
         {
-            ++pos;
-            l = binary(BinOp.or, l, parseAnd());
+            advance();
+            l = new Binary(BinOp.or, l, parseAnd());
         }
         return l;
     }
 
-    int parseAnd()
+    private Expr parseAnd() @safe 
     {
         auto l = parseCmp();
-        while (kind == Tok.andAnd)
+        while (cur.kind == Tok.andAnd)
         {
-            ++pos;
-            l = binary(BinOp.and, l, parseCmp());
+            advance();
+            l = new Binary(BinOp.and, l, parseCmp());
         }
         return l;
     }
 
-    int parseCmp()
+    private Expr parseCmp() @safe 
     {
         auto l = parseCons();
         BinOp op;
-        switch (kind)
+        switch (cur.kind)
         {
-        case Tok.eq:        op = BinOp.eq; break;
-        case Tok.less:      op = BinOp.lt; break;
-        case Tok.greater:   op = BinOp.gt; break;
-        case Tok.lessEq:    op = BinOp.le; break;
-        case Tok.greaterEq: op = BinOp.ge; break;
-        default:            return l;
+            case Tok.eq: op = BinOp.eq; break;
+            case Tok.lt: op = BinOp.lt; break;
+            case Tok.gt: op = BinOp.gt; break;
+            case Tok.le: op = BinOp.le; break;
+            case Tok.ge: op = BinOp.ge; break;
+            default: return l;
         }
-        ++pos;
-        return binary(op, l, parseCons());
+        advance();
+        return new Binary(op, l, parseCons());
     }
 
-    int parseCons()
+    private Expr parseCons() @safe 
     {
-        immutable first = parseAdd();
-        if (kind != Tok.colonColon)
-            return first;
-        immutable base = scratch.length;
-        scratch ~= first;
-        while (kind == Tok.colonColon)
+        auto h = parseAdd();
+        if (cur.kind == Tok.colonColon)
         {
-            ++pos;
-            scratch ~= parseAdd();
+            advance();
+            return new Cons(h, parseCons());
         }
-        int acc = scratch[$ - 1];
-        foreach_reverse (i; base .. scratch.length - 1)
-            acc = add(Expr(ExprKind.cons, BinOp.add, scratch[i], acc, 0));
-        scratch.length = base;
-        return acc;
+        return h;
     }
 
-    int parseAdd()
+    private Expr parseAdd() @safe 
     {
         auto l = parseMul();
-        while (kind == Tok.plus || kind == Tok.minus)
+        for (;;)
         {
-            immutable op = kind == Tok.plus ? BinOp.add : BinOp.sub;
-            ++pos;
-            l = binary(op, l, parseMul());
+            BinOp op;
+            if (cur.kind == Tok.plus) op = BinOp.add;
+            else if (cur.kind == Tok.minus) op = BinOp.sub;
+            else return l;
+            advance();
+            l = new Binary(op, l, parseMul());
         }
-        return l;
     }
 
-    int parseMul()
+    private Expr parseMul() @safe 
     {
         auto l = parseApp();
-        while (kind == Tok.star || kind == Tok.slash)
+        for (;;)
         {
-            immutable op = kind == Tok.star ? BinOp.mul : BinOp.div;
-            ++pos;
-            l = binary(op, l, parseApp());
+            BinOp op;
+            if (cur.kind == Tok.star) op = BinOp.mul;
+            else if (cur.kind == Tok.slash) op = BinOp.div;
+            else return l;
+            advance();
+            l = new Binary(op, l, parseApp());
         }
-        return l;
     }
 
-    bool atStartOfAtom() const
+    private bool atomStart() const @safe nothrow @nogc
     {
-        switch (kind)
+        switch (cur.kind)
         {
-        case Tok.integer, Tok.ident, Tok.kwTrue, Tok.kwFalse, Tok.lparen, Tok.lbracket:
-            return true;
-        default:
-            return false;
+            case Tok.integer, Tok.kwTrue, Tok.kwFalse, Tok.ident, Tok.lParen, Tok.lBracket:
+                return true;
+            default:
+                return false;
         }
     }
 
-    int parseApp()
+    private Expr parseApp() @safe 
     {
         auto f = parseAtom();
-        while (atStartOfAtom())
-            f = add(Expr(ExprKind.app, BinOp.add, f, parseAtom(), 0));
+        while (atomStart()) f = new App(f, parseAtom());
         return f;
     }
 
-    /// Moves scratch[base .. $] into the children pool; returns its start.
-    int flush(size_t base)
+    private Expr parseAtom() @safe 
     {
-        immutable start = cast(int) prog.children.length;
-        prog.children ~= scratch[base .. $];
-        scratch.length = base;
-        return start;
-    }
-
-    int parseAtom()
-    {
-        switch (kind)
+        switch (cur.kind)
         {
-        case Tok.integer:
-            ++pos;
-            return add(Expr(ExprKind.intLit));
-        case Tok.kwTrue:
-            ++pos;
-            return add(Expr(ExprKind.boolLit, BinOp.add, 1));
-        case Tok.kwFalse:
-            ++pos;
-            return add(Expr(ExprKind.boolLit, BinOp.add, 0));
-        case Tok.ident:
-            return add(Expr(ExprKind.variable, BinOp.add, toks[pos++].id));
-        case Tok.lparen:
-        {
-            ++pos;
-            if (kind == Tok.rparen)
+            case Tok.integer:
             {
-                ++pos;
-                return add(Expr(ExprKind.unitLit));
+                auto e = new IntLit(src[cur.start .. cur.end]);
+                advance();
+                return e;
             }
-            immutable first = parseExpr();
-            if (kind == Tok.rparen)
+            case Tok.kwTrue: advance(); return new BoolLit(true);
+            case Tok.kwFalse: advance(); return new BoolLit(false);
+            case Tok.ident:
             {
-                ++pos;
+                auto e = new Var(src[cur.start .. cur.end]);
+                advance();
+                return e;
+            }
+            case Tok.lParen:
+            {
+                advance();
+                if (accept(Tok.rParen)) return new UnitLit();
+                auto first = parseExpr();
+                if (cur.kind == Tok.comma)
+                {
+                    Expr[] elems = [first];
+                    while (accept(Tok.comma)) elems ~= parseExpr();
+                    expect(Tok.rParen, "')'");
+                    return new Tuple(elems);
+                }
+                expect(Tok.rParen, "')'");
                 return first;
             }
-            immutable base = scratch.length;
-            scratch ~= first;
-            while (kind == Tok.comma)
+            case Tok.lBracket:
             {
-                ++pos;
-                scratch ~= parseExpr();
+                advance();
+                if (accept(Tok.rBracket)) return new Nil();
+                Expr[] elems = [parseExpr()];
+                while (accept(Tok.semi)) elems ~= parseExpr();
+                expect(Tok.rBracket, "']'");
+                return new ListLit(elems);
             }
-            if (scratch.length - base < 2)
-                throw error("expected ',' or ')'");
-            expect(Tok.rparen, "')'");
-            immutable count = cast(int)(scratch.length - base);
-            immutable start = flush(base);
-            return add(Expr(ExprKind.tuple, BinOp.add, start, count));
-        }
-        case Tok.lbracket:
-        {
-            ++pos;
-            immutable base = scratch.length;
-            if (kind != Tok.rbracket)
-            {
-                scratch ~= parseExpr();
-                while (kind == Tok.semi)
-                {
-                    ++pos;
-                    scratch ~= parseExpr();
-                }
-            }
-            expect(Tok.rbracket, "']'");
-            immutable count = cast(int)(scratch.length - base);
-            immutable start = flush(base);
-            return add(Expr(ExprKind.list, BinOp.add, start, count));
-        }
-        default:
-            throw error("expected an expression");
+            default:
+                throw fail("expression");
         }
     }
+}
+
+/// Parses a whole program. Throws `SyntaxError` on malformed input.
+Decl[] parseProgram(string source) @safe 
+{
+    auto p = new Parser(source);
+    Decl[] ds;
+    while (!p.atEnd) ds ~= p.parseDecl();
+    return ds;
+}
+
+private string itoa(size_t v) @safe nothrow
+{
+    char[20] buf;
+    size_t i = buf.length;
+    do { buf[--i] = cast(char)('0' + v % 10); v /= 10; } while (v);
+    return buf[i .. $].idup;
+}
+
+@safe unittest
+{
+    auto ds = parseProgram("let f x y = x + 1;; (f);; let rec g n = g n;;");
+    assert(ds.length == 3);
+    assert(ds[0].isBinding && ds[0].name == "f" && !ds[0].isRec);
+    auto lam = cast(Lam) ds[0].expr;
+    assert(lam !is null && lam.params == ["x", "y"]);
+    assert(!ds[1].isBinding);
+    assert(ds[2].isRec);
+}
+
+@safe unittest
+{
+    // Precedence: f x + g y * 2 == (f x) + ((g y) * 2)
+    auto ds = parseProgram("f x + g y * 2;;");
+    auto b = cast(Binary) ds[0].expr;
+    assert(b !is null && b.op == BinOp.add);
+    assert(b.lhs.kind == ExprKind.app);
+    auto m = cast(Binary) b.rhs;
+    assert(m !is null && m.op == BinOp.mul);
+}
+
+@safe unittest
+{
+    // `::` is right-associative, `fun` bodies stop at `,`, tuples are flat.
+    auto c = cast(Cons) parseProgram("1 :: 2 :: l;;")[0].expr;
+    assert(c !is null && c.tail.kind == ExprKind.cons);
+    auto t = cast(Tuple) parseProgram("(fun x -> x, 1, 2);;")[0].expr;
+    assert(t !is null && t.elems.length == 3 && t.elems[0].kind == ExprKind.lam);
+    auto l = cast(ListLit) parseProgram("[fun x -> x; fun y -> 1];;")[0].expr;
+    assert(l !is null && l.elems.length == 2);
+}
+
+@safe unittest
+{
+    import std.exception : assertThrown;
+    assertThrown!SyntaxError(parseProgram("let x = ;;"));
+    assertThrown!SyntaxError(parseProgram("let rec f = fun x -> x;;"));
+    assertThrown!SyntaxError(parseProgram("1 + ;;"));
+    assert(parseProgram("  \n ").length == 0);
 }

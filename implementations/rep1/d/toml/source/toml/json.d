@@ -1,298 +1,305 @@
 /**
- * Tagged JSON: the interchange format of the `toml-test` suite.
+ * The toml-test "tagged JSON" interchange format.
  *
- * $(LREF toTaggedJson) writes a tree as compact, key-sorted JSON in which every
- * scalar is `{"type":T,"value":TEXT}`; $(LREF fromTaggedJson) reads it back.
+ * Tables are JSON objects, arrays are JSON arrays and every scalar is an
+ * object `{"type": T, "value": TEXT}` with both members strings.
  */
 module toml.json;
 
 import std.array : Appender, appender;
-import toml.node;
-import toml.scalar : hexDigit;
+import toml.exception : TomlException;
+import toml.utf8 : appendUtf8;
+import toml.value;
 
-/// Serialises a tree as compact tagged JSON with sorted keys (no trailing newline).
-string toTaggedJson(Node root)
+/**
+ * Renders a tree as compact tagged JSON with the keys of every object sorted
+ * by code point.
+ */
+string toTaggedJson(Node root) @safe
 {
-    auto o = appender!(char[])();
-    writeNode(o, root);
-    return cast(string) o.data;
+    auto app = appender!(char[])();
+    writeNode(app, root);
+    return (() @trusted => cast(string) app.data)();
 }
 
-private void writeNode(ref Appender!(char[]) o, Node n)
+private void writeNode(ref Appender!(char[]) app, Node n) @safe
 {
     final switch (n.kind)
     {
     case Kind.table:
-        o.put('{');
+        app ~= '{';
         bool first = true;
         foreach (k; n.sortedKeys)
         {
-            if (!first) o.put(',');
+            if (!first)
+                app ~= ',';
             first = false;
-            writeString(o, k);
-            o.put(':');
-            writeNode(o, n.fields[k]);
+            writeString(app, k);
+            app ~= ':';
+            writeNode(app, n.members[k]);
         }
-        o.put('}');
+        app ~= '}';
         break;
     case Kind.array:
-        o.put('[');
+        app ~= '[';
         foreach (i, e; n.items)
         {
-            if (i) o.put(',');
-            writeNode(o, e);
+            if (i)
+                app ~= ',';
+            writeNode(app, e);
         }
-        o.put(']');
+        app ~= ']';
         break;
-    case Kind.string, Kind.integer, Kind.float_, Kind.boolean, Kind.datetime,
-         Kind.datetimeLocal, Kind.dateLocal, Kind.timeLocal:
-        o.put(`{"type":"`);
-        o.put(typeName(n.kind));
-        o.put(`","value":`);
-        writeString(o, n.text);
-        o.put('}');
+    case Kind.str:
+    case Kind.integer:
+    case Kind.floating:
+    case Kind.boolean:
+    case Kind.offsetDateTime:
+    case Kind.localDateTime:
+    case Kind.localDate:
+    case Kind.localTime:
+        app ~= `{"type":"`;
+        app ~= typeName(n.kind);
+        app ~= `","value":`;
+        writeString(app, n.text);
+        app ~= '}';
         break;
     }
 }
 
-private void writeString(ref Appender!(char[]) o, string s)
+private void writeString(ref Appender!(char[]) app, const(char)[] s) @safe
 {
-    static immutable hexd = "0123456789abcdef";
-    o.put('"');
-    size_t run = 0;
+    static immutable hex = "0123456789abcdef";
+    app ~= '"';
+    size_t runStart = 0;
     foreach (i, c; s)
     {
         if (c >= 0x20 && c != '"' && c != '\\')
             continue;
-        o.put(s[run .. i]);
-        run = i + 1;
+        app ~= s[runStart .. i];
+        runStart = i + 1;
         switch (c)
         {
-        case '"':  o.put(`\"`); break;
-        case '\\': o.put(`\\`); break;
-        case '\b': o.put(`\b`); break;
-        case '\f': o.put(`\f`); break;
-        case '\n': o.put(`\n`); break;
-        case '\r': o.put(`\r`); break;
-        case '\t': o.put(`\t`); break;
+        case '"':  app ~= `\"`; break;
+        case '\\': app ~= `\\`; break;
+        case '\b': app ~= `\b`; break;
+        case '\f': app ~= `\f`; break;
+        case '\n': app ~= `\n`; break;
+        case '\r': app ~= `\r`; break;
+        case '\t': app ~= `\t`; break;
         default:
-            o.put(`\u00`);
-            o.put(hexd[c >> 4]);
-            o.put(hexd[c & 15]);
+            app ~= `\u00`;
+            app ~= hex[c >> 4];
+            app ~= hex[c & 15];
         }
     }
-    o.put(s[run .. $]);
-    o.put('"');
+    app ~= s[runStart .. $];
+    app ~= '"';
 }
 
 /**
- * Parses tagged JSON into a tree.
+ * Reads tagged JSON back into a tree.
  *
- * A JSON object is a scalar exactly when it has the two string members
- * `type` and `value` with a known type name; otherwise it is a table.
- * Scalar `value` texts are kept verbatim.
- * Throws: $(REF TomlException, toml,node) on malformed input.
+ * An object with exactly the two string members `type` and `value`, `type`
+ * naming one of the eight scalar types, is a scalar; any other object is a table.
+ * Throws: `TomlException` if the JSON is malformed.
  */
-Node fromTaggedJson(string json)
+Node fromTaggedJson(const(char)[] json) @safe
 {
     auto r = JsonReader(json);
-    auto n = r.value();
     r.skipWs();
-    if (r.p != json.length)
-        throw new TomlException("trailing data after JSON value");
+    auto n = r.readNode();
+    r.skipWs();
+    if (r.pos != json.length)
+        r.fail("trailing data");
     return n;
 }
 
 private struct JsonReader
 {
-    string s;
-    size_t p;
-    Appender!(char[]) buf;
+    const(char)[] src;
+    size_t pos;
 
-    this(string s) { this.s = s; }
-
-    void skipWs()
+    noreturn fail(string msg) const @safe
     {
-        while (p < s.length && (s[p] == ' ' || s[p] == '\t' || s[p] == '\n' || s[p] == '\r'))
-            ++p;
+        throw new TomlException("invalid tagged JSON: " ~ msg, src, pos);
     }
 
-    TomlException fail(string m) { return new TomlException("JSON: " ~ m); }
-
-    Node value()
+    void skipWs() @safe pure nothrow @nogc
     {
-        skipWs();
-        if (p >= s.length) throw fail("unexpected end");
-        switch (s[p])
-        {
-        case '{': return object();
-        case '[': return array();
-        default: throw fail("unexpected character");
-        }
+        while (pos < src.length
+               && (src[pos] == ' ' || src[pos] == '\t' || src[pos] == '\n' || src[pos] == '\r'))
+            ++pos;
     }
 
-    Node array()
+    void expect(char c) @safe
     {
-        ++p;
-        auto a = Node.newArray();
-        skipWs();
-        if (p < s.length && s[p] == ']')
-        {
-            ++p;
-            return a;
-        }
-        for (;;)
-        {
-            a.items ~= value();
-            skipWs();
-            if (p >= s.length) throw fail("unterminated array");
-            if (s[p] == ',') { ++p; continue; }
-            if (s[p] == ']') { ++p; return a; }
-            throw fail("expected , or ]");
-        }
+        if (pos >= src.length || src[pos] != c)
+            fail("expected '" ~ c ~ "'");
+        ++pos;
     }
 
-    Node object()
+    Node readNode() @safe
     {
-        ++p;
-        auto t = Node.newTable();
-        string[string] strs;
+        if (pos >= src.length)
+            fail("unexpected end");
+        if (src[pos] == '{')
+            return readObject();
+        if (src[pos] == '[')
+            return readArray();
+        fail("expected an object or array");
+    }
+
+    Node readArray() @safe
+    {
+        ++pos;
+        auto arr = Node.newArray();
         skipWs();
-        if (p < s.length && s[p] == '}')
+        if (pos < src.length && src[pos] == ']')
         {
-            ++p;
-            return t;
+            ++pos;
+            return arr;
         }
         for (;;)
         {
             skipWs();
-            if (p >= s.length || s[p] != '"') throw fail("expected key");
-            auto key = str();
+            arr.items ~= readNode();
             skipWs();
-            if (p >= s.length || s[p] != ':') throw fail("expected :");
-            ++p;
-            skipWs();
-            if (p < s.length && s[p] == '"')
-                strs[key] = str();
+            if (pos < src.length && src[pos] == ',')
+                ++pos;
             else
-                t.fields[key] = value();
-            skipWs();
-            if (p >= s.length) throw fail("unterminated object");
-            if (s[p] == ',') { ++p; continue; }
-            if (s[p] == '}') { ++p; break; }
-            throw fail("expected , or }");
+            {
+                expect(']');
+                return arr;
+            }
         }
-        if (strs.length == 0)
-            return t;
-        Kind k;
-        if (t.fields.length == 0 && strs.length == 2)
-        {
-            auto ty = "type" in strs;
-            auto va = "value" in strs;
-            if (ty && va && scalarKindFromName(*ty, k))
-                return Node.scalar(k, *va);
-        }
-        throw fail("bad value node");
     }
 
-    string str()
+    Node readObject() @safe
     {
-        ++p; // opening quote
-        size_t run = p;
-        bool useBuf = false;
+        ++pos;
+        auto table = Node.newTable();
+        string[string] strings; // string-valued members (only legal in scalar nodes)
+        skipWs();
+        if (pos < src.length && src[pos] == '}')
+        {
+            ++pos;
+            return table;
+        }
         for (;;)
         {
-            if (p >= s.length) throw fail("unterminated string");
-            immutable c = s[p];
-            if (c == '"')
+            skipWs();
+            auto key = readString();
+            skipWs();
+            expect(':');
+            skipWs();
+            if (pos < src.length && src[pos] == '"')
+                strings[key] = readString();
+            else
+                table.members[key] = readNode();
+            skipWs();
+            if (pos < src.length && src[pos] == ',')
+                ++pos;
+            else
             {
-                string r;
-                if (useBuf)
-                {
-                    buf.put(s[run .. p]);
-                    r = buf.data.idup;
-                }
-                else
-                    r = s[run .. p];
-                ++p;
-                return r;
+                expect('}');
+                break;
             }
-            if (c != '\\')
+        }
+        Kind kind;
+        if (strings.length == 2 && table.members.length == 0)
+        {
+            auto t = "type" in strings;
+            auto v = "value" in strings;
+            if (t && v && kindFromTypeName(*t, kind))
+                return Node.scalar(kind, *v);
+        }
+        if (strings.length != 0)
+            fail("unexpected string member");
+        return table;
+    }
+
+    string readString() @safe
+    {
+        expect('"');
+        char[] buf;
+        for (;;)
+        {
+            immutable start = pos;
+            while (pos < src.length && src[pos] != '"' && src[pos] != '\\')
+                ++pos;
+            buf ~= src[start .. pos];
+            if (pos >= src.length)
+                fail("unterminated string");
+            if (src[pos] == '"')
             {
-                ++p;
-                continue;
+                ++pos;
+                return buf.idup;
             }
-            if (!useBuf)
+            ++pos; // backslash
+            if (pos >= src.length)
+                fail("unterminated escape");
+            immutable c = src[pos++];
+            switch (c)
             {
-                buf.clear();
-                useBuf = true;
-            }
-            buf.put(s[run .. p]);
-            ++p;
-            if (p >= s.length) throw fail("unterminated string");
-            immutable e = s[p++];
-            switch (e)
-            {
-            case '"': buf.put('"'); break;
-            case '\\': buf.put('\\'); break;
-            case '/': buf.put('/'); break;
-            case 'b': buf.put('\b'); break;
-            case 'f': buf.put('\f'); break;
-            case 'n': buf.put('\n'); break;
-            case 'r': buf.put('\r'); break;
-            case 't': buf.put('\t'); break;
+            case '"': buf ~= '"'; break;
+            case '\\': buf ~= '\\'; break;
+            case '/': buf ~= '/'; break;
+            case 'b': buf ~= '\b'; break;
+            case 'f': buf ~= '\f'; break;
+            case 'n': buf ~= '\n'; break;
+            case 'r': buf ~= '\r'; break;
+            case 't': buf ~= '\t'; break;
             case 'u':
-                uint cp = hex4();
-                if (cp >= 0xD800 && cp <= 0xDBFF && p + 1 < s.length && s[p] == '\\' && s[p + 1] == 'u')
+                uint cp = readHex4();
+                if (cp >= 0xD800 && cp <= 0xDBFF && pos + 1 < src.length
+                    && src[pos] == '\\' && src[pos + 1] == 'u')
                 {
-                    p += 2;
-                    immutable lo = hex4();
-                    if (lo < 0xDC00 || lo > 0xDFFF) throw fail("bad surrogate pair");
+                    pos += 2;
+                    immutable lo = readHex4();
+                    if (lo < 0xDC00 || lo > 0xDFFF)
+                        fail("invalid surrogate pair");
                     cp = 0x10000 + ((cp - 0xD800) << 10) + (lo - 0xDC00);
                 }
-                putCodePoint(cp);
+                if (cp >= 0xD800 && cp <= 0xDFFF)
+                    fail("lone surrogate");
+                appendUtf8(buf, cp);
                 break;
-            default: throw fail("bad escape");
+            default:
+                fail("invalid escape");
             }
-            run = p;
         }
     }
 
-    uint hex4()
+    uint readHex4() @safe
     {
+        if (src.length - pos < 4)
+            fail("truncated \\u escape");
         uint v = 0;
         foreach (_; 0 .. 4)
         {
-            immutable d = p < s.length ? hexDigit(s[p]) : -1;
-            if (d < 0) throw fail("bad \\u escape");
+            immutable c = src[pos++];
+            uint d;
+            if (c >= '0' && c <= '9') d = c - '0';
+            else if (c >= 'a' && c <= 'f') d = c - 'a' + 10;
+            else if (c >= 'A' && c <= 'F') d = c - 'A' + 10;
+            else fail("invalid hex digit");
             v = v * 16 + d;
-            ++p;
         }
         return v;
     }
+}
 
-    void putCodePoint(uint cp)
-    {
-        if (cp >= 0xD800 && cp <= 0xDFFF) throw fail("lone surrogate");
-        if (cp < 0x80)
-            buf.put(cast(char) cp);
-        else if (cp < 0x800)
-        {
-            buf.put(cast(char)(0xC0 | (cp >> 6)));
-            buf.put(cast(char)(0x80 | (cp & 0x3F)));
-        }
-        else if (cp < 0x10000)
-        {
-            buf.put(cast(char)(0xE0 | (cp >> 12)));
-            buf.put(cast(char)(0x80 | ((cp >> 6) & 0x3F)));
-            buf.put(cast(char)(0x80 | (cp & 0x3F)));
-        }
-        else
-        {
-            buf.put(cast(char)(0xF0 | (cp >> 18)));
-            buf.put(cast(char)(0x80 | ((cp >> 12) & 0x3F)));
-            buf.put(cast(char)(0x80 | ((cp >> 6) & 0x3F)));
-            buf.put(cast(char)(0x80 | (cp & 0x3F)));
-        }
-    }
+unittest
+{
+    auto t = fromTaggedJson(` { "b" : { "type" : "integer", "value" : "5" },
+        "a":[{"type":"string","value":"xé😀\n"}, []], "c":{} } `);
+    assert(toTaggedJson(t) ==
+        `{"a":[{"type":"string","value":"xé😀\n"},[]],"b":{"type":"integer","value":"5"},"c":{}}`);
+    // A table whose keys are "type" and "value" is still a table.
+    auto t2 = fromTaggedJson(`{"type":{"type":"string","value":"a"},"value":{"type":"string","value":"b"}}`);
+    assert(t2.isTable && t2["type"].asString == "a");
+    assert(toTaggedJson(Node.fromString("\x01\x7f\"\\")) ==
+        `{"type":"string","value":"\u0001` ~ "\x7f" ~ `\"\\"}`);
+    assert(toTaggedJson(fromTaggedJson(`{}`)) == "{}");
 }

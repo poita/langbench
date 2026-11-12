@@ -1,24 +1,25 @@
 /// Parser for the five-command query language (SPEC Part 4).
 module sqlitefile.query;
 
-import sqlitefile.affinity;
+import sqlitefile.ddl : asciiEqualFold;
 import sqlitefile.errors;
+import sqlitefile.numeric;
 import sqlitefile.value;
 
 @safe:
 
-/// Which command a query line is.
+/// The command a query line invokes.
 enum QueryKind : ubyte
 {
-    tables,
-    schema,
-    count,
-    select,
-    index,
+    tables, /// `.tables`
+    schema, /// `.schema <table>`
+    count, /// `COUNT <table>`
+    select, /// `SELECT …`
+    index, /// `INDEX <name> <literal>`
 }
 
-/// Comparison operators allowed in `WHERE`.
-enum CmpOp : ubyte
+/// Comparison operators usable in `WHERE`.
+enum CompareOp : ubyte
 {
     eq,
     ne,
@@ -30,71 +31,44 @@ enum CmpOp : ubyte
     isNot,
 }
 
-/// One `<column> <op> <literal>` condition.
+/// `<column> <op> <literal>`
 struct Condition
 {
     string column;
-    CmpOp op;
+    CompareOp op;
     Value literal;
 }
 
-/// A parsed query line. Which fields are meaningful depends on `kind`.
+/// A parsed query line.
 struct Query
 {
     QueryKind kind;
-    /// Table name (`schema`, `count`, `select`) or index name (`index`).
-    string name;
-    /// `select`: `*` was given.
-    bool star;
-    /// `select`: the column list when `star` is false.
-    string[] columns;
+    string name; /// table (schema, count, select) or index (index) name
+    bool star; /// `SELECT *`
+    string[] columns; /// select list when not `star`
     Condition[] where;
     bool hasOrder;
     string orderColumn;
-    bool descending;
+    bool orderDesc;
     bool hasLimit;
     long limit;
-    /// `index`: the lookup key.
-    Value literal;
+    Value literal; /// the key of an `INDEX` query
+}
+
+private bool isIdentStart(char c) pure nothrow @nogc
+{
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
 private bool isWordChar(char c) pure nothrow @nogc
 {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '_';
+    return isIdentStart(c) || (c >= '0' && c <= '9');
 }
 
-private bool isDigit(char c) pure nothrow @nogc
-{
-    return c >= '0' && c <= '9';
-}
-
-private bool equalsCI(const(char)[] a, const(char)[] b) pure nothrow @nogc
-{
-    if (a.length != b.length)
-        return false;
-    foreach (i; 0 .. a.length)
-    {
-        char x = a[i], y = b[i];
-        if (x >= 'A' && x <= 'Z')
-            x += 32;
-        if (y >= 'A' && y <= 'Z')
-            y += 32;
-        if (x != y)
-            return false;
-    }
-    return true;
-}
-
-/// A single-pass scanner over one query line.
-private struct Cursor
+private struct Scanner
 {
     string s;
     size_t pos;
-
-    static QueryException fail(string why = "malformed query") pure
-    {
-        return new QueryException(why);
-    }
 
     bool atEnd() const pure nothrow @nogc
     {
@@ -106,319 +80,369 @@ private struct Cursor
         return pos < s.length ? s[pos] : '\0';
     }
 
-    void skipWs() pure nothrow @nogc
+    void skipBlanks() pure nothrow @nogc
     {
         while (pos < s.length && (s[pos] == ' ' || s[pos] == '\t'))
             pos++;
     }
 
-    /// The maximal run of `[A-Za-z0-9_]` at the cursor (consumed); may be empty.
+    /// Reads a maximal run of word characters (possibly empty).
     string word() pure nothrow @nogc
     {
-        immutable b = pos;
+        const b = pos;
         while (pos < s.length && isWordChar(s[pos]))
             pos++;
         return s[b .. pos];
     }
 
-    /// Consumes `kw` (a whole word, ASCII case-insensitive) if it is next.
-    bool eatKeyword(string kw) pure nothrow @nogc
+    /// Reads a word that must equal the keyword `kw`.
+    bool keyword(string kw) pure nothrow @nogc
     {
-        immutable save = pos;
-        if (equalsCI(word(), kw))
+        const save = pos;
+        if (asciiEqualFold(word(), kw))
             return true;
         pos = save;
         return false;
     }
 
-    void expectKeyword(string kw) pure
+    /// Reads an identifier (a word beginning with a letter or `_`).
+    string identifier() pure
     {
-        if (!eatKeyword(kw))
-            throw fail();
-    }
-
-    /// An identifier: `[A-Za-z_][A-Za-z0-9_]*`.
-    string ident() pure
-    {
-        auto w = word();
-        if (w.length == 0 || isDigit(w[0]))
-            throw fail();
+        const w = word();
+        if (w.length == 0 || !isIdentStart(w[0]))
+            throw new QueryException("expected an identifier");
         return w;
-    }
-
-    bool eatChar(char c) pure nothrow @nogc
-    {
-        if (peek() == c && !atEnd)
-        {
-            pos++;
-            return true;
-        }
-        return false;
-    }
-
-    void expectEnd() pure
-    {
-        skipWs();
-        if (!atEnd)
-            throw fail("trailing text");
-    }
-
-    /// A literal: numeral, `'string'`, `X'hex'` or `NULL`.
-    Value literal()
-    {
-        immutable c = peek();
-        if (c == '\'')
-        {
-            pos++;
-            ubyte[] text;
-            while (true)
-            {
-                if (atEnd)
-                    throw fail("unterminated string");
-                immutable ch = s[pos++];
-                if (ch == '\'')
-                {
-                    if (peek() == '\'' && !atEnd)
-                    {
-                        text ~= cast(ubyte) '\'';
-                        pos++;
-                        continue;
-                    }
-                    break;
-                }
-                text ~= cast(ubyte) ch;
-            }
-            return Value.makeText(text);
-        }
-        if ((c == 'x' || c == 'X') && pos + 1 < s.length && s[pos + 1] == '\'')
-        {
-            pos += 2;
-            ubyte[] bytes;
-            while (true)
-            {
-                if (atEnd)
-                    throw fail("unterminated blob");
-                if (s[pos] == '\'')
-                {
-                    pos++;
-                    break;
-                }
-                if (pos + 1 >= s.length)
-                    throw fail("bad blob");
-                immutable hi = hexVal(s[pos]), lo = hexVal(s[pos + 1]);
-                if (hi < 0 || lo < 0)
-                    throw fail("bad blob");
-                bytes ~= cast(ubyte)(hi * 16 + lo);
-                pos += 2;
-            }
-            return Value.makeBlob(bytes);
-        }
-        if (c == '+' || c == '-' || isDigit(c))
-            return numeral();
-        auto w = word();
-        if (equalsCI(w, "NULL"))
-            return Value.makeNull();
-        throw fail("bad literal");
-    }
-
-    private static int hexVal(char c) pure nothrow @nogc
-    {
-        if (c >= '0' && c <= '9')
-            return c - '0';
-        if (c >= 'a' && c <= 'f')
-            return c - 'a' + 10;
-        if (c >= 'A' && c <= 'F')
-            return c - 'A' + 10;
-        return -1;
-    }
-
-    private Value numeral()
-    {
-        immutable b = pos;
-        if (peek() == '+' || peek() == '-')
-            pos++;
-        immutable ds = pos;
-        while (isDigit(peek()))
-            pos++;
-        if (pos == ds)
-            throw fail("bad numeral");
-        if (peek() == '.')
-        {
-            pos++;
-            while (isDigit(peek()))
-                pos++;
-        }
-        if (peek() == 'e' || peek() == 'E')
-        {
-            pos++;
-            if (peek() == '+' || peek() == '-')
-                pos++;
-            immutable es = pos;
-            while (isDigit(peek()))
-                pos++;
-            if (pos == es)
-                throw fail("bad exponent");
-        }
-        if (isWordChar(peek()))
-            throw fail("bad numeral");
-        Value v;
-        if (!(() @trusted => parseNumericConstant(s[b .. pos], v))())
-            throw fail("bad numeral");
-        return v;
-    }
-
-    /// `<column> <op> <literal>`
-    Condition condition()
-    {
-        Condition cond;
-        cond.column = ident();
-        skipWs();
-        immutable c = peek();
-        if (c == '=')
-        {
-            pos++;
-            cond.op = CmpOp.eq;
-        }
-        else if (c == '!')
-        {
-            pos++;
-            if (!eatChar('='))
-                throw fail();
-            cond.op = CmpOp.ne;
-        }
-        else if (c == '<')
-        {
-            pos++;
-            cond.op = eatChar('=') ? CmpOp.le : CmpOp.lt;
-        }
-        else if (c == '>')
-        {
-            pos++;
-            cond.op = eatChar('=') ? CmpOp.ge : CmpOp.gt;
-        }
-        else if (eatKeyword("IS"))
-        {
-            skipWs();
-            cond.op = eatKeyword("NOT") ? CmpOp.isNot : CmpOp.is_;
-        }
-        else
-            throw fail("unknown operator");
-        skipWs();
-        cond.literal = literal();
-        return cond;
     }
 }
 
-/// Parses one query line; throws `QueryException` if it is not a valid command.
+private void fail(string why) pure
+{
+    throw new QueryException(why);
+}
+
+/// Parses one query line. Throws `QueryException` if it is malformed.
 Query parseQuery(string line)
 {
     Query q;
-    if (line.length > 0 && line[0] == '.')
-    {
-        if (line == ".tables")
-        {
-            q.kind = QueryKind.tables;
-            return q;
-        }
-        if (line.length > 8 && line[0 .. 8] == ".schema ")
-        {
-            auto c = Cursor(line, 8);
-            q.kind = QueryKind.schema;
-            q.name = c.ident();
-            if (!c.atEnd)
-                throw Cursor.fail();
-            return q;
-        }
-        throw Cursor.fail("unknown dot command");
-    }
-    auto c = Cursor(line, 0);
-    auto cmd = c.word();
-    if (equalsCI(cmd, "COUNT"))
-    {
-        q.kind = QueryKind.count;
-        c.skipWs();
-        q.name = c.ident();
-        c.expectEnd();
-    }
-    else if (equalsCI(cmd, "INDEX"))
-    {
-        q.kind = QueryKind.index;
-        c.skipWs();
-        q.name = c.ident();
-        c.skipWs();
-        q.literal = c.literal();
-        c.expectEnd();
-    }
-    else if (equalsCI(cmd, "SELECT"))
+    if (line.length && line[0] == '.')
+        return parseDotCommand(line);
+    auto sc = Scanner(line, 0);
+    sc.skipBlanks();
+    if (sc.keyword("SELECT"))
     {
         q.kind = QueryKind.select;
-        c.skipWs();
-        if (c.eatChar('*'))
-            q.star = true;
-        else
-        {
-            while (true)
-            {
-                q.columns ~= c.ident();
-                c.skipWs();
-                if (!c.eatChar(','))
-                    break;
-                c.skipWs();
-            }
-        }
-        c.skipWs();
-        c.expectKeyword("FROM");
-        c.skipWs();
-        q.name = c.ident();
-        c.skipWs();
-        if (c.eatKeyword("WHERE"))
-        {
-            c.skipWs();
-            while (true)
-            {
-                q.where ~= c.condition();
-                c.skipWs();
-                if (!c.eatKeyword("AND"))
-                    break;
-                c.skipWs();
-            }
-        }
-        if (c.eatKeyword("ORDER"))
-        {
-            c.skipWs();
-            c.expectKeyword("BY");
-            c.skipWs();
-            q.hasOrder = true;
-            q.orderColumn = c.ident();
-            c.skipWs();
-            if (c.eatKeyword("DESC"))
-                q.descending = true;
-            else
-                c.eatKeyword("ASC");
-            c.skipWs();
-        }
-        if (c.eatKeyword("LIMIT"))
-        {
-            c.skipWs();
-            auto w = c.word();
-            if (w.length == 0)
-                throw Cursor.fail();
-            ulong n = 0;
-            foreach (ch; w)
-            {
-                if (!isDigit(ch))
-                    throw Cursor.fail();
-                immutable d = ch - '0';
-                if (n > (cast(ulong) long.max - d) / 10)
-                    throw Cursor.fail("limit too large");
-                n = n * 10 + d;
-            }
-            q.hasLimit = true;
-            q.limit = cast(long) n;
-        }
-        c.expectEnd();
+        parseSelect(sc, q);
+    }
+    else if (sc.keyword("COUNT"))
+    {
+        q.kind = QueryKind.count;
+        sc.skipBlanks();
+        q.name = sc.identifier();
+    }
+    else if (sc.keyword("INDEX"))
+    {
+        q.kind = QueryKind.index;
+        sc.skipBlanks();
+        q.name = sc.identifier();
+        sc.skipBlanks();
+        q.literal = parseLiteral(sc);
     }
     else
-        throw Cursor.fail("unknown command");
+        fail("unknown command");
+    sc.skipBlanks();
+    if (!sc.atEnd())
+        fail("trailing text");
     return q;
+}
+
+private Query parseDotCommand(string line)
+{
+    Query q;
+    // Split on blanks.
+    string[] parts;
+    size_t i = 0;
+    while (i < line.length)
+    {
+        while (i < line.length && (line[i] == ' ' || line[i] == '\t'))
+            i++;
+        const b = i;
+        while (i < line.length && line[i] != ' ' && line[i] != '\t')
+            i++;
+        if (i > b)
+            parts ~= line[b .. i];
+    }
+    if (parts[0] == ".tables" && parts.length == 1)
+    {
+        q.kind = QueryKind.tables;
+    }
+    else if (parts[0] == ".schema" && parts.length == 2)
+    {
+        auto sc = Scanner(parts[1], 0);
+        q.name = sc.identifier();
+        if (!sc.atEnd())
+            fail("argument is not a bare identifier");
+        q.kind = QueryKind.schema;
+    }
+    else
+        fail("unknown or malformed dot command");
+    return q;
+}
+
+private void parseSelect(ref Scanner sc, ref Query q)
+{
+    sc.skipBlanks();
+    if (sc.peek() == '*')
+    {
+        sc.pos++;
+        q.star = true;
+    }
+    else
+    {
+        while (true)
+        {
+            sc.skipBlanks();
+            q.columns ~= sc.identifier();
+            sc.skipBlanks();
+            if (sc.peek() == ',')
+            {
+                sc.pos++;
+                continue;
+            }
+            break;
+        }
+    }
+    sc.skipBlanks();
+    if (!sc.keyword("FROM"))
+        fail("expected FROM");
+    sc.skipBlanks();
+    q.name = sc.identifier();
+    sc.skipBlanks();
+
+    if (sc.keyword("WHERE"))
+    {
+        while (true)
+        {
+            sc.skipBlanks();
+            q.where ~= parseCondition(sc);
+            sc.skipBlanks();
+            if (sc.keyword("AND"))
+                continue;
+            break;
+        }
+        sc.skipBlanks();
+    }
+    if (sc.keyword("ORDER"))
+    {
+        sc.skipBlanks();
+        if (!sc.keyword("BY"))
+            fail("expected BY");
+        sc.skipBlanks();
+        q.hasOrder = true;
+        q.orderColumn = sc.identifier();
+        sc.skipBlanks();
+        if (sc.keyword("DESC"))
+            q.orderDesc = true;
+        else
+            sc.keyword("ASC");
+        sc.skipBlanks();
+    }
+    if (sc.keyword("LIMIT"))
+    {
+        sc.skipBlanks();
+        const w = sc.word();
+        if (w.length == 0)
+            fail("expected a number after LIMIT");
+        long n = 0;
+        foreach (c; w)
+        {
+            if (c < '0' || c > '9')
+                fail("LIMIT must be an unsigned integer");
+            const d = c - '0';
+            if (n > (long.max - d) / 10)
+                fail("LIMIT out of range");
+            n = n * 10 + d;
+        }
+        q.hasLimit = true;
+        q.limit = n;
+    }
+}
+
+private Condition parseCondition(ref Scanner sc)
+{
+    Condition c;
+    c.column = sc.identifier();
+    sc.skipBlanks();
+    const ch = sc.peek();
+    const next = sc.pos + 1 < sc.s.length ? sc.s[sc.pos + 1] : '\0';
+    if (ch == '=')
+    {
+        c.op = CompareOp.eq;
+        sc.pos++;
+    }
+    else if (ch == '!' && next == '=')
+    {
+        c.op = CompareOp.ne;
+        sc.pos += 2;
+    }
+    else if (ch == '<' && next == '=')
+    {
+        c.op = CompareOp.le;
+        sc.pos += 2;
+    }
+    else if (ch == '>' && next == '=')
+    {
+        c.op = CompareOp.ge;
+        sc.pos += 2;
+    }
+    else if (ch == '<')
+    {
+        c.op = CompareOp.lt;
+        sc.pos++;
+    }
+    else if (ch == '>')
+    {
+        c.op = CompareOp.gt;
+        sc.pos++;
+    }
+    else if (sc.keyword("IS"))
+    {
+        c.op = CompareOp.is_;
+        // `IS NOT` only if NOT is a whole word followed by a literal.
+        const save = sc.pos;
+        sc.skipBlanks();
+        if (sc.keyword("NOT"))
+            c.op = CompareOp.isNot;
+        else
+            sc.pos = save;
+    }
+    else
+        fail("unsupported operator");
+    sc.skipBlanks();
+    c.literal = parseLiteral(sc);
+    return c;
+}
+
+/// Parses a numeral, string, blob or NULL literal at the scanner position.
+private Value parseLiteral(ref Scanner sc)
+{
+    const ch = sc.peek();
+    if (ch == '\'')
+    {
+        return Value.fromText(parseQuoted(sc));
+    }
+    if ((ch == 'x' || ch == 'X') && sc.pos + 1 < sc.s.length && sc.s[sc.pos + 1] == '\'')
+    {
+        sc.pos++;
+        const hex = parseQuoted(sc);
+        if (hex.length % 2 != 0)
+            fail("odd number of hex digits");
+        auto bytes = new ubyte[hex.length / 2];
+        static int nibble(char c) pure nothrow @nogc
+        {
+            if (c >= '0' && c <= '9')
+                return c - '0';
+            if (c >= 'a' && c <= 'f')
+                return c - 'a' + 10;
+            if (c >= 'A' && c <= 'F')
+                return c - 'A' + 10;
+            return -1;
+        }
+
+        foreach (i; 0 .. bytes.length)
+        {
+            const hi = nibble(hex[2 * i]), lo = nibble(hex[2 * i + 1]);
+            if (hi < 0 || lo < 0)
+                fail("non-hex character in blob literal");
+            bytes[i] = cast(ubyte)(hi * 16 + lo);
+        }
+        return Value.fromBlob(bytes);
+    }
+    if (isWordChar(ch) && !(ch >= '0' && ch <= '9'))
+    {
+        if (sc.keyword("NULL"))
+            return Value.makeNull();
+        fail("malformed literal");
+    }
+    bool isReal;
+    const end = matchNumber(sc.s, sc.pos, false, isReal);
+    if (end == sc.pos)
+        fail("malformed literal");
+    const text = sc.s[sc.pos .. end];
+    // A numeral ending in a digit must not run into another word character.
+    const last = text[$ - 1];
+    if (last != '.' && end < sc.s.length && isWordChar(sc.s[end]))
+        fail("malformed numeral");
+    sc.pos = end;
+    return numberFromText(text, isReal);
+}
+
+/// Parses `'…'` (with `''` as an escaped quote) at the scanner position.
+private string parseQuoted(ref Scanner sc) pure
+{
+    assert(sc.peek() == '\'');
+    sc.pos++;
+    char[] buf;
+    while (true)
+    {
+        if (sc.atEnd())
+            fail("unterminated string");
+        const c = sc.s[sc.pos++];
+        if (c == '\'')
+        {
+            if (sc.peek() == '\'')
+            {
+                buf ~= '\'';
+                sc.pos++;
+                continue;
+            }
+            break;
+        }
+        buf ~= c;
+    }
+    return cast(string) buf.idup;
+}
+
+unittest
+{
+    import std.exception : assertThrown;
+
+    auto q = parseQuery("SELECT*FROM t");
+    assert(q.kind == QueryKind.select && q.star && q.name == "t");
+    q = parseQuery("select a ,\tb  FROM  people where a>=1 AND b IS NOT NULL and c is 'x' order by a desc limit 5");
+    assert(q.columns == ["a", "b"] && q.where.length == 3);
+    assert(q.where[0].op == CompareOp.ge && q.where[0].literal.i == 1);
+    assert(q.where[1].op == CompareOp.isNot && q.where[1].literal.isNull);
+    assert(q.where[2].op == CompareOp.is_ && q.where[2].literal.type == ValueType.text);
+    assert(q.hasOrder && q.orderDesc && q.orderColumn == "a" && q.hasLimit && q.limit == 5);
+    q = parseQuery("SELECT a FROM t WHERE a='it''s'AND b<-2.5e-3");
+    assert(q.where[0].literal.bytes == cast(const(ubyte)[]) "it's");
+    assert(q.where[1].op == CompareOp.lt && q.where[1].literal.type == ValueType.real_);
+    q = parseQuery("SELECT a FROM t WHERE a=X'00ff' AND b=x''");
+    assert(q.where[0].literal.bytes == [cast(ubyte) 0, 0xff]);
+    q = parseQuery("SELECT a FROM t WHERE a>1.AND b=1");
+    assert(q.where.length == 2);
+    q = parseQuery("COUNT people");
+    assert(q.kind == QueryKind.count && q.name == "people");
+    q = parseQuery("INDEX idx 'abc'");
+    assert(q.kind == QueryKind.index && q.literal.bytes == cast(const(ubyte)[]) "abc");
+    q = parseQuery("INDEX idx-5");
+    assert(q.literal.i == -5);
+    assert(parseQuery(".tables").kind == QueryKind.tables);
+    q = parseQuery(".schema people");
+    assert(q.kind == QueryKind.schema && q.name == "people");
+
+    foreach (bad; [
+            "SELECTa FROM t", "SELECT * FROM", "SELECT FROM t", "SELECT * FROM t ORDERBY a",
+            "SELECT * FROM t LIMIT3", "SELECT * FROM t LIMIT -1", "SELECT * FROM t LIMIT x",
+            "SELECT * FROM t ORDER BY a ASC DESC", "SELECT * FROM t WHERE a == 1",
+            "SELECT * FROM t WHERE a <> 1", "SELECT * FROM t WHERE a = .5",
+            "SELECT * FROM t WHERE a = 1e", "SELECT * FROM t WHERE a = 'x",
+            "SELECT * FROM t WHERE a = x'0'", "SELECT * FROM t WHERE a = x'zz'",
+            "SELECT * FROM t WHERE a = 5AND b = 1", "SELECT * FROM t WHERE a IS", "SELECT * FROM t WHERE a",
+            "SELECT * FROM t WHERE a = 1 b", "SELECT * FROM t WHERE a ISNOT NULL",
+            "SELECT 1 FROM t", "COUNT", "COUNT a b", "COUNT 9a", "INDEX idx", "INDEX idx5",
+            ".SCHEMA t", ".schema", ".schema a b", ".schema people;", ".schema 9bad", ".tables x",
+            ".dump", "DROP TABLE t", "select * from t;"
+    ])
+        assertThrown!QueryException(parseQuery(bad), bad);
 }

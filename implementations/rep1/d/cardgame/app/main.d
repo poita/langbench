@@ -1,18 +1,18 @@
-/// Command-line front end: reads a match file on stdin, writes the log on stdout.
-module app.main;
+/// Command-line tool: reads a Spiremark match file on stdin, writes the event log to stdout.
+module main;
 
-import std.file : readText;
-import std.stdio : stdin, stdout;
-
-import cardgame.match : simulate;
+import std.stdio : stdin, stdout, File;
+import std.file : read;
+import std.array : appender;
+import cardgame.session : runMatch;
 
 int main()
 {
-    ubyte[] raw;
-    foreach (chunk; stdin.byChunk(1 << 16))
-        raw ~= chunk;
-    immutable input = cast(string) raw.idup;
-    immutable result = simulate(input, (string path) => readText(path));
-    stdout.rawWrite(result);
+    auto buf = appender!(ubyte[])();
+    foreach (chunk; stdin.byChunk(1 << 16)) buf ~= chunk;
+    auto input = cast(string) buf.data.idup;
+    auto output = runMatch(input, (string path) => cast(string) read(path));
+    stdout.rawWrite(output);
+    stdout.flush();
     return 0;
 }

@@ -1,0 +1,2 @@
+.users | map(select(.age >= 30 and .active)) | sort_by(.age) | reverse | map({name, age})
+{"users":[{"name":"ann","age":31,"active":true},{"name":"bob","age":45,"active":false},{"name":"cy","age":30,"active":true},{"name":"di","age":52,"active":true},{"name":"ed","age":29,"active":true},{"name":"flo","age":31,"active":true}]}

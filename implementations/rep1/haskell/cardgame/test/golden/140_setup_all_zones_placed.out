@@ -1,0 +1,39 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 4 4
+5 EMBER B 7 7
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 25 ember 4 cap 4 vault 3 hand 3 ash 3 rift 1
+player B spire 25 ember 7 cap 7 vault 1 hand 1 ash 1 rift 2
+hand A 1 #4 CIN-003
+hand A 2 #5 TOK-001
+hand A 3 #6 TOK-001
+hand B 1 #15 NEU-002
+field A #7 LOM-039 -/- w0 c0 ready - kw -
+field A #8 TOK-003 1/4 w0 c0 ready - kw plating:2
+field A #9 CIN-001 3/2 w0 c0 ready - kw plating:1,vanguard
+field B #16 LOM-005 2/6 w0 c0 ready - kw -
+field B #17 LOM-005 2/6 w0 c0 ready - kw -
+ash A 1 #10 DSK-001
+ash A 2 #11 DSK-001
+ash A 3 #12 DSK-001
+ash B 1 #18 TID-003
+rift A 1 #13 NEU-032
+rift B 1 #19 TOK-008
+rift B 2 #20 TOK-008
+effect 1 ts2 A aura modify 1 1 on #8,#9
+effect 2 ts3 A aura grant plating:1 on #8,#9
+effect 3 ts7 B aura modify 0 1 on #16,#17
+effect 4 ts9 B aura modify 0 1 on #16,#17
+STATE END
+VAULT BEGIN
+vault A 1 #1 CIN-001
+vault A 2 #2 CIN-001
+vault A 3 #3 TID-002
+vault B 1 #14 DSK-001
+VAULT END
+8 RESULT pending none

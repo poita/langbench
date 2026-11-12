@@ -1,0 +1,3 @@
+@module main
+fn f(o: Option<Int>) -> Int { match o { Some(n) -> n, None -> -1 } }
+fn main() { print(showInt(f(None))); print(showInt(f(Some(5)))); }

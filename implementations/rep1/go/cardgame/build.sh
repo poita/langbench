@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds the cardgame command-line tool into ./bin/cardgame.
+# Build the cardgame binary into ./bin/cardgame. Works from any directory.
 set -e
 dir=$(cd "$(dirname "$0")" && pwd)
 cd "$dir"

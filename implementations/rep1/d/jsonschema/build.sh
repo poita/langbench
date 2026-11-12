@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the jsonschema command-line tool (works from any directory).
+# Builds the jsonschema CLI in release mode (output: ./jsonschema/jsonschema).
 set -e
 cd "$(dirname "$0")"
-exec dub build -b release --compiler=ldc2 --quiet
+dub build -b release --compiler=ldc2 --quiet

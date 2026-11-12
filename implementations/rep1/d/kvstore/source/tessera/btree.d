@@ -1,5 +1,7 @@
-/// B+tree operations (search, cursors, insert/replace, delete with borrow and
-/// merge, whole-tree free) over canonical pages.
+/// B+tree insert, search, delete, rebalance and traversal (SPEC §11, §12).
+///
+/// One `Tree` handle serves both the primary tree and every index tree; they
+/// differ only in the leaf page type and where the root page number is kept.
 module tessera.btree;
 
 import tessera.bytes;
@@ -7,466 +9,667 @@ import tessera.constants;
 import tessera.node;
 import tessera.pager;
 
-/// Identifies one of the trees: the primary tree or the tree of an index slot.
-struct TreeRef
+/// Callback of `Tree.walk`: receives each cell in turn and returns `false`
+/// to stop the traversal.
+alias Visitor = bool delegate(ref const Cell cell);
+
+/// A handle on one B+tree of a database.
+final class Tree
 {
-    bool primary = true;
-    size_t slot;
+    private Pager pg;
+    private PageType leafType;
+    private int slot;
 
     /// The primary tree.
-    static TreeRef primaryTree() pure nothrow @nogc @safe { return TreeRef(true, 0); }
-
-    /// The tree of index slot `s`.
-    static TreeRef indexTree(size_t s) pure nothrow @nogc @safe { return TreeRef(false, s); }
-
-    /// The kind of this tree's leaf pages.
-    NodeKind leafKind() const pure nothrow @nogc @safe
+    static Tree primary(Pager pg)
     {
-        return primary ? NodeKind.primaryLeaf : NodeKind.indexLeaf;
-    }
-}
-
-/// Root page of a tree (0 when empty).
-uint rootOf(const Pager pg, TreeRef t) nothrow
-{
-    return t.primary ? pg.header.primaryRoot : pg.header.slots[t.slot].root;
-}
-
-private void setRoot(Pager pg, TreeRef t, uint root)
-{
-    if (t.primary)
-        pg.header.primaryRoot = root;
-    else
-        pg.header.slots[t.slot].root = root;
-}
-
-/// Height of a tree: 0 when empty, 1 for a lone leaf, and so on.
-uint heightOf(const Pager pg, TreeRef t) nothrow
-{
-    uint p = rootOf(pg, t);
-    uint h = 0;
-    while (p != 0)
-    {
-        h++;
-        auto img = pg.read(p);
-        if (img[0] != typeInterior)
-            break;
-        p = rawCount(img) ? rawChild(img, 0) : rawLink(img);
-    }
-    return h;
-}
-
-// ------------------------------------------------------------------ cursor
-
-/// A position in a tree's leaf level. Invalid (`!valid`) past the last cell.
-struct Cursor
-{
-    private Pager pager;
-    private const(ubyte)[] img;
-    private size_t idx;
-
-    /// True while the cursor designates a cell.
-    bool valid() const pure nothrow @nogc @safe { return img.length != 0; }
-
-    /// The key of the current cell (a view valid until the page is rewritten).
-    const(ubyte)[] key() const pure nothrow @nogc @safe { return rawKey(img, idx); }
-
-    /// For a primary leaf: total serialised document length.
-    uint docLen() const pure nothrow @nogc @safe { return getU32(img, rawCellOffset(img, idx) + 2); }
-
-    /// For a primary leaf: first overflow page, 0 when none.
-    uint overflow() const pure nothrow @nogc @safe { return getU32(img, rawCellOffset(img, idx) + 8); }
-
-    /// For a primary leaf: the document bytes stored inline.
-    const(ubyte)[] inlineData() const pure nothrow @nogc @safe
-    {
-        immutable off = rawCellOffset(img, idx);
-        immutable kl = getU16(img, off);
-        immutable il = getU16(img, off + 6);
-        return img[off + 12 + kl .. off + 12 + kl + il];
+        return new Tree(pg, PageType.primaryLeaf, -1);
     }
 
-    /// Move to the next cell in key order.
-    void next() nothrow
+    /// The tree of index directory slot `slot`.
+    static Tree indexTree(Pager pg, size_t slot)
     {
-        idx++;
-        normalize();
+        return new Tree(pg, PageType.indexLeaf, cast(int) slot);
     }
 
-    private void normalize() nothrow
+    private this(Pager pg, PageType leafType, int slot)
     {
-        while (img.length != 0 && idx >= rawCount(img))
-        {
-            immutable l = rawLink(img);
-            if (l == 0)
-                img = null;
-            else
-                img = pager.read(l);
-            idx = 0;
-        }
+        this.pg = pg;
+        this.leafType = leafType;
+        this.slot = slot;
     }
-}
 
-/// A cursor at the first cell whose key is `>= key`.
-Cursor seek(Pager pg, TreeRef t, const(ubyte)[] key) nothrow
-{
-    Cursor c = Cursor(pg);
-    uint p = rootOf(pg, t);
-    if (p == 0)
-        return c;
-    auto img = pg.read(p);
-    while (img[0] == typeInterior)
+    /// Root page, `0` when the tree is empty.
+    uint root() const
     {
-        immutable i = rawLowerBound(img, key);
-        p = i < rawCount(img) ? rawChild(img, i) : rawLink(img);
-        img = pg.read(p);
+        return slot < 0 ? pg.header.primaryRoot : pg.header.slots[slot].root;
     }
-    c.img = img;
-    c.idx = rawLowerBound(img, key);
-    c.normalize();
-    return c;
-}
 
-/// A cursor at the first cell of the tree.
-Cursor first(Pager pg, TreeRef t) nothrow
-{
-    Cursor c = Cursor(pg);
-    uint p = rootOf(pg, t);
-    if (p == 0)
-        return c;
-    auto img = pg.read(p);
-    while (img[0] == typeInterior)
+    private void setRoot(uint r)
     {
-        p = rawCount(img) ? rawChild(img, 0) : rawLink(img);
-        img = pg.read(p);
-    }
-    c.img = img;
-    c.idx = 0;
-    c.normalize();
-    return c;
-}
-
-/// A cursor at exactly `key`; invalid when the key is absent.
-Cursor lookup(Pager pg, TreeRef t, const(ubyte)[] key) nothrow
-{
-    auto c = seek(pg, t, key);
-    if (c.valid && compareBytes(c.key, key) != 0)
-        c.img = null;
-    return c;
-}
-
-// ---------------------------------------------------------------- mutation
-
-private struct PathEntry
-{
-    uint page;
-    Node node;
-    size_t idx; // child index taken (== cell count for `link`)
-}
-
-private size_t nodeLowerBound(const ref Node n, const(ubyte)[] key) pure nothrow @nogc @safe
-{
-    size_t lo = 0, hi = n.cells.length;
-    while (lo < hi)
-    {
-        immutable mid = (lo + hi) / 2;
-        if (compareBytes(key, n.cells[mid].key) <= 0)
-            hi = mid;
+        if (slot < 0)
+            pg.header.primaryRoot = r;
         else
-            lo = mid + 1;
+            pg.header.slots[slot].root = r;
     }
-    return lo;
-}
 
-/// Descend to the leaf for `key`, decoding the interior pages on the way.
-private uint descend(Pager pg, TreeRef t, const(ubyte)[] key, ref PathEntry[] path, out const(ubyte)[] leafImg)
-{
-    uint p = rootOf(pg, t);
-    while (true)
+    private Node load(uint page)
     {
-        auto img = pg.read(p);
-        if (img[0] != typeInterior)
-        {
-            leafImg = img;
-            return p;
-        }
-        auto node = decodeNode(img);
-        immutable i = nodeLowerBound(node, key);
-        immutable next = i < node.cells.length ? node.cells[i].child : node.link;
-        path ~= PathEntry(p, node, i);
-        p = next;
+        return decodeNode(pg.readPage(page));
     }
-}
 
-/// Insert a cell, or replace the cell with the same key in place.
-void insert(Pager pg, TreeRef t, Cell cell)
-{
-    if (rootOf(pg, t) == 0)
+    private void store(uint page, ref const Node n)
     {
-        immutable r = pg.allocate();
-        pg.write(r, encodeNode(Node(t.leafKind, 0, null)));
-        setRoot(pg, t, r);
+        pg.writePage(page, encodeNode(n));
     }
-    PathEntry[] path;
-    const(ubyte)[] img;
-    immutable leafPage = descend(pg, t, cell.key, path, img);
-    auto leaf = decodeNode(img);
-    immutable pos = nodeLowerBound(leaf, cell.key);
-    if (pos < leaf.cells.length && compareBytes(leaf.cells[pos].key, cell.key) == 0)
-        leaf.cells[pos] = cell;
-    else
-        leaf.cells = leaf.cells[0 .. pos] ~ cell ~ leaf.cells[pos .. $];
-    storeNode(pg, t, path, path.length, leaf, leafPage);
-}
 
-/// Write the node at depth `d` of `path` (its parent is `path[d-1]`); when it
-/// overflows, split it and install the separator in the parent, cascading.
-private void storeNode(Pager pg, TreeRef t, PathEntry[] path, size_t d, Node node, uint page)
-{
-    while (true)
+    /// Height of the tree (SPEC §12.7): 0 when empty, 1 for a lone leaf.
+    size_t height()
     {
-        if (usedBytes(node) <= pageCapacity)
+        size_t h = 0;
+        uint p = root;
+        while (p != 0)
         {
-            pg.write(page, encodeNode(node));
-            return;
-        }
-        // Split point: smallest m in 1..n-1 with 2*P[m] >= T.
-        immutable total = usedBytes(node);
-        immutable n = node.cells.length;
-        size_t prefix = 0, m = 1;
-        for (size_t k = 0; k < n; k++)
-        {
-            prefix += 2 + cellSize(node.kind, node.cells[k]);
-            if (k + 1 >= 1 && k + 1 <= n - 1 && 2 * prefix >= total)
-            {
-                m = k + 1;
+            h++;
+            auto n = load(p);
+            if (n.isLeaf)
                 break;
-            }
+            p = n.cells.length ? n.cells[0].child : n.link;
         }
-        immutable right = pg.allocate();
-        Node rn;
-        rn.kind = node.kind;
-        rn.link = node.link;
-        rn.cells = node.cells[m .. $].dup;
-        const(ubyte)[] sep;
-        if (node.kind == NodeKind.interior)
-        {
-            sep = node.cells[m - 1].key;
-            node.link = node.cells[m - 1].child;
-            node.cells = node.cells[0 .. m - 1].dup;
-        }
-        else
-        {
-            sep = node.cells[m - 1].key;
-            node.link = right;
-            node.cells = node.cells[0 .. m].dup;
-        }
-        pg.write(right, encodeNode(rn));
-        pg.write(page, encodeNode(node));
-        if (d == 0)
-        {
-            immutable nr = pg.allocate();
-            Node root;
-            root.kind = NodeKind.interior;
-            root.link = right;
-            root.cells = [Cell(sep, page)];
-            pg.write(nr, encodeNode(root));
-            setRoot(pg, t, nr);
-            return;
-        }
-        auto parent = &path[d - 1];
-        immutable j = parent.idx;
-        if (j == parent.node.cells.length)
-        {
-            parent.node.cells = parent.node.cells ~ Cell(sep, page);
-            parent.node.link = right;
-        }
-        else
-        {
-            auto cs = parent.node.cells.dup;
-            cs[j].child = right;
-            parent.node.cells = cs[0 .. j] ~ Cell(sep, page) ~ cs[j .. $];
-        }
-        node = parent.node;
-        page = parent.page;
-        d--;
+        return h;
     }
-}
 
-/// Delete `key`. Returns false (and changes nothing) when it is absent.
-bool remove(Pager pg, TreeRef t, const(ubyte)[] key)
-{
-    if (rootOf(pg, t) == 0)
-        return false;
-    PathEntry[] path;
-    const(ubyte)[] img;
-    immutable leafPage = descend(pg, t, key, path, img);
-    auto leaf = decodeNode(img);
-    immutable pos = nodeLowerBound(leaf, key);
-    if (pos >= leaf.cells.length || compareBytes(leaf.cells[pos].key, key) != 0)
-        return false;
-    leaf.cells = leaf.cells[0 .. pos] ~ leaf.cells[pos + 1 .. $];
-    if (path.length == 0)
+    // ----------------------------------------------------------- searching
+
+    /// One interior page on the way down, and the child index taken there.
+    private struct Step
     {
-        if (leaf.cells.length > 0)
-            pg.write(leafPage, encodeNode(leaf));
-        else
-        {
-            pg.free(leafPage);
-            setRoot(pg, t, 0);
-        }
-        return true;
+        uint page;
+        Node node;
+        size_t idx;
     }
-    pg.write(leafPage, encodeNode(leaf));
-    if (usedBytes(leaf) >= minFill)
-        return true;
-    repair(pg, t, path, leaf, leafPage);
-    return true;
-}
 
-private size_t lastCost(const ref Node n) pure nothrow @nogc @safe
-{
-    return 2 + cellSize(n.kind, n.cells[$ - 1]);
-}
-
-private size_t firstCost(const ref Node n) pure nothrow @nogc @safe
-{
-    return 2 + cellSize(n.kind, n.cells[0]);
-}
-
-/// Underflow repair: borrow from the left, borrow from the right, merge with
-/// the left, merge with the right; propagating upward after a merge.
-private void repair(Pager pg, TreeRef t, PathEntry[] path, Node n, uint npage)
-{
-    while (true)
+    /// Smallest `i` with `key <= k[i]`, or the cell count (descend `link`).
+    private static size_t childIndex(ref const Node n, const(ubyte)[] key)
     {
-        auto pe = &path[$ - 1];
-        immutable j = pe.idx;
-        immutable np = pe.node.cells.length;
-        immutable hasL = j >= 1;
-        immutable hasR = j < np;
-        immutable uint lpage = hasL ? pe.node.cells[j - 1].child : 0;
-        immutable uint rpage = hasR ? (j + 1 < np ? pe.node.cells[j + 1].child : pe.node.link) : 0;
-        Node l, r;
-        if (hasL)
-            l = decodeNode(pg.read(lpage));
-        if (hasR)
-            r = decodeNode(pg.read(rpage));
-        immutable interior = n.kind == NodeKind.interior;
+        size_t lo = 0, hi = n.cells.length;
+        while (lo < hi)
+        {
+            immutable mid = (lo + hi) / 2;
+            if (compareBytes(n.cells[mid].key, key) < 0)
+                lo = mid + 1;
+            else
+                hi = mid;
+        }
+        return lo;
+    }
 
-        if (hasL && l.cells.length > 0 && usedBytes(l) - lastCost(l) >= minFill)
+    /// Descend from the (non-zero) root to the leaf that would hold `key`.
+    private void descend(const(ubyte)[] key, ref Step[] path, out uint leafPage, out Node leaf)
+    {
+        uint p = root;
+        assert(p != 0);
+        while (true)
         {
-            auto lastCell = l.cells[$ - 1];
-            if (interior)
+            auto n = load(p);
+            if (n.isLeaf)
             {
-                n.cells = Cell(pe.node.cells[j - 1].key, l.link) ~ n.cells;
-                pe.node.cells[j - 1].key = lastCell.key;
-                l.link = lastCell.child;
+                leafPage = p;
+                leaf = n;
+                return;
             }
-            else
-            {
-                n.cells = lastCell ~ n.cells;
-                pe.node.cells[j - 1].key = l.cells[$ - 2].key;
-            }
-            l.cells = l.cells[0 .. $ - 1];
-            pg.write(lpage, encodeNode(l));
-            pg.write(npage, encodeNode(n));
-            storeNode(pg, t, path, path.length - 1, pe.node, pe.page);
-            return;
+            immutable i = childIndex(n, key);
+            immutable next = i < n.cells.length ? n.cells[i].child : n.link;
+            path ~= Step(p, n, i);
+            p = next;
         }
-        if (hasR && r.cells.length > 0 && usedBytes(r) - firstCost(r) >= minFill)
+    }
+
+    /// Find the cell with exactly this key. The returned cell's slices stay
+    /// valid until the next write.
+    bool lookup(const(ubyte)[] key, out Cell found)
+    {
+        if (root == 0)
+            return false;
+        Step[] path;
+        uint leafPage;
+        Node leaf;
+        descend(key, path, leafPage, leaf);
+        immutable i = childIndex(leaf, key);
+        if (i < leaf.cells.length && compareBytes(leaf.cells[i].key, key) == 0)
         {
-            auto firstCell = r.cells[0];
-            if (interior)
-            {
-                n.cells = n.cells ~ Cell(pe.node.cells[j].key, n.link);
-                n.link = firstCell.child;
-                pe.node.cells[j].key = firstCell.key;
-            }
-            else
-            {
-                n.cells = n.cells ~ firstCell;
-                pe.node.cells[j].key = firstCell.key;
-            }
-            r.cells = r.cells[1 .. $];
-            pg.write(rpage, encodeNode(r));
-            pg.write(npage, encodeNode(n));
-            storeNode(pg, t, path, path.length - 1, pe.node, pe.page);
-            return;
+            found = leaf.cells[i];
+            return true;
         }
-        if (hasL)
+        return false;
+    }
+
+    // ------------------------------------------------------------ inserting
+
+    /// Insert `cell`, or replace the cell with the same key in place
+    /// (SPEC §12.2). Returns `true` when an existing cell was replaced.
+    bool upsert(Cell cell)
+    {
+        Node leaf;
+        uint leafPage;
+        Step[] path;
+        if (root == 0)
         {
-            // Merge N into L; L survives.
-            if (interior)
-                l.cells = l.cells ~ Cell(pe.node.cells[j - 1].key, l.link);
-            l.cells = l.cells ~ n.cells;
-            l.link = n.link;
-            auto pc = pe.node.cells;
-            pe.node.cells = pc[0 .. j - 1] ~ pc[j .. $];
-            if (j == np)
-                pe.node.link = lpage;
-            else
-                pe.node.cells[j - 1].child = lpage;
-            pg.write(lpage, encodeNode(l));
-            pg.free(npage);
+            leafPage = pg.allocate();
+            leaf.type = leafType;
+            setRoot(leafPage);
         }
         else
+            descend(cell.key, path, leafPage, leaf);
+
+        immutable i = childIndex(leaf, cell.key);
+        immutable replaced = i < leaf.cells.length && compareBytes(leaf.cells[i].key, cell.key) == 0;
+        if (replaced)
         {
-            // Merge R into N; N survives.
-            if (interior)
-                n.cells = n.cells ~ Cell(pe.node.cells[j].key, n.link);
-            n.cells = n.cells ~ r.cells;
-            n.link = r.link;
-            auto pc = pe.node.cells;
-            pe.node.cells = pc[0 .. j] ~ pc[j + 1 .. $];
-            if (j + 1 == np)
-                pe.node.link = npage;
-            else
-                pe.node.cells[j].child = npage;
-            pg.write(npage, encodeNode(n));
-            pg.free(rpage);
+            leaf.cells = leaf.cells.dup;
+            leaf.cells[i] = cell;
         }
-        // Propagate upward.
-        auto parent = pe.node;
-        immutable ppage = pe.page;
-        path = path[0 .. $ - 1];
+        else
+            leaf.cells = leaf.cells[0 .. i] ~ cell ~ leaf.cells[i .. $];
+        storeSplitting(path, leafPage, leaf);
+        return replaced;
+    }
+
+    /// Write `node` as page `page`, splitting it, and then its ancestors in
+    /// `path`, while it overflows (SPEC §12.3).
+    private void storeSplitting(Step[] path, uint page, Node node)
+    {
+        size_t level = path.length;
+        while (true)
+        {
+            if (node.used() <= CAPACITY)
+            {
+                store(page, node);
+                return;
+            }
+
+            // the split point: smallest m in 1..n-1 with 2*P[m] >= T
+            immutable total = node.used();
+            size_t m = 0, prefix = 0;
+            while (true)
+            {
+                prefix += node.cellCost(node.cells[m]);
+                m++;
+                if (2 * prefix >= total)
+                    break;
+            }
+
+            immutable right = pg.allocate();
+            Node left, rnode;
+            left.type = rnode.type = node.type;
+            const(ubyte)[] sep;
+            if (node.isLeaf)
+            {
+                left.cells = node.cells[0 .. m].dup;
+                rnode.cells = node.cells[m .. $].dup;
+                rnode.link = node.link;
+                left.link = right;
+                sep = node.cells[m - 1].key;
+            }
+            else
+            {
+                left.cells = node.cells[0 .. m - 1].dup;
+                rnode.cells = node.cells[m .. $].dup;
+                rnode.link = node.link;
+                left.link = node.cells[m - 1].child;
+                sep = node.cells[m - 1].key;
+            }
+            store(page, left);
+            store(right, rnode);
+
+            if (level == 0)
+            {
+                immutable newRoot = pg.allocate();
+                Node r;
+                r.type = PageType.interior;
+                Cell c;
+                c.key = sep;
+                c.child = page;
+                r.cells = [c];
+                r.link = right;
+                store(newRoot, r);
+                setRoot(newRoot);
+                return;
+            }
+
+            auto st = path[level - 1];
+            auto par = st.node;
+            Cell sc;
+            sc.key = sep;
+            sc.child = page;
+            if (st.idx == par.cells.length)
+            {
+                par.cells = par.cells ~ sc;
+                par.link = right;
+            }
+            else
+            {
+                auto cells = par.cells.dup;
+                cells[st.idx].child = right;
+                par.cells = cells[0 .. st.idx] ~ sc ~ cells[st.idx .. $];
+            }
+            page = st.page;
+            node = par;
+            level--;
+        }
+    }
+
+    // ------------------------------------------------------------- deleting
+
+    /// Remove the cell with this key (SPEC §12.4). Returns `false` when it is
+    /// not in the tree.
+    bool remove(const(ubyte)[] key)
+    {
+        if (root == 0)
+            return false;
+        Step[] path;
+        uint leafPage;
+        Node leaf;
+        descend(key, path, leafPage, leaf);
+        immutable i = childIndex(leaf, key);
+        if (i >= leaf.cells.length || compareBytes(leaf.cells[i].key, key) != 0)
+            return false;
+        leaf.cells = leaf.cells[0 .. i] ~ leaf.cells[i + 1 .. $];
+
         if (path.length == 0)
         {
-            if (parent.cells.length == 0)
+            if (leaf.cells.length > 0)
+                store(leafPage, leaf);
+            else
             {
-                setRoot(pg, t, parent.link);
-                pg.free(ppage);
+                pg.free(leafPage);
+                setRoot(0);
+            }
+            return true;
+        }
+        if (leaf.used() >= MIN_FILL)
+        {
+            store(leafPage, leaf);
+            return true;
+        }
+        rebalance(path, leafPage, leaf);
+        return true;
+    }
+
+    /// Repair an underflowing page: borrow left, borrow right, merge left,
+    /// merge right, then propagate upward after a merge (SPEC §12.5).
+    private void rebalance(Step[] path, uint nPage, Node n)
+    {
+        size_t level = path.length;
+        while (true)
+        {
+            auto st = path[level - 1];
+            auto par = st.node;
+            par.cells = par.cells.dup;
+            immutable j = st.idx;
+            immutable np = par.cells.length;
+
+            immutable hasL = j >= 1;
+            immutable hasR = j < np;
+            uint lPage, rPage;
+            Node ln, rn;
+            if (hasL)
+            {
+                lPage = par.cells[j - 1].child;
+                ln = load(lPage);
+            }
+            if (hasR)
+            {
+                rPage = j + 1 < np ? par.cells[j + 1].child : par.link;
+                rn = load(rPage);
+            }
+
+            if (hasL && ln.cells.length > 0
+                && ln.used() - ln.cellCost(ln.cells[$ - 1]) >= MIN_FILL)
+            {
+                // borrow from the left
+                auto lastCell = ln.cells[$ - 1];
+                if (n.isLeaf)
+                {
+                    n.cells = lastCell ~ n.cells;
+                    ln.cells = ln.cells[0 .. $ - 1];
+                    par.cells[j - 1].key = ln.cells[$ - 1].key;
+                }
+                else
+                {
+                    Cell moved;
+                    moved.key = par.cells[j - 1].key;
+                    moved.child = ln.link;
+                    n.cells = moved ~ n.cells;
+                    par.cells[j - 1].key = lastCell.key;
+                    ln.link = lastCell.child;
+                    ln.cells = ln.cells[0 .. $ - 1];
+                }
+                store(lPage, ln);
+                store(nPage, n);
+                storeSplitting(path[0 .. level - 1], st.page, par);
+                return;
+            }
+            if (hasR && rn.cells.length > 0
+                && rn.used() - rn.cellCost(rn.cells[0]) >= MIN_FILL)
+            {
+                // borrow from the right
+                auto firstCell = rn.cells[0];
+                if (n.isLeaf)
+                {
+                    n.cells = n.cells ~ firstCell;
+                    rn.cells = rn.cells[1 .. $];
+                    par.cells[j].key = firstCell.key;
+                }
+                else
+                {
+                    Cell moved;
+                    moved.key = par.cells[j].key;
+                    moved.child = n.link;
+                    n.cells = n.cells ~ moved;
+                    n.link = firstCell.child;
+                    par.cells[j].key = firstCell.key;
+                    rn.cells = rn.cells[1 .. $];
+                }
+                store(rPage, rn);
+                store(nPage, n);
+                storeSplitting(path[0 .. level - 1], st.page, par);
+                return;
+            }
+
+            if (hasL)
+            {
+                // merge with the left: the left page survives
+                if (n.isLeaf)
+                    ln.cells = ln.cells ~ n.cells;
+                else
+                {
+                    Cell moved;
+                    moved.key = par.cells[j - 1].key;
+                    moved.child = ln.link;
+                    ln.cells = ln.cells ~ moved ~ n.cells;
+                }
+                ln.link = n.link;
+                store(lPage, ln);
+                if (j == np)
+                    par.link = lPage;
+                else
+                    par.cells[j].child = lPage;
+                par.cells = par.cells[0 .. j - 1] ~ par.cells[j .. $];
+                pg.free(nPage);
             }
             else
-                pg.write(ppage, encodeNode(parent));
-            return;
+            {
+                // merge with the right: N survives
+                if (n.isLeaf)
+                    n.cells = n.cells ~ rn.cells;
+                else
+                {
+                    Cell moved;
+                    moved.key = par.cells[j].key;
+                    moved.child = n.link;
+                    n.cells = n.cells ~ moved ~ rn.cells;
+                }
+                n.link = rn.link;
+                store(nPage, n);
+                if (j + 1 == np)
+                    par.link = nPage;
+                else
+                    par.cells[j + 1].child = nPage;
+                par.cells = par.cells[0 .. j] ~ par.cells[j + 1 .. $];
+                pg.free(rPage);
+            }
+
+            // propagate upward
+            if (level == 1)
+            {
+                if (par.cells.length == 0)
+                {
+                    setRoot(par.link);
+                    pg.free(st.page);
+                }
+                else
+                    store(st.page, par);
+                return;
+            }
+            if (par.used() >= MIN_FILL)
+            {
+                store(st.page, par);
+                return;
+            }
+            store(st.page, par);
+            n = par;
+            nPage = st.page;
+            level--;
         }
-        pg.write(ppage, encodeNode(parent));
-        if (usedBytes(parent) >= minFill)
+    }
+
+    // ----------------------------------------------------------- traversing
+
+    /// Visit the cells with `lo <= key < hi` in ascending (or descending, when
+    /// `reverse`) key order, until `visit` returns `false`. A `null` bound is
+    /// open. One descent, then leaf order: O(h + cells visited).
+    void walk(const(ubyte)[] lo, bool hasLo, const(ubyte)[] hi, bool hasHi,
+            bool reverse, scope Visitor visit)
+    {
+        if (root == 0)
             return;
-        n = parent;
-        npage = ppage;
+        if (hasLo && hasHi && compareBytes(lo, hi) >= 0)
+            return;
+        walkPage(root, lo, hasLo, hi, hasHi, reverse, visit);
+    }
+
+    /// Visit every cell in key order.
+    void walkAll(scope Visitor visit)
+    {
+        walk(null, false, null, false, false, visit);
+    }
+
+    private bool walkPage(uint page, const(ubyte)[] lo, bool hasLo, const(ubyte)[] hi,
+            bool hasHi, bool reverse, scope Visitor visit)
+    {
+        auto n = load(page);
+        immutable count = n.cells.length;
+        if (n.isLeaf)
+        {
+            if (!reverse)
+            {
+                size_t i = hasLo ? childIndex(n, lo) : 0;
+                for (; i < count; i++)
+                {
+                    if (hasHi && compareBytes(n.cells[i].key, hi) >= 0)
+                        return false;
+                    if (!visit(n.cells[i]))
+                        return false;
+                }
+                return true;
+            }
+            // first index whose key is >= hi, then step back
+            size_t i = hasHi ? childIndex(n, hi) : count;
+            while (i > 0)
+            {
+                i--;
+                if (hasLo && compareBytes(n.cells[i].key, lo) < 0)
+                    return false;
+                if (!visit(n.cells[i]))
+                    return false;
+            }
+            return true;
+        }
+        if (!reverse)
+        {
+            size_t i = hasLo ? childIndex(n, lo) : 0;
+            for (; i <= count; i++)
+            {
+                immutable child = i < count ? n.cells[i].child : n.link;
+                if (!walkPage(child, lo, hasLo, hi, hasHi, reverse, visit))
+                    return false;
+                if (hasHi && i < count && compareBytes(n.cells[i].key, hi) >= 0)
+                    return false;
+            }
+            return true;
+        }
+        size_t i = hasHi ? childIndex(n, hi) : count;
+        while (true)
+        {
+            immutable child = i < count ? n.cells[i].child : n.link;
+            if (!walkPage(child, lo, hasLo, hi, hasHi, reverse, visit))
+                return false;
+            if (i == 0)
+                return true;
+            if (hasLo && compareBytes(n.cells[i - 1].key, lo) < 0)
+                return false;
+            i--;
+        }
+    }
+
+    /// Free every page of the tree in post-order (SPEC §12.6) and empty it.
+    /// Returns the number of pages freed.
+    size_t dropAll()
+    {
+        size_t freed = 0;
+        if (root != 0)
+            freed = freePages(root);
+        setRoot(0);
+        return freed;
+    }
+
+    private size_t freePages(uint page)
+    {
+        auto n = load(page);
+        size_t freed = 0;
+        if (!n.isLeaf)
+        {
+            foreach (ref c; n.cells)
+                freed += freePages(c.child);
+            freed += freePages(n.link);
+        }
+        pg.free(page);
+        return freed + 1;
     }
 }
 
-/// Free every page of the tree rooted at `p` in post-order. Returns the
-/// number of pages freed.
-uint freeTree(Pager pg, uint p)
+version (unittest)
 {
-    if (p == 0)
-        return 0;
-    auto img = pg.read(p);
-    uint freed = 0;
-    if (img[0] == typeInterior)
+    import std.algorithm : sort;
+    import std.random : Random, uniform;
+    import std.conv : to;
+
+    private Cell indexCell(string key)
     {
-        immutable cnt = rawCount(img);
-        uint[] kids;
-        foreach (i; 0 .. cnt)
-            kids ~= rawChild(img, i);
-        kids ~= rawLink(img);
-        foreach (k; kids)
-            freed += freeTree(pg, k);
+        Cell c;
+        c.key = cast(const(ubyte)[]) key;
+        return c;
     }
-    pg.free(p);
-    return freed + 1;
+
+    /// Check separator bounds and uniform leaf depth; returns the leaf depth.
+    private size_t checkSubtree(Pager pg, uint page, const(ubyte)[] lo, bool hasLo,
+            const(ubyte)[] hi, bool hasHi, bool isRoot)
+    {
+        auto n = decodeNode(pg.readPage(page));
+        assert(isRoot || n.cells.length > 0, "non-root page is empty");
+        assert(n.used() <= CAPACITY);
+        foreach (i, ref c; n.cells)
+        {
+            if (i)
+                assert(compareBytes(n.cells[i - 1].key, c.key) < 0);
+            if (hasLo)
+                assert(n.isLeaf ? compareBytes(c.key, lo) > 0 : compareBytes(c.key, lo) > 0);
+            if (hasHi && n.isLeaf)
+                assert(compareBytes(c.key, hi) <= 0);
+        }
+        if (n.isLeaf)
+            return 1;
+        size_t depth = 0;
+        foreach (i; 0 .. n.cells.length + 1)
+        {
+            immutable child = i < n.cells.length ? n.cells[i].child : n.link;
+            const(ubyte)[] cLo = i > 0 ? n.cells[i - 1].key : lo;
+            immutable cHasLo = i > 0 || hasLo;
+            const(ubyte)[] cHi = i < n.cells.length ? n.cells[i].key : hi;
+            immutable cHasHi = i < n.cells.length || hasHi;
+            immutable d = checkSubtree(pg, child, cLo, cHasLo, cHi, cHasHi, false);
+            assert(depth == 0 || depth == d, "leaves at different depths");
+            depth = d;
+        }
+        return depth + 1;
+    }
+}
+
+unittest
+{
+    // Random inserts and deletes against a sorted model, checking the
+    // structure after every few operations.
+    import tessera.recover : openPager;
+
+    auto pg = openPager(null, null);
+    pg.begin();
+    auto tree = Tree.indexTree(pg, 0);
+    pg.header.slots[0].live = true;
+    auto rng = Random(42);
+    bool[string] model;
+
+    foreach (step; 0 .. 6000)
+    {
+        immutable k = "key" ~ uniform(0, 1500, rng).to!string ~ "xxxxxxxxxxxxxxxxxxxxxxxx"[0 .. uniform(0, 24, rng)];
+        immutable del = step > 2500 ? uniform(0, 3, rng) != 0 : uniform(0, 4, rng) == 0;
+        if (del)
+        {
+            assert(tree.remove(cast(const(ubyte)[]) k) == ((k in model) !is null));
+            model.remove(k);
+        }
+        else
+        {
+            assert(tree.upsert(indexCell(k)) == ((k in model) !is null));
+            model[k] = true;
+        }
+        if (step % 97 == 0 && tree.root != 0)
+        {
+            checkSubtree(pg, tree.root, null, false, null, false, true);
+            immutable h = tree.height;
+            assert(h >= 1);
+        }
+    }
+
+    auto keys = model.keys;
+    keys.sort();
+    string[] forward, backward;
+    tree.walkAll((ref const Cell c) { forward ~= cast(string) c.key.idup; return true; });
+    assert(forward == keys);
+    tree.walk(null, false, null, false, true, (ref const Cell c) { backward ~= cast(string) c.key.idup; return true; });
+    assert(backward.length == keys.length);
+    foreach (i, k; backward)
+        assert(k == keys[$ - 1 - i]);
+
+    // bounded range, both directions
+    const(ubyte)[] lo = cast(const(ubyte)[]) "key3", hi = cast(const(ubyte)[]) "key6";
+    string[] want;
+    foreach (k; keys)
+        if (k >= "key3" && k < "key6")
+            want ~= k;
+    string[] got;
+    tree.walk(lo, true, hi, true, false, (ref const Cell c) { got ~= cast(string) c.key.idup; return true; });
+    assert(got == want);
+    got = null;
+    tree.walk(lo, true, hi, true, true, (ref const Cell c) { got ~= cast(string) c.key.idup; return true; });
+    assert(got.length == want.length);
+
+    // a visitor can stop the walk
+    size_t seen;
+    tree.walkAll((ref const Cell c) { return ++seen < 5; });
+    assert(seen == 5);
+
+    // dropping the tree frees every page exactly once
+    immutable before = pg.header.freelistCount;
+    immutable freed = tree.dropAll();
+    assert(pg.header.freelistCount == before + freed);
+    assert(tree.root == 0 && tree.height == 0);
+    // everything on the free list is distinct
+    bool[uint] seenPages;
+    for (uint p = pg.header.freelistHead; p != 0; p = getU32(pg.readPage(p), 4))
+    {
+        assert(p !in seenPages);
+        seenPages[p] = true;
+    }
+    assert(seenPages.length == pg.header.freelistCount);
 }

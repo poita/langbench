@@ -1,0 +1,6 @@
+@module main
+fn main() {
+    print(fmt("{{}}", []));
+    print(fmt("a{}b", ["x"]));
+    print(fmt("{} {}", ["x"]));
+}

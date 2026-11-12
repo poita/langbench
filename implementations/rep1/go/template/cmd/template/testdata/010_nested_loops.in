@@ -1,0 +1,23 @@
+{
+  "rows": [
+    [
+      1,
+      2,
+      3
+    ],
+    [
+      4,
+      5
+    ],
+    []
+  ],
+  "names": [
+    "x",
+    "y"
+  ]
+}
+--
+=== main
+{% for row in rows %}row {{ loop.index }} (len {{ loop.length }}):{% for v in row %} {{ loop.index }}={{ v }}{% if loop.last %}.{% endif %}{% else %} empty{% endfor %} back to {{ loop.index }}
+{% endfor %}{% for a in names %}{% for b in names %}{% if a != b %}{{ a }}{{ b }} {% endif %}{% endfor %}{% endfor %}
+{% for i in range(3) %}{% for j in range(i) %}{{ i }}{{ j }}{% endfor %}|{% endfor %}

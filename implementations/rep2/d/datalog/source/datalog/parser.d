@@ -1,247 +1,195 @@
-/// Single-pass parser: turns source text into a `Program`, interning constants and
-/// predicates as it goes, then renumbering constants into total order.
+/// Recursive-descent parser producing a `Program`.
 module datalog.parser;
 
-import std.algorithm : sort;
 import datalog.ast;
-import datalog.errors : ParseException;
+import datalog.errors : SyntaxException;
 import datalog.lexer;
+import std.conv : to;
 
-/// Parse a complete program.
+/// Parses Datalog source text.
 ///
-/// Throws: `ParseException` if the text is not well-formed.
-Program parseProgram(string source)
+/// Every `_` becomes a fresh variable. Variable indices are local to a clause.
+///
+/// Throws: `SyntaxException` if the text is not a well-formed program.
+Program parseProgram(string source) @safe
 {
-    auto p = Parser(source);
-    return p.parse();
+    auto p = Parser(tokenize(source), new Program);
+    p.parseAll();
+    return p.prog;
 }
 
 private struct Parser
 {
-    Lexer lexer;
-    Token cur;
-
+    Token[] toks;
     Program prog;
-    uint[string] constIndex;   // constant text -> provisional id
-    uint[string] predIndex;    // "name/arity" -> PredId
-    uint[string] varSlots;     // variable name -> slot, per clause
-    uint nextSlot;
+    size_t pos;
+    uint[string] vars;
+    uint numVars;
 
-    this(string source)
+    this(Token[] toks, Program prog) @safe
     {
-        lexer = Lexer(source);
-        cur = lexer.next();
+        this.toks = toks;
+        this.prog = prog;
     }
 
-    void advance() { cur = lexer.next(); }
-
-    ParseException error(string msg) { return new ParseException(msg, cur.offset); }
-
-    void expect(TokenKind k, string what)
+    ref const(Token) peek(size_t ahead = 0) const @safe
     {
-        if (cur.kind != k) throw error("expected " ~ what);
-        advance();
+        auto i = pos + ahead;
+        return toks[i < toks.length ? i : toks.length - 1];
     }
 
-    Program parse()
+    Token expect(TokenKind k, string what) @safe
     {
-        while (cur.kind != TokenKind.eof)
-            clause();
-        renumberConstants();
-        return prog;
-    }
-
-    void clause()
-    {
-        varSlots.clear();
-        nextSlot = 0;
-        if (cur.kind == TokenKind.queryMark)
-        {
-            advance();
-            auto a = atom();
-            expect(TokenKind.dot, "'.'");
-            prog.queries ~= Query(a, nextSlot);
-            return;
-        }
-        auto head = atom();
-        Literal[] body;
-        if (cur.kind == TokenKind.implies)
-        {
-            advance();
-            body ~= literal();
-            while (cur.kind == TokenKind.comma)
-            {
-                advance();
-                body ~= literal();
-            }
-        }
-        expect(TokenKind.dot, "'.'");
-        prog.rules ~= Rule(head, body, nextSlot);
-    }
-
-    Literal literal()
-    {
-        Literal lit;
-        if (cur.kind == TokenKind.kwNot)
-        {
-            advance();
-            lit.kind = LiteralKind.negative;
-            lit.atom = atom();
-            return lit;
-        }
-        if (cur.kind == TokenKind.identifier)
-        {
-            auto name = cur;
-            advance();
-            if (cur.kind == TokenKind.lparen)
-            {
-                lit.kind = LiteralKind.positive;
-                lit.atom = atomRest(name);
-                return lit;
-            }
-            lit.lhs = Term.constant(internConstant(name.text));
-        }
-        else
-            lit.lhs = term();
-        lit.kind = LiteralKind.comparison;
-        switch (cur.kind)
-        {
-        case TokenKind.lt: lit.op = CmpOp.lt; break;
-        case TokenKind.le: lit.op = CmpOp.le; break;
-        case TokenKind.gt: lit.op = CmpOp.gt; break;
-        case TokenKind.ge: lit.op = CmpOp.ge; break;
-        case TokenKind.eq: lit.op = CmpOp.eq; break;
-        case TokenKind.ne: lit.op = CmpOp.ne; break;
-        default: throw error("expected comparison operator");
-        }
-        advance();
-        lit.rhs = term();
-        return lit;
-    }
-
-    Atom atom()
-    {
-        if (cur.kind != TokenKind.identifier) throw error("expected predicate name");
-        auto name = cur;
-        advance();
-        return atomRest(name);
-    }
-
-    /// Parse `( term, ... )` after the predicate name token has been consumed.
-    Atom atomRest(Token name)
-    {
-        expect(TokenKind.lparen, "'('");
-        Term[] args;
-        args ~= term();
-        while (cur.kind == TokenKind.comma)
-        {
-            advance();
-            args ~= term();
-        }
-        expect(TokenKind.rparen, "')'");
-        return Atom(internPredicate(name.text, cast(uint) args.length), args);
-    }
-
-    Term term()
-    {
-        Term t;
-        switch (cur.kind)
-        {
-        case TokenKind.identifier:
-        case TokenKind.integer:
-            t = Term.constant(internConstant(cur.text));
-            break;
-        case TokenKind.variable:
-            if (auto s = cur.text in varSlots)
-                t = Term.variable(*s);
-            else
-            {
-                varSlots[cur.text] = nextSlot;
-                t = Term.variable(nextSlot++);
-            }
-            break;
-        case TokenKind.anonymous:
-            t = Term.variable(nextSlot++);
-            break;
-        default:
-            throw error("expected a term");
-        }
-        advance();
+        auto t = peek;
+        if (t.kind != k)
+            throw new SyntaxException("line " ~ t.line.to!string ~ ": expected " ~ what
+                    ~ " but found '" ~ t.text ~ "'");
+        ++pos;
         return t;
     }
 
-    uint internConstant(string text)
+    void parseAll() @safe
     {
-        if (auto p = text in constIndex) return *p;
-        immutable id = cast(uint) prog.constants.length;
-        prog.constants ~= text;
-        constIndex[text] = id;
-        return id;
+        while (peek.kind != TokenKind.eof)
+            parseClause();
     }
 
-    PredId internPredicate(string name, uint arity)
+    void parseClause() @safe
     {
-        import std.conv : to;
-        immutable key = name ~ "/" ~ arity.to!string;
-        if (auto p = key in predIndex) return *p;
-        immutable id = cast(PredId) prog.predicates.length;
-        prog.predicates ~= Predicate(name, arity);
-        predIndex[key] = id;
-        return id;
-    }
-
-    /// Sort constants into the total order and rewrite every constant term to its rank.
-    void renumberConstants()
-    {
-        auto texts = prog.constants;
-        immutable n = texts.length;
-        auto order = new uint[n];
-        foreach (i; 0 .. n) order[i] = cast(uint) i;
-        order.sort!((a, b) => constantLess(texts[a], texts[b]));
-        auto rank = new uint[n];
-        auto sorted = new string[n];
-        foreach (r, id; order)
+        vars = null;
+        numVars = 0;
+        if (peek.kind == TokenKind.queryMark)
         {
-            rank[id] = cast(uint) r;
-            sorted[r] = texts[id];
+            ++pos;
+            auto a = parseAtom();
+            expect(TokenKind.dot, "'.'");
+            prog.queries ~= Query(a, numVars);
+            return;
         }
-        prog.constants = sorted;
-
-        void fix(ref Term t) { if (!t.isVar) t.id = rank[t.id]; }
-        void fixAtom(ref Atom a) { foreach (ref t; a.args) fix(t); }
-        foreach (ref r; prog.rules)
+        auto head = parseAtom();
+        Literal[] body;
+        if (peek.kind == TokenKind.neck)
         {
-            fixAtom(r.head);
-            foreach (ref l; r.body)
+            ++pos;
+            body ~= parseLiteral();
+            while (peek.kind == TokenKind.comma)
             {
-                if (l.kind == LiteralKind.comparison) { fix(l.lhs); fix(l.rhs); }
-                else fixAtom(l.atom);
+                ++pos;
+                body ~= parseLiteral();
             }
         }
-        foreach (ref q; prog.queries) fixAtom(q.atom);
+        expect(TokenKind.dot, "'.'");
+        prog.rules ~= Rule(head, body, numVars);
+    }
+
+    Atom parseAtom() @safe
+    {
+        auto name = expect(TokenKind.identifier, "a predicate name");
+        expect(TokenKind.lparen, "'('");
+        Term[] args;
+        args ~= parseTerm();
+        while (peek.kind == TokenKind.comma)
+        {
+            ++pos;
+            args ~= parseTerm();
+        }
+        expect(TokenKind.rparen, "')'");
+        return Atom(prog.predicate(name.text, cast(uint) args.length), args);
+    }
+
+    Term parseTerm() @safe
+    {
+        auto t = peek;
+        switch (t.kind)
+        {
+        case TokenKind.identifier:
+            ++pos;
+            return Term.constant(prog.symbols.internName(t.text));
+        case TokenKind.integer:
+            ++pos;
+            return Term.constant(prog.symbols.internInt(t.value));
+        case TokenKind.variable:
+            ++pos;
+            if (auto v = t.text in vars)
+                return Term.variable(*v);
+            vars[t.text] = numVars;
+            return Term.variable(numVars++);
+        case TokenKind.anonymous:
+            ++pos;
+            return Term.variable(numVars++);
+        default:
+            throw new SyntaxException("line " ~ t.line.to!string ~ ": expected a term but found '"
+                    ~ t.text ~ "'");
+        }
+    }
+
+    Literal parseLiteral() @safe
+    {
+        Literal lit;
+        if (peek.kind == TokenKind.kwNot)
+        {
+            ++pos;
+            lit.kind = LiteralKind.negative;
+            lit.atom = parseAtom();
+        }
+        else if (peek.kind == TokenKind.identifier && peek(1).kind == TokenKind.lparen)
+        {
+            lit.kind = LiteralKind.positive;
+            lit.atom = parseAtom();
+        }
+        else
+        {
+            lit.kind = LiteralKind.comparison;
+            lit.lhs = parseTerm();
+            auto t = peek;
+            switch (t.kind)
+            {
+            case TokenKind.lt: lit.op = CmpOp.lt; break;
+            case TokenKind.le: lit.op = CmpOp.le; break;
+            case TokenKind.gt: lit.op = CmpOp.gt; break;
+            case TokenKind.ge: lit.op = CmpOp.ge; break;
+            case TokenKind.eq: lit.op = CmpOp.eq; break;
+            case TokenKind.ne: lit.op = CmpOp.ne; break;
+            default:
+                throw new SyntaxException("line " ~ t.line.to!string
+                        ~ ": expected a comparison operator but found '" ~ t.text ~ "'");
+            }
+            ++pos;
+            lit.rhs = parseTerm();
+        }
+        return lit;
     }
 }
 
-/// True if the constant with text `a` sorts strictly before the one with text `b`:
-/// integers numerically, before identifiers, which compare bytewise.
-bool constantLess(string a, string b) @safe pure
+@("parser: facts, rules and queries")
+@safe unittest
 {
-    immutable ai = isIntegerText(a), bi = isIntegerText(b);
-    if (ai && bi) return parseInteger(a) < parseInteger(b);
-    if (ai != bi) return ai;
-    return a < b;
+    auto p = parseProgram("edge(1, a). path(X, Y) :- edge(X, Y), not bad(Y), X < Y. ?- path(_, _).");
+    assert(p.rules.length == 2 && p.queries.length == 1);
+    assert(p.rules[0].body.length == 0);
+    assert(p.rules[1].body.length == 3);
+    assert(p.rules[1].body[1].kind == LiteralKind.negative);
+    assert(p.rules[1].body[2].kind == LiteralKind.comparison);
+    assert(p.rules[1].numVars == 2);
+    // each `_` is a distinct variable
+    assert(p.queries[0].numVars == 2);
+    assert(p.predicates.length == 3);
 }
 
-private bool isIntegerText(string s) @safe pure nothrow @nogc
+@("parser: same name with different arities are different predicates")
+@safe unittest
 {
-    return s[0] == '-' || (s[0] >= '0' && s[0] <= '9');
+    auto p = parseProgram("r(a). r(a, b).");
+    assert(p.predicates.length == 2);
+    assert(p.rules[0].head.pred != p.rules[1].head.pred);
 }
 
-private long parseInteger(string s) @safe pure nothrow @nogc
+@("parser: syntax errors are reported")
+@safe unittest
 {
-    size_t i = s[0] == '-' ? 1 : 0;
-    long v = 0;
-    for (; i < s.length; ++i)
-        v = v * 10 + (s[i] - '0');
-    return s[0] == '-' ? -v : v;
+    import std.exception : assertThrown;
+
+    assertThrown!SyntaxException(parseProgram("p(a)"));
+    assertThrown!SyntaxException(parseProgram("p(a) :- ."));
+    assertThrown!SyntaxException(parseProgram("p :- q(a)."));
 }

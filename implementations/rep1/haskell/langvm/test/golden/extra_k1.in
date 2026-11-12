@@ -1,0 +1,19 @@
+@module main
+struct S { f: fn(Int) -> Int, n: Int }
+fn adder(k: Int) -> fn(Int) -> Int { |x| x + k }
+fn compose(f: fn(Int) -> Int, g: fn(Int) -> Int) -> fn(Int) -> Int { |x| g(f(x)) }
+fn main() {
+    let s = S.{ f: adder(10), n: 1 };
+    print(showInt((s.f)(5)));
+    let fs = [adder(1), adder(2), compose(adder(3), adder(4))];
+    print(showInt(fs[2](0)));
+    var total = 0;
+    for f in fs { total = total + f(100); }
+    print(showInt(total));
+    let m = #["a": adder(7)];
+    print(showInt(m["a"](1)));
+    let mk = |n: Int| -> fn() -> Int { || n * 2 };
+    print(showInt(mk(4)()));
+    let nested = |a: Int| |b: Int| |c: Int| a + b + c;
+    print(showInt(nested(1)(2)(3)));
+}

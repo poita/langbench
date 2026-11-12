@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the sat CLI (bin/sat-cli) with dub + LDC. Works from any directory.
+# Build the solver (release mode, LDC). Works from any current directory.
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 --config=cli 1>&2
+exec dub build -b release --compiler=ldc2 --quiet

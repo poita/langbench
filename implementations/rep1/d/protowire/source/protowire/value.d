@@ -1,58 +1,52 @@
-/**
- * The in-memory value tree shared by the decoder, the text renderer, the text
- * parser and the encoder. All nodes live in an $(REF Arena, protowire,memory).
- */
+/// The in-memory value tree produced by decoding and by parsing text.
 module protowire.value;
 
-import protowire.memory : Arena, ByteView, Vec;
+import protowire.schema : FieldDescriptor, FieldKind, MessageDescriptor;
 
-/// What a $(LREF Slot) currently holds.
-enum SlotKind : ubyte
-{
-    absent, /// Field not present.
-    number, /// A singular numeric value (canonical 64-bit form).
-    bytes, /// A singular string/bytes value.
-    child, /// A singular message value.
-    numList, /// A repeated numeric field.
-    bytesList, /// A repeated string/bytes field.
-    childList, /// A repeated message field.
-}
-
-/**
- * One field of a message instance: a tag plus one machine word or slice.
- *
- * Numbers are held as a 64-bit pattern in canonical form: signed types are
- * sign-extended, unsigned types zero-extended, `sint` types un-zigzagged,
- * `bool` is 0 or 1.
- */
+/// The value(s) of one field of one message instance. Which members are used
+/// depends on the field's descriptor:
+///
+/// $(UL
+///  $(LI singular numeric/bool: `scalar`)
+///  $(LI singular string/bytes: `bytes`)
+///  $(LI singular message: `message`)
+///  $(LI repeated numeric/bool: `numbers`)
+///  $(LI repeated string/bytes: `blobs`)
+///  $(LI repeated message: `messages`))
+///
+/// Numbers are held as 64-bit words: signed kinds (int32, int64, sint32,
+/// sint64, sfixed32, sfixed64) are sign-extended, unsigned kinds
+/// zero-extended, and bool is 0 or 1.
 struct Slot
 {
-    SlotKind kind;
-    union
+    /// Set once the field has occurred (decode) or been given (text).
+    bool present;
+    ulong scalar;
+    ubyte[] bytes;
+    Message message;
+    ulong[] numbers;
+    ubyte[][] blobs;
+    Message[] messages;
+
+    // Encoder scratch: payload length of a packed repeated numeric field.
+    package ulong packedSize;
+}
+
+/// One message instance: a slot per field of its descriptor (same order as
+/// `descriptor.fields`, i.e. by increasing field number).
+final class Message
+{
+    /// The message type.
+    const MessageDescriptor descriptor;
+    /// Field values, parallel to `descriptor.fields`.
+    Slot[] slots;
+
+    // Encoder scratch: encoded size of this message, filled by the size pass.
+    package ulong encodedSize;
+
+    this(const MessageDescriptor descriptor) @safe pure nothrow
     {
-        ulong num;
-        ByteView view;
-        Node* node;
-        Vec!ulong* numList;
-        Vec!ByteView* bytesList;
-        Vec!(Node*)* childList;
+        this.descriptor = descriptor;
+        this.slots = new Slot[descriptor.fields.length];
     }
-}
-
-/// One message instance; `slots[i]` belongs to the schema's `fields[i]`.
-struct Node
-{
-    Slot* slots;
-    /// Bit i is set when field i was given (used to reject duplicates).
-    ulong seen;
-    /// Encoded size in bytes, filled by the encoder's size pass.
-    ulong size;
-}
-
-/// Allocate an empty node for a message with `fieldCount` fields.
-Node* newNode(ref Arena arena, size_t fieldCount) nothrow
-{
-    auto n = arena.make!Node();
-    n.slots = arena.makeArray!Slot(fieldCount);
-    return n;
 }

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the minisql command-line tool (release mode, LDC).
+# Builds the minisql command-line tool into bin/minisql.
 set -e
 cd "$(dirname "$0")"
-dub build -b release --compiler=ldc2 --quiet
+exec dub build -b release --compiler=ldc2 --quiet

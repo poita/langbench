@@ -1,7 +1,5 @@
 #!/bin/sh
-# Builds the kiln command-line tool into ./bin/kiln.
+# Build the kiln command into bin/kiln. Works from any directory.
 set -e
-dir=$(cd "$(dirname "$0")" && pwd)
-cd "$dir"
-mkdir -p bin
+cd "$(dirname "$0")"
 go build -o bin/kiln ./cmd/kiln

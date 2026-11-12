@@ -1,59 +1,67 @@
 package markdown
 
-type nodeType uint8
+type kind uint8
 
 const (
-	// Blocks.
-	nDocument nodeType = iota
-	nBlockQuote
-	nList
-	nItem
-	nCodeBlock
-	nParagraph
-	nHeading
-	nThematicBreak
-	// Inlines.
-	nText
-	nSoftbreak
-	nLinebreak
-	nCode
-	nEmph
-	nStrong
-	nLink
-	nImage
+	kDocument kind = iota
+	kBlockQuote
+	kList
+	kItem
+	kParagraph
+	kHeading
+	kThematicBreak
+	kCodeBlock
+
+	kText
+	kSoftBreak
+	kLineBreak
+	kCode
+	kEmph
+	kStrong
+	kLink
+	kImage
 )
 
-// listData holds the properties of lists and list items.
-type listData struct {
+// node is a node of the document tree, used for both blocks and inlines.
+// Children form a doubly linked list so that nodes can be moved and removed
+// in constant time.
+type node struct {
+	kind                      kind
+	parent, first, last, prev *node
+	next                      *node
+
+	// Block state.
+	open            bool
+	lastLineBlank   bool
+	lastLineChecked bool
+	startLine       int
+	content         []byte // raw text accumulated by leaf blocks
+
+	// Lists and items.
 	ordered      bool
-	delim        byte // '.' or ')' for ordered lists
-	bullet       byte // '-', '+' or '*' for bullet lists
+	bullet       byte // bullet character of a bullet list, else 0
+	delim        byte // '.' or ')' of an ordered list, else 0
 	start        int
 	tight        bool
 	markerOffset int
 	padding      int
-}
 
-// node is a block or inline node. Children form a doubly linked list.
-type node struct {
-	typ                   nodeType
-	parent, first, last   *node
-	prev, next            *node
-	open                  bool
-	lastLineBlank         bool
-	lastLineChecked       bool
-	startLine             int
-	content               []byte // raw text of leaf blocks (before inline parsing)
-	literal               string // text of inline text/code nodes, content of code blocks
-	list                  *listData
-	level                 int // heading level
-	fenced                bool
-	fenceChar             byte
-	fenceLen, fenceOffset int
-	info                  string
-	setext                bool
-	dest, title           string
-	hasTitle              bool
+	// Headings.
+	level int
+
+	// Code blocks.
+	fenced      bool
+	fenceChar   byte
+	fenceLen    int
+	fenceOffset int
+	info        string
+
+	// Inlines: literal text of text and code nodes; destination and title of
+	// links and images.
+	lit      string
+	dest     string
+	title    string
+	hasTitle bool
 }
 
 func (n *node) appendChild(c *node) {
@@ -83,14 +91,14 @@ func (n *node) unlink() {
 	n.parent, n.prev, n.next = nil, nil, nil
 }
 
-// insertAfter links c into n's parent right after n.
+// insertAfter links c into the child list immediately after n.
 func (n *node) insertAfter(c *node) {
 	c.parent = n.parent
 	c.prev = n
 	c.next = n.next
 	if n.next != nil {
 		n.next.prev = c
-	} else {
+	} else if n.parent != nil {
 		n.parent.last = c
 	}
 	n.next = c

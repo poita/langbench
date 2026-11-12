@@ -1,12 +1,11 @@
-// Package glob compiles and matches Kiln glob patterns.
-//
-// A pattern is a "/"-separated list of components. The component "**"
-// matches zero or more whole candidate components; any other component is a
-// sequence of literal bytes, "?", "*" and "[...]" character classes that
-// never matches across a "/".
+// Package glob implements Kiln's glob patterns: "/"-separated components with
+// "*", "?", "[...]" character classes and the "**" whole-component wildcard.
 package glob
 
-import "errors"
+import (
+	"errors"
+	"strings"
+)
 
 // ErrBadPattern is returned by Compile for a malformed pattern.
 var ErrBadPattern = errors.New("glob: bad pattern")
@@ -14,284 +13,231 @@ var ErrBadPattern = errors.New("glob: bad pattern")
 type itemKind uint8
 
 const (
-	itLit itemKind = iota
-	itAny
-	itStar
-	itClass
+	itemLit   itemKind = iota
+	itemAny            // ?
+	itemStar           // *
+	itemClass          // [...]
 )
 
+type byteRange struct{ lo, hi byte }
+
 type item struct {
-	kind itemKind
-	b    byte
-	set  *[4]uint64 // for itClass: membership bitmap (negation applied)
+	kind   itemKind
+	lit    byte
+	negate bool
+	ranges []byteRange
 }
 
-func (it *item) classHas(c byte) bool { return it.set[c>>6]&(1<<(c&63)) != 0 }
+func (it *item) matchByte(b byte) bool {
+	switch it.kind {
+	case itemLit:
+		return it.lit == b
+	case itemAny:
+		return true
+	}
+	in := false
+	for _, r := range it.ranges {
+		if r.lo <= b && b <= r.hi {
+			in = true
+			break
+		}
+	}
+	return in != it.negate
+}
 
 type component struct {
-	double bool // exactly "**"
-	items  []item
+	doubleStar bool
+	items      []item
 }
 
-// Pattern is a compiled glob pattern. A Pattern keeps scratch memory for
-// matching, so it must not be used from several goroutines at once.
+// Pattern is a compiled glob pattern.
 type Pattern struct {
-	comps   []component
-	doubles int
-	prefix  string
-	memo    []bool
-	memoW   int
+	comps  []component
+	hasDS  bool
+	prefix string
 }
 
-// Compile parses pattern. It returns ErrBadPattern if the pattern is empty,
-// has a leading or trailing "/", an empty component, or a malformed class.
-func Compile(pattern string) (*Pattern, error) {
-	if pattern == "" {
+// Compile parses a pattern. It returns ErrBadPattern if the pattern is empty,
+// has a leading or trailing "/", has an empty component, or contains a
+// malformed character class.
+func Compile(pat string) (*Pattern, error) {
+	if pat == "" {
 		return nil, ErrBadPattern
 	}
 	p := &Pattern{}
-	start := 0
-	for i := 0; i <= len(pattern); i++ {
-		if i < len(pattern) && pattern[i] != '/' {
-			continue
-		}
-		part := pattern[start:i]
-		if part == "" {
+	for _, c := range strings.Split(pat, "/") {
+		if c == "" {
 			return nil, ErrBadPattern
 		}
-		start = i + 1
-		if part == "**" {
-			// Consecutive "**" components are equivalent to one.
-			if n := len(p.comps); n > 0 && p.comps[n-1].double {
-				continue
-			}
-			p.comps = append(p.comps, component{double: true})
-			p.doubles++
+		if c == "**" {
+			p.comps = append(p.comps, component{doubleStar: true})
+			p.hasDS = true
 			continue
 		}
-		items, err := compileComponent(part)
-		if err != nil {
-			return nil, err
+		items, ok := parseComponent(c)
+		if !ok {
+			return nil, ErrBadPattern
 		}
 		p.comps = append(p.comps, component{items: items})
 	}
-	p.prefix = literalPrefix(pattern)
+	// The literal prefix is the run of bytes before the first wildcard.
+	end := strings.IndexAny(pat, "*?[")
+	if end < 0 {
+		end = len(pat)
+	}
+	p.prefix = pat[:end]
+	// A trailing run of "**" components may match zero components, so
+	// "lib/**" also matches "lib" itself: drop the prefix's trailing slash.
+	if strings.HasSuffix(p.prefix, "/") {
+		rest := strings.Split(pat[end:], "/")
+		allDS := true
+		for _, c := range rest {
+			allDS = allDS && c == "**"
+		}
+		if allDS {
+			p.prefix = p.prefix[:len(p.prefix)-1]
+		}
+	}
 	return p, nil
 }
 
-func compileComponent(s string) ([]item, error) {
+func parseComponent(c string) ([]item, bool) {
 	var items []item
-	for i := 0; i < len(s); {
-		switch c := s[i]; c {
+	for i := 0; i < len(c); {
+		switch c[i] {
 		case '*':
-			// Collapse runs of '*'.
-			if n := len(items); n == 0 || items[n-1].kind != itStar {
-				items = append(items, item{kind: itStar})
+			// Collapse runs of stars: they are equivalent to one.
+			if n := len(items); n == 0 || items[n-1].kind != itemStar {
+				items = append(items, item{kind: itemStar})
 			}
 			i++
 		case '?':
-			items = append(items, item{kind: itAny})
+			items = append(items, item{kind: itemAny})
 			i++
 		case '[':
-			it, next, err := compileClass(s, i+1)
-			if err != nil {
-				return nil, err
+			it, n, ok := parseClass(c[i+1:])
+			if !ok {
+				return nil, false
 			}
 			items = append(items, it)
-			i = next
+			i += 1 + n
 		default:
-			items = append(items, item{kind: itLit, b: c})
+			items = append(items, item{kind: itemLit, lit: c[i]})
 			i++
 		}
 	}
-	return items, nil
+	return items, true
 }
 
-// compileClass parses a class whose body starts at s[i] (just after '[').
-// It returns the item and the index just past the closing ']'.
-func compileClass(s string, i int) (item, int, error) {
-	neg := false
+// parseClass parses the text following a "[". It returns the class item and
+// the number of bytes consumed, including the closing "]".
+func parseClass(s string) (item, int, bool) {
+	it := item{kind: itemClass}
+	i := 0
 	if i < len(s) && s[i] == '!' {
-		neg = true
+		it.negate = true
 		i++
 	}
-	var set [4]uint64
-	add := func(lo, hi byte) {
-		for c := int(lo); c <= int(hi); c++ {
-			set[c>>6] |= 1 << (uint(c) & 63)
-		}
-	}
-	n := 0
 	for {
 		if i >= len(s) {
-			return item{}, 0, ErrBadPattern
+			return it, 0, false
 		}
 		if s[i] == ']' {
-			if n == 0 {
-				return item{}, 0, ErrBadPattern
-			}
-			i++
-			break
+			return it, i + 1, len(it.ranges) > 0
 		}
 		if i+2 < len(s) && s[i+1] == '-' && s[i+2] != ']' {
 			if s[i] > s[i+2] {
-				return item{}, 0, ErrBadPattern
+				return it, 0, false
 			}
-			add(s[i], s[i+2])
+			it.ranges = append(it.ranges, byteRange{s[i], s[i+2]})
 			i += 3
-		} else {
-			add(s[i], s[i])
-			i++
-		}
-		n++
-	}
-	if neg {
-		for k := range set {
-			set[k] = ^set[k]
-		}
-	}
-	return item{kind: itClass, set: &set}, i, nil
-}
-
-// literalPrefix joins the leading components that contain no '*', '?' or '['.
-func literalPrefix(pattern string) string {
-	end := 0
-	start := 0
-	for i := 0; i <= len(pattern); i++ {
-		if i < len(pattern) && pattern[i] != '/' {
 			continue
 		}
-		for j := start; j < i; j++ {
-			if c := pattern[j]; c == '*' || c == '?' || c == '[' {
-				return pattern[:end]
-			}
-		}
-		end = i
-		start = i + 1
+		it.ranges = append(it.ranges, byteRange{s[i], s[i]})
+		i++
 	}
-	return pattern[:end]
 }
 
-// LiteralPrefix returns the leading pattern components that contain no
-// wildcard, joined with "/" and with no trailing "/". Every path the
-// pattern matches starts with this byte prefix, which makes it usable to
-// narrow a sorted list of candidates.
+// LiteralPrefix returns the longest wildcard-free prefix of the pattern. Every
+// string the pattern matches begins with it.
 func (p *Pattern) LiteralPrefix() string { return p.prefix }
 
-// Match reports whether the pattern matches the whole of s, which is split
-// at every "/" into components (empty components are kept).
+// Match reports whether the pattern matches the whole of s, which is split at
+// every "/" into components (empty components are kept).
 func (p *Pattern) Match(s string) bool {
-	ncomp := 1
-	for i := 0; i < len(s); i++ {
-		if s[i] == '/' {
-			ncomp++
+	if !p.hasDS {
+		// Fast path: component counts must agree.
+		pos := 0
+		for _, c := range p.comps {
+			if pos > len(s) {
+				return false
+			}
+			end := strings.IndexByte(s[pos:], '/')
+			var part string
+			if end < 0 {
+				part = s[pos:]
+				pos = len(s) + 1
+			} else {
+				part = s[pos : pos+end]
+				pos += end + 1
+			}
+			if !matchItems(c.items, part) {
+				return false
+			}
+		}
+		return pos == len(s)+1
+	}
+	cand := strings.Split(s, "/")
+	n := len(cand)
+	// next[j] = does pattern[i+1:] match cand[j:] ; cur is the row for i.
+	next := make([]bool, n+1)
+	cur := make([]bool, n+1)
+	next[n] = true
+	for i := len(p.comps) - 1; i >= 0; i-- {
+		c := &p.comps[i]
+		for j := n; j >= 0; j-- {
+			if c.doubleStar {
+				cur[j] = next[j] || (j < n && cur[j+1])
+			} else {
+				cur[j] = j < n && next[j+1] && matchItems(c.items, cand[j])
+			}
+		}
+		next, cur = cur, next
+		// After the swap, next holds row i; the old row is scratch space.
+		for j := range cur {
+			cur[j] = false
 		}
 	}
-	if p.doubles >= 2 {
-		w := ncomp + 1
-		need := (len(p.comps) + 1) * w
-		if cap(p.memo) < need {
-			p.memo = make([]bool, need)
-		} else {
-			p.memo = p.memo[:need]
-			clear(p.memo)
-		}
-		p.memoW = w
-	}
-	return p.match(0, 0, 0, s, ncomp)
+	return next[0]
 }
 
-// match matches pattern components pi.. against candidate components ci..
-// ncomp-1, where candidate component ci starts at byte offset off.
-func (p *Pattern) match(pi, ci, off int, s string, ncomp int) bool {
-	for {
-		if pi == len(p.comps) {
-			return ci == ncomp
-		}
-		c := &p.comps[pi]
-		if !c.double {
-			if ci == ncomp {
-				return false
-			}
-			end := off
-			for end < len(s) && s[end] != '/' {
-				end++
-			}
-			if !matchItems(c.items, s[off:end]) {
-				return false
-			}
-			pi++
-			ci++
-			off = end + 1
-			continue
-		}
-		if pi == len(p.comps)-1 {
-			return true
-		}
-		if p.doubles >= 2 {
-			k := pi*p.memoW + ci
-			if p.memo[k] {
-				return false
-			}
-			p.memo[k] = true
-		}
-		// "**" consumes zero or more components.
-		for {
-			if p.match(pi+1, ci, off, s, ncomp) {
-				return true
-			}
-			if ci == ncomp {
-				return false
-			}
-			for off < len(s) && s[off] != '/' {
-				off++
-			}
-			off++
-			ci++
-		}
-	}
-}
-
-// matchItems matches one component's items against one candidate component
-// using linear star backtracking.
+// matchItems matches one pattern component against one candidate component.
 func matchItems(items []item, s string) bool {
-	ii, si := 0, 0
-	starI, starS := -1, 0
+	pi, si := 0, 0
+	starPi, starSi := -1, 0
 	for si < len(s) {
-		if ii < len(items) {
-			it := &items[ii]
-			switch it.kind {
-			case itStar:
-				starI, starS = ii, si
-				ii++
+		if pi < len(items) {
+			it := &items[pi]
+			if it.kind == itemStar {
+				starPi, starSi = pi, si
+				pi++
 				continue
-			case itAny:
-				ii++
+			}
+			if it.matchByte(s[si]) {
+				pi++
 				si++
 				continue
-			case itLit:
-				if s[si] == it.b {
-					ii++
-					si++
-					continue
-				}
-			case itClass:
-				if it.classHas(s[si]) {
-					ii++
-					si++
-					continue
-				}
 			}
 		}
-		if starI < 0 {
+		if starPi < 0 {
 			return false
 		}
-		starS++
-		si = starS
-		ii = starI + 1
+		starSi++
+		si = starSi
+		pi = starPi + 1
 	}
-	for ii < len(items) && items[ii].kind == itStar {
-		ii++
+	for pi < len(items) && items[pi].kind == itemStar {
+		pi++
 	}
-	return ii == len(items)
+	return pi == len(items)
 }

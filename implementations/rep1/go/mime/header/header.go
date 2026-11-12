@@ -1,137 +1,146 @@
-// Package header splits a message into its header fields and body.
+// Package header splits a message into its header block and body, unfolds the
+// header fields and provides case-insensitive lookup.
 package header
 
 import (
-	"bytes"
-	"strings"
-
-	"mimedump/charset"
-	"mimedump/internal/scan"
-	"mimedump/lines"
-	"mimedump/rfc2047"
+	"example.com/mime/charset"
+	"example.com/mime/internal/lex"
+	"example.com/mime/rfc2047"
 )
 
-// Field is one header field.
+// Field is one header field: its name and raw (unfolded) value, both decoded
+// from UTF-8. The raw value is everything after the first colon, so it
+// normally starts with a blank.
 type Field struct {
-	// Name is the field name stripped of spaces and tabs and lower-cased.
-	Name string
-	// Raw is everything after the first ':' of the unfolded field, decoded
-	// from UTF-8. Leading whitespace is kept.
-	Raw string
+	Name  string
+	Value string
 }
 
-// Parse reads the header block at the start of msg, which must already have
-// LF line endings (see lines.NormalizeCRLF). It returns the fields in order
-// and the offset at which the body starts.
-//
-// An empty line ends the block (the body follows it). A line starting with
-// SPACE or TAB after a field continues that field. Any other line must be a
-// field line (a non-empty run of printable ASCII other than ':' and then
-// ':'); if it is not, the block ends before it and that line starts the body.
-func Parse(msg []byte) (fields []Field, bodyStart int) {
-	var cur []byte  // unfolded bytes of the field being built
-	var shared bool // cur still aliases msg
-	flush := func() {
-		if cur == nil {
-			return
-		}
-		colon := bytes.IndexByte(cur, ':')
-		name := scan.LowerASCII(scan.Trim(string(cur[:colon])))
-		fields = append(fields, Field{Name: name, Raw: charset.DecodeUTF8(cur[colon+1:])})
-		cur = nil
-	}
-	pos := 0
-	for {
-		line, size, ok := lines.Next(msg[pos:])
-		if !ok {
-			flush()
-			return fields, len(msg)
-		}
-		if len(line) == 0 {
-			flush()
-			return fields, pos + size
-		}
-		if scan.IsBlank(line[0]) && cur != nil {
-			if shared {
-				cur = append(cur[:len(cur):len(cur)], line...)
-				shared = false
-			} else {
-				cur = append(cur, line...)
-			}
-			pos += size
-			continue
-		}
-		if !isFieldLine(line) {
-			flush()
-			return fields, pos
-		}
-		flush()
-		cur, shared = line, true
-		pos += size
-	}
+// Key returns the field name with surrounding blanks stripped and ASCII
+// letters lower-cased; it is the name used for lookups and in the dump.
+func (f Field) Key() string { return charset.Normalize(f.Name) }
+
+// collapsed lists the fields whose dumped value is whitespace-collapsed raw
+// text rather than decoded unstructured text.
+var collapsed = map[string]bool{
+	"content-disposition": true, "content-id": true,
+	"content-transfer-encoding": true, "content-type": true, "date": true,
+	"in-reply-to": true, "message-id": true, "mime-version": true,
+	"received": true, "references": true, "return-path": true,
 }
 
-func isFieldLine(line []byte) bool {
-	for i, c := range line {
-		if c == ':' {
-			return i > 0
-		}
-		if c < 0x21 || c > 0x7E {
-			return false
-		}
+// Display returns the value of the field as shown in the output dump.
+func (f Field) Display() string {
+	if collapsed[f.Key()] {
+		return lex.Collapse(f.Value)
 	}
-	return false
+	return rfc2047.DecodeUnstructured(f.Value)
 }
 
-// Find returns the first field called name (which must be lower-case).
-func Find(fields []Field, name string) (Field, bool) {
-	for _, f := range fields {
-		if f.Name == name {
+// Collapse replaces each run of SPACE and TAB by one SPACE and strips a
+// leading and trailing SPACE.
+func Collapse(s string) string { return lex.Collapse(s) }
+
+// Fields is an ordered list of header fields.
+type Fields []Field
+
+// Get returns the first field called name (compared case-insensitively; name
+// must be lower case).
+func (fs Fields) Get(name string) (Field, bool) {
+	for _, f := range fs {
+		if f.Key() == name {
 			return f, true
 		}
 	}
 	return Field{}, false
 }
 
-// Collapse replaces each maximal run of SPACE and TAB with one SPACE and then
-// strips a leading and trailing SPACE.
-func Collapse(s string) string {
-	var sb strings.Builder
-	sb.Grow(len(s))
-	for i := 0; i < len(s); {
-		if !scan.IsBlank(s[i]) {
-			sb.WriteByte(s[i])
-			i++
-			continue
+// All returns every field called name, in order.
+func (fs Fields) All(name string) []Field {
+	var out []Field
+	for _, f := range fs {
+		if f.Key() == name {
+			out = append(out, f)
 		}
-		for i < len(s) && scan.IsBlank(s[i]) {
-			i++
-		}
-		sb.WriteByte(' ')
 	}
-	return strings.Trim(sb.String(), " ")
+	return out
 }
 
-// verbatim lists the fields whose dumped value is only whitespace-collapsed
-// rather than RFC 2047 decoded.
-var verbatim = map[string]bool{
-	"content-disposition":       true,
-	"content-id":                true,
-	"content-transfer-encoding": true,
-	"content-type":              true,
-	"date":                      true,
-	"in-reply-to":               true,
-	"message-id":                true,
-	"mime-version":              true,
-	"received":                  true,
-	"references":                true,
-	"return-path":               true,
+func isNameByte(c byte) bool { return c >= 0x21 && c <= 0x7E && c != ':' }
+
+// fieldColon returns the index of the colon of a field line, or -1 if line is
+// not a field line.
+func fieldColon(line []byte) int {
+	for i, c := range line {
+		if c == ':' {
+			if i == 0 {
+				return -1
+			}
+			return i
+		}
+		if !isNameByte(c) {
+			return -1
+		}
+	}
+	return -1
 }
 
-// DisplayValue is the value of f as shown in the dump's [headers] section.
-func (f Field) DisplayValue() string {
-	if verbatim[f.Name] {
-		return Collapse(f.Raw)
+// Parse reads the header block at the start of msg, whose lines are
+// terminated by LF only. It returns the fields in order and the offset at
+// which the body starts.
+func Parse(msg []byte) (fields Fields, bodyStart int) {
+	pos := 0
+	var cur [][]byte // lines of the field being collected
+	flush := func() {
+		if cur == nil {
+			return
+		}
+		var raw []byte
+		if len(cur) == 1 {
+			raw = cur[0]
+		} else {
+			n := 0
+			for _, l := range cur {
+				n += len(l)
+			}
+			raw = make([]byte, 0, n)
+			for _, l := range cur {
+				raw = append(raw, l...)
+			}
+		}
+		colon := fieldColon(cur[0])
+		// The first line was already validated; colon is the same in raw.
+		fields = append(fields, Field{
+			Name:  charset.DecodeUTF8(raw[:colon]),
+			Value: charset.DecodeUTF8(raw[colon+1:]),
+		})
+		cur = nil
 	}
-	return rfc2047.DecodeUnstructured(f.Raw)
+	for pos < len(msg) {
+		end := pos
+		for end < len(msg) && msg[end] != '\n' {
+			end++
+		}
+		line := msg[pos:end]
+		next := end
+		if end < len(msg) {
+			next = end + 1
+		}
+		if len(line) == 0 {
+			flush()
+			return fields, next
+		}
+		if (line[0] == ' ' || line[0] == '\t') && cur != nil {
+			cur = append(cur, line)
+		} else if fieldColon(line) >= 0 {
+			flush()
+			cur = [][]byte{line}
+		} else {
+			flush()
+			return fields, pos
+		}
+		pos = next
+	}
+	flush()
+	return fields, len(msg)
 }

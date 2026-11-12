@@ -1,902 +1,927 @@
-/// Bytecode compiler: translates the checked AST into flat bytecode.
+/// The bytecode compiler: checked syntax tree -> `Program` (SPEC.md section 16).
 module langvm.compiler;
 
 import langvm.ast;
 import langvm.bytecode;
-import langvm.lexer : Tk;
-import langvm.model;
+import langvm.symbols;
+import langvm.types;
 import langvm.value;
-import langvm.world;
 
-private final class LoopCtx
+/// Compile all checked function bodies into a runnable program.
+Program compileProgram(World w, FnInfo[] bodies)
 {
+    auto c = new Compiler(w);
+    return c.compile(bodies);
+}
+
+private struct Loop
+{
+    /// Operand-stack depth at the start of the loop.
     int depth;
     int[] breaks;
     int[] continues;
-    /// Known continue target (while loops), or -1 when patched later.
-    int contTarget = -1;
+    /// Known target for `continue`, or -1 when it must be patched.
+    int continueTarget;
 }
 
+/// Per-function compilation state.
 private final class FnState
 {
-    FuncInfo info;
-    int[] code;
-    int depth;
-    int maxDepth;
+    Func func;
+    FuncCtx ctx;
+    Instr[] code;
     int nextSlot;
     int maxSlot;
-    LoopCtx[] loops;
+    int depth;
+    Loop[] loops;
 }
 
-/// Compiles a checked [World] into a [Program].
-final class Compiler
+private final class Compiler
 {
-    private World w;
-    private Program prog;
-    private FnState cur;
-    private int[long] intK;
-    private int[ulong] floatK;
-    private int[long] charK;
-    private int[dstring] strK;
+    World w;
+    Program prog;
+    FnState cur;
+    size_t[long] intConsts;
+    size_t[ulong] floatConsts;
+    size_t[long] charConsts;
+    size_t[dstring] strConsts;
+    size_t[int] unitVariantConsts;
 
     this(World w)
     {
         this.w = w;
+        prog = new Program();
     }
 
-    /// Compiles every function of the program.
-    Program compile()
+    Program compile(FnInfo[] bodies)
     {
-        prog = new Program;
-        foreach (i, fd; w.funcs)
+        // Reserve one function slot per body so calls can refer to callees by index.
+        foreach (fi; bodies)
         {
-            fd.index = cast(int) i;
-            auto fc = new FuncCode;
-            fc.name = fd.name;
-            prog.funcs ~= fc;
+            fi.funcIdx = cast(int) prog.funcs.length;
+            auto f = new Func();
+            f.name = fi.name;
+            prog.funcs ~= f;
         }
-        foreach (fd; w.funcs)
-            compileFunc(fd);
-        prog.mainFn = w.mainFn.index;
-        prog.declCount = cast(int) w.datas.length;
-        buildMethodTable();
-        buildUnitVariants();
+        foreach (fi; bodies)
+            compileBody(fi);
+
+        // the entry stub
+        auto stub = new Func();
+        stub.name = "<entry>";
+        stub.counted = false;
+        stub.code = [Instr(Op.call, w.mainFn.funcIdx, 0), Instr(Op.halt)];
+        prog.entry = cast(int) prog.funcs.length;
+        prog.funcs ~= stub;
+
+        buildImplTable();
+        prog.optionDecl = w.optionDecl.id;
+        prog.resultDecl = w.resultDecl.id;
         return prog;
     }
 
-    private void buildMethodTable()
+    void buildImplTable()
     {
-        int nctor = HeadCtor.firstData + cast(int) w.datas.length;
-        prog.methodTable = new int[][][w.traits.length];
-        foreach (t; w.traits)
-            prog.methodTable[t.id] = new int[][nctor];
+        const nctors = Ctor.firstDecl + cast(int) w.decls.length;
+        prog.impls = new int[][][w.traits.length];
         foreach (im; w.impls)
         {
             auto tr = im.trait;
-            int[] row = new int[tr.methods.length];
-            foreach (i, md; tr.methods)
+            if (prog.impls[tr.id] is null)
+                prog.impls[tr.id] = new int[][nctors];
+            int[] fns;
+            foreach (i, sig; tr.methods)
             {
-                auto f = im.byIndex[i];
-                if (f !is null)
-                    row[i] = f.index;
-                else if (md.defaultFn !is null)
-                    row[i] = md.defaultFn.index;
-                else
-                    row[i] = -1;
+                auto fi = im.methods[i] !is null ? im.methods[i] : sig.defaultFn;
+                fns ~= fi.funcIdx;
             }
-            prog.methodTable[tr.id][im.headCtor] = row;
+            prog.impls[tr.id][im.ctor] = fns;
         }
     }
 
-    private void buildUnitVariants()
-    {
-        prog.unitVariants = new Value[][w.datas.length];
-        foreach (d; w.datas)
-        {
-            if (!d.isEnum)
-                continue;
-            auto row = new Value[d.variants.length];
-            foreach (i, v; d.variants)
-                if (v.payload.length == 0)
-                    row[i] = Value.obj(VT.enum_, new AggObj(d.id, cast(int) i, null));
-            prog.unitVariants[d.id] = row;
-        }
-    }
+    // ------------------------------------------------------------ emission helpers
 
-    // ------------------------------------------------------------ emission
-
-    private int stackDelta(Op op, int a, int b, int c)
+    static int effect(Instr i)
     {
-        final switch (op)
+        final switch (i.op)
         {
-        case Op.pushConst, Op.pushTrue, Op.pushFalse, Op.pushUnit, Op.loadLocal, Op.loadUpval,
-            Op.dup, Op.pushPayload, Op.pushField, Op.pushTuple, Op.pushElem, Op.listRest,
-            Op.seqLen, Op.seqGet:
+        case Op.pushConst, Op.pushTrue, Op.pushFalse, Op.pushUnit, Op.loadLocal, Op.loadUpval, Op.dup:
             return 1;
-        case Op.storeLocal, Op.pop, Op.jumpIfFalse, Op.jumpIfTrue:
+        case Op.storeLocal, Op.pop:
             return -1;
-        case Op.makeClosure, Op.call, Op.callBuiltin, Op.makeTuple, Op.makeList:
-            return op == Op.makeList || op == Op.makeTuple ? 1 - a : 1 - b;
+        case Op.makeClosure:
+            return 1 - i.b;
+        case Op.call, Op.callBuiltin:
+            return 1 - i.b;
         case Op.callValue:
-            return -a;
+            return -i.a;
         case Op.callMethod:
-            return -c;
+            return -i.c;
         case Op.ret:
             return -1;
-        case Op.retUnit, Op.negI, Op.bnot, Op.negF, Op.notB, Op.jump, Op.getField, Op.getPayload,
-            Op.getTuple, Op.noMatch, Op.jumpUnlessVariant, Op.jumpUnlessLen, Op.jumpUnlessLenGe,
-            Op.incLocal:
+        case Op.retUnit:
             return 0;
         case Op.addI, Op.subI, Op.mulI, Op.divI, Op.modI, Op.band, Op.bor, Op.bxor, Op.shl, Op.shr,
             Op.addF, Op.subF, Op.mulF, Op.divF, Op.eq, Op.ne, Op.lt, Op.le, Op.gt, Op.ge,
-            Op.concatStr, Op.concatList, Op.indexGet:
+            Op.concatStr, Op.concatList:
+            return -1;
+        case Op.negI, Op.bnot, Op.negF, Op.notB:
+            return 0;
+        case Op.jump:
+            return 0;
+        case Op.jumpIfFalse, Op.jumpIfTrue:
+            return -1;
+        case Op.makeList, Op.makeTuple:
+            return 1 - i.a;
+        case Op.makeMap:
+            return 1 - 2 * i.a;
+        case Op.makeStruct:
+            return 1 - i.b;
+        case Op.makeEnum:
+            return 1 - i.c;
+        case Op.getField, Op.getPayload, Op.getTuple, Op.isVariant, Op.seqLen, Op.listRest:
+            return 0;
+        case Op.indexGet:
             return -1;
         case Op.indexSet:
             return -3;
-        case Op.makeMap:
-            return 1 - 2 * a;
-        case Op.makeStruct:
-            return 1 - b;
-        case Op.makeEnum:
-            return 1 - c;
+        case Op.noMatch, Op.halt:
+            return 0;
+        case Op.panic:
+            return -1;
         }
     }
 
-    private void emit(Op op, int a = 0, int b = 0, int c = 0)
+    int emit(Op op, int a = 0, int b = 0, int c = 0)
     {
-        int n = operandCount(op);
-        cur.code ~= cast(int) op;
-        if (n >= 1)
-            cur.code ~= a;
-        if (n >= 2)
-            cur.code ~= b;
-        if (n >= 3)
-            cur.code ~= c;
-        cur.depth += stackDelta(op, a, b, c);
-        if (cur.depth > cur.maxDepth)
-            cur.maxDepth = cur.depth;
+        auto i = Instr(op, a, b, c);
+        cur.depth += effect(i);
+        cur.code ~= i;
+        return cast(int) cur.code.length - 1;
     }
 
-    private int here()
+    int here()
     {
         return cast(int) cur.code.length;
     }
 
-    /// Emits a jump with a placeholder target; returns the index of the target operand.
-    private int emitJump(Op op)
+    void patch(int at)
     {
-        emit(op, -1);
-        return here() - 1;
+        cur.code[at].a = here();
     }
 
-    /// Emits a fused test jump; returns the index of its target operand.
-    private int emitTest(Op op, int a, int b)
+    void patchAll(int[] ats)
     {
-        emit(op, a, b, -1);
-        return here() - 1;
+        foreach (a; ats)
+            patch(a);
     }
 
-    private void patch(int at)
+    int allocSlot()
     {
-        cur.code[at] = here();
-    }
-
-    private void patchAll(int[] list)
-    {
-        foreach (p; list)
-            patch(p);
-    }
-
-    private int allocSlot()
-    {
-        int s = cur.nextSlot++;
+        const s = cur.nextSlot++;
         if (cur.nextSlot > cur.maxSlot)
             cur.maxSlot = cur.nextSlot;
         return s;
     }
 
-    private int constInt(long v)
+    // ------------------------------------------------------------ constants
+
+    int constant(Value v)
     {
-        if (auto p = v in intK)
-            return *p;
-        prog.consts ~= Value.int_(v);
-        return intK[v] = cast(int) prog.consts.length - 1;
+        prog.consts ~= v;
+        return cast(int) prog.consts.length - 1;
     }
 
-    private int constFloat(double v)
+    int intConst(long v)
     {
-        ulong bits = *cast(ulong*)&v;
-        if (auto p = bits in floatK)
-            return *p;
-        prog.consts ~= Value.float_(v);
-        return floatK[bits] = cast(int) prog.consts.length - 1;
+        if (auto p = v in intConsts)
+            return cast(int)*p;
+        const i = constant(Value.ofInt(v));
+        intConsts[v] = i;
+        return i;
     }
 
-    private int constChar(dchar v)
+    int floatConst(double v)
     {
-        if (auto p = cast(long) v in charK)
-            return *p;
-        prog.consts ~= Value.char_(v);
-        return charK[v] = cast(int) prog.consts.length - 1;
+        const bits = *cast(ulong*)&v;
+        if (auto p = bits in floatConsts)
+            return cast(int)*p;
+        const i = constant(Value.ofFloat(v));
+        floatConsts[bits] = i;
+        return i;
     }
 
-    private int constStr(dstring v)
+    int charConst(long v)
     {
-        if (auto p = v in strK)
-            return *p;
-        prog.consts ~= Value.str(v);
-        return strK[v] = cast(int) prog.consts.length - 1;
+        if (auto p = v in charConsts)
+            return cast(int)*p;
+        const i = constant(Value.ofChar(v));
+        charConsts[v] = i;
+        return i;
+    }
+
+    int strConst(dstring v)
+    {
+        if (auto p = v in strConsts)
+            return cast(int)*p;
+        const i = constant(Value.ofStr(v));
+        strConsts[v] = i;
+        return i;
+    }
+
+    /// Constant for a variant without payload (the value is immutable, so it is shared).
+    int unitVariantConst(VariantInfo v)
+    {
+        const key = v.decl.id * 4096 + v.index;
+        if (auto p = key in unitVariantConsts)
+            return cast(int)*p;
+        const i = constant(Value.ofObj(Tag.enum_, new AggObj(v.decl.id, v.index, null)));
+        unitVariantConsts[key] = i;
+        return i;
     }
 
     // ------------------------------------------------------------ functions
 
-    private void finishFn(FuncCode fc, FnState st, int nparams)
+    void compileBody(FnInfo fi)
     {
-        fc.nparams = nparams;
-        fc.nslots = st.maxSlot;
-        fc.maxStack = st.maxDepth;
-        fc.code = st.code;
-    }
-
-    private void compileFunc(FuncDecl fd)
-    {
-        auto st = new FnState;
-        st.info = fd.info;
+        auto decl = fi.decl;
+        auto f = prog.funcs[fi.funcIdx];
+        auto st = new FnState();
+        st.func = f;
+        st.ctx = decl.ctx;
+        auto saved = cur;
         cur = st;
-        int np = 0;
-        if (fd.selfVar !is null)
-        {
-            fd.selfVar.slot = allocSlot();
-            np++;
-        }
-        foreach (v; fd.paramVars)
-        {
+        foreach (v; decl.paramVars)
             v.slot = allocSlot();
-            np++;
-        }
-        compileBody(fd.body);
-        finishFn(prog.funcs[fd.index], st, np);
+        f.nparams = cast(int) decl.paramVars.length;
+        block(decl.body);
+        emit(Op.ret);
+        finish(st);
+        cur = saved;
     }
 
-    private void compileBody(Expr body_)
+    void finish(FnState st)
     {
-        if (auto b = cast(Block) body_)
-        {
-            foreach (s; b.stmts)
-                stmt(s);
-            if (b.trailing !is null)
-            {
-                expr(b.trailing);
-                emit(Op.ret);
-            }
-            else
-                emit(Op.retUnit);
-        }
+        st.func.code = st.code;
+        st.func.nlocals = st.maxSlot;
+    }
+
+    void compileLambda(LambdaExpr e)
+    {
+        auto f = new Func();
+        f.name = "<lambda>";
+        const idx = cast(int) prog.funcs.length;
+        prog.funcs ~= f;
+        auto st = new FnState();
+        st.func = f;
+        st.ctx = e.ctx;
+        auto saved = cur;
+        cur = st;
+        foreach (v; e.paramVars)
+            v.slot = allocSlot();
+        f.nparams = cast(int) e.paramVars.length;
+        if (e.body.kind == EK.block)
+            block(cast(BlockExpr) e.body);
+        else
+            expr(e.body);
+        emit(Op.ret);
+        finish(st);
+        cur = saved;
+        foreach (v; e.ctx.captures)
+            loadVar(v);
+        emit(Op.makeClosure, idx, cast(int) e.ctx.captures.length);
+    }
+
+    void loadVar(LocalVar v)
+    {
+        if (v.owner is cur.ctx)
+            emit(Op.loadLocal, v.slot);
         else
         {
-            expr(body_);
-            emit(Op.ret);
+            const i = cur.ctx.captureIndex(v);
+            assert(i >= 0, "captured variable missing from the closure");
+            emit(Op.loadUpval, i);
         }
     }
 
-    // ------------------------------------------------------------ statements
+    // ------------------------------------------------------------ blocks and statements
 
-    private void stmt(Stmt s)
+    /// Compile a block so that it leaves exactly one value on the stack.
+    void block(BlockExpr b)
     {
-        if (auto l = cast(LetStmt) s)
-        {
-            expr(l.init);
-            bindFromStack(l.pat);
-        }
-        else if (auto v = cast(VarStmt) s)
-        {
-            expr(v.init);
-            v.var.slot = allocSlot();
-            emit(Op.storeLocal, v.var.slot);
-        }
-        else if (auto a = cast(AssignStmt) s)
-        {
-            if (auto pe = cast(PathExpr) a.target)
-            {
-                expr(a.value);
-                emit(Op.storeLocal, pe.var.slot);
-            }
-            else
-            {
-                auto ix = cast(IndexExpr) a.target;
-                expr(ix.base);
-                expr(ix.index);
-                expr(a.value);
-                emit(Op.indexSet);
-            }
-        }
-        else if (auto x = cast(ExprStmt) s)
-        {
-            expr(x.e);
-            emit(Op.pop);
-        }
-        else if (auto r = cast(ReturnStmt) s)
-        {
-            if (r.value is null)
-                emit(Op.retUnit);
-            else
-            {
-                expr(r.value);
-                emit(Op.ret);
-            }
-        }
-        else if (auto wh = cast(WhileStmt) s)
-        {
-            auto lc = new LoopCtx;
-            lc.depth = cur.depth;
-            int top = here();
-            lc.contTarget = top;
-            expr(wh.cond);
-            int exitJ = emitJump(Op.jumpIfFalse);
-            cur.loops ~= lc;
-            stmtBlock(wh.body);
-            cur.loops.length = cur.loops.length - 1;
-            emit(Op.jump, top);
-            patch(exitJ);
-            patchAll(lc.breaks);
-        }
-        else if (auto f = cast(ForStmt) s)
-            forStmt(f);
-        else if (cast(BreakStmt) s)
-        {
-            auto lc = cur.loops[$ - 1];
-            int d = cur.depth;
-            while (cur.depth > lc.depth)
-                emit(Op.pop);
-            lc.breaks ~= emitJump(Op.jump);
-            cur.depth = d;
-        }
-        else if (cast(ContinueStmt) s)
-        {
-            auto lc = cur.loops[$ - 1];
-            int d = cur.depth;
-            while (cur.depth > lc.depth)
-                emit(Op.pop);
-            if (lc.contTarget >= 0)
-                emit(Op.jump, lc.contTarget);
-            else
-                lc.continues ~= emitJump(Op.jump);
-            cur.depth = d;
-        }
-        else
-            assert(0);
-    }
-
-    private void stmtBlock(Block b)
-    {
-        int saved = cur.nextSlot;
+        const mark = cur.nextSlot;
+        const d0 = cur.depth;
         foreach (s; b.stmts)
             stmt(s);
-        if (b.trailing !is null)
-        {
-            expr(b.trailing);
-            emit(Op.pop);
-        }
-        cur.nextSlot = saved;
+        if (b.tail !is null)
+            expr(b.tail);
+        else
+            emit(Op.pushUnit);
+        cur.nextSlot = mark;
+        cur.depth = d0 + 1;
     }
 
-    private void forStmt(ForStmt f)
+    /// A loop body: statements, then the trailing expression (if any) is evaluated and dropped.
+    void stmtBlock(BlockExpr b)
     {
-        int saved = cur.nextSlot;
-        auto lc = new LoopCtx;
-        lc.depth = cur.depth;
-        int seqSlot = allocSlot();
-        int idxSlot = allocSlot();
-        int top;
-        int exitJ;
-        if (f.hi is null)
+        const mark = cur.nextSlot;
+        const d0 = cur.depth;
+        foreach (s; b.stmts)
+            stmt(s);
+        if (b.tail !is null)
         {
-            expr(f.iter);
-            emit(Op.storeLocal, seqSlot);
-            emit(Op.pushConst, constInt(0));
-            emit(Op.storeLocal, idxSlot);
-            top = here();
-            emit(Op.loadLocal, idxSlot);
-            emit(Op.seqLen, seqSlot);
-            emit(Op.lt);
-            exitJ = emitJump(Op.jumpIfFalse);
-            emit(Op.seqGet, seqSlot, idxSlot);
+            expr(b.tail);
+            emit(Op.pop);
+        }
+        cur.nextSlot = mark;
+        cur.depth = d0;
+    }
+
+    void stmt(Stmt s)
+    {
+        const d0 = cur.depth;
+        final switch (s.kind)
+        {
+        case SK.let_:
+            expr(s.expr);
+            bindPattern(s.pat);
+            break;
+        case SK.var_:
+            expr(s.expr);
+            s.var.slot = allocSlot();
+            emit(Op.storeLocal, s.var.slot);
+            break;
+        case SK.assign:
+            if (s.target.kind == EK.index)
+            {
+                auto ix = cast(IndexExpr) s.target;
+                expr(ix.obj);
+                expr(ix.idx);
+                expr(s.expr);
+                emit(Op.indexSet);
+            }
+            else
+            {
+                expr(s.expr);
+                emit(Op.storeLocal, s.var.slot);
+            }
+            break;
+        case SK.expr:
+            expr(s.expr);
+            emit(Op.pop);
+            break;
+        case SK.while_:
+            whileLoop(s);
+            break;
+        case SK.for_:
+            forLoop(s);
+            break;
+        case SK.return_:
+            if (s.expr is null)
+                emit(Op.retUnit);
+            else
+            {
+                expr(s.expr);
+                emit(Op.ret);
+            }
+            break;
+        case SK.break_:
+        {
+            auto lp = &cur.loops[$ - 1];
+            foreach (_; 0 .. cur.depth - lp.depth)
+                emit(Op.pop);
+            lp.breaks ~= emit(Op.jump);
+            break;
+        }
+        case SK.continue_:
+        {
+            auto lp = &cur.loops[$ - 1];
+            foreach (_; 0 .. cur.depth - lp.depth)
+                emit(Op.pop);
+            if (lp.continueTarget >= 0)
+                emit(Op.jump, lp.continueTarget);
+            else
+                lp.continues ~= emit(Op.jump);
+            break;
+        }
+        }
+        cur.depth = d0;
+    }
+
+    /// The value on top of the stack is destructured by `p` (which must be irrefutable).
+    void bindPattern(Pattern p)
+    {
+        if (p.kind == PatK.wild)
+        {
+            emit(Op.pop);
+            return;
+        }
+        if (p.kind == PatK.bind)
+        {
+            p.var.slot = allocSlot();
+            emit(Op.storeLocal, p.var.slot);
+            return;
+        }
+        const tmp = allocSlot();
+        emit(Op.storeLocal, tmp);
+        int[] fails;
+        pattern(p, tmp, fails);
+        if (fails.length)
+        {
+            const skip = emit(Op.jump);
+            patchAll(fails);
+            emit(Op.noMatch);
+            patch(skip);
+        }
+    }
+
+    void whileLoop(Stmt s)
+    {
+        const mark = cur.nextSlot;
+        const start = here();
+        expr(s.expr);
+        const exitJump = emit(Op.jumpIfFalse);
+        cur.loops ~= Loop(cur.depth, null, null, start);
+        stmtBlock(s.body);
+        emit(Op.jump, start);
+        patch(exitJump);
+        auto lp = cur.loops[$ - 1];
+        cur.loops.length = cur.loops.length - 1;
+        patchAll(lp.breaks);
+        cur.nextSlot = mark;
+    }
+
+    void forLoop(Stmt s)
+    {
+        const mark = cur.nextSlot;
+        const seq = allocSlot();
+        const idx = allocSlot();
+        int hi = -1;
+        if (s.forKind == 2)
+        {
+            hi = allocSlot();
+            expr(s.expr);
+            emit(Op.storeLocal, idx);
+            expr(s.hi);
+            emit(Op.storeLocal, hi);
         }
         else
         {
-            // seqSlot holds the bound for range loops
-            expr(f.iter);
-            emit(Op.storeLocal, idxSlot);
-            expr(f.hi);
-            emit(Op.storeLocal, seqSlot);
-            top = here();
-            emit(Op.loadLocal, idxSlot);
-            emit(Op.loadLocal, seqSlot);
-            emit(Op.lt);
-            exitJ = emitJump(Op.jumpIfFalse);
-            emit(Op.loadLocal, idxSlot);
+            expr(s.expr);
+            emit(Op.storeLocal, seq);
+            emit(Op.pushConst, intConst(0));
+            emit(Op.storeLocal, idx);
         }
-        int bodySaved = cur.nextSlot;
-        bindFromStack(f.pat);
-        cur.loops ~= lc;
-        stmtBlock(f.body);
+        const start = here();
+        emit(Op.loadLocal, idx);
+        if (s.forKind == 2)
+            emit(Op.loadLocal, hi);
+        else
+        {
+            emit(Op.loadLocal, seq);
+            emit(Op.seqLen);
+        }
+        emit(Op.lt);
+        const exitJump = emit(Op.jumpIfFalse);
+        cur.loops ~= Loop(cur.depth, null, null, -1);
+        const inner = cur.nextSlot;
+        if (s.forKind == 2)
+            emit(Op.loadLocal, idx);
+        else
+        {
+            emit(Op.loadLocal, seq);
+            emit(Op.loadLocal, idx);
+            emit(Op.indexGet);
+        }
+        bindPattern(s.pat);
+        stmtBlock(s.body);
+        cur.nextSlot = inner;
+        auto lp = cur.loops[$ - 1];
         cur.loops.length = cur.loops.length - 1;
-        cur.nextSlot = bodySaved;
-        patchAll(lc.continues);
-        emit(Op.incLocal, idxSlot);
-        emit(Op.jump, top);
-        patch(exitJ);
-        patchAll(lc.breaks);
-        cur.nextSlot = saved;
+        patchAll(lp.continues);
+        emit(Op.loadLocal, idx);
+        emit(Op.pushConst, intConst(1));
+        emit(Op.addI);
+        emit(Op.storeLocal, idx);
+        emit(Op.jump, start);
+        patch(exitJump);
+        patchAll(lp.breaks);
+        cur.nextSlot = mark;
     }
 
     // ------------------------------------------------------------ patterns
 
-    /// Consumes the value on top of the stack, binding the (irrefutable) pattern.
-    private void bindFromStack(Pat p)
+    /// Test the value in local `slot` against `p`, binding variables. On a
+    /// failed test control jumps to a location recorded in `fails`.
+    void pattern(Pattern p, int slot, ref int[] fails)
     {
-        if (cast(WildPat) p)
+        final switch (p.kind)
         {
-            emit(Op.pop);
+        case PatK.wild:
             return;
-        }
-        if (auto ip = cast(IdentPat) p)
-        {
-            if (ip.enumDecl is null)
-            {
-                ip.var.slot = allocSlot();
-                emit(Op.storeLocal, ip.var.slot);
-                return;
-            }
-        }
-        int t = allocSlot();
-        emit(Op.storeLocal, t);
-        int[] fails;
-        pattern(p, t, fails);
-        patchAll(fails);
-    }
-
-    /// Emits the test and bindings for pattern `p` against the value in `slot`.
-    /// Failing tests are appended to `fails` as jump-operand indices to patch.
-    private void pattern(Pat p, int slot, ref int[] fails)
-    {
-        if (cast(WildPat) p)
+        case PatK.bind:
+            p.var.slot = slot;
             return;
-        if (auto ip = cast(IdentPat) p)
-        {
-            if (ip.enumDecl is null)
-                ip.var.slot = slot;
-            else if (ip.enumDecl.variants.length > 1)
-                fails ~= emitTest(Op.jumpUnlessVariant, slot, ip.variantIdx);
-            return;
-        }
-        if (auto lp = cast(LitPat) p)
-        {
+        case PatK.float_:
+            assert(false);
+        case PatK.int_:
             emit(Op.loadLocal, slot);
-            literal(lp);
+            emit(Op.pushConst, intConst(p.ival));
             emit(Op.eq);
-            fails ~= emitJump(Op.jumpIfFalse);
+            fails ~= emit(Op.jumpIfFalse);
             return;
-        }
-        if (auto tp = cast(TuplePat) p)
-        {
-            foreach (i, s; tp.subs)
-                subPattern(s, Op.pushTuple, slot, cast(int) i, fails);
+        case PatK.char_:
+            emit(Op.loadLocal, slot);
+            emit(Op.pushConst, charConst(p.ival));
+            emit(Op.eq);
+            fails ~= emit(Op.jumpIfFalse);
             return;
-        }
-        if (auto lp = cast(ListPat) p)
-        {
-            int n = cast(int) lp.subs.length;
-            if (lp.hasRest)
+        case PatK.str:
+            emit(Op.loadLocal, slot);
+            emit(Op.pushConst, strConst(p.sval));
+            emit(Op.eq);
+            fails ~= emit(Op.jumpIfFalse);
+            return;
+        case PatK.bool_:
+            emit(Op.loadLocal, slot);
+            fails ~= emit(p.ival ? Op.jumpIfFalse : Op.jumpIfTrue);
+            return;
+        case PatK.tuple:
+            foreach (i, sp; p.subs)
+                subPattern(sp, slot, Op.getTuple, cast(int) i, fails);
+            return;
+        case PatK.variant:
+            if (p.variant.decl.variants.length > 1)
             {
-                if (n > 0)
-                    fails ~= emitTest(Op.jumpUnlessLenGe, slot, n);
+                emit(Op.loadLocal, slot);
+                emit(Op.isVariant, p.variant.index);
+                fails ~= emit(Op.jumpIfFalse);
             }
-            else
-                fails ~= emitTest(Op.jumpUnlessLen, slot, n);
-            foreach (i, s; lp.subs)
-                subPattern(s, Op.pushElem, slot, cast(int) i, fails);
-            if (lp.restVar !is null)
+            foreach (i, sp; p.subs)
+                subPattern(sp, slot, Op.getPayload, cast(int) i, fails);
+            return;
+        case PatK.struct_:
+            foreach (ref f; p.fields)
             {
-                emit(Op.listRest, slot, n);
-                lp.restVar.slot = allocSlot();
-                emit(Op.storeLocal, lp.restVar.slot);
+                if (f.pat !is null)
+                    subPattern(f.pat, slot, Op.getField, f.fieldIdx, fails);
+                else
+                {
+                    f.var.slot = allocSlot();
+                    emit(Op.loadLocal, slot);
+                    emit(Op.getField, f.fieldIdx);
+                    emit(Op.storeLocal, f.var.slot);
+                }
+            }
+            return;
+        case PatK.list:
+        {
+            const n = cast(int) p.subs.length;
+            if (!(p.hasRest && n == 0))
+            {
+                emit(Op.loadLocal, slot);
+                emit(Op.seqLen);
+                emit(Op.pushConst, intConst(n));
+                emit(p.hasRest ? Op.ge : Op.eq);
+                fails ~= emit(Op.jumpIfFalse);
+            }
+            foreach (i, sp; p.subs)
+            {
+                if (sp.kind == PatK.wild)
+                    continue;
+                const t = allocSlot();
+                emit(Op.loadLocal, slot);
+                emit(Op.pushConst, intConst(cast(long) i));
+                emit(Op.indexGet);
+                emit(Op.storeLocal, t);
+                pattern(sp, t, fails);
+            }
+            if (p.restVar !is null)
+            {
+                p.restVar.slot = allocSlot();
+                emit(Op.loadLocal, slot);
+                emit(Op.listRest, n);
+                emit(Op.storeLocal, p.restVar.slot);
             }
             return;
         }
-        if (auto sp = cast(StructPat) p)
-        {
-            foreach (fp; sp.fields)
-                subPattern(fp.sub, Op.pushField, slot, fp.fieldIdx, fails);
-            return;
         }
-        if (auto vp = cast(VariantPat) p)
-        {
-            if (vp.enumDecl.variants.length > 1)
-                fails ~= emitTest(Op.jumpUnlessVariant, slot, vp.variantIdx);
-            foreach (i, s; vp.subs)
-                subPattern(s, Op.pushPayload, slot, cast(int) i, fails);
-            return;
-        }
-        assert(0);
     }
 
-    private void literal(LitPat lp)
+    void subPattern(Pattern sp, int slot, Op getter, int index, ref int[] fails)
     {
-        final switch (lp.kind)
-        {
-        case LitPat.Kind.int_:
-            emit(Op.pushConst, constInt(lp.iv));
-            break;
-        case LitPat.Kind.char_:
-            emit(Op.pushConst, constChar(cast(dchar) lp.iv));
-            break;
-        case LitPat.Kind.str:
-            emit(Op.pushConst, constStr(lp.sv));
-            break;
-        case LitPat.Kind.bool_:
-            emit(lp.iv ? Op.pushTrue : Op.pushFalse);
-            break;
-        case LitPat.Kind.float_:
-            assert(0);
-        }
-    }
-
-    private void subPattern(Pat sub, Op pushOp, int slot, int idx, ref int[] fails)
-    {
-        if (cast(WildPat) sub)
+        if (sp.kind == PatK.wild)
             return;
-        if (auto lp = cast(LitPat) sub)
-        {
-            emit(pushOp, slot, idx);
-            literal(lp);
-            emit(Op.eq);
-            fails ~= emitJump(Op.jumpIfFalse);
-            return;
-        }
-        emit(pushOp, slot, idx);
-        int t = allocSlot();
+        const t = allocSlot();
+        emit(Op.loadLocal, slot);
+        emit(getter, index);
         emit(Op.storeLocal, t);
-        pattern(sub, t, fails);
+        pattern(sp, t, fails);
     }
 
     // ------------------------------------------------------------ expressions
 
-    private void pushVar(LocalVar v)
+    /// Compile an expression so that it leaves exactly one value on the stack.
+    void expr(Expr e)
     {
-        if (v.owner is cur.info)
-            emit(Op.loadLocal, v.slot);
-        else
-            emit(Op.loadUpval, cur.info.captureIndex(v));
+        const d0 = cur.depth;
+        exprInner(e);
+        cur.depth = d0 + 1;
     }
 
-    private void expr(Expr e)
+    void exprs(Expr[] es)
     {
-        if (auto x = cast(IntLit) e)
-            emit(Op.pushConst, constInt(x.v));
-        else if (auto x = cast(FloatLit) e)
-            emit(Op.pushConst, constFloat(x.v));
-        else if (auto x = cast(StrLit) e)
-            emit(Op.pushConst, constStr(x.v));
-        else if (auto x = cast(CharLit) e)
-            emit(Op.pushConst, constChar(x.v));
-        else if (auto x = cast(BoolLit) e)
-            emit(x.v ? Op.pushTrue : Op.pushFalse);
-        else if (auto x = cast(SelfExpr) e)
-            pushVar(x.var);
-        else if (auto x = cast(PathExpr) e)
+        foreach (x; es)
+            expr(x);
+    }
+
+    void exprInner(Expr e)
+    {
+        final switch (e.kind)
         {
-            if (x.res == PathExpr.Res.local)
-                pushVar(x.var);
+        case EK.int_:
+            emit(Op.pushConst, intConst((cast(LitExpr) e).ival));
+            return;
+        case EK.float_:
+            emit(Op.pushConst, floatConst((cast(LitExpr) e).fval));
+            return;
+        case EK.str:
+            emit(Op.pushConst, strConst((cast(LitExpr) e).sval));
+            return;
+        case EK.char_:
+            emit(Op.pushConst, charConst((cast(LitExpr) e).ival));
+            return;
+        case EK.bool_:
+            emit((cast(LitExpr) e).ival ? Op.pushTrue : Op.pushFalse);
+            return;
+        case EK.self_:
+            loadVar((cast(SelfExpr) e).var);
+            return;
+        case EK.path:
+        {
+            auto p = cast(PathExpr) e;
+            if (p.res == ResK.local)
+                loadVar(p.var);
             else
-                emit(Op.makeEnum, x.enumDecl.id, x.variantIdx, 0);
+                emit(Op.pushConst, unitVariantConst(p.variant));
+            return;
         }
-        else if (auto x = cast(Call) e)
-            callExpr(x);
-        else if (auto x = cast(MethodCall) e)
+        case EK.structLit:
+            structLit(cast(StructLitExpr) e);
+            return;
+        case EK.tuple:
         {
-            expr(x.recv);
-            foreach (a; x.args)
-                expr(a);
-            emit(Op.callMethod, x.trait.id, x.methodIdx, cast(int) x.args.length);
+            auto s = cast(SeqExpr) e;
+            exprs(s.elems);
+            emit(Op.makeTuple, cast(int) s.elems.length);
+            return;
         }
-        else if (auto x = cast(Binary) e)
-            binary(x);
-        else if (auto x = cast(Unary) e)
+        case EK.list:
         {
-            expr(x.e);
-            switch (x.op)
+            auto s = cast(SeqExpr) e;
+            exprs(s.elems);
+            emit(Op.makeList, cast(int) s.elems.length);
+            return;
+        }
+        case EK.map:
+        {
+            auto s = cast(SeqExpr) e;
+            exprs(s.elems);
+            emit(Op.makeMap, cast(int) s.elems.length / 2);
+            return;
+        }
+        case EK.lambda:
+            compileLambda(cast(LambdaExpr) e);
+            return;
+        case EK.if_:
+            ifExpr(cast(IfExpr) e);
+            return;
+        case EK.match:
+            matchExpr(cast(MatchExpr) e);
+            return;
+        case EK.block:
+            block(cast(BlockExpr) e);
+            return;
+        case EK.unary:
+        {
+            auto u = cast(UnaryExpr) e;
+            expr(u.operand);
+            switch (u.op)
             {
-            case Tk.minus:
-                emit(prune(x.ty).k == TK.float_ ? Op.negF : Op.negI);
+            case Operator.neg:
+                emit(u.isFloat ? Op.negF : Op.negI);
                 break;
-            case Tk.bang:
+            case Operator.not:
                 emit(Op.notB);
                 break;
-            case Tk.tilde:
+            default:
                 emit(Op.bnot);
                 break;
-            default:
-                assert(0);
             }
+            return;
         }
-        else if (auto x = cast(IndexExpr) e)
+        case EK.binary:
+            binary(cast(BinaryExpr) e);
+            return;
+        case EK.call:
+            call(cast(CallExpr) e);
+            return;
+        case EK.method:
         {
-            expr(x.base);
-            expr(x.index);
+            auto m = cast(MethodExpr) e;
+            expr(m.recv);
+            exprs(m.args);
+            emit(Op.callMethod, m.trait.id, m.methodIdx, cast(int) m.args.length);
+            return;
+        }
+        case EK.index:
+        {
+            auto ix = cast(IndexExpr) e;
+            expr(ix.obj);
+            expr(ix.idx);
             emit(Op.indexGet);
+            return;
         }
-        else if (auto x = cast(FieldExpr) e)
+        case EK.field:
         {
-            expr(x.base);
-            emit(Op.getField, x.fieldIdx);
+            auto f = cast(FieldExpr) e;
+            expr(f.obj);
+            emit(Op.getField, f.fieldIdx);
+            return;
         }
-        else if (auto x = cast(StructLit) e)
-            structLit(x);
-        else if (auto x = cast(ListLit) e)
-        {
-            foreach (a; x.elems)
-                expr(a);
-            emit(Op.makeList, cast(int) x.elems.length);
         }
-        else if (auto x = cast(MapLit) e)
+    }
+
+    void structLit(StructLitExpr s)
+    {
+        const n = cast(int) s.decl.fields.length;
+        bool inOrder = true;
+        foreach (i, f; s.fieldOf)
+            inOrder &= f == cast(int) i;
+        if (inOrder)
         {
-            foreach (i; 0 .. x.keys.length)
+            foreach (init; s.inits)
+                expr(init.value);
+        }
+        else
+        {
+            const mark = cur.nextSlot;
+            int[] slots;
+            foreach (init; s.inits)
             {
-                expr(x.keys[i]);
-                expr(x.vals[i]);
-            }
-            emit(Op.makeMap, cast(int) x.keys.length);
-        }
-        else if (auto x = cast(TupleLit) e)
-        {
-            foreach (a; x.elems)
-                expr(a);
-            emit(Op.makeTuple, cast(int) x.elems.length);
-        }
-        else if (auto x = cast(Lambda) e)
-            lambda(x);
-        else if (auto x = cast(IfExpr) e)
-            ifExpr(x);
-        else if (auto x = cast(MatchExpr) e)
-            matchExpr(x);
-        else if (auto x = cast(Block) e)
-            blockExpr(x);
-        else
-            assert(0);
-    }
-
-    private void blockExpr(Block b)
-    {
-        int saved = cur.nextSlot;
-        foreach (s; b.stmts)
-            stmt(s);
-        if (b.trailing !is null)
-            expr(b.trailing);
-        else
-            emit(Op.pushUnit);
-        cur.nextSlot = saved;
-    }
-
-    private void callExpr(Call c)
-    {
-        final switch (c.kind)
-        {
-        case Call.Kind.func:
-            foreach (a; c.args)
-                expr(a);
-            emit(Op.call, c.fn.index, cast(int) c.args.length);
-            break;
-        case Call.Kind.builtin:
-            foreach (a; c.args)
-                expr(a);
-            emit(Op.callBuiltin, c.builtin.index, cast(int) c.args.length);
-            break;
-        case Call.Kind.variant:
-            foreach (a; c.args)
-                expr(a);
-            emit(Op.makeEnum, c.enumDecl.id, c.variantIdx, cast(int) c.args.length);
-            break;
-        case Call.Kind.traitMethod:
-            foreach (a; c.args)
-                expr(a);
-            emit(Op.callMethod, c.trait.id, c.methodIdx, cast(int) c.args.length - 1);
-            break;
-        case Call.Kind.indirect:
-            expr(c.callee);
-            foreach (a; c.args)
-                expr(a);
-            emit(Op.callValue, cast(int) c.args.length);
-            break;
-        }
-    }
-
-    private void structLit(StructLit s)
-    {
-        int n = cast(int) s.decl.fields.length;
-        bool identity = true;
-        foreach (i; 0 .. n)
-            if (s.declToInit[i] != i)
-                identity = false;
-        if (identity)
-        {
-            foreach (fi; s.inits)
-                expr(fi.value);
-        }
-        else
-        {
-            int saved = cur.nextSlot;
-            int[] tmp;
-            foreach (fi; s.inits)
-            {
-                expr(fi.value);
-                int t = allocSlot();
+                expr(init.value);
+                const t = allocSlot();
                 emit(Op.storeLocal, t);
-                tmp ~= t;
+                slots ~= t;
             }
-            foreach (i; 0 .. n)
-                emit(Op.loadLocal, tmp[s.declToInit[i]]);
-            cur.nextSlot = saved;
+            foreach (fi; 0 .. n)
+                foreach (i, f; s.fieldOf)
+                    if (f == fi)
+                        emit(Op.loadLocal, slots[i]);
+            cur.nextSlot = mark;
         }
         emit(Op.makeStruct, s.decl.id, n);
     }
 
-    private void binary(Binary b)
+    void ifExpr(IfExpr e)
     {
-        if (b.op == Tk.andAnd)
-        {
-            expr(b.l);
-            int d = cur.depth;
-            int jf = emitJump(Op.jumpIfFalse);
-            expr(b.r);
-            int je = emitJump(Op.jump);
-            cur.depth = d - 1 + 0;
-            patch(jf);
-            cur.depth = d - 1;
-            emit(Op.pushFalse);
-            patch(je);
-            return;
-        }
-        if (b.op == Tk.orOr)
-        {
-            expr(b.l);
-            int d = cur.depth;
-            int jt = emitJump(Op.jumpIfTrue);
-            expr(b.r);
-            int je = emitJump(Op.jump);
-            patch(jt);
-            cur.depth = d - 1;
-            emit(Op.pushTrue);
-            patch(je);
-            return;
-        }
-        expr(b.l);
-        expr(b.r);
-        bool isF = prune(b.ty).k == TK.float_;
-        switch (b.op)
-        {
-        case Tk.plus:
-            emit(isF ? Op.addF : Op.addI);
-            break;
-        case Tk.minus:
-            emit(isF ? Op.subF : Op.subI);
-            break;
-        case Tk.star:
-            emit(isF ? Op.mulF : Op.mulI);
-            break;
-        case Tk.slash:
-            emit(isF ? Op.divF : Op.divI);
-            break;
-        case Tk.percent:
-            emit(Op.modI);
-            break;
-        case Tk.plusPlus:
-            emit(prune(b.ty).k == TK.str ? Op.concatStr : Op.concatList);
-            break;
-        case Tk.amp:
-            emit(Op.band);
-            break;
-        case Tk.pipe:
-            emit(Op.bor);
-            break;
-        case Tk.caret:
-            emit(Op.bxor);
-            break;
-        case Tk.shl:
-            emit(Op.shl);
-            break;
-        case Tk.shr:
-            emit(Op.shr);
-            break;
-        case Tk.eqEq:
-            emit(Op.eq);
-            break;
-        case Tk.notEq:
-            emit(Op.ne);
-            break;
-        case Tk.lt:
-            emit(Op.lt);
-            break;
-        case Tk.ltEq:
-            emit(Op.le);
-            break;
-        case Tk.gt:
-            emit(Op.gt);
-            break;
-        case Tk.gtEq:
-            emit(Op.ge);
-            break;
-        default:
-            assert(0);
-        }
-    }
-
-    private void lambda(Lambda l)
-    {
-        auto saved = cur;
-        int idx = cast(int) prog.funcs.length;
-        auto fc = new FuncCode;
-        fc.name = "<lambda>";
-        prog.funcs ~= fc;
-        l.info.index = idx;
-        auto st = new FnState;
-        st.info = l.info;
-        cur = st;
-        foreach (ref p; l.params)
-            p.var.slot = allocSlot();
-        compileBody(l.body);
-        finishFn(fc, st, cast(int) l.params.length);
-        cur = saved;
-        foreach (cap; l.info.captures)
-            pushVar(cap);
-        emit(Op.makeClosure, idx, cast(int) l.info.captures.length);
-    }
-
-    private void ifExpr(IfExpr i)
-    {
-        expr(i.cond);
-        int jf = emitJump(Op.jumpIfFalse);
-        int d = cur.depth;
-        expr(i.then);
-        int je = emitJump(Op.jump);
-        cur.depth = d;
-        patch(jf);
-        if (i.els !is null)
-            expr(i.els);
+        expr(e.cond);
+        const d0 = cur.depth;
+        const elseJump = emit(Op.jumpIfFalse);
+        block(e.then);
+        const endJump = emit(Op.jump);
+        patch(elseJump);
+        cur.depth = d0;
+        if (e.else_ !is null)
+            expr(e.else_);
         else
             emit(Op.pushUnit);
-        patch(je);
+        patch(endJump);
     }
 
-    private void matchExpr(MatchExpr m)
+    void matchExpr(MatchExpr e)
     {
-        int saved = cur.nextSlot;
-        expr(m.scrut);
-        int slot = allocSlot();
-        emit(Op.storeLocal, slot);
-        int d = cur.depth;
+        const d0 = cur.depth;
+        const mark = cur.nextSlot;
+        expr(e.scrut);
+        const s = allocSlot();
+        emit(Op.storeLocal, s);
         int[] ends;
-        foreach (arm; m.arms)
+        foreach (ref a; e.arms)
         {
-            int armSaved = cur.nextSlot;
+            cur.depth = d0;
+            const armMark = cur.nextSlot;
             int[] fails;
-            pattern(arm.pat, slot, fails);
-            if (arm.guard !is null)
+            pattern(a.pat, s, fails);
+            if (a.guard !is null)
             {
-                expr(arm.guard);
-                fails ~= emitJump(Op.jumpIfFalse);
+                expr(a.guard);
+                fails ~= emit(Op.jumpIfFalse);
             }
-            expr(arm.body);
-            ends ~= emitJump(Op.jump);
-            cur.depth = d;
+            expr(a.body);
+            ends ~= emit(Op.jump);
             patchAll(fails);
-            cur.nextSlot = armSaved;
+            cur.nextSlot = armMark;
         }
+        cur.depth = d0;
         emit(Op.noMatch);
         patchAll(ends);
-        cur.depth = d + 1;
-        if (cur.depth > cur.maxDepth)
-            cur.maxDepth = cur.depth;
-        cur.nextSlot = saved;
+        cur.nextSlot = mark;
+    }
+
+    void binary(BinaryExpr e)
+    {
+        final switch (e.op)
+        {
+        case Operator.and:
+        {
+            expr(e.left);
+            const d0 = cur.depth;
+            const j = emit(Op.jumpIfFalse);
+            expr(e.right);
+            const end = emit(Op.jump);
+            patch(j);
+            cur.depth = d0;
+            emit(Op.pushFalse);
+            patch(end);
+            return;
+        }
+        case Operator.or:
+        {
+            expr(e.left);
+            const d0 = cur.depth;
+            const j = emit(Op.jumpIfTrue);
+            expr(e.right);
+            const end = emit(Op.jump);
+            patch(j);
+            cur.depth = d0;
+            emit(Op.pushTrue);
+            patch(end);
+            return;
+        }
+        case Operator.neg, Operator.not, Operator.bnot:
+            assert(false);
+        case Operator.add, Operator.sub, Operator.mul, Operator.div,
+            Operator.rem, Operator.concat, Operator.band, Operator.bor,
+            Operator.bxor, Operator.shl, Operator.shr, Operator.lt,
+            Operator.le, Operator.gt, Operator.ge, Operator.eq, Operator.ne:
+            break;
+        }
+        expr(e.left);
+        expr(e.right);
+        Op op;
+        final switch (e.op)
+        {
+        case Operator.add: op = e.isFloat ? Op.addF : Op.addI; break;
+        case Operator.sub: op = e.isFloat ? Op.subF : Op.subI; break;
+        case Operator.mul: op = e.isFloat ? Op.mulF : Op.mulI; break;
+        case Operator.div: op = e.isFloat ? Op.divF : Op.divI; break;
+        case Operator.rem: op = Op.modI; break;
+        case Operator.concat: op = e.isStr ? Op.concatStr : Op.concatList; break;
+        case Operator.band: op = Op.band; break;
+        case Operator.bor: op = Op.bor; break;
+        case Operator.bxor: op = Op.bxor; break;
+        case Operator.shl: op = Op.shl; break;
+        case Operator.shr: op = Op.shr; break;
+        case Operator.lt: op = Op.lt; break;
+        case Operator.le: op = Op.le; break;
+        case Operator.gt: op = Op.gt; break;
+        case Operator.ge: op = Op.ge; break;
+        case Operator.eq: op = Op.eq; break;
+        case Operator.ne: op = Op.ne; break;
+        case Operator.neg, Operator.not, Operator.bnot, Operator.and, Operator.or:
+            assert(false);
+        }
+        emit(op);
+    }
+
+    void call(CallExpr e)
+    {
+        final switch (e.ck)
+        {
+        case CallK.none:
+            assert(false);
+        case CallK.direct:
+            exprs(e.args);
+            emit(Op.call, e.fn.funcIdx, cast(int) e.args.length);
+            return;
+        case CallK.builtin:
+            exprs(e.args);
+            emit(Op.callBuiltin, e.fn.builtinId, cast(int) e.args.length);
+            return;
+        case CallK.variant:
+            exprs(e.args);
+            emit(Op.makeEnum, e.variant.decl.id, e.variant.index, cast(int) e.args.length);
+            return;
+        case CallK.trait:
+            exprs(e.args);
+            emit(Op.callMethod, e.trait.id, e.methodIdx, cast(int) e.args.length - 1);
+            return;
+        case CallK.indirect:
+            expr(e.callee);
+            exprs(e.args);
+            emit(Op.callValue, cast(int) e.args.length);
+            return;
+        }
     }
 }

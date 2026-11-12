@@ -1,39 +1,35 @@
-package linediff
+package diff
 
-import (
-	"bytes"
-	"errors"
-)
+import "fmt"
 
-// ErrMismatch is returned by Apply when the script does not match the file
-// it is applied to.
-var ErrMismatch = errors.New("linediff: script does not match the original file")
-
-// Apply applies a script to the lines of a and returns the resulting lines.
-// Keep and Delete edits must consume the lines of a, in order and with
-// identical text, and must consume all of them; otherwise ErrMismatch is
-// returned. The result's slices are views of a and of the edits' text.
-func Apply(a [][]byte, script []Edit) ([][]byte, error) {
-	out := make([][]byte, 0, len(a)+len(script))
+// Apply replays the script on a and returns the resulting lines.
+//
+// The Keep and Delete edits must, in order, be exactly the lines of a;
+// otherwise Apply returns an error. The script need not be minimal.
+func Apply(a []string, s Script) ([]string, error) {
+	out := make([]string, 0, len(a))
 	i := 0
-	for _, e := range script {
-		switch e.Tag {
+	for n, e := range s {
+		switch e.Op {
 		case Keep, Delete:
-			if i >= len(a) || !bytes.Equal(a[i], e.Text) {
-				return nil, ErrMismatch
+			if i >= len(a) {
+				return nil, fmt.Errorf("diff: edit %d consumes a line past the end of A", n+1)
 			}
-			if e.Tag == Keep {
-				out = append(out, a[i])
+			if a[i] != e.Line {
+				return nil, fmt.Errorf("diff: edit %d does not match line %d of A", n+1, i+1)
+			}
+			if e.Op == Keep {
+				out = append(out, e.Line)
 			}
 			i++
 		case Insert:
-			out = append(out, e.Text)
+			out = append(out, e.Line)
 		default:
-			return nil, ErrBadTag
+			return nil, fmt.Errorf("diff: edit %d has invalid op %d", n+1, uint8(e.Op))
 		}
 	}
 	if i != len(a) {
-		return nil, ErrMismatch
+		return nil, fmt.Errorf("diff: script leaves %d lines of A unconsumed", len(a)-i)
 	}
 	return out, nil
 }

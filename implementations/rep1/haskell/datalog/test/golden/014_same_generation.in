@@ -1,0 +1,7 @@
+par(a, b). par(a, c). par(b, d). par(b, e). par(c, f). par(d, g). par(f, h).
+sg(X, X) :- par(_, X).
+sg(X, X) :- par(X, _).
+sg(X, Y) :- par(XP, X), sg(XP, YP), par(YP, Y).
+?- sg(d, X).
+?- sg(g, X).
+?- sg(X, Y).

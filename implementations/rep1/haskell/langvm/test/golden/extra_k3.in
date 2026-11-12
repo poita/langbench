@@ -1,0 +1,16 @@
+@module main
+fn main() {
+    let xs = [1, 2, 3];
+    let n = listMap(xs, |x| { if x > 1 { return x * 2; } x });
+    print(showInt(n[0]) ++ showInt(n[1]));
+    let lines = [(1, "a"), (2, "b")];
+    for (i, s) in lines { emit(showInt(i) ++ s); }
+    print("");
+    let (a, b) = (1, [2, 3]);
+    print(showInt(a + b[1]));
+    let s = "héllo";
+    print(showInt(strLen(s)) ++ showChar(s[1]));
+    var v = 0;
+    v = v + (if true { 1 } else { 2 });
+    print(showInt(v));
+}

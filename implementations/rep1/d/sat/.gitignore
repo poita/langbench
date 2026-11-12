@@ -1,7 +1,6 @@
 .dub/
-sat
-*.o
+bin/
 *.a
+*.o
+*.lst
 dub.selections.json
-__test__*
-sat-test-*

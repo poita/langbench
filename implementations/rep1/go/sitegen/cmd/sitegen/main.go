@@ -1,37 +1,39 @@
-// Command sitegen generates a static website.
+// Command sitegen generates a static website from a site source directory.
 //
 // Usage:
 //
 //	sitegen <input directory> <output directory>
 //
 // The input directory holds site.toml, content/, templates/ and static/; the
-// generated site is written into the output directory (created if missing).
-// The command exits 0 on success and 1 on failure, printing the error to
-// standard error.
+// output directory is created if it does not exist. The exit status is 0 on
+// success, 1 if the site could not be generated and 2 on a usage error.
 package main
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"example.com/sitegen"
 )
 
 func main() {
-	if len(os.Args) != 3 {
-		fmt.Fprintf(os.Stderr, "usage: %s <input directory> <output directory>\n", os.Args[0])
-		os.Exit(2)
-	}
-	if err := run(os.Args[1], os.Args[2]); err != nil {
-		fmt.Fprintf(os.Stderr, "sitegen: %v\n", err)
-		os.Exit(1)
-	}
+	os.Exit(run(os.Args[1:], os.Stderr))
 }
 
-func run(in, out string) error {
-	site, err := sitegen.BuildDir(in)
-	if err != nil {
-		return err
+func run(args []string, stderr io.Writer) int {
+	if len(args) != 2 {
+		fmt.Fprintln(stderr, "usage: sitegen <input directory> <output directory>")
+		return 2
 	}
-	return site.WriteDir(out)
+	in, out := args[0], args[1]
+	if err := os.MkdirAll(out, 0o755); err != nil {
+		fmt.Fprintln(stderr, "sitegen:", err)
+		return 1
+	}
+	if err := sitegen.Build(os.DirFS(in), sitegen.DirSink(out)); err != nil {
+		fmt.Fprintln(stderr, "sitegen:", err)
+		return 1
+	}
+	return 0
 }

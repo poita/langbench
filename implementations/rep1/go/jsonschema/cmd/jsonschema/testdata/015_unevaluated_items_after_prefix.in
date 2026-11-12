@@ -1,0 +1,62 @@
+{
+  "schema": {
+    "prefixItems": [
+      {
+        "type": "string"
+      }
+    ],
+    "anyOf": [
+      {
+        "prefixItems": [
+          true,
+          {
+            "type": "integer"
+          }
+        ]
+      },
+      {
+        "prefixItems": [
+          true,
+          {
+            "type": "boolean"
+          }
+        ]
+      }
+    ],
+    "unevaluatedItems": {
+      "const": "tail"
+    }
+  },
+  "tests": [
+    {
+      "description": "two evaluated items",
+      "data": [
+        "a",
+        1
+      ]
+    },
+    {
+      "description": "second item evaluated by the other branch",
+      "data": [
+        "a",
+        true
+      ]
+    },
+    {
+      "description": "third item must be the constant",
+      "data": [
+        "a",
+        1,
+        "tail"
+      ]
+    },
+    {
+      "description": "third item is something else",
+      "data": [
+        "a",
+        1,
+        "other"
+      ]
+    }
+  ]
+}

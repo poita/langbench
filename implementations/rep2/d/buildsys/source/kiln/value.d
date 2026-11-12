@@ -1,105 +1,115 @@
 /**
- * KBL values: `bool`, `int`, `str` and `list`, with their total order,
- * structural equality and textual form.
+ * KBL values: `bool`, `int`, `str` and `list`, with their total order and
+ * deep structural equality.
  */
 module kiln.value;
 
-import kiln.errors;
+import kiln.bytes : cmpBytes, decimal;
 
-import std.conv : to;
-
-/// The four value types, declared in their total order.
-enum VType : ubyte
+/// The four KBL types, declared in the order of the cross-type ordering.
+enum ValueType : ubyte
 {
-    bool_,
-    int_,
+    boolean,
+    integer,
     str,
     list,
 }
 
-/// A KBL value. Copying is O(1): strings and lists are shared by handle.
+/// A KBL value. Copying is O(1): strings and lists are shared slices.
 struct Value
 {
-    VType type;
-    /// Integer value, or 0/1 for `bool`.
-    long i;
-    /// Byte string for `str`.
-    string s;
-    /// Elements for `list`.
-    Value[] l;
+    ValueType type;
+    long i; // int payload, or 0/1 for bool
+    string s; // str payload
+    Value[] l; // list payload
 
-    ///
-    static Value ofBool(bool b) @safe pure nothrow
+    /// An `int` value.
+    static Value ofInt(long v) @safe pure nothrow @nogc
     {
-        Value v;
-        v.type = VType.bool_;
-        v.i = b;
-        return v;
+        Value r;
+        r.type = ValueType.integer;
+        r.i = v;
+        return r;
     }
 
-    ///
-    static Value ofInt(long n) @safe pure nothrow
+    /// A `bool` value.
+    static Value ofBool(bool v) @safe pure nothrow @nogc
     {
-        Value v;
-        v.type = VType.int_;
-        v.i = n;
-        return v;
+        Value r;
+        r.type = ValueType.boolean;
+        r.i = v ? 1 : 0;
+        return r;
     }
 
-    ///
-    static Value ofStr(string s) @safe pure nothrow
+    /// A `str` value.
+    static Value ofStr(string v) @safe pure nothrow @nogc
     {
-        Value v;
-        v.type = VType.str;
-        v.s = s;
-        return v;
+        Value r;
+        r.type = ValueType.str;
+        r.s = v;
+        return r;
     }
 
-    ///
-    static Value ofList(Value[] l) @safe pure nothrow
+    /// A `list` value.
+    static Value ofList(Value[] v) @safe pure nothrow @nogc
     {
-        Value v;
-        v.type = VType.list;
-        v.l = l;
-        return v;
+        Value r;
+        r.type = ValueType.list;
+        r.l = v;
+        return r;
     }
 
-    /// The boolean payload of a `bool` value.
-    bool b() const @safe pure nothrow @nogc
+    /// A list of strings.
+    static Value ofStrings(const(string)[] v) @safe pure nothrow
+    {
+        auto items = new Value[v.length];
+        foreach (k, x; v)
+            items[k] = ofStr(x);
+        return ofList(items);
+    }
+
+    /// The `bool` payload.
+    bool asBool() const @safe pure nothrow @nogc
     {
         return i != 0;
     }
 }
 
-/// The name of a type as used in error messages.
-string typeName(VType t) @safe pure nothrow @nogc
+/// The type token of a value: `bool`, `int`, `str` or `list`.
+string typeName(ValueType t) @safe pure nothrow @nogc
 {
     final switch (t)
     {
-    case VType.bool_:
+    case ValueType.boolean:
         return "bool";
-    case VType.int_:
+    case ValueType.integer:
         return "int";
-    case VType.str:
+    case ValueType.str:
         return "str";
-    case VType.list:
+    case ValueType.list:
         return "list";
     }
 }
 
-/// Total order of values: negative, zero or positive.
-int compareValues(const ref Value a, const ref Value b) @safe pure
+/// ditto
+string typeName(in Value v) @safe pure nothrow @nogc
+{
+    return typeName(v.type);
+}
+
+/// Three-way comparison under the KBL total order.
+int compareValues(in Value a, in Value b) @safe pure nothrow
 {
     if (a.type != b.type)
         return a.type < b.type ? -1 : 1;
     final switch (a.type)
     {
-    case VType.bool_:
-    case VType.int_:
+    case ValueType.boolean:
+    case ValueType.integer:
         return a.i < b.i ? -1 : (a.i > b.i ? 1 : 0);
-    case VType.str:
-        return a.s < b.s ? -1 : (a.s > b.s ? 1 : 0);
-    case VType.list:
+    case ValueType.str:
+        return cmpBytes(a.s, b.s);
+    case ValueType.list:
         immutable n = a.l.length < b.l.length ? a.l.length : b.l.length;
         foreach (k; 0 .. n)
         {
@@ -112,18 +122,18 @@ int compareValues(const ref Value a, const ref Value b) @safe pure
 }
 
 /// Deep structural equality.
-bool valuesEqual(const ref Value a, const ref Value b) @safe pure
+bool valuesEqual(in Value a, in Value b) @safe pure nothrow
 {
     if (a.type != b.type)
         return false;
     final switch (a.type)
     {
-    case VType.bool_:
-    case VType.int_:
+    case ValueType.boolean:
+    case ValueType.integer:
         return a.i == b.i;
-    case VType.str:
+    case ValueType.str:
         return a.s == b.s;
-    case VType.list:
+    case ValueType.list:
         if (a.l.length != b.l.length)
             return false;
         foreach (k; 0 .. a.l.length)
@@ -133,19 +143,61 @@ bool valuesEqual(const ref Value a, const ref Value b) @safe pure
     }
 }
 
-/// Text produced by interpolation or `str()`: strings as-is, decimal
-/// integers, `true`/`false`. A list is `E_INTERP list`.
-string interpolate(const ref Value v) @safe pure
+/**
+ * The text an interpolation (or `str()`) produces for a scalar value.
+ * Must not be called with a list.
+ */
+string scalarText(in Value v) @safe pure nothrow
 {
     final switch (v.type)
     {
-    case VType.bool_:
+    case ValueType.boolean:
         return v.i ? "true" : "false";
-    case VType.int_:
-        return v.i.to!string;
-    case VType.str:
+    case ValueType.integer:
+        return decimal(v.i);
+    case ValueType.str:
         return v.s;
-    case VType.list:
-        throw new KilnError("E_INTERP", "list");
+    case ValueType.list:
+        assert(0, "scalarText of a list");
     }
+}
+
+/// A canonical, injective byte encoding of a value, usable as a hash key.
+void appendKey(ref char[] buf, in Value v) @safe pure nothrow
+{
+    final switch (v.type)
+    {
+    case ValueType.boolean:
+        buf ~= v.i ? "b1" : "b0";
+        break;
+    case ValueType.integer:
+        buf ~= 'i';
+        buf ~= decimal(v.i);
+        buf ~= ';';
+        break;
+    case ValueType.str:
+        buf ~= 's';
+        buf ~= decimal(cast(long) v.s.length);
+        buf ~= ':';
+        buf ~= v.s;
+        break;
+    case ValueType.list:
+        buf ~= 'l';
+        buf ~= decimal(cast(long) v.l.length);
+        buf ~= ':';
+        foreach (ref e; v.l)
+            appendKey(buf, e);
+        break;
+    }
+}
+
+@safe pure unittest
+{
+    auto s = Value.ofStr("a"), t = Value.ofStr("b"), n = Value.ofInt(3), b = Value.ofBool(true);
+    assert(compareValues(b, n) < 0 && compareValues(n, s) < 0 && compareValues(s, Value.ofList([])) < 0);
+    assert(compareValues(s, t) < 0 && compareValues(Value.ofBool(false), b) < 0);
+    auto l1 = Value.ofList([s, n]), l2 = Value.ofList([s, n, t]);
+    assert(compareValues(l1, l2) < 0 && valuesEqual(l1, Value.ofList([s, n])));
+    assert(!valuesEqual(Value.ofInt(1), Value.ofBool(true)));
+    assert(scalarText(Value.ofInt(-7)) == "-7" && scalarText(b) == "true");
 }

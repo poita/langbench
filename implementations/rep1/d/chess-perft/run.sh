@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the chess-perft CLI: queries on stdin, answers on stdout.
+# Run the chess-perft CLI: queries on stdin, results on stdout.
 exec "$(dirname "$0")/chess-perft" "$@"

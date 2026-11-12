@@ -1,22 +1,16 @@
-// Command cardgame reads a Spiremark match file on stdin and writes the
-// deterministic event log to stdout.
+// Command cardgame reads a Spiremark match file on stdin, simulates the match
+// and writes the event log and inspection blocks to stdout.
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
 
-	"cardgame"
+	"github.com/spiremark/cardgame/match"
 )
 
 func main() {
-	w := bufio.NewWriterSize(os.Stdout, 1<<16)
-	err := cardgame.Run(os.Stdin, w)
-	if ferr := w.Flush(); err == nil {
-		err = ferr
-	}
-	if err != nil {
+	if err := match.Run(os.Stdin, os.Stdout, match.Options{}); err != nil {
 		fmt.Fprintln(os.Stderr, "cardgame:", err)
 		os.Exit(1)
 	}

@@ -1,161 +1,139 @@
 package scheme
 
-import "example.com/scheme/bigint"
+import (
+	"sync"
 
-// Kind classifies a Value.
-type Kind uint8
-
-// The kinds of value.
-const (
-	KindVoid Kind = iota
-	KindNil
-	KindBool
-	KindInteger
-	KindSymbol
-	KindString
-	KindPair
-	KindProcedure
+	"example.com/scheme/bigint"
 )
 
-// tag is the internal, finer-grained discriminator of a Value.
-type tag uint8
+// Value is any Scheme value. The dynamic type is one of Int, *Big, Bool,
+// *String, *Symbol, *Pair, Null, Void, *Primitive or *Closure.
+//
+// Integers are always normalised: a value that fits in an int64 is an Int and
+// never a *Big, so two equal integers have the same representation.
+type Value interface{}
 
-const (
-	tUnbound tag = iota // sentinel for unbound globals; never a user value
-	tVoid
-	tNil
-	tBool
-	tFix  // int64 fixnum, in n
-	tBig  // bignum outside the int64 range, ref is *bigint.Int
-	tSym  // symbol id in n, name in ref (string)
-	tStr  // ref is string
-	tPair // ref is *Pair
-	tPrim // primitive index in n
-	tClosure
+// Int is a fixnum (an integer that fits in 64 bits).
+type Int int64
+
+// Big is an integer outside the int64 range.
+type Big struct{ N *bigint.Int }
+
+// Bool is a boolean. Only False is false in conditionals.
+type Bool bool
+
+// String is an (immutable) Scheme string.
+type String struct{ S string }
+
+// Symbol is an interned identifier; symbols with the same name are the same
+// *Symbol, so they can be compared with ==.
+type Symbol struct{ Name string }
+
+// Pair is a cons cell.
+type Pair struct{ Car, Cdr Value }
+
+// Null is the type of the empty list.
+type Null struct{}
+
+// Void is the type of the value returned by define, set!, display, etc.
+type Void struct{}
+
+// Frequently used constants.
+var (
+	True        Value = Bool(true)
+	False       Value = Bool(false)
+	Nil         Value = Null{}
+	Unspecified Value = Void{}
 )
-
-// Value is a Scheme value. It is a small struct passed by value; fixnums,
-// booleans, (), void, symbols and primitives never allocate.
-type Value struct {
-	t   tag
-	n   int64
-	ref any
-}
-
-// Pair is a heap-allocated cons cell.
-type Pair struct {
-	car, cdr Value
-}
 
 var (
-	nilV  = Value{t: tNil}
-	voidV = Value{t: tVoid}
-	trueV = Value{t: tBool, n: 1}
-	falsV = Value{t: tBool, n: 0}
+	symMu    sync.Mutex
+	symTable = map[string]*Symbol{}
 )
 
-func fix(n int64) Value { return Value{t: tFix, n: n} }
-
-func boolV(b bool) Value {
-	if b {
-		return trueV
+// Intern returns the unique symbol with the given name.
+func Intern(name string) *Symbol {
+	symMu.Lock()
+	defer symMu.Unlock()
+	s, ok := symTable[name]
+	if !ok {
+		s = &Symbol{Name: name}
+		symTable[name] = s
 	}
-	return falsV
+	return s
 }
 
-func cons(a, d Value) Value { return Value{t: tPair, ref: &Pair{a, d}} }
-
-func fromBig(b *bigint.Int) Value {
-	if n, ok := b.Int64(); ok {
-		return fix(n)
-	}
-	return Value{t: tBig, ref: b}
-}
-
-func toBig(v Value) *bigint.Int {
-	if v.t == tFix {
-		return bigint.FromInt64(v.n)
-	}
-	return v.ref.(*bigint.Int)
-}
-
-func (v Value) isFalse() bool   { return v.t == tBool && v.n == 0 }
-func (v Value) isInt() bool     { return v.t == tFix || v.t == tBig }
-func (v Value) pair() *Pair     { return v.ref.(*Pair) }
-func (v Value) isProc() bool    { return v.t == tPrim || v.t == tClosure }
-func (v Value) str() string     { return v.ref.(string) }
-func (v Value) symName() string { return v.ref.(string) }
-
-// ---- Public constructors and accessors ----
-
-// Int returns the integer value n.
-func Int(n int64) Value { return fix(n) }
-
-// Str returns a string value.
-func Str(s string) Value { return Value{t: tStr, ref: s} }
-
-// Bool returns #t or #f.
-func Bool(b bool) Value { return boolV(b) }
-
-// Nil returns the empty list.
-func Nil() Value { return nilV }
+// NewString returns a new string value.
+func NewString(s string) *String { return &String{S: s} }
 
 // Cons returns a new pair.
-func Cons(car, cdr Value) Value { return cons(car, cdr) }
+func Cons(car, cdr Value) *Pair { return &Pair{Car: car, Cdr: cdr} }
 
-// Kind returns the kind of v.
-func (v Value) Kind() Kind {
-	switch v.t {
-	case tNil:
-		return KindNil
-	case tBool:
-		return KindBool
-	case tFix, tBig:
-		return KindInteger
-	case tSym:
-		return KindSymbol
-	case tStr:
-		return KindString
-	case tPair:
-		return KindPair
-	case tPrim, tClosure:
-		return KindProcedure
+// List returns a fresh proper list of its arguments.
+func List(vs ...Value) Value {
+	var l Value = Nil
+	for i := len(vs) - 1; i >= 0; i-- {
+		l = &Pair{vs[i], l}
 	}
-	return KindVoid
+	return l
 }
 
-// Int64 returns v as an int64 if it is an integer that fits.
-func (v Value) Int64() (int64, bool) {
-	if v.t == tFix {
-		return v.n, true
+// ListToSlice converts a proper list to a slice; ok is false if v is not a
+// proper list.
+func ListToSlice(v Value) (items []Value, ok bool) {
+	for {
+		switch p := v.(type) {
+		case Null:
+			return items, true
+		case *Pair:
+			items = append(items, p.Car)
+			v = p.Cdr
+		default:
+			return nil, false
+		}
 	}
-	return 0, false
 }
 
-// Truthy reports whether v counts as true (everything except #f).
-func (v Value) Truthy() bool { return !v.isFalse() }
-
-// Car returns the first field of a pair.
-func (v Value) Car() (Value, bool) {
-	if v.t != tPair {
-		return Value{}, false
-	}
-	return v.pair().car, true
+// IsTrue reports whether v counts as true: everything except #f.
+func IsTrue(v Value) bool {
+	b, ok := v.(Bool)
+	return !ok || bool(b)
 }
 
-// Cdr returns the second field of a pair.
-func (v Value) Cdr() (Value, bool) {
-	if v.t != tPair {
-		return Value{}, false
+// NewInteger returns the integer value for n, normalised.
+func NewInteger(n int64) Value { return Int(n) }
+
+// NewBig returns the integer value for n, normalised to an Int if it fits.
+func NewBig(n *bigint.Int) Value {
+	if v, ok := n.Int64(); ok {
+		return Int(v)
 	}
-	return v.pair().cdr, true
+	return &Big{N: n}
 }
 
-// StringValue returns the contents of a string value, or the name of a
-// symbol.
-func (v Value) StringValue() (string, bool) {
-	if v.t == tStr || v.t == tSym {
-		return v.ref.(string), true
+// IsProcedure reports whether v is a primitive or a closure.
+func IsProcedure(v Value) bool {
+	switch v.(type) {
+	case *Primitive, *Closure:
+		return true
 	}
-	return "", false
+	return false
+}
+
+// Primitive is a built-in procedure.
+type Primitive struct {
+	Name string
+	// Min and Max bound the accepted argument count; Max < 0 means no limit.
+	Min, Max int
+	// Fn implements the procedure. It signals runtime errors with Raise.
+	// The args slice must not be retained.
+	Fn func(in *Interp, args []Value) Value
+
+	isApply bool
+}
+
+// Closure is a user-defined procedure.
+type Closure struct {
+	lam *lambdaNode
+	env *Env
 }

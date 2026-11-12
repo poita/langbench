@@ -1,0 +1,27 @@
+{
+  "user": {
+    "name": "Ada",
+    "langs": [
+      "py",
+      "c",
+      "d"
+    ],
+    "meta": {
+      "age": 36,
+      "tags": []
+    }
+  },
+  "list": [
+    10,
+    20,
+    30
+  ],
+  "key": "name",
+  "idx": 2,
+  "s": "hello"
+}
+--
+=== main
+{{ user.name }} {{ user["name"] }} {{ user[key] }} {{ user.langs[0] }} {{ user.langs[-1] }} {{ user["langs"][1] }} {{ user.meta.age }} {{ user["meta"]["age"] + 1 }} {{ user.meta.tags }}
+{{ list[0] }} {{ list[idx] }} {{ list[-3] }} {{ list[idx - 1] }} {{ list[1 + 1] }} {{ s[0] }} {{ s[-1] }} {{ s[1] ~ s[2] }}
+{{ "literal"[2] }} {{ [4, 5, 6][1] }} {{ ([7, 8] + [9])[2] }} {{ user.langs[user.meta.age - 34] }} {{ list[true] }}

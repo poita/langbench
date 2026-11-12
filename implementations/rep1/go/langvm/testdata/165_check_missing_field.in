@@ -1,0 +1,3 @@
+@module main
+struct S { a: Int, b: Int }
+fn main() { let s = S.{ a: 1 }; }

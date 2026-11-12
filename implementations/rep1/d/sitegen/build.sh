@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build the sitegen command-line tool into bin/sitegen.
+# Build the sitegen command-line tool (release mode, LDC).
 set -e
 cd "$(dirname "$0")"
 exec dub build -b release --compiler=ldc2 "$@"

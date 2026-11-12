@@ -1,3 +1,3 @@
-module github.com/example/sat
+module example.com/sat
 
-go 1.27.1
+go 1.27

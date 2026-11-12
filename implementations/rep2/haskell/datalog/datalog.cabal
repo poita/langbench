@@ -1,0 +1,49 @@
+cabal-version:      3.0
+name:               datalog
+version:            0.1.0.0
+synopsis:           A Datalog engine with stratified negation
+description:
+  A small bottom-up Datalog engine: parser, safety and stratification
+  checks, and semi-naive evaluation with hash-indexed relations. The
+  library exposes the pipeline stage by stage as well as a one-call
+  entry point; the @datalog@ executable is a thin stdin/stdout wrapper.
+license:            MIT
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+category:           Database, Language
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  default-extensions: MonoLocalBinds
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Datalog
+                    Datalog.Syntax
+                    Datalog.Parser
+                    Datalog.Analysis
+                    Datalog.Model
+                    Datalog.Eval
+  other-modules:    Datalog.Internal.Relation
+                    Datalog.Internal.Plan
+  build-depends:    base >=4.18 && <5,
+                    array >=0.5 && <0.6,
+                    containers >=0.6 && <0.9
+
+executable datalog
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base, datalog
+
+test-suite datalog-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    Reference
+  build-depends:    base, containers, datalog, hspec, QuickCheck

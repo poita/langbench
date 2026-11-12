@@ -1,71 +1,99 @@
-// Command qrcode reads QR encoding queries from standard input and prints
-// the resulting module matrices as text. See README.md for the format.
+// Command qrcode reads query lines "<ecl> <mask> <text>" from standard input
+// and prints the corresponding QR Code symbols as text.
+//
+// For each query it prints "version <v> mask <m>", the symbol rows using '#'
+// for dark and '.' for light modules, and an empty line.
 package main
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"io"
 	"os"
+	"strconv"
 
-	"github.com/example/qrcode/qr"
+	"github.com/peteralexander/qrcode"
 )
 
 func main() {
-	in, err := io.ReadAll(os.Stdin)
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "qrcode:", err)
-		os.Exit(1)
-	}
-	out, err := process(in)
-	if _, werr := os.Stdout.Write(out); werr != nil && err == nil {
-		err = werr
-	}
-	if err != nil {
+	if err := run(os.Stdin, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "qrcode:", err)
 		os.Exit(1)
 	}
 }
 
-// process handles every query line in in and returns the output text.
-// On error it returns the output produced so far along with the error.
-func process(in []byte) ([]byte, error) {
-	out := make([]byte, 0, 1<<16)
-	for lineNo := 1; len(in) > 0; lineNo++ {
-		var line []byte
-		if i := bytes.IndexByte(in, '\n'); i >= 0 {
-			line, in = in[:i], in[i+1:]
-		} else {
-			line, in = in, nil
+// run processes every query line of in, writing the results to out.
+func run(in io.Reader, out io.Writer) error {
+	r := bufio.NewReaderSize(in, 1<<16)
+	w := bufio.NewWriterSize(out, 1<<16)
+	defer w.Flush()
+	for lineNo := 1; ; lineNo++ {
+		line, err := r.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return err
 		}
-		if n := len(line); n > 0 && line[n-1] == '\r' {
-			line = line[:n-1]
+		eof := err == io.EOF
+		if len(line) > 0 && line[len(line)-1] == '\n' {
+			line = line[:len(line)-1]
 		}
-		sym, err := query(line)
-		if err != nil {
-			return out, fmt.Errorf("line %d: %w", lineNo, err)
+		if line != "" || !eof {
+			if line == "" {
+				return fmt.Errorf("line %d: empty query", lineNo)
+			}
+			if err := query(w, line); err != nil {
+				return fmt.Errorf("line %d: %w", lineNo, err)
+			}
 		}
-		out = append(out, "version "...)
-		out = fmt.Appendf(out, "%d mask %d\n", sym.Version, sym.Mask)
-		out = sym.AppendRows(out)
-		out = append(out, '\n')
+		if eof {
+			return w.Flush()
+		}
 	}
-	return out, nil
 }
 
-// query parses "<ecl> <mask> <text>" and encodes it.
-func query(line []byte) (*qr.Symbol, error) {
-	parts := bytes.SplitN(line, []byte{' '}, 3)
-	if len(parts) < 3 {
-		return nil, fmt.Errorf("malformed query: want \"<ecl> <mask> <text>\"")
+// parseQuery splits "<ecl> <mask> <text>".
+func parseQuery(line string) (level qrcode.Level, mask int, text string, err error) {
+	if len(line) < 5 || line[1] != ' ' {
+		return 0, 0, "", fmt.Errorf("malformed query %q", line)
 	}
-	ecl, ok := qr.ParseECL(string(parts[0]))
-	if !ok {
-		return nil, fmt.Errorf("invalid error correction level %q", parts[0])
+	switch line[0] {
+	case 'L':
+		level = qrcode.L
+	case 'M':
+		level = qrcode.M
+	case 'Q':
+		level = qrcode.Q
+	case 'H':
+		level = qrcode.H
+	default:
+		return 0, 0, "", fmt.Errorf("invalid error-correction level %q", line[:1])
 	}
-	mask, err := qr.ParseMask(string(parts[1]))
+	rest := line[2:]
+	sp := 0
+	for sp < len(rest) && rest[sp] != ' ' {
+		sp++
+	}
+	if sp == len(rest) {
+		return 0, 0, "", fmt.Errorf("missing text in query")
+	}
+	if word := rest[:sp]; word == "auto" {
+		mask = qrcode.AutoMask
+	} else if m, e := strconv.Atoi(word); e == nil && len(word) == 1 && m >= 0 && m < qrcode.NumMasks {
+		mask = m
+	} else {
+		return 0, 0, "", fmt.Errorf("invalid mask %q", word)
+	}
+	return level, mask, rest[sp+1:], nil
+}
+
+func query(w io.Writer, line string) error {
+	level, mask, text, err := parseQuery(line)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	return qr.Encode(parts[2], ecl, mask)
+	sym, err := qrcode.Encode(text, level, mask)
+	if err != nil {
+		return err
+	}
+	_, err = fmt.Fprintf(w, "version %d mask %d\n%s\n", sym.Version(), sym.Mask(), sym.String())
+	return err
 }

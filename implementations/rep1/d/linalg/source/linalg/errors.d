@@ -1,46 +1,44 @@
 /**
- * Error types shared by the whole library.
+ * Error taxonomy shared by every operation in the library.
  *
- * Every numerical routine that can legitimately fail on valid-looking input
- * (wrong shapes, singular matrix, ...) reports it by throwing a
- * $(LREF LinalgException) carrying one of the $(LREF ErrorCode) values.
+ * Each failure is reported as a `LinAlgException` carrying an `ErrorCode`;
+ * the command-line driver writes the code's name to `NNN_error.txt`.
  */
 module linalg.errors;
 
-import std.conv : to;
-
-/// The reasons a linear-algebra operation can be refused.
-enum ErrorCode
+/// The reasons an operation can refuse to produce a result.
+enum ErrorCode : string
 {
-    /// Operand shapes are incompatible (e.g. `mul` of 2x3 with 2x3).
-    dimension_mismatch,
+    /// Operand shapes are incompatible (add, mul, solve, qr, lstsq).
+    dimensionMismatch = "dimension_mismatch",
     /// A square matrix was required.
-    not_square,
-    /// A symmetric matrix was required (exact comparison of entries).
-    not_symmetric,
+    notSquare = "not_square",
+    /// A symmetric matrix was required.
+    notSymmetric = "not_symmetric",
     /// Cholesky met a non-positive pivot.
-    not_positive_definite,
-    /// A pivot, diagonal entry or singular value was exactly zero.
-    singular,
+    notPositiveDefinite = "not_positive_definite",
+    /// A pivot, a diagonal entry or a singular value was exactly zero.
+    singular = "singular",
 }
 
-/// Exception thrown by the library; `code` says which failure occurred.
-class LinalgException : Exception
+/// Thrown by every operation that cannot be carried out.
+class LinAlgException : Exception
 {
-    /// The machine-readable reason.
+    /// What went wrong.
     ErrorCode code;
 
-    ///
-    this(ErrorCode code, string file = __FILE__, size_t line = __LINE__) pure
+    /// Builds an exception for `code`; the message is the code's text.
+    this(ErrorCode code, string file = __FILE__, size_t line = __LINE__) @safe pure nothrow
     {
+        super(cast(string) code, file, line);
         this.code = code;
-        super(code.to!string, file, line);
     }
 }
 
-/// Throw `LinalgException(code)` unless `cond` holds.
-void enforceCode(bool cond, ErrorCode code, string file = __FILE__, size_t line = __LINE__) pure
+/// Throws `LinAlgException(code)` unless `condition` holds.
+void enforceCode(bool condition, ErrorCode code,
+        string file = __FILE__, size_t line = __LINE__) @safe pure
 {
-    if (!cond)
-        throw new LinalgException(code, file, line);
+    if (!condition)
+        throw new LinAlgException(code, file, line);
 }

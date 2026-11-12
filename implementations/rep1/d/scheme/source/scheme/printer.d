@@ -1,82 +1,129 @@
-/// Converting values to their `write` and `display` text.
+/**
+ * Printing values in the `write` and `display` forms.
+ */
 module scheme.printer;
 
-import scheme.numeric : toDecimal;
-import scheme.output;
-import scheme.symbols;
+import scheme.numeric : integerToString;
 import scheme.value;
 
-/// Append the printed form of `v` to `o`. Strings are quoted and escaped
-/// unless `display` is true. Lists are walked iteratively along the cdr.
-void print(Output o, const SymbolTable syms, Value v, bool display)
+/**
+ * Print `v` to `sink` (anything with `put(const(char)[])`).
+ *
+ * In write form (`display == false`) strings are quoted and escaped; in
+ * display form they are printed raw, at any depth.
+ */
+void printValue(Sink)(ref Sink sink, Value v, bool display)
 {
-    final switch (v.tag)
+    final switch (v.kind)
     {
-    case Tag.unbound:
-        o.put("#<unbound>");
+    case Kind.nil:
+        sink.put("()");
         break;
-    case Tag.fixnum:
-    case Tag.big:
-        o.put(toDecimal(v));
+    case Kind.boolean:
+        sink.put(v.i ? "#t" : "#f");
         break;
-    case Tag.boolean:
-        o.put(v.i ? "#t" : "#f");
+    case Kind.integer:
+    case Kind.bigInteger:
+        sink.put(integerToString(v));
         break;
-    case Tag.nil:
-        o.put("()");
-        break;
-    case Tag.voidValue:
-        o.put("#<void>");
-        break;
-    case Tag.symbol:
-        o.put(syms.name(cast(int) v.i));
-        break;
-    case Tag.prim:
-    case Tag.closure:
-        o.put("#<procedure>");
-        break;
-    case Tag.str:
+    case Kind.string:
         if (display)
-            o.put(v.strObj.s);
+            sink.put(v.str.s);
         else
-            writeString(o, v.strObj.s);
+            putEscaped(sink, v.str.s);
         break;
-    case Tag.pair:
-        o.put('(');
-        for (;;)
+    case Kind.symbol:
+        sink.put(v.sym.name);
+        break;
+    case Kind.pair:
+        sink.put("(");
+        printValue(sink, v.pair.car, display);
+        Value tail = v.pair.cdr;
+        while (tail.kind == Kind.pair)
         {
-            auto pr = v.pair;
-            print(o, syms, pr.car, display);
-            v = pr.cdr;
-            if (v.tag == Tag.pair)
-                o.put(' ');
-            else if (v.tag == Tag.nil)
-                break;
-            else
-            {
-                o.put(" . ");
-                print(o, syms, v, display);
-                break;
-            }
+            sink.put(" ");
+            printValue(sink, tail.pair.car, display);
+            tail = tail.pair.cdr;
         }
-        o.put(')');
+        if (tail.kind != Kind.nil)
+        {
+            sink.put(" . ");
+            printValue(sink, tail, display);
+        }
+        sink.put(")");
+        break;
+    case Kind.closure:
+    case Kind.primitive:
+        sink.put("#<procedure>");
+        break;
+    case Kind.void_:
+        sink.put("#<void>");
         break;
     }
 }
 
-private void writeString(Output o, string s)
+private void putEscaped(Sink)(ref Sink sink, string s)
 {
-    o.put('"');
-    foreach (c; s)
+    sink.put("\"");
+    size_t start = 0;
+    foreach (i, c; s)
     {
+        string rep;
         switch (c)
         {
-        case '\\': o.put("\\\\"); break;
-        case '"': o.put("\\\""); break;
-        case '\n': o.put("\\n"); break;
-        case '\t': o.put("\\t"); break;
-        default: o.put(c);
+        case '\\':
+            rep = "\\\\";
+            break;
+        case '"':
+            rep = "\\\"";
+            break;
+        case '\n':
+            rep = "\\n";
+            break;
+        case '\t':
+            rep = "\\t";
+            break;
+        default:
+            continue;
         }
+        sink.put(s[start .. i]);
+        sink.put(rep);
+        start = i + 1;
     }
-    o.put('"');
+    sink.put(s[start .. $]);
+    sink.put("\"");
+}
+
+/// The `write` representation of `v` as a string.
+string toWriteString(Value v)
+{
+    return render(v, false);
+}
+
+/// The `display` representation of `v` as a string.
+string toDisplayString(Value v)
+{
+    return render(v, true);
+}
+
+private string render(Value v, bool display)
+{
+    import std.array : appender;
+
+    auto app = appender!string();
+    printValue(app, v, display);
+    return app[];
+}
+
+unittest
+{
+    auto syms = new SymbolTable;
+    auto list = Value.cons(Value.fromInt(1), Value.cons(Value.fromString("a\"b\n"), Value.fromInt(3)));
+    assert(toWriteString(list) == `(1 "a\"b\n" . 3)`);
+    assert(toDisplayString(list) == "(1 a\"b\n . 3)");
+    assert(toWriteString(Value.void_()) == "#<void>");
+    assert(toWriteString(Value.fromBool(false)) == "#f");
+    assert(toWriteString(Value.nil()) == "()");
+    assert(toWriteString(Value.fromSymbol(syms.intern("foo"))) == "foo");
+    assert(toWriteString(Value.fromString("t\tx\\")) == `"t\tx\\"`);
 }

@@ -1,137 +1,161 @@
-package regex
+package regexbt
 
-// maxInsts bounds the size of a compiled program so that nested counted
-// quantifiers cannot exhaust memory.
-const maxInsts = 2_000_000
+import (
+	"errors"
+
+	"example.com/regexbt/syntax"
+)
+
+// maxProgSize bounds the number of instructions a pattern may expand to.
+const maxProgSize = 1 << 20
+
+var errTooLarge = errors.New("regex: pattern too large after expanding counted repetitions")
 
 type compiler struct {
-	prog    []inst
-	classes []charset
-	nslots  int // 2*(groups+1); loop registers are allocated after these
-	nregs   int
-	limit   bool
-	classID map[*charset]int32 // set -> index in classes, so expanded copies share one entry
+	p      prog
+	tooBig bool
 }
 
-func (c *compiler) emit(in inst) int {
-	c.prog = append(c.prog, in)
-	if len(c.prog) > maxInsts {
-		c.limit = true
+// compile translates a syntax tree into a backtracking program.
+func compile(root *syntax.Node, ngroups int) (*prog, error) {
+	c := &compiler{}
+	c.p.ngroup = ngroups
+	c.p.nregs = 3 * (ngroups + 1)
+	c.emit(root)
+	c.add(inst{op: opMatch})
+	if c.tooBig {
+		return nil, errTooLarge
 	}
-	return len(c.prog) - 1
+	return &c.p, nil
 }
 
-func (c *compiler) pc() int32 { return int32(len(c.prog)) }
+func (c *compiler) pc() int32 { return int32(len(c.p.insts)) }
 
-func (c *compiler) newRegister() int32 {
-	r := int32(c.nslots + c.nregs)
-	c.nregs++
-	return r
-}
-
-// single returns the instruction matching one character for a single-char node.
-func (c *compiler) single(n *node) inst {
-	switch n.kind {
-	case nLit:
-		return inst{op: opChar, x: int32(n.ch)}
-	case nAny:
-		return inst{op: opAny}
+func (c *compiler) add(in inst) int32 {
+	if len(c.p.insts) >= maxProgSize {
+		c.tooBig = true
+		return 0 // keep going harmlessly; compile() reports the error
 	}
-	id, ok := c.classID[n.set]
-	if !ok {
-		id = int32(len(c.classes))
-		c.classes = append(c.classes, *n.set)
-		c.classID[n.set] = id
-	}
-	return inst{op: opClass, x: id}
+	c.p.insts = append(c.p.insts, in)
+	return int32(len(c.p.insts) - 1)
 }
 
-func (c *compiler) gen(n *node) {
-	if c.limit {
+func (c *compiler) newReg() int32 {
+	c.p.nregs++
+	return int32(c.p.nregs - 1)
+}
+
+// patch sets field y of the instruction at index i.
+func (c *compiler) patchY(i int32, y int32) {
+	if !c.tooBig {
+		c.p.insts[i].y = y
+	}
+}
+
+func (c *compiler) emit(n *syntax.Node) {
+	if c.tooBig {
 		return
 	}
-	switch n.kind {
-	case nLit, nAny, nClass:
-		c.emit(c.single(n))
-	case nBol:
-		c.emit(inst{op: opBol})
-	case nEol:
-		c.emit(inst{op: opEol})
-	case nSeq:
-		for _, s := range n.subs {
-			c.gen(s)
+	switch n.Kind {
+	case syntax.KindEmpty:
+	case syntax.KindLiteral:
+		c.add(inst{op: opChar, c: n.Char})
+	case syntax.KindAny:
+		c.add(inst{op: opAny})
+	case syntax.KindClass:
+		set := n.Set
+		c.add(inst{op: opSet, set: &set})
+	case syntax.KindBol:
+		c.add(inst{op: opBol})
+	case syntax.KindEol:
+		c.add(inst{op: opEol})
+	case syntax.KindConcat:
+		for _, s := range n.Subs {
+			c.emit(s)
 		}
-	case nAlt:
-		var jumps []int
-		for i, b := range n.subs {
-			if i < len(n.subs)-1 {
-				sp := c.emit(inst{op: opSplit})
-				c.prog[sp].x = c.pc()
-				c.gen(b)
-				jumps = append(jumps, c.emit(inst{op: opJmp}))
-				c.prog[sp].y = c.pc()
-			} else {
-				c.gen(b)
-			}
-		}
-		for _, j := range jumps {
-			c.prog[j].x = c.pc()
-		}
-	case nGroup:
-		c.emit(inst{op: opSave, x: int32(2 * n.group)})
-		c.gen(n.subs[0])
-		c.emit(inst{op: opSave, x: int32(2*n.group + 1)})
-	case nRep:
-		c.genRep(n)
+	case syntax.KindAlternate:
+		c.emitAlternate(n)
+	case syntax.KindGroup:
+		g := int32(n.Group)
+		startReg := int32(2*(c.p.ngroup+1)) + g
+		c.add(inst{op: opMark, x: startReg})
+		c.emit(n.Subs[0])
+		c.add(inst{op: opClose, x: g, y: startReg})
+	case syntax.KindRepeat:
+		c.emitRepeat(n)
 	}
 }
 
-func (c *compiler) genRep(n *node) {
-	x := n.subs[0]
-	if n.max == 0 {
-		return // x{0} never runs its atom
+// emitAlternate lays out b1 | b2 | ... | bn as
+//
+//	split L1, L2; L1: b1; jmp end; L2: split ...; Ln: bn; end:
+func (c *compiler) emitAlternate(n *syntax.Node) {
+	var jumps []int32
+	for i, b := range n.Subs {
+		if i == len(n.Subs)-1 {
+			c.emit(b)
+			break
+		}
+		split := c.add(inst{op: opSplit})
+		c.p.insts[split].x = c.pc()
+		c.emit(b)
+		jumps = append(jumps, c.add(inst{op: opJmp}))
+		c.patchY(split, c.pc())
 	}
-	if x.singleChar() {
-		sc := c.single(x)
-		c.emit(inst{op: opCharLoop, kind: sc.op, x: sc.x, y: int32(n.min), z: int32(n.max)})
+	end := c.pc()
+	for _, j := range jumps {
+		if !c.tooBig {
+			c.p.insts[j].x = end
+		}
+	}
+}
+
+// emitRepeat expands x{min,max} following the rep() function of the spec:
+// min mandatory copies of x, then either an unbounded loop or max-min
+// optional copies. Every optional iteration is guarded by an empty check:
+// an iteration that consumed nothing leaves the repetition immediately.
+func (c *compiler) emitRepeat(n *syntax.Node) {
+	sub := n.Subs[0]
+	for i := 0; i < n.Min; i++ {
+		c.emit(sub)
+		if c.tooBig {
+			return
+		}
+	}
+	if n.Max == syntax.Unbounded {
+		reg := c.newReg()
+		loop := c.add(inst{op: opSplit})
+		c.p.insts[loop].x = c.pc()
+		c.add(inst{op: opMark, x: reg})
+		c.emit(sub)
+		chk := c.add(inst{op: opEmptyChk, x: reg})
+		c.add(inst{op: opJmp, x: loop})
+		exit := c.pc()
+		c.patchY(loop, exit)
+		c.patchY(chk, exit)
 		return
 	}
-	for i := 0; i < n.min && !c.limit; i++ {
-		c.gen(x)
+	if n.Max <= n.Min {
+		return
 	}
-	empty := canBeEmpty(x)
-	// iteration emits one optional iteration: split body, exit; [mark]; x;
-	// [check -> exit]. The returned positions are the operands to patch with
-	// the exit address.
-	var patchSplit, patchCheck []int
-	iteration := func() {
-		sp := c.emit(inst{op: opSplit})
-		c.prog[sp].x = c.pc()
-		patchSplit = append(patchSplit, sp)
-		var reg int32
-		if empty {
-			reg = c.newRegister()
-			c.emit(inst{op: opMark, x: reg})
+	reg := c.newReg()
+	var splits, chks []int32
+	for i := n.Min; i < n.Max; i++ {
+		split := c.add(inst{op: opSplit})
+		c.p.insts[split].x = c.pc()
+		splits = append(splits, split)
+		c.add(inst{op: opMark, x: reg})
+		c.emit(sub)
+		if c.tooBig {
+			return
 		}
-		c.gen(x)
-		if empty {
-			patchCheck = append(patchCheck, c.emit(inst{op: opCheck, x: reg}))
-		}
-	}
-	if n.max < 0 {
-		loop := c.pc()
-		iteration()
-		c.emit(inst{op: opJmp, x: loop})
-	} else {
-		for i := n.min; i < n.max && !c.limit; i++ {
-			iteration()
-		}
+		chks = append(chks, c.add(inst{op: opEmptyChk, x: reg}))
 	}
 	exit := c.pc()
-	for _, sp := range patchSplit {
-		c.prog[sp].y = exit
+	for _, i := range splits {
+		c.patchY(i, exit)
 	}
-	for _, ck := range patchCheck {
-		c.prog[ck].y = exit
+	for _, i := range chks {
+		c.patchY(i, exit)
 	}
 }

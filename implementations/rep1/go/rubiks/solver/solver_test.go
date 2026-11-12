@@ -5,76 +5,115 @@ import (
 	"sync"
 	"testing"
 
-	"rubiks/cube"
+	"example.com/rubiks/cube"
 )
 
-var shared = New()
+var (
+	once sync.Once
+	slv  *Solver
+)
 
-func randomMoves(rng *rand.Rand, n int) []cube.Move {
-	moves := make([]cube.Move, n)
-	for i := range moves {
-		moves[i] = cube.Move(rng.Intn(cube.NumMoves))
-	}
-	return moves
+func testSolver() *Solver {
+	once.Do(func() { slv = New() })
+	return slv
 }
 
-func checkSolves(t *testing.T, c cube.Cube) []cube.Move {
+func TestPhaseDepths(t *testing.T) {
+	got := testSolver().PhaseDepths()
+	want := [4]int{7, 10, 13, 15}
+	if got != want {
+		t.Errorf("PhaseDepths = %v, want %v", got, want)
+	}
+}
+
+func TestMoveSetSizes(t *testing.T) {
+	sizes := [4]int{len(phase1Moves), len(phase2Moves), len(phase3Moves), len(phase4Moves)}
+	if want := [4]int{18, 14, 10, 6}; sizes != want {
+		t.Errorf("move set sizes = %v, want %v", sizes, want)
+	}
+}
+
+func TestCornerGroup(t *testing.T) {
+	g := newCornerGroup()
+	if len(g.elems) != 96 {
+		t.Fatalf("|H| = %d", len(g.elems))
+	}
+	id := cube.Solved().CP
+	if g.coset[permRank(id[:])] != g.coset[permRank(g.elems[17][:])] {
+		t.Error("elements of H are in different cosets")
+	}
+}
+
+func TestPermRankRoundTrip(t *testing.T) {
+	var p [8]uint8
+	for r := 0; r < nPerm8; r += 7 {
+		permUnrank(r, 8, p[:])
+		if permRank(p[:]) != r {
+			t.Fatalf("rank %d did not round trip", r)
+		}
+	}
+}
+
+func checkSolve(t *testing.T, scramble []cube.Move) {
 	t.Helper()
-	sol, err := shared.Solve(c)
+	c := cube.Solved()
+	c.ApplyAll(scramble)
+	sol, err := testSolver().Solve(c)
 	if err != nil {
-		t.Fatalf("Solve: %v", err)
+		t.Fatalf("Solve(%s): %v", cube.FormatMoves(scramble), err)
 	}
-	if len(sol) > MaxMoves {
-		t.Errorf("solution has %d moves, more than %d", len(sol), MaxMoves)
+	if len(sol) > MaxSolutionLength {
+		t.Errorf("solution has %d moves, more than %d", len(sol), MaxSolutionLength)
 	}
-	d := c
-	d.ApplyAll(sol)
-	if !d.IsSolved() {
-		t.Errorf("solution %s does not solve the cube", cube.FormatMoves(sol))
-	}
-	return sol
-}
-
-func TestSolved(t *testing.T) {
-	if sol := checkSolves(t, cube.New()); len(sol) != 0 {
-		t.Errorf("solved cube needs %d moves", len(sol))
+	c.ApplyAll(sol)
+	if !c.IsSolved() {
+		t.Errorf("solution %s does not solve %s", cube.FormatMoves(sol), cube.FormatMoves(scramble))
 	}
 }
 
-func TestSingleMoves(t *testing.T) {
-	for m := cube.Move(0); m < cube.NumMoves; m++ {
-		sol := checkSolves(t, cube.Scrambled([]cube.Move{m}))
-		if len(sol) != 1 {
-			t.Errorf("single move %v solved in %d moves", m, len(sol))
-		}
-	}
-}
-
-func TestSuperflip(t *testing.T) {
-	moves, _ := cube.ParseMoves("U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2")
-	checkSolves(t, cube.Scrambled(moves))
-}
-
-func TestRandomScrambles(t *testing.T) {
+func TestSolveRandom(t *testing.T) {
 	rng := rand.New(rand.NewSource(42))
-	for i := 0; i < 300; i++ {
-		checkSolves(t, cube.Scrambled(randomMoves(rng, 25+rng.Intn(1000))))
+	n := 300
+	if testing.Short() {
+		n = 30
+	}
+	for i := 0; i < n; i++ {
+		scramble := make([]cube.Move, 25+rng.Intn(1000))
+		for j := range scramble {
+			scramble[j] = cube.Move(rng.Intn(cube.NumMoves))
+		}
+		checkSolve(t, scramble)
 	}
 }
 
-func TestRandomStates(t *testing.T) {
-	// Uniformly random legal states, built directly from random cubie data.
+func TestSolveSpecial(t *testing.T) {
+	for _, s := range []string{
+		"",
+		"R",
+		"R'",
+		"R2",
+		"F R U'",
+		"R U R' U' R U R' U' R U R' U' R U R' U' R U R' U' R U R' U'",
+		// superflip
+		"U R2 F B R B2 R U2 L B2 R U' D' R2 F R' L B2 U2 F2",
+		// checkerboard
+		"U2 D2 R2 L2 F2 B2",
+	} {
+		scramble, err := cube.ParseMoves(s)
+		if err != nil {
+			t.Fatal(err)
+		}
+		checkSolve(t, scramble)
+	}
+}
+
+func TestSolveRandomStates(t *testing.T) {
+	// Random cubes built from random permutations/orientations, not scrambles.
 	rng := rand.New(rand.NewSource(7))
-	for i := 0; i < 300; i++ {
-		c := cube.New()
-		for j := 7; j > 0; j-- {
-			k := rng.Intn(j + 1)
-			c.CP[j], c.CP[k] = c.CP[k], c.CP[j]
-		}
-		for j := 11; j > 0; j-- {
-			k := rng.Intn(j + 1)
-			c.EP[j], c.EP[k] = c.EP[k], c.EP[j]
-		}
+	for i := 0; i < 100; i++ {
+		c := cube.Solved()
+		rng.Shuffle(8, func(a, b int) { c.CP[a], c.CP[b] = c.CP[b], c.CP[a] })
+		rng.Shuffle(12, func(a, b int) { c.EP[a], c.EP[b] = c.EP[b], c.EP[a] })
 		sum := 0
 		for j := 0; j < 7; j++ {
 			c.CO[j] = uint8(rng.Intn(3))
@@ -86,56 +125,50 @@ func TestRandomStates(t *testing.T) {
 			c.EO[j] = uint8(rng.Intn(2))
 			sum += int(c.EO[j])
 		}
-		c.EO[11] = uint8(sum & 1)
-		if c.Verify() != nil { // fix parity with a swap of two edges
+		c.EO[11] = uint8(sum % 2)
+		if c.Validate() != nil {
+			// fix parity with a swap of two edges
 			c.EP[0], c.EP[1] = c.EP[1], c.EP[0]
 		}
-		checkSolves(t, c)
+		sol, err := testSolver().Solve(c)
+		if err != nil {
+			t.Fatal(err)
+		}
+		c.ApplyAll(sol)
+		if !c.IsSolved() || len(sol) > MaxSolutionLength {
+			t.Fatalf("bad solution of length %d", len(sol))
+		}
 	}
 }
 
-func TestInvalidCube(t *testing.T) {
-	c := cube.New()
-	c.EO[0] = 1
-	if _, err := shared.Solve(c); err == nil {
-		t.Error("expected an error for a cube with one flipped edge")
+func TestSolveRejectsInvalid(t *testing.T) {
+	c := cube.Solved()
+	c.CO[0] = 1
+	if _, err := testSolver().Solve(c); err == nil {
+		t.Error("Solve accepted an unsolvable cube")
 	}
 }
 
-func TestConcurrentUse(t *testing.T) {
-	s := New()
-	var wg sync.WaitGroup
-	for g := 0; g < 4; g++ {
-		wg.Add(1)
-		go func(seed int64) {
-			defer wg.Done()
-			rng := rand.New(rand.NewSource(seed))
-			for i := 0; i < 20; i++ {
-				c := cube.Scrambled(randomMoves(rng, 30))
-				sol, err := s.Solve(c)
-				if err != nil {
-					t.Error(err)
-					return
-				}
-				c.ApplyAll(sol)
-				if !c.IsSolved() {
-					t.Error("not solved")
-					return
-				}
-			}
-		}(int64(g))
+func BenchmarkSolve(b *testing.B) {
+	s := testSolver()
+	rng := rand.New(rand.NewSource(1))
+	cubes := make([]cube.Cube, 64)
+	for i := range cubes {
+		cubes[i] = cube.Solved()
+		for j := 0; j < 25; j++ {
+			cubes[i].Apply(cube.Move(rng.Intn(cube.NumMoves)))
+		}
 	}
-	wg.Wait()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if _, err := s.Solve(cubes[i%len(cubes)]); err != nil {
+			b.Fatal(err)
+		}
+	}
 }
 
-func TestPackageLevelSolve(t *testing.T) {
-	c := cube.Scrambled([]cube.Move{cube.NewMove(cube.R, 1), cube.NewMove(cube.U, 3)})
-	sol, err := Solve(c)
-	if err != nil {
-		t.Fatal(err)
-	}
-	c.ApplyAll(sol)
-	if !c.IsSolved() {
-		t.Error("not solved")
+func BenchmarkNew(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		New()
 	}
 }

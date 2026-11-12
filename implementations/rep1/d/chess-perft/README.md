@@ -1,53 +1,69 @@
 # chess-perft
 
-A legal chess move generator in D, with **perft** and **divide** node counting,
-plus a small command-line tool that answers queries read from stdin.
+A legal move generator for standard chess written in D, with **perft** and
+**divide** queries. It is a small reusable library (`chessperft`) plus a thin
+command-line tool that reads queries on stdin.
 
-* Bitboard position with a mailbox, built from precomputed (compile-time) attack tables.
-* Classical ray attacks for sliders: no magic bitboards, no PEXT.
-* Fully legal generation using checkers, an evasion mask and pin masks, so no move
-  is played just to test legality; the depth-1 count is the number of legal moves
-  (bulk counting, without even materialising them).
-* In-place make/unmake with a tiny undo record.
-* Single-threaded, no hashing. Standard library only.
+## Design
 
-Requires LDC (developed with 1.41.0) and dub (1.40.0).
+* Bitboard position with a mailbox for piece lookup; moves are applied by
+  copy-make (`auto next = pos; next.play(m);`).
+* Slider attacks use classical ray attacks; all attack tables are computed at
+  compile time.
+* The generator finds the king's checkers and pinned pieces and emits only
+  legal moves. Only king moves (against the enemy attack set) and en passant
+  captures are verified individually.
+* At depth 1 the moves are counted, not played (bulk counting). The whole tree
+  is walked; there is no hashing, caching or threading.
+
+Source layout:
+
+| Module | Responsibility |
+|---|---|
+| `chessperft.types` | colours, piece types, squares, `Move` (UCI I/O) |
+| `chessperft.bitboard` | bitboard helpers, attack tables, slider attacks |
+| `chessperft.position` | `Position`, FEN parsing/formatting, `play`, attack tests |
+| `chessperft.movegen` | `legalMoves`, `countLegalMoves` |
+| `chessperft.perft` | `perft`, `divide` |
+| `chessperft.query` | the CLI's line format (`parseQuery`, `answer`) |
+| `app/main.d` | the command-line tool |
 
 ## Build
 
+Requires LDC and dub (developed with LDC 1.41.0 / dub 1.40.0).
+
 ```sh
-./build.sh          # same as: dub build -b release --compiler=ldc2
+dub build -b release --compiler=ldc2   # or ./build.sh
 ```
 
 This produces the `chess-perft` executable in the project directory.
 
-## Test
+## Tests
+
+Tests are D `unittest` blocks next to the code (move generation rules, FEN
+handling, and the standard perft reference positions):
 
 ```sh
 dub test --compiler=ldc2
 ```
 
-The unit tests live in `tests/`, separate from the library in `source/chessperft/`.
+## Command line
 
-## Command-line use
-
-`./run.sh` (or `./chess-perft` directly) reads queries from stdin, one per line,
-and writes one answer per query to stdout. A query is a FEN record followed by a
-depth, or by the word `divide` and a depth:
+`./run.sh` (or `./chess-perft`) reads one query per line on stdin and writes
+one answer per query to stdout:
 
 ```
-<placement> <side> <castling> <ep> <halfmove> <fullmove> <depth>
-<placement> <side> <castling> <ep> <halfmove> <fullmove> divide <depth>
+<fen: 6 fields> <depth>            -> perft(depth), one line
+<fen: 6 fields> divide <depth>     -> "<move> <count>" per legal move, sorted, then "total <n>"
 ```
 
-The halfmove and fullmove fields are ignored. A perft query prints one number. A
-divide query prints `<move> <count>` for every legal root move (UCI notation, sorted
-by byte order) followed by `total <n>`.
+Halfmove and fullmove fields are ignored. Moves are UCI (`e2e4`, `a7a8q`,
+castling as the king move, en passant as the pawn move).
 
 ```console
 $ printf '%s\n' \
-    'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 3' \
-    '8/P1k5/K7/8/8/8/8/8 w - - 0 1 divide 1' | ./run.sh
+  'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 3' \
+  '8/P1k5/K7/8/8/8/8/8 w - - 0 1 divide 1' | ./run.sh
 8902
 a6a5 1
 a6b5 1
@@ -58,68 +74,25 @@ a7a8r 1
 total 6
 ```
 
-The exit status is 0 on success; malformed input is reported on stderr with status 1.
-
-## Library use
-
-The library is the `chessperft` package under `source/`. Modules:
-
-| Module | Responsibility |
-|---|---|
-| `chessperft.bitboard` | `Bitboard` type, bit-scan/popcount helpers, file/rank masks |
-| `chessperft.types` | `Color`, `PieceType`, packed `Piece`, castling bits, square names |
-| `chessperft.tables` | compile-time attack tables, rays, `between`/`line`, slider attacks |
-| `chessperft.move` | 16-bit `Move`, `MoveFlag`, UCI formatting |
-| `chessperft.position` | `Position`: FEN in/out, `makeMove`/`unmakeMove`, attack queries |
-| `chessperft.movegen` | `generateLegal`, `countLegal`, `legalMoves` |
-| `chessperft.perft` | `perft`, `divide` |
-| `chessperft.query` | the query-line protocol used by the CLI |
-
-`import chessperft;` pulls in everything.
+## Library example
 
 ```d
-import std.stdio : writeln;
+import std.stdio;
 import chessperft;
 
 void main()
 {
-    // Kiwipete
-    auto pos = Position.fromFen(
-        "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1");
+    auto pos = Position.fromFen(startFen);
+    writeln(perft(pos, 4));                  // 197281
 
-    writeln(perft(pos, 3));                  // 97862
+    foreach (e; divide(pos, 2))              // sorted by UCI text
+        writefln("%s %s", e.move, e.nodes);  // a2a3 20, a2a4 20, ...
 
-    foreach (e; divide(pos, 2).entries)      // per-root-move counts, sorted
-        writeln(e.move, " ", e.count);
-
-    // Walk the tree yourself.
-    foreach (m; legalMoves(pos))
-    {
-        auto undo = pos.makeMove(m);
-        // ... inspect pos ...
-        pos.unmakeMove(m, undo);
-    }
+    auto list = legalMoves(pos);             // MoveList (stack allocated)
+    pos.play(list[0]);                       // apply a move in place
+    writeln(pos.toFen);
 }
 ```
 
-To use it from another dub project, depend on this package and select the
-`library` configuration:
-
-```json
-"dependencies": { "chess-perft": { "path": "../chess-perft" } },
-"subConfigurations": { "chess-perft": "library" }
-```
-
-`Position.fromFen` throws `FenException` on malformed text. The halfmove and fullmove
-fields are optional and ignored: there is no fifty-move, repetition or
-insufficient-material rule.
-
-## Layout
-
-```
-dub.json            manifest (configurations: cli, library, unittest)
-build.sh run.sh     build and run wrappers
-app/main.d          the CLI
-source/chessperft/  the library
-tests/              unit tests (run by `dub test`)
-```
+Use it from another dub project by adding a path dependency on this package
+and `import chessperft;`.

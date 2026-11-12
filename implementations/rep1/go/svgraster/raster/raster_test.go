@@ -8,129 +8,120 @@ import (
 	"svgraster/geom"
 )
 
-func rectPolys(x0, y0, x1, y1 float64) *geom.Polygons {
-	var g geom.Polygons
-	g.Add(geom.Point{X: x0, Y: y0})
-	g.Add(geom.Point{X: x1, Y: y0})
-	g.Add(geom.Point{X: x1, Y: y1})
-	g.Add(geom.Point{X: x0, Y: y1})
-	g.End()
-	return &g
+func rect(x0, y0, x1, y1 float64) []geom.Point {
+	return []geom.Point{{X: x0, Y: y0}, {X: x1, Y: y0}, {X: x1, Y: y1}, {X: x0, Y: y1}}
 }
-
-func alpha(c *Canvas, x, y int) float64 { return c.Pix[4*(y*c.W+x)+3] }
 
 func TestFractionalCoverage(t *testing.T) {
-	c := NewCanvas(8, 4)
-	r := NewRasterizer(8)
-	r.Fill(c, rectPolys(1, 1, 4.5, 3), NonZero, 0, 0, 1, 1)
+	r := NewRasterizer(8, 4)
+	got := map[int][]float64{}
+	r.Fill([][]geom.Point{rect(1, 1, 4.5, 3)}, NonZero, func(y, x0 int, cov []float64) {
+		row := make([]float64, 8)
+		copy(row[x0:], cov)
+		got[y] = row
+	})
 	want := []float64{0, 1, 1, 1, .5, 0, 0, 0}
-	for x, w := range want {
-		if a := alpha(c, x, 1); math.Abs(a-w) > 1e-12 {
-			t.Errorf("pixel %d alpha %g, want %g", x, a, w)
-		}
-	}
-	if alpha(c, 2, 0) != 0 || alpha(c, 2, 3) != 0 {
-		t.Error("rows outside the rectangle painted")
-	}
-	// The worked example of SPEC 10.1: pixel (4,1) becomes 0x80 0x80 0xff.
-	rgb := c.RGB()
-	i := 3 * (1*8 + 4)
-	if rgb[i] != 0x80 || rgb[i+1] != 0x80 || rgb[i+2] != 0xff {
-		t.Errorf("pixel bytes % x", rgb[i:i+3])
-	}
-}
-
-func TestVerticalFractionalCoverage(t *testing.T) {
-	c := NewCanvas(4, 4)
-	NewRasterizer(4).Fill(c, rectPolys(0, 0.25, 4, 1.5), NonZero, 0, 0, 0, 1)
-	if a := alpha(c, 1, 0); math.Abs(a-.75) > 1e-12 {
-		t.Errorf("row 0 alpha %g", a)
-	}
-	if a := alpha(c, 1, 1); math.Abs(a-.5) > 1e-12 {
-		t.Errorf("row 1 alpha %g", a)
-	}
-}
-
-func TestEvenOddVsNonZero(t *testing.T) {
-	var g geom.Polygons
-	for _, r := range [][4]float64{{0, 0, 8, 8}, {2, 2, 6, 6}} { // same orientation
-		g.Add(geom.Point{X: r[0], Y: r[1]})
-		g.Add(geom.Point{X: r[2], Y: r[1]})
-		g.Add(geom.Point{X: r[2], Y: r[3]})
-		g.Add(geom.Point{X: r[0], Y: r[3]})
-		g.End()
-	}
-	for rule, want := range map[Rule]float64{NonZero: 1, EvenOdd: 0} {
-		c := NewCanvas(8, 8)
-		NewRasterizer(8).Fill(c, &g, rule, 0, 0, 0, 1)
-		if a := alpha(c, 4, 4); a != want {
-			t.Errorf("rule %d centre alpha %g, want %g", rule, a, want)
-		}
-		if alpha(c, 0, 0) != 1 {
-			t.Errorf("rule %d: corner not painted", rule)
-		}
-	}
-}
-
-func TestClippingAndOffCanvas(t *testing.T) {
-	c := NewCanvas(4, 4)
-	r := NewRasterizer(4)
-	r.Fill(c, rectPolys(-100, -100, 100, 100), NonZero, 1, 0, 0, 1)
-	for y := 0; y < 4; y++ {
-		for x := 0; x < 4; x++ {
-			if alpha(c, x, y) != 1 {
-				t.Fatalf("pixel %d,%d not covered", x, y)
+	for _, y := range []int{1, 2} {
+		for x, w := range want {
+			if math.Abs(got[y][x]-w) > 1e-12 {
+				t.Errorf("(%d,%d) = %v, want %v", x, y, got[y][x], w)
 			}
 		}
 	}
-	c2 := NewCanvas(4, 4)
-	r.Fill(c2, rectPolys(10, 10, 20, 20), NonZero, 1, 0, 0, 1)
-	r.Fill(c2, rectPolys(-5, -5, -1, -1), NonZero, 1, 0, 0, 1)
-	for _, v := range c2.Pix {
-		if v != 0 {
-			t.Fatal("off-canvas shape painted")
-		}
+	if len(got) != 2 {
+		t.Errorf("rows emitted = %d, want 2", len(got))
 	}
 }
 
-func TestSourceOver(t *testing.T) {
-	c := NewCanvas(2, 1)
-	r := NewRasterizer(2)
-	r.Fill(c, rectPolys(0, 0, 2, 1), NonZero, 1, 0, 0, .5)
-	r.Fill(c, rectPolys(0, 0, 2, 1), NonZero, 0, 0, 1, .5)
-	want := []float64{.25, 0, .5, .75}
+func TestSlantedEdgeArea(t *testing.T) {
+	tri := []geom.Point{{X: 0, Y: 0}, {X: 10, Y: 0}, {X: 0, Y: 10}}
+	c := NewCanvas(10, 10)
+	c.FillPolygons([][]geom.Point{tri}, NonZero, [3]float64{}, 1)
+	sum := 0.0
+	for i := 3; i < len(c.Pix); i += 4 {
+		sum += c.Pix[i]
+	}
+	if math.Abs(sum-50) > 0.1 {
+		t.Errorf("triangle area = %v, want 50", sum)
+	}
+}
+
+func TestFillRules(t *testing.T) {
+	// Two nested squares with the same orientation.
+	polys := [][]geom.Point{rect(0, 0, 10, 10), rect(3, 3, 7, 7)}
+	centre := func(rule FillRule) float64 {
+		c := NewCanvas(10, 10)
+		c.FillPolygons(polys, rule, [3]float64{}, 1)
+		return c.Pix[(5*10+5)*4+3]
+	}
+	if centre(NonZero) != 1 || centre(EvenOdd) != 0 {
+		t.Errorf("nonzero %v evenodd %v", centre(NonZero), centre(EvenOdd))
+	}
+}
+
+func TestClipping(t *testing.T) {
+	c := NewCanvas(4, 4)
+	c.FillPolygons([][]geom.Point{rect(-100, -100, 100, 100)}, NonZero, [3]float64{1, 0, 0}, 1)
+	for i := 3; i < len(c.Pix); i += 4 {
+		if c.Pix[i] != 1 {
+			t.Fatalf("pixel %d alpha %v", i/4, c.Pix[i])
+		}
+	}
+	c.FillPolygons([][]geom.Point{rect(10, 10, 20, 20), {{X: math.NaN(), Y: 0}, {X: 1, Y: 1}, {X: 2, Y: 0}}},
+		NonZero, [3]float64{}, 1) // must not panic
+}
+
+func TestSourceOverAndOutput(t *testing.T) {
+	c := NewCanvas(1, 1)
+	sq := [][]geom.Point{rect(0, 0, 1, 1)}
+	c.FillPolygons(sq, NonZero, [3]float64{1, 0, 0}, 0.5)
+	c.FillPolygons(sq, NonZero, [3]float64{0, 0, 1}, 0.5)
+	// red: (.5,0,0,.5); then blue: r=.25, b=.5, a=.75
+	want := [4]float64{.25, 0, .5, .75}
 	for i, w := range want {
 		if math.Abs(c.Pix[i]-w) > 1e-12 {
-			t.Errorf("channel %d = %g, want %g", i, c.Pix[i], w)
+			t.Errorf("channel %d = %v, want %v", i, c.Pix[i], w)
 		}
+	}
+	img := c.ToImage()
+	// v = channel + (1 - a): .25+.25=.5 -> 128; 0+.25 -> 64; .5+.25=.75 -> 191
+	if !bytes.Equal(img.Pix, []byte{128, 64, 191}) {
+		t.Errorf("pixel = %v", img.Pix)
 	}
 }
 
-func TestLayerComposite(t *testing.T) {
+func TestDrawLayerAndClear(t *testing.T) {
 	dst := NewCanvas(2, 2)
 	layer := NewCanvas(2, 2)
-	NewRasterizer(2).Fill(layer, rectPolys(0, 0, 2, 1), NonZero, 1, 0, 0, 1)
-	dst.CompositeLayer(layer, .5)
-	if dst.Pix[0] != .5 || dst.Pix[3] != .5 {
-		t.Errorf("composite %v", dst.Pix[:4])
-	}
-	if dst.Pix[4*2] != 0 {
-		t.Error("untouched row changed")
+	layer.FillPolygons([][]geom.Point{rect(0, 0, 2, 2)}, NonZero, [3]float64{0, 0, 1}, 1)
+	dst.DrawLayer(layer, 0.5)
+	if dst.Pix[2] != 0.5 || dst.Pix[3] != 0.5 {
+		t.Errorf("composited = %v", dst.Pix[:4])
 	}
 	layer.Clear()
 	for _, v := range layer.Pix {
 		if v != 0 {
-			t.Fatal("Clear left data behind")
+			t.Fatal("layer not cleared")
 		}
 	}
 }
 
-func TestPPM(t *testing.T) {
-	c := NewCanvas(2, 1)
-	out := c.PPM()
-	want := append([]byte("P6\n2 1\n255\n"), 255, 255, 255, 255, 255, 255)
-	if !bytes.Equal(out, want) {
-		t.Errorf("got %q", out)
+func TestWritePPM(t *testing.T) {
+	img := &Image{W: 2, H: 1, Pix: []byte{1, 2, 3, 4, 5, 6}}
+	var b bytes.Buffer
+	if err := img.WritePPM(&b); err != nil {
+		t.Fatal(err)
+	}
+	if want := "P6\n2 1\n255\n\x01\x02\x03\x04\x05\x06"; b.String() != want {
+		t.Errorf("got %q", b.String())
+	}
+}
+
+func TestOrient(t *testing.T) {
+	ccw := []geom.Point{{X: 0, Y: 0}, {X: 0, Y: 1}, {X: 1, Y: 1}, {X: 1, Y: 0}}
+	flat := []geom.Point{{X: 0, Y: 0}, {X: 1, Y: 1}, {X: 2, Y: 2}}
+	out := Orient([][]geom.Point{ccw, flat})
+	if len(out) != 1 || SignedArea(out[0]) <= 0 {
+		t.Errorf("Orient = %v", out)
 	}
 }

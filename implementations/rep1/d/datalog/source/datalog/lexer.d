@@ -1,13 +1,12 @@
 /// Tokeniser for Datalog source text.
 module datalog.lexer;
 
-import datalog.errors : ParseException;
+import datalog.errors;
 
 /// Kinds of token.
 enum TokenKind : ubyte
 {
-    eof,
-    identifier, /// `[a-z][a-z0-9_]*` (predicate names and constants)
+    identifier, /// `[a-z][a-z0-9_]*` other than `not`
     variable, /// `[A-Z][A-Za-z0-9_]*`
     anonymous, /// `_`
     integer, /// `-?[0-9]+`
@@ -16,7 +15,7 @@ enum TokenKind : ubyte
     rparen, /// `)`
     comma, /// `,`
     dot, /// `.`
-    neck, /// `:-`
+    implies, /// `:-`
     queryMark, /// `?-`
     lt, /// `<`
     le, /// `<=`
@@ -24,9 +23,10 @@ enum TokenKind : ubyte
     ge, /// `>=`
     eq, /// `=`
     ne, /// `!=`
+    eof, /// end of input
 }
 
-/// A token. `text` is a slice of the source; `value` is set for integers.
+/// A token with its text, numeric value (for integers) and line number.
 struct Token
 {
     TokenKind kind;
@@ -35,159 +35,158 @@ struct Token
     size_t line;
 }
 
-/// Largest absolute value accepted for an integer constant.
-enum long maxIntegerMagnitude = 1_000_000_000;
-
-private bool isLower(char c) pure nothrow @nogc @safe
-{
-    return c >= 'a' && c <= 'z';
-}
-
-private bool isUpper(char c) pure nothrow @nogc @safe
-{
-    return c >= 'A' && c <= 'Z';
-}
-
-private bool isDigit(char c) pure nothrow @nogc @safe
-{
-    return c >= '0' && c <= '9';
-}
-
-private bool isIdentChar(char c) pure nothrow @nogc @safe
+private bool isLower(char c) @safe pure nothrow @nogc { return c >= 'a' && c <= 'z'; }
+private bool isUpper(char c) @safe pure nothrow @nogc { return c >= 'A' && c <= 'Z'; }
+private bool isDigit(char c) @safe pure nothrow @nogc { return c >= '0' && c <= '9'; }
+private bool isWordChar(char c) @safe pure nothrow @nogc
 {
     return isLower(c) || isUpper(c) || isDigit(c) || c == '_';
 }
 
-/// Pull-style lexer: call `next` repeatedly until it returns an `eof` token.
-struct Lexer
+/// Splits `source` into tokens, ending with an `eof` token. `%` comments and
+/// whitespace are skipped. Throws `ParseException` on an illegal character.
+Token[] tokenize(string source) @safe pure
 {
-    private string src;
-    private size_t pos;
-    private size_t line = 1;
+    Token[] tokens;
+    tokens.reserve(source.length / 3 + 1);
+    size_t i = 0;
+    size_t line = 1;
+    immutable n = source.length;
 
-    this(string source) pure nothrow @nogc @safe
+    void add(TokenKind k, size_t from, size_t to, long v = 0)
     {
-        src = source;
+        tokens ~= Token(k, source[from .. to], v, line);
     }
 
-    /// Return the next token, throwing `ParseException` on an illegal character.
-    Token next() @safe
+    while (i < n)
     {
-        skipTrivia();
-        if (pos >= src.length)
-            return Token(TokenKind.eof, "", 0, line);
-
-        immutable start = pos;
-        immutable c = src[pos];
-
-        Token simple(TokenKind k, size_t len)
+        immutable c = source[i];
+        if (c == '\n')
         {
-            pos += len;
-            return Token(k, src[start .. pos], 0, line);
+            ++line;
+            ++i;
         }
-
-        if (isLower(c))
+        else if (c == ' ' || c == '\t' || c == '\r')
+            ++i;
+        else if (c == '%')
         {
-            while (pos < src.length && (isLower(src[pos]) || isDigit(src[pos]) || src[pos] == '_'))
-                ++pos;
-            auto text = src[start .. pos];
-            return Token(text == "not" ? TokenKind.not : TokenKind.identifier, text, 0, line);
+            while (i < n && source[i] != '\n')
+                ++i;
         }
-        if (isUpper(c))
+        else if (isLower(c))
         {
-            while (pos < src.length && isIdentChar(src[pos]))
-                ++pos;
-            return Token(TokenKind.variable, src[start .. pos], 0, line);
+            immutable start = i;
+            while (i < n && isWordChar(source[i]))
+                ++i;
+            add(source[start .. i] == "not" ? TokenKind.not : TokenKind.identifier, start, i);
         }
-        if (c == '_')
+        else if (isUpper(c) || c == '_')
         {
-            ++pos;
-            if (pos < src.length && isIdentChar(src[pos]))
-                throw new ParseException("identifiers may not start with '_'", line);
-            return Token(TokenKind.anonymous, "_", 0, line);
+            immutable start = i;
+            while (i < n && isWordChar(source[i]))
+                ++i;
+            add(i - start == 1 && c == '_' ? TokenKind.anonymous : TokenKind.variable, start, i);
         }
-        if (isDigit(c) || (c == '-' && pos + 1 < src.length && isDigit(src[pos + 1])))
-            return lexInteger();
-
-        switch (c)
+        else if (isDigit(c) || (c == '-' && i + 1 < n && isDigit(source[i + 1])))
         {
-        case '(':
-            return simple(TokenKind.lparen, 1);
-        case ')':
-            return simple(TokenKind.rparen, 1);
-        case ',':
-            return simple(TokenKind.comma, 1);
-        case '.':
-            return simple(TokenKind.dot, 1);
-        case ':':
-            if (peekChar(1) == '-')
-                return simple(TokenKind.neck, 2);
-            break;
-        case '?':
-            if (peekChar(1) == '-')
-                return simple(TokenKind.queryMark, 2);
-            break;
-        case '<':
-            return peekChar(1) == '=' ? simple(TokenKind.le, 2) : simple(TokenKind.lt, 1);
-        case '>':
-            return peekChar(1) == '=' ? simple(TokenKind.ge, 2) : simple(TokenKind.gt, 1);
-        case '=':
-            return simple(TokenKind.eq, 1);
-        case '!':
-            if (peekChar(1) == '=')
-                return simple(TokenKind.ne, 2);
-            break;
-        default:
-            break;
-        }
-        throw new ParseException("unexpected character '" ~ c ~ "'", line);
-    }
-
-private:
-    char peekChar(size_t ahead) const pure nothrow @nogc @safe
-    {
-        return pos + ahead < src.length ? src[pos + ahead] : '\0';
-    }
-
-    void skipTrivia() pure nothrow @nogc @safe
-    {
-        while (pos < src.length)
-        {
-            immutable c = src[pos];
-            if (c == '\n')
+            immutable start = i;
+            immutable negative = c == '-';
+            if (negative)
+                ++i;
+            long v = 0;
+            while (i < n && isDigit(source[i]))
             {
-                ++line;
-                ++pos;
+                v = v * 10 + (source[i] - '0');
+                if (v > 4_000_000_000_000_000_000L)
+                    throw new ParseException("integer too large", line);
+                ++i;
             }
-            else if (c == ' ' || c == '\t' || c == '\r')
-                ++pos;
-            else if (c == '%')
+            add(TokenKind.integer, start, i, negative ? -v : v);
+        }
+        else
+        {
+            immutable next = i + 1 < n ? source[i + 1] : '\0';
+            switch (c)
             {
-                while (pos < src.length && src[pos] != '\n')
-                    ++pos;
-            }
-            else
+            case '(': add(TokenKind.lparen, i, i + 1); ++i; break;
+            case ')': add(TokenKind.rparen, i, i + 1); ++i; break;
+            case ',': add(TokenKind.comma, i, i + 1); ++i; break;
+            case '.': add(TokenKind.dot, i, i + 1); ++i; break;
+            case '=': add(TokenKind.eq, i, i + 1); ++i; break;
+            case ':':
+                if (next != '-')
+                    throw new ParseException("expected '-' after ':'", line);
+                add(TokenKind.implies, i, i + 2);
+                i += 2;
                 break;
+            case '?':
+                if (next != '-')
+                    throw new ParseException("expected '-' after '?'", line);
+                add(TokenKind.queryMark, i, i + 2);
+                i += 2;
+                break;
+            case '<':
+                if (next == '=') { add(TokenKind.le, i, i + 2); i += 2; }
+                else { add(TokenKind.lt, i, i + 1); ++i; }
+                break;
+            case '>':
+                if (next == '=') { add(TokenKind.ge, i, i + 2); i += 2; }
+                else { add(TokenKind.gt, i, i + 1); ++i; }
+                break;
+            case '!':
+                if (next != '=')
+                    throw new ParseException("expected '=' after '!'", line);
+                add(TokenKind.ne, i, i + 2);
+                i += 2;
+                break;
+            default:
+                throw new ParseException("unexpected character", line);
+            }
         }
     }
+    tokens ~= Token(TokenKind.eof, "", 0, line);
+    return tokens;
+}
 
-    Token lexInteger() @safe
+@safe pure unittest
+{
+    import std.algorithm : map;
+    import std.array : array;
+
+    auto kinds(string s) { return tokenize(s).map!(t => t.kind).array; }
+
+    with (TokenKind)
     {
-        immutable start = pos;
-        bool negative = false;
-        if (src[pos] == '-')
-        {
-            negative = true;
-            ++pos;
-        }
-        long v = 0;
-        while (pos < src.length && isDigit(src[pos]))
-        {
-            v = v * 10 + (src[pos] - '0');
-            if (v > maxIntegerMagnitude)
-                throw new ParseException("integer constant out of range", line);
-            ++pos;
-        }
-        return Token(TokenKind.integer, src[start .. pos], negative ? -v : v, line);
+        assert(kinds("") == [eof]);
+        assert(kinds("% only a comment\n  ") == [eof]);
+        assert(kinds("p(X, _, a1, -5).") == [identifier, lparen, variable, comma, anonymous,
+                comma, identifier, comma, integer, rparen, dot, eof]);
+        assert(kinds("a :- not b.") == [identifier, implies, not, identifier, dot, eof]);
+        assert(kinds("?- q(1).") == [queryMark, identifier, lparen, integer, rparen, dot, eof]);
+        assert(kinds("X<=1 X>=2 X<3 X>4 X=5 X!=6") == [variable, le, integer, variable, ge,
+                integer, variable, lt, integer, variable, gt, integer, variable, eq, integer,
+                variable, ne, integer, eof]);
     }
+}
+
+@safe pure unittest
+{
+    // Longest match: `X<-1` is X, <, -1.
+    auto t = tokenize("X<-1");
+    assert(t[1].kind == TokenKind.lt);
+    assert(t[2].kind == TokenKind.integer && t[2].value == -1);
+    // `not` is a keyword, `nothing` and `not_x` are identifiers.
+    assert(tokenize("not")[0].kind == TokenKind.not);
+    assert(tokenize("nothing")[0].kind == TokenKind.identifier);
+    assert(tokenize("not_x")[0].kind == TokenKind.identifier);
+    // Line numbers are tracked.
+    assert(tokenize("a\n\nb")[1].line == 3);
+}
+
+@safe pure unittest
+{
+    import std.exception : assertThrown;
+
+    assertThrown!ParseException(tokenize("p(a) # x"));
+    assertThrown!ParseException(tokenize("p(a) : q"));
 }

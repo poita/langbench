@@ -2,181 +2,164 @@
 module gitrepo.revision;
 
 import gitrepo.errors;
-import gitrepo.oid;
-import gitrepo.pack : ObjectType;
+import gitrepo.hex;
+import gitrepo.objectid;
+import gitrepo.objecttype;
 import gitrepo.repository;
 
-/// Resolves `rev` (see SPEC.md, "Revision syntax"). Throws `GitError` on failure.
+/// Resolve a revision expression to an object id. Only locates the object; it
+/// does not verify its content (although `^`, `~` and `^{type}` do read the
+/// objects they step through).
+///
+/// The rules, in order:
+/// $(OL
+///   $(LI `<rev>^{<peel>}` — resolve `<rev>`, then peel (`{}`, `{commit}`,
+///        `{tree}`, `{blob}`, `{tag}`, `{object}`).)
+///   $(LI `<rev>^<n>`, `<rev>^`, `<rev>~<n>`, `<rev>~` — resolve `<rev>`,
+///        peel it to a commit, then pick the n-th parent / walk first parents.)
+///   $(LI a ref name, tried as `<name>`, `refs/<name>`, `refs/tags/<name>`,
+///        `refs/heads/<name>`, `refs/remotes/<name>`, `refs/remotes/<name>/HEAD`.)
+///   $(LI 4 to 40 hexadecimal digits: a full id that must exist, or an
+///        unambiguous abbreviation.)
+/// )
+/// Throws: `GitError` if the revision cannot be resolved.
 ObjectId resolveRevision(Repository repo, string rev)
 {
-    // 1. `<rev>^{<peel>}`
+    // Rule 1: <rev>^{<peel>}
     if (rev.length > 0 && rev[$ - 1] == '}')
     {
-        for (size_t i = rev.length - 1; i-- > 0;)
+        immutable at = lastIndexOf(rev, "^{");
+        if (at > 0)
         {
-            if (rev[i] == '^' && rev[i + 1] == '{')
-            {
-                if (i != 0)
-                {
-                    immutable what = rev[i + 2 .. $ - 1];
-                    auto base = resolveRevision(repo, rev[0 .. i]);
-                    return applyPeel(repo, base, what);
-                }
-                break;
-            }
+            auto base = resolveRevision(repo, rev[0 .. at]);
+            return applyPeel(repo, base, rev[at + 2 .. $ - 1]);
         }
     }
-    // 2. `<rev>^<n>` / `<rev>~<n>`
+
+    // Rule 2: <rev>^<n> and <rev>~<n>
     {
-        size_t i = rev.length;
-        while (i > 0 && rev[i - 1] >= '0' && rev[i - 1] <= '9')
-            --i;
-        if (i > 1 && (rev[i - 1] == '^' || rev[i - 1] == '~'))
+        size_t d = rev.length;
+        while (d > 0 && rev[d - 1] >= '0' && rev[d - 1] <= '9')
+            --d;
+        if (d > 1 && (rev[d - 1] == '^' || rev[d - 1] == '~'))
         {
-            immutable op = rev[i - 1];
+            immutable op = rev[d - 1];
             ulong n = 1;
-            if (i < rev.length)
+            if (d < rev.length)
             {
                 n = 0;
-                foreach (c; rev[i .. $])
-                {
-                    if (n < (ulong.max >> 4))
-                        n = n * 10 + (c - '0');
-                }
+                foreach (c; rev[d .. $])
+                    n = n > (ulong.max - 9) / 10 ? ulong.max : n * 10 + (c - '0');
             }
-            auto id = repo.peel(resolveRevision(repo, rev[0 .. i - 1]), ObjectType.commit);
-            if (n == 0)
-                return id;
+            auto id = peel(repo, resolveRevision(repo, rev[0 .. d - 1]), ObjectType.commit);
             if (op == '^')
             {
-                auto c = repo.commit(id);
-                if (n > c.parents.length)
+                if (n == 0)
+                    return id;
+                auto parents = repo.commit(id).parents;
+                if (n > parents.length)
                     throw new GitError("no such parent");
-                return c.parents[cast(size_t) n - 1];
+                return parents[cast(size_t)(n - 1)];
             }
-            foreach (_; 0 .. n)
+            for (ulong i = 0; i < n; ++i)
             {
-                auto c = repo.commit(id);
-                if (c.parents.length == 0)
-                    throw new GitError("no parent");
-                id = c.parents[0];
+                auto parents = repo.commit(id).parents;
+                if (parents.length == 0)
+                    throw new GitError("commit has no parent");
+                id = parents[0];
             }
             return id;
         }
     }
-    // 3. names
-    ObjectId id;
-    foreach (pattern; ["", "refs/", "refs/tags/", "refs/heads/", "refs/remotes/"])
+
+    // Rule 3: a ref name
     {
-        if (repo.refs.resolve(pattern ~ rev, id))
-            return id;
+        ObjectId id;
+        foreach (pattern; [
+                rev, "refs/" ~ rev, "refs/tags/" ~ rev, "refs/heads/" ~ rev,
+                "refs/remotes/" ~ rev, "refs/remotes/" ~ rev ~ "/HEAD"
+            ])
+            if (repo.refs.resolve(pattern, id))
+                return id;
     }
-    if (repo.refs.resolve("refs/remotes/" ~ rev ~ "/HEAD", id))
-        return id;
-    // 4. object ids
-    if (rev.length >= 4 && rev.length <= 40)
+
+    // Rule 4: an object id or abbreviation
+    if (rev.length >= 4 && rev.length <= 40 && isHex(rev))
     {
-        foreach (c; rev)
-            if (hexValue(c) < 0)
-                goto notHex;
-        return findByPrefix(repo, rev);
+        if (rev.length == 40)
+        {
+            auto id = ObjectId.parse(rev);
+            if (repo.objects.contains(id))
+                return id;
+            throw new GitError("no such object");
+        }
+        auto found = repo.objects.findByPrefix(rev, 2);
+        if (found.length == 1)
+            return found[0];
+        throw new GitError(found.length == 0 ? "no such object" : "ambiguous abbreviation");
     }
-notHex:
+
+    // Rule 5
     throw new GitError("cannot resolve revision");
 }
 
-private ObjectId findByPrefix(Repository repo, string hex)
+/// Repeatedly unwrap `id` until it has type `want`: a tag is replaced by its
+/// target and a commit by its tree. Anything else is an error.
+ObjectId peel(Repository repo, ObjectId id, ObjectType want)
 {
-    ObjectId lo, hi;
-    foreach (i; 0 .. 20)
+    while (true)
     {
-        lo.bytes[i] = 0x00;
-        hi.bytes[i] = 0xff;
-    }
-    foreach (i, c; hex)
-    {
-        immutable v = cast(ubyte) hexValue(c);
-        if (i % 2 == 0)
+        immutable type = repo.readObject(id).type;
+        if (type == want)
+            return id;
+        switch (type)
         {
-            lo.bytes[i / 2] = cast(ubyte)(v << 4);
-            hi.bytes[i / 2] = cast(ubyte)(v << 4 | 0xf);
-        }
-        else
-        {
-            lo.bytes[i / 2] |= v;
-            hi.bytes[i / 2] = cast(ubyte)((hi.bytes[i / 2] & 0xf0) | v);
+        case ObjectType.tag:
+            id = repo.tagTarget(id);
+            break;
+        case ObjectType.commit:
+            id = repo.commit(id).tree;
+            break;
+        default:
+            throw new GitError("cannot peel to " ~ typeName(want));
         }
     }
-    if (hex.length == 40)
-    {
-        if (!repo.store.has(lo))
-            throw new GitError("object not found");
-        return lo;
-    }
-    auto ids = repo.store.allIds();
-    size_t a = 0, b = ids.length;
-    while (a < b)
-    {
-        immutable m = a + (b - a) / 2;
-        if (ids[m] < lo)
-            a = m + 1;
-        else
-            b = m;
-    }
-    if (a >= ids.length || ids[a] > hi)
-        throw new GitError("unknown abbreviated id");
-    if (a + 1 < ids.length && !(ids[a + 1] > hi))
-        throw new GitError("ambiguous abbreviated id");
-    return ids[a];
 }
 
+/// Apply the text between the braces of `^{...}` to `id`.
 private ObjectId applyPeel(Repository repo, ObjectId id, string what)
 {
     switch (what)
     {
     case "":
-        for (;;)
-        {
-            auto o = repo.readObject(id);
-            if (o.type != ObjectType.tag)
-                return id;
+        while (repo.readObject(id).type == ObjectType.tag)
             id = repo.tagTarget(id);
-        }
-    case "commit":
-        return peelTo(repo, id, ObjectType.commit);
-    case "tree":
-        return peelTo(repo, id, ObjectType.tree);
-    case "blob":
-        return peelTo(repo, id, ObjectType.blob);
-    case "tag":
-        return peelTo(repo, id, ObjectType.tag);
+        return id;
     case "object":
-        if (!repo.store.has(id))
-            throw new GitError("object not found");
+        if (!repo.objects.contains(id))
+            throw new GitError("no such object");
         return id;
     default:
-        throw new GitError("unknown peel");
+        ObjectType t;
+        if (!tryParseType(what, t))
+            throw new GitError("unknown peel type");
+        return peel(repo, id, t);
     }
 }
 
-/// Repeatedly: stop at an object of type `want`; tags give their target, commits their tree; anything else fails.
-ObjectId peelTo(Repository repo, ObjectId id, ObjectType want)
+private ptrdiff_t lastIndexOf(string s, string needle) @safe pure nothrow @nogc
 {
-    for (;;)
-    {
-        auto o = repo.readObject(id);
-        if (o.type == want)
-            return id;
-        if (o.type == ObjectType.tag)
-            id = repo.tagTarget(id);
-        else if (o.type == ObjectType.commit)
-        {
-            auto c = repo.commit(id);
-            if (!c.hasTree)
-                throw new GitError("commit without tree");
-            id = c.tree;
-        }
-        else
-            throw new GitError("cannot peel");
-    }
+    if (s.length < needle.length)
+        return -1;
+    for (size_t i = s.length - needle.length + 1; i-- > 0;)
+        if (s[i .. i + needle.length] == needle)
+            return i;
+    return -1;
+}
+
+unittest
+{
+    assert(lastIndexOf("a^{b}^{c}", "^{") == 5);
+    assert(lastIndexOf("^{x}", "^{") == 0);
+    assert(lastIndexOf("abc", "^{") == -1);
 }

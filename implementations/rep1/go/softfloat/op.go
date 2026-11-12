@@ -16,30 +16,30 @@ const (
 
 var opNames = [...]string{"add", "sub", "mul", "div", "sqrt"}
 
-// String returns the lowercase mnemonic of the operation ("add", "sqrt", ...).
-func (o Op) String() string {
-	if o < 0 || int(o) >= len(opNames) {
-		return fmt.Sprintf("Op(%d)", int(o))
+// String returns the lowercase mnemonic of op ("add", "sqrt", ...).
+func (op Op) String() string {
+	if op < 0 || int(op) >= len(opNames) {
+		return fmt.Sprintf("Op(%d)", int(op))
 	}
-	return opNames[o]
+	return opNames[op]
 }
 
-// Unary reports whether the operation takes a single operand.
-func (o Op) Unary() bool { return o == OpSqrt }
-
-// ParseOp converts a mnemonic such as "mul" to an Op.
-func ParseOp(s string) (Op, error) {
+// ParseOp converts a mnemonic such as "add" into an Op.
+func ParseOp(s string) (Op, bool) {
 	for i, n := range opNames {
 		if n == s {
-			return Op(i), nil
+			return Op(i), true
 		}
 	}
-	return 0, fmt.Errorf("softfloat: unknown operation %q", s)
+	return 0, false
 }
 
-// Eval applies op to the operands. The second operand is ignored for unary
-// operations. An invalid Op yields QNaN.
-func Eval(op Op, a, b uint32) uint32 {
+// Unary reports whether op takes a single operand.
+func (op Op) Unary() bool { return op == OpSqrt }
+
+// Apply evaluates op on the operands; b is ignored for unary operations.
+// An unknown op returns QNaN.
+func Apply(op Op, a, b uint32) uint32 {
 	switch op {
 	case OpAdd:
 		return Add(a, b)

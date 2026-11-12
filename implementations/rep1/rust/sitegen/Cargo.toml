@@ -1,0 +1,20 @@
+[package]
+name = "sitegen"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.96"
+description = "A small static site generator with its own Markdown, template and TOML-subset implementations"
+license = "MIT"
+readme = "README.md"
+keywords = ["static-site-generator", "markdown", "template", "toml"]
+categories = ["command-line-utilities", "template-engine"]
+
+[lib]
+name = "sitegen"
+path = "src/lib.rs"
+
+[[bin]]
+name = "sitegen"
+path = "src/main.rs"
+
+[dependencies]

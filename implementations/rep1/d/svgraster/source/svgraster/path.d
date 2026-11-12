@@ -1,444 +1,323 @@
-/// Path model (`M`/`L`/`C`/`Z` segments), the path-data parser, elliptical
-/// arc conversion and curve flattening.
+/// Vector paths: construction (including elliptical arcs) and flattening to
+/// polylines within a tolerance.
 module svgraster.path;
 
-import std.math : abs, atan2, ceil, cos, sin, sqrt, tan, PI;
-import svgraster.buf;
+import std.math : sqrt, abs, ceil, atan2, cos, sin, tan, PI, isFinite;
 import svgraster.geom;
-import svgraster.parse;
 
-/// Segment kinds stored in a `Path`.
-enum Op : ubyte
+/// The kind of a path segment.
+enum SegKind : ubyte
 {
-    move,  /// `M`: 1 point
-    line,  /// `L`: 1 point
-    cubic, /// `C`: 3 points
-    close, /// `Z`: no points
+    move,
+    line,
+    cubic,
+    close,
 }
 
-/// A path made only of move, line, cubic and close segments.
+/// One path segment. `move` and `line` use `p3` as the end point; `cubic` uses
+/// `p1`, `p2` as control points and `p3` as the end point.
+struct Segment
+{
+    SegKind kind;
+    Point p1, p2, p3;
+}
+
+/// A path built from `M`, `L`, `C` and `Z` segments.
 struct Path
 {
-    Buf!Op ops;
-    Buf!Vec2 pts;
+    /// The segments in order.
+    Segment[] segments;
 
-    /// Remove all segments, keeping capacity.
-    void clear() pure nothrow @safe
+    /// Current point (valid once a segment has been added).
+    Point current;
+    /// Start of the current subpath.
+    Point start;
+
+    /// Begin a subpath at `p`.
+    void moveTo(Point p)
     {
-        ops.clear();
-        pts.clear();
-    }
-
-    /// True when the path has no segments.
-    @property bool empty() const pure nothrow @nogc @safe { return ops.length == 0; }
-
-    /// Start a new subpath.
-    void moveTo(Vec2 p) pure nothrow @safe
-    {
-        ops.push(Op.move);
-        pts.push(p);
+        segments ~= Segment(SegKind.move, Point.init, Point.init, p);
+        current = start = p;
     }
 
     /// Straight line to `p`.
-    void lineTo(Vec2 p) pure nothrow @safe
+    void lineTo(Point p)
     {
-        ops.push(Op.line);
-        pts.push(p);
+        segments ~= Segment(SegKind.line, Point.init, Point.init, p);
+        current = p;
     }
 
-    /// Cubic Bézier with control points `c1`, `c2` ending at `p`.
-    void cubicTo(Vec2 c1, Vec2 c2, Vec2 p) pure nothrow @safe
+    /// Cubic Bézier to `p` with control points `c1` and `c2`.
+    void cubicTo(Point c1, Point c2, Point p)
     {
-        ops.push(Op.cubic);
-        pts.push(c1);
-        pts.push(c2);
-        pts.push(p);
+        segments ~= Segment(SegKind.cubic, c1, c2, p);
+        current = p;
     }
 
-    /// Close the current subpath.
-    void close() pure nothrow @safe
+    /// Close the current subpath; the current point returns to its start.
+    void close()
     {
-        ops.push(Op.close);
-    }
-}
-
-/// Append the cubic approximation of an elliptical arc from `p0` to `p1`
-/// (SVG 1.1 implementation notes F.6.5/F.6.6, SPEC §7.5). `phiDeg` is the
-/// x-axis rotation in degrees.
-void arcTo(ref Path path, Vec2 p0, double rx, double ry, double phiDeg,
-    bool largeArc, bool sweep, Vec2 p1) @trusted pure nothrow
-{
-    if (p0.x == p1.x && p0.y == p1.y)
-        return;
-    rx = abs(rx);
-    ry = abs(ry);
-    if (rx == 0 || ry == 0)
-    {
-        path.lineTo(p1);
-        return;
-    }
-    immutable phi = phiDeg * PI / 180.0;
-    immutable cp = cos(phi), sp = sin(phi);
-    immutable dx = (p0.x - p1.x) / 2, dy = (p0.y - p1.y) / 2;
-    immutable x1p = cp * dx + sp * dy;
-    immutable y1p = -sp * dx + cp * dy;
-    immutable lambda = x1p * x1p / (rx * rx) + y1p * y1p / (ry * ry);
-    if (lambda > 1)
-    {
-        immutable s = sqrt(lambda);
-        rx *= s;
-        ry *= s;
-    }
-    immutable rx2 = rx * rx, ry2 = ry * ry;
-    immutable num = rx2 * ry2 - rx2 * y1p * y1p - ry2 * x1p * x1p;
-    immutable den = rx2 * y1p * y1p + ry2 * x1p * x1p;
-    double coef = den == 0 ? 0 : sqrt(num / den > 0 ? num / den : 0);
-    if (largeArc == sweep)
-        coef = -coef;
-    immutable cxp = coef * rx * y1p / ry;
-    immutable cyp = -coef * ry * x1p / rx;
-    immutable cx = cp * cxp - sp * cyp + (p0.x + p1.x) / 2;
-    immutable cy = sp * cxp + cp * cyp + (p0.y + p1.y) / 2;
-    immutable ux = (x1p - cxp) / rx, uy = (y1p - cyp) / ry;
-    immutable vx = (-x1p - cxp) / rx, vy = (-y1p - cyp) / ry;
-    immutable theta1 = atan2(uy, ux);
-    double dtheta = atan2(ux * vy - uy * vx, ux * vx + uy * vy);
-    if (sweep && dtheta < 0)
-        dtheta += 2 * PI;
-    else if (!sweep && dtheta > 0)
-        dtheta -= 2 * PI;
-
-    int n = cast(int) ceil(abs(dtheta) / (PI / 4));
-    if (n < 1)
-        n = 1;
-    immutable delta = dtheta / n;
-    immutable k = 4.0 / 3.0 * tan(delta / 4);
-
-    Vec2 ellipse(double t)
-    {
-        immutable ex = rx * cos(t), ey = ry * sin(t);
-        return Vec2(cx + cp * ex - sp * ey, cy + sp * ex + cp * ey);
-    }
-    Vec2 tangent(double t)
-    {
-        immutable ex = -rx * sin(t), ey = ry * cos(t);
-        return Vec2(cp * ex - sp * ey, sp * ex + cp * ey);
+        segments ~= Segment(SegKind.close);
+        current = start;
     }
 
-    foreach (i; 0 .. n)
+    /// Elliptical arc from the current point to `to`, with the SVG 1.1
+    /// endpoint parameterisation (implementation notes F.6.5, F.6.6),
+    /// approximated by cubic segments of at most a quarter turn each.
+    void arcTo(double rx, double ry, double rotationDeg, bool largeArc, bool sweep, Point to)
     {
-        immutable t0 = theta1 + i * delta, t1 = t0 + delta;
-        immutable e0 = ellipse(t0), e1 = ellipse(t1);
-        immutable d0 = tangent(t0), d1 = tangent(t1);
-        Vec2 c1 = Vec2(e0.x + k * d0.x, e0.y + k * d0.y);
-        Vec2 c2 = Vec2(e1.x - k * d1.x, e1.y - k * d1.y);
-        Vec2 end = (i == n - 1) ? p1 : e1;
-        path.cubicTo(c1, c2, end);
-    }
-}
-
-/// Parse SVG path data (SPEC §7.4) and append the result to `path`. Parsing
-/// stops at the first unexpected token; everything parsed before it is kept.
-void parsePathData(const(char)[] d, ref Path path) @safe pure nothrow
-{
-    size_t p = 0;
-    Vec2 cur, start, lastCtrl;
-    char prevKind = 0; // 'C' after C/S, 'Q' after Q/T, else 0
-    char cmd = 0;
-    bool seenMove = false;
-
-    bool num(out double v)
-    {
-        skipSpaceComma(d, p);
-        return parseNumber(d, p, v);
-    }
-    bool flag(out bool v)
-    {
-        skipSpaceComma(d, p);
-        if (p < d.length && (d[p] == '0' || d[p] == '1'))
-        {
-            v = d[p] == '1';
-            ++p;
-            return true;
-        }
-        return false;
-    }
-
-    for (;;)
-    {
-        skipSpaceComma(d, p);
-        if (p >= d.length)
+        immutable from = current;
+        if (from.x == to.x && from.y == to.y)
             return;
-        immutable c = d[p];
-        if (isCommandLetter(c))
+        rx = abs(rx);
+        ry = abs(ry);
+        if (rx == 0 || ry == 0)
         {
-            cmd = c;
-            ++p;
-            if (cmd == 'Z' || cmd == 'z')
-            {
-                if (seenMove)
-                {
-                    path.close();
-                    cur = start;
-                }
-                prevKind = 0;
-                cmd = 0;
-                continue;
-            }
-        }
-        else if (!(isNumberStart(c) && cmd != 0))
-            return;
-
-        if (!seenMove && cmd != 'M' && cmd != 'm')
-            return;
-
-        immutable rel = cmd >= 'a';
-        immutable ox = rel ? cur.x : 0.0;
-        immutable oy = rel ? cur.y : 0.0;
-        double x1, y1, x2, y2, x, y;
-        switch (cmd)
-        {
-        case 'M':
-        case 'm':
-            if (!num(x) || !num(y))
-                return;
-            cur = start = Vec2(ox + x, oy + y);
-            path.moveTo(cur);
-            seenMove = true;
-            cmd = rel ? 'l' : 'L';
-            prevKind = 0;
-            break;
-        case 'L':
-        case 'l':
-            if (!num(x) || !num(y))
-                return;
-            cur = Vec2(ox + x, oy + y);
-            path.lineTo(cur);
-            prevKind = 0;
-            break;
-        case 'H':
-        case 'h':
-            if (!num(x))
-                return;
-            cur = Vec2(ox + x, cur.y);
-            path.lineTo(cur);
-            prevKind = 0;
-            break;
-        case 'V':
-        case 'v':
-            if (!num(y))
-                return;
-            cur = Vec2(cur.x, oy + y);
-            path.lineTo(cur);
-            prevKind = 0;
-            break;
-        case 'C':
-        case 'c':
-            if (!num(x1) || !num(y1) || !num(x2) || !num(y2) || !num(x) || !num(y))
-                return;
-            lastCtrl = Vec2(ox + x2, oy + y2);
-            path.cubicTo(Vec2(ox + x1, oy + y1), lastCtrl, Vec2(ox + x, oy + y));
-            cur = Vec2(ox + x, oy + y);
-            prevKind = 'C';
-            break;
-        case 'S':
-        case 's':
-            if (!num(x2) || !num(y2) || !num(x) || !num(y))
-                return;
-            {
-                Vec2 c1 = prevKind == 'C' ? Vec2(2 * cur.x - lastCtrl.x, 2 * cur.y - lastCtrl.y) : cur;
-                lastCtrl = Vec2(ox + x2, oy + y2);
-                path.cubicTo(c1, lastCtrl, Vec2(ox + x, oy + y));
-                cur = Vec2(ox + x, oy + y);
-                prevKind = 'C';
-            }
-            break;
-        case 'Q':
-        case 'q':
-            if (!num(x1) || !num(y1) || !num(x) || !num(y))
-                return;
-            quadTo(path, cur, Vec2(ox + x1, oy + y1), Vec2(ox + x, oy + y));
-            lastCtrl = Vec2(ox + x1, oy + y1);
-            cur = Vec2(ox + x, oy + y);
-            prevKind = 'Q';
-            break;
-        case 'T':
-        case 't':
-            if (!num(x) || !num(y))
-                return;
-            {
-                Vec2 q = prevKind == 'Q' ? Vec2(2 * cur.x - lastCtrl.x, 2 * cur.y - lastCtrl.y) : cur;
-                quadTo(path, cur, q, Vec2(ox + x, oy + y));
-                lastCtrl = q;
-                cur = Vec2(ox + x, oy + y);
-                prevKind = 'Q';
-            }
-            break;
-        case 'A':
-        case 'a':
-            {
-                double rx, ry, rot;
-                bool large, sweep;
-                if (!num(rx) || !num(ry) || !num(rot) || !flag(large) || !flag(sweep) || !num(x) || !num(y))
-                    return;
-                Vec2 end = Vec2(ox + x, oy + y);
-                arcTo(path, cur, rx, ry, rot, large, sweep, end);
-                cur = end;
-                prevKind = 0;
-            }
-            break;
-        default:
+            lineTo(to);
             return;
         }
-        // A subpath that continues after a close starts at the old start point;
-        // `cur` already equals `start` in that case.
-    }
-}
+        immutable phi = rotationDeg * PI / 180;
+        immutable cphi = cos(phi), sphi = sin(phi);
 
-private bool isCommandLetter(char c) pure nothrow @nogc @safe
-{
-    switch (c)
+        // F.6.5.1
+        immutable dx2 = (from.x - to.x) / 2, dy2 = (from.y - to.y) / 2;
+        immutable x1p = cphi * dx2 + sphi * dy2;
+        immutable y1p = -sphi * dx2 + cphi * dy2;
+
+        // F.6.6.2
+        immutable lambda = x1p * x1p / (rx * rx) + y1p * y1p / (ry * ry);
+        if (lambda > 1)
+        {
+            immutable sl = sqrt(lambda);
+            rx *= sl;
+            ry *= sl;
+        }
+
+        // F.6.5.2
+        immutable rx2 = rx * rx, ry2 = ry * ry;
+        immutable num = rx2 * ry2 - rx2 * y1p * y1p - ry2 * x1p * x1p;
+        immutable den = rx2 * y1p * y1p + ry2 * x1p * x1p;
+        double coef = den == 0 ? 0 : sqrt(num / den < 0 ? 0 : num / den);
+        if (largeArc == sweep)
+            coef = -coef;
+        immutable cxp = coef * (rx * y1p / ry);
+        immutable cyp = coef * -(ry * x1p / rx);
+
+        // F.6.5.3
+        immutable cx = cphi * cxp - sphi * cyp + (from.x + to.x) / 2;
+        immutable cy = sphi * cxp + cphi * cyp + (from.y + to.y) / 2;
+
+        // F.6.5.5, F.6.5.6
+        immutable ux = (x1p - cxp) / rx, uy = (y1p - cyp) / ry;
+        immutable vx = (-x1p - cxp) / rx, vy = (-y1p - cyp) / ry;
+        immutable theta1 = atan2(uy, ux);
+        double dtheta = atan2(ux * vy - uy * vx, ux * vx + uy * vy);
+        if (sweep && dtheta < 0)
+            dtheta += 2 * PI;
+        else if (!sweep && dtheta > 0)
+            dtheta -= 2 * PI;
+
+        int n = cast(int) ceil(abs(dtheta) / (PI / 4));
+        if (n < 1)
+            n = 1;
+        immutable delta = dtheta / n;
+        immutable k = 4.0 / 3.0 * tan(delta / 4);
+
+        Point ellipse(double t)
+        {
+            immutable ex = rx * cos(t), ey = ry * sin(t);
+            return Point(cx + cphi * ex - sphi * ey, cy + sphi * ex + cphi * ey);
+        }
+        Point tangent(double t)
+        {
+            immutable ex = -rx * sin(t), ey = ry * cos(t);
+            return Point(cphi * ex - sphi * ey, sphi * ex + cphi * ey);
+        }
+
+        Point p0 = from;
+        foreach (seg; 0 .. n)
+        {
+            immutable t0 = theta1 + seg * delta;
+            immutable t1 = t0 + delta;
+            immutable e0 = ellipse(t0);
+            immutable e1 = ellipse(t1);
+            immutable d0 = tangent(t0);
+            immutable d1 = tangent(t1);
+            immutable c1 = Point(e0.x + k * d0.x, e0.y + k * d0.y);
+            immutable c2 = Point(e1.x - k * d1.x, e1.y - k * d1.y);
+            immutable p3 = seg == n - 1 ? to : e1;
+            cubicTo(c1, c2, p3);
+            p0 = p3;
+        }
+    }
+
+    /// A copy of this path with every point transformed by `m`.
+    Path transformed(const Matrix m) const
     {
-    case 'M': case 'm': case 'L': case 'l': case 'H': case 'h': case 'V': case 'v':
-    case 'C': case 'c': case 'S': case 's': case 'Q': case 'q': case 'T': case 't':
-    case 'A': case 'a': case 'Z': case 'z':
-        return true;
-    default:
-        return false;
+        Path r;
+        r.segments.length = segments.length;
+        foreach (i, s; segments)
+        {
+            r.segments[i] = Segment(s.kind, m.apply(s.p1), m.apply(s.p2), m.apply(s.p3));
+        }
+        return r;
     }
 }
 
-private void quadTo(ref Path path, Vec2 c, Vec2 q, Vec2 e) pure nothrow @safe
+/// A flattened subpath.
+struct Polyline
 {
-    path.cubicTo(Vec2(c.x + 2.0 / 3.0 * (q.x - c.x), c.y + 2.0 / 3.0 * (q.y - c.y)),
-        Vec2(e.x + 2.0 / 3.0 * (q.x - e.x), e.y + 2.0 / 3.0 * (q.y - e.y)), e);
+    /// Vertices in order. A subpath with a single point is legal.
+    Point[] points;
+    /// `true` if the subpath ended with `Z`.
+    bool closed;
 }
 
-/// A flattened subpath: indices into `FlatPath.pts`.
-struct SubPath
-{
-    size_t begin; /// first point
-    size_t end;   /// one past the last point
-    bool closed;  /// ended with `Z`
-}
-
-/// A path flattened into polylines.
-struct FlatPath
-{
-    Buf!Vec2 pts;
-    Buf!SubPath subs;
-
-    /// Remove everything, keeping capacity.
-    void clear() pure nothrow @safe
-    {
-        pts.clear();
-        subs.clear();
-    }
-
-    /// The points of subpath `s`.
-    const(Vec2)[] points(const SubPath s) const pure nothrow @nogc @safe
-    {
-        return pts.slice[s.begin .. s.end];
-    }
-}
-
-/// Number of equal parameter steps used to flatten a cubic with the given
-/// control points to within `tol` (SPEC §7.6).
-int cubicSteps(Vec2 p0, Vec2 p1, Vec2 p2, Vec2 p3, double tol) pure nothrow @nogc @trusted
-{
-    immutable ax = p0.x - 2 * p1.x + p2.x, ay = p0.y - 2 * p1.y + p2.y;
-    immutable bx = p1.x - 2 * p2.x + p3.x, by = p1.y - 2 * p2.y + p3.y;
-    immutable a2 = ax * ax + ay * ay, b2 = bx * bx + by * by;
-    immutable m = a2 > b2 ? a2 : b2;
-    immutable v = sqrt(0.75 * sqrt(m) / tol);
-    if (!(v == v)) // NaN
-        return 1;
-    if (v >= 1000)
-        return 1000;
-    int n = cast(int) ceil(v);
-    return n < 1 ? 1 : n;
-}
-
-/// Flatten `path` into `outPath`, transforming every control point by `m`
-/// first and subdividing cubics to within `tol` (in the transformed space).
+/// Flatten `path` to polylines so that every point of each curve lies within
+/// `tolerance` (in the units of `path`) of the polyline.
 ///
-/// A subpath starts at an `M` that is followed by at least one drawing
-/// command (a lone `M` contributes nothing). `M Z` yields a one-point closed
-/// subpath. A drawing command after `Z` starts a new subpath at the start
-/// point of the closed one.
-void flatten(const Path path, const Matrix m, double tol, ref FlatPath outPath) pure nothrow @safe
+/// A subpath starts at each `move`. A lone `move` with nothing after it is not
+/// a subpath and is dropped. After a `close`, a drawing segment starts a new
+/// subpath at the start point of the closed one.
+Polyline[] flatten(const Path path, double tolerance)
 {
-    outPath.clear();
-    Vec2 cur, start;
-    bool active = false, haveMove = false;
-    size_t subBegin = 0;
-    size_t pi = 0;
+    Polyline[] result;
+    Polyline cur;
+    bool active = false, haveStart = false;
+    Point start, pos;
 
-    void endSub(bool closed)
+    void flush()
     {
-        outPath.subs.push(SubPath(subBegin, outPath.pts.length, closed));
+        if (active && (cur.points.length > 1 || cur.closed))
+            result ~= cur;
+        cur = Polyline.init;
         active = false;
     }
-    void ensureSub()
+
+    void ensureOpen()
     {
-        if (!active)
+        if (!active || cur.closed)
         {
-            subBegin = outPath.pts.length;
-            outPath.pts.push(cur);
+            flush();
+            cur.points = [start];
             active = true;
-            haveMove = false;
+            pos = start;
         }
     }
 
-    foreach (op; path.ops.slice)
+    foreach (ref s; path.segments)
     {
-        final switch (op)
+        final switch (s.kind)
         {
-        case Op.move:
-            if (active)
-                endSub(false);
-            cur = start = m.apply(path.pts.slice[pi++]);
-            haveMove = true;
+        case SegKind.move:
+            flush();
+            cur.points = [s.p3];
+            active = true;
+            start = pos = s.p3;
+            haveStart = true;
             break;
-        case Op.line:
-            ensureSub();
-            cur = m.apply(path.pts.slice[pi++]);
-            outPath.pts.push(cur);
+        case SegKind.line:
+            if (!haveStart)
+                break;
+            ensureOpen();
+            cur.points ~= s.p3;
+            pos = s.p3;
             break;
-        case Op.cubic:
+        case SegKind.cubic:
+            if (!haveStart)
+                break;
+            ensureOpen();
+            flattenCubic(cur.points, pos, s.p1, s.p2, s.p3, tolerance);
+            pos = s.p3;
+            break;
+        case SegKind.close:
+            if (active && !cur.closed)
             {
-                ensureSub();
-                immutable c1 = m.apply(path.pts.slice[pi]);
-                immutable c2 = m.apply(path.pts.slice[pi + 1]);
-                immutable e = m.apply(path.pts.slice[pi + 2]);
-                pi += 3;
-                immutable n = cubicSteps(cur, c1, c2, e, tol);
-                foreach (i; 1 .. n)
-                {
-                    immutable t = cast(double) i / n;
-                    immutable u = 1 - t;
-                    immutable w0 = u * u * u, w1 = 3 * u * u * t, w2 = 3 * u * t * t, w3 = t * t * t;
-                    outPath.pts.push(Vec2(w0 * cur.x + w1 * c1.x + w2 * c2.x + w3 * e.x,
-                        w0 * cur.y + w1 * c1.y + w2 * c2.y + w3 * e.y));
-                }
-                outPath.pts.push(e);
-                cur = e;
+                cur.closed = true;
+                pos = start;
             }
-            break;
-        case Op.close:
-            if (active)
-                endSub(true);
-            else if (haveMove)
-            {
-                subBegin = outPath.pts.length;
-                outPath.pts.push(start);
-                endSub(true);
-                haveMove = false;
-            }
-            cur = start;
             break;
         }
     }
-    if (active)
-        endSub(false);
+    flush();
+    return result;
+}
+
+/// Number of equal parameter steps used to flatten a cubic.
+int cubicSteps(Point p0, Point p1, Point p2, Point p3, double tolerance)
+{
+    immutable a = Point(p0.x - 2 * p1.x + p2.x, p0.y - 2 * p1.y + p2.y);
+    immutable b = Point(p1.x - 2 * p2.x + p3.x, p1.y - 2 * p2.y + p3.y);
+    immutable m = a.x * a.x + a.y * a.y > b.x * b.x + b.y * b.y
+        ? a.x * a.x + a.y * a.y : b.x * b.x + b.y * b.y;
+    if (!isFinite(m))
+        return 1;
+    immutable nf = ceil(sqrt(0.75 * sqrt(m) / tolerance));
+    if (!(nf >= 1))
+        return 1;
+    return nf > 1000 ? 1000 : cast(int) nf;
+}
+
+/// Append the points of a flattened cubic (excluding the start point).
+void flattenCubic(ref Point[] out_, Point p0, Point p1, Point p2, Point p3, double tolerance)
+{
+    immutable n = cubicSteps(p0, p1, p2, p3, tolerance);
+    foreach (i; 1 .. n)
+    {
+        immutable t = cast(double) i / n;
+        immutable u = 1 - t;
+        immutable w0 = u * u * u, w1 = 3 * u * u * t, w2 = 3 * u * t * t, w3 = t * t * t;
+        out_ ~= Point(w0 * p0.x + w1 * p1.x + w2 * p2.x + w3 * p3.x,
+                w0 * p0.y + w1 * p1.y + w2 * p2.y + w3 * p3.y);
+    }
+    out_ ~= p3;
+}
+
+unittest
+{
+    import std.math : isClose;
+
+    Path p;
+    p.moveTo(Point(0, 0));
+    p.lineTo(Point(10, 0));
+    p.lineTo(Point(10, 10));
+    p.close();
+    auto polys = flatten(p, 0.01);
+    assert(polys.length == 1 && polys[0].closed && polys[0].points.length == 3);
+
+    // A lone move is not a subpath; a closed lone move is.
+    Path q;
+    q.moveTo(Point(1, 1));
+    q.moveTo(Point(2, 2));
+    q.close();
+    q.lineTo(Point(5, 5));
+    polys = flatten(q, 0.01);
+    assert(polys.length == 2 && polys[0].closed && polys[0].points.length == 1);
+    assert(polys[1].points == [Point(2, 2), Point(5, 5)]);
+}
+
+unittest
+{
+    import std.math : isClose;
+
+    // A half circle of radius 5: all flattened points are close to the circle.
+    Path p;
+    p.moveTo(Point(0, 0));
+    p.arcTo(5, 5, 0, false, true, Point(10, 0));
+    auto polys = flatten(p, 0.01);
+    assert(polys.length == 1);
+    foreach (pt; polys[0].points)
+    {
+        immutable r = Point(pt.x - 5, pt.y).length;
+        assert(abs(r - 5) < 0.011);
+    }
+    // Radii that are too small are scaled up; identical endpoints are dropped.
+    Path q;
+    q.moveTo(Point(0, 0));
+    q.arcTo(1, 1, 0, false, false, Point(10, 0));
+    assert(abs(q.current.x - 10) < 1e-12);
+    Path z;
+    z.moveTo(Point(3, 3));
+    z.arcTo(1, 1, 0, false, false, Point(3, 3));
+    assert(z.segments.length == 1);
 }

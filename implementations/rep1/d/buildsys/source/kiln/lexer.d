@@ -1,153 +1,145 @@
-/// KBL lexical analysis: comment stripping, logical-line assembly, tokenisation.
+/**
+ * The KBL lexer: comment stripping, logical-line assembly and tokenisation.
+ *
+ * Comment stripping and bracket counting share one *literal scanner*
+ * (`skipDouble` / `skipSingle` / `skipRegion`) so that every stage agrees on
+ * what lies inside a string literal.
+ */
 module kiln.lexer;
 
-import kiln.errors;
-
-/// Kind of a lexical token.
-enum TokKind : ubyte
-{
-    ident,
-    integer,
-    str,
-    sym
-}
+import kiln.errors : SyntaxError;
 
 /// A lexical token.
 struct Token
 {
-    TokKind kind;
-    string text; /// identifier name, symbol spelling, or the raw body of a string literal
-    long value; /// value of an integer token
-    bool dq; /// for strings: double-quoted (interpolating) rather than single-quoted
+    /// Token classes.  Punctuation and operators are both `symbol`.
+    enum Kind : ubyte { ident, integer, str, symbol }
+
+    ///
+    Kind kind;
+    /// The source text (for `str`, the whole literal including quotes).
+    string text;
+
+    /// True for the symbol with spelling `s`.
+    bool isSym(string s) const @safe pure nothrow @nogc { return kind == Kind.symbol && text == s; }
+    /// True for the identifier (or keyword) with spelling `s`.
+    bool isIdent(string s) const @safe pure nothrow @nogc { return kind == Kind.ident && text == s; }
 }
 
-/// A logical line: its first physical line number, its text and its tokens.
+/// One logical line: its first physical line number and its tokens.
 struct LogicalLine
 {
+    ///
     int line;
-    string text;
+    ///
     Token[] tokens;
 }
 
-/// The reserved words, which cannot be used as names.
-bool isReserved(const(char)[] s) pure nothrow @safe
+/// The reserved words of KBL.
+immutable string[] reservedWords = [
+    "abort", "after", "cmd", "cost", "default", "depfile", "each", "elsewhen", "false", "in",
+    "include", "let", "otherwise", "out", "phony", "rule", "set", "step", "true", "use", "when",
+];
+
+/// True if `s` is a reserved word.
+bool isReserved(const(char)[] s) @safe pure nothrow @nogc
 {
-    switch (s)
-    {
-    case "abort", "after", "cmd", "cost", "default", "depfile", "each", "elsewhen",
-            "false", "in", "include", "let", "otherwise", "out", "phony", "rule",
-            "set", "step", "true", "use", "when":
-        return true;
-    default:
-        return false;
-    }
+    foreach (w; reservedWords)
+        if (w == s)
+            return true;
+    return false;
 }
 
-/// The literal scanner shared by all lexing stages.
-///
-/// `i` is the index just after the opening quote `q`. Returns the index just
-/// after the closing quote, or -1 if the literal is unterminated.
-ptrdiff_t scanLiteral(const(char)[] s, size_t i, char q) pure nothrow @nogc @safe
+/// Skips a single-quoted literal starting at `s[i] == '\''`; returns the index after the closing quote.
+size_t skipSingle(const(char)[] s, size_t i) @safe pure
 {
-    const n = s.length;
-    if (q == '\'')
+    size_t j = i + 1;
+    while (true)
     {
-        while (i < n)
+        if (j >= s.length)
+            throw new SyntaxError(0, "unterminated literal");
+        if (s[j] == '\'')
         {
-            if (s[i] == '\'')
-            {
-                if (i + 1 < n && s[i + 1] == '\'')
-                {
-                    i += 2;
-                    continue;
-                }
-                return cast(ptrdiff_t)(i + 1);
-            }
-            ++i;
-        }
-        return -1;
-    }
-    while (i < n)
-    {
-        const c = s[i];
-        if (c == '\\')
-        {
-            i += 2;
-        }
-        else if (c == '{')
-        {
-            if (i + 1 < n && s[i + 1] == '{')
-            {
-                i += 2;
-                continue;
-            }
-            const end = scanRegion(s, i + 1);
-            if (end < 0)
-                return -1;
-            i = cast(size_t) end;
-        }
-        else if (c == '}')
-        {
-            i += (i + 1 < n && s[i + 1] == '}') ? 2 : 1;
-        }
-        else if (c == '"')
-        {
-            return cast(ptrdiff_t)(i + 1);
+            if (j + 1 < s.length && s[j + 1] == '\'')
+                j += 2;
+            else
+                return j + 1;
         }
         else
-            ++i;
+            ++j;
     }
-    return -1;
 }
 
-/// Scans an interpolation region starting just after its `{`. Returns the index
-/// just after the matching `}`, or -1 if the region is not closed.
-ptrdiff_t scanRegion(const(char)[] s, size_t i) pure nothrow @nogc @safe
+/// Skips a double-quoted literal starting at `s[i] == '"'`; returns the index after the closing quote.
+size_t skipDouble(const(char)[] s, size_t i) @safe pure
 {
-    int depth = 1;
-    const n = s.length;
-    while (depth > 0)
+    size_t j = i + 1;
+    while (true)
     {
-        if (i >= n)
-            return -1;
-        const c = s[i];
-        if (c == '"' || c == '\'')
+        if (j >= s.length)
+            throw new SyntaxError(0, "unterminated literal");
+        const c = s[j];
+        if (c == '\\')
+            j += 2;
+        else if (c == '"')
+            return j + 1;
+        else if (c == '{')
         {
-            const j = scanLiteral(s, i + 1, c);
-            if (j < 0)
-                return -1;
-            i = cast(size_t) j;
-            continue;
+            if (j + 1 < s.length && s[j + 1] == '{')
+                j += 2;
+            else
+                j = skipRegion(s, j + 1);
         }
-        if (c == '{')
-            ++depth;
         else if (c == '}')
-            --depth;
-        ++i;
+            j += (j + 1 < s.length && s[j + 1] == '}') ? 2 : 1;
+        else
+            ++j;
     }
-    return cast(ptrdiff_t) i;
 }
 
-private bool isIdentStart(char c) pure nothrow @nogc @safe
+/// Skips an interpolation region whose body starts at `s[i]`; returns the index after the closing `}`.
+size_t skipRegion(const(char)[] s, size_t i) @safe pure
 {
-    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
+    size_t j = i;
+    int depth = 1;
+    while (true)
+    {
+        if (j >= s.length)
+            throw new SyntaxError(0, "unterminated interpolation");
+        const c = s[j];
+        if (c == '"')
+            j = skipDouble(s, j);
+        else if (c == '\'')
+            j = skipSingle(s, j);
+        else
+        {
+            ++j;
+            if (c == '{')
+                ++depth;
+            else if (c == '}' && --depth == 0)
+                return j;
+        }
+    }
 }
 
-private bool isDigit(char c) pure nothrow @nogc @safe
+private bool isIdentStart(char c) @safe pure nothrow @nogc
+{
+    return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_';
+}
+
+private bool isDigit(char c) @safe pure nothrow @nogc
 {
     return c >= '0' && c <= '9';
 }
 
-/// Splits `s` into tokens. Returns false on a lexical error (a stray byte, a bare
-/// `|` or `&`, or an unterminated literal).
-bool tokenize(string s, out Token[] result) pure @safe
+/// Splits `text` (one logical line, or an interpolation body) into tokens.
+Token[] tokenize(string text) @safe pure
 {
-    Token[] toks;
+    Token[] tokens;
     size_t i = 0;
-    const n = s.length;
-    while (i < n)
+    while (i < text.length)
     {
-        const c = s[i];
+        const c = text[i];
         if (c == ' ' || c == '\t')
         {
             ++i;
@@ -155,142 +147,202 @@ bool tokenize(string s, out Token[] result) pure @safe
         else if (isIdentStart(c))
         {
             size_t j = i + 1;
-            while (j < n && (isIdentStart(s[j]) || isDigit(s[j])))
+            while (j < text.length && (isIdentStart(text[j]) || isDigit(text[j])))
                 ++j;
-            toks ~= Token(TokKind.ident, s[i .. j]);
+            tokens ~= Token(Token.Kind.ident, text[i .. j]);
             i = j;
         }
         else if (isDigit(c))
         {
-            size_t j = i;
-            long v = 0;
-            while (j < n && isDigit(s[j]))
-            {
-                v = v * 10 + (s[j] - '0');
+            size_t j = i + 1;
+            while (j < text.length && isDigit(text[j]))
                 ++j;
-            }
-            toks ~= Token(TokKind.integer, s[i .. j], v);
+            tokens ~= Token(Token.Kind.integer, text[i .. j]);
             i = j;
         }
         else if (c == '"' || c == '\'')
         {
-            const j = scanLiteral(s, i + 1, c);
-            if (j < 0)
-                return false;
-            toks ~= Token(TokKind.str, s[i + 1 .. cast(size_t) j - 1], 0, c == '"');
-            i = cast(size_t) j;
+            const j = c == '"' ? skipDouble(text, i) : skipSingle(text, i);
+            tokens ~= Token(Token.Kind.str, text[i .. j]);
+            i = j;
         }
         else
         {
-            string two = i + 1 < n ? s[i .. i + 2] : null;
-            switch (two)
+            if (i + 1 < text.length)
             {
-            case "|>", "||", "&&", "==", "!=", "<=", ">=", "++":
-                toks ~= Token(TokKind.sym, two);
-                i += 2;
-                continue;
-            default:
-                break;
+                const two = text[i .. i + 2];
+                switch (two)
+                {
+                case "|>": case "||": case "&&": case "==": case "!=": case "<=": case ">=": case "++":
+                    tokens ~= Token(Token.Kind.symbol, two);
+                    i += 2;
+                    continue;
+                default:
+                    break;
+                }
             }
             switch (c)
             {
-            case '(', ')', '[', ']', '{', '}', ',', '=', '<', '>', '~', '+', '-', '*', '/', '%', '!':
-                toks ~= Token(TokKind.sym, s[i .. i + 1]);
+            case '(': case ')': case '[': case ']': case '{': case '}': case ',': case '=':
+            case '<': case '>': case '~': case '+': case '-': case '*': case '/': case '%': case '!':
+                tokens ~= Token(Token.Kind.symbol, text[i .. i + 1]);
                 ++i;
                 break;
             default:
-                return false;
+                throw new SyntaxError(0, "bad byte");
             }
         }
     }
-    result = toks;
+    return tokens;
+}
+
+private bool isBlank(const(char)[] s) @safe pure nothrow @nogc
+{
+    foreach (char c; s)
+        if (c != ' ' && c != '\t')
+            return false;
     return true;
 }
 
-/// Runs lexical stages 1-3 over a whole build file.
-///
-/// Throws `KilnError` (`E_PARSE`) for the lexical error of the earliest logical
-/// line, if any.
-LogicalLine[] lexSource(string file, string text) @safe
+/**
+ * Runs stages 1-3 over a whole build file.
+ *
+ * Throws: `SyntaxError` carrying the first physical line of the logical line
+ * that holds the earliest lexical error.
+ */
+LogicalLine[] lexSource(string source) @safe pure
 {
     LogicalLine[] result;
+    int groupStart = 0;
     int depth = 0;
-    int groupLine = 0;
-    string groupText;
+    string group;
     bool inGroup = false;
 
-    size_t pos = 0;
     int lineNo = 0;
-    while (pos < text.length)
+    size_t pos = 0;
+    while (pos <= source.length)
     {
-        size_t eol = pos;
-        while (eol < text.length && text[eol] != '\n')
-            ++eol;
-        const phys = text[pos .. eol];
-        pos = eol + 1;
+        // Next physical line.
+        size_t end = pos;
+        while (end < source.length && source[end] != '\n')
+            ++end;
+        const physical = source[pos .. end];
+        pos = end + 1;
         ++lineNo;
-
         if (!inGroup)
         {
+            groupStart = lineNo;
+            group = "";
+            depth = 0;
             inGroup = true;
-            groupLine = lineNo;
-            groupText = null;
         }
-
-        // stage 1 + 2: scan the physical line
-        size_t i = 0;
-        size_t cut = phys.length;
-        while (i < phys.length)
+        try
         {
-            const c = phys[i];
-            if (c == '"' || c == '\'')
+            size_t i = 0;
+            size_t cut = physical.length;
+            while (i < physical.length)
             {
-                const j = scanLiteral(phys, i + 1, c);
-                if (j < 0)
-                    throw parseError(file, groupLine);
-                i = cast(size_t) j;
-                continue;
-            }
-            if (c == '#')
-            {
-                cut = i;
-                break;
-            }
-            if (c == '(' || c == '[')
-                ++depth;
-            else if (c == ')' || c == ']')
-            {
-                --depth;
-                if (depth < 0)
-                    throw parseError(file, groupLine);
-            }
-            ++i;
-        }
-        size_t e = cut;
-        while (e > 0 && (phys[e - 1] == ' ' || phys[e - 1] == '\t'))
-            --e;
-        groupText = lineNo == groupLine ? phys[0 .. e] : groupText ~ " " ~ phys[0 .. e];
-
-        if (depth == 0)
-        {
-            inGroup = false;
-            bool blank = true;
-            foreach (ch; groupText)
-                if (ch != ' ' && ch != '\t')
+                const c = physical[i];
+                if (c == '"')
+                    i = skipDouble(physical, i);
+                else if (c == '\'')
+                    i = skipSingle(physical, i);
+                else if (c == '#')
                 {
-                    blank = false;
+                    cut = i;
                     break;
                 }
-            if (!blank)
+                else
+                {
+                    if (c == '(' || c == '[')
+                        ++depth;
+                    else if (c == ')' || c == ']')
+                    {
+                        if (--depth < 0)
+                            throw new SyntaxError(0, "unbalanced bracket");
+                    }
+                    ++i;
+                }
+            }
+            while (cut > 0 && (physical[cut - 1] == ' ' || physical[cut - 1] == '\t'))
+                --cut;
+            group = lineNo == groupStart ? physical[0 .. cut] : group ~ " " ~ physical[0 .. cut];
+            if (depth == 0)
             {
-                Token[] toks;
-                if (!tokenize(groupText, toks))
-                    throw parseError(file, groupLine);
-                result ~= LogicalLine(groupLine, groupText, toks);
+                inGroup = false;
+                if (!isBlank(group))
+                    result ~= LogicalLine(groupStart, tokenize(group));
             }
         }
+        catch (SyntaxError e)
+        {
+            e.line = groupStart;
+            throw e;
+        }
     }
-    if (inGroup)
-        throw parseError(file, groupLine);
+    if (inGroup && depth > 0)
+        throw new SyntaxError(groupStart, "unclosed bracket");
     return result;
+}
+
+version (unittest)
+{
+    private string[] texts(LogicalLine l)
+    {
+        string[] r;
+        foreach (t; l.tokens)
+            r ~= t.text;
+        return r;
+    }
+}
+
+unittest
+{
+    auto lines = lexSource("let x = 1 # comment\n\n  # only comment\nlet y = f(\n  1,\n  2)\n");
+    assert(lines.length == 2);
+    assert(lines[0].line == 1 && texts(lines[0]) == ["let", "x", "=", "1"]);
+    assert(lines[1].line == 4 && texts(lines[1]) == ["let", "y", "=", "f", "(", "1", ",", "2", ")"]);
+}
+
+unittest
+{
+    // A '#' or bracket inside a literal is content; interpolation brackets do not count.
+    auto lines = lexSource("cmd write(\"{join(xs, \", \")}#(\\n\")\n");
+    assert(lines.length == 1);
+    assert(lines[0].tokens.length == 5 && lines[0].tokens[3].kind == Token.Kind.str);
+    auto l2 = lexSource("let s = 'it''s # ('\n");
+    assert(l2[0].tokens[3].text == "'it''s # ('");
+}
+
+unittest
+{
+    void expectErr(string src, int line)
+    {
+        try
+        {
+            lexSource(src);
+            assert(false, "expected error for " ~ src);
+        }
+        catch (SyntaxError e)
+            assert(e.line == line, src);
+    }
+
+    expectErr("let b = f(\n  \"unterminated\n)\n", 1);
+    expectErr("a\nlet b = )\n", 2);
+    expectErr("a\n(\n(\n", 2);
+    expectErr("let x = 1 | 2\n", 1);
+    expectErr("let x = 1 & 2\n", 1);
+    expectErr("let x = $\n", 1);
+    expectErr("let x = \"{a\n", 1);
+}
+
+unittest
+{
+    auto t = tokenize("a|>b||c&&d==e!=f<=g>=h<i>j++k~l+m-n*o/p%q!r");
+    string[] syms;
+    foreach (x; t)
+        if (x.kind == Token.Kind.symbol)
+            syms ~= x.text;
+    assert(syms == ["|>", "||", "&&", "==", "!=", "<=", ">=", "<", ">", "++", "~", "+", "-", "*", "/", "%", "!"]);
+    assert(isReserved("when") && !isReserved("weight"));
 }

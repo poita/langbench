@@ -1,0 +1,57 @@
+cabal-version:      3.0
+name:               sat
+version:            0.1.0.0
+synopsis:           A CDCL SAT solver for DIMACS CNF
+description:
+  A MiniSat-style conflict-driven clause-learning SAT solver: two watched
+  literals, first-UIP learning with local minimisation, VSIDS branching with
+  phase saving, Luby restarts and activity-based learnt-clause deletion.
+  Ships as a library and a command-line tool reading DIMACS CNF on stdin.
+category:           Logic
+license:            MIT
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Sat
+    Sat.Types
+    Sat.Dimacs
+    Sat.Luby
+    Sat.Solver
+  other-modules:
+    Sat.Internal.Vec
+    Sat.Internal.Heap
+  build-depends:
+      base        >= 4.18 && < 5
+    , array       >= 0.5  && < 0.6
+    , bytestring  >= 0.11 && < 0.13
+
+executable sat
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+      base
+    , bytestring
+    , sat
+
+test-suite sat-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+      base
+    , array
+    , bytestring
+    , hspec       >= 2.7
+    , QuickCheck  >= 2.14
+    , sat

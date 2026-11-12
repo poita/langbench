@@ -1,0 +1,55 @@
+cabal-version:      3.0
+name:               bigint
+version:            0.1.0.0
+synopsis:           Arbitrary-precision integers in base 10^9, written from scratch
+description:
+  A small, dependency-light arbitrary-precision signed integer library.
+  Magnitudes are stored as little-endian limbs in base 10^9, so decimal
+  parsing and printing are linear.  Multiplication is schoolbook,
+  division is Knuth's Algorithm D and exponentiation is binary
+  exponentiation.  A line-oriented query evaluator and a command-line tool
+  (@bigint@) are included.
+license:            MIT
+author:             bigint contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Math
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC ==9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Numeric.BigInt
+    Numeric.BigInt.Magnitude
+    Numeric.BigInt.Query
+  build-depends:
+    , array       >=0.5 && <0.6
+    , base        >=4.18 && <5
+    , bytestring  >=0.11 && <0.13
+
+executable bigint
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bigint
+    , bytestring
+
+test-suite bigint-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+    , base
+    , bigint
+    , bytestring
+    , hspec       >=2.7
+    , QuickCheck  >=2.14

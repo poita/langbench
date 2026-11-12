@@ -1,41 +1,36 @@
 # depresolve
 
-A deterministic package dependency resolver written in D. Given a registry
-(every version of every package with its requirements) and a root manifest, it
-picks one version for every package that is needed, so that all requirements
-are met. It returns the **first** solution of a fixed search — depth-first,
-newest version first, chronological backtracking — so every correct
-implementation prints the same answer. If none exists it prints
-`unsatisfiable`.
+A package dependency resolver written in D. Given a registry (every version of
+every package, with its requirements) and a root manifest, it picks one version
+per needed package using a fixed search — depth-first, newest version first,
+chronological backtracking — so the printed resolution is deterministic and
+reproducible by any conforming implementation. If no resolution exists it
+prints `unsatisfiable`.
 
-The library is a flat, allocation-light implementation: package names are
-interned to dense ids, versions are packed into one 64-bit integer key, every
-range becomes a half-open key interval resolved once into a window of candidate
-indices, and the search is iterative (explicit frame stack, persistent pending
-list in a truncatable arena, undo through the frames). There is no recursion,
-so 10,000+-deep chains are fine.
-
-Only the D standard library is used.
+It consists of a reusable library (`source/depresolve/`) and a thin CLI
+(`source/app.d`).
 
 ## Build
 
-Requires LDC (tested with 1.41.0) and dub (1.40.0).
+Requires LDC 1.41.0 and dub 1.40.0; only the D standard library is used.
 
 ```sh
-./build.sh        # dub build -b release --compiler=ldc2  ->  bin/depresolve
-dub test --compiler=ldc2   # unit tests (tests/)
+./build.sh          # same as: dub build -b release --compiler=ldc2
+dub test --compiler=ldc2
 ```
 
-## Command-line use
+This produces the `./depresolve` executable. `./run.sh` runs it from any
+directory.
 
-`./run.sh` (or `bin/depresolve`) reads the whole input on stdin and writes the
-resolution on stdout. Exit status is 0 for both a solution and
-`unsatisfiable`; malformed input prints a message to stderr and exits 2.
+## CLI
 
-Input: registry lines `name MAJOR.MINOR.PATCH: req, req, ...` followed by a
-final `root: req, ...` line. A requirement is `name range`, where range is
-`*`, an exact version, `^X.Y.Z`, `~X.Y.Z`, or one to three space-separated
-comparators (`<`, `<=`, `>`, `>=`) that must all hold. Caret and tilde follow
+Reads the whole input from stdin and writes the result to stdout (no
+arguments, no files). Exit status is 0 whether or not a resolution exists.
+
+Input: registry lines `name MAJOR.MINOR.PATCH: req, req, ...` followed by one
+root line `root: req, ...`. A requirement is `name range`, where range is one of
+`*`, `1.2.3` (exact), `^1.2.3`, `~1.2.3`, or one to three space-separated
+comparators (`<`, `<=`, `>`, `>=` followed by a version); caret and tilde follow
 npm semantics.
 
 ```console
@@ -48,61 +43,43 @@ c 1.2.5
 Output is one `name version` line per chosen package, sorted by name in byte
 order, or the single line `unsatisfiable`.
 
-## Library use
+## Library
 
-The `library` dub configuration builds only the library:
+| module | purpose |
+|---|---|
+| `depresolve.semver` | `Version` (numeric ordering), `ParseException` |
+| `depresolve.range` | `VersionRange`, a half-open `[lo, hi)` interval; `parseRange`, `caret`, `tilde`, ... |
+| `depresolve.registry` | `Registry`, `Requirement`; sorts versions newest first and binds each requirement to its candidate index range by binary search |
+| `depresolve.parser` | `parseProblem` for the text format |
+| `depresolve.resolver` | `resolve` — the iterative search with a shared pending list and a trail (no recursion, no copying at choice points) |
+| `depresolve.format` | `formatResolution` |
 
-```sdl
-dependency "depresolve" path="../depresolve"
-subConfiguration "depresolve" "library"
-```
-
-From text:
+`import depresolve;` re-exports everything. Use it as a dub dependency with
+`subConfiguration "depresolve" "library"`.
 
 ```d
 import depresolve;
+import std.stdio;
 
 void main()
 {
-    auto reg = parseInput("a 1.0.0: b ^1.0.0\nb 1.2.0:\nb 1.3.0:\nroot: a *\n");
-    auto res = resolve(reg);
-    assert(res.satisfiable);
-    foreach (p; res.picks)           // sorted by name
+    // From text...
+    auto problem = parseProblem("a 1.0.0: b ^1.0.0\nb 1.2.0:\nroot: a *\n");
+    write(formatResolution(resolve(problem)));       // a 1.0.0 / b 1.2.0
+
+    // ...or built programmatically.
+    Registry reg;
+    reg.add("app", "1.0.0", "lib ^1.0.0");
+    reg.add("lib", "1.4.0");
+    reg.add("lib", "2.0.0");
+    auto result = resolve(reg, [Requirement(reg.intern("app"), parseRange("*"))]);
+    foreach (p; result.picks)
         writeln(p.name, " ", p.version_);
-    // a 1.0.0
-    // b 1.3.0
 }
 ```
 
-Or programmatically:
+## Tests
 
-```d
-RegistryBuilder b;
-b.addVersion("lib", Version(1, 0, 0));
-b.addVersion("lib", Version(1, 1, 0));
-b.addVersion("app", Version(0, 1, 0), [RequirementSpec("lib", parseRange("^1.0.0"))]);
-b.setRoot([RequirementSpec("app", anyVersion)]);
-auto res = resolve(b.build());      // app 0.1.0, lib 1.1.0
-```
-
-`solve(string input)` does parse + resolve + format in one call.
-
-### Modules
-
-| module | responsibility |
-|---|---|
-| `depresolve.semver` | `Version`, packed `VersionKey`, `parseVersion`, `ParseException` |
-| `depresolve.range` | `Interval`, `parseRange` (`*`, exact, `^`, `~`, comparators) |
-| `depresolve.registry` | `Registry`, `RegistryBuilder`: interned ids, sorted versions, candidate windows |
-| `depresolve.parser` | `parseInput`: the textual registry/root format |
-| `depresolve.resolver` | `resolve` (the search), `Resolution`, `formatResolution` |
-| `depresolve` | public import of all of the above, plus `solve` |
-
-## Layout
-
-```
-source/depresolve/   library
-cli/app.d            command-line tool
-tests/               unit tests (separate modules, run by `dub test`)
-build.sh run.sh      build and run scripts
-```
+Unit tests are D `unittest` blocks in each module (including the worked
+examples from the specification, deep chains and backtracking cases), run with
+`dub test --compiler=ldc2`.

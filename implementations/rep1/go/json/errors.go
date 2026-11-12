@@ -4,9 +4,9 @@ import "strconv"
 
 // SyntaxError describes why a document was rejected.
 type SyntaxError struct {
-	// Offset is the byte offset in the input at which the problem was found.
+	// Offset is the byte offset in the input at which the problem was detected.
 	Offset int
-	// Msg is a short human-readable description.
+	// Msg describes the problem.
 	Msg string
 }
 

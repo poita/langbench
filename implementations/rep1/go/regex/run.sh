@@ -1,4 +1,4 @@
 #!/bin/sh
-# Run the regex command: patterns/subjects on stdin, results on stdout.
+# Runs the regexbt tool: reads the batch format on stdin, writes results to stdout.
 dir=$(cd "$(dirname "$0")" && pwd)
-exec "$dir/bin/regex" "$@"
+exec "$dir/bin/regexbt" "$@"

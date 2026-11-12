@@ -1,0 +1,90 @@
+<p><a href="/uri" title="title">link</a></p>
+<hr />
+<p><a href="/uri">link</a></p>
+<hr />
+<p><a href="./target.md"></a></p>
+<hr />
+<p><a href="">link</a></p>
+<hr />
+<p><a href="">link</a></p>
+<hr />
+<p><a href=""></a></p>
+<hr />
+<p>[link](/my uri)</p>
+<hr />
+<p><a href="/my%20uri">link</a></p>
+<hr />
+<p>[link](foo
+bar)</p>
+<hr />
+<p><a href="b)c">a</a></p>
+<hr />
+<p><a href="(foo)">link</a></p>
+<hr />
+<p><a href="foo(and(bar))">link</a></p>
+<hr />
+<p>[link](foo(and(bar))</p>
+<hr />
+<p><a href="foo(and(bar)">link</a></p>
+<hr />
+<p><a href="foo(and(bar)">link</a></p>
+<hr />
+<p><a href="foo):">link</a></p>
+<hr />
+<p><a href="#fragment">link</a></p>
+<p><a href="https://example.com#fragment">link</a></p>
+<p><a href="https://example.com?foo=3#frag">link</a></p>
+<hr />
+<p><a href="foo%5Cbar">link</a></p>
+<hr />
+<p><a href="%22title%22">link</a></p>
+<hr />
+<p><a href="/url" title="title">link</a>
+<a href="/url" title="title">link</a>
+<a href="/url" title="title">link</a></p>
+<hr />
+<p><a href="/url" title="title &quot;&quot;">link</a></p>
+<hr />
+<p><a href="/url%C2%A0%22title%22">link</a></p>
+<hr />
+<p>[link](/url &quot;title &quot;and&quot; title&quot;)</p>
+<hr />
+<p><a href="/url" title="title &quot;and&quot; title">link</a></p>
+<hr />
+<p><a href="/uri" title="title">link</a></p>
+<hr />
+<p>[link] (/uri)</p>
+<hr />
+<p><a href="/uri">link [foo [bar]]</a></p>
+<hr />
+<p>[link] bar](/uri)</p>
+<hr />
+<p>[link <a href="/uri">bar</a></p>
+<hr />
+<p><a href="/uri">link [bar</a></p>
+<hr />
+<p><a href="/uri">link <em>foo <strong>bar</strong> <code>#</code></em></a></p>
+<hr />
+<p><a href="/uri"><img src="moon.jpg" alt="moon" /></a></p>
+<hr />
+<p>[foo <a href="/uri">bar</a>](/uri)</p>
+<hr />
+<p>[foo <em>[bar <a href="/uri">baz</a>](/uri)</em>](/uri)</p>
+<hr />
+<p><img src="uri3" alt="[foo](uri2)" /></p>
+<hr />
+<p>*<a href="/uri">foo*</a></p>
+<hr />
+<p><a href="baz*">foo *bar</a></p>
+<hr />
+<p><em>foo [bar</em> baz]</p>
+<hr />
+<p>[foo<code>](/uri)</code></p>
+<hr />
+<p>[foo<a href="https://example.com/?search=%5D(uri)">https://example.com/?search=](uri)</a></p>
+<hr />
+<p>[foo][ref[bar]]</p>
+<p>[ref[bar]]: /uri</p>
+<hr />
+<p>[[[foo]]]</p>
+<p>[[[foo]]]: /url</p>

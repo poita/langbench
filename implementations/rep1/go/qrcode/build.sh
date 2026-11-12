@@ -1,6 +1,6 @@
 #!/bin/sh
-# Build the qrcode CLI into ./bin/qrcode. Works from any directory.
+# Builds the qrcode command-line tool into ./bin/qrcode.
 set -e
-cd "$(dirname "$0")"
-mkdir -p bin
+dir=$(cd "$(dirname "$0")" && pwd)
+cd "$dir"
 go build -o bin/qrcode ./cmd/qrcode

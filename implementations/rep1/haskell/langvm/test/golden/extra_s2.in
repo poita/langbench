@@ -1,0 +1,6 @@
+@module main
+fn early(n: Int) -> Int {
+   let r = [1, 2, (match n { 0 -> { return 99; } _ -> n })];
+   r[2]
+}
+fn main() { print(showInt(early(0)) ++ " " ++ showInt(early(5))); }

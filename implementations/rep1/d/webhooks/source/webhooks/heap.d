@@ -1,75 +1,119 @@
 /**
- * A binary min-heap of `(time, delivery)` pairs ordered lexicographically.
+ * A binary min-heap, used as the priority queue of the delivery simulator.
  */
 module webhooks.heap;
 
-/// One pending attempt: scheduled time and owning delivery number.
-struct Slot
+/**
+ * Binary min-heap of `T` ordered by `less`.
+ *
+ * `push` and `pop` are O(log n); `front` is O(1).
+ */
+struct MinHeap(T, alias less = "a < b")
 {
-    long time;
-    uint delivery;
+    import std.functional : binaryFun;
 
-    bool before(const Slot o) const @safe pure nothrow @nogc
+    private alias lessFun = binaryFun!less;
+    private T[] items;
+
+    /// Number of elements.
+    size_t length() const pure nothrow @safe @nogc
     {
-        return time < o.time || (time == o.time && delivery < o.delivery);
-    }
-}
-
-/// Binary min-heap over reserved storage with an explicit length.
-struct SlotHeap
-{
-    private Slot[] items;
-    private size_t count;
-
-    /// Reserves room for `capacity` elements (no reallocation up to that).
-    this(size_t capacity) @safe pure nothrow
-    {
-        items = new Slot[capacity];
+        return items.length;
     }
 
-    bool empty() const @safe pure nothrow @nogc { return count == 0; }
-    size_t length() const @safe pure nothrow @nogc { return count; }
-
-    /// Inserts `s`, growing the storage if it was under-reserved.
-    void push(Slot s) @safe pure nothrow
+    /// `true` when the heap holds no elements.
+    bool empty() const pure nothrow @safe @nogc
     {
-        if (count == items.length)
-            items.length = items.length == 0 ? 16 : items.length * 2;
-        size_t i = count++;
+        return items.length == 0;
+    }
+
+    /// The smallest element. Must not be called on an empty heap.
+    ref const(T) front() const pure nothrow @safe @nogc
+    in (!empty)
+    {
+        return items[0];
+    }
+
+    /// Inserts `value`.
+    void push(T value) pure nothrow @safe
+    {
+        items ~= value;
+        size_t i = items.length - 1;
         while (i > 0)
         {
             immutable parent = (i - 1) / 2;
-            if (!s.before(items[parent]))
+            if (!lessFun(items[i], items[parent]))
                 break;
-            items[i] = items[parent];
+            swap(i, parent);
             i = parent;
         }
-        items[i] = s;
     }
 
-    /// Removes and returns the smallest element. Must not be empty.
-    Slot pop() @safe pure nothrow @nogc
-    in (count > 0)
+    /// Removes and returns the smallest element. Must not be called on an
+    /// empty heap.
+    T pop() pure nothrow @safe
+    in (!empty)
     {
-        auto top = items[0];
-        auto last = items[--count];
-        if (count > 0)
+        T top = items[0];
+        items[0] = items[$ - 1];
+        items.length = items.length - 1;
+        size_t i = 0;
+        immutable n = items.length;
+        for (;;)
         {
-            size_t i = 0;
-            for (;;)
-            {
-                size_t child = 2 * i + 1;
-                if (child >= count)
-                    break;
-                if (child + 1 < count && items[child + 1].before(items[child]))
-                    ++child;
-                if (!items[child].before(last))
-                    break;
-                items[i] = items[child];
-                i = child;
-            }
-            items[i] = last;
+            size_t smallest = i;
+            immutable l = 2 * i + 1;
+            immutable r = l + 1;
+            if (l < n && lessFun(items[l], items[smallest]))
+                smallest = l;
+            if (r < n && lessFun(items[r], items[smallest]))
+                smallest = r;
+            if (smallest == i)
+                break;
+            swap(i, smallest);
+            i = smallest;
         }
         return top;
     }
+
+    private void swap(size_t a, size_t b) pure nothrow @safe @nogc
+    {
+        T tmp = items[a];
+        items[a] = items[b];
+        items[b] = tmp;
+    }
+}
+
+@safe unittest
+{
+    MinHeap!int h;
+    assert(h.empty);
+    foreach (v; [5, 3, 9, 1, 7, 3, 8, 2, 6, 4, 0])
+        h.push(v);
+    assert(h.length == 11 && h.front == 0);
+    int prev = -1;
+    while (!h.empty)
+    {
+        immutable v = h.pop();
+        assert(v >= prev);
+        prev = v;
+    }
+    assert(prev == 9);
+}
+
+@safe unittest
+{
+    struct Item
+    {
+        long time;
+        uint id;
+    }
+
+    MinHeap!(Item, (a, b) => a.time < b.time || (a.time == b.time && a.id < b.id)) h;
+    h.push(Item(10, 2));
+    h.push(Item(10, 1));
+    h.push(Item(-4, 7));
+    assert(h.pop() == Item(-4, 7));
+    assert(h.pop() == Item(10, 1));
+    assert(h.pop() == Item(10, 2));
 }

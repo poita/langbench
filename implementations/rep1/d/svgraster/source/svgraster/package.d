@@ -1,36 +1,38 @@
 /**
- * svgraster: a small SVG 1.1 subset rasteriser.
+ * svgraster: a small, dependency-free rasteriser for a subset of SVG 1.1.
  *
- * Importing `svgraster` gives the whole public API:
+ * The library parses an SVG document (basic shapes, paths, transforms,
+ * `use`, inherited painting properties, group opacity), flattens and strokes
+ * the geometry, fills it with 64-sub-scanline anti-aliasing and returns the
+ * result as a `Canvas` that can be written as a binary PPM.
  *
- * $(UL
- *   $(LI `svgraster.xml`    - tiny XML reader producing an element tree)
- *   $(LI `svgraster.parse`  - numbers, lengths, colours, transforms, style)
- *   $(LI `svgraster.colors` - the 147 SVG colour keywords)
- *   $(LI `svgraster.geom`   - points and affine matrices)
- *   $(LI `svgraster.path`   - path model, path data, arcs, flattening)
- *   $(LI `svgraster.shapes` - basic shapes as paths)
- *   $(LI `svgraster.stroke` - stroke outlining)
- *   $(LI `svgraster.raster` - canvas and anti-aliasing scan converter)
- *   $(LI `svgraster.render` - the document walk and `renderSvg`)
- *   $(LI `svgraster.batch`  - `render.txt` job lists and directory rendering)
- * )
- *
- * Example:
  * ---
  * import svgraster;
- * auto img = renderSvg(`<svg viewBox="0 0 8 4"><rect x="1" y="1" width="3.5" height="2" fill="#00f"/></svg>`, 8, 4);
- * ubyte[] ppm = img.toPpm();
+ *
+ * auto canvas = renderSvg(`<svg viewBox="0 0 10 10">
+ *     <circle cx="5" cy="5" r="4" fill="tomato"/></svg>`, 64, 64);
+ * ubyte[] ppm = canvas.toPpm();
  * ---
+ *
+ * Modules:
+ * $(UL
+ *   $(LI `svgraster.xml` – minimal XML reader)
+ *   $(LI `svgraster.parse` – numbers, colours, transforms, `style`)
+ *   $(LI `svgraster.path`, `svgraster.pathdata`, `svgraster.shapes` – geometry)
+ *   $(LI `svgraster.stroke` – stroke outlining)
+ *   $(LI `svgraster.raster` – canvas, scan converter, PPM output)
+ *   $(LI `svgraster.render` – the document renderer)
+ *   $(LI `svgraster.batch` – `render.txt` job lists)
+ * )
  */
 module svgraster;
 
 public import svgraster.batch;
-public import svgraster.buf;
 public import svgraster.colors;
 public import svgraster.geom;
 public import svgraster.parse;
 public import svgraster.path;
+public import svgraster.pathdata;
 public import svgraster.raster;
 public import svgraster.render;
 public import svgraster.shapes;

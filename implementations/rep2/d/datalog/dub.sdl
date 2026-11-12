@@ -1,0 +1,19 @@
+name "datalog"
+description "A Datalog engine with stratified negation: semi-naive bottom-up evaluation with hash-indexed joins."
+authors "Peter Alexander"
+copyright "Copyright © 2026"
+license "MIT"
+
+# Default configuration: the command-line tool (bin/datalog).
+configuration "application" {
+    targetType "executable"
+    targetName "datalog"
+    targetPath "bin"
+    mainSourceFile "source/app.d"
+}
+
+# Use this configuration when depending on the package as a library.
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}

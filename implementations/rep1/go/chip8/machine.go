@@ -1,70 +1,110 @@
+// Package chip8 implements a deterministic CHIP-8 interpreter.
+//
+// A Machine holds the complete CPU state. Load a ROM with New, optionally
+// drive it with a KeySchedule, and execute cycles with Step or Run. Every
+// cycle fetches and decodes the opcode from memory, so self-modifying
+// programs behave correctly.
 package chip8
 
-import "fmt"
-
-// Memory and machine geometry constants.
-const (
-	MemSize     = 4096  // bytes of addressable memory
-	ProgramBase = 0x200 // address at which ROMs are loaded
-	FontBase    = 0x050 // address of the built-in font
-	MaxROMSize  = MemSize - ProgramBase
-	StackDepth  = 16
-	NumRegs     = 16
-	rngSeed     = 0x12345678
+import (
+	"errors"
+	"fmt"
+	"strings"
 )
 
-// font holds the 16 built-in 5-byte glyphs for 0..F.
-var font = [80]byte{
-	0xF0, 0x90, 0x90, 0x90, 0xF0, 0x20, 0x60, 0x20, 0x20, 0x70,
-	0xF0, 0x10, 0xF0, 0x80, 0xF0, 0xF0, 0x10, 0xF0, 0x10, 0xF0,
-	0x90, 0x90, 0xF0, 0x10, 0x10, 0xF0, 0x80, 0xF0, 0x10, 0xF0,
-	0xF0, 0x80, 0xF0, 0x90, 0xF0, 0xF0, 0x10, 0x20, 0x40, 0x40,
-	0xF0, 0x90, 0xF0, 0x90, 0xF0, 0xF0, 0x90, 0xF0, 0x10, 0xF0,
-	0xF0, 0x90, 0xF0, 0x90, 0x90, 0xE0, 0x90, 0xE0, 0x90, 0xE0,
-	0xF0, 0x80, 0x80, 0x80, 0xF0, 0xE0, 0x90, 0x90, 0x90, 0xE0,
-	0xF0, 0x80, 0xF0, 0x80, 0xF0, 0xF0, 0x80, 0xF0, 0x80, 0x80,
-}
+// StackDepth is the number of return addresses the call stack can hold.
+const StackDepth = 16
 
-// Machine is the complete state of a CHIP-8 machine. The zero value is not
-// ready for use; create machines with New.
-//
-// All fields are exported so callers can inspect or prepare state directly.
+// ErrROMTooLarge is returned by New when the ROM does not fit in memory.
+var ErrROMTooLarge = errors.New("chip8: ROM too large")
+
+// Machine is the complete state of a CHIP-8 interpreter.
+// The zero value is not usable; create machines with New.
 type Machine struct {
-	Mem     [MemSize]byte
-	V       [NumRegs]byte
+	Mem     [MemorySize]byte
+	V       [16]byte
+	I       uint16
+	PC      uint16 // always masked to 12 bits
 	Stack   [StackDepth]uint16
+	SP      int // number of entries on the stack, 0..StackDepth
+	DT, ST  byte
 	Display Display
 
-	PC   uint16 // 12-bit program counter
-	I    uint16 // 16-bit index register
-	SP   int    // number of entries on the stack (0..16)
-	DT   byte   // delay timer
-	ST   byte   // sound timer
-	Keys uint16 // key state: bit k set means key k is down
-	RNG  uint32 // LCG state
-
-	// Cycles is the number of instruction cycles completed so far. It
-	// drives the timer tick and the key schedule.
-	Cycles uint64
+	keys   uint16 // current key state, bit k = key k down
+	cycles uint64 // cycles completed so far
+	rng    rng
 }
 
-// New returns a machine in its power-on state: the font loaded at FontBase,
-// PC at ProgramBase, all registers and the display cleared.
-func New() *Machine {
-	m := &Machine{PC: ProgramBase, RNG: rngSeed}
-	copy(m.Mem[FontBase:], font[:])
-	return m
-}
-
-// LoadROM copies rom into memory at ProgramBase. It fails if the ROM does not
-// fit in the remaining 3584 bytes.
-func (m *Machine) LoadROM(rom []byte) error {
+// New returns a machine with the font installed and rom loaded at ROMBase.
+func New(rom []byte) (*Machine, error) {
 	if len(rom) > MaxROMSize {
-		return fmt.Errorf("chip8: ROM is %d bytes, maximum is %d", len(rom), MaxROMSize)
+		return nil, fmt.Errorf("%w: %d bytes (max %d)", ErrROMTooLarge, len(rom), MaxROMSize)
 	}
-	copy(m.Mem[ProgramBase:], rom)
-	return nil
+	m := &Machine{PC: ROMBase, rng: rng{Seed}}
+	copy(m.Mem[FontBase:], font[:])
+	copy(m.Mem[ROMBase:], rom)
+	return m, nil
 }
 
-// SetKeys replaces the key state; bit k of mask set means key k is down.
-func (m *Machine) SetKeys(mask uint16) { m.Keys = mask }
+// Cycles returns the number of cycles completed so far.
+func (m *Machine) Cycles() uint64 { return m.cycles }
+
+// SetKeys sets the keypad state; bit k set means key k is held down.
+func (m *Machine) SetKeys(mask uint16) { m.keys = mask }
+
+// Keys returns the current keypad state.
+func (m *Machine) Keys() uint16 { return m.keys }
+
+// Run executes exactly n cycles, applying events from sched (which must be in
+// strictly increasing cycle order) as their cycle numbers arrive. Cycle
+// numbers in sched count from the start of this call.
+func (m *Machine) Run(n uint64, sched KeySchedule) {
+	next := 0
+	for c := uint64(0); c < n; c++ {
+		if next < len(sched) && sched[next].Cycle == c {
+			m.keys = sched[next].Mask
+			next++
+		}
+		m.Step()
+	}
+}
+
+// Step executes a single cycle: fetch, execute, then the timer tick.
+func (m *Machine) Step() {
+	op := uint16(m.Mem[m.PC])<<8 | uint16(m.Mem[(m.PC+1)&0xFFF])
+	m.PC = (m.PC + 2) & 0xFFF
+	m.execute(op)
+	m.cycles++
+	if m.cycles&7 == 0 {
+		if m.DT > 0 {
+			m.DT--
+		}
+		if m.ST > 0 {
+			m.ST--
+		}
+	}
+}
+
+// StatusLine returns the "PC=... I=... SP=... DT=... ST=..." summary line.
+func (m *Machine) StatusLine() string {
+	return fmt.Sprintf("PC=%04x I=%04x SP=%d DT=%02x ST=%02x", m.PC, m.I, m.SP, m.DT, m.ST)
+}
+
+// RegisterLine returns the "V=.. .. .." register dump line.
+func (m *Machine) RegisterLine() string {
+	var sb strings.Builder
+	sb.WriteString("V=")
+	for i, v := range m.V {
+		if i > 0 {
+			sb.WriteByte(' ')
+		}
+		fmt.Fprintf(&sb, "%02x", v)
+	}
+	return sb.String()
+}
+
+// Report returns the full 34-line textual state dump: the display, the status
+// line and the register line, each newline-terminated.
+func (m *Machine) Report() string {
+	return m.Display.String() + m.StatusLine() + "\n" + m.RegisterLine() + "\n"
+}

@@ -1,0 +1,5 @@
+@module main
+trait T { fn m(self); }
+impl T for Int { fn m(self) {} }
+impl T for Int { fn m(self) {} }
+fn main() {}

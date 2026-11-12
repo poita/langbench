@@ -1,0 +1,64 @@
+<p><a href="/uri" title="title">link</a>
+<a href="/uri">link</a>
+<a href="./target.md"></a>
+<a href="">link</a>
+<a href="">link</a>
+<a href=""></a>
+[link](/my uri)
+<a href="/my%20uri">link</a>
+[link](foo
+bar)
+<a href="b)c">a</a>
+<a href="(foo)">link</a>
+<a href="foo(and(bar))">link</a>
+[link](foo(and(bar))
+<a href="foo(and(bar)">link</a>
+<a href="foo(and(bar)">link</a>
+<a href="foo):">link</a>
+<a href="#fragment">link</a>
+<a href="http://example.com#fragment">link</a>
+<a href="http://example.com?foo=3#frag">link</a>
+<a href="foo%5Cbar">link</a>
+<a href="foo%20b%C3%A4">link</a>
+<a href="%22title%22">link</a>
+<a href="/url" title="title">link</a>
+<a href="/url" title="title">link</a>
+<a href="/url" title="title">link</a>
+[link](/url &quot;title &quot;and&quot; title&quot;)
+<a href="/url" title="title &quot;and&quot; title">link</a>
+<a href="/uri" title="title">link</a>
+[link] (/uri)
+<a href="/uri">link [foo [bar]]</a>
+[link] bar](/uri)
+[link <a href="/uri">bar</a>
+<a href="/uri">link [bar</a>
+<a href="/uri">link <em>foo <strong>bar</strong> <code>#</code></em></a>
+<a href="/uri"><img src="moon.jpg" alt="moon" /></a>
+[foo <a href="/uri">bar</a>](/uri)
+[foo <em>[bar <a href="/uri">baz</a>](/uri)</em>](/uri)
+<img src="uri3" alt="[foo](uri2)" />
+*<a href="/uri">foo*</a>
+<a href="baz*">foo *bar</a>
+<em>foo [bar</em> baz]
+[foo<code>](/uri)</code>
+[foo<a href="http://example.com/?search=%5D(uri)">http://example.com/?search=](uri)</a>
+<img src="/url" alt="foo" title="title" />
+<img src="/url2" alt="foo bar" />
+<img src="/url2" alt="foo bar" />
+<img src="train.jpg" alt="foo" />
+My <img src="/path/to/train.jpg" alt="foo bar" title="title" />
+<img src="url" alt="foo" />
+<img src="/url" alt="" />
+[x <a href="b">a</a> y](d)
+<a href="d">x <a href="b">a</a> [c] y</a>
+<a href="b">a</a>
+<a href="/u" title="">a</a>
+<a href="&amp;">a</a> <a href="*">b</a> <a href="/x?q=a&amp;b">c</a>
+<a href="">d</a> <a href="">e</a> <a href="">f</a> <a href="">g</a> <a href="">h</a> <a href="data:image/png;base64,x">i</a> <img src="Data:Image/WEBP;x" alt="j" /> <a href="javascriptx:">k</a> <a href="/javascript:">l</a>
+<a href="/%C3%BC~!*()@#$%%5E&amp;=+;:,?/%5C%5B%5D%7B%7D%7C%60%3C%3E%22&#x27;">ü</a>
+[x <a href="/b">a</a> <img src="/j" alt="i" /> y](/d)
+[x <a href="/b">a</a> <img src="/k" alt="i q j" /> y](/d)
+[x <img src="/j" alt="i" /> <a href="/b">a</a> y](/d)
+<img src="/d" alt="x a i y" />
+<a href="/d">x <a href="/b">a</a> <img src="/k" alt="i [q] j" /> y</a>
+<a href="/d">x <a href="/b">a</a> [q] y</a></p>

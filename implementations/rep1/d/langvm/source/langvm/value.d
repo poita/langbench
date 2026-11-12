@@ -1,24 +1,23 @@
-/// Run-time values and heap objects of the virtual machine.
+/// Run-time values (SPEC.md section 14.1).
 module langvm.value;
 
-import langvm.diag;
+import langvm.types : Ctor;
 
-/// Tags of run-time values.
-enum VT : ubyte
+/// The tag of a run-time value.
+enum Tag : ubyte
 {
-    unit, int_, float_, bool_, char_, str, list, map, tuple, strukt, enum_, closure,
+    unit, int_, float_, bool_, char_, str, list, map, tuple, struct_, enum_, closure,
 }
 
-/// Base class of heap objects.
+/// Base class of every heap object.
 class Obj
 {
 }
 
-/// An immutable string: an array of Unicode scalar values.
+/// A string: a sequence of Unicode scalar values (so indexing is O(1)).
 final class StrObj : Obj
 {
     dstring s;
-    ulong hash;
 
     this(dstring s)
     {
@@ -26,133 +25,7 @@ final class StrObj : Obj
     }
 }
 
-/// A tagged cell: scalars inline, everything else a reference to a heap object.
-struct Value
-{
-    VT t;
-    union
-    {
-        long i;
-        double f;
-        Obj o;
-    }
-
-    static Value int_(long v) pure nothrow @nogc
-    {
-        Value r;
-        r.t = VT.int_;
-        r.i = v;
-        return r;
-    }
-
-    static Value float_(double v) pure nothrow @nogc
-    {
-        Value r;
-        r.t = VT.float_;
-        r.f = v;
-        return r;
-    }
-
-    static Value bool_(bool v) pure nothrow @nogc
-    {
-        Value r;
-        r.t = VT.bool_;
-        r.i = v ? 1 : 0;
-        return r;
-    }
-
-    static Value char_(dchar v) pure nothrow @nogc
-    {
-        Value r;
-        r.t = VT.char_;
-        r.i = v;
-        return r;
-    }
-
-    static Value unit() pure nothrow @nogc
-    {
-        Value r;
-        return r;
-    }
-
-    static Value obj(VT t, Obj o) pure nothrow @nogc
-    {
-        Value r;
-        r.t = t;
-        r.o = o;
-        return r;
-    }
-
-    static Value str(dstring s)
-    {
-        return obj(VT.str, new StrObj(s));
-    }
-}
-
-private T unsafeCast(T)(Obj o) @trusted pure nothrow @nogc
-{
-    return cast(T) cast(void*) o;
-}
-
-/// The string object of a `str` value.
-StrObj asStr(in Value v) @trusted pure nothrow @nogc
-{
-    return unsafeCast!StrObj(cast() v.o);
-}
-
-/// The list object of a `list` value.
-ListObj asList(in Value v) @trusted pure nothrow @nogc
-{
-    return unsafeCast!ListObj(cast() v.o);
-}
-
-/// The map object of a `map` value.
-MapObj asMap(in Value v) @trusted pure nothrow @nogc
-{
-    return unsafeCast!MapObj(cast() v.o);
-}
-
-/// The aggregate object of a tuple, struct or enum value.
-AggObj asAgg(in Value v) @trusted pure nothrow @nogc
-{
-    return unsafeCast!AggObj(cast() v.o);
-}
-
-/// The closure object of a `closure` value.
-ClosureObj asClosure(in Value v) @trusted pure nothrow @nogc
-{
-    return unsafeCast!ClosureObj(cast() v.o);
-}
-
-/// A tuple, struct instance or enum value: declaration id, variant index and components.
-final class AggObj : Obj
-{
-    int decl;
-    int variant;
-    Value[] f;
-
-    this(int decl, int variant, Value[] f)
-    {
-        this.decl = decl;
-        this.variant = variant;
-        this.f = f;
-    }
-}
-
-/// A closure: function index and captured values.
-final class ClosureObj : Obj
-{
-    int fn;
-    Value[] up;
-
-    this(int fn, Value[] up)
-    {
-        this.fn = fn;
-        this.up = up;
-    }
-}
-
-/// A growable list with identity.
+/// A mutable list.
 final class ListObj : Obj
 {
     Value[] buf;
@@ -168,32 +41,20 @@ final class ListObj : Obj
         len = items.length;
     }
 
-    /// The current elements.
-    Value[] items() pure nothrow @nogc
+    /// The live elements.
+    Value[] items() @nogc nothrow
     {
         return buf[0 .. len];
-    }
-
-    void reserveFor(size_t extra)
-    {
-        size_t need = len + extra;
-        if (need > buf.length)
-        {
-            size_t n = buf.length * 2;
-            if (n < need)
-                n = need;
-            if (n < 8)
-                n = 8;
-            auto nb = new Value[n];
-            nb[0 .. len] = buf[0 .. len];
-            buf = nb;
-        }
     }
 
     void push(Value v)
     {
         if (len == buf.length)
-            reserveFor(1);
+        {
+            auto nb = new Value[buf.length < 4 ? 4 : buf.length * 2];
+            nb[0 .. len] = buf[0 .. len];
+            buf = nb;
+        }
         buf[len++] = v;
     }
 
@@ -204,13 +65,12 @@ final class ListObj : Obj
         return v;
     }
 
-    void insertAt(size_t i, Value v)
+    void insert(size_t i, Value v)
     {
-        reserveFor(1);
-        foreach_reverse (k; i .. len)
-            buf[k + 1] = buf[k];
+        push(Value.init);
+        foreach_reverse (k; i + 1 .. len)
+            buf[k] = buf[k - 1];
         buf[i] = v;
-        len++;
     }
 
     Value removeAt(size_t i)
@@ -218,8 +78,7 @@ final class ListObj : Obj
         auto v = buf[i];
         foreach (k; i .. len - 1)
             buf[k] = buf[k + 1];
-        len--;
-        buf[len] = Value.init;
+        buf[--len] = Value.init;
         return v;
     }
 
@@ -230,258 +89,359 @@ final class ListObj : Obj
     }
 }
 
-/// Hash of a map key (Int, Bool, Char or Str).
-ulong hashKey(in Value k)
-{
-    if (k.t == VT.str)
-    {
-        auto so = asStr(k);
-        if (so.hash == 0)
-        {
-            ulong h = 0xcbf29ce484222325UL;
-            foreach (c; so.s)
-            {
-                h ^= c;
-                h *= 0x100000001b3UL;
-            }
-            h ^= h >> 32;
-            if (h == 0)
-                h = 1;
-            so.hash = h;
-        }
-        return so.hash;
-    }
-    ulong x = cast(ulong) k.i * 0x9E3779B97F4A7C15UL;
-    return x ^ (x >> 29);
-}
-
-/// Equality of map keys.
-bool keyEq(in Value a, in Value b)
-{
-    if (a.t != b.t)
-        return false;
-    if (a.t == VT.str)
-        return a.o is b.o || asStr(a).s == asStr(b).s;
-    return a.i == b.i;
-}
-
-/// An insertion-ordered hash map.
+/// An insertion-ordered hash map. Keys are `Int`, `Bool`, `Char` or `Str`
+/// (all keys of one map have the same kind). Deleted entries leave holes that
+/// are compacted when they outnumber the live ones.
 final class MapObj : Obj
 {
     Value[] keys;
     Value[] vals;
-    /// Number of entry slots in use (live and dead).
-    size_t used;
-    /// Number of live entries.
-    size_t count;
-    private int[] index;
-    private size_t occupied;
+    bool[] dead;
+    size_t used; // entries in keys/vals, including holes
+    size_t live;
+    size_t[long] intIndex;
+    size_t[dstring] strIndex;
 
-    private enum empty = -1;
-    private enum tomb = -2;
-
-    /// Returns the entry position of `k` or -1.
-    int find(in Value k) const
+    size_t length() const @nogc nothrow
     {
-        if (count == 0)
-            return -1;
-        ulong h = hashKey(k);
-        size_t mask = index.length - 1;
-        size_t i = h & mask;
-        while (true)
-        {
-            int e = index[i];
-            if (e == empty)
-                return -1;
-            if (e >= 0 && keyEq(keys[e], k))
-                return e;
-            i = (i + 1) & mask;
-        }
+        return live;
     }
 
-    private void rebuild(size_t minCount)
+    /// Slot of `k`, or -1.
+    long find(Value k)
     {
-        // compact entries
+        if (k.tag == Tag.str)
+        {
+            if (auto p = k.str.s in strIndex)
+                return cast(long)*p;
+        }
+        else if (auto p = k.i in intIndex)
+            return cast(long)*p;
+        return -1;
+    }
+
+    Value* get(Value k)
+    {
+        const s = find(k);
+        return s < 0 ? null : &vals[s];
+    }
+
+    void set(Value k, Value v)
+    {
+        const s = find(k);
+        if (s >= 0)
+        {
+            vals[s] = v;
+            return;
+        }
+        if (used == keys.length)
+        {
+            const n = keys.length < 8 ? 8 : keys.length * 2;
+            keys.length = n;
+            vals.length = n;
+            dead.length = n;
+        }
+        keys[used] = k;
+        vals[used] = v;
+        dead[used] = false;
+        if (k.tag == Tag.str)
+            strIndex[k.str.s] = used;
+        else
+            intIndex[k.i] = used;
+        used++;
+        live++;
+    }
+
+    bool remove(Value k)
+    {
+        const s = find(k);
+        if (s < 0)
+            return false;
+        if (k.tag == Tag.str)
+            strIndex.remove(k.str.s);
+        else
+            intIndex.remove(k.i);
+        dead[s] = true;
+        keys[s] = Value.init;
+        vals[s] = Value.init;
+        live--;
+        if (used > 32 && live < used / 2)
+            compact();
+        return true;
+    }
+
+    private void compact()
+    {
         size_t j = 0;
         foreach (i; 0 .. used)
         {
-            if (keys[i].t != VT.unit)
-            {
-                if (i != j)
-                {
-                    keys[j] = keys[i];
-                    vals[j] = vals[i];
-                }
-                j++;
-            }
+            if (dead[i])
+                continue;
+            keys[j] = keys[i];
+            vals[j] = vals[i];
+            dead[j] = false;
+            if (keys[j].tag == Tag.str)
+                strIndex[keys[j].str.s] = j;
+            else
+                intIndex[keys[j].i] = j;
+            j++;
         }
         foreach (i; j .. used)
         {
             keys[i] = Value.init;
             vals[i] = Value.init;
+            dead[i] = false;
         }
         used = j;
-        size_t cap = 8;
-        while (cap < minCount * 3)
-            cap *= 2;
-        index = new int[cap];
-        index[] = empty;
-        occupied = 0;
-        size_t mask = cap - 1;
-        foreach (e; 0 .. used)
-        {
-            size_t s = hashKey(keys[e]) & mask;
-            while (index[s] != empty)
-                s = (s + 1) & mask;
-            index[s] = cast(int) e;
-            occupied++;
-        }
-    }
-
-    /// Inserts or updates; a present key keeps its position.
-    void set(Value k, Value v)
-    {
-        int e = find(k);
-        if (e >= 0)
-        {
-            vals[e] = v;
-            return;
-        }
-        if ((occupied + 1) * 2 > index.length)
-            rebuild(count + 1);
-        if (used == keys.length)
-        {
-            size_t n = keys.length < 8 ? 8 : keys.length * 2;
-            auto nk = new Value[n];
-            auto nv = new Value[n];
-            nk[0 .. used] = keys[0 .. used];
-            nv[0 .. used] = vals[0 .. used];
-            keys = nk;
-            vals = nv;
-        }
-        keys[used] = k;
-        vals[used] = v;
-        size_t mask = index.length - 1;
-        size_t s = hashKey(k) & mask;
-        while (index[s] >= 0)
-            s = (s + 1) & mask;
-        if (index[s] == empty)
-            occupied++;
-        index[s] = cast(int) used;
-        used++;
-        count++;
-    }
-
-    /// Removes a key; returns whether it was present.
-    bool remove(in Value k)
-    {
-        if (count == 0)
-            return false;
-        ulong h = hashKey(k);
-        size_t mask = index.length - 1;
-        size_t i = h & mask;
-        while (true)
-        {
-            int e = index[i];
-            if (e == empty)
-                return false;
-            if (e >= 0 && keyEq(keys[e], k))
-            {
-                index[i] = tomb;
-                keys[e] = Value.init;
-                vals[e] = Value.init;
-                count--;
-                if (used > 32 && used - count > count)
-                    rebuild(count);
-                return true;
-            }
-            i = (i + 1) & mask;
-        }
     }
 
     void clear()
     {
         keys = null;
         vals = null;
-        index = null;
-        used = count = occupied = 0;
+        dead = null;
+        used = 0;
+        live = 0;
+        intIndex = null;
+        strIndex = null;
     }
 
-    /// Copies the map (same entries, same order).
-    MapObj copy()
+    /// Visit live entries in insertion order.
+    int opApply(scope int delegate(ref Value k, ref Value v) dg)
     {
-        auto m = new MapObj;
         foreach (i; 0 .. used)
-            if (keys[i].t != VT.unit)
-                m.set(keys[i], vals[i]);
-        return m;
+        {
+            if (dead[i])
+                continue;
+            if (auto r = dg(keys[i], vals[i]))
+                return r;
+        }
+        return 0;
     }
 }
 
-/// Structural equality (section 10.4).
-bool valuesEqual(in Value a, in Value b)
+/// A tuple, struct instance or enum value.
+final class AggObj : Obj
 {
-    final switch (a.t)
+    /// Declaration id for structs and enums; -1 for tuples.
+    int decl;
+    /// Variant index for enum values.
+    int variant;
+    Value[] f;
+
+    this(int decl, int variant, Value[] f)
     {
-    case VT.unit:
+        this.decl = decl;
+        this.variant = variant;
+        this.f = f;
+    }
+}
+
+/// A closure: a function plus its captured values.
+final class ClosureObj : Obj
+{
+    int fn;
+    Value[] up;
+
+    this(int fn, Value[] up)
+    {
+        this.fn = fn;
+        this.up = up;
+    }
+}
+
+/// A run-time value: 16 bytes, no allocation for scalars.
+struct Value
+{
+    union
+    {
+        long i;
+        double f;
+        Obj o;
+    }
+
+    Tag tag;
+
+    static Value ofInt(long v) @nogc nothrow
+    {
+        Value r;
+        r.tag = Tag.int_;
+        r.i = v;
+        return r;
+    }
+
+    static Value ofFloat(double v) @nogc nothrow
+    {
+        Value r;
+        r.tag = Tag.float_;
+        r.f = v;
+        return r;
+    }
+
+    static Value ofBool(bool v) @nogc nothrow
+    {
+        Value r;
+        r.tag = Tag.bool_;
+        r.i = v;
+        return r;
+    }
+
+    static Value ofChar(long v) @nogc nothrow
+    {
+        Value r;
+        r.tag = Tag.char_;
+        r.i = v;
+        return r;
+    }
+
+    static Value ofStr(dstring s)
+    {
+        Value r;
+        r.tag = Tag.str;
+        r.o = new StrObj(s);
+        return r;
+    }
+
+    static Value ofObj(Tag t, Obj o) @nogc nothrow
+    {
+        Value r;
+        r.tag = t;
+        r.o = o;
+        return r;
+    }
+
+    static Value ofList(Value[] items)
+    {
+        return ofObj(Tag.list, new ListObj(items));
+    }
+
+    /// Unchecked views of the heap object; the type checker guarantees the tag.
+    StrObj str() @trusted nothrow @nogc
+    {
+        return cast(StrObj) cast(void*) o;
+    }
+
+    ListObj list() @trusted nothrow @nogc
+    {
+        return cast(ListObj) cast(void*) o;
+    }
+
+    MapObj map() @trusted nothrow @nogc
+    {
+        return cast(MapObj) cast(void*) o;
+    }
+
+    AggObj agg() @trusted nothrow @nogc
+    {
+        return cast(AggObj) cast(void*) o;
+    }
+
+    ClosureObj closure() @trusted nothrow @nogc
+    {
+        return cast(ClosureObj) cast(void*) o;
+    }
+}
+
+static assert(Value.sizeof == 16);
+
+/// Option/Result style helpers use the variant indices fixed by the prelude:
+/// `Some` = 0, `None` = 1, `Ok` = 0, `Err` = 1.
+enum int someVariant = 0, noneVariant = 1, okVariant = 0, errVariant = 1;
+
+/// The head constructor of a value, for trait method dispatch.
+int ctorOf(const Value v) @nogc nothrow
+{
+    final switch (v.tag)
+    {
+    case Tag.int_: return Ctor.int_;
+    case Tag.float_: return Ctor.float_;
+    case Tag.bool_: return Ctor.bool_;
+    case Tag.char_: return Ctor.char_;
+    case Tag.str: return Ctor.str;
+    case Tag.unit: return Ctor.unit;
+    case Tag.list: return Ctor.list;
+    case Tag.map: return Ctor.map;
+    case Tag.struct_, Tag.enum_:
+        return Ctor.firstDecl + (cast(AggObj) cast(void*) v.o).decl;
+    case Tag.tuple, Tag.closure:
+        return -1;
+    }
+}
+
+/// Structural equality (SPEC.md section 10.4).
+bool valuesEqual(Value a, Value b)
+{
+    final switch (a.tag)
+    {
+    case Tag.unit:
         return true;
-    case VT.int_, VT.bool_, VT.char_:
+    case Tag.int_, Tag.bool_, Tag.char_:
         return a.i == b.i;
-    case VT.float_:
+    case Tag.float_:
         return a.f == b.f;
-    case VT.str:
-        return a.o is b.o || asStr(a).s == asStr(b).s;
-    case VT.list:
-        {
-            auto x = asList(a);
-            auto y = asList(b);
-            if (x.len != y.len)
+    case Tag.str:
+        return a.str.s == b.str.s;
+    case Tag.list:
+    {
+        auto x = a.list, y = b.list;
+        if (x.len != y.len)
+            return false;
+        foreach (i; 0 .. x.len)
+            if (!valuesEqual(x.buf[i], y.buf[i]))
                 return false;
-            foreach (i; 0 .. x.len)
-                if (!valuesEqual(x.buf[i], y.buf[i]))
-                    return false;
-            return true;
-        }
-    case VT.map:
+        return true;
+    }
+    case Tag.map:
+    {
+        auto x = a.map, y = b.map;
+        if (x.length != y.length)
+            return false;
+        foreach (i; 0 .. x.used)
         {
-            auto x = asMap(a);
-            auto y = asMap(b);
-            if (x.count != y.count)
+            if (x.dead[i])
+                continue;
+            auto p = y.get(x.keys[i]);
+            if (p is null || !valuesEqual(x.vals[i], *p))
                 return false;
-            foreach (i; 0 .. x.used)
-            {
-                if (x.keys[i].t == VT.unit)
-                    continue;
-                int e = y.find(x.keys[i]);
-                if (e < 0 || !valuesEqual(x.vals[i], y.vals[e]))
-                    return false;
-            }
-            return true;
         }
-    case VT.tuple, VT.strukt, VT.enum_:
-        {
-            auto x = asAgg(a);
-            auto y = asAgg(b);
-            if (x.variant != y.variant)
+        return true;
+    }
+    case Tag.tuple, Tag.struct_, Tag.enum_:
+    {
+        auto x = a.agg, y = b.agg;
+        if (x.variant != y.variant)
+            return false;
+        foreach (i; 0 .. x.f.length)
+            if (!valuesEqual(x.f[i], y.f[i]))
                 return false;
-            foreach (i; 0 .. x.f.length)
-                if (!valuesEqual(x.f[i], y.f[i]))
-                    return false;
-            return true;
-        }
-    case VT.closure:
-        return a.o is b.o;
+        return true;
+    }
+    case Tag.closure:
+        return false;
     }
 }
 
-/// Three-way comparison of strings by scalar value.
-int compareStr(dstring a, dstring b) pure nothrow @nogc
+/// Three-way comparison of two values of an `Ord` type (-1, 0, 1; NaN compares as unordered = 2).
+int compareValues(Value a, Value b)
 {
-    size_t n = a.length < b.length ? a.length : b.length;
-    foreach (i; 0 .. n)
+    switch (a.tag)
     {
-        if (a[i] != b[i])
-            return a[i] < b[i] ? -1 : 1;
+    case Tag.float_:
+        if (a.f < b.f)
+            return -1;
+        if (a.f > b.f)
+            return 1;
+        if (a.f == b.f)
+            return 0;
+        return 2;
+    case Tag.str:
+    {
+        import std.algorithm.comparison : cmp;
+
+        const r = cmp(a.str.s, b.str.s);
+        return r < 0 ? -1 : (r > 0 ? 1 : 0);
     }
-    return a.length < b.length ? -1 : (a.length > b.length ? 1 : 0);
+    default:
+        return a.i < b.i ? -1 : (a.i > b.i ? 1 : 0);
+    }
 }

@@ -1,196 +1,209 @@
-/// The `.kiln-state` file: strict reader, canonical writer, freshness decision.
+/**
+ * The persisted build state (`.kiln-state`) and change detection.
+ */
 module kiln.state;
 
-import std.algorithm.sorting : sort;
-
 import kiln.hash;
-import kiln.paths;
 import kiln.step;
+import kiln.text;
 import kiln.vfs;
 
-/// A `(path, hash)` pair from an `in`, `dep` or `out` line.
-struct StateItem
+/// A path with the hash of the content recorded for it.
+struct PathHash
 {
+    ///
     string path;
+    ///
     ulong hash;
 }
 
-/// What is known about one previously executed step.
+/// The recorded knowledge about one previously executed step.
 struct StateEntry
 {
-    string cmd; /// canonical command string
-    StateItem[] ins;
-    StateItem[] deps;
-    StateItem[] outs;
+    /// Primary output path.
+    string key;
+    /// Canonical command string.
+    string cmd;
+    ///
+    PathHash[] ins, deps, outs;
 }
 
-/// The whole state, keyed by primary output path.
-alias State = StateEntry[string];
-
-private bool parseItem(string rest, out StateItem item) @safe
+/// The whole state: entries keyed by primary output.
+final class State
 {
-    size_t k = 0;
-    while (k < rest.length && rest[k] != ' ')
-        ++k;
-    if (k == rest.length)
-        return false;
-    const path = rest[0 .. k];
-    if (!isWorkspacePath(path))
-        return false;
-    ulong h;
-    if (!parseHex16(rest[k + 1 .. $], h))
-        return false;
-    item = StateItem(path, h);
-    return true;
+    ///
+    StateEntry[string] entries;
+
+    /// Reads state text; any deviation from the grammar yields an empty state.
+    static State parse(string content)
+    {
+        auto st = new State;
+        if (!tryParse(content, st.entries))
+            st.entries = null;
+        return st;
+    }
+
+    /// Writes the canonical text: entries sorted by key.
+    string serialize() const
+    {
+        import std.algorithm.sorting : sort;
+
+        string r = "kiln-state 1\n";
+        auto keys = entries.keys;
+        keys.sort!((a, b) => cmpBytes(a, b) < 0);
+        foreach (k; keys)
+        {
+            const e = entries[k];
+            r ~= "step " ~ e.key ~ "\ncmd " ~ e.cmd ~ "\n";
+            foreach (ref p; e.ins)
+                r ~= "in " ~ p.path ~ " " ~ toHex16(p.hash) ~ "\n";
+            foreach (ref p; e.deps)
+                r ~= "dep " ~ p.path ~ " " ~ toHex16(p.hash) ~ "\n";
+            foreach (ref p; e.outs)
+                r ~= "out " ~ p.path ~ " " ~ toHex16(p.hash) ~ "\n";
+            r ~= "end\n";
+        }
+        return r;
+    }
+
+    /// Decides whether `step` is fresh against this state and `fs`.
+    bool isFresh(Step step, Vfs fs) const
+    {
+        auto ep = step.primary in entries;
+        if (ep is null)
+            return false;
+        const e = *ep;
+        if (e.cmd != step.cmdString)
+            return false;
+        if (e.outs.length != step.fullOuts.length || e.ins.length != step.fileInputs.length)
+            return false;
+        foreach (i, ref p; e.outs)
+            if (p.path != step.fullOuts[i])
+                return false;
+        foreach (i, ref p; e.ins)
+            if (p.path != step.fileInputs[i])
+                return false;
+        foreach (list; [e.ins, e.deps, e.outs])
+            foreach (ref p; list)
+            {
+                ulong h;
+                if (!fs.hashOf(p.path, h) || h != p.hash)
+                    return false;
+            }
+        return true;
+    }
 }
 
-private bool startsWith(string s, string p) @safe
+private bool prefixed(string line, string key, out string rest) @safe pure nothrow @nogc
 {
-    return s.length >= p.length && s[0 .. p.length] == p;
+    if (line.length > key.length + 1 && startsWithBytes(line, key) && line[key.length] == ' ')
+    {
+        rest = line[key.length + 1 .. $];
+        return true;
+    }
+    return false;
 }
 
-/// Parses a state file. Any deviation from the grammar yields an empty state.
-State parseState(string content) @safe
+private bool parsePathHash(string rest, out PathHash ph) @safe pure nothrow @nogc
 {
-    State result;
+    foreach (i, char c; rest)
+    {
+        if (c == ' ')
+        {
+            const path = rest[0 .. i];
+            if (!isWorkspacePath(path))
+                return false;
+            ulong h;
+            if (!parseHex16(rest[i + 1 .. $], h))
+                return false;
+            ph = PathHash(path, h);
+            return true;
+        }
+    }
+    return false;
+}
+
+private bool tryParse(string content, ref StateEntry[string] entries)
+{
     if (content.length == 0 || content[$ - 1] != '\n')
-        return null;
-    size_t pos = 0;
-    bool more = true;
-
-    string nextLine()
+        return false;
+    auto lines = splitLines(content);
+    if (lines.length == 0 || lines[0] != "kiln-state 1")
+        return false;
+    size_t i = 1;
+    while (i < lines.length)
     {
-        size_t e = pos;
-        while (content[e] != '\n')
-            ++e;
-        auto l = content[pos .. e];
-        pos = e + 1;
-        more = pos < content.length;
-        return l;
-    }
-
-    if (nextLine() != "kiln-state 1")
-        return null;
-    while (more)
-    {
-        auto l = nextLine();
-        if (!startsWith(l, "step "))
-            return null;
-        const key = l[5 .. $];
-        if (!isWorkspacePath(key) || key in result)
-            return null;
-        if (!more)
-            return null;
-        l = nextLine();
-        if (!startsWith(l, "cmd ") || l.length == 4)
-            return null;
         StateEntry e;
-        e.cmd = l[4 .. $];
-        int stage = 0; // 0 = ins, 1 = deps, 2 = outs
-        bool ended = false;
-        while (more)
-        {
-            l = nextLine();
-            if (l == "end")
-            {
-                ended = true;
-                break;
-            }
-            StateItem it;
-            if (startsWith(l, "in "))
-            {
-                if (stage != 0 || !parseItem(l[3 .. $], it))
-                    return null;
-                e.ins ~= it;
-            }
-            else if (startsWith(l, "dep "))
-            {
-                if (stage > 1 || !parseItem(l[4 .. $], it))
-                    return null;
-                stage = 1;
-                e.deps ~= it;
-            }
-            else if (startsWith(l, "out "))
-            {
-                if (!parseItem(l[4 .. $], it))
-                    return null;
-                stage = 2;
-                e.outs ~= it;
-            }
-            else
-                return null;
-        }
-        if (!ended || e.outs.length == 0 || e.outs[0].path != key)
-            return null;
-        result[key] = e;
-    }
-    return result;
-}
-
-/// Renders the state in canonical form (entries sorted by primary output).
-string renderState(const State st) @safe
-{
-    auto keys = st.keys;
-    keys.sort();
-    char[] b;
-    b ~= "kiln-state 1\n";
-    void items(string tag, const(StateItem)[] xs)
-    {
-        foreach (ref x; xs)
-        {
-            b ~= tag;
-            b ~= ' ';
-            b ~= x.path;
-            b ~= ' ';
-            b ~= toHex16(x.hash);
-            b ~= '\n';
-        }
-    }
-
-    foreach (k; keys)
-    {
-        const e = st[k];
-        b ~= "step ";
-        b ~= k;
-        b ~= "\ncmd ";
-        b ~= e.cmd;
-        b ~= '\n';
-        items("in", e.ins);
-        items("dep", e.deps);
-        items("out", e.outs);
-        b ~= "end\n";
-    }
-    return (() @trusted => cast(string) b)();
-}
-
-private bool samePaths(const(StateItem)[] items, const(string)[] paths) @safe
-{
-    if (items.length != paths.length)
-        return false;
-    foreach (i; 0 .. items.length)
-        if (items[i].path != paths[i])
+        string rest;
+        if (!prefixed(lines[i], "step", rest) || !isWorkspacePath(rest))
             return false;
+        e.key = rest;
+        ++i;
+        if (i >= lines.length || !prefixed(lines[i], "cmd", rest))
+            return false;
+        e.cmd = rest;
+        ++i;
+        PathHash ph;
+        while (i < lines.length && prefixed(lines[i], "in", rest))
+        {
+            if (!parsePathHash(rest, ph))
+                return false;
+            e.ins ~= ph;
+            ++i;
+        }
+        while (i < lines.length && prefixed(lines[i], "dep", rest))
+        {
+            if (!parsePathHash(rest, ph))
+                return false;
+            e.deps ~= ph;
+            ++i;
+        }
+        while (i < lines.length && prefixed(lines[i], "out", rest))
+        {
+            if (!parsePathHash(rest, ph))
+                return false;
+            e.outs ~= ph;
+            ++i;
+        }
+        if (e.outs.length == 0 || i >= lines.length || lines[i] != "end")
+            return false;
+        ++i;
+        if (e.outs[0].path != e.key || e.key in entries)
+            return false;
+        entries[e.key] = e;
+    }
     return true;
 }
 
-private bool hashesMatch(const(StateItem)[] items, Vfs vfs) @safe
+unittest
 {
-    foreach (ref it; items)
-        if (!vfs.exists(it.path) || vfs.hash(it.path) != it.hash)
-            return false;
-    return true;
+    enum good = "kiln-state 1\nstep out/a\ncmd write(\"a b\")\nin src/x 0000000000000001\n"
+        ~ "dep src/y 0000000000000002\nout out/a 0000000000000003\nend\n";
+    auto st = State.parse(good);
+    assert(st.entries.length == 1 && st.entries["out/a"].cmd == "write(\"a b\")");
+    assert(st.serialize() == good);
+    assert(State.parse("kiln-state 1\n").entries.length == 0);
 }
 
-/// Decides whether `step` is fresh given its state entry `e` (null if none).
-bool isFresh(const Step step, const(StateEntry)* e, Vfs vfs) @safe
+unittest
 {
-    if (e is null)
-        return false;
-    if (e.cmd != step.canonical)
-        return false;
-    if (!samePaths(e.outs, step.fullOutputs))
-        return false;
-    if (!samePaths(e.ins, step.fileInputs))
-        return false;
-    return hashesMatch(e.ins, vfs) && hashesMatch(e.deps, vfs) && hashesMatch(e.outs, vfs);
+    void bad(string s)
+    {
+        assert(State.parse(s).entries.length == 0, s);
+    }
+
+    enum h = " 0000000000000001";
+    bad("");
+    bad("kiln-state 1"); // not newline terminated
+    bad("kiln-state 2\n");
+    bad("kiln-state 1\nstep out/a\ncmd x\nout out/a" ~ h ~ "\n"); // unterminated entry
+    bad("kiln-state 1\nstep out/a\ncmd x\nend\n"); // no out
+    bad("kiln-state 1\nstep out/a\nout out/a" ~ h ~ "\nend\n"); // no cmd
+    bad("kiln-state 1\nstep out/a\ncmd \nout out/a" ~ h ~ "\nend\n"); // empty cmd
+    bad("kiln-state 1\nstep out/a\ncmd x\nout out/b" ~ h ~ "\nend\n"); // key mismatch
+    bad("kiln-state 1\nstep out/a\ncmd x\ndep a" ~ h ~ "\nin a" ~ h ~ "\nout out/a" ~ h ~ "\nend\n"); // order
+    bad("kiln-state 1\nstep out/a\ncmd x\nout out/a 000000000000000G\nend\n");
+    bad("kiln-state 1\nstep out/a\ncmd x\nout out/a" ~ h ~ "\nend\nstep out/a\ncmd x\nout out/a" ~ h ~ "\nend\n");
+    bad("kiln-state 1\nstep out/a\ncmd x\nout out/a" ~ h ~ "\nend\nstray\n");
+    bad("kiln-state 1\nstep out/a\ncmd x\nout  out/a" ~ h ~ "\nend\n");
 }

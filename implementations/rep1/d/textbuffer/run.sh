@@ -1,4 +1,3 @@
 #!/bin/sh
-# Run the textbuffer command-line tool: script on stdin, output on stdout.
-DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$DIR/bin/textbuffer" "$@"
+# Run the textbuffer CLI: reads the document and commands on stdin, writes to stdout.
+exec "$(dirname "$0")/bin/textbuffer" "$@"

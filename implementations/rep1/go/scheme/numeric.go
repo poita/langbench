@@ -1,73 +1,106 @@
 package scheme
 
-import "math"
+import (
+	"math"
 
-// Integer arithmetic on Values. Fixnum operands take a machine-integer path
-// with overflow detection; only on overflow or a bignum operand does the
-// computation go through package bigint, and results that fit are demoted
-// back to fixnums so every integer has one representation.
+	"example.com/scheme/bigint"
+)
 
-func addInt(a, b Value) Value {
-	if a.t == tFix && b.t == tFix {
-		s := a.n + b.n
-		if (a.n^s)&(b.n^s) >= 0 {
-			return fix(s)
-		}
+func isInteger(v Value) bool {
+	switch v.(type) {
+	case Int, *Big:
+		return true
 	}
-	return fromBig(toBig(a).Add(toBig(b)))
+	return false
 }
 
-func subInt(a, b Value) Value {
-	if a.t == tFix && b.t == tFix {
-		d := a.n - b.n
-		if (a.n^b.n)&(a.n^d) >= 0 {
-			return fix(d)
-		}
+func toBig(v Value) *bigint.Int {
+	switch v := v.(type) {
+	case Int:
+		return bigint.New(int64(v))
+	case *Big:
+		return v.N
 	}
-	return fromBig(toBig(a).Sub(toBig(b)))
+	panic("scheme: not an integer")
 }
 
-func mulInt(a, b Value) Value {
-	if a.t == tFix && b.t == tFix {
-		x, y := a.n, b.n
-		if x == 0 || y == 0 {
-			return fix(0)
-		}
-		p := x * y
-		if p/y == x && !(x == -1 && y == math.MinInt64) && !(y == -1 && x == math.MinInt64) {
-			return fix(p)
+func numAdd(a, b Value) Value {
+	if x, ok := a.(Int); ok {
+		if y, ok := b.(Int); ok {
+			s := x + y
+			if (x^s)&(y^s) >= 0 { // no signed overflow
+				return s
+			}
 		}
 	}
-	return fromBig(toBig(a).Mul(toBig(b)))
+	return NewBig(toBig(a).Add(toBig(b)))
 }
 
-func negInt(a Value) Value {
-	if a.t == tFix && a.n != math.MinInt64 {
-		return fix(-a.n)
-	}
-	return fromBig(toBig(a).Neg())
-}
-
-// quoRemInt returns the truncated quotient and remainder; b must be nonzero.
-func quoRemInt(a, b Value) (q, r Value) {
-	if a.t == tFix && b.t == tFix && !(a.n == math.MinInt64 && b.n == -1) {
-		return fix(a.n / b.n), fix(a.n % b.n)
-	}
-	qb, rb, _ := toBig(a).QuoRem(toBig(b))
-	return fromBig(qb), fromBig(rb)
-}
-
-func cmpInt(a, b Value) int {
-	if a.t == tFix && b.t == tFix {
-		switch {
-		case a.n < b.n:
-			return -1
-		case a.n > b.n:
-			return 1
+func numSub(a, b Value) Value {
+	if x, ok := a.(Int); ok {
+		if y, ok := b.(Int); ok {
+			d := x - y
+			if (x^y)&(x^d) >= 0 {
+				return d
+			}
 		}
-		return 0
+	}
+	return NewBig(toBig(a).Sub(toBig(b)))
+}
+
+func numMul(a, b Value) Value {
+	if x, ok := a.(Int); ok {
+		if y, ok := b.(Int); ok {
+			if x == 0 || y == 0 {
+				return Int(0)
+			}
+			p := x * y
+			if p/y == x && !(x == -1 && y == math.MinInt64) && !(y == -1 && x == math.MinInt64) {
+				return p
+			}
+		}
+	}
+	return NewBig(toBig(a).Mul(toBig(b)))
+}
+
+func numCmp(a, b Value) int {
+	if x, ok := a.(Int); ok {
+		if y, ok := b.(Int); ok {
+			switch {
+			case x < y:
+				return -1
+			case x > y:
+				return 1
+			}
+			return 0
+		}
 	}
 	return toBig(a).Cmp(toBig(b))
 }
 
-func isZeroInt(a Value) bool { return a.t == tFix && a.n == 0 }
+func numSign(a Value) int {
+	switch a := a.(type) {
+	case Int:
+		switch {
+		case a < 0:
+			return -1
+		case a > 0:
+			return 1
+		}
+		return 0
+	case *Big:
+		return a.N.Sign()
+	}
+	return 0
+}
+
+// numQuoRem divides truncating toward zero; b must be non-zero.
+func numQuoRem(a, b Value) (Value, Value) {
+	if x, ok := a.(Int); ok {
+		if y, ok := b.(Int); ok && !(x == math.MinInt64 && y == -1) {
+			return x / y, x % y
+		}
+	}
+	q, r := toBig(a).QuoRem(toBig(b))
+	return NewBig(q), NewBig(r)
+}

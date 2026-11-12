@@ -1,111 +1,118 @@
 # datalog
 
-A Datalog engine with stratified negation, written in D using only Phobos.
-It reads a program (facts, rules, queries) and prints the answers to its queries
-under the standard perfect-model semantics, or `error` if the program is unsafe
-or not stratifiable.
+A Datalog engine with stratified negation, written in D. It reads a program
+(facts, rules, queries), checks that it is safe and stratifiable, computes its
+perfect model by **semi-naive bottom-up evaluation** and answers the queries.
 
-Evaluation is bottom-up and semi-naive: constants are interned to
-order-preserving integer ids, relations are append-only tuple arrays with a hash
-set for deduplication, join plans use lazily built, incrementally extended hash
-indexes, and each strongly connected component of the predicate graph is
-evaluated in topological order.
+* Library (`import datalog;`) split into lexer, parser, static analysis,
+  tuple storage and evaluator modules.
+* Command-line tool: program on stdin, answers on stdout.
+* Only the D standard library is used; tests use D's built-in `unittest`.
+
+## Language
+
+```
+edge(1, 2). edge(2, 3).                  % facts
+path(X, Y) :- edge(X, Y).                % rules
+path(X, Z) :- edge(X, Y), path(Y, Z).
+lonely(X)  :- node(X), not path(X, _), X != none.   % negation, comparisons
+?- path(1, X).                           % queries
+```
+
+Constants are integers (`-?[0-9]+`) or lowercase identifiers; variables start
+with an uppercase letter; `_` is an anonymous variable. Built-in comparisons are
+`< <= > >= = !=` over the total order *integers < identifiers* (integers
+numerically, identifiers bytewise). Rules must be safe (every variable of the
+head, of a negated atom or of a comparison occurs in a positive body atom) and
+the predicate dependency graph must have no cycle through negation; otherwise
+the output is just `error`.
+
+For each query the matching tuples are printed in ascending order, one
+`p(v1, v2)` per line, followed by `-- N` with their number.
 
 ## Build
 
-Requires LDC and dub (developed with LDC 1.41.0, dub 1.40.0).
+Requires LDC and dub.
 
 ```
-./build.sh                                  # builds bin/datalog
-# or directly:
-dub build -b release --compiler=ldc2
-dub test --compiler=ldc2                    # unit tests
+dub build -b release --compiler=ldc2     # or ./build.sh
 ```
 
-## Command line
+This produces `bin/datalog`. Run the unit tests with
 
 ```
-./run.sh < program.dl
+dub test --compiler=ldc2
 ```
 
-The whole of stdin is the program; stdout receives, for each query in order, the
-matching tuples in ascending order followed by `-- N`. If a rule is unsafe or
-the program is not stratifiable the only output is `error`. The exit code is 0
-in both cases (2 on a syntax error, with a message on stderr).
+## Command-line use
 
 ```
-$ ./run.sh <<'EOT'
+$ cat prog.dl
 edge(1, 2). edge(2, 3). edge(3, 1). edge(3, 4).
 path(X, Y) :- edge(X, Y).
 path(X, Z) :- edge(X, Y), path(Y, Z).
-?- path(1, X).
-EOT
+?- path(4, X).
+?- path(X, X).
+$ ./run.sh < prog.dl          # or bin/datalog < prog.dl
+-- 0
 path(1, 1)
-path(1, 2)
-path(1, 3)
-path(1, 4)
--- 4
+path(2, 2)
+path(3, 3)
+-- 3
 ```
 
-Language summary: identifiers `[a-z][a-z0-9_]*` and integers are constants
-(integers sort before identifiers, identifiers bytewise); variables start with
-an upper-case letter; `_` is an anonymous variable; body literals are atoms,
-`not atom`, and comparisons `< <= > >= = !=`; `%` starts a comment; queries are
-`?- atom.` See `problems/datalog/SPEC.md` for the full specification.
+The exit status is 0 for valid and invalid programs alike (an invalid program
+prints `error`).
 
-## Library
+## Library use
 
-Layout (`source/datalog/`):
-
-| module     | responsibility                                                   |
-|------------|------------------------------------------------------------------|
-| `lexer`    | tokeniser                                                        |
-| `parser`   | one-pass parser, interning, order-preserving constant renumbering |
-| `ast`      | `Program`, `Rule`, `Atom`, `Literal`, `Term`, …                  |
-| `analysis` | safety check, SCCs, stratification, evaluation order             |
-| `relation` | `Relation` (tuples + hash set) and `Index` (hash index)          |
-| `plan`     | compiling rules into join plans (full and per-atom delta variants) |
-| `engine`   | `Database.evaluate`: semi-naive evaluation                       |
-| `query`    | `matchQuery`, `renderAnswers`                                    |
-| `errors`   | `ParseException`, `ProgramError`                                 |
-
-`import datalog;` pulls in everything. Example:
+Add the package as a dependency (`dependency "datalog" path="..."`, which selects
+the `library` configuration) and:
 
 ```d
-import std.stdio;
 import datalog;
+import std.stdio;
 
 void main()
 {
-    auto program = parseProgram(`
-        parent(alice, bob). parent(bob, carol).
-        anc(X, Y) :- parent(X, Y).
-        anc(X, Z) :- parent(X, Y), anc(Y, Z).
-        ?- anc(alice, X).
-    `);
+    // One call: text in, text out ("error\n" is not returned; invalid programs throw).
+    writeln(solve("p(1). p(2). q(X) :- p(X), X > 1. ?- q(X)."));
 
-    // Static checks are also available on their own.
-    assert(analyze(program).status == Status.ok);
-
-    auto db = Database.evaluate(program);       // throws ProgramError if unsafe/unstratifiable
-    write(renderAnswers(db));
-    // anc(alice, bob)
-    // anc(alice, carol)
-    // -- 2
-
-    // Or query programmatically: flat array of constant ids, stride = arity.
-    auto flat = matchQuery(db, program.queries[0]);
-    writeln(program.constants[flat[1]]);        // bob
+    // Step by step, with access to the model.
+    auto program = parseProgram("e(a,b). e(b,c). t(X,Y) :- e(X,Y). t(X,Z) :- t(X,Y), e(Y,Z). ?- t(a, X).");
+    checkSafety(program);                       // throws UnsafeRuleException
+    auto strat = stratify(program);             // throws StratificationException
+    auto model = evaluate(program, strat);
+    foreach (ref q; program.queries)
+        foreach (row; model.answer(q))          // sorted tuples of ranked values
+            writeln(model.format(q.atom.pred, row));
 }
 ```
 
-`solve(string source)` runs the whole pipeline and returns the CLI's output.
+`solveOrError` behaves like the CLI: it returns `"error\n"` instead of throwing.
+All library exceptions derive from `DatalogException`.
 
-Limits: predicate arity is at most 32 (`datalog.relation.maxArity`); a relation
-holds fewer than 2^32 tuples.
+## Layout
 
-## Tests
+| module              | responsibility                                                    |
+|---------------------|-------------------------------------------------------------------|
+| `datalog.lexer`     | source text → tokens                                              |
+| `datalog.parser`    | tokens → `Program` (`datalog.ast`)                                |
+| `datalog.ast`       | syntax tree, constant interning and the order on constants        |
+| `datalog.analysis`  | safety check; stratification (Tarjan SCCs)                        |
+| `datalog.relation`  | tuple sets with incrementally maintained hash indexes             |
+| `datalog.eval`      | join planning and semi-naive evaluation, query answering          |
+| `datalog.solver`    | one-call `solve`, answer formatting                               |
+| `datalog.cli`       | the command-line front end                                        |
 
-Unit tests live in `tests/datalog_tests/` (lexer, parser, analysis, relation,
-engine) and run with `dub test --compiler=ldc2`. The end-to-end suite is run with
-`python3 run_tests.py datalog -- datalog/run.sh` from the repository root.
+## How evaluation works
+
+Constants are ranked once in the language's total order, so every comparison
+and every sort works on plain integers. Each rule is compiled to an indexed
+nested-loop join: the delta atom first, then repeatedly the atom with the most
+bound arguments; negations and comparisons run as soon as their variables are
+bound. Components of the dependency graph are evaluated bottom-up; within a
+recursive component each round runs one variant of a rule per recursive atom
+(that atom reads the previous round's new tuples, earlier ones the old tuples,
+later ones everything), so every derivation is made once. Hash indexes are
+extended incrementally at the end of each round and never rebuilt.

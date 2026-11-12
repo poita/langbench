@@ -1,162 +1,217 @@
 /**
- * Base64 (standard padded, URL-safe unpadded) and the strict-ish decoder
- * defined by the Standard Webhooks simulator spec.
+ * Base64 encoding and decoding, implemented from scratch.
+ *
+ * Encoding supports the standard alphabet (padded) and the URL-safe alphabet
+ * (unpadded). Decoding is lenient about the alphabet — it accepts either, but
+ * never a mixture — and strict about padding, as required for Standard
+ * Webhooks secrets and signatures:
+ *
+ * $(UL
+ *   $(LI padding, when present, must be exactly what the encoder would emit;)
+ *   $(LI the unused low bits of the last character are ignored, so `QQ==`
+ *        and `QR==` both decode to `0x41`;)
+ *   $(LI whitespace and any other character make the input invalid.))
  */
 module webhooks.base64;
 
-import webhooks.buffer;
-
 private immutable string standardAlphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-private immutable string urlAlphabet =
+private immutable string urlSafeAlphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
-private enum ubyte invalid = 0xff;
-private enum ubyte standardOnly = 0x40; // '+' and '/'
-private enum ubyte urlOnly = 0x80;      // '-' and '_'
-
-private immutable ubyte[256] decodeTable = () {
-    ubyte[256] t;
-    t[] = invalid;
-    foreach (i, c; standardAlphabet)
-        t[c] = cast(ubyte) i;
-    t['+'] |= standardOnly;
-    t['/'] |= standardOnly;
-    t['-'] = cast(ubyte)(62 | urlOnly);
-    t['_'] = cast(ubyte)(63 | urlOnly);
-    return t;
-}();
-
-private void encodeWith(scope const(ubyte)[] data, string alphabet, bool pad, ref ByteSink sink)
-    @safe pure nothrow
+private string encodeWith(scope const(ubyte)[] data, string alphabet, bool pad) pure nothrow @safe
 {
-    sink.reserve((data.length + 2) / 3 * 4);
+    auto result = new char[(data.length + 2) / 3 * 4];
+    size_t o = 0;
     size_t i = 0;
     for (; i + 3 <= data.length; i += 3)
     {
         immutable v = (cast(uint) data[i] << 16) | (cast(uint) data[i + 1] << 8) | data[i + 2];
-        sink.put(cast(ubyte) alphabet[v >> 18]);
-        sink.put(cast(ubyte) alphabet[(v >> 12) & 63]);
-        sink.put(cast(ubyte) alphabet[(v >> 6) & 63]);
-        sink.put(cast(ubyte) alphabet[v & 63]);
+        result[o++] = alphabet[v >> 18];
+        result[o++] = alphabet[(v >> 12) & 63];
+        result[o++] = alphabet[(v >> 6) & 63];
+        result[o++] = alphabet[v & 63];
     }
     immutable rest = data.length - i;
     if (rest == 1)
     {
         immutable v = cast(uint) data[i] << 16;
-        sink.put(cast(ubyte) alphabet[v >> 18]);
-        sink.put(cast(ubyte) alphabet[(v >> 12) & 63]);
+        result[o++] = alphabet[v >> 18];
+        result[o++] = alphabet[(v >> 12) & 63];
         if (pad)
-            sink.put("==");
+        {
+            result[o++] = '=';
+            result[o++] = '=';
+        }
     }
     else if (rest == 2)
     {
         immutable v = (cast(uint) data[i] << 16) | (cast(uint) data[i + 1] << 8);
-        sink.put(cast(ubyte) alphabet[v >> 18]);
-        sink.put(cast(ubyte) alphabet[(v >> 12) & 63]);
-        sink.put(cast(ubyte) alphabet[(v >> 6) & 63]);
+        result[o++] = alphabet[v >> 18];
+        result[o++] = alphabet[(v >> 12) & 63];
+        result[o++] = alphabet[(v >> 6) & 63];
         if (pad)
-            sink.putChar('=');
+            result[o++] = '=';
     }
+    return (() @trusted => cast(string) result[0 .. o])();
 }
 
-/// Appends padded standard Base64 of `data` to `sink`.
-void encodeStandard(scope const(ubyte)[] data, ref ByteSink sink) @safe pure nothrow
+/// Standard-alphabet Base64 with `=` padding.
+string encodeBase64(scope const(ubyte)[] data) pure nothrow @safe
 {
-    encodeWith(data, standardAlphabet, true, sink);
+    return encodeWith(data, standardAlphabet, true);
 }
 
-/// Appends unpadded URL-safe Base64 of `data` to `sink`.
-void encodeUrlSafe(scope const(ubyte)[] data, ref ByteSink sink) @safe pure nothrow
+/// URL-safe-alphabet Base64 without padding.
+string encodeBase64Url(scope const(ubyte)[] data) pure nothrow @safe
 {
-    encodeWith(data, urlAlphabet, false, sink);
+    return encodeWith(data, urlSafeAlphabet, false);
 }
 
-/// Padded standard Base64 as a string.
-string encodeStandard(scope const(ubyte)[] data) @trusted pure nothrow
+/// Appends the padded standard Base64 of `data` to `sink`.
+void putBase64(Sink)(ref Sink sink, scope const(ubyte)[] data)
 {
-    ByteSink s;
-    encodeStandard(data, s);
-    return cast(string) s.data.idup;
+    sink.put(encodeBase64(data));
 }
 
-/// Unpadded URL-safe Base64 as a string.
-string encodeUrlSafe(scope const(ubyte)[] data) @trusted pure nothrow
+// Value of a base64 character: 0..63, or -1. `+/` and `-_` share the values
+// 62 and 63; `kind` reports which alphabet-specific character was seen.
+private int sextet(ubyte c, ref bool sawStandard, ref bool sawUrl) pure nothrow @safe @nogc
 {
-    ByteSink s;
-    encodeUrlSafe(data, s);
-    return cast(string) s.data.idup;
-}
-
-/// Upper bound on the decoded size of `textLength` Base64 characters.
-size_t maxDecodedLength(size_t textLength) @safe pure nothrow @nogc
-{
-    return textLength / 4 * 3 + 3;
+    if (c >= 'A' && c <= 'Z')
+        return c - 'A';
+    if (c >= 'a' && c <= 'z')
+        return c - 'a' + 26;
+    if (c >= '0' && c <= '9')
+        return c - '0' + 52;
+    switch (c)
+    {
+    case '+':
+        sawStandard = true;
+        return 62;
+    case '/':
+        sawStandard = true;
+        return 63;
+    case '-':
+        sawUrl = true;
+        return 62;
+    case '_':
+        sawUrl = true;
+        return 63;
+    default:
+        return -1;
+    }
 }
 
 /**
- * Decodes `text` into `dst` (which must hold at least
- * `maxDecodedLength(text.length)` bytes).
+ * Decodes `input` (see the module description for the accepted forms).
  *
- * Rules: either alphabet but not both; optional padding that must be exactly
- * what the encoder would emit; length mod 4 == 1 invalid; unused trailing
- * bits are ignored.
- *
- * Returns: the number of bytes written, or -1 if `text` is invalid.
+ * Params:
+ *   input = the Base64 text, as bytes
+ *   result = receives the decoded bytes on success
+ * Returns: `true` if `input` is valid Base64, `false` otherwise.
  */
-ptrdiff_t decodeInto(scope const(ubyte)[] text, scope ubyte[] dst) @safe pure nothrow @nogc
+bool decodeBase64(scope const(ubyte)[] input, out ubyte[] result) pure nothrow @safe
 {
-    size_t n = text.length;
-    while (n > 0 && text[n - 1] == '=')
-        --n;
-    immutable p = text.length - n;
-    immutable rem = n % 4;
-    if (rem == 1 || p > 2)
-        return -1;
-    if (p > 0)
+    size_t bodyLength = input.length;
+    while (bodyLength > 0 && input[bodyLength - 1] == '=')
+        --bodyLength;
+    immutable padding = input.length - bodyLength;
+    immutable rem = bodyLength % 4;
+    if (rem == 1 || padding > 2)
+        return false;
+    if (padding > 0)
     {
-        if (rem == 0)
-            return -1;
-        if (p != 4 - rem)
-            return -1;
+        if (rem == 0 || (rem == 3 && padding != 1) || (rem == 2 && padding != 2))
+            return false;
     }
+
+    bool sawStandard = false;
+    bool sawUrl = false;
+    auto bytes = new ubyte[bodyLength * 6 / 8];
     uint acc = 0;
     uint bits = 0;
-    size_t out_ = 0;
-    ubyte seen = 0;
-    foreach (c; text[0 .. n])
+    size_t o = 0;
+    foreach (c; input[0 .. bodyLength])
     {
-        immutable v = decodeTable[c];
-        if (v == invalid)
-            return -1;
-        seen |= v & (standardOnly | urlOnly);
-        acc = (acc << 6) | (v & 63);
+        immutable v = sextet(c, sawStandard, sawUrl);
+        if (v < 0)
+            return false;
+        acc = (acc << 6) | cast(uint) v;
         bits += 6;
         if (bits >= 8)
         {
             bits -= 8;
-            dst[out_++] = cast(ubyte)(acc >> bits);
+            bytes[o++] = cast(ubyte)(acc >> bits);
             acc &= (1u << bits) - 1;
         }
     }
-    if (seen == (standardOnly | urlOnly))
-        return -1;
-    return cast(ptrdiff_t) out_;
-}
-
-/// Decodes `text` into a freshly allocated buffer. Returns false if invalid.
-bool decode(scope const(ubyte)[] text, out ubyte[] bytes) @safe pure nothrow
-{
-    auto buf = new ubyte[maxDecodedLength(text.length)];
-    immutable n = decodeInto(text, buf);
-    if (n < 0)
+    if (sawStandard && sawUrl)
         return false;
-    bytes = buf[0 .. n];
+    assert(o == bytes.length);
+    result = bytes;
     return true;
 }
 
-/// Overload for string input.
-bool decode(scope const(char)[] text, out ubyte[] bytes) @trusted pure nothrow
+/// ditto
+bool decodeBase64(scope const(char)[] input, out ubyte[] result) pure nothrow @trusted
 {
-    return decode(cast(const(ubyte)[]) text, bytes);
+    return decodeBase64(cast(const(ubyte)[]) input, result);
+}
+
+@safe unittest
+{
+    assert(encodeBase64([]) == "");
+    assert(encodeBase64(cast(const(ubyte)[]) "f") == "Zg==");
+    assert(encodeBase64(cast(const(ubyte)[]) "fo") == "Zm8=");
+    assert(encodeBase64(cast(const(ubyte)[]) "foo") == "Zm9v");
+    assert(encodeBase64(cast(const(ubyte)[]) "foobar") == "Zm9vYmFy");
+    assert(encodeBase64([0xfb, 0xff]) == "+/8=");
+    assert(encodeBase64Url([0xfb, 0xff]) == "-_8");
+    assert(encodeBase64Url(cast(const(ubyte)[]) "f") == "Zg");
+    assert(encodeBase64Url([]) == "");
+}
+
+@safe unittest
+{
+    ubyte[] r;
+    assert(decodeBase64("", r) && r.length == 0);
+    assert(decodeBase64("Zm9v", r) && r == cast(const(ubyte)[]) "foo");
+    assert(decodeBase64("Zg==", r) && r == cast(const(ubyte)[]) "f");
+    assert(decodeBase64("Zg", r) && r == cast(const(ubyte)[]) "f");
+    assert(decodeBase64("+/8=", r) && r == [0xfb, 0xff]);
+    assert(decodeBase64("-_8", r) && r == [0xfb, 0xff]);
+    // Leftover bits are not checked.
+    assert(decodeBase64("QQ==", r) && r == [0x41]);
+    assert(decodeBase64("QR==", r) && r == [0x41]);
+}
+
+@safe unittest
+{
+    ubyte[] r;
+    assert(!decodeBase64("Z", r)); // length mod 4 == 1
+    assert(!decodeBase64("Zg=", r)); // wrong padding amount
+    assert(!decodeBase64("Zm8==", r));
+    assert(!decodeBase64("Zm9v=", r)); // nothing to pad
+    assert(!decodeBase64("====", r));
+    assert(!decodeBase64("Zg===", r)); // p > 2
+    assert(!decodeBase64("Z=g=", r)); // '=' in the middle
+    assert(!decodeBase64("+-8=", r)); // mixed alphabets
+    assert(!decodeBase64("-/8", r));
+    assert(!decodeBase64("Zm 9v", r)); // whitespace
+    assert(!decodeBase64("Zm9v\n", r));
+    assert(!decodeBase64("Zm9é", r));
+}
+
+@safe unittest
+{
+    // Round trip on every length mod 3, in both alphabets.
+    ubyte[] data;
+    foreach (n; 0 .. 70)
+    {
+        ubyte[] r;
+        assert(decodeBase64(encodeBase64(data), r) && r == data);
+        assert(decodeBase64(encodeBase64Url(data), r) && r == data);
+        data ~= cast(ubyte)(n * 37 + 250);
+    }
 }

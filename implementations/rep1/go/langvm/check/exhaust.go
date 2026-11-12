@@ -3,301 +3,290 @@ package check
 import (
 	"langvm/ast"
 	"langvm/diag"
+	"langvm/types"
 )
 
-// Pattern-matrix analysis: the usefulness algorithm of SPEC 12.4.
-
-type ctorKey struct {
-	tag uint8
-	n   int64
-	s   string
-}
+// A lowered pattern for the usefulness algorithm of section 12.4.
+type ctorKind uint8
 
 const (
-	tagSingle uint8 = iota
-	tagBool
-	tagVar
-	tagInt
-	tagChar
-	tagStr
+	ckVariant ctorKind = iota
+	ckBool
+	ckInt
+	ckChar
+	ckStr
+	ckTuple
+	ckStruct
 )
 
-type spat struct {
-	wild bool
-	ctor ctorKey
-	sub  []*spat
-	list bool // list pattern: sub holds the element patterns
-	open bool // list pattern with a `..` rest
+type ctor struct {
+	kind ctorKind
+	n    int64
+	s    string
 }
 
-var wildPat = &spat{wild: true}
-
-type ctorInfo struct {
-	key ctorKey
-	sub []*Type
+type lp struct {
+	wild   bool
+	isList bool
+	open   bool // list pattern with a rest
+	c      ctor
+	args   []*lp
 }
 
-// ctorSet returns the constructors of a finite type; ok is false for types
-// with an infinite constructor set.
-func ctorSet(t *Type) (cs []ctorInfo, ok bool) {
-	t = prune(t)
-	switch t.Kind {
-	case KBool:
-		return []ctorInfo{{key: ctorKey{tag: tagBool, n: 1}}, {key: ctorKey{tag: tagBool, n: 0}}}, true
-	case KUnit:
-		return []ctorInfo{{key: ctorKey{tag: tagSingle}}}, true
-	case KTuple:
-		return []ctorInfo{{key: ctorKey{tag: tagSingle}, sub: t.Elems}}, true
-	case KNamed:
-		m := declSubst(t)
-		if !t.Decl.IsEnum {
-			sub := make([]*Type, len(t.Decl.Fields))
-			for i, f := range t.Decl.Fields {
-				sub[i] = subst(f.Type, m)
-			}
-			return []ctorInfo{{key: ctorKey{tag: tagSingle}, sub: sub}}, true
+var wildLP = &lp{wild: true}
+
+func lower(p ast.Pattern) *lp {
+	switch p := p.(type) {
+	case *ast.IdentPat:
+		if p.Variant != nil {
+			return &lp{c: ctor{kind: ckVariant, n: int64(p.Variant.Index)}}
 		}
-		out := make([]ctorInfo, len(t.Decl.Variants))
-		for i, v := range t.Decl.Variants {
-			sub := make([]*Type, len(v.Payload))
-			for j, p := range v.Payload {
-				sub[j] = subst(p, m)
-			}
-			out[i] = ctorInfo{key: ctorKey{tag: tagVar, n: int64(i)}, sub: sub}
+		return wildLP
+	case *ast.VariantPat:
+		args := make([]*lp, len(p.Args))
+		for i, a := range p.Args {
+			args[i] = lower(a)
 		}
-		return out, true
+		return &lp{c: ctor{kind: ckVariant, n: int64(p.Variant.Index)}, args: args}
+	case *ast.LitPat:
+		switch p.Kind {
+		case ast.LitInt:
+			return &lp{c: ctor{kind: ckInt, n: p.Int}}
+		case ast.LitChar:
+			return &lp{c: ctor{kind: ckChar, n: p.Int}}
+		case ast.LitBool:
+			return &lp{c: ctor{kind: ckBool, n: p.Int}}
+		case ast.LitStr:
+			return &lp{c: ctor{kind: ckStr, s: string(p.Str)}}
+		}
+		return wildLP
+	case *ast.TuplePat:
+		args := make([]*lp, len(p.Elems))
+		for i, a := range p.Elems {
+			args[i] = lower(a)
+		}
+		return &lp{c: ctor{kind: ckTuple}, args: args}
+	case *ast.StructPat:
+		args := make([]*lp, len(p.Decl.Fields))
+		for i := range args {
+			args[i] = wildLP
+		}
+		for _, f := range p.Fields {
+			if f.Pat != nil {
+				args[f.Index] = lower(f.Pat)
+			}
+		}
+		return &lp{c: ctor{kind: ckStruct}, args: args}
+	case *ast.ListPat:
+		args := make([]*lp, len(p.Elems))
+		for i, a := range p.Elems {
+			args[i] = lower(a)
+		}
+		return &lp{isList: true, open: p.HasRest, args: args}
 	}
-	return nil, false
+	return wildLP
 }
 
-// ctorSub returns the component types of constructor key for type t.
-func ctorSub(t *Type, key ctorKey) []*Type {
-	if cs, ok := ctorSet(t); ok {
-		for _, c := range cs {
-			if c.key == key {
-				return c.sub
-			}
+type row []*lp
+
+func wilds(n int) []*lp {
+	out := make([]*lp, n)
+	for i := range out {
+		out[i] = wildLP
+	}
+	return out
+}
+
+func concat(a []*lp, b []*lp) []*lp {
+	out := make([]*lp, 0, len(a)+len(b))
+	out = append(out, a...)
+	out = append(out, b...)
+	return out
+}
+
+func concatT(a []*types.Type, b []*types.Type) []*types.Type {
+	out := make([]*types.Type, 0, len(a)+len(b))
+	out = append(out, a...)
+	out = append(out, b...)
+	return out
+}
+
+// ctorArgTypes returns the column types a constructor expands to.
+func ctorArgTypes(t *types.Type, c ctor, arity int) []*types.Type {
+	switch c.kind {
+	case ckTuple:
+		return t.Args
+	case ckStruct:
+		sub := declSubst(t.Decl, t.Args)
+		out := make([]*types.Type, len(t.Decl.Fields))
+		for i, f := range t.Decl.Fields {
+			out[i] = types.Subst(f.Type, sub)
 		}
+		return out
+	case ckVariant:
+		v := t.Decl.Variants[c.n]
+		sub := declSubst(t.Decl, t.Args)
+		out := make([]*types.Type, len(v.Payload))
+		for i, p := range v.Payload {
+			out[i] = types.Subst(p, sub)
+		}
+		return out
 	}
 	return nil
 }
 
-func conv(p ast.Pattern) *spat {
-	switch n := p.(type) {
-	case *ast.WildPat:
-		return wildPat
-	case *ast.NamePat:
-		if n.Var != nil {
-			return &spat{ctor: ctorKey{tag: tagVar, n: int64(n.Var.(*Variant).Index)}}
-		}
-		return wildPat
-	case *ast.LitPat:
-		switch n.Kind {
-		case ast.LitInt:
-			v := n.Int
-			if n.Neg {
-				v = -v
+// allCtors enumerates the constructors of a finite type, or reports false.
+func allCtors(t *types.Type) ([]ctor, bool) {
+	switch t.Kind {
+	case types.KBool:
+		return []ctor{{kind: ckBool, n: 0}, {kind: ckBool, n: 1}}, true
+	case types.KTuple:
+		return []ctor{{kind: ckTuple}}, true
+	case types.KNamed:
+		if t.Decl.IsEnum {
+			cs := make([]ctor, len(t.Decl.Variants))
+			for i := range cs {
+				cs[i] = ctor{kind: ckVariant, n: int64(i)}
 			}
-			return &spat{ctor: ctorKey{tag: tagInt, n: v}}
-		case ast.LitChar:
-			return &spat{ctor: ctorKey{tag: tagChar, n: n.Int}}
-		case ast.LitStr:
-			return &spat{ctor: ctorKey{tag: tagStr, s: string(n.Str)}}
-		default:
-			v := int64(0)
-			if n.Bool {
-				v = 1
-			}
-			return &spat{ctor: ctorKey{tag: tagBool, n: v}}
+			return cs, true
 		}
-	case *ast.VariantPat:
-		sp := &spat{ctor: ctorKey{tag: tagVar, n: int64(n.Var.(*Variant).Index)}}
-		for _, a := range n.Args {
-			sp.sub = append(sp.sub, conv(a))
-		}
-		return sp
-	case *ast.StructPat:
-		d := n.Decl.(*TypeDecl)
-		sp := &spat{ctor: ctorKey{tag: tagSingle}, sub: make([]*spat, len(d.Fields))}
-		for i := range sp.sub {
-			sp.sub[i] = wildPat
-		}
-		for _, f := range n.Fields {
-			if f.Pat != nil {
-				sp.sub[f.Index] = conv(f.Pat)
-			}
-		}
-		return sp
-	case *ast.TuplePat:
-		sp := &spat{ctor: ctorKey{tag: tagSingle}}
-		for _, e := range n.Elems {
-			sp.sub = append(sp.sub, conv(e))
-		}
-		return sp
-	case *ast.ListPat:
-		sp := &spat{list: true, open: n.HasRest}
-		for _, e := range n.Elems {
-			sp.sub = append(sp.sub, conv(e))
-		}
-		return sp
-	}
-	return wildPat
-}
-
-func wilds(k int) []*spat {
-	out := make([]*spat, k)
-	for i := range out {
-		out[i] = wildPat
-	}
-	return out
-}
-
-// specialize applies S(c, row) of arity k; ok is false if the row is dropped.
-func specialize(row []*spat, key ctorKey, k int) ([]*spat, bool) {
-	first := row[0]
-	var out []*spat
-	switch {
-	case first.wild:
-		out = append(wilds(k), row[1:]...)
-	case first.ctor == key:
-		out = append(append([]*spat{}, first.sub...), row[1:]...)
-	default:
-		return nil, false
-	}
-	return out, true
-}
-
-func specList(row []*spat, k int) ([]*spat, bool) {
-	first := row[0]
-	switch {
-	case first.wild:
-		return append(wilds(k), row[1:]...), true
-	case !first.open && len(first.sub) == k:
-		return append(append([]*spat{}, first.sub...), row[1:]...), true
-	case first.open && len(first.sub) <= k:
-		out := append([]*spat{}, first.sub...)
-		out = append(out, wilds(k-len(first.sub))...)
-		return append(out, row[1:]...), true
+		return []ctor{{kind: ckStruct}}, true
 	}
 	return nil, false
 }
 
-func repeatType(t *Type, k int) []*Type {
-	out := make([]*Type, k)
-	for i := range out {
-		out[i] = t
+func specialize(rows []row, c ctor, arity int) []row {
+	var out []row
+	for _, r := range rows {
+		p := r[0]
+		switch {
+		case p.wild:
+			out = append(out, concat(wilds(arity), r[1:]))
+		case !p.isList && p.c == c:
+			out = append(out, concat(p.args, r[1:]))
+		}
 	}
 	return out
 }
 
-// useful computes U(rows, q) over columns of the given types.
-func useful(rows [][]*spat, q []*spat, tys []*Type) bool {
+func specializeList(rows []row, k int) []row {
+	var out []row
+	for _, r := range rows {
+		if nr, ok := specListRow(r, k); ok {
+			out = append(out, nr)
+		}
+	}
+	return out
+}
+
+func specListRow(r row, k int) (row, bool) {
+	p := r[0]
+	if p.wild {
+		return concat(wilds(k), r[1:]), true
+	}
+	n := len(p.args)
+	if p.open {
+		if n > k {
+			return nil, false
+		}
+		return concat(concat(p.args, wilds(k-n)), r[1:]), true
+	}
+	if n != k {
+		return nil, false
+	}
+	return concat(p.args, r[1:]), true
+}
+
+// useful reports whether row q is useful against rows (section 12.4).
+func useful(rows []row, q row, tys []*types.Type) bool {
 	if len(q) == 0 {
 		return len(rows) == 0
 	}
-	t := prune(tys[0])
-	rest := tys[1:]
-	if t.Kind == KList {
+	t := types.Resolve(tys[0])
+	if t.Kind == types.KList {
 		lmax := 0
 		for _, r := range rows {
-			if r[0].list && len(r[0].sub) > lmax {
-				lmax = len(r[0].sub)
+			if !r[0].wild && len(r[0].args) > lmax {
+				lmax = len(r[0].args)
 			}
 		}
-		if q[0].list && len(q[0].sub) > lmax {
-			lmax = len(q[0].sub)
+		if !q[0].wild && len(q[0].args) > lmax {
+			lmax = len(q[0].args)
 		}
 		for k := 0; k <= lmax+1; k++ {
 			if !q[0].wild {
+				n := len(q[0].args)
 				if q[0].open {
-					if k < len(q[0].sub) {
+					if k < n {
 						continue
 					}
-				} else if k != len(q[0].sub) {
+				} else if k != n {
 					continue
 				}
 			}
-			var nrows [][]*spat
-			for _, r := range rows {
-				if sr, ok := specList(r, k); ok {
-					nrows = append(nrows, sr)
-				}
+			q2, ok := specListRow(q, k)
+			if !ok {
+				continue
 			}
-			nq, _ := specList(q, k)
-			ntys := append(repeatType(t.Elems[0], k), rest...)
-			if useful(nrows, nq, ntys) {
+			elems := make([]*types.Type, k)
+			for i := range elems {
+				elems[i] = t.Args[0]
+			}
+			if useful(specializeList(rows, k), q2, concatT(elems, tys[1:])) {
 				return true
 			}
 		}
 		return false
 	}
-	spec := func(key ctorKey, sub []*Type) bool {
-		k := len(sub)
-		var nrows [][]*spat
-		for _, r := range rows {
-			if sr, ok := specialize(r, key, k); ok {
-				nrows = append(nrows, sr)
-			}
-		}
-		nq, ok := specialize(q, key, k)
-		if !ok {
-			return false
-		}
-		return useful(nrows, nq, append(append([]*Type{}, sub...), rest...))
-	}
 	if !q[0].wild {
-		key := q[0].ctor
-		return spec(key, ctorSub(t, key))
+		c := q[0].c
+		arity := len(q[0].args)
+		return useful(specialize(rows, c, arity), concat(q[0].args, q[1:]),
+			concatT(ctorArgTypes(t, c, arity), tys[1:]))
 	}
-	if cs, finite := ctorSet(t); finite {
-		used := map[ctorKey]bool{}
+	all, finite := allCtors(t)
+	if finite {
+		used := map[ctor]bool{}
 		for _, r := range rows {
-			if !r[0].wild {
-				used[r[0].ctor] = true
+			if !r[0].wild && !r[0].isList {
+				used[r[0].c] = true
 			}
 		}
-		covered := true
-		for _, c := range cs {
-			if !used[c.key] {
-				covered = false
-				break
-			}
-		}
-		if covered {
-			for _, c := range cs {
-				if spec(c.key, c.sub) {
+		if len(used) == len(all) {
+			for _, c := range all {
+				ats := ctorArgTypes(t, c, 0)
+				arity := len(ats)
+				if useful(specialize(rows, c, arity), concat(wilds(arity), q[1:]), concatT(ats, tys[1:])) {
 					return true
 				}
 			}
 			return false
 		}
 	}
-	// default matrix
-	var nrows [][]*spat
+	var def []row
 	for _, r := range rows {
 		if r[0].wild {
-			nrows = append(nrows, r[1:])
+			def = append(def, r[1:])
 		}
 	}
-	return useful(nrows, q[1:], rest)
+	return useful(def, q[1:], tys[1:])
 }
 
-// matchAnalysis performs the reachability and exhaustiveness checks of a
-// match (SPEC 10.12 steps 4 and 5).
-func (b *body) matchAnalysis(n *ast.MatchExpr, scrut *Type) {
-	st := zonk(scrut)
-	tys := []*Type{st}
-	var unguarded [][]*spat
-	for _, arm := range n.Arms {
-		q := conv(arm.Pat)
-		if !useful(unguarded, []*spat{q}, tys) {
-			b.fail(diag.Unreachable, arm.Pat.PatPos())
+// checkExhaustive performs the reachability and exhaustiveness checks of a
+// typed match (steps 4 and 5 of section 10.12).
+func (fc *fnCtx) checkExhaustive(m *ast.MatchExpr, s *types.Type) {
+	tys := []*types.Type{s}
+	var rows []row
+	for _, arm := range m.Arms {
+		q := lower(arm.Pat)
+		if !useful(rows, row{q}, tys) {
+			fc.fail(diag.Unreachable, arm.Pat.PatPos())
 		}
 		if arm.Guard == nil {
-			unguarded = append(unguarded, []*spat{q})
+			rows = append(rows, row{q})
 		}
 	}
-	if useful(unguarded, []*spat{wildPat}, tys) {
-		b.fail(diag.NonExhaustive, n.P)
+	if useful(rows, row{wildLP}, tys) {
+		fc.fail(diag.NonExhaustive, m.Pos)
 	}
 }

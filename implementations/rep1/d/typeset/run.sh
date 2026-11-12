@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs the typeset tool: run.sh <input directory> <output directory>
-# Font and pattern data are read from ./data relative to the current directory.
-DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$DIR/bin/typeset" "$@"
+# Run the typeset CLI: run.sh <input dir> <output dir>
+# The font/pattern data is read from ./data relative to the current directory.
+here="$(cd "$(dirname "$0")" && pwd)"
+exec "$here/build/typeset" "$@"

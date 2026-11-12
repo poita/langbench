@@ -1,0 +1,24 @@
+name "linalg"
+description "Dense real linear algebra: LU, QR, Cholesky, Jacobi eigen/SVD, with a Matrix Market command-line driver"
+authors "linalg authors"
+license "MIT"
+copyright "Copyright © linalg authors"
+
+# Default configuration: the command-line driver (`dub build`).
+configuration "application" {
+    targetType "executable"
+    targetName "linalg"
+    mainSourceFile "source/app.d"
+}
+
+# Library only, for use as a dependency:
+#   dependency "linalg" version="*"
+#   subConfiguration "linalg" "library"
+configuration "library" {
+    targetType "library"
+    excludedSourceFiles "source/app.d"
+}
+
+# Keep every sum in the order the specification gives: forbid fused
+# multiply-add contraction, which would change the rounding of intermediates.
+dflags "--fp-contract=off" platform="ldc"

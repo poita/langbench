@@ -1,90 +1,43 @@
-/// Diagnostics: the error codes of the specification and the exception that
-/// carries the first one found.
+/// Diagnostics: the single error a malformed input is reported as.
 module typeset.errors;
 
-/// Every error code the engine can report.
-enum ErrorCode
-{
-    missingDocument,
-    badSyntax,
-    unknownSetting,
-    duplicateSetting,
-    badLength,
-    badInteger,
-    badBoolean,
-    badEnum,
-    unknownFont,
-    unknownPatterns,
-    badValue,
-    badEscape,
-    unknownPlaceholder,
-    strayBrace,
-    unknownBlock,
-    blockNotAllowed,
-    duplicateToc,
-    unexpectedEnd,
-    missingEnd,
-    badAttribute,
-    missingAttribute,
-    badAttributeValue,
-    cellCount,
-    textNotAllowed,
-    unknownMeta,
-    duplicateMeta,
-    unknownInline,
-    unclosedInline,
-    nestedFootnote,
-    footnoteNotAllowed,
-}
+import std.format : format;
 
-private immutable string[] codeNames = [
-    "missing-document", "bad-syntax", "unknown-setting", "duplicate-setting",
-    "bad-length", "bad-integer", "bad-boolean", "bad-enum", "unknown-font",
-    "unknown-patterns", "bad-value", "bad-escape", "unknown-placeholder",
-    "stray-brace", "unknown-block", "block-not-allowed", "duplicate-toc",
-    "unexpected-end", "missing-end", "bad-attribute", "missing-attribute",
-    "bad-attribute-value", "cell-count", "text-not-allowed", "unknown-meta",
-    "duplicate-meta", "unknown-inline", "unclosed-inline", "nested-footnote",
-    "footnote-not-allowed",
-];
-
-/// The kebab-case name of an error code, as written in `error.txt`.
-string codeName(ErrorCode c) pure nothrow @nogc @safe
-{
-    return codeNames[c];
-}
-
-/// One located error.
+/// Where and why an input was rejected. `line`/`col` are 1-based; the column
+/// counts Unicode scalar values.
 struct Diagnostic
 {
     string file; /// `settings.cfg`, `document.cdx` or `-`
-    int line; /// 1-based line (0 for `missing-document`)
-    int col; /// 1-based column in Unicode scalar values
-    ErrorCode code;
+    int line;
+    int col;
+    string code; /// e.g. `bad-length`
 
-    /// `file:line:col: code`
+    /// The `error.txt` line (without the trailing newline).
     string toString() const @safe
     {
-        import std.conv : to;
-
-        return file ~ ":" ~ line.to!string ~ ":" ~ col.to!string ~ ": " ~ codeName(code);
+        return format("%s:%d:%d: %s", file, line, col, code);
     }
 }
 
-/// Thrown by the parsers on the first invalid construct.
+/// Thrown by the parsers on the first error found.
 class TypesetError : Exception
 {
-    Diagnostic diag; ///
+    Diagnostic diagnostic;
 
-    this(Diagnostic d, string file = __FILE__, size_t line = __LINE__) @safe
+    this(Diagnostic d, string file = __FILE__, size_t line = __LINE__) @safe pure
     {
-        super(d.toString(), file, line);
-        diag = d;
+        super(d.code, file, line);
+        diagnostic = d;
     }
 }
 
 /// Throws a `TypesetError`.
-noreturn fail(string file, int line, int col, ErrorCode code) @safe
+noreturn fail(string file, int line, int col, string code) @safe pure
 {
     throw new TypesetError(Diagnostic(file, line, col, code));
+}
+
+@safe unittest
+{
+    assert(Diagnostic("settings.cfg", 2, 15, "bad-length").toString == "settings.cfg:2:15: bad-length");
 }

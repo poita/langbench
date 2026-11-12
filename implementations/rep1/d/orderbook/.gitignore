@@ -1,5 +1,6 @@
 .dub/
-/orderbook
-*.o
+bin/
 *.a
+*.o
 *-test-*
+dub.selections.json

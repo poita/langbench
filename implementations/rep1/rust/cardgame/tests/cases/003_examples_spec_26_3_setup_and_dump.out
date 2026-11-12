@@ -1,0 +1,15 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 1 1
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+STATE BEGIN
+turn 1 active A phase main1 decision A priority
+player A spire 10 ember 1 cap 1 vault 3 hand 1 ash 0 rift 0
+player B spire 10 ember 0 cap 0 vault 3 hand 0 ash 0 rift 0
+hand A 1 #4 CIN-003
+field B #8 CIN-001 2/1 w0 c0 ready - kw vanguard
+STATE END
+8 RESULT pending none

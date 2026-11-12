@@ -1,89 +1,119 @@
-/// Cell names such as `A1` or `ZZ9999`.
+/**
+ * Cell addresses (`A1`, `ZZ9999`) and their compact integer keys.
+ *
+ * A column is one or two uppercase letters (`A`..`Z`, `AA`..`ZZ`, columns
+ * 1..702) and a row is 1..9999.  A $(LREF CellRef) packs both into a single
+ * integer key whose numeric order is row-major order, which makes it cheap
+ * to hash, sort and iterate over rectangular ranges.
+ */
 module spreadsheet.cellref;
 
-/// Highest valid column (`ZZ`) and row.
-enum uint maxColumn = 702, maxRow = 9999;
+/// Largest valid column number (`ZZ`).
+enum maxColumn = 702;
+/// Largest valid row number.
+enum maxRow = 9999;
 
-/// Multiplier of the row in a cell key; keys sort in row-major order.
-enum uint keyStride = 703;
-
-/// A cell position.  `col` is 1..702 (`A`..`ZZ`), `row` is 1..9999.
+/// A valid cell address.  Compare with `==` / `<`; ordering is row-major.
 struct CellRef
 {
-    ushort col;
+    /// 1-based column number, `A` = 1, `Z` = 26, `AA` = 27, ..., `ZZ` = 702.
+    ushort column;
+    /// 1-based row number.
     ushort row;
 
-    /// Row-major sortable key: `row * 703 + col`.
-    uint key() const @safe pure nothrow @nogc { return row * keyStride + col; }
-
-    /// Inverse of `key`.
-    static CellRef fromKey(uint key) @safe pure nothrow @nogc
+    /// Packs the address into an integer; numeric order is row-major order.
+    @property uint key() const pure nothrow @nogc @safe
     {
-        return CellRef(cast(ushort)(key % keyStride), cast(ushort)(key / keyStride));
+        return (cast(uint) row << 10) | column;
     }
 
-    /// Append the cell name (e.g. `AB12`) to an output range of `char`s.
-    void toString(Sink)(ref Sink sink) const
+    /// Inverse of $(LREF key).
+    static CellRef fromKey(uint key) pure nothrow @nogc @safe
     {
-        char[8] buf = void;
-        size_t n = 0;
-        if (col > 26)
-            buf[n++] = cast(char)('A' + (col - 1) / 26 - 1);
-        buf[n++] = cast(char)('A' + (col - 1) % 26);
-        char[4] digits = void;
+        return CellRef(cast(ushort)(key & 1023), cast(ushort)(key >> 10));
+    }
+
+    int opCmp(const CellRef other) const pure nothrow @nogc @safe
+    {
+        const a = key, b = other.key;
+        return a < b ? -1 : (a > b ? 1 : 0);
+    }
+
+    /// The textual name, e.g. `"AB12"`.
+    string toString() const pure nothrow @safe
+    {
+        char[2] letters;
+        size_t n;
+        if (column > 26)
+            letters[n++] = cast(char)('A' + (column - 1) / 26 - 1);
+        letters[n++] = cast(char)('A' + (column - 1) % 26);
+        char[5] digits;
         size_t d = digits.length;
         uint r = row;
-        while (r != 0)
+        do
         {
             digits[--d] = cast(char)('0' + r % 10);
             r /= 10;
         }
-        buf[n .. n + digits.length - d] = digits[d .. $];
-        n += digits.length - d;
-        sink.put(buf[0 .. n]);
-    }
-
-    /// The cell name as a string.
-    string toString() const @safe
-    {
-        import std.array : appender;
-        auto app = appender!string();
-        toString(app);
-        return app.data;
+        while (r);
+        return (letters[0 .. n] ~ digits[d .. $]).idup;
     }
 }
 
 /**
- * Parse a cell name: one or two uppercase letters then a row number 1..9999
- * without leading zeros.  Returns false (leaving `ref_` unspecified) if `s`
- * is not a valid name.
+ * Parses a cell name.
+ *
+ * Params:
+ *     text = candidate name such as `"B7"`
+ *     result = receives the address on success
+ * Returns: `true` if `text` is a valid cell name (at most two uppercase
+ * letters, then a row 1..9999 without leading zeros, and nothing else).
  */
-bool tryParseCellRef(const(char)[] s, out CellRef ref_) @safe pure nothrow @nogc
+bool tryParseCellRef(const(char)[] text, out CellRef result) pure nothrow @nogc @safe
 {
-    size_t i = 0;
-    uint col = 0;
-    while (i < s.length && s[i] >= 'A' && s[i] <= 'Z')
+    size_t i;
+    uint col;
+    while (i < text.length && text[i] >= 'A' && text[i] <= 'Z')
     {
         if (i == 2)
             return false;
-        col = col * 26 + (s[i] - 'A' + 1);
+        col = col * 26 + (text[i] - 'A' + 1);
         i++;
     }
-    if (i == 0)
+    if (i == 0 || i == text.length || text[i] == '0')
         return false;
-    size_t digitsStart = i;
-    uint row = 0;
-    while (i < s.length && s[i] >= '0' && s[i] <= '9')
+    uint row;
+    while (i < text.length && text[i] >= '0' && text[i] <= '9')
     {
-        if (i - digitsStart >= 4)
+        row = row * 10 + (text[i] - '0');
+        if (row > maxRow)
             return false;
-        row = row * 10 + (s[i] - '0');
         i++;
     }
-    if (i == digitsStart || i != s.length)
+    if (i != text.length)
         return false;
-    if (s[digitsStart] == '0' || row < 1 || row > maxRow)
-        return false;
-    ref_ = CellRef(cast(ushort) col, cast(ushort) row);
+    result = CellRef(cast(ushort) col, cast(ushort) row);
     return true;
+}
+
+///
+@safe pure unittest
+{
+    CellRef r;
+    assert(tryParseCellRef("A1", r) && r == CellRef(1, 1));
+    assert(tryParseCellRef("ZZ9999", r) && r == CellRef(702, 9999));
+    assert(tryParseCellRef("AB123", r) && r.column == 28 && r.row == 123);
+    assert(r.toString == "AB123");
+}
+
+@safe pure unittest
+{
+    CellRef r;
+    foreach (bad; ["", "A", "1", "AAA1", "A0", "A01", "A10000", "a1", "A1B", "A-1"])
+        assert(!tryParseCellRef(bad, r), bad);
+    assert(CellRef(26, 5).toString == "Z5");
+    assert(CellRef(27, 10).toString == "AA10");
+    assert(CellRef(702, 9999).toString == "ZZ9999");
+    assert(CellRef.fromKey(CellRef(30, 77).key) == CellRef(30, 77));
+    assert(CellRef(702, 1) < CellRef(1, 2));
 }

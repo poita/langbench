@@ -1,30 +1,27 @@
 /**
- * KBL glob patterns: compilation and allocation-free matching.
+ * Glob patterns, as used by `glob`, `filter` and `reject`.
  *
- * A pattern is split on `/` into components. A component is `**` (zero or
- * more whole candidate components) or a sequence of items (`*`, `?`, a
- * character class, or a literal byte). Candidates are split at every `/`.
+ * A pattern is compiled once into a $(LREF GlobPattern) and can then be matched
+ * against many candidate strings. Matching works on bytes and on
+ * `/`-separated components; `**` as a whole component matches zero or more
+ * components.
  */
 module kiln.glob;
 
 private enum ItemKind : ubyte
 {
     literal,
-    anyByte,
-    star,
-    byteClass,
+    anyByte, // ?
+    star, // *
+    charClass, // [...]
 }
 
 private struct Item
 {
     ItemKind kind;
-    ubyte ch;
-    ulong[4] bits; // for byteClass: the set of accepted bytes (negation already applied)
-
-    bool test(ubyte b) const @safe pure nothrow @nogc
-    {
-        return (bits[b >> 6] >> (b & 63)) & 1;
-    }
+    char ch;
+    bool negate;
+    ulong[4] bits; // class membership, one bit per byte value
 }
 
 private struct Component
@@ -34,247 +31,283 @@ private struct Component
 }
 
 /// A compiled glob pattern.
-final class GlobPattern
+struct GlobPattern
 {
     private Component[] comps;
-    private bool hasDoubleStar;
-    /// Leading literal components joined with `/` (no trailing `/`).
-    string literalPrefix;
+    /**
+     * The wildcard-free prefix of the pattern text: every matching string
+     * starts with it, which lets callers narrow a sorted index by binary
+     * search.
+     */
+    string prefix;
 
-    // Scratch storage reused between candidates.
-    private int[] starts;
-    private int[] ends;
-    private ubyte[] memo;
-    private string cand;
-    private size_t nc;
-
-    /// Compiles `pattern`; returns null if it is malformed.
-    static GlobPattern compile(string pattern)
+    /// Whether the pattern matches the whole candidate string.
+    bool matches(const(char)[] candidate) const @safe pure nothrow
     {
-        if (pattern.length == 0)
-            return null;
-        auto g = new GlobPattern;
+        // Split the candidate at every '/', keeping empty components.
+        const(char)[][] parts;
         size_t start = 0;
-        bool prefixOpen = true;
-        size_t prefixEnd = 0;
-        foreach (i; 0 .. pattern.length + 1)
-        {
-            if (i != pattern.length && pattern[i] != '/')
-                continue;
-            if (i == start)
-                return null; // empty component (also leading / trailing '/')
-            auto text = pattern[start .. i];
-            Component c;
-            if (text == "**")
-            {
-                c.doubleStar = true;
-                g.hasDoubleStar = true;
-            }
-            else if (!parseItems(text, c.items))
-                return null;
-            if (prefixOpen)
-            {
-                bool meta = false;
-                foreach (b; text)
-                    if (b == '*' || b == '?' || b == '[')
-                        meta = true;
-                if (meta)
-                    prefixOpen = false;
-                else
-                    prefixEnd = i;
-            }
-            g.comps ~= c;
-            start = i + 1;
-        }
-        g.literalPrefix = pattern[0 .. prefixEnd];
-        return g;
-    }
-
-    private static bool parseItems(string text, ref Item[] items)
-    {
-        size_t i = 0;
-        while (i < text.length)
-        {
-            immutable c = text[i];
-            Item it;
-            if (c == '*')
-            {
-                it.kind = ItemKind.star;
-                i++;
-            }
-            else if (c == '?')
-            {
-                it.kind = ItemKind.anyByte;
-                i++;
-            }
-            else if (c == '[')
-            {
-                it.kind = ItemKind.byteClass;
-                size_t j = i + 1;
-                bool negate = false;
-                if (j < text.length && text[j] == '!')
-                {
-                    negate = true;
-                    j++;
-                }
-                size_t collected = 0;
-                for (;;)
-                {
-                    if (j >= text.length)
-                        return false;
-                    immutable d = cast(ubyte) text[j];
-                    if (d == ']')
-                    {
-                        if (collected == 0)
-                            return false;
-                        j++;
-                        break;
-                    }
-                    if (j + 2 < text.length && text[j + 1] == '-' && text[j + 2] != ']')
-                    {
-                        immutable hi = cast(ubyte) text[j + 2];
-                        if (d > hi)
-                            return false;
-                        foreach (b; d .. hi + 1)
-                            it.bits[b >> 6] |= 1UL << (b & 63);
-                        j += 3;
-                    }
-                    else
-                    {
-                        it.bits[d >> 6] |= 1UL << (d & 63);
-                        j++;
-                    }
-                    collected++;
-                }
-                if (negate)
-                    foreach (ref w; it.bits)
-                        w = ~w;
-                i = j;
-            }
-            else
-            {
-                it.kind = ItemKind.literal;
-                it.ch = cast(ubyte) c;
-                i++;
-            }
-            items ~= it;
-        }
-        return true;
-    }
-
-    /// True iff the whole of `candidate` matches the pattern.
-    bool matches(string candidate)
-    {
-        // Split the candidate at every '/', recording offsets only.
-        cand = candidate;
-        starts.length = 0;
-        ends.length = 0;
-        starts.assumeSafeAppend();
-        ends.assumeSafeAppend();
-        int s = 0;
         foreach (i; 0 .. candidate.length)
+        {
             if (candidate[i] == '/')
             {
-                starts ~= s;
-                ends ~= cast(int) i;
-                s = cast(int)(i + 1);
+                parts ~= candidate[start .. i];
+                start = i + 1;
             }
-        starts ~= s;
-        ends ~= cast(int) candidate.length;
-        nc = starts.length;
-
-        if (!hasDoubleStar)
-        {
-            if (nc != comps.length)
-                return false;
-            foreach (k; 0 .. nc)
-                if (!matchComponent(comps[k].items, k))
-                    return false;
-            return true;
         }
-        immutable need = (comps.length + 1) * (nc + 1);
-        if (memo.length < need)
-            memo.length = need;
-        memo[0 .. need] = 0;
-        return rec(0, 0);
+        parts ~= candidate[start .. $];
+        return matchComponents(parts);
     }
 
-    private bool rec(size_t pi, size_t ci)
+    private bool matchComponents(const(char)[][] cand) const @safe pure nothrow
     {
-        if (pi == comps.length)
-            return ci == nc;
-        immutable slot = pi * (nc + 1) + ci;
-        if (memo[slot])
-            return false;
-        if (comps[pi].doubleStar)
+        immutable np = comps.length, nc = cand.length;
+        size_t pi = 0, ci = 0;
+        ptrdiff_t starPi = -1;
+        size_t starCi = 0;
+        while (ci < nc)
         {
-            foreach (k; ci .. nc + 1)
-                if (rec(pi + 1, k))
-                    return true;
-        }
-        else if (ci < nc && matchComponent(comps[pi].items, ci) && rec(pi + 1, ci + 1))
-            return true;
-        memo[slot] = 1;
-        return false;
-    }
-
-    // Linear star-backtracking match of one component against one candidate component.
-    private bool matchComponent(const(Item)[] items, size_t ci) const
-    {
-        immutable s = starts[ci];
-        immutable n = ends[ci] - s;
-        size_t i = 0;
-        int j = 0;
-        ptrdiff_t starItem = -1;
-        int starJ = 0;
-        while (j < n)
-        {
-            if (i < items.length && items[i].kind != ItemKind.star)
+            if (pi < np && comps[pi].doubleStar)
             {
-                immutable b = cast(ubyte) cand[s + j];
-                final switch (items[i].kind)
-                {
-                case ItemKind.literal:
-                    if (items[i].ch == b)
-                    {
-                        i++;
-                        j++;
-                        continue;
-                    }
-                    break;
-                case ItemKind.anyByte:
-                    i++;
-                    j++;
-                    continue;
-                case ItemKind.byteClass:
-                    if (items[i].test(b))
-                    {
-                        i++;
-                        j++;
-                        continue;
-                    }
-                    break;
-                case ItemKind.star:
-                    assert(0);
-                }
-            }
-            else if (i < items.length)
-            {
-                starItem = cast(ptrdiff_t) i;
-                starJ = j;
-                i++;
+                starPi = cast(ptrdiff_t) pi;
+                starCi = ci;
+                pi++;
                 continue;
             }
-            if (starItem >= 0)
+            if (pi < np && matchItems(comps[pi].items, cand[ci]))
             {
-                i = cast(size_t) starItem + 1;
-                j = ++starJ;
+                pi++;
+                ci++;
+                continue;
             }
-            else
-                return false;
+            if (starPi >= 0)
+            {
+                starCi++;
+                ci = starCi;
+                pi = cast(size_t) starPi + 1;
+                continue;
+            }
+            return false;
         }
-        while (i < items.length && items[i].kind == ItemKind.star)
-            i++;
-        return i == items.length;
+        while (pi < np && comps[pi].doubleStar)
+            pi++;
+        return pi == np;
     }
+}
+
+private bool inClass(const ref Item it, ubyte b) @safe pure nothrow @nogc
+{
+    immutable inSet = (it.bits[b >> 6] >> (b & 63)) & 1;
+    return it.negate ? !inSet : inSet != 0;
+}
+
+private bool matchOne(const ref Item it, char c) @safe pure nothrow @nogc
+{
+    final switch (it.kind)
+    {
+    case ItemKind.literal:
+        return c == it.ch;
+    case ItemKind.anyByte:
+        return true; // components never contain '/'
+    case ItemKind.charClass:
+        return inClass(it, cast(ubyte) c);
+    case ItemKind.star:
+        assert(0);
+    }
+}
+
+private bool matchItems(const(Item)[] items, const(char)[] s) @safe pure nothrow @nogc
+{
+    size_t pi = 0, si = 0;
+    ptrdiff_t starPi = -1;
+    size_t starSi = 0;
+    while (si < s.length)
+    {
+        if (pi < items.length && items[pi].kind == ItemKind.star)
+        {
+            starPi = cast(ptrdiff_t) pi;
+            starSi = si;
+            pi++;
+            continue;
+        }
+        if (pi < items.length && matchOne(items[pi], s[si]))
+        {
+            pi++;
+            si++;
+            continue;
+        }
+        if (starPi >= 0)
+        {
+            starSi++;
+            si = starSi;
+            pi = cast(size_t) starPi + 1;
+            continue;
+        }
+        return false;
+    }
+    while (pi < items.length && items[pi].kind == ItemKind.star)
+        pi++;
+    return pi == items.length;
+}
+
+/**
+ * Compiles `pattern`. Returns false when the pattern is malformed: empty, a
+ * leading or trailing `/`, an empty component, or a malformed character class.
+ */
+bool compileGlob(string pattern, out GlobPattern result) @safe pure nothrow
+{
+    if (pattern.length == 0)
+        return false;
+    GlobPattern gp;
+    size_t start = 0;
+    foreach (i; 0 .. pattern.length + 1)
+    {
+        if (i == pattern.length || pattern[i] == '/')
+        {
+            auto text = pattern[start .. i];
+            start = i + 1;
+            if (text.length == 0)
+                return false;
+            Component c;
+            if (text == "**")
+                c.doubleStar = true;
+            else if (!compileComponent(text, c.items))
+                return false;
+            gp.comps ~= c;
+        }
+    }
+    size_t p = 0;
+    while (p < pattern.length && pattern[p] != '*' && pattern[p] != '?' && pattern[p] != '[')
+        p++;
+    // A trailing `**` also matches zero components, so `a/**` matches `a`
+    // itself: its prefix must not include the separator.
+    if (p > 0 && pattern[p - 1] == '/' && pattern[p .. $] == "**")
+        p--;
+    gp.prefix = pattern[0 .. p];
+    result = gp;
+    return true;
+}
+
+private bool compileComponent(string text, ref Item[] items) @safe pure nothrow
+{
+    size_t i = 0;
+    while (i < text.length)
+    {
+        immutable c = text[i];
+        if (c == '*')
+        {
+            Item it;
+            it.kind = ItemKind.star;
+            // Collapse runs of stars.
+            if (items.length == 0 || items[$ - 1].kind != ItemKind.star)
+                items ~= it;
+            i++;
+        }
+        else if (c == '?')
+        {
+            Item it;
+            it.kind = ItemKind.anyByte;
+            items ~= it;
+            i++;
+        }
+        else if (c == '[')
+        {
+            Item it;
+            it.kind = ItemKind.charClass;
+            i++;
+            if (i < text.length && text[i] == '!')
+            {
+                it.negate = true;
+                i++;
+            }
+            size_t collected = 0;
+            bool closed = false;
+            while (true)
+            {
+                if (i >= text.length)
+                    return false; // unterminated
+                if (text[i] == ']')
+                {
+                    if (collected == 0)
+                        return false;
+                    i++;
+                    closed = true;
+                    break;
+                }
+                if (i + 2 < text.length && text[i + 1] == '-' && text[i + 2] != ']')
+                {
+                    immutable lo = cast(ubyte) text[i], hi = cast(ubyte) text[i + 2];
+                    if (lo > hi)
+                        return false;
+                    foreach (b; lo .. hi + 1)
+                        it.bits[b >> 6] |= 1UL << (b & 63);
+                    i += 3;
+                }
+                else
+                {
+                    immutable b = cast(ubyte) text[i];
+                    it.bits[b >> 6] |= 1UL << (b & 63);
+                    i++;
+                }
+                collected++;
+            }
+            assert(closed);
+            items ~= it;
+        }
+        else
+        {
+            Item it;
+            it.kind = ItemKind.literal;
+            it.ch = c;
+            items ~= it;
+            i++;
+        }
+    }
+    return true;
+}
+
+/// Convenience used by tests: compile and match in one go.
+bool globMatches(string pattern, string candidate) @safe pure nothrow
+{
+    GlobPattern p;
+    return compileGlob(pattern, p) && p.matches(candidate);
+}
+
+@safe pure nothrow unittest
+{
+    assert(globMatches("src/*.txt", "src/a.txt"));
+    assert(globMatches("src/*.txt", "src/.txt"));
+    assert(!globMatches("src/*.txt", "src/sub/a.txt"));
+    assert(!globMatches("src/*.txt", "a.txt"));
+    assert(globMatches("src/**", "src/a.txt"));
+    assert(globMatches("src/**", "src/x/y/z.txt"));
+    assert(globMatches("src/**", "src"));
+    assert(!globMatches("src/**", "srcx"));
+    assert(globMatches("**/*.txt", "a.txt"));
+    assert(globMatches("**/*.txt", "a/b/c.txt"));
+    assert(!globMatches("**/*.txt", "a.text"));
+    assert(globMatches("src/**/t_*.txt", "src/t_1.txt"));
+    assert(globMatches("src/**/t_*.txt", "src/a/b/t_2.txt"));
+    assert(!globMatches("src/**/t_*.txt", "src/t.txt"));
+    assert(globMatches("src/?.txt", "src/a.txt"));
+    assert(!globMatches("src/?.txt", "src/ab.txt"));
+    assert(globMatches("src/[ab]*.txt", "src/a1.txt"));
+    assert(!globMatches("src/[ab]*.txt", "src/c.txt"));
+    assert(globMatches("src/[!ab]*.txt", "src/c.txt"));
+    assert(globMatches("src/[0-9].txt", "src/7.txt"));
+    assert(globMatches("a**b", "axyzb") && globMatches("a**b", "ab"));
+    assert(!globMatches("a**b", "a/b"));
+    // Candidates keep empty components.
+    assert(globMatches("*", "") && globMatches("**", "") && !globMatches("?", ""));
+    assert(!globMatches("*", "a//b"));
+    assert(globMatches("a/*", "a/"));
+    // Character-class corner cases.
+    assert(globMatches("[-a]", "-") && globMatches("[a-]", "-") && globMatches("[*?]", "*"));
+    GlobPattern p;
+    assert(!compileGlob("", p) && !compileGlob("/a", p) && !compileGlob("a/", p));
+    assert(!compileGlob("a//b", p) && !compileGlob("[]", p) && !compileGlob("[!]", p));
+    assert(!compileGlob("[a", p) && !compileGlob("[z-a]", p));
+    assert(compileGlob("src/a*b", p) && p.prefix == "src/a");
+    assert(compileGlob("lib/**", p) && p.prefix == "lib");
+    assert(compileGlob("lib/**/x", p) && p.prefix == "lib/");
 }

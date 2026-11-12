@@ -1,33 +1,29 @@
 /**
- * The KBL parser: logical lines of tokens to a statement tree.
+ * The KBL parser: turns logical lines into statement trees.
  *
- * A file is lexed completely first (so lexical errors take precedence), then
- * parsed line by line with a block stack. Double-quoted string literals,
- * including their interpolated expressions, are parsed here too.
+ * Syntax errors surface as `KilnError` `E_PARSE <file>:<line>`, using the
+ * precedence the spec requires: lexical errors for the whole file first, then
+ * the first grammar error in file order, then unterminated blocks.
  */
 module kiln.parser;
 
 import kiln.ast;
-import kiln.builtins : builtinId;
-import kiln.errors;
+import kiln.errors : failParse;
 import kiln.lexer;
+import kiln.value : Value;
 
-import std.array : appender;
-
-/// Parses the build file `src`, reporting syntax errors against `file`.
-Stmt[] parseProgram(string src, string file)
+/// Parses the build file `src` (whose workspace path is `file`).
+Stmt[] parseBuildFile(string src, string file) @safe pure
 {
     auto lines = lexFile(src, file);
-    auto p = new ProgramParser(file);
-    foreach (ref ll; lines)
-        p.addLine(ll);
-    return p.finish();
+    return FileParser(file).parse(lines);
 }
 
-private enum Ctx : ubyte
+private enum FrameKind : ubyte
 {
     root,
-    when,
+    whenBranch,
+    otherwiseBranch,
     each,
     rule,
     step,
@@ -35,768 +31,823 @@ private enum Ctx : ubyte
 
 private final class Frame
 {
-    Ctx ctx;
-    Stmt node;
+    FrameKind kind;
+    int line;
+    Stmt owner;
     Stmt[] stmts;
-    int headerLine;
-    bool inOtherwise;
 
-    this(Ctx c, Stmt n, int line)
+    this(FrameKind kind, int line, Stmt owner) @safe pure nothrow @nogc
     {
-        ctx = c;
-        node = n;
-        headerLine = line;
+        this.kind = kind;
+        this.line = line;
+        this.owner = owner;
     }
 }
 
-private final class ProgramParser
+private struct FileParser
 {
     string file;
     Frame[] stack;
 
-    this(string file)
+    Stmt[] parse(LogicalLine[] lines) @safe pure
     {
-        this.file = file;
-        stack ~= new Frame(Ctx.root, null, 0);
-    }
-
-    void addLine(ref LogicalLine ll)
-    {
-        auto ex = new ExprParser(file, ll.line, ll.tokens);
-        auto t = ll.tokens;
-        if (t[0].isPunct("}"))
-            terminator(ex, ll.line);
-        else if (t[$ - 1].isPunct("{"))
-            header(ex, ll.line);
-        else
-            simple(ex, ll.line);
-    }
-
-    Stmt[] finish()
-    {
+        stack = [new Frame(FrameKind.root, 0, null)];
+        foreach (ref ll; lines)
+        {
+            try
+                parseLine(ll);
+            catch (SyntaxFailure)
+                failParse(file, ll.number);
+        }
         if (stack.length > 1)
-            throw parseError(file, stack[$ - 1].headerLine);
+            failParse(file, stack[$ - 1].line); // innermost unterminated block
         return stack[0].stmts;
     }
 
-    Frame top()
+    private Frame top() @safe pure nothrow @nogc
     {
         return stack[$ - 1];
     }
 
-    void add(Stmt s)
+    private void parseLine(ref LogicalLine ll) @safe pure
     {
-        top.stmts ~= s;
+        auto toks = ll.tokens;
+        if (toks[0].isSym("}"))
+            return parseTerminator(ll);
+        if (toks[$ - 1].isSym("{"))
+            return parseHeader(ll);
+        auto st = top().kind == FrameKind.step ? parseStepField(toks, ll.number) : parseSimple(toks,
+                ll.number);
+        top().stmts ~= st;
     }
 
-    void terminator(ExprParser ex, int line)
+    // ---- block terminators ------------------------------------------------
+
+    private void parseTerminator(ref LogicalLine ll) @safe pure
     {
-        auto t = ex.t;
+        auto toks = ll.tokens;
         if (stack.length == 1)
-            throw parseError(file, line);
-        if (t.length == 1)
+            throw new SyntaxFailure;
+        if (toks.length == 1)
         {
-            // plain close
-            auto f = stack[$ - 1];
-            stack.length = stack.length - 1;
-            final switch (f.ctx)
-            {
-            case Ctx.root:
-                assert(0);
-            case Ctx.when:
-                f.node.bodies ~= f.stmts;
-                break;
-            case Ctx.each:
-            case Ctx.rule:
-                f.node.block = f.stmts;
-                break;
-            case Ctx.step:
-                break;
-            }
-            top.stmts ~= f.node;
+            closeFrame();
             return;
         }
-        auto f = top;
-        if (f.ctx != Ctx.when || f.inOtherwise)
-            throw parseError(file, line);
-        if (t.length == 3 && t[1].isIdent("otherwise") && t[2].isPunct("{"))
+        auto f = top();
+        if (toks[1].isWord("elsewhen"))
         {
-            f.node.bodies ~= f.stmts;
-            f.stmts = null;
-            f.inOtherwise = true;
-            f.headerLine = line;
+            if (f.kind != FrameKind.whenBranch || !toks[$ - 1].isSym("{") || toks.length < 4)
+                throw new SyntaxFailure;
+            auto ep = ExprParser(toks[2 .. $ - 1]);
+            auto cond = ep.parseWhole();
+            auto owner = f.owner;
+            closeFrame();
+            owner.conds ~= cond;
+            stack ~= new Frame(FrameKind.whenBranch, ll.number, owner);
             return;
         }
-        if (t.length >= 4 && t[1].isIdent("elsewhen") && t[$ - 1].isPunct("{"))
+        if (toks[1].isWord("otherwise"))
         {
-            ex.pos = 2;
-            ex.limit = t.length - 1;
-            auto cond = ex.parseExpr();
-            ex.expectEnd();
-            f.node.bodies ~= f.stmts;
-            f.node.conds ~= cond;
-            f.stmts = null;
-            f.headerLine = line;
+            if (f.kind != FrameKind.whenBranch || toks.length != 3 || !toks[2].isSym("{"))
+                throw new SyntaxFailure;
+            auto owner = f.owner;
+            closeFrame();
+            owner.hasOtherwise = true;
+            stack ~= new Frame(FrameKind.otherwiseBranch, ll.number, owner);
             return;
         }
-        throw parseError(file, line);
+        throw new SyntaxFailure;
     }
 
-    void header(ExprParser ex, int line)
+    private void closeFrame() @safe pure
     {
-        auto t = ex.t;
-        if (top.ctx == Ctx.step)
-            throw parseError(file, line);
-        ex.limit = t.length - 1;
-        if (t[0].isIdent("step"))
+        auto f = top();
+        stack = stack[0 .. $ - 1];
+        final switch (f.kind)
         {
-            if (t.length != 2)
-                throw parseError(file, line);
-            stack ~= new Frame(Ctx.step, new Stmt(SK.step, line), line);
+        case FrameKind.root:
+            assert(0);
+        case FrameKind.whenBranch:
+            f.owner.branches ~= f.stmts;
+            break;
+        case FrameKind.otherwiseBranch:
+            f.owner.otherwise = f.stmts;
+            break;
+        case FrameKind.each:
+        case FrameKind.rule:
+            f.owner.children = f.stmts;
+            break;
+        case FrameKind.step:
+            f.owner.fields = f.stmts;
+            break;
         }
-        else if (t[0].isIdent("when"))
+    }
+
+    // ---- block headers ----------------------------------------------------
+
+    private void parseHeader(ref LogicalLine ll) @safe pure
+    {
+        auto toks = ll.tokens;
+        if (top().kind == FrameKind.step)
+            throw new SyntaxFailure;
+        auto st = new Stmt;
+        st.line = ll.number;
+        if (toks[0].isWord("step"))
         {
-            ex.pos = 1;
-            auto s = new Stmt(SK.when, line);
-            s.conds ~= ex.parseExpr();
-            ex.expectEnd();
-            stack ~= new Frame(Ctx.when, s, line);
+            if (toks.length != 2)
+                throw new SyntaxFailure;
+            st.kind = StmtKind.step;
+            top().stmts ~= st;
+            stack ~= new Frame(FrameKind.step, ll.number, st);
         }
-        else if (t[0].isIdent("each"))
+        else if (toks[0].isWord("when"))
         {
-            ex.pos = 1;
-            auto s = new Stmt(SK.each, line);
-            s.name = ex.plainIdent();
-            if (ex.acceptPunct(","))
+            if (toks.length < 3)
+                throw new SyntaxFailure;
+            st.kind = StmtKind.when;
+            auto ep = ExprParser(toks[1 .. $ - 1]);
+            st.conds ~= ep.parseWhole();
+            top().stmts ~= st;
+            stack ~= new Frame(FrameKind.whenBranch, ll.number, st);
+        }
+        else if (toks[0].isWord("each"))
+        {
+            st.kind = StmtKind.each;
+            size_t p = 1;
+            st.name = identAt(toks, p++);
+            if (toks[p].isSym(","))
             {
-                s.indexName = s.name;
-                s.name = ex.plainIdent();
-                if (s.indexName == s.name)
-                    throw parseError(file, line);
+                p++;
+                st.indexName = st.name;
+                st.name = identAt(toks, p++);
+                if (st.indexName == st.name)
+                    throw new SyntaxFailure;
             }
-            if (!ex.acceptIdent("in"))
-                throw parseError(file, line);
-            s.expr = ex.parseExpr();
-            ex.expectEnd();
-            stack ~= new Frame(Ctx.each, s, line);
+            if (p >= toks.length || !toks[p].isWord("in"))
+                throw new SyntaxFailure;
+            p++;
+            if (p >= toks.length - 1)
+                throw new SyntaxFailure;
+            auto ep = ExprParser(toks[p .. $ - 1]);
+            st.expr = ep.parseWhole();
+            top().stmts ~= st;
+            stack ~= new Frame(FrameKind.each, ll.number, st);
         }
-        else if (t[0].isIdent("rule"))
+        else if (toks[0].isWord("rule"))
         {
-            ex.pos = 1;
-            auto s = new Stmt(SK.rule, line);
-            s.name = ex.plainIdent();
-            ex.expectPunct("(");
-            bool sawDefault = false;
-            bool first = true;
-            while (!ex.atPunct(")"))
-            {
-                if (!first)
-                    ex.expectPunct(",");
-                first = false;
-                if (ex.atPunct(")"))
-                    break; // trailing comma
-                Param p;
-                p.name = ex.plainIdent();
-                foreach (ref q; s.params)
-                    if (q.name == p.name)
-                        throw parseError(file, line);
-                if (ex.acceptPunct("="))
-                {
-                    p.defaultValue = ex.parseExpr();
-                    sawDefault = true;
-                }
-                else if (sawDefault)
-                    throw parseError(file, line);
-                s.params ~= p;
-            }
-            ex.expectPunct(")");
-            ex.expectEnd();
-            stack ~= new Frame(Ctx.rule, s, line);
+            st.kind = StmtKind.rule;
+            size_t p = 1;
+            st.name = identAt(toks, p++);
+            if (toks.length < 5 || !toks[p].isSym("(") || !toks[$ - 2].isSym(")"))
+                throw new SyntaxFailure;
+            auto ep = ExprParser(toks[p + 1 .. $ - 2]);
+            st.params = ep.parseParams();
+            top().stmts ~= st;
+            stack ~= new Frame(FrameKind.rule, ll.number, st);
         }
         else
-            throw parseError(file, line);
+        {
+            throw new SyntaxFailure;
+        }
     }
 
-    void simple(ExprParser ex, int line)
+    // ---- simple statements ------------------------------------------------
+
+    private Stmt parseSimple(Token[] toks, int line) @safe pure
     {
-        auto t = ex.t;
-        if (t[0].kind != Tk.ident)
-            throw parseError(file, line);
-        immutable kw = t[0].text;
-        ex.pos = 1;
-        if (top.ctx == Ctx.step)
-        {
-            StepField f;
-            switch (kw)
-            {
-            case "out":
-                f.kind = FK.out_;
-                f.expr = ex.parseExpr();
-                break;
-            case "in":
-                f.kind = FK.in_;
-                f.expr = ex.parseExpr();
-                break;
-            case "after":
-                f.kind = FK.after;
-                f.expr = ex.parseExpr();
-                break;
-            case "cost":
-                f.kind = FK.cost;
-                f.expr = ex.parseExpr();
-                break;
-            case "depfile":
-                f.kind = FK.depfile;
-                f.expr = ex.parseExpr();
-                break;
-            case "cmd":
-                f.kind = FK.cmd;
-                f.cmdName = ex.anyIdent();
-                ex.expectPunct("(");
-                f.cmdArgs = ex.parseArgsAfterOpen();
-                break;
-            default:
-                throw parseError(file, line);
-            }
-            ex.expectEnd();
-            top.node.fields ~= f;
-            return;
-        }
-        Stmt s;
-        switch (kw)
+        auto st = new Stmt;
+        st.line = line;
+        if (toks[0].kind != TokenKind.identifier)
+            throw new SyntaxFailure;
+        switch (toks[0].text)
         {
         case "let":
         case "set":
-            s = new Stmt(kw == "let" ? SK.let : SK.set, line);
-            s.name = ex.plainIdent();
-            ex.expectPunct("=");
-            s.expr = ex.parseExpr();
-            break;
-        case "phony":
-            s = new Stmt(SK.phony, line);
-            s.name = ex.plainIdent();
-            ex.expectPunct("=");
-            s.expr = ex.parseExpr();
-            break;
+            st.kind = toks[0].text == "let" ? StmtKind.let : StmtKind.set;
+            return parseBinding(st, toks);
         case "include":
-            s = new Stmt(SK.include, line);
-            s.expr = ex.parseExpr();
+            st.kind = StmtKind.include;
             break;
         case "abort":
-            s = new Stmt(SK.abort, line);
-            s.expr = ex.parseExpr();
+            st.kind = StmtKind.abort;
             break;
         case "default":
-            s = new Stmt(SK.default_, line);
-            s.expr = ex.parseExpr();
+            st.kind = StmtKind.defaultTargets;
             break;
+        case "phony":
+            st.kind = StmtKind.phony;
+            return parseBinding(st, toks);
         case "use":
-            s = new Stmt(SK.use, line);
-            s.name = ex.anyIdent();
-            ex.expectPunct("(");
-            ex.parseUseArgs(s);
-            break;
+            st.kind = StmtKind.use;
+            if (toks.length < 4 || toks[1].kind != TokenKind.identifier
+                    || !toks[2].isSym("(") || !toks[$ - 1].isSym(")"))
+                throw new SyntaxFailure;
+            st.name = toks[1].text;
+            auto uep = ExprParser(toks[3 .. $ - 1]);
+            st.useArgs = uep.parseUseArgs();
+            return st;
         default:
-            throw parseError(file, line);
+            throw new SyntaxFailure;
         }
-        ex.expectEnd();
-        add(s);
+        // include / abort / default: keyword followed by one expression
+        auto ep = ExprParser(toks[1 .. $]);
+        st.expr = ep.parseWhole();
+        return st;
+    }
+
+    /// `KEYWORD IDENT = expr`
+    private Stmt parseBinding(Stmt st, Token[] toks) @safe pure
+    {
+        immutable p = 2;
+        st.name = identAt(toks, 1);
+        if (toks.length <= p || !toks[p].isSym("="))
+            throw new SyntaxFailure;
+        auto ep = ExprParser(toks[p + 1 .. $]);
+        st.expr = ep.parseWhole();
+        return st;
+    }
+
+    private Stmt parseStepField(Token[] toks, int line) @safe pure
+    {
+        auto st = new Stmt;
+        st.line = line;
+        if (toks[0].kind != TokenKind.identifier)
+            throw new SyntaxFailure;
+        switch (toks[0].text)
+        {
+        case "out":
+            st.kind = StmtKind.fieldOut;
+            break;
+        case "in":
+            st.kind = StmtKind.fieldIn;
+            break;
+        case "after":
+            st.kind = StmtKind.fieldAfter;
+            break;
+        case "cost":
+            st.kind = StmtKind.fieldCost;
+            break;
+        case "depfile":
+            st.kind = StmtKind.fieldDepfile;
+            break;
+        case "cmd":
+            st.kind = StmtKind.fieldCmd;
+            if (toks.length < 4 || toks[1].kind != TokenKind.identifier
+                    || !toks[2].isSym("(") || !toks[$ - 1].isSym(")"))
+                throw new SyntaxFailure;
+            st.name = toks[1].text;
+            auto cep = ExprParser(toks[3 .. $ - 1]);
+            st.cmdArgs = cep.parseExprList();
+            return st;
+        default:
+            throw new SyntaxFailure;
+        }
+        auto ep = ExprParser(toks[1 .. $]);
+        st.expr = ep.parseWhole();
+        return st;
     }
 }
 
-private final class ExprParser
+/// An identifier token at `toks[p]` that is not a reserved word.
+private string identAt(Token[] toks, size_t p) @safe pure
 {
-    string file;
-    int line;
-    Token[] t;
+    if (p >= toks.length || toks[p].kind != TokenKind.identifier || isReserved(toks[p].text))
+        throw new SyntaxFailure;
+    return toks[p].text;
+}
+
+/// Recursive-descent/precedence-climbing parser over a token slice.
+struct ExprParser
+{
+    Token[] toks;
     size_t pos;
-    size_t limit;
 
-    this(string file, int line, Token[] tokens)
+    this(Token[] toks) @safe pure nothrow @nogc
     {
-        this.file = file;
-        this.line = line;
-        this.t = tokens;
-        this.limit = tokens.length;
+        this.toks = toks;
     }
 
-    KilnError fail()
+    private bool atEnd() const @safe pure nothrow @nogc
     {
-        return parseError(file, line);
+        return pos >= toks.length;
     }
 
-    bool atEnd() const
+    private bool peekSym(string s) const @safe pure nothrow @nogc
     {
-        return pos >= limit;
+        return pos < toks.length && toks[pos].isSym(s);
     }
 
-    void expectEnd()
+    private void expectSym(string s) @safe pure
     {
-        if (pos != limit)
-            throw fail();
+        if (!peekSym(s))
+            throw new SyntaxFailure;
+        pos++;
     }
 
-    bool atPunct(string p) const
+    /// Parses one expression that must consume every token.
+    Expr parseWhole() @safe pure
     {
-        return pos < limit && t[pos].isPunct(p);
+        auto e = parseExpr();
+        if (!atEnd())
+            throw new SyntaxFailure;
+        return e;
     }
 
-    bool atOp(string p) const
+    /// `expr { "," expr } [ "," ]` — possibly empty — consuming everything.
+    Expr[] parseExprList() @safe pure
     {
-        return pos < limit && t[pos].isOp(p);
-    }
-
-    bool acceptPunct(string p)
-    {
-        if (atPunct(p))
+        Expr[] items;
+        while (!atEnd())
         {
-            pos++;
-            return true;
-        }
-        return false;
-    }
-
-    bool acceptIdent(string p)
-    {
-        if (pos < limit && t[pos].isIdent(p))
-        {
-            pos++;
-            return true;
-        }
-        return false;
-    }
-
-    void expectPunct(string p)
-    {
-        if (!acceptPunct(p))
-            throw fail();
-    }
-
-    // An identifier that is not a reserved word.
-    string plainIdent()
-    {
-        if (pos >= limit || t[pos].kind != Tk.ident || isReserved(t[pos].text))
-            throw fail();
-        return t[pos++].text;
-    }
-
-    // Any identifier, reserved or not (call, command and rule-use names).
-    string anyIdent()
-    {
-        if (pos >= limit || t[pos].kind != Tk.ident)
-            throw fail();
-        return t[pos++].text;
-    }
-
-    // `expr {, expr} [,] )` with the opening paren already consumed.
-    Expr[] parseArgsAfterOpen()
-    {
-        Expr[] args;
-        while (!atPunct(")"))
-        {
-            args ~= parseExpr();
-            if (!acceptPunct(","))
+            items ~= parseExpr();
+            if (atEnd())
                 break;
+            expectSym(",");
         }
-        expectPunct(")");
-        return args;
+        return items;
     }
 
-    // `arg {, arg} [,] )` for `use`, with the opening paren already consumed.
-    void parseUseArgs(Stmt s)
+    /// A `use` argument list consuming everything.
+    UseArg[] parseUseArgs() @safe pure
     {
+        UseArg[] args;
         bool sawKeyword = false;
-        while (!atPunct(")"))
+        while (!atEnd())
         {
-            if (pos + 1 < limit && t[pos].kind == Tk.ident && !isReserved(t[pos].text) && t[pos + 1].isPunct("="))
+            UseArg a;
+            if (toks[pos].kind == TokenKind.identifier && !isReserved(toks[pos].text)
+                    && pos + 1 < toks.length && toks[pos + 1].isSym("="))
             {
-                s.argNames ~= t[pos].text;
+                a.keyword = toks[pos].text;
                 pos += 2;
                 sawKeyword = true;
             }
-            else
+            else if (sawKeyword)
             {
-                if (sawKeyword)
-                    throw fail();
-                s.argNames ~= "";
+                throw new SyntaxFailure; // positional after keyword
             }
-            s.args ~= parseExpr();
-            if (!acceptPunct(","))
+            a.value = parseExpr();
+            args ~= a;
+            if (atEnd())
                 break;
+            expectSym(",");
         }
-        expectPunct(")");
+        return args;
     }
 
-    Expr parseExpr()
+    /// A rule parameter list consuming everything.
+    Param[] parseParams() @safe pure
     {
-        return parsePipe();
+        Param[] params;
+        bool sawDefault = false;
+        while (!atEnd())
+        {
+            Param p;
+            p.name = identAt(toks, pos++);
+            foreach (ref q; params)
+                if (q.name == p.name)
+                    throw new SyntaxFailure;
+            if (peekSym("="))
+            {
+                pos++;
+                p.defaultValue = parseExpr();
+                sawDefault = true;
+            }
+            else if (sawDefault)
+            {
+                throw new SyntaxFailure;
+            }
+            params ~= p;
+            if (atEnd())
+                break;
+            expectSym(",");
+        }
+        return params;
     }
 
-    Expr parsePipe()
+    // ---- expressions, lowest precedence first --------------------------------
+
+    Expr parseExpr() @safe pure
     {
-        auto e = parseOr();
-        while (atOp("|>"))
+        auto lhs = parseOr();
+        while (peekSym("|>"))
         {
             pos++;
-            auto name = anyIdent();
-            auto c = new Expr(EK.call);
-            c.text = name;
-            c.fn = builtinId(name);
-            c.kids ~= e;
-            if (acceptPunct("("))
-                c.kids ~= parseArgsAfterOpen();
-            e = c;
+            if (atEnd() || toks[pos].kind != TokenKind.identifier)
+                throw new SyntaxFailure;
+            auto call = new Expr;
+            call.kind = ExprKind.call;
+            call.name = toks[pos++].text;
+            call.args = [lhs];
+            if (peekSym("("))
+            {
+                pos++;
+                call.args ~= parseArgsUntilClose();
+            }
+            lhs = call;
         }
+        return lhs;
+    }
+
+    private Expr[] parseArgsUntilClose() @safe pure
+    {
+        Expr[] items;
+        while (true)
+        {
+            if (peekSym(")"))
+            {
+                pos++;
+                return items;
+            }
+            items ~= parseExpr();
+            if (peekSym(","))
+            {
+                pos++;
+                continue;
+            }
+            expectSym(")");
+            return items;
+        }
+    }
+
+    private Expr binary(BinOp op, Expr l, Expr r) @safe pure nothrow
+    {
+        auto e = new Expr;
+        e.kind = ExprKind.binary;
+        e.binop = op;
+        e.lhs = l;
+        e.rhs = r;
         return e;
     }
 
-    Expr parseOr()
+    private Expr parseOr() @safe pure
     {
-        auto e = parseAnd();
-        while (atOp("||"))
+        auto l = parseAnd();
+        while (peekSym("||"))
         {
             pos++;
-            auto n = new Expr(EK.or);
-            n.kids = [e, parseAnd()];
-            e = n;
+            l = binary(BinOp.or, l, parseAnd());
         }
-        return e;
+        return l;
     }
 
-    Expr parseAnd()
+    private Expr parseAnd() @safe pure
     {
-        auto e = parseCmp();
-        while (atOp("&&"))
+        auto l = parseCmp();
+        while (peekSym("&&"))
         {
             pos++;
-            auto n = new Expr(EK.and);
-            n.kids = [e, parseCmp()];
-            e = n;
+            l = binary(BinOp.and, l, parseCmp());
         }
-        return e;
+        return l;
     }
 
-    Expr binary(BinOp op, Expr a, Expr b)
+    private Expr parseCmp() @safe pure
     {
-        auto n = new Expr(EK.binary);
-        n.op = op;
-        n.kids = [a, b];
-        return n;
-    }
-
-    Expr parseCmp()
-    {
-        auto e = parseCat();
-        for (;;)
+        auto l = parseListCat();
+        while (true)
         {
             BinOp op;
-            if (atOp("=="))
+            if (peekSym("=="))
                 op = BinOp.eq;
-            else if (atOp("!="))
+            else if (peekSym("!="))
                 op = BinOp.ne;
-            else if (atOp("<"))
+            else if (peekSym("<"))
                 op = BinOp.lt;
-            else if (atOp("<="))
+            else if (peekSym("<="))
                 op = BinOp.le;
-            else if (atOp(">"))
+            else if (peekSym(">"))
                 op = BinOp.gt;
-            else if (atOp(">="))
+            else if (peekSym(">="))
                 op = BinOp.ge;
             else
-                return e;
+                return l;
             pos++;
-            e = binary(op, e, parseCat());
+            l = binary(op, l, parseListCat());
         }
     }
 
-    Expr parseCat()
+    private Expr parseListCat() @safe pure
     {
-        auto e = parseStr();
-        while (atOp("++"))
+        auto l = parseStrCat();
+        while (peekSym("++"))
         {
             pos++;
-            e = binary(BinOp.listCat, e, parseStr());
+            l = binary(BinOp.listCat, l, parseStrCat());
         }
-        return e;
+        return l;
     }
 
-    Expr parseStr()
+    private Expr parseStrCat() @safe pure
     {
-        auto e = parseAdd();
-        while (atOp("~"))
+        auto l = parseAdd();
+        while (peekSym("~"))
         {
             pos++;
-            e = binary(BinOp.strCat, e, parseAdd());
+            l = binary(BinOp.strCat, l, parseAdd());
         }
-        return e;
+        return l;
     }
 
-    Expr parseAdd()
+    private Expr parseAdd() @safe pure
     {
-        auto e = parseMul();
-        for (;;)
-        {
-            if (atOp("+"))
-            {
-                pos++;
-                e = binary(BinOp.add, e, parseMul());
-            }
-            else if (atOp("-"))
-            {
-                pos++;
-                e = binary(BinOp.sub, e, parseMul());
-            }
-            else
-                return e;
-        }
-    }
-
-    Expr parseMul()
-    {
-        auto e = parseUnary();
-        for (;;)
+        auto l = parseMul();
+        while (true)
         {
             BinOp op;
-            if (atOp("*"))
-                op = BinOp.mul;
-            else if (atOp("/"))
-                op = BinOp.div;
-            else if (atOp("%"))
-                op = BinOp.mod;
+            if (peekSym("+"))
+                op = BinOp.add;
+            else if (peekSym("-"))
+                op = BinOp.sub;
             else
-                return e;
+                return l;
             pos++;
-            e = binary(op, e, parseUnary());
+            l = binary(op, l, parseMul());
         }
     }
 
-    Expr parseUnary()
+    private Expr parseMul() @safe pure
     {
-        if (atOp("!") || atOp("-"))
+        auto l = parseUnary();
+        while (true)
         {
-            auto n = new Expr(t[pos].text == "!" ? EK.not : EK.neg);
+            BinOp op;
+            if (peekSym("*"))
+                op = BinOp.mul;
+            else if (peekSym("/"))
+                op = BinOp.div;
+            else if (peekSym("%"))
+                op = BinOp.mod;
+            else
+                return l;
             pos++;
-            n.kids = [parseUnary()];
-            return n;
+            l = binary(op, l, parseUnary());
+        }
+    }
+
+    private Expr parseUnary() @safe pure
+    {
+        if (peekSym("!") || peekSym("-"))
+        {
+            auto e = new Expr;
+            e.kind = ExprKind.unary;
+            e.unop = toks[pos].text == "!" ? UnOp.not : UnOp.neg;
+            pos++;
+            e.lhs = parseUnary();
+            return e;
         }
         return parsePostfix();
     }
 
-    Expr parsePostfix()
+    private Expr parsePostfix() @safe pure
     {
         auto e = parsePrimary();
-        while (atPunct("["))
+        if (peekSym("("))
+            throw new SyntaxFailure; // a call applies only to an identifier primary
+        while (peekSym("["))
         {
             pos++;
-            auto n = new Expr(EK.index);
-            n.kids = [e, parseExpr()];
-            expectPunct("]");
-            e = n;
+            auto ix = new Expr;
+            ix.kind = ExprKind.index;
+            ix.lhs = e;
+            ix.rhs = parseExpr();
+            expectSym("]");
+            e = ix;
+            if (peekSym("("))
+                throw new SyntaxFailure;
         }
-        if (atPunct("("))
-            throw fail(); // a call applies only to a bare identifier
         return e;
     }
 
-    Expr parsePrimary()
+    private Expr parsePrimary() @safe pure
     {
-        if (pos >= limit)
-            throw fail();
-        auto tok = t[pos];
-        switch (tok.kind)
+        if (atEnd())
+            throw new SyntaxFailure;
+        auto t = toks[pos];
+        auto e = new Expr;
+        final switch (t.kind)
         {
-        case Tk.integer:
-        {
+        case TokenKind.integer:
             pos++;
-            auto n = new Expr(EK.intLit);
-            ulong v = 0;
-            foreach (c; tok.text)
-                v = v * 10 + (c - '0');
-            n.intValue = cast(long) v;
-            return n;
-        }
-        case Tk.str:
+            e.kind = ExprKind.literal;
+            e.lit = Value.ofInt(t.intValue);
+            return e;
+        case TokenKind.str:
             pos++;
-            return stringLiteral(tok);
-        case Tk.ident:
-        {
+            return t.doubleQuoted ? parseDoubleQuoted(t.text) : singleQuoted(t.text);
+        case TokenKind.identifier:
             pos++;
-            if (atPunct("("))
+            if (peekSym("("))
             {
+                // A call; reserved words are allowed in this position only.
                 pos++;
-                auto n = new Expr(EK.call);
-                n.text = tok.text;
-                n.fn = builtinId(tok.text);
-                n.kids = parseArgsAfterOpen();
-                return n;
-            }
-            if (tok.text == "true" || tok.text == "false")
-            {
-                auto n = new Expr(EK.boolLit);
-                n.intValue = tok.text == "true";
-                return n;
-            }
-            if (isReserved(tok.text))
-                throw fail();
-            auto n = new Expr(EK.variable);
-            n.text = tok.text;
-            return n;
-        }
-        case Tk.punct:
-            if (tok.text == "(")
-            {
-                pos++;
-                auto e = parseExpr();
-                expectPunct(")");
-                // a parenthesised expression is never a call target
+                e.kind = ExprKind.call;
+                e.name = t.text;
+                e.args = parseArgsUntilClose();
                 return e;
             }
-            if (tok.text == "[")
+            if (t.text == "true" || t.text == "false")
+            {
+                e.kind = ExprKind.literal;
+                e.lit = Value.ofBool(t.text == "true");
+                return e;
+            }
+            if (isReserved(t.text))
+                throw new SyntaxFailure;
+            e.kind = ExprKind.variable;
+            e.name = t.text;
+            return e;
+        case TokenKind.punct:
+            if (t.text == "(")
             {
                 pos++;
-                auto n = new Expr(EK.list);
-                while (!atPunct("]"))
+                auto inner = parseExpr();
+                expectSym(")");
+                return inner;
+            }
+            if (t.text == "[")
+            {
+                pos++;
+                e.kind = ExprKind.list;
+                while (true)
                 {
-                    n.kids ~= parseExpr();
-                    if (!acceptPunct(","))
+                    if (peekSym("]"))
+                    {
+                        pos++;
                         break;
+                    }
+                    e.args ~= parseExpr();
+                    if (peekSym(","))
+                    {
+                        pos++;
+                        continue;
+                    }
+                    expectSym("]");
+                    break;
                 }
-                expectPunct("]");
-                return n;
+                return e;
             }
-            throw fail();
-        default:
-            throw fail();
+            throw new SyntaxFailure;
+        case TokenKind.op:
+            throw new SyntaxFailure;
         }
     }
+}
 
-    Expr stringLiteral(Token tok)
+private Expr literalString(string s) @safe pure nothrow
+{
+    auto e = new Expr;
+    e.kind = ExprKind.literal;
+    e.lit = Value.ofStr(s);
+    return e;
+}
+
+private Expr singleQuoted(string raw) @safe pure
+{
+    char[] buf;
+    size_t i = 0;
+    while (i < raw.length)
     {
-        string raw = tok.text;
-        if (!tok.doubleQuoted)
-        {
-            auto n = new Expr(EK.strLit);
-            auto app = appender!(char[]);
-            for (size_t i = 0; i < raw.length; i++)
-            {
-                app.put(raw[i]);
-                if (raw[i] == '\'')
-                    i++; // '' is one quote
-            }
-            n.text = (() @trusted => cast(string) app.data)();
-            return n;
-        }
-        InterpPart[] parts;
-        auto lit = appender!(char[]);
-        void flush()
-        {
-            if (lit.data.length)
-            {
-                parts ~= InterpPart((() @trusted => cast(string) lit.data.dup)(), null);
-                lit.clear();
-            }
-        }
-
-        size_t i = 0;
-        while (i < raw.length)
-        {
-            immutable c = raw[i];
-            if (c == '\\')
-            {
-                if (i + 1 >= raw.length)
-                    throw fail();
-                switch (raw[i + 1])
-                {
-                case '\\':
-                    lit.put('\\');
-                    break;
-                case '"':
-                    lit.put('"');
-                    break;
-                case 'n':
-                    lit.put('\n');
-                    break;
-                case 't':
-                    lit.put('\t');
-                    break;
-                case 'r':
-                    lit.put('\r');
-                    break;
-                case '0':
-                    lit.put('\0');
-                    break;
-                default:
-                    throw fail();
-                }
-                i += 2;
-            }
-            else if (c == '{')
-            {
-                if (i + 1 < raw.length && raw[i + 1] == '{')
-                {
-                    lit.put('{');
-                    i += 2;
-                    continue;
-                }
-                size_t j = i + 1;
-                int depth = 1;
-                while (depth > 0)
-                {
-                    if (j >= raw.length)
-                        throw fail();
-                    immutable d = raw[j];
-                    if (d == '"' || d == '\'')
-                    {
-                        immutable k = skipLiteral(raw, j);
-                        if (k < 0)
-                            throw fail();
-                        j = k;
-                    }
-                    else
-                    {
-                        if (d == '{')
-                            depth++;
-                        else if (d == '}')
-                            depth--;
-                        j++;
-                    }
-                }
-                string block = raw[i + 1 .. j - 1];
-                Token[] bt;
-                if (!tokenize(block, bt) || bt.length == 0)
-                    throw fail();
-                auto sub = new ExprParser(file, line, bt);
-                auto e = sub.parseExpr();
-                sub.expectEnd();
-                flush();
-                parts ~= InterpPart(null, e);
-                i = j;
-            }
-            else if (c == '}')
-            {
-                if (i + 1 < raw.length && raw[i + 1] == '}')
-                {
-                    lit.put('}');
-                    i += 2;
-                }
-                else
-                    throw fail();
-            }
-            else
-            {
-                lit.put(c);
-                i++;
-            }
-        }
-        if (parts.length == 0)
-        {
-            auto n = new Expr(EK.strLit);
-            n.text = (() @trusted => cast(string) lit.data.dup)();
-            return n;
-        }
-        flush();
-        auto n = new Expr(EK.interp);
-        n.parts = parts;
-        return n;
+        buf ~= raw[i];
+        i += (raw[i] == '\'' && i + 1 < raw.length && raw[i + 1] == '\'') ? 2 : 1;
     }
+    return literalString((() @trusted => cast(string) buf)());
+}
+
+/// Decodes the body of a double-quoted literal into text and interpolation parts.
+private Expr parseDoubleQuoted(string raw) @safe pure
+{
+    StrPart[] parts;
+    char[] lit;
+    size_t i = 0;
+    void flush() @safe pure nothrow
+    {
+        if (lit.length)
+        {
+            parts ~= StrPart((() @trusted => cast(string) lit.idup)(), null);
+            lit.length = 0;
+        }
+    }
+
+    while (i < raw.length)
+    {
+        immutable c = raw[i];
+        if (c == '\\')
+        {
+            if (i + 1 >= raw.length)
+                throw new SyntaxFailure;
+            switch (raw[i + 1])
+            {
+            case '\\':
+                lit ~= '\\';
+                break;
+            case '"':
+                lit ~= '"';
+                break;
+            case 'n':
+                lit ~= '\n';
+                break;
+            case 't':
+                lit ~= '\t';
+                break;
+            case 'r':
+                lit ~= '\r';
+                break;
+            case '0':
+                lit ~= '\0';
+                break;
+            default:
+                throw new SyntaxFailure;
+            }
+            i += 2;
+        }
+        else if (c == '{')
+        {
+            if (i + 1 < raw.length && raw[i + 1] == '{')
+            {
+                lit ~= '{';
+                i += 2;
+                continue;
+            }
+            immutable end = skipInterpolation(raw, i + 1);
+            if (end < 0)
+                throw new SyntaxFailure;
+            auto interp = raw[i + 1 .. cast(size_t) end - 1];
+            auto toks = tokenize(interp);
+            if (toks.length == 0)
+                throw new SyntaxFailure;
+            auto ep = ExprParser(toks);
+            auto inner = ep.parseWhole();
+            flush();
+            parts ~= StrPart("", inner);
+            i = cast(size_t) end;
+        }
+        else if (c == '}')
+        {
+            if (i + 1 < raw.length && raw[i + 1] == '}')
+            {
+                lit ~= '}';
+                i += 2;
+                continue;
+            }
+            throw new SyntaxFailure;
+        }
+        else
+        {
+            lit ~= c;
+            i++;
+        }
+    }
+    flush();
+    bool plain = true;
+    foreach (ref p; parts)
+        if (p.expr !is null)
+            plain = false;
+    if (plain)
+    {
+        string s;
+        foreach (ref p; parts)
+            s ~= p.text;
+        return literalString(s);
+    }
+    auto e = new Expr;
+    e.kind = ExprKind.interpolated;
+    e.parts = parts;
+    return e;
+}
+
+@safe pure unittest
+{
+    import kiln.errors : KilnError;
+    import std.exception : collectException;
+
+    auto stmts = parseBuildFile("let a = 1 + 2 * 3\nwhen a > 3 {\n  default \"x\"\n} otherwise {\n  abort \"no\"\n}\n", "m");
+    assert(stmts.length == 2 && stmts[0].kind == StmtKind.let && stmts[1].kind == StmtKind.when);
+    assert(stmts[1].branches.length == 1 && stmts[1].hasOtherwise && stmts[1].otherwise.length == 1);
+
+    stmts = parseBuildFile("step {\n  out \"out/a\"\n  cmd write(\"hi\")\n}\n", "m");
+    assert(stmts.length == 1 && stmts[0].fields.length == 2);
+
+    // Lexical errors beat grammar errors; unterminated blocks come last.
+    auto e = collectException!KilnError(parseBuildFile("let = 1\nlet x = \"abc\n", "m"));
+    assert(e && e.detail == "m:2");
+    e = collectException!KilnError(parseBuildFile("when true {\n  let a = 1\n", "m"));
+    assert(e && e.detail == "m:1");
+    e = collectException!KilnError(parseBuildFile("when true {\n} otherwise {\n  let a = 1\n", "m"));
+    assert(e && e.detail == "m:2");
+    e = collectException!KilnError(parseBuildFile("}\n", "m"));
+    assert(e && e.detail == "m:1");
+    e = collectException!KilnError(parseBuildFile("let s = \"{}\"\n", "m"));
+    assert(e && e.detail == "m:1");
+    e = collectException!KilnError(parseBuildFile("let s = \"a}b\"\n", "m"));
+    assert(e);
+    e = collectException!KilnError(parseBuildFile("let s = f(1)(2)\n", "m"));
+    assert(e);
+    e = collectException!KilnError(parseBuildFile("each a, a in [] {\n}\n", "m"));
+    assert(e);
+    e = collectException!KilnError(parseBuildFile("rule r(a = 1, b) {\n}\n", "m"));
+    assert(e);
+    // Reserved words are accepted only as call names.
+    assert(collectException!KilnError(parseBuildFile("let x = cost(1)\n", "m")) is null);
+    assert(collectException!KilnError(parseBuildFile("let cost = 1\n", "m")) !is null);
 }

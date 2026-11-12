@@ -1,6 +1,6 @@
-bin/
 .dub/
+jsoncanon
 *.o
 *.a
+*-test-library
 dub.selections.json
-canonjson-test*

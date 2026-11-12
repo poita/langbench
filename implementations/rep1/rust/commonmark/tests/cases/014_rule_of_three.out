@@ -1,0 +1,21 @@
+<p><em>foo<strong>bar</strong>baz</em>
+<em>foo**bar</em>
+<em><strong>foo</strong> bar</em>
+<em>foo <strong>bar</strong></em>
+<em>foo<strong>bar</strong></em>
+foo<em><strong>bar</strong></em>baz
+foo<strong><strong><strong>bar</strong></strong></strong><em><strong>baz
+<em>foo <em><em>bar <em>baz bim</em></em> bam</em>
+**foo <strong>bar baz</strong>
+<em>foo <em>bar baz</em>
+<em><em>foo</em>
+<em>foo</em></em>
+<em><strong>foo</strong>
+<strong><em><em>foo</em>
+<strong>foo</strong></em>
+<em>foo</em></strong></em>
+foo___bar___baz
+**foo</em>bar</em>baz</strong>
+<em><strong>foo</strong></em>bar
+*a</em><em>b</em><em>c*d</em><em>e</em><em>f*
+<strong>a<em>b</em>c</strong>d<em>e</em>f</em>*</p>

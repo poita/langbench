@@ -1,0 +1,59 @@
+cabal-version:      3.0
+name:               diff
+version:            0.1.0.0
+synopsis:           Minimal line diffs (Myers, linear space) and patching
+description:
+  A small library implementing Eugene Myers' O(ND) difference algorithm in
+  its linear-space (middle snake) form, together with a unified-style edit
+  script format and a patch routine, plus a command-line tool that speaks the
+  stdin/stdout protocol described in the README.
+license:            MIT
+author:             diff contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Text
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Diff
+    Diff.Types
+    Diff.Intern
+    Diff.Myers
+    Diff.Patch
+    Diff.Script
+    Diff.Protocol
+  build-depends:
+    base       >= 4.18 && < 5,
+    array      >= 0.5  && < 0.6,
+    bytestring >= 0.11 && < 0.13,
+    containers >= 0.6  && < 0.9
+
+executable diff-cli
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    base,
+    bytestring,
+    diff
+
+test-suite diff-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:
+    base,
+    array,
+    bytestring,
+    diff,
+    hspec      >= 2.7,
+    QuickCheck >= 2.14

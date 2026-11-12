@@ -1,230 +1,220 @@
-// Package stroke turns flattened centrelines into stroke outlines. The
-// outline is not a single polygon but a bag of convex pieces — one rectangle
-// per segment, one piece per join, one per cap — every one oriented with
-// positive signed area. Filling them together with the nonzero rule yields
-// their union.
+// Package stroke builds stroke outlines from flattened paths.
+//
+// The outline of a stroke is returned as a set of simple polygons whose union
+// (a nonzero-winding fill after orienting each polygon consistently) is the
+// stroked region: one rectangle per segment, one piece per join and one per
+// cap, as described in the package documentation of Outline.
 package stroke
 
 import (
 	"math"
 
 	"svgraster/geom"
-	"svgraster/svgpath"
+	"svgraster/path"
 )
 
 // Cap is a line cap style.
 type Cap uint8
 
-// Line caps.
+// Line cap styles.
 const (
-	CapButt Cap = iota
-	CapRound
-	CapSquare
+	ButtCap Cap = iota
+	RoundCap
+	SquareCap
 )
 
 // Join is a line join style.
 type Join uint8
 
-// Line joins.
+// Line join styles.
 const (
-	JoinMiter Join = iota
-	JoinRound
-	JoinBevel
+	MiterJoin Join = iota
+	RoundJoin
+	BevelJoin
 )
 
-// Options describes a stroke.
-type Options struct {
+// Style holds the stroke parameters.
+type Style struct {
 	Width      float64
 	Cap        Cap
 	Join       Join
-	MiterLimit float64 // values below 1 are treated as 1
-	// Tol is the maximum distance, in the coordinate system the centreline
-	// is given in, between a true circle and its polygonal approximation.
-	Tol float64
+	MiterLimit float64
 }
 
-// Stroker builds outlines. It keeps scratch memory between calls, so reuse
-// one value for many strokes. The zero value is ready to use.
-type Stroker struct {
-	pts []geom.Point
+// Outline converts flattened subpaths into polygons covering the stroke.
+// Coordinates are in the same space as the subpaths; tol is the maximum
+// distance by which circular arcs may deviate from the true circle.
+//
+// For every subpath, consecutive duplicate points are dropped (and a closing
+// point equal to the first). Then:
+//   - each segment contributes a rectangle of the stroke width;
+//   - each interior vertex (all vertices of a closed subpath) contributes a
+//     join piece (none for collinear continuation);
+//   - each end of an open subpath contributes a cap piece;
+//   - a subpath that collapses to a single point contributes a disc (round
+//     cap), a square (square cap) or nothing (butt cap).
+func Outline(subs []path.Subpath, st Style, tol float64) [][]geom.Point {
+	b := &builder{st: st, r: st.Width / 2, tol: tol}
+	if b.st.MiterLimit < 1 {
+		b.st.MiterLimit = 1
+	}
+	for _, sp := range subs {
+		b.subpath(sp)
+	}
+	return b.polys
 }
 
-const maxArcSteps = 2000
+type builder struct {
+	st    Style
+	r     float64
+	tol   float64
+	polys [][]geom.Point
+}
 
-// Outline appends the pieces of the stroke of subs to out.
-func (s *Stroker) Outline(out *geom.Polygons, subs []svgpath.Subpath, o Options) {
-	r := o.Width / 2
-	if !(r > 0) {
+func (b *builder) add(pts ...geom.Point) {
+	b.polys = append(b.polys, pts)
+}
+
+func (b *builder) subpath(sp path.Subpath) {
+	pts := make([]geom.Point, 0, len(sp.Points))
+	for _, p := range sp.Points {
+		if len(pts) == 0 || p != pts[len(pts)-1] {
+			pts = append(pts, p)
+		}
+	}
+	if sp.Closed && len(pts) > 1 && pts[len(pts)-1] == pts[0] {
+		pts = pts[:len(pts)-1]
+	}
+	n := len(pts)
+	if n == 0 {
 		return
 	}
-	ml := math.Max(o.MiterLimit, 1)
-	step := arcStep(r, o.Tol)
-	for _, sub := range subs {
-		pts := s.dedup(sub)
-		n := len(pts)
-		switch {
-		case n == 0:
-			continue
-		case n == 1:
-			point(out, pts[0], r, o.Cap, step)
-			continue
+	if n == 1 {
+		b.point(pts[0])
+		return
+	}
+	nseg := n - 1
+	if sp.Closed {
+		nseg = n
+	}
+	dirs := make([]geom.Point, nseg)
+	for i := 0; i < nseg; i++ {
+		a, c := pts[i], pts[(i+1)%n]
+		d := c.Sub(a)
+		dirs[i] = d.Scale(1 / d.Len())
+		nrm := geom.Point{X: -dirs[i].Y, Y: dirs[i].X}.Scale(b.r)
+		b.add(a.Add(nrm), c.Add(nrm), c.Sub(nrm), a.Sub(nrm))
+	}
+	if sp.Closed {
+		for i := 0; i < n; i++ {
+			b.join(pts[i], dirs[(i+nseg-1)%nseg], dirs[i])
 		}
-		segs := n - 1
-		if sub.Closed {
-			segs = n
-		}
-		dir := func(i int) geom.Point {
-			d := pts[(i+1)%n].Sub(pts[i])
-			return d.Scale(1 / d.Len())
-		}
-		for i := 0; i < segs; i++ {
-			a, b := pts[i], pts[(i+1)%n]
-			nn := rot90(dir(i)).Scale(r)
-			out.Add(a.Add(nn))
-			out.Add(b.Add(nn))
-			out.Add(b.Sub(nn))
-			out.Add(a.Sub(nn))
-			out.EndOriented()
-		}
-		if sub.Closed {
-			for i := 0; i < n; i++ {
-				join(out, pts[i], dir((i+n-1)%n), dir(i), r, o.Join, ml, step)
-			}
-		} else {
-			for i := 1; i < n-1; i++ {
-				join(out, pts[i], dir(i-1), dir(i), r, o.Join, ml, step)
-			}
-			capEnd(out, pts[0], dir(0).Scale(-1), r, o.Cap, step)
-			capEnd(out, pts[n-1], dir(n-2), r, o.Cap, step)
-		}
+		return
+	}
+	for i := 1; i < n-1; i++ {
+		b.join(pts[i], dirs[i-1], dirs[i])
+	}
+	b.cap(pts[0], dirs[0].Scale(-1))
+	b.cap(pts[n-1], dirs[nseg-1])
+}
+
+// point handles a subpath that collapsed to a single point.
+func (b *builder) point(p geom.Point) {
+	r := b.r
+	switch b.st.Cap {
+	case RoundCap:
+		b.add(b.arc(p, 0, 2*math.Pi, true)...)
+	case SquareCap:
+		b.add(geom.Point{X: p.X - r, Y: p.Y - r}, geom.Point{X: p.X + r, Y: p.Y - r},
+			geom.Point{X: p.X + r, Y: p.Y + r}, geom.Point{X: p.X - r, Y: p.Y + r})
 	}
 }
 
-// dedup copies the subpath points into scratch, dropping points equal to
-// their predecessor and, for closed subpaths, a final point equal to the
-// first.
-func (s *Stroker) dedup(sub svgpath.Subpath) []geom.Point {
-	s.pts = s.pts[:0]
-	for _, p := range sub.Pts {
-		if n := len(s.pts); n > 0 && s.pts[n-1] == p {
-			continue
-		}
-		s.pts = append(s.pts, p)
-	}
-	if n := len(s.pts); sub.Closed && n > 1 && s.pts[n-1] == s.pts[0] {
-		s.pts = s.pts[:n-1]
-	}
-	return s.pts
-}
-
-// rot90 rotates v a quarter turn.
-func rot90(v geom.Point) geom.Point { return geom.Point{X: -v.Y, Y: v.X} }
-
-// arcStep is the angular step whose chord deviates at most tol from a circle
-// of radius r.
-func arcStep(r, tol float64) float64 {
-	x := 1 - tol/r
-	if x <= -1 {
-		return math.Pi
-	}
-	return 2 * math.Acos(x)
-}
-
-func arcCount(sweep, step float64, lo int) int {
-	c := math.Ceil(math.Abs(sweep) / step)
-	if !(c <= maxArcSteps) { // also catches NaN and +Inf
-		return maxArcSteps
-	}
-	if c < float64(lo) {
-		return lo
-	}
-	return int(c)
-}
-
-// addArc appends count+1 points of the circle of radius r about c, from angle
-// a0 sweeping by sweep.
-func addArc(out *geom.Polygons, c geom.Point, r, a0, sweep float64, count int) {
-	for k := 0; k <= count; k++ {
-		s, co := math.Sincos(a0 + sweep*float64(k)/float64(count))
-		out.Add(geom.Point{X: c.X + r*co, Y: c.Y + r*s})
+// cap adds the cap at end point p; u is the unit direction pointing out of
+// the subpath.
+func (b *builder) cap(p, u geom.Point) {
+	r := b.r
+	nrm := geom.Point{X: -u.Y, Y: u.X}.Scale(r)
+	switch b.st.Cap {
+	case SquareCap:
+		ext := u.Scale(r)
+		b.add(p.Add(nrm), p.Add(nrm).Add(ext), p.Sub(nrm).Add(ext), p.Sub(nrm))
+	case RoundCap:
+		// Half disc from +nrm through u to -nrm.
+		start := math.Atan2(nrm.Y, nrm.X)
+		pts := b.arc(p, start, -math.Pi, false)
+		b.add(pts...)
 	}
 }
 
-// join emits the join piece at p between unit directions d0 (incoming) and
-// d1 (outgoing).
-func join(out *geom.Polygons, p, d0, d1 geom.Point, r float64, j Join, miterLimit, step float64) {
-	cross, dot := d0.Cross(d1), d0.Dot(d1)
+// join adds the join piece at p between incoming direction d0 and outgoing
+// direction d1 (both unit vectors).
+func (b *builder) join(p, d0, d1 geom.Point) {
+	cross := d0.Cross(d1)
+	dot := d0.Dot(d1)
 	if cross == 0 && dot > 0 {
 		return
 	}
-	sg := -1.0
-	if cross > 0 {
-		sg = 1
+	s := 1.0
+	if !(cross > 0) {
+		s = -1
 	}
-	a := geom.Point{X: d0.Y, Y: -d0.X}.Scale(sg * r)
-	b := geom.Point{X: d1.Y, Y: -d1.X}.Scale(sg * r)
-	A, B := p.Add(a), p.Add(b)
-	switch j {
-	case JoinRound:
-		sweep := math.Atan2(a.Cross(b), a.Dot(b))
-		if cross == 0 {
-			sweep = sg * math.Pi
-		}
-		out.Add(p)
-		addArc(out, p, r, math.Atan2(a.Y, a.X), sweep, arcCount(sweep, step, 1))
-		out.EndOriented()
-		return
-	case JoinMiter:
-		if dot > -1 && cross != 0 && 1/math.Sqrt((1+dot)/2) <= miterLimit {
-			m := p.Add(a.Add(b).Scale(1 / (1 + dot)))
-			out.Add(p)
-			out.Add(A)
-			out.Add(m)
-			out.Add(B)
-			out.EndOriented()
+	r := b.r
+	A := p.Add(geom.Point{X: d0.Y, Y: -d0.X}.Scale(s * r))
+	B := p.Add(geom.Point{X: d1.Y, Y: -d1.X}.Scale(s * r))
+	join := b.st.Join
+	if join == MiterJoin {
+		ratio := 1 / math.Sqrt((1+dot)/2)
+		if dot > -1 && cross != 0 && ratio <= b.st.MiterLimit {
+			t := B.Sub(A).Cross(d1) / cross
+			M := A.Add(d0.Scale(t))
+			b.add(p, A, M, B)
 			return
 		}
+		join = BevelJoin
 	}
-	out.Add(p)
-	out.Add(A)
-	out.Add(B)
-	out.EndOriented()
+	if join == BevelJoin {
+		b.add(p, A, B)
+		return
+	}
+	// Round: sector from A to B about p.
+	a0 := math.Atan2(A.Y-p.Y, A.X-p.X)
+	// The signed angle from A-p to B-p equals the turn angle from d0 to d1;
+	// computing it from cross and dot stays accurate for near-reversals.
+	sweep := math.Atan2(cross, dot)
+	if cross == 0 {
+		sweep = s * math.Pi
+	}
+	poly := []geom.Point{p}
+	poly = append(poly, b.arc(p, a0, sweep, false)...)
+	b.add(poly...)
 }
 
-// capEnd emits the cap at the end point p of an open subpath, u being the
-// unit direction pointing out of the subpath.
-func capEnd(out *geom.Polygons, p, u geom.Point, r float64, c Cap, step float64) {
-	switch c {
-	case CapSquare:
-		nn := rot90(u).Scale(r)
-		ur := u.Scale(r)
-		out.Add(p.Add(nn))
-		out.Add(p.Add(nn).Add(ur))
-		out.Add(p.Sub(nn).Add(ur))
-		out.Add(p.Sub(nn))
-		out.EndOriented()
-	case CapRound:
-		a0 := math.Atan2(u.Y, u.X) - math.Pi/2
-		addArc(out, p, r, a0, math.Pi, arcCount(math.Pi, step, 1))
-		out.EndOriented()
+// arc returns points on the circle of radius r about c, starting at angle a0
+// and sweeping by sweep radians, including both end points. When full is set
+// the final point (equal to the first) is omitted.
+func (b *builder) arc(c geom.Point, a0, sweep float64, full bool) []geom.Point {
+	r := b.r
+	step := math.Pi / 2
+	if b.tol < r {
+		step = 2 * math.Acos(1-b.tol/r)
 	}
-}
-
-// point emits the cap for a subpath that collapsed to one point.
-func point(out *geom.Polygons, p geom.Point, r float64, c Cap, step float64) {
-	switch c {
-	case CapSquare:
-		out.Add(geom.Point{X: p.X - r, Y: p.Y - r})
-		out.Add(geom.Point{X: p.X + r, Y: p.Y - r})
-		out.Add(geom.Point{X: p.X + r, Y: p.Y + r})
-		out.Add(geom.Point{X: p.X - r, Y: p.Y + r})
-		out.EndOriented()
-	case CapRound:
-		n := arcCount(2*math.Pi, step, 4)
-		for k := 0; k < n; k++ {
-			s, co := math.Sincos(2 * math.Pi * float64(k) / float64(n))
-			out.Add(geom.Point{X: p.X + r*co, Y: p.Y + r*s})
-		}
-		out.EndOriented()
+	if !(step > 1e-3) {
+		step = 1e-3
 	}
+	n := int(math.Ceil(math.Abs(sweep) / step))
+	if n < 1 {
+		n = 1
+	}
+	cnt := n + 1
+	if full {
+		cnt = n
+	}
+	pts := make([]geom.Point, 0, cnt)
+	for i := 0; i < cnt; i++ {
+		a := a0 + sweep*float64(i)/float64(n)
+		s, co := math.Sincos(a)
+		pts = append(pts, geom.Point{X: c.X + r*co, Y: c.Y + r*s})
+	}
+	return pts
 }

@@ -1,0 +1,9 @@
+@module main
+fn main() {
+    let f = |x: Int| x + 1;
+    let g: fn(Int) -> Int = |x| x * 2;
+    print(showInt(f(1) + g(2)));
+    let h = listMap([1], |x| |y: Int| x + y);
+    print(showInt(h[0](5)));
+    let t: (Int, [Str]) = (1, []);
+}

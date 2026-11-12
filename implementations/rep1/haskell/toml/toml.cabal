@@ -1,0 +1,71 @@
+cabal-version:      3.0
+name:               toml-tagged
+version:            0.1.0.0
+synopsis:           A from-scratch TOML 1.0.0 parser and canonical serializer
+description:
+  A TOML 1.0.0 decoder and a canonical encoder, written without any TOML
+  library.  Documents are decoded into a small 'Toml.Value.Value' tree whose
+  scalars keep their canonical text, and can be rendered as the "tagged JSON"
+  interchange format of the toml-test suite.  The command-line tool @toml@
+  exposes both directions.
+license:            MIT
+license-file:       LICENSE
+author:             toml-tagged contributors
+maintainer:         peter.alexander.au@gmail.com
+category:           Data, Text
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    Toml
+    Toml.Value
+    Toml.Decode
+    Toml.Encode
+    Toml.Json
+    Toml.Internal.Builder
+    Toml.Internal.DateTime
+    Toml.Internal.Float
+    Toml.Internal.Number
+    Toml.Internal.Parser
+    Toml.Internal.Tables
+  build-depends:
+    , base        >=4.14 && <5
+    , bytestring
+    , containers
+    , text        >=2.0
+
+executable toml
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:
+    , base
+    , bytestring
+    , toml-tagged
+
+test-suite spec
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:
+    DecodeSpec
+    EncodeSpec
+    FloatSpec
+    JsonSpec
+    RoundTripSpec
+  build-depends:
+    , base
+    , bytestring
+    , containers
+    , hspec       >=2.7
+    , QuickCheck
+    , text
+    , toml-tagged

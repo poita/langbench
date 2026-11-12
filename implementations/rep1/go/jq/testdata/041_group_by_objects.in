@@ -1,0 +1,2 @@
+.users | group_by(.dept) | map({dept: .[0].dept, count: length, total: (map(.salary) | add), names: (map(.name) | sort)})
+{"users":[{"name":"c","dept":"eng","salary":120},{"name":"a","dept":"ops","salary":90},{"name":"b","dept":"eng","salary":110},{"name":"d","salary":50},{"name":"e","dept":"ops","salary":95},{"name":"f","dept":null,"salary":1}]}

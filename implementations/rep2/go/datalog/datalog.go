@@ -1,4 +1,4 @@
-// Package datalog is a Datalog engine with stratified negation.
+// Package datalog is a small Datalog engine with stratified negation.
 //
 // A program is a sequence of facts, rules and queries:
 //
@@ -7,210 +7,135 @@
 //	path(X, Z) :- edge(X, Y), path(Y, Z).
 //	?- path(1, X).
 //
-// The pipeline has four stages, each in its own package:
+// Load parses a program, rejects unsafe or unstratifiable ones, and
+// computes the perfect model bottom-up (semi-naive evaluation). Run does the
+// same and writes the answers to the program's queries in the textual format
+// used by the command-line tool.
 //
-//   - package parser reads the text into an ast.Program, interning constants
-//     in their total order (integers, then identifiers);
-//   - package analysis checks rule safety and stratifiability;
-//   - package engine computes the perfect model by semi-naive evaluation;
-//   - this package ties them together and renders query answers.
-//
-// Most callers only need [Run] (text in, text out) or [Parse], [Program.Eval]
-// and [Model.Answer].
+// The work is split across subpackages: ast (syntax tree and constant
+// order), parser, analysis (safety and stratification) and engine
+// (evaluation).
 package datalog
 
 import (
-	"bytes"
-	"errors"
-	"strings"
+	"bufio"
+	"fmt"
+	"io"
+	"strconv"
 
-	"datalog/analysis"
-	"datalog/ast"
-	"datalog/engine"
-	"datalog/parser"
+	"example.com/datalog/analysis"
+	"example.com/datalog/ast"
+	"example.com/datalog/engine"
+	"example.com/datalog/parser"
 )
 
-// Errors returned by Check, Eval and Run (use errors.Is).
+// Errors reported by Load, re-exported for use with errors.Is.
 var (
 	ErrUnsafe          = analysis.ErrUnsafe
 	ErrNotStratifiable = analysis.ErrNotStratifiable
 )
 
-// SyntaxError reports malformed program text.
-type SyntaxError = parser.SyntaxError
+// Tuple is one answer row.
+type Tuple = engine.Tuple
 
-// Re-exported syntax tree types.
-type (
-	Atom     = ast.Atom
-	Constant = ast.Constant
-)
+// Constant is an integer or symbol.
+type Constant = ast.Constant
 
-// Program is a parsed Datalog program.
-type Program struct {
-	*ast.Program
+// Answer is the result of one query.
+type Answer struct {
+	Query  ast.Atom
+	Tuples []Tuple
 }
 
-// Parse parses program text. It does not check safety or stratification.
-func Parse(src []byte) (*Program, error) {
-	p, err := parser.Parse(src)
-	if err != nil {
-		return nil, err
-	}
-	return &Program{p}, nil
-}
-
-// Check verifies that every rule is safe and that the program is
-// stratifiable. It returns an error wrapping ErrUnsafe or ErrNotStratifiable.
-func (p *Program) Check() error {
-	_, err := p.check()
-	return err
-}
-
-func (p *Program) check() (*analysis.Stratification, error) {
-	if err := analysis.CheckSafety(p.Program); err != nil {
-		return nil, err
-	}
-	return analysis.Stratify(p.Program)
-}
-
-// Eval checks the program and computes its stratified model.
-func (p *Program) Eval() (*Model, error) {
-	s, err := p.check()
-	if err != nil {
-		return nil, err
-	}
-	return &Model{prog: p.Program, db: engine.Evaluate(p.Program, s)}, nil
-}
-
-// Model is the computed model of a program.
-type Model struct {
+// DB is an evaluated program: its model plus the queries it contained.
+type DB struct {
 	prog *ast.Program
 	db   *engine.Database
 }
 
-// Result is the answer to one query: every matching tuple, in ascending
-// tuple order.
-type Result struct {
-	Pred   string       // predicate name
-	Tuples [][]Constant // matching tuples, sorted
-}
-
-// Query returns the tuples matching the i-th query of the program.
-func (m *Model) Query(i int) Result { return m.Answer(m.prog.Queries[i]) }
-
-// Queries returns the number of queries in the program.
-func (m *Model) Queries() int { return len(m.prog.Queries) }
-
-// Answer matches an arbitrary atom (whose ids refer to the program's
-// predicate and constant tables) against the model.
-func (m *Model) Answer(q Atom) Result {
-	rows := m.db.Match(q)
-	res := Result{Pred: m.prog.Preds[q.Pred].Name, Tuples: make([][]Constant, len(rows))}
-	for i, row := range rows {
-		t := make([]Constant, len(row))
-		for j, id := range row {
-			t[j] = m.prog.Consts[id]
-		}
-		res.Tuples[i] = t
-	}
-	return res
-}
-
-// Facts returns all tuples of the predicate name/arity in ascending order,
-// or nil if the program never mentions that predicate.
-func (m *Model) Facts(name string, arity int) [][]Constant {
-	for id, p := range m.prog.Preds {
-		if p.Name == name && p.Arity == arity {
-			args := make([]ast.Term, arity)
-			for i := range args {
-				args[i] = ast.Term{IsVar: true, ID: i}
-			}
-			return m.Answer(Atom{Pred: id, Args: args}).Tuples
-		}
-	}
-	return nil
-}
-
-// Format renders a result as one "name(v1, v2)" line per tuple followed by
-// "-- N".
-func (r Result) Format() string {
-	var b strings.Builder
-	r.writeTo(&b)
-	return b.String()
-}
-
-func (r Result) writeTo(b *strings.Builder) {
-	for _, t := range r.Tuples {
-		b.WriteString(r.Pred)
-		b.WriteByte('(')
-		for i, c := range t {
-			if i > 0 {
-				b.WriteString(", ")
-			}
-			b.WriteString(c.String())
-		}
-		b.WriteString(")\n")
-	}
-	b.WriteString("-- ")
-	b.WriteString(itoa(len(r.Tuples)))
-	b.WriteByte('\n')
-}
-
-// Run parses and evaluates src and returns the text of the answers to all of
-// its queries, in order. Unsafe or unstratifiable programs yield an error
-// wrapping ErrUnsafe or ErrNotStratifiable, and no output.
-func Run(src []byte) ([]byte, error) {
-	p, err := Parse(src)
+// Load parses src, checks it (safety first, then stratifiability) and
+// evaluates it. Syntax errors are *parser.SyntaxError; the other failures
+// wrap ErrUnsafe or ErrNotStratifiable.
+func Load(src string) (*DB, error) {
+	prog, err := parser.Parse(src)
 	if err != nil {
 		return nil, err
 	}
-	m, err := p.Eval()
+	return Evaluate(prog)
+}
+
+// Evaluate checks and evaluates an already parsed program.
+func Evaluate(prog *ast.Program) (*DB, error) {
+	if err := analysis.CheckSafety(prog); err != nil {
+		return nil, err
+	}
+	strata, err := analysis.Stratify(prog)
 	if err != nil {
 		return nil, err
 	}
-	// Format with precomputed constant texts: each constant is rendered once.
-	text := make([]string, len(p.Consts))
-	for i, c := range p.Consts {
-		text[i] = c.String()
+	return &DB{prog: prog, db: engine.Evaluate(prog, strata)}, nil
+}
+
+// Answers returns the answers to the program's own queries, in program order.
+func (d *DB) Answers() []Answer {
+	out := make([]Answer, len(d.prog.Queries))
+	for i, q := range d.prog.Queries {
+		out[i] = Answer{q, d.db.Query(q)}
 	}
-	var out bytes.Buffer
-	for _, q := range p.Queries {
-		name := p.Preds[q.Pred].Name
-		rows := m.db.Match(q)
-		for _, row := range rows {
-			out.WriteString(name)
-			out.WriteByte('(')
-			for j, id := range row {
-				if j > 0 {
-					out.WriteString(", ")
-				}
-				out.WriteString(text[id])
-			}
-			out.WriteString(")\n")
+	return out
+}
+
+// Query answers an ad hoc query such as "path(1, X)" (an optional leading
+// "?-" and trailing "." are accepted) against the model.
+func (d *DB) Query(src string) ([]Tuple, error) {
+	a, err := parser.ParseAtom(src)
+	if err != nil {
+		return nil, err
+	}
+	return d.db.Query(a), nil
+}
+
+// Format renders a tuple of predicate pred as "pred(v1, v2)".
+func Format(pred string, t Tuple) string {
+	b := make([]byte, 0, 32)
+	b = append(b, pred...)
+	b = append(b, '(')
+	for i, c := range t {
+		if i > 0 {
+			b = append(b, ", "...)
 		}
-		out.WriteString("-- ")
-		out.WriteString(itoa(len(rows)))
-		out.WriteByte('\n')
+		if c.IsInt() {
+			b = strconv.AppendInt(b, c.IntValue(), 10)
+		} else {
+			b = append(b, c.SymValue()...)
+		}
 	}
-	return out.Bytes(), nil
+	return string(append(b, ')'))
 }
 
-// IsRejected reports whether err means the program was rejected by the static
-// checks (unsafe or not stratifiable) rather than being malformed.
-func IsRejected(err error) bool {
-	return errors.Is(err, ErrUnsafe) || errors.Is(err, ErrNotStratifiable)
+// WriteAnswers writes each answer: its tuples one per line, then "-- N".
+func WriteAnswers(w io.Writer, answers []Answer) error {
+	bw := bufio.NewWriter(w)
+	for _, a := range answers {
+		for _, t := range a.Tuples {
+			bw.WriteString(Format(a.Query.Pred, t))
+			bw.WriteByte('\n')
+		}
+		fmt.Fprintf(bw, "-- %d\n", len(a.Tuples))
+	}
+	return bw.Flush()
 }
 
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
+// Run reads a program from r, evaluates it and writes the answers to its
+// queries to w. Program errors are returned without writing anything.
+func Run(r io.Reader, w io.Writer) error {
+	src, err := io.ReadAll(r)
+	if err != nil {
+		return err
 	}
-	var b [20]byte
-	i := len(b)
-	for n > 0 {
-		i--
-		b[i] = byte('0' + n%10)
-		n /= 10
+	db, err := Load(string(src))
+	if err != nil {
+		return err
 	}
-	return string(b[i:])
+	return WriteAnswers(w, db.Answers())
 }

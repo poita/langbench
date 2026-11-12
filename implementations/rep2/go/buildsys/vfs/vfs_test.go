@@ -7,33 +7,33 @@ import (
 	"testing"
 )
 
-func TestHashVectors(t *testing.T) {
-	cases := map[string]string{
+func TestHash(t *testing.T) {
+	tests := map[string]string{
 		"":        "cbf29ce484222325",
 		"hello\n": "a9bc80cca21f28b3",
 		"abc\n":   "fc17b183ee074373",
 	}
-	for in, want := range cases {
-		if got := HashHex(Hash([]byte(in))); got != want {
+	for in, want := range tests {
+		if got := HashString(Hash(in)); got != want {
 			t.Errorf("Hash(%q) = %s, want %s", in, got, want)
 		}
 	}
 }
 
-func TestParseHashHex(t *testing.T) {
-	if h, ok := ParseHashHex("a9bc80cca21f28b3"); !ok || h != Hash([]byte("hello\n")) {
-		t.Errorf("round trip failed: %x %v", h, ok)
+func TestParseHash(t *testing.T) {
+	if h, ok := ParseHash("cbf29ce484222325"); !ok || h != 0xcbf29ce484222325 {
+		t.Errorf("ParseHash failed: %x %v", h, ok)
 	}
-	for _, bad := range []string{"", "A9BC80CCA21F28B3", "a9bc80cca21f28b", "a9bc80cca21f28b3 ", "g9bc80cca21f28b3"} {
-		if _, ok := ParseHashHex(bad); ok {
-			t.Errorf("ParseHashHex(%q) accepted", bad)
+	for _, bad := range []string{"", "CBF29CE484222325", "cbf29ce48422232", "cbf29ce4842223250", "zbf29ce484222325"} {
+		if _, ok := ParseHash(bad); ok {
+			t.Errorf("ParseHash(%q) accepted", bad)
 		}
 	}
 }
 
 func TestValidPath(t *testing.T) {
-	good := []string{"a", "src/a.txt", "a/b/c", ".kiln-state", "x+y_z-1.2", "..a", "a..", "out/.hidden"}
-	bad := []string{"", "/a", "a/", "a//b", ".", "..", "a/./b", "a/../b", "a b", "a*", "a?", "a[", "é", "a\\b"}
+	good := []string{"a", "src/a.txt", "a/b/c", ".kiln-state", "x+y-z_1", "..a", "a.."}
+	bad := []string{"", "/a", "a/", "a//b", ".", "..", "a/./b", "a/../b", "a b", "a*", "a?", "a[", "@a", "é"}
 	for _, p := range good {
 		if !ValidPath(p) {
 			t.Errorf("ValidPath(%q) = false", p)
@@ -48,83 +48,75 @@ func TestValidPath(t *testing.T) {
 	for i := range long {
 		long[i] = 'a'
 	}
-	if ValidPath(string(long)) || !ValidPath(string(long[:255])) {
-		t.Error("component length limit is 255")
+	if ValidPath(string(long)) {
+		t.Error("256-byte component accepted")
 	}
 }
 
-func TestIsIdent(t *testing.T) {
-	for s, want := range map[string]bool{"all": true, "_x1": true, "": false, "1a": false, "a-b": false} {
-		if IsIdent(s) != want {
-			t.Errorf("IsIdent(%q) != %v", s, want)
+func TestWritePrefixIndexAndClean(t *testing.T) {
+	v := New()
+	for _, p := range []string{"src/b.txt", "src/a.txt", "out/x", "srcx", ".kiln-state", "lib"} {
+		v.Write(p, p)
+	}
+	if got, want := v.WithPrefix("src/"), []string{"src/a.txt", "src/b.txt"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("WithPrefix(src/) = %v, want %v", got, want)
+	}
+	if got := v.WithPrefix("out"); len(got) != 0 {
+		t.Errorf("generated paths must not be indexed, got %v", got)
+	}
+	v.Delete("src/a.txt")
+	if got, want := v.WithPrefix("src"), []string{"src/b.txt", "srcx"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("after delete WithPrefix(src) = %v, want %v", got, want)
+	}
+	removed := v.Clean()
+	if want := []string{".kiln-state", "out/x"}; !reflect.DeepEqual(removed, want) {
+		t.Errorf("Clean() = %v, want %v", removed, want)
+	}
+	if v.Exists("out/x") || !v.Exists("lib") {
+		t.Error("Clean removed the wrong files")
+	}
+}
+
+func TestHashCachedPerContent(t *testing.T) {
+	v := New()
+	v.Write("a", "hello\n")
+	f := v.Get("a")
+	v.Write("a", "other")
+	if got := HashString(f.Hash()); got != "a9bc80cca21f28b3" {
+		t.Errorf("old snapshot hash changed: %s", got)
+	}
+	if v.Get("a").Content() != "other" {
+		t.Error("write did not replace content")
+	}
+}
+
+func TestLoadExport(t *testing.T) {
+	dir := t.TempDir()
+	write := func(rel, data string) {
+		p := filepath.Join(dir, rel)
+		if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(p, []byte(data), 0o644); err != nil {
+			t.Fatal(err)
 		}
 	}
-}
-
-func TestReadWriteHashCache(t *testing.T) {
-	fs := New()
-	fs.Write("a", []byte("hello\n"))
-	h, ok := fs.Hash("a")
-	if !ok || HashHex(h) != "a9bc80cca21f28b3" {
-		t.Fatalf("hash = %x %v", h, ok)
-	}
-	fs.Write("a", []byte("abc\n"))
-	if h, _ := fs.Hash("a"); HashHex(h) != "fc17b183ee074373" {
-		t.Error("hash not invalidated by Write")
-	}
-	fs.WriteHashed("b", []byte("x"), 42)
-	if h, _ := fs.Hash("b"); h != 42 {
-		t.Error("WriteHashed ignored")
-	}
-	fs.Touch("a")
-	if d, _ := fs.Read("a"); string(d) != "abc\n" {
-		t.Error("Touch changed content")
-	}
-	if !fs.Delete("a") || fs.Delete("a") || fs.Exists("a") {
-		t.Error("Delete misbehaves")
-	}
-}
-
-func TestGlobCandidatesAndGenerated(t *testing.T) {
-	fs := New()
-	for _, p := range []string{"src/a.txt", "src/b.txt", "srcx", "src", "out/x", ".kiln-state", "z"} {
-		fs.Write(p, nil)
-	}
-	got := fs.GlobCandidates("src")
-	if want := []string{"src", "src/a.txt", "src/b.txt", "srcx"}; !reflect.DeepEqual(got, want) {
-		t.Errorf("candidates = %v, want %v", got, want)
-	}
-	if got := fs.GlobCandidates(""); len(got) != 5 {
-		t.Errorf("all candidates = %v (out/ and .kiln-state must be excluded)", got)
-	}
-	fs.Write("src/c.txt", nil)
-	fs.Delete("src/a.txt")
-	if got := fs.GlobCandidates("src/"); !reflect.DeepEqual(got, []string{"src/b.txt", "src/c.txt"}) {
-		t.Errorf("index not refreshed: %v", got)
-	}
-	if got := fs.Generated(); !reflect.DeepEqual(got, []string{".kiln-state", "out/x"}) {
-		t.Errorf("Generated = %v", got)
-	}
-}
-
-func TestDiskRoundTrip(t *testing.T) {
-	in := t.TempDir()
-	os.MkdirAll(filepath.Join(in, "d/e"), 0o755)
-	os.WriteFile(filepath.Join(in, "session.txt"), []byte("build\n"), 0o644)
-	os.WriteFile(filepath.Join(in, "d/e/f.txt"), []byte("data"), 0o644)
-	os.WriteFile(filepath.Join(in, ".kiln-state"), []byte("x"), 0o644)
-	fs, err := LoadDir(in, "session.txt")
+	write("session.txt", "build\n")
+	write("main.kiln", "x")
+	write("src/a.txt", "a")
+	v, err := Load(dir, func(rel string) bool { return rel == "session.txt" })
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := []string{".kiln-state", "d/e/f.txt"}; !reflect.DeepEqual(fs.Paths(), want) {
-		t.Fatalf("paths = %v", fs.Paths())
+	if got, want := v.Paths(), []string{"main.kiln", "src/a.txt"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("Paths() = %v, want %v", got, want)
 	}
-	out := filepath.Join(t.TempDir(), "ws")
-	if err := fs.WriteDir(out); err != nil {
+	outDir := t.TempDir()
+	if err := v.Export(outDir); err != nil {
 		t.Fatal(err)
 	}
-	if b, err := os.ReadFile(filepath.Join(out, "d/e/f.txt")); err != nil || string(b) != "data" {
-		t.Errorf("written file = %q, %v", b, err)
+	data, err := os.ReadFile(filepath.Join(outDir, "src", "a.txt"))
+	if err != nil || string(data) != "a" {
+		t.Errorf("exported file = %q, %v", data, err)
 	}
 }

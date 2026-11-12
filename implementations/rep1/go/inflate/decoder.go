@@ -2,316 +2,45 @@ package inflate
 
 import "sync"
 
-// Decoder decodes DEFLATE streams. It owns the Huffman table buffers used for
-// dynamic blocks, so reusing one Decoder for many streams avoids reallocating
-// them. A Decoder must not be used by several goroutines at once.
+// Decoder decodes DEFLATE streams. The zero value is ready to use. A Decoder
+// keeps its Huffman table buffers between calls so that decoding many streams
+// does not reallocate them; it must not be used concurrently.
 type Decoder struct {
-	br  bitReader
-	out []byte // output buffer; len(out) is its capacity, o is the fill level
-	o   int
-
 	lit, dist, cl huffTable
-	lengths       [maxLitLen + maxDist]uint8
+	lengths       [maxLitLenSyms + maxDistSyms]uint8
 }
 
-// maxInitialOutput caps the output buffer preallocated from the input size.
-const maxInitialOutput = 32 << 20
-
-// NewDecoder returns a ready-to-use Decoder.
-func NewDecoder() *Decoder { return &Decoder{} }
-
-// Decode decompresses the raw DEFLATE stream src and returns the result. The
-// returned slice is freshly allocated and owned by the caller. On error the
-// returned slice is nil and the error is one of the Err* values.
+// Decode decompresses the raw DEFLATE stream src and returns the output.
+// src must contain exactly one complete stream: truncated input and whole
+// bytes after the final block are errors.
 func Decode(src []byte) ([]byte, error) {
-	return NewDecoder().Decode(src)
+	var d Decoder
+	return d.Append(nil, src)
 }
 
-// Decode decompresses the raw DEFLATE stream src; see the package-level
-// Decode.
+// Decode is like the package-level Decode but reuses the Decoder's buffers.
 func (d *Decoder) Decode(src []byte) ([]byte, error) {
-	d.br.reset(src)
-	n := 4 * len(src)
-	switch {
-	case n < 4096:
-		n = 4096
-	case n > maxInitialOutput:
-		n = maxInitialOutput
-	}
-	d.out = make([]byte, n)
-	d.o = 0
-	defer func() { d.out, d.br = nil, bitReader{} }()
-
-	for {
-		d.br.refill()
-		hdr := d.br.take(3)
-		if d.br.overrun() {
-			return nil, ErrTruncated
-		}
-		var err error
-		switch hdr >> 1 {
-		case 0:
-			err = d.stored()
-		case 1:
-			lit, dist := fixedTables()
-			err = d.codes(lit, dist)
-		case 2:
-			err = d.dynamic()
-		default:
-			err = ErrBlockType
-		}
-		if err != nil {
-			return nil, err
-		}
-		if d.br.overrun() {
-			return nil, ErrTruncated
-		}
-		if hdr&1 == 1 {
-			break
-		}
-	}
-	// Rounding the consumed bits up to whole bytes must reach the end.
-	if (d.br.consumed()+7)/8 != len(src) {
-		return nil, ErrTrailingData
-	}
-	return d.out[:d.o:d.o], nil
+	return d.Append(nil, src)
 }
 
-// growTo returns a buffer, holding the first o bytes of out, with room for at
-// least need more bytes.
-func growTo(out []byte, o, need int) []byte {
-	n := 2 * len(out)
-	if n < o+need {
-		n = o + need
+// Append decompresses src and appends the output to dst, returning the
+// extended slice. Back-references may only reach bytes produced by this call,
+// not the existing contents of dst. On error the returned slice is dst
+// unchanged in length.
+func (d *Decoder) Append(dst, src []byte) ([]byte, error) {
+	out, err := d.decode(dst, src)
+	if err != nil {
+		return dst, err
 	}
-	nb := make([]byte, n)
-	copy(nb, out[:o])
-	return nb
+	return out, nil
 }
 
-// stored decodes a stored block; the 3 header bits are already consumed.
-func (d *Decoder) stored() error {
-	br := &d.br
-	br.alignToByte()
-	br.refill()
-	length := br.take(16)
-	nlength := br.take(16)
-	if br.overrun() {
-		return ErrTruncated
-	}
-	if length^nlength != 0xffff {
-		return ErrStoredLength
-	}
-	start := br.consumed() / 8
-	end := start + int(length)
-	if end > len(br.data) {
-		return ErrTruncated
-	}
-	if d.o+int(length) > len(d.out) {
-		d.out = growTo(d.out, d.o, int(length))
-	}
-	d.o += copy(d.out[d.o:], br.data[start:end])
-	br.seekByte(end)
-	return nil
-}
-
-// dynamic decodes a dynamic-Huffman block; the 3 header bits are consumed.
-func (d *Decoder) dynamic() error {
-	br := &d.br
-	br.refill()
-	nlit := int(br.take(5)) + 257
-	ndist := int(br.take(5)) + 1
-	nclen := int(br.take(4)) + 4
-	if nlit > maxLitLen || ndist > maxDist {
-		return ErrTooManyCodes
-	}
-
-	var cl [numCodeLen]uint8
-	for i := 0; i < nclen; i++ {
-		br.refill()
-		cl[codeLengthOrder[i]] = uint8(br.take(3))
-	}
-	if br.overrun() {
-		return ErrTruncated
-	}
-	if err := d.cl.build(cl[:], clRootBits, ruleComplete); err != nil {
-		return err
-	}
-
-	total := nlit + ndist
-	lengths := d.lengths[:total]
-	clTab := d.cl.entries
-	for i := 0; i < total; {
-		br.refill()
-		e := clTab[br.buf&(1<<clRootBits-1)]
-		l := uint(e & 0xff)
-		if l == 0 {
-			return ErrInvalidCode
-		}
-		br.take(l)
-		sym := e >> entryShift
-		if sym < 16 {
-			lengths[i] = uint8(sym)
-			i++
-			continue
-		}
-		var rep int
-		var val uint8
-		switch sym {
-		case 16:
-			if i == 0 {
-				return ErrBadRepeat
-			}
-			val = lengths[i-1]
-			rep = 3 + int(br.take(2))
-		case 17:
-			rep = 3 + int(br.take(3))
-		default: // 18
-			rep = 11 + int(br.take(7))
-		}
-		if i+rep > total {
-			return ErrBadRepeat
-		}
-		for end := i + rep; i < end; i++ {
-			lengths[i] = val
-		}
-	}
-	if br.overrun() {
-		return ErrTruncated
-	}
-
-	if lengths[endOfBlock] == 0 {
-		return ErrMissingEndOfBlock
-	}
-	if err := d.lit.build(lengths[:nlit], litRootBits, ruleSingle); err != nil {
-		return err
-	}
-	if err := d.dist.build(lengths[nlit:], distRootBits, ruleSingleOrEmpty); err != nil {
-		return err
-	}
-	return d.codes(&d.lit, &d.dist)
-}
-
-// codes decodes the symbols of a compressed block using the given tables.
-func (d *Decoder) codes(lit, dist *huffTable) error {
-	br := &d.br
-	data := br.data
-	buf, n, pos := br.buf, br.n, br.pos
-	out, o := d.out, d.o
-
-	litTab, litRoot := lit.entries, lit.root
-	litMask := uint64(1)<<litRoot - 1
-	distTab, distRoot := dist.entries, dist.root
-	distMask := uint64(1)<<distRoot - 1
-
-	var err error
-	for {
-		// Refill to >= 56 bits: enough for a length code (15), its extra bits
-		// (5), a distance code (15) and its extra bits (13).
-		if pos+8 <= len(data) {
-			buf |= le64(data[pos:]) << n
-			pos += int(63-n) >> 3
-			n |= 56
-		} else {
-			br.buf, br.n, br.pos = buf, n, pos
-			br.refillSlow()
-			buf, n, pos = br.buf, br.n, br.pos
-			if br.overrun() {
-				err = ErrTruncated
-				break
-			}
-		}
-
-		e := litTab[buf&litMask]
-		if e&entrySub != 0 {
-			buf >>= litRoot
-			n -= litRoot
-			e = litTab[int(e>>entryShift)+int(buf&(1<<(e&0xff)-1))]
-		}
-		l := uint(e & 0xff)
-		if l == 0 {
-			err = ErrInvalidCode
-			break
-		}
-		buf >>= l
-		n -= l
-		sym := int(e >> entryShift)
-
-		if sym < endOfBlock {
-			if o == len(out) {
-				out = growTo(out, o, 1)
-			}
-			out[o] = byte(sym)
-			o++
-			continue
-		}
-		if sym == endOfBlock {
-			break
-		}
-		if sym > lastLenSym {
-			err = ErrInvalidSymbol
-			break
-		}
-
-		sym -= firstLenSym
-		eb := uint(lengthExtra[sym])
-		length := int(lengthBase[sym]) + int(buf&(1<<eb-1))
-		buf >>= eb
-		n -= eb
-
-		e = distTab[buf&distMask]
-		if e&entrySub != 0 {
-			buf >>= distRoot
-			n -= distRoot
-			e = distTab[int(e>>entryShift)+int(buf&(1<<(e&0xff)-1))]
-		}
-		l = uint(e & 0xff)
-		if l == 0 {
-			err = ErrInvalidCode
-			break
-		}
-		buf >>= l
-		n -= l
-		sym = int(e >> entryShift)
-		if sym > lastDistSym {
-			err = ErrInvalidSymbol
-			break
-		}
-		eb = uint(distExtra[sym])
-		distance := int(distBase[sym]) + int(buf&(1<<eb-1))
-		buf >>= eb
-		n -= eb
-
-		if distance > o {
-			err = ErrDistance
-			break
-		}
-		if o+length > len(out) {
-			out = growTo(out, o, length)
-		}
-		// Copy in chunks: each pass copies everything between the source and
-		// the write position, so overlapping copies (distance < length)
-		// replicate the pattern and the copied region doubles every time.
-		src := o - distance
-		end := o + length
-		for o < end {
-			o += copy(out[o:end], out[src:o])
-		}
-	}
-
-	br.buf, br.n, br.pos = buf, n, pos
-	d.out, d.o = out, o
-	return err
-}
-
-// Fixed-code tables (RFC 1951 section 3.2.6), built once and shared.
 var (
-	fixedOnce sync.Once
-	fixedLit  huffTable
-	fixedDist huffTable
+	fixedOnce          sync.Once
+	fixedLit, fixedDst huffTable
 )
 
-func fixedTables() (lit, dist *huffTable) {
+func fixedTables() (*huffTable, *huffTable) {
 	fixedOnce.Do(func() {
 		var l [288]uint8
 		for i := range l {
@@ -326,16 +55,228 @@ func fixedTables() (lit, dist *huffTable) {
 				l[i] = 8
 			}
 		}
+		fixedLit.build(l[:], litRootBits)
 		var dl [32]uint8
 		for i := range dl {
 			dl[i] = 5
 		}
-		if err := fixedLit.build(l[:], litRootBits, ruleComplete); err != nil {
-			panic(err)
-		}
-		if err := fixedDist.build(dl[:], distRootBits, ruleComplete); err != nil {
-			panic(err)
-		}
+		fixedDst.build(dl[:], distRootBits)
 	})
-	return &fixedLit, &fixedDist
+	return &fixedLit, &fixedDst
+}
+
+func (d *Decoder) decode(out, src []byte) ([]byte, error) {
+	br := newBitReader(src)
+	base := len(out)
+	for {
+		hdr, err := br.bits(3)
+		if err != nil {
+			return out, err
+		}
+		final := hdr&1 != 0
+		switch hdr >> 1 {
+		case 0:
+			out, err = storedBlock(out, &br)
+		case 1:
+			lit, dist := fixedTables()
+			out, err = inflateBlock(out, base, &br, lit, dist)
+		case 2:
+			if err = d.readDynamicTables(&br); err == nil {
+				out, err = inflateBlock(out, base, &br, &d.lit, &d.dist)
+			}
+		default:
+			err = ErrBlockType
+		}
+		if err != nil {
+			return out, err
+		}
+		if final {
+			break
+		}
+	}
+	if br.remainingBytes() != 0 {
+		return out, ErrTrailingData
+	}
+	return out, nil
+}
+
+// storedBlock copies a stored block (header bits already consumed).
+func storedBlock(out []byte, br *bitReader) ([]byte, error) {
+	br.alignToByte()
+	if len(br.data)-br.pos < 4 {
+		return out, ErrTruncated
+	}
+	p := br.data[br.pos:]
+	n := int(p[0]) | int(p[1])<<8
+	nn := int(p[2]) | int(p[3])<<8
+	if n^nn != 0xffff {
+		return out, ErrStoredLength
+	}
+	br.pos += 4
+	if len(br.data)-br.pos < n {
+		return out, ErrTruncated
+	}
+	out = append(out, br.data[br.pos:br.pos+n]...)
+	br.pos += n
+	return out, nil
+}
+
+// readDynamicTables reads a dynamic block header and builds d.lit and d.dist.
+func (d *Decoder) readDynamicTables(br *bitReader) error {
+	v, err := br.bits(14)
+	if err != nil {
+		return err
+	}
+	nlit := int(v&31) + 257
+	ndist := int(v>>5&31) + 1
+	nclen := int(v>>10) + 4
+	if nlit > maxLitLenSyms || ndist > maxDistSyms {
+		return ErrHeaderCounts
+	}
+
+	var cl [numCLSyms]uint8
+	for i := 0; i < nclen; i++ {
+		x, err := br.bits(3)
+		if err != nil {
+			return err
+		}
+		cl[codeLengthOrder[i]] = uint8(x)
+	}
+	if d.cl.build(cl[:], clRootBits).kind != codeComplete {
+		return ErrCodeLengths
+	}
+
+	total := nlit + ndist
+	lengths := d.lengths[:total]
+	for i := 0; i < total; {
+		br.refill()
+		sym, err := d.cl.decode(br)
+		if err != nil {
+			return err
+		}
+		if sym < 16 {
+			lengths[i] = uint8(sym)
+			i++
+			continue
+		}
+		var rep int
+		var val uint8
+		switch sym {
+		case 16:
+			if i == 0 {
+				return ErrRepeat
+			}
+			val = lengths[i-1]
+			x, err := br.bits(2)
+			if err != nil {
+				return err
+			}
+			rep = 3 + int(x)
+		case 17:
+			x, err := br.bits(3)
+			if err != nil {
+				return err
+			}
+			rep = 3 + int(x)
+		default: // 18
+			x, err := br.bits(7)
+			if err != nil {
+				return err
+			}
+			rep = 11 + int(x)
+		}
+		if rep > total-i {
+			return ErrRepeat
+		}
+		for ; rep > 0; rep-- {
+			lengths[i] = val
+			i++
+		}
+	}
+
+	litLens := lengths[:nlit]
+	if litLens[endOfBlock] == 0 {
+		return ErrCodeLengths
+	}
+	shape := d.lit.build(litLens, litRootBits)
+	if shape.kind == codeOversubscribed ||
+		(shape.kind == codeIncomplete && !shape.singleBit()) {
+		return ErrCodeLengths
+	}
+	shape = d.dist.build(lengths[nlit:], distRootBits)
+	if shape.kind == codeOversubscribed ||
+		(shape.kind == codeIncomplete && !shape.singleBit()) {
+		return ErrCodeLengths
+	}
+	return nil
+}
+
+// inflateBlock decodes the symbols of one compressed block. base is the
+// offset in out where the stream's output begins.
+func inflateBlock(out []byte, base int, br *bitReader, lit, dist *huffTable) ([]byte, error) {
+	for {
+		br.refill()
+		sym, err := lit.decode(br)
+		if err != nil {
+			return out, err
+		}
+		if sym < endOfBlock {
+			out = append(out, byte(sym))
+			continue
+		}
+		if sym == endOfBlock {
+			return out, nil
+		}
+		sym -= 257
+		if sym >= len(lengthBase) {
+			return out, ErrInvalidSymbol
+		}
+		length := int(lengthBase[sym])
+		if eb := uint(lengthExtra[sym]); eb != 0 {
+			x, err := br.bits(eb)
+			if err != nil {
+				return out, err
+			}
+			length += int(x)
+		}
+
+		br.refill()
+		dsym, err := dist.decode(br)
+		if err != nil {
+			return out, err
+		}
+		if dsym >= len(distBase) {
+			return out, ErrInvalidSymbol
+		}
+		distance := int(distBase[dsym])
+		if eb := uint(distExtra[dsym]); eb != 0 {
+			x, err := br.bits(eb)
+			if err != nil {
+				return out, err
+			}
+			distance += int(x)
+		}
+		if distance > len(out)-base {
+			return out, ErrDistance
+		}
+		out = appendCopy(out, distance, length)
+	}
+}
+
+// appendCopy appends length bytes copied from distance bytes back, where the
+// source may overlap the bytes being written.
+func appendCopy(out []byte, distance, length int) []byte {
+	start := len(out) - distance
+	if distance >= length {
+		return append(out, out[start:start+length]...)
+	}
+	// Overlapping: the output from start onwards has period distance, so
+	// repeatedly appending what is already there (a multiple of distance
+	// bytes) extends it correctly.
+	for length > 0 {
+		chunk := min(length, len(out)-start)
+		out = append(out, out[start:start+chunk]...)
+		length -= chunk
+	}
+	return out
 }

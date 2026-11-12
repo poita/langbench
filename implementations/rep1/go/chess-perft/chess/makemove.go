@@ -1,90 +1,72 @@
 package chess
 
-// Undo holds what Unmake needs to restore a position after Make: the captured
-// piece, and the castling rights and en passant square before the move.
-type Undo struct {
-	captured Piece
-	castling uint8
-	ep       Square
-}
+// castleLoss[s] holds the castling rights that survive a move from or to s.
+var castleLoss = func() (m [64]uint8) {
+	for i := range m {
+		m[i] = 0xF
+	}
+	m[E1] &^= CastleWhiteKing | CastleWhiteQueen
+	m[H1] &^= CastleWhiteKing
+	m[A1] &^= CastleWhiteQueen
+	m[E8] &^= CastleBlackKing | CastleBlackQueen
+	m[H8] &^= CastleBlackKing
+	m[A8] &^= CastleBlackQueen
+	return
+}()
 
-// Make plays the legal move m in place and returns the record needed to take it
-// back with Unmake. The move must have been generated for the current position.
-func (p *Position) Make(m Move) Undo {
-	from, to, flag := m.From(), m.To(), m.flag()
-	us := p.side
-	u := Undo{captured: p.board[to], castling: p.castling, ep: p.ep}
-	p.ep = NoSquare
+// Make returns the position after playing m, which must be a legal move of p
+// (as returned by [Position.LegalMoves]); p itself is not modified.
+//
+// Make handles captures, en passant, promotion, castling (moving the rook),
+// castling-right loss and the en passant target. The halfmove and fullmove
+// counters are updated but have no effect on the rules.
+func (p *Position) Make(m Move) Position {
+	q := *p
+	from, to := m.From(), m.To()
+	pc := q.board[from]
+	us := q.stm
+	captured := q.board[to] != NoPiece
 
-	switch {
-	case flag == flagEP:
-		capSq := epCaptureSquare(to, us)
-		u.captured = p.board[capSq]
-		p.remove(capSq)
-	case u.captured != NoPiece:
-		p.remove(to)
+	if captured {
+		q.remove(to)
+	}
+	q.remove(from)
+	placed := pc
+	if promo, ok := m.Promotion(); ok {
+		placed = NewPiece(us, promo)
+	}
+	q.put(to, placed)
+
+	q.ep = NoSquare
+	switch pc.Type() {
+	case Pawn:
+		if from.File() != to.File() && !captured { // en passant
+			q.remove(Square(from.Rank()*8 + to.File()))
+			captured = true
+		}
+		if d := int(to) - int(from); d == 16 || d == -16 {
+			q.ep = Square((int(from) + int(to)) / 2)
+		}
+	case King:
+		switch int(to) - int(from) {
+		case 2: // kingside
+			q.remove(to + 1)
+			q.put(to-1, NewPiece(us, Rook))
+		case -2: // queenside
+			q.remove(to - 2)
+			q.put(to+1, NewPiece(us, Rook))
+		}
 	}
 
-	p.movePiece(from, to)
-
-	switch {
-	case flag >= flagPromoN:
-		p.remove(to)
-		p.put(MakePiece(us, m.Promotion()), to)
-	case flag == flagDouble:
-		p.ep = (from + to) / 2
-	case flag == flagCastle:
-		rf, rt := castleRookSquares(from, to)
-		p.movePiece(rf, rt)
+	q.castling &= castleLoss[from] & castleLoss[to]
+	if pc.Type() == Pawn || captured {
+		q.halfmove = 0
+	} else {
+		q.halfmove++
 	}
-
-	p.castling &= castleMask[from] & castleMask[to]
-	p.side = us.Opponent()
-	return u
-}
-
-// Unmake takes back move m, which must be the last move made, using the record
-// returned by Make.
-func (p *Position) Unmake(m Move, u Undo) {
-	from, to, flag := m.From(), m.To(), m.flag()
-	us := p.side.Opponent()
-	p.side = us
-
-	switch {
-	case flag >= flagPromoN:
-		p.remove(to)
-		p.put(MakePiece(us, Pawn), to)
-	case flag == flagCastle:
-		rf, rt := castleRookSquares(from, to)
-		p.movePiece(rt, rf)
+	if us == Black {
+		q.fullmove++
 	}
-
-	p.movePiece(to, from)
-
-	switch {
-	case flag == flagEP:
-		p.put(u.captured, epCaptureSquare(to, us))
-	case u.captured != NoPiece:
-		p.put(u.captured, to)
-	}
-	p.castling = u.castling
-	p.ep = u.ep
-}
-
-// epCaptureSquare returns the square of the pawn captured when side us captures
-// en passant onto target.
-func epCaptureSquare(target Square, us Color) Square {
-	if us == White {
-		return target - 8
-	}
-	return target + 8
-}
-
-// castleRookSquares returns the rook's origin and destination for a king move
-// from -> to that is a castling.
-func castleRookSquares(from, to Square) (Square, Square) {
-	if to > from { // kingside
-		return to + 1, to - 1
-	}
-	return to - 2, to + 1
+	q.stm = us.Opposite()
+	return q
 }

@@ -1,3 +1,3 @@
-module linalg
+module example.com/linalg
 
-go 1.27.1
+go 1.27

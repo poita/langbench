@@ -1,119 +1,108 @@
-# canonjson
+# jsoncanon
 
-A strict JSON (RFC 8259) parser and canonical serializer in D, written from
-scratch with only the D standard library. It is a reusable library plus a thin
-command-line tool.
+A strict [RFC 8259](https://www.rfc-editor.org/rfc/rfc8259) JSON parser and
+canonical serializer, written in D with no dependencies beyond Phobos/druntime.
+It doesn't use `std.json` or any other JSON library.
 
-`canonjson` reads one JSON document, rejects anything that is not valid
-(including invalid UTF-8, a byte-order mark, lone surrogates, leading zeros,
-trailing commas and nesting deeper than 512), and otherwise prints its
-*canonical form*:
-
-- no whitespace outside strings;
-- object keys deduplicated (the last occurrence wins) and sorted by their
-  UTF-16 code unit sequences, so supplementary characters sort before
-  U+E000–U+FFFF;
-- strings escape only `"`, `\`, and U+0000–U+001F (`\b \f \n \r \t`, otherwise
-  lowercase `\u00xx`); `/`, DEL, U+2028 and all non-ASCII are emitted raw;
-- numbers are echoed textually (never converted to floating point, so integers
-  of any size survive); an exponent is normalised to lowercase `e`, no `+`, no
-  leading zeros (`1E+05` → `1e5`, `1e-0` → `1e0`).
-
-## Requirements
-
-LDC 1.41.0 and dub 1.40.0.
-
-## Build
-
-```sh
-./build.sh          # dub build -b release --compiler=ldc2 --config=cli  → bin/canonjson
-```
-
-Run the unit tests:
-
-```sh
-dub test --compiler=ldc2
-```
-
-## Command line
-
-```sh
-echo '{ "b": [1, 2.50, 1E+3], "a": "héllo\/", "b": null }' | ./run.sh
-# {"a":"héllo/","b":null}
-
-echo '[1, 2, ]' | ./run.sh
-# invalid
-```
-
-The whole of stdin is the document. stdout is a single line ending in `\n`:
-either the canonical form or the word `invalid`. The exit code is 0 in both
-cases; stderr is unused.
-
-## Library
-
-Add the package as a dub dependency (configuration `library`) or import the
-sources from `source/`.
-
-```d
-import canonjson;
-
-void main()
-{
-    // One-shot: parse + serialize.
-    assert(canonicalize(`{ "b": [1, 2.50, 1E+3], "a": "x", "b": null }`)
-           == `{"a":"x","b":null}`);
-
-    // Parse once, inspect the tree, then serialize.
-    auto doc = parse(`{"n": 1e+05, "list": [true, null]}`);
-    assert(doc.kind == Kind.object);
-    foreach (m; doc.object)               // members in input order
-        if (m.key == cast(const(ubyte)[]) "list")
-            assert(m.value.array.length == 2);
-    assert(cast(string) toCanonical(doc) == `{"list":[true,null],"n":1e5}`);
-
-    // Invalid input throws ParseException, or use the non-throwing variants.
-    ubyte[] output;
-    assert(!tryCanonicalize(cast(const(ubyte)[]) "[1,]", output));
-}
-```
-
-Strings that contain no escapes and numbers without an exponent *borrow* from
-the input buffer, so keep the input alive while using the `Value` tree.
-
-### Modules
-
-| Module                | Responsibility                                                       |
-|-----------------------|----------------------------------------------------------------------|
-| `canonjson`           | package module; `canonicalize`, `tryCanonicalize`; re-exports the rest |
-| `canonjson.parser`    | `parse`, `tryParse`, `ParseException`, `maxDepth`                    |
-| `canonjson.value`     | `Value`, `Kind`, `Member`: the document tree                         |
-| `canonjson.serializer`| `serialize`, `toCanonical`, `writeString`                            |
-| `canonjson.keyorder`  | `compareKeys`: UTF-16 order computed directly on UTF-8 bytes         |
-| `canonjson.utf8`      | strict UTF-8 validation and encoding                                 |
-| `canonjson.buffer`    | `ByteBuffer`, a growable byte buffer                                 |
-| `canonjson.scan`      | internal byte-scanning helpers (8 bytes at a time)                   |
-
-## Design
-
-- The input is read whole and validated as UTF-8 in one linear pass, then
-  parsed with a single-pass recursive-descent parser over bytes. The first error
-  aborts the parse by throwing `ParseException`; recursion is bounded by the
-  512-level depth check.
-- Children are collected on shared scratch stacks and copied out once when a
-  container closes, so the tree costs O(n) in total.
-- The tree is serialized once, in pre-order, into one buffer. Each object sorts
-  an array of small member-index handles (ties broken by input index), then keeps
-  the last member of each run of equal keys. Keys are compared bytewise with a
-  fix-up for the first differing character, so no per-comparison allocation or
-  UTF-16 conversion happens.
-- Strings are scanned in runs (8 bytes per step) and copied in bulk, both when
-  parsing and when escaping.
+*Canonical* means: no whitespace outside strings, object members sorted by key
+in UTF-16 code unit order, duplicate keys collapsed to the last occurrence,
+only the required string escapes, and numbers echoed textually (never
+converted to floating point, any size) with the exponent normalised
+(`1E+05` → `1e5`).
 
 ## Layout
 
+| Module                 | Responsibility                                           |
+|------------------------|----------------------------------------------------------|
+| `jsoncanon.utf8`       | strict UTF-8 validation (RFC 3629) and encoding          |
+| `jsoncanon.value`      | `JsonValue` tree (numbers as text, strings decoded)      |
+| `jsoncanon.parser`     | recursive-descent parser, `JsonException`, depth limit 512 |
+| `jsoncanon.order`      | UTF-16 code unit comparison of UTF-8 strings             |
+| `jsoncanon.serializer` | single-pass canonical writer to any output range         |
+| `jsoncanon`            | `package.d`: re-exports everything, plus `canonicalize`  |
+| `app`                  | the command-line tool                                    |
+
+## Build
+
+Requires LDC and dub (developed with LDC 1.41.0 and dub 1.40.0).
+
 ```
-dub.json  build.sh  run.sh
-source/canonjson/   the library
-app/main.d          the CLI
-tests/              unit tests (separate from the library source)
+dub build -b release --compiler=ldc2     # or ./build.sh
 ```
+
+This produces the `jsoncanon` executable in the project root.
+
+## Command line
+
+```
+jsoncanon < input.json
+```
+
+Reads the whole of stdin as one JSON document. Prints the canonical form and a
+newline, or the single line `invalid` if the document is not valid (bad
+UTF-8, a BOM, a grammar violation, a lone surrogate escape, nesting deeper than
+512, trailing data, ...). The exit status is 0 in both cases. `./run.sh` is a
+wrapper that works from any directory.
+
+```
+$ echo '{ "b": [1, 2.50, 1E+3], "a": "héllo\/", "b": null }' | ./run.sh
+{"a":"héllo/","b":null}
+$ echo '[1, 2, ]' | ./run.sh
+invalid
+```
+
+## Library
+
+```d
+import jsoncanon;
+
+void main()
+{
+    // One call: input text -> canonical text (throws JsonException if invalid).
+    assert(canonicalize(`{"b": 1e+05, "a": [true, null]}`) == `{"a":[true,null],"b":1e5}`);
+
+    // Or work with the tree.
+    JsonValue doc = parse(`{"name": "x", "tags": ["a", "b"]}`);
+    assert(doc.kind == JsonKind.object);
+    foreach (m; doc.members)          // input order, duplicates included
+        if (m.key == "tags")
+            assert(m.value.items.length == 2);
+
+    // Serialize to any output range of const(char)[].
+    import std.array : appender;
+    auto sink = appender!string;
+    writeCanonical(sink, doc);
+
+    // Invalid input: throw, or use the non-throwing variant.
+    JsonValue v;
+    assert(!tryParse(cast(const(ubyte)[]) "[1,]", v));
+}
+```
+
+To use it from another dub project:
+
+```sdl
+dependency "jsoncanon" path="../json"
+subConfiguration "jsoncanon" "library"
+```
+and `import jsoncanon;`.
+
+## Tests
+
+```
+dub test --compiler=ldc2
+```
+
+The tests are D `unittest` blocks next to the code they cover (UTF-8 edge
+cases, grammar accept/reject tables, number normalisation, surrogate
+handling, depth limits, ordering, deduplication).
+
+## Design notes
+
+Validation (UTF-8) and parsing are forward passes with no backtracking.
+Strings without escapes are slices of the input; numbers keep their lexeme.
+Children are collected on shared scratch stacks and copied out when their
+container closes. Serialization writes straight to one output sink, sorting
+member *indices* per object by `(key, position)` and writing the last member
+of each run of equal keys. Key comparison works directly on UTF-8: byte order
+equals code point order except for 4-byte sequences versus U+E000–U+FFFF.

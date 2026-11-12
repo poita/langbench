@@ -1,0 +1,11 @@
+@module main
+enum Colour { Red, Green, Blue }
+
+fn name(c: Colour) -> Str {
+    match c {
+        Red -> "red",
+        Green -> "green",
+    }
+}
+
+fn main() { print(name(Blue)); }

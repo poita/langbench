@@ -1,0 +1,18 @@
+[package]
+name = "tomlcodec"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.80"
+description = "A from-scratch TOML 1.0.0 parser and canonical serializer with a tagged-JSON interchange format"
+license = "MIT"
+readme = "README.md"
+keywords = ["toml", "parser", "serializer"]
+categories = ["parser-implementations"]
+
+[lib]
+name = "tomlcodec"
+path = "src/lib.rs"
+
+[[bin]]
+name = "tomlcodec"
+path = "src/main.rs"

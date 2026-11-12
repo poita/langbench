@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the cardgame tool: match file on stdin, log on stdout.
+# Run the cardgame tool: match file on stdin, event log on stdout.
 exec "$(dirname "$0")/bin/cardgame" "$@"

@@ -1,9 +1,12 @@
 package address
 
-import "testing"
+import (
+	"reflect"
+	"testing"
+)
 
-func TestParseList(t *testing.T) {
-	cases := []struct {
+func TestParse(t *testing.T) {
+	tests := []struct {
 		in   string
 		want []Address
 	}{
@@ -23,24 +26,19 @@ func TestParseList(t *testing.T) {
 		{"a <b <c@d.com> , e@f.com>, g@h.com", []Address{{"", "a<b<c@d.com>,e@f.com>"}, {"", "g@h.com"}}},
 		{"John (the third) Public <jqp@x.com>", []Address{{"John   Public", "jqp@x.com"}}},
 		{"", nil},
-		{" , ,", nil},
+		{"bob", []Address{{"", "bob"}}},
 		{`"john doe"@x.com`, []Address{{"", "john doe@x.com"}}},
 		{"a.b.c@d.e.f", []Address{{"", "a.b.c@d.e.f"}}},
-		{"a..b@c", []Address{{"", "a..b@c"}}}, // fails the shape, falls back to joined tokens
-		{"Foo <>", []Address{{"", "Foo<>"}}},
+		{"a..b@c", []Address{{"", "a..b@c"}}},
+		{"x <>", []Address{{"", "x<>"}}},
 		{"x <a@b", []Address{{"", "x<a@b"}}},
-		{"=?utf-8?Q?a?=@b", []Address{{"", "a@b"}}},
+		{"<a@b>", []Address{{"", "a@b"}}},
+		{"g: a@b, c@d;", []Address{{"", "a@b"}, {"", "c@d"}}},
 	}
-	for _, c := range cases {
-		got := ParseList(c.in)
-		if len(got) != len(c.want) {
-			t.Errorf("ParseList(%q) = %+v, want %+v", c.in, got, c.want)
-			continue
-		}
-		for i := range got {
-			if got[i] != c.want[i] {
-				t.Errorf("ParseList(%q)[%d] = %+v, want %+v", c.in, i, got[i], c.want[i])
-			}
+	for _, tc := range tests {
+		got := Parse(tc.in)
+		if !reflect.DeepEqual(got, tc.want) {
+			t.Errorf("Parse(%q) = %q, want %q", tc.in, got, tc.want)
 		}
 	}
 }

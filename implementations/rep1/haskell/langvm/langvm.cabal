@@ -1,0 +1,61 @@
+cabal-version:      3.0
+name:               langvm
+version:            0.1.0.0
+synopsis:           A compiler and stack virtual machine for the Vellum language
+description:
+  langvm reads a multi-module Vellum program, type-checks it, compiles it to
+  bytecode and runs it on a stack machine.  The library exposes each phase
+  (lexing, parsing, checking, compiling, running) and the command-line tool
+  is a thin wrapper around it.
+license:            NONE
+author:             langvm authors
+maintainer:         peter.alexander.au@gmail.com
+category:           Compilers/Interpreters
+build-type:         Simple
+extra-doc-files:    README.md
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall -Wno-name-shadowing -Wno-unused-do-bind -Wno-incomplete-uni-patterns
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Langvm
+                    Langvm.Diagnostic
+                    Langvm.Syntax
+                    Langvm.Number
+                    Langvm.Source
+                    Langvm.Lexer
+                    Langvm.Parser
+                    Langvm.Builtin
+                    Langvm.Types
+                    Langvm.Items
+                    Langvm.Core
+                    Langvm.Exhaust
+                    Langvm.Check
+                    Langvm.SmallArray
+                    Langvm.Value
+                    Langvm.Collections
+                    Langvm.Stdlib
+                    Langvm.Bytecode
+                    Langvm.Compile
+                    Langvm.VM
+  build-depends:    base >=4 && <5,
+                    containers,
+                    array,
+                    mtl
+
+executable langvm
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base >=4 && <5, bytestring, text, langvm
+  ghc-options:      -rtsopts "-with-rtsopts=-A64m"
+
+test-suite langvm-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  build-depends:    base >=4 && <5, hspec, QuickCheck, directory, langvm

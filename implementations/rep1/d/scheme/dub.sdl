@@ -1,0 +1,31 @@
+name "scheme"
+description "A small Scheme interpreter: reusable library plus a command-line tool"
+authors "Peter Alexander"
+copyright "Copyright © 2026, Peter Alexander"
+license "MIT"
+
+# `dub build` builds the command-line tool (bin/scheme).
+configuration "application" {
+    targetType "executable"
+    targetName "scheme"
+    targetPath "bin"
+    mainSourceFile "source/app.d"
+}
+
+# Use this configuration (`dub build -c library`) or depend on the package
+# with `subConfiguration "scheme" "library"` to get just the library.
+configuration "library" {
+    targetType "library"
+    targetName "scheme"
+    excludedSourceFiles "source/app.d"
+}
+
+# `dub test` picks this configuration: unit tests live next to the code in
+# source/ and as black-box tests in tests/.
+configuration "unittest" {
+    targetType "executable"
+    targetName "scheme-test"
+    targetPath "bin"
+    mainSourceFile "source/app.d"
+    sourcePaths "source" "tests"
+}

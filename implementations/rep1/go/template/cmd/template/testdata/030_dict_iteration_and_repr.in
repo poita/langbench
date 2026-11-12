@@ -1,0 +1,34 @@
+{
+  "d": {
+    "b": 1,
+    "a": [
+      1,
+      2
+    ],
+    "c": {
+      "x": null,
+      "y": true
+    },
+    "z": ""
+  },
+  "l": [
+    1,
+    "a",
+    true,
+    null,
+    1.5,
+    "it's",
+    "say \"hi\"",
+    "both'\"",
+    "tab\tnl\ncr\rbs\\"
+  ],
+  "e": {},
+  "el": []
+}
+--
+=== main
+{% for k in d %}{{ k }}={{ d[k] }};{% endfor %}
+{{ d }}
+{{ l }}
+{{ e }} {{ el }} {{ [[], [[]], e] }} {{ d.a }} {{ d.c }}
+{{ d|length }} {{ d|first }} {{ "b" in d }} {% for k in d|sort %}{{ k }}{% endfor %} {{ d|join("") }} {{ d|reverse|first }}

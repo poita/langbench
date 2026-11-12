@@ -1,0 +1,33 @@
+{
+  "schema": {
+    "$defs": {
+      "yes": true,
+      "no": false
+    },
+    "properties": {
+      "a": true,
+      "b": false
+    }
+  },
+  "tests": [
+    {
+      "description": "empty object",
+      "data": {}
+    },
+    {
+      "description": "a may be anything",
+      "data": {
+        "a": [
+          1,
+          2
+        ]
+      }
+    },
+    {
+      "description": "b may not be present",
+      "data": {
+        "b": null
+      }
+    }
+  ]
+}

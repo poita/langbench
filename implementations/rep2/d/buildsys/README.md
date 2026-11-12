@@ -1,86 +1,107 @@
-# buildsys — Kiln, an incremental build system
+# Kiln
 
-Kiln reads a *workspace* (build files in the **Kiln Build Language**, KBL, plus
-ordinary source files), evaluates the build files into a graph of build steps,
-and runs the out-of-date steps on a simulated pool of parallel workers against
-an in-memory virtual file system. Nothing is ever executed by a real shell: the
-sixteen built-in commands (`write`, `copy`, `concat`, `upper`, `grep`,
-`preprocess`, …) are implemented by the engine, and each has an integer cost
-that drives a fully deterministic scheduling simulation. Change detection is
-content based (64-bit FNV-1a) and persisted in `.kiln-state`.
+Kiln is an incremental build system written in D. It reads a *workspace* — build
+files in the **Kiln Build Language** (KBL) plus ordinary source files — evaluates
+the build files into a graph of steps, decides which steps are out of date from
+content hashes, and executes those on a deterministic simulation of parallel
+workers against a virtual file system. Nothing is run in a real shell: Kiln's
+sixteen built-in commands (`write`, `copy`, `concat`, `grep`, `preprocess`, …)
+are implemented by the engine, and every command has an integer *cost* that
+drives the scheduling simulation.
 
-This project is a library (`kiln`) plus a thin command-line tool (`buildsys`)
-that replays a scripted session of builds and workspace edits and writes a log.
-The language, file formats, error messages and scheduler are defined by the
-problem's `SPEC.md`; `APPROACH.md` describes the design followed here.
+The project is a reusable library (`kiln.*`) and a thin command-line tool
+(`kiln`) that runs a whole *session* — a script of builds and workspace edits —
+and writes a log plus the final workspace.
 
-It uses only the D standard library.
+## Requirements
 
-## Building
+* LDC 1.41.0 (`ldc2`) and dub 1.40.0
+* No dependencies beyond the D standard library; tests use D's built-in `unittest`.
 
-Requires LDC 1.41 and dub 1.40.
+## Build
 
 ```sh
-./build.sh          # dub build -b release --compiler=ldc2 ; produces ./buildsys
-dub test --compiler=ldc2   # unit tests (tests/)
+dub build -b release --compiler=ldc2     # produces ./kiln
+# or, from any directory:
+./build.sh
 ```
+
+`dub build` builds the `application` configuration (the CLI). The `library`
+configuration builds just the engine as a static library:
+`dub build --config=library --compiler=ldc2`.
+
+## Test
+
+```sh
+dub test --compiler=ldc2
+```
+
+This runs the unit tests embedded in every module plus the end-to-end session
+tests in `tests/sessions.d` (the worked examples of the specification).
 
 ## Command-line use
 
 ```
-buildsys <input directory> <output directory>
-# or
-./run.sh <input directory> <output directory>
+kiln <input directory> <output directory>
+./run.sh <input directory> <output directory>      # same, locates the binary itself
 ```
 
-`<input directory>` holds `session.txt` (the session script) and the initial
-workspace (`main.kiln`, sources, optionally `out/` and `.kiln-state`). The tool
-writes `<output>/log.txt` and a copy of the final workspace under
-`<output>/workspace/`. It exits 0 even when a build fails: build errors are
-normal output and appear in the log as `error <KIND> <detail>`.
-
-A session script is a list of steps:
+The input directory holds:
 
 ```
-build [TARGET ...] [-j N]    # run a build; targets are paths or @phony names
-create PATH                  # replace/create a file; content lines follow, ended by ---
-edit PATH                    #   (identical to create)
+session.txt    the session script (required)
+main.kiln      the root build file
+...            the rest of the initial workspace (sources, included build files, .kiln-state)
+```
+
+The tool writes `log.txt` (the session log) and `workspace/` (every file of the
+final workspace) into the output directory, and exits 0 even when builds fail —
+a build error is normal output and appears in the log.
+
+### session.txt
+
+```
+build [TARGET ...] [-j N]     run a build (targets are paths or @phony names)
+create PATH                   write a file; content lines follow, ended by a line "---"
+edit PATH                     same as create
 delete PATH
-touch PATH                   # never causes a rebuild
-clean                        # remove out/ and .kiln-state
-# comment lines and blank lines are ignored
+touch PATH                    updates a modification stamp; never causes a rebuild
+clean                         remove out/... and .kiln-state
 ```
 
-Example `main.kiln`:
+Blank lines and `#` comments between steps are ignored.
+
+### Example
+
+`main.kiln`:
 
 ```
-rule bundle(name, parts, weight = 2) {
-    step {
-        out "out/{name}.txt"
-        in parts
-        cmd concat()
-        cost weight
-    }
+step {
+    out "out/hello.txt"
+    cmd write("hello\n")
 }
-let base = glob("src/*.txt")
-use bundle("all", base)
-default "out/all.txt"
+default "out/hello.txt"
 ```
 
-and `session.txt`:
+`session.txt`:
 
 ```
-build -j 2
-edit src/a.txt
-new contents
----
-build -j 2
+build
+build
+```
+
+`log.txt`:
+
+```
+step 1: build (default) -j 1
+  run 0 1 w0 out/hello.txt write("hello\n")
+  ok ran=1 hit=0 time=1
+step 2: build (default) -j 1
+  hit 0 out/hello.txt
+  ok ran=0 hit=1 time=0
 ```
 
 ## Library use
-
-The `kiln` package exposes the virtual file system, a single-build entry point
-and the session driver:
 
 ```d
 import kiln;
@@ -88,47 +109,53 @@ import std.stdio : writeln;
 
 void main()
 {
-    auto ws = new Vfs;
-    ws.write("src/a.txt", "hello\n");
+    auto ws = new Workspace;
+    ws.write("src/a.txt", "alpha\n");
     ws.write("main.kiln", `
         step {
-            out "out/a.up"
+            out "out/upper.txt"
             in "src/a.txt"
             cmd upper()
         }
-        default "out/a.up"
+        default "out/upper.txt"
     `);
 
-    auto first = runBuild(ws, null, 2);        // targets = defaults, 2 workers
+    auto first = runBuild(ws, [], 2);          // targets = default list, two workers
     writeln(first.ok, " ran=", first.ran);     // true ran=1
-    writeln(ws.read("out/a.up"));              // HELLO
+    writeln(ws.read("out/upper.txt"));         // ALPHA
 
-    auto second = runBuild(ws);                // nothing changed: a cache hit
-    writeln(second.hits);                      // 1
+    auto second = runBuild(ws, [], 2);         // content unchanged: a cache hit
+    writeln("hits=", second.hits);             // hits=1
 
-    // Replay a whole session script and get the log text.
-    writeln(runSession(ws, parseSession("build\nclean\nbuild -j 4\n")));
+    // Whole sessions can be driven from text, producing the log text:
+    writeln(runSession(ws, "edit src/a.txt\nbeta\n---\nbuild\n"));
 }
 ```
 
-Errors never escape `runBuild`: a failed build returns a `BuildReport` whose
-`error` is a `KilnError` (`kind`, `detail`).
+### Modules
 
-## Layout
+| Module | Responsibility |
+|--------|----------------|
+| `kiln.workspace` | virtual file system, workspace-path rules, cached hashes, sorted glob index, loading/writing real directories |
+| `kiln.hash`, `kiln.bytes` | FNV-1a 64, byte-string helpers (never decode UTF-8) |
+| `kiln.lexer` | comment stripping, logical lines, tokens (one shared literal scanner) |
+| `kiln.parser`, `kiln.ast` | statement/expression trees, block structure, `E_PARSE` precedence |
+| `kiln.value`, `kiln.glob`, `kiln.builtins` | KBL values and total order, glob matcher, the 39 built-in functions |
+| `kiln.eval` | tree-walking interpreter: scopes, rules, `include`, `step` validation |
+| `kiln.model`, `kiln.commands` | steps and phony targets; the 16 commands and `preprocess` |
+| `kiln.graph` | graph construction, reference resolution, cycle detection, reachability |
+| `kiln.state` | strict `.kiln-state` reader/writer and the freshness decision |
+| `kiln.scheduler` | event-driven worker simulation with O(log R) ready queues |
+| `kiln.build` | one complete build (`runBuild`) |
+| `kiln.session` | session scripts (`parseSession`, `runSession`) and the log |
+| `kiln` | umbrella module re-exporting the public API |
 
-| Path | Contents |
-|------|----------|
-| `source/kiln/package.d` | public import of the API |
-| `source/kiln/errors.d` | `KilnError` and error constructors |
-| `source/kiln/hash.d`, `paths.d`, `text.d` | FNV-1a, workspace-path predicates, byte-string helpers |
-| `source/kiln/vfs.d` | virtual file system with cached hashes and a sorted glob index |
-| `source/kiln/glob.d` | glob compilation and allocation-free matching |
-| `source/kiln/lexer.d`, `ast.d`, `parser.d` | KBL lexing, AST, parsing (incl. string interpolation) |
-| `source/kiln/value.d`, `builtins.d`, `interp.d` | values, the 39 built-in functions, the evaluator |
-| `source/kiln/step.d`, `commands.d` | step model and the sixteen commands |
-| `source/kiln/graph.d` | graph validation, target resolution, cycle detection |
-| `source/kiln/state.d` | `.kiln-state` reader/writer and freshness check |
-| `source/kiln/scheduler.d`, `build.d` | scheduling simulation and the per-build driver |
-| `source/kiln/session.d` | session script parsing, replay and log rendering |
-| `app/main.d` | the command-line tool |
-| `tests/` | unit tests (separate from the library source) |
+## Design notes
+
+* Strings are byte strings; the code never decodes UTF-8, so binary content is safe.
+* Each file content is hashed once (the hash is cached on the file entry); `hash()`, freshness checks and
+  state lines share it.
+* Every build evaluates afresh; only the file system, its hashes and the glob index persist.
+* `glob` binary-searches a sorted index by the pattern's wildcard-free prefix.
+* Copying a string or list is O(1) (shared slices); `a ++ b` allocates.
+* Ready steps live in binary min-heaps keyed by serial number.

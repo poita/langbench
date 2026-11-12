@@ -1,0 +1,16 @@
+<p><img src="/url" alt="foo" title="title" /></p>
+<hr />
+<p><img src="/url2" alt="foo bar" /></p>
+<hr />
+<p><img src="/url2" alt="foo bar" /></p>
+<hr />
+<p><img src="train.jpg" alt="foo" /></p>
+<hr />
+<p>My <img src="/path/to/train.jpg" alt="foo bar" title="title" /></p>
+<hr />
+<p><img src="url" alt="foo" /></p>
+<hr />
+<p><img src="/url" alt="" /></p>
+<hr />
+<p>![[foo]]</p>
+<p>[[foo]]: /url &quot;title&quot;</p>

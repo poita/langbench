@@ -1,0 +1,17 @@
+[package]
+name = "rubiks"
+version = "0.1.0"
+edition = "2021"
+description = "A Thistlethwaite four-phase Rubik's cube solver (library and command-line tool)"
+license = "MIT"
+readme = "README.md"
+keywords = ["rubiks-cube", "solver", "thistlethwaite", "puzzle"]
+categories = ["algorithms", "command-line-utilities"]
+
+[lib]
+name = "rubiks"
+path = "src/lib.rs"
+
+[[bin]]
+name = "rubiks"
+path = "src/main.rs"

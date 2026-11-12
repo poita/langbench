@@ -4,216 +4,196 @@
  */
 module linalg.svd;
 
-import std.algorithm : sort;
-import std.math : sqrt;
+import std.math : abs, sqrt;
+
 import linalg.errors;
 import linalg.matrix;
-import linalg.signs;
+import linalg.ops : transpose;
+import linalg.ordering;
 
-/// Thin SVD `A = U diag(s) Vᵀ`, with `k = min(m, n)`.
+/// Thin SVD `A = U diag(s) Vᵀ` with `k = min(m, n)`.
 struct SVD
 {
     /// `m x k`, orthonormal columns, sign-normalised.
-    Matrix U;
+    Matrix u;
     /// `k` singular values, descending, non-negative.
     double[] s;
     /// `n x k`, orthonormal columns.
-    Matrix V;
+    Matrix v;
 }
 
 /// Maximum number of Jacobi sweeps.
 enum maxSweeps = 60;
 
-/// Columns of the working matrix (and optionally of V) after convergence.
-private struct Jacobi
+/**
+ * Thin SVD. Matrices with fewer rows than columns are decomposed through
+ * their transpose. Each column of `U` is sign-normalised and the matching
+ * column of `V` negated with it.
+ */
+SVD svd(const Matrix a) @safe pure
 {
-    size_t rows;     // length of every column of W
-    size_t cols;     // number of columns
-    double[] W;      // cols columns, each contiguous, length rows
-    double[] V;      // cols columns of length cols, or empty when not wanted
+    const wide = a.rows < a.cols;
+    const work = wide ? transpose(a) : a;
+    const m = work.rows, n = work.cols;     // m >= n == k
 
-    double[] wcol(size_t j) pure nothrow @nogc
+    // W and V are stored as n columns of contiguous memory.
+    auto w = new double[][n];
+    auto v = new double[][n];
+    foreach (j; 0 .. n)
     {
-        return W[j * rows .. (j + 1) * rows];
+        w[j] = new double[m];
+        foreach (i; 0 .. m)
+            w[j][i] = work.data[i * n + j];
+        v[j] = new double[n];
+        v[j][] = 0.0;
+        v[j][j] = 1.0;
     }
-}
 
-/// Build the working set from `a` (or from `aᵀ` when `a.rows < a.cols`).
-private Jacobi makeWorkingSet(const Matrix a, bool wantV) pure nothrow
-{
-    Jacobi j;
-    immutable tall = a.rows >= a.cols;
-    j.rows = tall ? a.rows : a.cols;
-    j.cols = tall ? a.cols : a.rows;
-    j.W = new double[](j.rows * j.cols);
-    if (tall)
-    {
-        foreach (c; 0 .. j.cols)
-            foreach (i; 0 .. j.rows)
-                j.W[c * j.rows + i] = a.data[i * a.cols + c];
-    }
-    else
-    {
-        foreach (c; 0 .. j.cols) // column c of Aᵀ is row c of A
-            j.W[c * j.rows .. (c + 1) * j.rows] = a.data[c * a.cols .. (c + 1) * a.cols];
-    }
-    if (wantV)
-    {
-        j.V = new double[](j.cols * j.cols);
-        j.V[] = 0.0;
-        foreach (c; 0 .. j.cols)
-            j.V[c * j.cols + c] = 1.0;
-    }
-    return j;
-}
-
-/// Run Jacobi sweeps until a whole sweep rotates nothing (or 60 sweeps).
-private void sweep(ref Jacobi j) pure nothrow @nogc
-{
-    immutable m = j.rows, n = j.cols;
-    foreach (iter; 0 .. maxSweeps)
+    foreach (sweep; 0 .. maxSweeps)
     {
         bool rotated = false;
-        foreach (p; 0 .. n - 1)
-        {
+        foreach (p; 0 .. n)
             foreach (q; p + 1 .. n)
             {
-                auto wp = j.wcol(p);
-                auto wq = j.wcol(q);
+                auto wp = w[p], wq = w[q];
                 double alpha = 0.0, beta = 0.0, gamma = 0.0;
                 foreach (i; 0 .. m)
                 {
-                    immutable x = wp[i];
-                    immutable y = wq[i];
-                    alpha += x * x;
-                    beta += y * y;
-                    gamma += x * y;
+                    alpha += wp[i] * wp[i];
+                    beta += wq[i] * wq[i];
+                    gamma += wp[i] * wq[i];
                 }
-                if (gamma == 0.0 || alpha == 0.0 || beta == 0.0)
+                if (gamma == 0.0 || alpha == 0.0 || beta == 0.0
+                        || abs(gamma) <= 1e-14 * sqrt(alpha * beta))
                     continue;
-                immutable ag = gamma < 0 ? -gamma : gamma;
-                if (ag <= 1e-14 * sqrt(alpha * beta))
-                    continue;
-                immutable zeta = (beta - alpha) / (2.0 * gamma);
-                immutable t = zeta >= 0.0
+                rotated = true;
+                const zeta = (beta - alpha) / (2.0 * gamma);
+                const t = zeta >= 0.0
                     ? 1.0 / (zeta + sqrt(zeta * zeta + 1.0))
                     : -1.0 / (-zeta + sqrt(zeta * zeta + 1.0));
-                immutable c = 1.0 / sqrt(t * t + 1.0);
-                immutable s = t * c;
-                rotate(wp, wq, c, s);
-                if (j.V.length)
-                    rotate(j.V[p * n .. (p + 1) * n], j.V[q * n .. (q + 1) * n], c, s);
-                rotated = true;
+                const c = 1.0 / sqrt(t * t + 1.0);
+                const s = t * c;
+                foreach (i; 0 .. m)
+                {
+                    const x = wp[i], y = wq[i];
+                    wp[i] = c * x - s * y;
+                    wq[i] = s * x + c * y;
+                }
+                auto vp = v[p], vq = v[q];
+                foreach (i; 0 .. n)
+                {
+                    const x = vp[i], y = vq[i];
+                    vp[i] = c * x - s * y;
+                    vq[i] = s * x + c * y;
+                }
             }
-        }
         if (!rotated)
             break;
     }
-}
 
-private void rotate(double[] p, double[] q, double c, double s) pure nothrow @nogc
-{
-    foreach (i; 0 .. p.length)
+    auto sigma = new double[n];
+    foreach (j; 0 .. n)
     {
-        immutable x = p[i];
-        immutable y = q[i];
-        p[i] = c * x - s * y;
-        q[i] = s * x + c * y;
+        double ss = 0.0;
+        foreach (x; w[j])
+            ss += x * x;
+        sigma[j] = sqrt(ss);
     }
-}
+    const order = sortedOrder(sigma, true);
 
-private double columnNorm(const(double)[] v) pure nothrow @nogc
-{
-    double s = 0.0;
-    foreach (x; v)
-        s += x * x;
-    return sqrt(s);
-}
-
-/// Indices `0 .. n` sorted by `key` descending, ties by smaller index.
-private size_t[] descendingOrder(const(double)[] key) pure
-{
-    auto idx = new size_t[](key.length);
-    foreach (i; 0 .. idx.length)
-        idx[i] = i;
-    idx.sort!((x, y) => key[x] > key[y] || (key[x] == key[y] && x < y));
-    return idx;
-}
-
-/**
- * Thin SVD of any `m x n` matrix. For `m < n` the algorithm runs on `Aᵀ` and
- * the roles of `U` and `V` are swapped. Signs are fixed on `U`'s columns
- * (with `V`'s columns following), see `linalg.signs`.
- */
-SVD svd(const Matrix a)
-{
-    auto j = makeWorkingSet(a, true);
-    sweep(j);
-    immutable k = j.cols, mw = j.rows;
-    auto sigma = new double[](k);
-    foreach (c; 0 .. k)
-        sigma[c] = columnNorm(j.wcol(c));
-    auto order = descendingOrder(sigma);
-
+    // Left factor `lf` (m x n) and right factor `rf` (n x n) of the working matrix.
+    auto lf = Matrix(m, n);
+    auto rf = Matrix(n, n);
     SVD res;
-    res.s = new double[](k);
-    auto left = Matrix(mw, k);  // normalised columns of W
-    auto right = Matrix(k, k);  // columns of the V accumulator
-    foreach (c; 0 .. k)
+    res.s = new double[n];
+    foreach (j, src; order)
     {
-        immutable src = order[c];
-        immutable sg = sigma[src];
-        res.s[c] = sg;
-        auto w = j.wcol(src);
-        if (sg != 0.0)
-            foreach (i; 0 .. mw)
-                left.data[i * k + c] = w[i] / sg;
-        foreach (i; 0 .. k)
-            right.data[i * k + c] = j.V[src * k + i];
+        res.s[j] = sigma[src];
+        foreach (i; 0 .. m)
+            lf.data[i * n + j] = sigma[src] == 0.0 ? 0.0 : w[src][i] / sigma[src];
+        foreach (i; 0 .. n)
+            rf.data[i * n + j] = v[src][i];
     }
-    if (a.rows >= a.cols)
+
+    // For a wide input the roles swap: U = right factor, V = left factor.
+    if (wide)
     {
-        res.U = left;
-        res.V = right;
+        res.u = rf;
+        res.v = lf;
     }
     else
     {
-        res.U = right;
-        res.V = left;
+        res.u = lf;
+        res.v = rf;
     }
-    foreach (c; 0 .. k)
+    auto col = new double[res.u.rows];
+    foreach (j; 0 .. n)
     {
-        if (normaliseColumnSign(res.U, c))
-            foreach (i; 0 .. res.V.rows)
-                res.V.data[i * k + c] = -res.V.data[i * k + c];
+        foreach (i; 0 .. res.u.rows)
+            col[i] = res.u.data[i * n + j];
+        if (needsNegation(col))
+        {
+            foreach (i; 0 .. res.u.rows)
+                res.u.data[i * n + j] = -res.u.data[i * n + j];
+            foreach (i; 0 .. res.v.rows)
+                res.v.data[i * n + j] = -res.v.data[i * n + j];
+        }
     }
-    return res;
-}
-
-/// Singular values only (descending); cheaper than $(LREF svd) since no
-/// vectors are accumulated.
-double[] singularValues(const Matrix a)
-{
-    auto j = makeWorkingSet(a, false);
-    sweep(j);
-    auto sigma = new double[](j.cols);
-    foreach (c; 0 .. j.cols)
-        sigma[c] = columnNorm(j.wcol(c));
-    auto order = descendingOrder(sigma);
-    auto res = new double[](j.cols);
-    foreach (c; 0 .. j.cols)
-        res[c] = sigma[order[c]];
     return res;
 }
 
 /**
- * 2-norm condition number `σ_max / σ_min`.
- *
- * Throws: `singular` when the smallest singular value is exactly zero.
+ * `σ_max / σ_min`. Throws `singular` when the smallest singular value is
+ * exactly zero.
  */
-double conditionNumber(const Matrix a)
+double condition(const Matrix a) @safe pure
 {
-    auto s = singularValues(a);
-    enforceCode(s[$ - 1] != 0.0, ErrorCode.singular);
-    return s[0] / s[$ - 1];
+    const f = svd(a);
+    const smallest = f.s[$ - 1];
+    enforceCode(smallest != 0.0, ErrorCode.singular);
+    return f.s[0] / smallest;
+}
+
+version (unittest)
+{
+    private void checkReconstruction(const Matrix a)
+    {
+        import linalg.ops : mul;
+
+        const f = svd(a);
+        const k = f.s.length;
+        auto d = Matrix(k, k);
+        foreach (i; 0 .. k)
+            d[i, i] = f.s[i];
+        const r = mul(mul(f.u, d), transpose(f.v));
+        assert(r.rows == a.rows && r.cols == a.cols);
+        foreach (i; 0 .. a.data.length)
+            assert(abs(r.data[i] - a.data[i]) < 1e-12);
+        foreach (i; 1 .. k)
+            assert(f.s[i - 1] >= f.s[i]);
+    }
+}
+
+unittest
+{
+    checkReconstruction(Matrix.fromRows([[1.0, 2.0], [3.0, 4.0], [5.0, 7.0]]));
+    checkReconstruction(Matrix.fromRows([[1.0, 2.0, 3.0], [4.0, 5.0, 7.0]]));
+    checkReconstruction(Matrix.fromRows([[2.0, 1.0], [1.0, 3.0]]));
+}
+
+unittest
+{
+    const a = Matrix.fromRows([[3.0, 0.0], [0.0, -2.0]]);
+    const f = svd(a);
+    assert(f.s == [3.0, 2.0]);
+    assert(f.u == Matrix.fromRows([[1.0, 0.0], [0.0, 1.0]]));
+    assert(f.v == Matrix.fromRows([[1.0, 0.0], [0.0, -1.0]]));   // sign moved to V
+    assert(abs(condition(a) - 1.5) < 1e-15);
+}
+
+unittest
+{
+    import std.exception : collectException;
+
+    assert(collectException!LinAlgException(condition(Matrix(2, 2))).code == ErrorCode.singular);
 }

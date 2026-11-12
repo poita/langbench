@@ -1,153 +1,196 @@
 /**
- * Householder QR factorisation and linear least squares.
+ * Householder QR factorisation and least squares.
  */
 module linalg.qr;
 
 import std.math : sqrt;
+
 import linalg.errors;
 import linalg.matrix;
 
-/// Thin QR factors of an `m x n` matrix (`m >= n`).
+/// Thin QR factors of an `m x n` matrix, `m >= n`.
 struct QR
 {
     /// `m x n`, orthonormal columns.
-    Matrix Q;
+    Matrix q;
     /// `n x n`, upper triangular with a non-negative diagonal.
-    Matrix R;
+    Matrix r;
 }
 
 /**
- * Thin Householder QR, `A = Q R`, normalised so that `diag(R) >= 0`.
+ * Thin Householder QR, `A = Q R`, normalised so `R` has a non-negative
+ * diagonal. A zero column leaves an identity reflector, so rank-deficient
+ * input is accepted.
  *
- * A column that is exactly zero from the diagonal down gets an identity
- * reflector, so rank-deficient matrices factor fine.
- *
- * Throws: `dimension_mismatch` if `a.rows < a.cols`.
+ * Throws: `dimensionMismatch` when `m < n`.
  */
-QR qrFactor(const Matrix a) pure
+QR qrDecompose(const Matrix a) @safe pure
 {
-    enforceCode(a.rows >= a.cols, ErrorCode.dimension_mismatch);
-    immutable m = a.rows, n = a.cols;
+    enforceCode(a.rows >= a.cols, ErrorCode.dimensionMismatch);
+    const m = a.rows, n = a.cols;
     auto r = a.dup;
-    auto rd = r.data;
-    auto vs = new double[][](n);
-    auto w = new double[](n);
+    auto vs = new double[][n];   // reflector k has length m - k; empty if identity
 
     foreach (k; 0 .. n)
     {
+        auto v = new double[m - k];
+        foreach (i; 0 .. m - k)
+            v[i] = r.data[(k + i) * n + k];
         double ss = 0.0;
-        foreach (i; k .. m)
-            ss += rd[i * n + k] * rd[i * n + k];
-        immutable nu = sqrt(ss);
+        foreach (x; v)
+            ss += x * x;
+        const nu = sqrt(ss);
         if (nu == 0.0)
         {
             foreach (i; k + 1 .. m)
-                rd[i * n + k] = 0.0;
+                r.data[i * n + k] = 0.0;
             continue;
         }
-        immutable alpha = rd[k * n + k] >= 0.0 ? -nu : nu;
-        auto v = new double[](m - k);
-        foreach (i; k .. m)
-            v[i - k] = rd[i * n + k];
+        const alpha = r.data[k * n + k] >= 0.0 ? -nu : nu;
         v[0] -= alpha;
         double vv = 0.0;
         foreach (x; v)
             vv += x * x;
-        immutable vn = sqrt(vv);
+        const vn = sqrt(vv);
         foreach (ref x; v)
             x /= vn;
-        vs[k] = v;
 
-        // w[j] = v . R[k.., j] for j > k, accumulated row by row.
-        auto wk = w[k + 1 .. n];
-        wk[] = 0.0;
-        foreach (i; k .. m)
-            axpy(v[i - k], rd[i * n + k + 1 .. (i + 1) * n], wk);
-        foreach (ref x; wk)
-            x *= 2.0;
-        foreach (i; k .. m)
-            subScaled(v[i - k], wk, rd[i * n + k + 1 .. (i + 1) * n]);
-
-        rd[k * n + k] = alpha;
+        foreach (j; k + 1 .. n)
+        {
+            double d = 0.0;
+            foreach (i; 0 .. v.length)
+                d += v[i] * r.data[(k + i) * n + j];
+            const d2 = 2.0 * d;
+            foreach (i; 0 .. v.length)
+                r.data[(k + i) * n + j] -= d2 * v[i];
+        }
+        r.data[k * n + k] = alpha;
         foreach (i; k + 1 .. m)
-            rd[i * n + k] = 0.0;
+            r.data[i * n + k] = 0.0;
+        vs[k] = v;
     }
 
-    // Q from the first n columns of the identity, reflectors in reverse order.
+    // Q = H0 H1 ... H(n-1) applied to the first n columns of the identity.
     auto q = Matrix(m, n);
-    foreach (i; 0 .. n)
-        q.data[i * n + i] = 1.0;
-    auto qd = q.data;
+    foreach (j; 0 .. n)
+        q.data[j * n + j] = 1.0;
     foreach_reverse (k; 0 .. n)
     {
-        auto v = vs[k];
-        if (v is null)
+        const v = vs[k];
+        if (v.length == 0)
             continue;
-        auto wk = w[k .. n];
-        wk[] = 0.0;
-        foreach (i; k .. m)
-            axpy(v[i - k], qd[i * n + k .. (i + 1) * n], wk);
-        foreach (ref x; wk)
-            x *= 2.0;
-        foreach (i; k .. m)
-            subScaled(v[i - k], wk, qd[i * n + k .. (i + 1) * n]);
+        foreach (j; 0 .. n)
+        {
+            double d = 0.0;
+            foreach (i; 0 .. v.length)
+                d += v[i] * q.data[(k + i) * n + j];
+            const d2 = 2.0 * d;
+            foreach (i; 0 .. v.length)
+                q.data[(k + i) * n + j] -= d2 * v[i];
+        }
     }
 
-    // Keep the top n x n block of R and force a non-negative diagonal.
+    // Square R (top n rows), exact zeros below the diagonal, sign fix.
     auto rr = Matrix(n, n);
-    rr.data[] = rd[0 .. n * n];
+    foreach (i; 0 .. n)
+        foreach (j; i .. n)
+            rr.data[i * n + j] = r.data[i * n + j];
     foreach (j; 0 .. n)
     {
         if (rr.data[j * n + j] < 0.0)
         {
-            foreach (c; 0 .. n)
+            foreach (c; j .. n)
                 rr.data[j * n + c] = -rr.data[j * n + c];
             foreach (i; 0 .. m)
-                qd[i * n + j] = -qd[i * n + j];
+                q.data[i * n + j] = -q.data[i * n + j];
         }
     }
     return QR(q, rr);
 }
 
 /**
- * Least-squares solution of `A X = B` for full-column-rank `A` (`m >= n`):
+ * Least-squares solution of `A X = B` for full column rank `A`:
  * `R X = Qᵀ B` by back substitution.
  *
- * Throws: `dimension_mismatch` (`m < n`, or `b.rows != m`), `singular`
- *         (an exactly zero diagonal entry of `R`).
+ * Throws: `dimensionMismatch` (`m < n`, then the rows of `B`) and
+ * `singular` when `R` has an exactly zero diagonal entry.
  */
-Matrix leastSquares(const Matrix a, const Matrix b)
+Matrix leastSquares(const Matrix a, const Matrix b) @safe pure
 {
-    enforceCode(a.rows >= a.cols, ErrorCode.dimension_mismatch);
-    enforceCode(b.rows == a.rows, ErrorCode.dimension_mismatch);
-    immutable m = a.rows, n = a.cols, k = b.cols;
-    auto f = qrFactor(a);
-    foreach (j; 0 .. n)
-        enforceCode(f.R.data[j * n + j] != 0.0, ErrorCode.singular);
+    enforceCode(a.rows >= a.cols, ErrorCode.dimensionMismatch);
+    enforceCode(b.rows == a.rows, ErrorCode.dimensionMismatch);
+    const f = qrDecompose(a);
+    const m = a.rows, n = a.cols, k = b.cols;
+    foreach (i; 0 .. n)
+        enforceCode(f.r[i, i] != 0.0, ErrorCode.singular);
 
-    auto y = Matrix(n, k);
-    foreach (i; 0 .. m)
+    auto x = Matrix(n, k);
+    auto y = new double[n];
+    foreach (c; 0 .. k)
     {
-        auto bi = b.row(i);
         foreach (j; 0 .. n)
         {
-            immutable q = f.Q.data[i * n + j];
-            if (q != 0.0)
-                axpy(q, bi, y.row(j));
+            double s = 0.0;
+            foreach (i; 0 .. m)
+                s += f.q[i, j] * b[i, c];
+            y[j] = s;
         }
-    }
-    foreach_reverse (i; 0 .. n)
-    {
-        auto yi = y.row(i);
-        foreach (j; i + 1 .. n)
+        foreach_reverse (i; 0 .. n)
         {
-            immutable u = f.R.data[i * n + j];
-            if (u != 0.0)
-                subScaled(u, y.row(j), yi);
+            double s = y[i];
+            foreach (j; i + 1 .. n)
+                s -= f.r[i, j] * y[j];
+            y[i] = s / f.r[i, i];
         }
-        immutable d = f.R.data[i * n + i];
-        foreach (c; 0 .. k)
-            yi[c] /= d;
+        foreach (i; 0 .. n)
+            x[i, c] = y[i];
     }
-    return y;
+    return x;
+}
+
+unittest
+{
+    import linalg.ops : mul, transpose;
+    import std.math : abs;
+
+    auto a = Matrix.fromRows([[3.0], [4.0]]);
+    const f = qrDecompose(a);
+    assert(abs(f.r[0, 0] - 5.0) < 1e-15);
+    assert(abs(f.q[0, 0] - 0.6) < 1e-15 && abs(f.q[1, 0] - 0.8) < 1e-15);
+}
+
+unittest
+{
+    import linalg.ops : mul, transpose;
+    import std.math : abs;
+
+    auto a = Matrix.fromRows([[1.0, 2.0], [3.0, 4.0], [5.0, 7.0]]);
+    const f = qrDecompose(a);
+    const qr = mul(f.q, f.r);
+    foreach (i; 0 .. a.data.length)
+        assert(abs(qr.data[i] - a.data[i]) < 1e-13);
+    const qtq = mul(transpose(f.q), f.q);
+    foreach (i; 0 .. 2)
+        foreach (j; 0 .. 2)
+            assert(abs(qtq[i, j] - (i == j ? 1.0 : 0.0)) < 1e-14);
+    assert(f.r[1, 0] == 0.0 && f.r[0, 0] >= 0.0 && f.r[1, 1] >= 0.0);
+}
+
+unittest
+{
+    import std.exception : collectException;
+    import std.math : abs;
+
+    // Fit y = 1 + 2 t through exact points.
+    auto a = Matrix.fromRows([[1.0, 0.0], [1.0, 1.0], [1.0, 2.0]]);
+    auto b = Matrix.fromRows([[1.0], [3.0], [5.0]]);
+    const x = leastSquares(a, b);
+    assert(abs(x[0, 0] - 1.0) < 1e-13 && abs(x[1, 0] - 2.0) < 1e-13);
+
+    assert(collectException!LinAlgException(qrDecompose(Matrix(2, 3))).code
+            == ErrorCode.dimensionMismatch);
+    // A zero column: QR succeeds, least squares reports singular.
+    auto z = Matrix.fromRows([[1.0, 0.0], [2.0, 0.0], [3.0, 0.0]]);
+    qrDecompose(z);
+    assert(collectException!LinAlgException(leastSquares(z, b)).code == ErrorCode.singular);
 }

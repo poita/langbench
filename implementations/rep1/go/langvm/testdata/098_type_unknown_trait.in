@@ -1,0 +1,3 @@
+@module main
+fn f<T: Nope>(x: T) {}
+fn main() {}

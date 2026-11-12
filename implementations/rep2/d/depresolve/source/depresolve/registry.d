@@ -1,212 +1,231 @@
 /**
- * The package registry in a flat, search-friendly representation.
+ * The package registry: every version of every package together with its
+ * requirements, preprocessed for the resolver.
  *
- * Package names are interned to dense integer ids. All versions live in one
- * array, grouped by package and sorted newest first; all requirements live in
- * one array and are referenced by index. After construction every requirement
- * carries the contiguous window of candidate indices (into its target's
- * newest-first version list) that it admits, so the resolver never filters or
- * binary-searches while searching.
- *
- * Build a registry with `RegistryBuilder`, or parse the textual input format
- * with `depresolve.parser.parseInput`.
+ * Packages are interned to dense integer ids. When a registry is sealed
+ * (see `Registry.seal`) the versions of each package are sorted newest
+ * first and every requirement is bound to the contiguous index range of
+ * candidate versions it admits, so the search never filters versions.
  */
 module depresolve.registry;
-
-import std.algorithm.sorting : sort;
 
 import depresolve.range;
 import depresolve.semver;
 
-/// Sentinel used for "no such package id".
-enum uint noPackage = uint.max;
+/// Dense identifier of a package within one `Registry`.
+alias PackageId = uint;
 
-/// A requirement as supplied by a caller: a package name and a range.
-struct RequirementSpec
-{
-    string name;
-    Interval range;
-}
+/// Marks "no index" / "no package".
+enum uint none = uint.max;
 
-/// A resolved requirement stored in a `Registry`.
+/**
+ * A requirement `name range`.
+ *
+ * `first` and `last` are filled in by `Registry.seal` / `Registry.bind`:
+ * the candidates are the versions at indices `[first, last)` of the target
+ * package's newest-first version list.
+ */
 struct Requirement
 {
-    /// Dense id of the required package.
-    uint pkg;
-    /// Interval of admitted version keys.
-    Interval range;
-    /// Window `[first, last)` of admitted indices into the target's
-    /// newest-first version list. Empty when `last <= first`.
-    uint first, last;
+    /// Target package.
+    PackageId pkg;
+    /// Accepted versions.
+    VersionRange range;
+    /// First candidate index (newest-first order), valid once bound.
+    uint first;
+    /// One past the last candidate index, valid once bound.
+    uint last;
 }
 
-/// One version of one package.
-struct VersionEntry
+/// One version of a package and the slice of the requirement pool it owns.
+struct PackageVersion
 {
-    VersionKey key;
-    /// Slice `[reqStart, reqStart + reqCount)` of `Registry.reqs`.
-    uint reqStart, reqCount;
+    /// The version.
+    Version version_;
+    /// Requirements occupy `Registry.pool[reqStart .. reqEnd]`.
+    uint reqStart, reqEnd;
 }
 
-/// Immutable-after-construction registry plus the root manifest.
+/// A package and all its versions.
+struct Package
+{
+    /// Package name.
+    string name;
+    /// Versions; newest first once the registry is sealed.
+    PackageVersion[] versions;
+}
+
+/// A registry of package versions.
 struct Registry
 {
-    /// Package name by dense id.
-    string[] names;
-    /// `verStart[p] .. verStart[p+1]` is package `p`'s slice of `versions`.
-    uint[] verStart;
-    /// All versions, grouped by package, newest first within a package.
-    VersionEntry[] versions;
-    /// All requirements of all versions, plus those of the root.
-    Requirement[] reqs;
-    /// Slice of `reqs` holding the root manifest.
-    uint rootStart, rootCount;
+    /// All packages, indexed by `PackageId`.
+    Package[] packages;
+    /// Requirements of all versions, stored contiguously.
+    Requirement[] pool;
 
-    /// Number of distinct package names (including names only ever required).
-    size_t packageCount() const pure nothrow @nogc @safe
-    {
-        return names.length;
-    }
+    private PackageId[string] ids;
+    private bool sealed_ = true;
 
-    /// Versions of package `pkg`, newest first.
-    const(VersionEntry)[] versionsOf(uint pkg) const pure nothrow @nogc @safe
-    {
-        return versions[verStart[pkg] .. verStart[pkg + 1]];
-    }
-
-    /// The requirements of a version entry.
-    const(Requirement)[] requirementsOf(const VersionEntry e) const pure nothrow @nogc @safe
-    {
-        return reqs[e.reqStart .. e.reqStart + e.reqCount];
-    }
-
-    /// The requirements of the root manifest, in order.
-    const(Requirement)[] rootRequirements() const pure nothrow @nogc @safe
-    {
-        return reqs[rootStart .. rootStart + rootCount];
-    }
-
-    /// Id of the package called `name`, or `noPackage`.
-    uint idOf(string name) const pure nothrow @safe
-    {
-        foreach (i, n; names)
-            if (n == name)
-                return cast(uint) i;
-        return noPackage;
-    }
-}
-
-/// Incrementally assembles a `Registry`.
-struct RegistryBuilder
-{
-    private
-    {
-        struct RawVersion
-        {
-            uint pkg;
-            VersionKey key;
-            uint reqStart, reqCount;
-        }
-
-        struct RawReq
-        {
-            uint pkg;
-            Interval range;
-        }
-
-        uint[string] ids;
-        string[] names;
-        RawVersion[] raw;
-        RawReq[] rawReqs;
-        uint rootStart, rootCount;
-    }
-
-    private uint intern(string name) pure @safe
+    /// Returns the id of `name`, interning it if it is new.
+    PackageId intern(string name) pure @safe
     {
         if (auto p = name in ids)
             return *p;
-        immutable id = cast(uint) names.length;
-        names ~= name;
+        const id = cast(PackageId) packages.length;
+        packages ~= Package(name);
         ids[name] = id;
         return id;
     }
 
-    private uint appendReqs(const(RequirementSpec)[] reqs) pure @safe
+    /// Looks up a package id without interning; `none` if unknown.
+    PackageId find(const(char)[] name) const pure @safe
     {
-        immutable start = cast(uint) rawReqs.length;
-        foreach (r; reqs)
-            rawReqs ~= RawReq(intern(r.name), r.range);
-        return start;
+        if (auto p = name in ids)
+            return *p;
+        return none;
     }
 
-    /// Declare one version of package `name` with its requirements, in order.
-    void addVersion(string name, Version version_, const(RequirementSpec)[] reqs = null) pure @safe
+    /**
+     * Declares package version `name version_` with the given requirements.
+     * Requirements must target ids obtained from `intern`.
+     */
+    void add(string name, Version version_, const(Requirement)[] reqs) pure @safe
     {
-        immutable pkg = intern(name);
-        immutable start = appendReqs(reqs);
-        raw ~= RawVersion(pkg, version_.key, start, cast(uint) reqs.length);
+        const id = intern(name);
+        const start = cast(uint) pool.length;
+        pool ~= reqs;
+        packages[id].versions ~= PackageVersion(version_, start, cast(uint) pool.length);
+        sealed_ = false;
     }
 
-    /// Set the root manifest (the requirements the resolution must satisfy).
-    void setRoot(const(RequirementSpec)[] reqs) pure @safe
+    /// Convenience: declares a version from textual `name`, `version` and
+    /// `requirements` of the form `"dep ^1.0.0, other *"`.
+    void add(string name, string version_, string requirements = "") pure @safe
     {
-        rootStart = appendReqs(reqs);
-        rootCount = cast(uint) reqs.length;
-    }
+        import std.array : split;
+        import std.string : indexOf, strip;
 
-    /// Sort versions, compute candidate windows and produce the `Registry`.
-    Registry build() pure @safe
-    {
-        immutable P = names.length;
-        Registry r;
-        r.names = names.dup;
-
-        // Group versions by package (counting sort), then sort each group
-        // newest first.
-        auto counts = new uint[P + 1];
-        foreach (ref v; raw)
-            ++counts[v.pkg + 1];
-        foreach (i; 0 .. P)
-            counts[i + 1] += counts[i];
-        r.verStart = counts.dup;
-        r.versions = new VersionEntry[raw.length];
-        auto fill = counts[0 .. P].dup;
-        foreach (ref v; raw)
-            r.versions[fill[v.pkg]++] = VersionEntry(v.key, v.reqStart, v.reqCount);
-        foreach (p; 0 .. P)
-            r.versions[r.verStart[p] .. r.verStart[p + 1]].sort!((a, b) => a.key > b.key);
-
-        // Resolve each requirement's interval to a window of indices.
-        r.reqs = new Requirement[rawReqs.length];
-        foreach (i, ref q; rawReqs)
+        Requirement[] reqs;
+        if (requirements.strip.length)
         {
-            auto list = r.versions[r.verStart[q.pkg] .. r.verStart[q.pkg + 1]];
-            uint first = 0, last = 0;
-            if (!q.range.empty)
+            size_t pos = 0;
+            while (true)
             {
-                first = countAtLeast(list, q.range.hi);
-                last = countAtLeast(list, q.range.lo);
+                const sp = requirements.indexOf(' ', pos);
+                if (sp < 0)
+                    throw new ParseException("malformed requirement: " ~ requirements);
+                const depName = requirements[pos .. sp];
+                pos = sp + 1;
+                const range = parseRangeAt(requirements, pos);
+                reqs ~= Requirement(intern(depName.idup), range);
+                if (pos >= requirements.length)
+                    break;
+                if (pos + 1 < requirements.length && requirements[pos .. pos + 2] == ", ")
+                    pos += 2;
+                else
+                    throw new ParseException("malformed requirement list: " ~ requirements);
             }
-            r.reqs[i] = Requirement(q.pkg, q.range, first, last);
         }
-        r.rootStart = rootStart;
-        r.rootCount = rootCount;
-        return r;
+        add(name, parseVersion(version_), reqs);
+    }
+
+    /// True once `seal` has run since the last modification.
+    bool sealed() const pure nothrow @nogc @safe { return sealed_; }
+
+    /**
+     * Sorts every package's versions newest first and binds every stored
+     * requirement to its candidate index range. Idempotent; called
+     * automatically by the resolver.
+     */
+    void seal() pure @safe
+    {
+        if (sealed_)
+            return;
+        import std.algorithm.sorting : sort;
+        foreach (ref p; packages)
+            p.versions.sort!((a, b) => a.version_ > b.version_);
+        foreach (ref r; pool)
+            bind(r);
+        sealed_ = true;
+    }
+
+    /// Fills in `r.first` / `r.last` for a requirement against the sealed
+    /// registry (binary search over the newest-first version list).
+    void bind(ref Requirement r) const pure nothrow @nogc @safe
+    {
+        const vs = packages[r.pkg].versions;
+        // First index whose version is < hi (everything before is too new).
+        r.first = partitionPoint(vs, (const Version v) => v >= r.range.hi);
+        // First index whose version is < lo (everything from here is too old).
+        r.last = partitionPoint(vs, (const Version v) => v >= r.range.lo);
+        if (r.last < r.first)
+            r.last = r.first;
+    }
+
+    /// Number of versions of package `id`.
+    size_t versionCount(PackageId id) const pure nothrow @nogc @safe
+    {
+        return packages[id].versions.length;
     }
 }
 
-/// Number of entries of a newest-first list whose key is `>= bound`
-/// (they form a prefix). Binary search.
-private uint countAtLeast(const(VersionEntry)[] list, VersionKey bound) pure nothrow @nogc @safe
+/// Index of the first element of `vs` for which `pred(version)` is false,
+/// assuming `pred` is true for a prefix.
+private uint partitionPoint(Pred)(const(PackageVersion)[] vs, scope Pred pred)
+    pure nothrow @nogc @safe
 {
-    size_t lo = 0, hi = list.length;
+    size_t lo = 0, hi = vs.length;
     while (lo < hi)
     {
-        immutable mid = lo + (hi - lo) / 2;
-        if (list[mid].key >= bound)
+        const mid = lo + (hi - lo) / 2;
+        if (pred(vs[mid].version_))
             lo = mid + 1;
         else
             hi = mid;
     }
     return cast(uint) lo;
+}
+
+unittest
+{
+    Registry reg;
+    reg.add("a", "1.9.0");
+    reg.add("a", "1.10.0");
+    reg.add("a", "2.0.0");
+    reg.add("a", "0.1.0");
+    reg.seal();
+    assert(reg.sealed);
+    const id = reg.find("a");
+    assert(id != none);
+    string[] order;
+    foreach (pv; reg.packages[id].versions)
+        order ~= pv.version_.toString;
+    assert(order == ["2.0.0", "1.10.0", "1.9.0", "0.1.0"]);
+
+    auto r = Requirement(id, parseRange("^1.0.0"));
+    reg.bind(r);
+    assert(r.first == 1 && r.last == 3);
+
+    auto none_ = Requirement(id, parseRange(">=3.0.0"));
+    reg.bind(none_);
+    assert(none_.first == none_.last);
+
+    auto empty = Requirement(id, parseRange(">=2.0.0 <1.0.0"));
+    reg.bind(empty);
+    assert(empty.first == empty.last);
+
+    auto all = Requirement(id, parseRange("*"));
+    reg.bind(all);
+    assert(all.first == 0 && all.last == 4);
+}
+
+unittest
+{
+    Registry reg;
+    reg.add("app", "1.0.0", "lib ^1.0.0, util >=1.0.0 <2.0.0");
+    reg.add("lib", "1.2.0");
+    reg.seal();
+    assert(reg.pool.length == 2);
+    assert(reg.packages[reg.find("util")].versions.length == 0);
+    assert(reg.pool[1].first == reg.pool[1].last);
 }

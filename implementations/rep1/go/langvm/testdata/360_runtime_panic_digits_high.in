@@ -1,0 +1,4 @@
+@module main
+fn main() {
+    print(showFloatAt(1.0, 18));
+}

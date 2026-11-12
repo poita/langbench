@@ -1,65 +1,46 @@
-/// Rendering of the final machine state as text.
+/// Formatting of the final machine report.
 module chip8.output;
 
-import chip8.constants : displayHeight, displayWidth;
 import chip8.machine : Machine;
 
 private immutable hexDigits = "0123456789abcdef";
 
-private size_t putHex(char[] buf, size_t o, uint value, uint digits) pure nothrow @safe @nogc
+private void putHex(ref char[] buf, uint value, uint digits) @safe pure nothrow
 {
-    foreach_reverse (k; 0 .. digits)
-        buf[o++] = hexDigits[(value >> (4 * k)) & 0xF];
-    return o;
+    foreach_reverse (d; 0 .. digits)
+        buf ~= hexDigits[(value >> (4 * d)) & 0xF];
 }
 
-private size_t putStr(char[] buf, size_t o, string s) pure nothrow @safe @nogc
+/// Format the 34-line report: display, status line, register line.
+string report(ref const Machine m) @safe pure
 {
-    buf[o .. o + s.length] = s[];
-    return o + s.length;
-}
+    import std.conv : to;
 
-private size_t putDecimal(char[] buf, size_t o, uint value) pure nothrow @safe @nogc
-{
-    char[10] tmp;
-    size_t n = 0;
-    do
-    {
-        tmp[n++] = cast(char)('0' + value % 10);
-        value /= 10;
-    } while (value);
-    while (n)
-        buf[o++] = tmp[--n];
-    return o;
-}
-
-/++
-    Format the machine state as the 34 output lines described in SPEC.md:
-    32 display rows, the `PC=... I=...` line and the `V=...` line.
-+/
-char[] formatState(const ref Machine m) pure nothrow @safe
-{
-    enum displayBytes = displayHeight * (displayWidth + 1);
-    auto buf = new char[displayBytes + 128];
-    m.display.renderInto(buf);
-    size_t o = displayBytes;
-    o = putStr(buf, o, "PC=");
-    o = putHex(buf, o, m.pc, 4);
-    o = putStr(buf, o, " I=");
-    o = putHex(buf, o, m.i, 4);
-    o = putStr(buf, o, " SP=");
-    o = putDecimal(buf, o, m.sp);
-    o = putStr(buf, o, " DT=");
-    o = putHex(buf, o, m.dt, 2);
-    o = putStr(buf, o, " ST=");
-    o = putHex(buf, o, m.st, 2);
-    buf[o++] = '\n';
-    o = putStr(buf, o, "V=");
+    char[] buf;
+    buf ~= m.display.render();
+    buf ~= "PC=";  putHex(buf, m.pc, 4);
+    buf ~= " I=";  putHex(buf, m.i, 4);
+    buf ~= " SP="; buf ~= m.sp.to!string;
+    buf ~= " DT="; putHex(buf, m.dt, 2);
+    buf ~= " ST="; putHex(buf, m.st, 2);
+    buf ~= "\nV=";
     foreach (k, r; m.v)
     {
-        if (k) buf[o++] = ' ';
-        o = putHex(buf, o, r, 2);
+        if (k) buf ~= ' ';
+        putHex(buf, r, 2);
     }
-    buf[o++] = '\n';
-    return buf[0 .. o];
+    buf ~= '\n';
+    return (() @trusted => cast(string) buf)();
+}
+
+@safe pure unittest
+{
+    import std.algorithm.searching : count;
+    auto m = Machine([0x00, 0x00]);
+    m.i = 0xBEEF;
+    m.v[15] = 0xA;
+    auto r = report(m);
+    assert(r.count('\n') == 34);
+    assert(r[32 * 65 .. $] ==
+        "PC=0200 I=beef SP=0 DT=00 ST=00\nV=00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 0a\n");
 }

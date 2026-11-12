@@ -1,5 +1,6 @@
 .dub/
 bin/
-*.o
 *.a
+*.o
 dub.selections.json
+commonmark-test-*

@@ -1,0 +1,66 @@
+cabal-version:      3.0
+name:               fulltext
+version:            0.1.0.0
+synopsis:           A small positional full-text search engine with BM25 ranking
+description:
+  Indexes a corpus of plain-text documents (Unicode-aware tokeniser, ASCII case
+  folding, Porter stemming), evaluates boolean and phrase queries against a
+  positional inverted index, ranks the matches with BM25 and extracts a
+  best-window snippet for each hit.  The library is accompanied by a batch
+  command-line tool.
+license:            MIT
+author:             fulltext authors
+maintainer:         peter.alexander.au@gmail.com
+category:           Text, Search
+build-type:         Simple
+extra-doc-files:    README.md
+extra-source-files: test/data/porter-voc.txt
+                    test/data/porter-output.txt
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Fulltext
+                    Fulltext.Analysis
+                    Fulltext.Porter
+                    Fulltext.Index
+                    Fulltext.Query
+                    Fulltext.Search
+                    Fulltext.Snippet
+                    Fulltext.Corpus
+                    Fulltext.Report
+  build-depends:    base       >=4.18 && <5
+                  , array      >=0.5  && <0.6
+                  , bytestring >=0.11 && <0.13
+                  , containers >=0.6  && <0.9
+                  , directory  >=1.3  && <1.4
+                  , filepath   >=1.4  && <1.6
+                  , text       >=2.0  && <2.2
+
+executable fulltext
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts
+  build-depends:    base, bytestring, directory, filepath, text, fulltext
+
+test-suite fulltext-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    AnalysisSpec
+                    PorterSpec
+                    QuerySpec
+                    IndexSpec
+                    SearchSpec
+                    SnippetSpec
+                    CorpusSpec
+                    EndToEndSpec
+  build-depends:    base, containers, text, array, fulltext
+                  , hspec      >=2.10
+                  , QuickCheck >=2.14

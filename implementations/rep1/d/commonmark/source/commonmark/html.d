@@ -1,132 +1,56 @@
-/// Rendering of the block tree (with inlines parsed on the fly) to HTML.
+/**
+ * HTML rendering of a block tree.
+ *
+ * The renderer walks the block tree once, in document order. The raw content
+ * of each paragraph and heading is parsed into inlines on the way (with a
+ * reusable `InlineParser`) and written out immediately; the inline walk is
+ * iterative, so deeply nested emphasis and links are safe. The output matches
+ * the `cmark` reference implementation byte for byte.
+ */
 module commonmark.html;
 
 import commonmark.ast;
-import commonmark.buffer;
-import commonmark.chars;
-import commonmark.inlines;
+import commonmark.inline;
+import commonmark.text;
 
-private immutable ubyte[256] escapeKind = () {
-    ubyte[256] t;
-    t['&'] = 1;
-    t['<'] = 2;
-    t['>'] = 3;
-    t['"'] = 4;
-    return t;
-}();
-
-private immutable string[5] escapeText = ["", "&amp;", "&lt;", "&gt;", "&quot;"];
-
-/// Append `s` with `&`, `<`, `>` and `"` replaced by entities.
-void escapeHtml(ref Buffer o, const(char)[] s) pure nothrow
+/**
+ * Renders a block tree (as returned by `parseBlocks`) to HTML.
+ *
+ * Returns: the HTML text.
+ */
+string renderHtml(Block document)
 {
-    size_t start = 0;
-    foreach (i, c; s)
-    {
-        immutable k = escapeKind[c];
-        if (k)
-        {
-            o.put(s[start .. i]);
-            o.put(escapeText[k]);
-            start = i + 1;
-        }
-    }
-    o.put(s[start .. $]);
+    auto r = HtmlRenderer(new InlineParser);
+    r.renderBlock(document);
+    return (() @trusted => cast(string) r.o.data)();
 }
 
-private immutable ubyte[256] hrefSafe = () {
-    ubyte[256] t;
-    foreach (c; "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-        ~ "-_.~!#$%()*+,/:;=?@")
-        t[c] = 1;
-    return t;
-}();
-
-private bool startsWithIgnoreCase(const(char)[] s, string prefix) pure nothrow @nogc
+private struct HtmlRenderer
 {
-    if (s.length < prefix.length)
-        return false;
-    foreach (i, p; prefix)
-    {
-        char c = s[i];
-        if (c >= 'A' && c <= 'Z')
-            c += 32;
-        if (c != p)
-            return false;
-    }
-    return true;
-}
+    Sink o;
+    InlineParser inlines;
 
-/// Append a destination as an `href`/`src` attribute value: unsafe schemes
-/// give an empty value, other bytes are percent-encoded as needed.
-void escapeHref(ref Buffer o, const(char)[] s) pure nothrow
-{
-    if (startsWithIgnoreCase(s, "javascript:") || startsWithIgnoreCase(s, "vbscript:")
-        || startsWithIgnoreCase(s, "file:") || startsWithIgnoreCase(s, "data:"))
+    this(InlineParser p)
     {
-        if (!(startsWithIgnoreCase(s, "data:image/png") || startsWithIgnoreCase(s, "data:image/gif")
-            || startsWithIgnoreCase(s, "data:image/jpeg") || startsWithIgnoreCase(s, "data:image/webp")))
-            return;
-    }
-    static immutable hex = "0123456789ABCDEF";
-    size_t start = 0;
-    foreach (i, c; s)
-    {
-        if (hrefSafe[c])
-            continue;
-        o.put(s[start .. i]);
-        start = i + 1;
-        if (c == '&')
-            o.put("&amp;");
-        else if (c == '\'')
-            o.put("&#x27;");
-        else
-        {
-            o.put('%');
-            o.put(hex[c >> 4]);
-            o.put(hex[c & 15]);
-        }
-    }
-    o.put(s[start .. $]);
-}
-
-/// Render a parsed document to HTML, appending to `o`.
-void renderDocument(ref const Document doc, ref Buffer o)
-{
-    auto r = Renderer(&doc, &o);
-    r.renderChildren(0);
-}
-
-private struct Renderer
-{
-    const(Document)* doc;
-    Buffer* o;
-    size_t base; // length of the output before rendering started
-    InlineParser ip;
-
-    this(const(Document)* d, Buffer* out_)
-    {
-        doc = d;
-        o = out_;
-        base = out_.length;
+        inlines = p;
     }
 
     void cr()
     {
-        if (o.length > base && o.back != '\n')
+        const d = o.data;
+        if (d.length != 0 && d[$ - 1] != '\n')
             o.put('\n');
     }
 
-    void renderChildren(int b)
+    void renderChildren(Block b)
     {
-        for (int c = doc.blocks[b].firstChild; c; c = doc.blocks[c].next)
+        for (Block c = b.firstChild; c !is null; c = c.next)
             renderBlock(c);
     }
 
-    void renderBlock(int b)
+    void renderBlock(Block b)
     {
-        const blk = &doc.blocks[b];
-        final switch (blk.kind)
+        final switch (b.kind)
         {
         case BlockKind.document:
             renderChildren(b);
@@ -140,18 +64,20 @@ private struct Renderer
             break;
         case BlockKind.list:
             cr();
-            if (!blk.ordered)
+            if (!b.ordered)
                 o.put("<ul>\n");
-            else if (blk.start == 1)
+            else if (b.start == 1)
                 o.put("<ol>\n");
             else
             {
+                import std.conv : to;
+
                 o.put("<ol start=\"");
-                o.putDecimal(blk.start);
+                o.put(b.start.to!string);
                 o.put("\">\n");
             }
             renderChildren(b);
-            o.put(blk.ordered ? "</ol>\n" : "</ul>\n");
+            o.put(b.ordered ? "</ol>\n" : "</ul>\n");
             break;
         case BlockKind.item:
             cr();
@@ -160,190 +86,195 @@ private struct Renderer
             o.put("</li>\n");
             break;
         case BlockKind.paragraph:
-        {
-            immutable par = blk.parent;
-            immutable tight = doc.blocks[par].kind == BlockKind.item
-                && doc.blocks[doc.blocks[par].parent].tight;
-            if (tight)
-                renderInlines(blk.content);
-            else
             {
-                cr();
-                o.put("<p>");
-                renderInlines(blk.content);
-                o.put("</p>\n");
+                immutable tight = b.parent !is null && b.parent.parent !is null
+                    && b.parent.parent.kind == BlockKind.list && b.parent.parent.tight;
+                if (!tight)
+                {
+                    cr();
+                    o.put("<p>");
+                }
+                renderInlines(b.text);
+                if (!tight)
+                    o.put("</p>\n");
             }
             break;
-        }
         case BlockKind.heading:
-            cr();
-            o.put("<h");
-            o.put(cast(char)('0' + blk.level));
-            o.put('>');
-            renderInlines(blk.content);
-            o.put("</h");
-            o.put(cast(char)('0' + blk.level));
-            o.put(">\n");
+            {
+                cr();
+                immutable tag = cast(char)('0' + b.level);
+                o.put("<h");
+                o.put(tag);
+                o.put('>');
+                renderInlines(b.text);
+                o.put("</h");
+                o.put(tag);
+                o.put(">\n");
+            }
             break;
         case BlockKind.thematicBreak:
             cr();
             o.put("<hr />\n");
             break;
-        case BlockKind.indentedCode:
-        case BlockKind.fencedCode:
+        case BlockKind.codeBlock:
             cr();
-            o.put("<pre><code");
-            if (blk.kind == BlockKind.fencedCode && blk.info.length)
+            if (b.info.length == 0)
+                o.put("<pre><code>");
+            else
             {
-                size_t e = 0;
-                while (e < blk.info.length && !isWhitespace(blk.info[e]))
-                    ++e;
-                auto lang = blk.info[0 .. e];
-                o.put(" class=\"");
-                if (!(lang.length >= 9 && lang[0 .. 9] == "language-"))
+                size_t n = 0;
+                while (n < b.info.length && !isSpace(b.info[n]))
+                    ++n;
+                const word = b.info[0 .. n];
+                o.put("<pre><code class=\"");
+                if (word.length < 9 || word[0 .. 9] != "language-")
                     o.put("language-");
-                escapeHtml(*o, lang);
-                o.put('"');
+                escapeHtml(o, word);
+                o.put("\">");
             }
-            o.put('>');
-            escapeHtml(*o, blk.content);
+            escapeHtml(o, b.text);
             o.put("</code></pre>\n");
             break;
         }
     }
 
-    void renderInlines(const(char)[] content)
+    void renderInlines(string content)
     {
-        ip.parse(content);
-        int cur = InlineParser.root;
-        bool entering = true;
+        const nodes = inlines.parse(content);
         int imageDepth = 0;
-        for (;;)
+        int node = nodes[0].firstChild;
+        while (node != noNode)
         {
-            const nd = &ip.node(cur);
-            if (entering)
+            // Enter.
+            const n = &nodes[node];
+            final switch (n.kind)
             {
-                if (cur != InlineParser.root)
-                    enter(cur, imageDepth);
-                if (nd.firstChild)
-                {
-                    cur = nd.firstChild;
-                    continue;
-                }
-            }
-            if (cur == InlineParser.root)
+            case InlineKind.root:
                 break;
-            leave(cur, imageDepth);
-            if (nd.next)
-            {
-                cur = nd.next;
-                entering = true;
+            case InlineKind.text:
+                escapeHtml(o, n.text);
+                break;
+            case InlineKind.softBreak:
+                o.put(imageDepth ? " " : "\n");
+                break;
+            case InlineKind.lineBreak:
+                o.put(imageDepth ? " " : "<br />\n");
+                break;
+            case InlineKind.code:
+                if (imageDepth)
+                    escapeHtml(o, n.text);
+                else
+                {
+                    o.put("<code>");
+                    escapeHtml(o, n.text);
+                    o.put("</code>");
+                }
+                break;
+            case InlineKind.emph:
+                if (!imageDepth)
+                    o.put("<em>");
+                break;
+            case InlineKind.strong:
+                if (!imageDepth)
+                    o.put("<strong>");
+                break;
+            case InlineKind.link:
+                if (!imageDepth)
+                {
+                    o.put("<a href=\"");
+                    escapeHref(o, n.text);
+                    o.put('"');
+                    if (n.hasTitle)
+                    {
+                        o.put(" title=\"");
+                        escapeHtml(o, n.title);
+                        o.put('"');
+                    }
+                    o.put('>');
+                }
+                break;
+            case InlineKind.image:
+                if (imageDepth == 0)
+                {
+                    o.put("<img src=\"");
+                    escapeHref(o, n.text);
+                    o.put("\" alt=\"");
+                }
+                ++imageDepth;
+                break;
             }
-            else
+            if (n.firstChild != noNode)
             {
-                cur = nd.parent;
-                entering = false;
+                node = n.firstChild;
+                continue;
+            }
+            // Leave this node, and any ancestors that end here.
+            for (;;)
+            {
+                const m = &nodes[node];
+                switch (m.kind)
+                {
+                case InlineKind.emph:
+                    if (!imageDepth)
+                        o.put("</em>");
+                    break;
+                case InlineKind.strong:
+                    if (!imageDepth)
+                        o.put("</strong>");
+                    break;
+                case InlineKind.link:
+                    if (!imageDepth)
+                        o.put("</a>");
+                    break;
+                case InlineKind.image:
+                    if (--imageDepth == 0)
+                    {
+                        o.put('"');
+                        if (m.hasTitle)
+                        {
+                            o.put(" title=\"");
+                            escapeHtml(o, m.title);
+                            o.put('"');
+                        }
+                        o.put(" />");
+                    }
+                    break;
+                default:
+                    break;
+                }
+                if (m.next != noNode)
+                {
+                    node = m.next;
+                    break;
+                }
+                node = m.parent;
+                if (node == 0)
+                {
+                    node = noNode;
+                    break;
+                }
             }
         }
+    }
+}
+
+unittest
+{
+    import commonmark.block : parseBlocks;
+
+    static string html(string md)
+    {
+        return renderHtml(parseBlocks(md));
     }
 
-    void enter(int i, ref int imageDepth)
-    {
-        const nd = &ip.node(i);
-        final switch (nd.kind)
-        {
-        case InlineKind.root:
-            break;
-        case InlineKind.text:
-            escapeHtml(*o, ip.textOf(i));
-            break;
-        case InlineKind.softBreak:
-            o.put(imageDepth ? ' ' : '\n');
-            break;
-        case InlineKind.hardBreak:
-            if (imageDepth)
-                o.put(' ');
-            else
-                o.put("<br />\n");
-            break;
-        case InlineKind.code:
-            if (imageDepth)
-                escapeHtml(*o, ip.textOf(i));
-            else
-            {
-                o.put("<code>");
-                escapeHtml(*o, ip.textOf(i));
-                o.put("</code>");
-            }
-            break;
-        case InlineKind.emph:
-            if (!imageDepth)
-                o.put("<em>");
-            break;
-        case InlineKind.strong:
-            if (!imageDepth)
-                o.put("<strong>");
-            break;
-        case InlineKind.link:
-            if (!imageDepth)
-            {
-                o.put("<a href=\"");
-                escapeHref(*o, ip.destOf(i));
-                o.put('"');
-                if (nd.hasTitle)
-                {
-                    o.put(" title=\"");
-                    escapeHtml(*o, ip.titleOf(i));
-                    o.put('"');
-                }
-                o.put('>');
-            }
-            break;
-        case InlineKind.image:
-            if (!imageDepth)
-            {
-                o.put("<img src=\"");
-                escapeHref(*o, ip.destOf(i));
-                o.put("\" alt=\"");
-            }
-            ++imageDepth;
-            break;
-        }
-    }
-
-    void leave(int i, ref int imageDepth)
-    {
-        const nd = &ip.node(i);
-        switch (nd.kind)
-        {
-        case InlineKind.emph:
-            if (!imageDepth)
-                o.put("</em>");
-            break;
-        case InlineKind.strong:
-            if (!imageDepth)
-                o.put("</strong>");
-            break;
-        case InlineKind.link:
-            if (!imageDepth)
-                o.put("</a>");
-            break;
-        case InlineKind.image:
-            --imageDepth;
-            if (!imageDepth)
-            {
-                o.put('"');
-                if (nd.hasTitle)
-                {
-                    o.put(" title=\"");
-                    escapeHtml(*o, ip.titleOf(i));
-                    o.put('"');
-                }
-                o.put(" />");
-            }
-            break;
-        default:
-            break;
-        }
-    }
+    assert(html("") == "");
+    assert(html("# Title #\n") == "<h1>Title</h1>\n");
+    assert(html("a *b*\n") == "<p>a <em>b</em></p>\n");
+    assert(html("- a\n- b\n") == "<ul>\n<li>a</li>\n<li>b</li>\n</ul>\n");
+    assert(html("- a\n\n- b\n") == "<ul>\n<li>\n<p>a</p>\n</li>\n<li>\n<p>b</p>\n</li>\n</ul>\n");
+    assert(html("> q\n") == "<blockquote>\n<p>q</p>\n</blockquote>\n");
+    assert(html("```c++ x\n<&>\n```\n") == "<pre><code class=\"language-c++\">&lt;&amp;&gt;\n</code></pre>\n");
+    assert(html("![a *b* `c`](/i.png \"t\")") == "<p><img src=\"/i.png\" alt=\"a b c\" title=\"t\" /></p>\n");
+    assert(html("[j](javascript:x)") == "<p><a href=\"\">j</a></p>\n");
+    assert(html("3. a\n") == "<ol start=\"3\">\n<li>a</li>\n</ol>\n");
 }

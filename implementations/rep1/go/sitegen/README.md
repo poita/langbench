@@ -1,161 +1,178 @@
 # sitegen
 
-`sitegen` is a small static site generator written in Go with no dependencies
-outside the standard library. It reads a source directory — a `site.toml`,
-Markdown content with TOML front matter, Jinja-style templates and static
-files — and writes a complete website: a paginated index, one page per post and
-page, tag pages, an Atom feed, a sitemap and a copy of the static files.
+A small static site generator written in Go with no dependencies beyond the
+standard library. It reads a site source (configuration, Markdown content,
+templates, static files) and writes a complete static website: post, page and
+tag pages, paginated index pages, an Atom feed and a sitemap.
 
-Everything that would normally come from a library is implemented here:
+The three languages it needs are implemented from scratch, as separate
+packages that can be used on their own:
 
 | Package | What it is |
 |---------|------------|
-| `example.com/sitegen/toml` | the TOML subset used by `site.toml` and front matter |
-| `example.com/sitegen/markdown` | a CommonMark-subset converter that follows `cmark` 0.31.2 |
-| `example.com/sitegen/tmpl` | a Jinja2-subset template engine (inheritance, macros, filters, strict undefined) |
-| `example.com/sitegen` | the content model, template values, feed, sitemap and output writer |
-| `cmd/sitegen` | the command-line tool, a thin wrapper over the library |
+| [`markdown`](markdown) | CommonMark subset to HTML. Follows the structure of `cmark`: a line-driven block parser, a delimiter-stack inline parser, one rendering walk. Its output matched `cmark` 0.31.2 byte for byte in differential fuzzing on the supported subset. |
+| [`tmpl`](tmpl) | A Jinja-style template engine: expressions, filters, `if`/`for`/`set`/`macro`, `include`, `extends`/`block`/`super()`, whitespace control. |
+| [`toml`](toml) | Reader for the TOML subset used by `site.toml` and front matter. |
+| `sitegen` (this directory) | The content model and generator built on the three above. |
+| [`cmd/sitegen`](cmd/sitegen) | The command-line tool. |
 
 ## Build
 
-Requires Go 1.27.1 or later.
+Requires Go 1.27 or later.
 
 ```sh
-./build.sh          # builds bin/sitegen
-go test ./...       # runs the unit tests
+./build.sh            # builds bin/sitegen
+# or directly:
+go build -o bin/sitegen ./cmd/sitegen
 ```
-
-`build.sh` and `run.sh` work from any current directory.
 
 ## Command line
 
-```
+```sh
 sitegen <input directory> <output directory>
 # or, without installing:
 ./run.sh <input directory> <output directory>
 ```
 
-The input directory is the site source (layout below); the generated site is
-written into the output directory, which is created if it does not exist.
-Nothing is read from standard input. The exit status is 0 on success; on any
-error a message goes to standard error and the status is 1 (2 for a usage
-error).
+The output directory is created if it does not exist. The program reads
+nothing but the input directory and writes only into the output directory. It
+exits with status 0 on success, 1 if the site cannot be generated (an error
+message goes to stderr) and 2 on a usage error.
 
-### Source layout
+### Input layout
 
 ```
-site.toml                 title, base_url, author, posts_per_page (+ any other keys)
-content/posts/*.md        posts   (title, date "YYYY-MM-DD"; optional slug, tags, draft)
-content/pages/*.md        pages   (title; optional slug, draft)
-templates/*.html          index, post, page, tag and tags are required
-static/**                 copied verbatim
+site.toml                 required
+content/posts/*.md        posts (optional directory)
+content/pages/*.md        pages (optional directory)
+templates/*.html          index.html, post.html, page.html, tag.html, tags.html
+                          (required) plus any helper templates
+static/**                 copied verbatim (optional directory)
 ```
 
-A content file starts with front matter between `+++` lines, followed by the
+`site.toml` must define `title`, `base_url` (no trailing `/`), `author` and
+`posts_per_page` (an integer ≥ 1). Other keys are passed to templates
+unchanged as `site.<key>`.
+
+A content file starts with front matter delimited by `+++` lines, then the
 Markdown body:
 
 ```
 +++
-title = "On Ducks"
-date = "2024-02-01"
-tags = ["Birds", "Meta"]
+title = "Hello, world"
+date = "2024-01-10"          # posts only, YYYY-MM-DD
+tags = ["Meta", "Intro"]     # posts only, optional
+slug = "hello"               # optional; defaults to the file name without .md
+draft = false                # optional; drafts are excluded entirely
 +++
-Ducks are *fine*.
+The **first** post.
 ```
 
 ### Output
 
-| File | Rendered with |
-|------|---------------|
-| `index.html`, `page/N/index.html` | `index.html` (`posts`, `pagination`) |
+| File | Template |
+|------|----------|
+| `index.html`, `page/N/index.html` | `index.html` (variables `posts`, `pagination`) |
 | `posts/<slug>/index.html` | `post.html` (`post`) |
-| `<page-slug>/index.html` | `page.html` (`page`) |
+| `<page slug>/index.html` | `page.html` (`page`) |
 | `tags/index.html` | `tags.html` |
-| `tags/<tag-slug>/index.html` | `tag.html` (`tag`, `posts`) |
+| `tags/<tag slug>/index.html` | `tag.html` (`tag`, `posts`) |
 | `feed.xml`, `sitemap.xml` | generated |
 | everything under `static/` | copied |
 
-Every template also sees `site` (the parsed `site.toml`), `tags` and `pages`.
-Posts are ordered newest first (ties by slug), drafts are skipped everywhere,
-and tag slugs are derived from tag names (`"Web Development"` →
-`web-development`). Templates use `{{ expr }}`, `{% if/for/set/macro/include/
-extends/block %}`, `{# comments #}`, whitespace control with `-`, and the
-filters `upper lower trim escape replace length int join first last reverse
-sort default`. Output is not auto-escaped; using an undefined variable is an
-error.
+Every template also receives `site`, `tags` (tag links) and `pages` (page
+links). Posts are ordered newest first (ties by slug); `post.older` and
+`post.newer` are the neighbours in that order. The full description of the
+objects and of the template language is in the doc comments of packages
+`sitegen` and `tmpl`.
+
+A minimal template set:
+
+```html
+{# templates/base.html #}
+<!doctype html>
+<title>{% block title %}{{ site.title }}{% endblock %}</title>
+{% block body %}{% endblock %}
+
+{# templates/index.html #}
+{% extends "base.html" %}
+{% block body %}
+{% for post in posts %}<h2><a href="{{ post.url }}">{{ post.title }}</a></h2>
+{{ post.excerpt }}{% endfor %}
+{% if pagination.has_next %}<a href="{{ pagination.next_url }}">older</a>{% endif %}
+{% endblock %}
+```
 
 ## Library
 
-Build a site from a directory or from any `fs.FS`:
+Generate a site from Go:
 
 ```go
 package main
 
 import (
 	"log"
+	"os"
 
 	"example.com/sitegen"
 )
 
 func main() {
-	out, err := sitegen.BuildDir("mysite") // or sitegen.Build(fsys)
+	site, err := sitegen.Load(os.DirFS("mysite")) // reads and converts everything
 	if err != nil {
 		log.Fatal(err)
 	}
-	for _, f := range out.Files {
-		log.Println(f.Path, len(f.Data))
-	}
-	if err := out.WriteDir("public"); err != nil {
-		log.Fatal(err)
+	log.Printf("%d posts, %d tags", len(site.Posts), len(site.Tags))
+
+	if err := site.Generate(sitegen.DirSink("public")); err != nil {
+		log.Fatal(err) // includes template errors, with the page being rendered
 	}
 }
 ```
 
-`Load` / `Site.Generate` split the same work in two steps, which is useful for
-inspecting the content model (`Site.Posts`, `Site.Pages`, `Site.Tags`) before
-rendering.
+`Load` takes any `io/fs.FS` and `Generate` writes to any `Sink`, so sites can
+be built in memory (`sitegen.MemSink`) as well as on disk.
 
-The building blocks are usable on their own:
+The converters work without the generator:
 
 ```go
-import (
-	"example.com/sitegen/markdown"
-	"example.com/sitegen/tmpl"
-	"example.com/sitegen/toml"
-)
+html := markdown.ToHTML("Some *emphasis* and a [link](/x).\n")
 
-html := markdown.ToHTML("# Hi\n\nSome *emphasis*.\n")
-
-doc, _ := toml.Parse("title = \"Hello\"\nn = 3\n")
-title, _ := doc.String("title")
-
-e := tmpl.New()
-e.Add("base.html", "<h1>{% block title %}{% endblock %}</h1>")
-e.Add("page.html", `{% extends "base.html" %}{% block title %}{{ name|upper }}{% endblock %}`)
-ctx := tmpl.NewDict()
-ctx.Set("name", "ada")
-out, err := e.Render("page.html", ctx) // "<h1>ADA</h1>"
+set := tmpl.NewSet()
+set.Add("hello", `Hello {{ name|upper }}{% if n > 1 %}s{% endif %}!`)
+out, err := set.Render("hello", map[string]tmpl.Value{"name": "world", "n": int64(2)})
+// out == "Hello WORLDs!"
 ```
 
-Template errors are `*tmpl.Error` values whose `Kind` is one of `SyntaxError`,
-`FilterError`, `UndefinedError`, `TemplateError` or `TypeError`.
+Template values are `string`, `int64`, `float64`, `bool`, `tmpl.None`,
+`[]tmpl.Value` and `*tmpl.Dict`. Failures are `*tmpl.Error` values whose
+`Kind` is one of `KindSyntax`, `KindFilter`, `KindUndefined`, `KindTemplate`
+and `KindType`.
 
-## Testing
+## Tests
 
-`go test ./...` runs the unit tests of every package. The Markdown package is
-checked against golden files in `markdown/testdata`, whose expected HTML was
-produced by `cmark` 0.31.2. The `sitegen` package builds in-memory sites with
-`testing/fstest`.
+```sh
+go test ./...
+go test -bench . ./...      # converter and renderer benchmarks
+```
+
+`testdata/pond` is the worked example of the specification, checked file by
+file in `sitegen_test.go`. The unit tests of `markdown` and `tmpl` include the
+worked examples of their specifications and cases for every construct; the
+large-input tests guard against quadratic behaviour.
 
 ## Design notes
 
-* The pipeline is single-threaded: load everything, build the content model and
-  every template value once (dicts and lists are shared by reference wherever
-  they appear), render each page into memory, write each file with one write.
-* The Markdown converter mirrors `cmark`: a line-driven block parser, a
-  delimiter-stack inline parser with the "rule of 3", and an iterative renderer
-  (so deeply nested emphasis cannot overflow the stack).
-* The template engine parses each template once into an AST (cached by name,
-  loaded lazily), resolves operators and filters at parse time, and interprets
-  the tree with small linearly-searched scopes. `Engine` is not safe for
-  concurrent use.
+- **Everything is converted once.** Each body and excerpt goes through the
+  Markdown converter exactly once, however many pages and the feed show it;
+  post, page, tag and link objects are built once and shared between pages
+  (only `pagination` is built per index page).
+- **Tags** are collected in O(K + T log T): posts are visited once in
+  canonical order and appended to their tags' lists, so no tag needs a scan or
+  sort of posts.
+- **Templates** are lexed, parsed and checked at most once per `tmpl.Set`, and
+  only when first needed; rendering is a tree walk over scope chains with O(1)
+  scope creation and values shared rather than copied.
+- **Markdown** uses doubly linked node lists so wrapping and removing inline
+  nodes is O(1) per node, cmark's backtick memo for code spans and
+  `openers_bottom` bounds for emphasis, keeping every stage linear.

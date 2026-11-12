@@ -1,5 +1,4 @@
 #!/bin/sh
-# Run the jsoncanon tool: reads a JSON document on stdin, writes its canonical
-# form (or "invalid") on stdout. Works from any directory.
+# Run the jsoncanon tool: JSON document on stdin, canonical form on stdout.
 dir=$(cd "$(dirname "$0")" && pwd)
 exec "$dir/bin/jsoncanon" "$@"

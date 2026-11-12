@@ -1,6 +1,7 @@
 #!/bin/sh
-# Builds the toml command-line tool into bin/toml.
+# Builds the command-line tool into bin/toml.
 set -e
-cd "$(dirname "$0")"
+dir=$(cd "$(dirname "$0")" && pwd)
+cd "$dir"
 mkdir -p bin
 go build -o bin/toml ./cmd/toml

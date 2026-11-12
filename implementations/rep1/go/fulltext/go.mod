@@ -1,3 +1,3 @@
-module example.com/fulltext
+module fulltext
 
 go 1.27.1

@@ -1,94 +1,131 @@
 # depresolve
 
-A deterministic package dependency resolver written in D. Given a registry
-(every version of every package with its requirements) and a root manifest, it
-picks one version per needed package using a fully specified search: depth
-first, newest version first, chronological backtracking. It prints the first
-solution that search finds, or `unsatisfiable`.
+A small, dependency-free D library and command-line tool that resolves package
+dependencies deterministically. Given a registry of package versions (each with
+semver-style requirements) and a root manifest, it picks one version for every
+package that is needed — or reports `unsatisfiable`.
 
-It ships as a library (`depresolve`) and a thin command-line tool on top of it.
-Only the D standard library (plus `core.stdc.stdlib`) is used.
+The search is fully specified, so every run (and every implementation) yields
+the same answer:
+
+* depth-first, in the order requirements are written;
+* a package's version is fixed by the *first* requirement that reaches it;
+* candidates are tried newest first;
+* failure backtracks chronologically to the most recent choice with an untried
+  candidate.
+
+The implementation is iterative (no recursion-depth limits) and each search
+step is O(1) plus the requirements it adds: names are interned, ranges are
+pre-converted to index intervals over each package's newest-first version list,
+pending requirements are a shared persistent list, and choices are undone via a
+trail rather than by copying state.
 
 ## Build
 
-Requires LDC 1.41.0 and dub 1.40.0.
+Requires LDC and dub.
 
 ```sh
-./build.sh          # = dub build -b release --compiler=ldc2 --config=cli
-dub test --compiler=ldc2   # unit tests
+./build.sh          # dub build -b release --compiler=ldc2  → ./depresolve
+dub test --compiler=ldc2   # run the unit tests
 ```
-
-The executable is written to `bin/depresolve`.
 
 ## Command-line usage
 
-`depresolve` reads the whole input on stdin and writes the result on stdout
-(`./run.sh` runs it from any directory). It takes no arguments and always exits 0.
-
-Input: registry lines `name MAJOR.MINOR.PATCH: req, req, ...`, then one last line
-`root: req, req, ...`. A requirement is `name range`, where the range is `*`, an
-exact version, `^X.Y.Z`, `~X.Y.Z`, or one to three comparators
-(`<`, `<=`, `>`, `>=`) separated by spaces, all of which must hold.
+`depresolve` reads the whole input on stdin and writes the resolution on stdout
+(`./run.sh` is a wrapper that can be called from any directory).
 
 ```
-$ printf 'a 1.0.0: c ^1.0.0\nb 1.0.0: c ~1.2.0\nc 1.1.0:\nc 1.2.5:\nc 1.3.0:\nroot: a *, b *\n' | ./run.sh
+$ cat input.txt
+a 1.0.0: c ^1.0.0
+b 1.0.0: c ~1.2.0
+c 1.1.0:
+c 1.2.5:
+c 1.3.0:
+root: a *, b *
+$ ./run.sh < input.txt
 a 1.0.0
 b 1.0.0
 c 1.2.5
 ```
 
-Output is one `name version` line per chosen package sorted by name in byte
-order, or the single line `unsatisfiable`. An empty root prints nothing.
+### Input format
 
-## Library
+Zero or more registry lines followed by one root line, each ending in `\n`:
+
+```
+registry_line = name " " version ":" [ " " requirement { ", " requirement } ] "\n"
+root_line     = "root:" [ " " requirement { ", " requirement } ] "\n"
+requirement   = name " " range
+range         = "*" | X.Y.Z | "^"X.Y.Z | "~"X.Y.Z | comparator { " " comparator }
+comparator    = ( "<" | "<=" | ">" | ">=" ) X.Y.Z
+```
+
+Ranges follow npm semantics: `^0.2.3` is `>=0.2.3 <0.3.0`, `^0.0.3` is exactly
+`0.0.3`, `~1.2.3` is `>=1.2.3 <1.3.0`; comparators are ANDed. Versions compare
+numerically (`1.10.0 > 1.9.0`).
+
+### Output
+
+One `name version` line per picked package, sorted by name in byte order, or the
+single line `unsatisfiable`. The exit status is 0 in both cases; malformed input
+is reported on stderr with exit status 2.
+
+## Library usage
+
+Add the package to your `dub.sdl` (`dependency "depresolve" path="…"`, use the
+`library` configuration) and import `depresolve`.
 
 ```d
+import std.stdio;
 import depresolve;
 
 void main()
 {
-    auto res = resolveText("a 1.0.0: b ^1.0.0\nb 1.2.0:\nb 1.1.0:\nroot: a *\n");
-    assert(res.satisfiable);
-    foreach (c; res.choices)               // sorted by name
-        writeln(c.name, " ", c.versionString);   // a 1.0.0 / b 1.2.0
+    Registry registry;
+    registry.add("a", "1.0.0", ["c", "^1.0.0"]);
+    registry.add("b", "1.0.0", ["c", "~1.2.0"]);
+    registry.add("c", "1.1.0");
+    registry.add("c", "1.2.5");
+    registry.add("c", "1.3.0");
+
+    Dependency[] root = [
+        Dependency("a", VersionRange.parse("*")),
+        Dependency("b", VersionRange.parse("*")),
+    ];
+
+    auto result = resolve(registry, root);
+    if (result.success)
+        foreach (pick; result.picks)
+            writeln(pick.name, " ", pick.version_);   // a 1.0.0 / b 1.0.0 / c 1.2.5
+    else
+        writeln("unsatisfiable");
 }
 ```
 
-For finer control, build the pieces yourself:
+Or parse the text format directly:
 
 ```d
-auto reg = parseRegistry(text);   // intern names, pack versions, resolve ranges to windows
-auto res = resolve(reg);          // the iterative search
-string out_ = formatResolution(res);
+auto problem = parseProblem("a 1.0.0:\nroot: a ^1.0.0\n");
+write(formatResolution(resolve(problem.registry, problem.root)));
 ```
-
-To use it as a dependency, add `dependency "depresolve" path="..."` and the
-`library` configuration (`subConfiguration "depresolve" "library"`).
 
 ### Modules
 
-| module | responsibility |
+| module | contents |
 |---|---|
-| `depresolve.semver` | versions packed into one `ulong` key (21 bits per component) |
-| `depresolve.range` | `*`, exact, `^`, `~` and comparator ranges as one `[lo, hi)` interval |
-| `depresolve.registry` | parsing, name interning, per-package newest-first version lists, requirement candidate windows |
-| `depresolve.resolver` | the iterative search, `Resolution`, output formatting |
+| `depresolve.semver` | `Version`, `VersionRange` (half-open `[lo, hi)`), `SyntaxException` |
+| `depresolve.registry` | `Registry`, `PackageVersion`, `Dependency` |
+| `depresolve.parser` | `parseProblem`, `parseRequirements`, `Problem` |
+| `depresolve.resolver` | `resolve`, `Resolution`, `Pick` |
+| `depresolve.output` | `formatResolution` |
 
-## Design
+## Tests
 
-Names are interned to dense ids; each requirement is stored once as
-`(package, interval)` and, after parsing, resolved by binary search to a window
-of candidate indices in the package's newest-first version list. The search uses
-an explicit frame stack, a `chosen` array indexed by package id, and a pending
-list held as a persistent linked list in an arena that is truncated on
-backtrack, so nothing is copied per step and recursion depth is unbounded.
+Unit tests live next to the code (`dub test --compiler=ldc2`). They cover
+version/range semantics, parsing errors, the specification's examples, cycles,
+a 3000-deep chain, and a randomized cross-check of the optimised search against
+a literal recursive transcription of the specified algorithm.
 
-## Layout
+## License
 
-```
-dub.sdl           manifest (configurations: cli, library, unittest)
-source/depresolve library
-app/main.d        CLI
-tests/            unit tests (separate from the library source)
-build.sh run.sh   build and run scripts
-```
+MIT

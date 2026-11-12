@@ -1,28 +1,17 @@
 name "typeinfer"
-description "Hindley-Milner type inference for a small ML-like language"
-authors "Peter Alexander"
-copyright "Copyright (c) Peter Alexander"
+description "Hindley-Milner type inference (Algorithm J) for a small ML-like language"
+authors "typeinfer contributors"
+copyright "Copyright © 2026"
 license "MIT"
 
-# The command-line tool (default for `dub build`).
-configuration "application" {
+configuration "cli" {
     targetType "executable"
     targetName "typeinfer"
-    sourcePaths "source" "app"
-    importPaths "source"
-    mainSourceFile "app/main.d"
+    targetPath "bin"
+    mainSourceFile "source/app.d"
 }
 
-# The reusable library only, for use as a dub dependency.
 configuration "library" {
     targetType "library"
-    sourcePaths "source"
-    importPaths "source"
-}
-
-# Unit tests live under tests/, separate from the library sources.
-configuration "unittest" {
-    targetType "library"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
+    excludedSourceFiles "source/app.d"
 }

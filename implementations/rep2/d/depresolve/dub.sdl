@@ -1,32 +1,18 @@
 name "depresolve"
 description "Deterministic package dependency resolver: depth-first, newest-first, chronological backtracking."
-authors "Peter Alexander"
-copyright "Copyright © 2026"
+authors "depresolve authors"
+copyright "Copyright © 2026, depresolve authors"
 license "MIT"
-targetPath "bin"
+sourcePaths "source"
+importPaths "source"
 
-// Default configuration: the command-line tool.
 configuration "cli" {
     targetType "executable"
     targetName "depresolve"
-    sourcePaths "source" "cli"
-    mainSourceFile "cli/app.d"
-    importPaths "source"
+    mainSourceFile "source/app.d"
 }
 
-// Use this configuration (subConfiguration "depresolve" "library") to depend
-// on the resolver as a plain library without the command-line front end.
 configuration "library" {
     targetType "library"
-    targetName "depresolve"
-    sourcePaths "source"
-    importPaths "source"
-}
-
-// Used by `dub test`: library sources plus the separate test modules.
-configuration "unittest" {
-    targetType "library"
-    targetName "depresolve-test"
-    sourcePaths "source" "tests"
-    importPaths "source" "tests"
+    excludedSourceFiles "source/app.d"
 }

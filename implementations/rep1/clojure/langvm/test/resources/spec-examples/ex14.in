@@ -1,0 +1,14 @@
+@module main
+trait Area { fn area(self) -> Int; }
+
+struct Sq { s: Int }
+
+fn total<T: Area>(xs: [T]) -> Int {
+    var sum = 0;
+    for x in xs { sum = sum + x.area(); }
+    sum
+}
+
+fn main() {
+    print(showInt(total([Sq.{ s: 3 }])));
+}

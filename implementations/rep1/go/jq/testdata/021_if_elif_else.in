@@ -1,0 +1,2 @@
+[.[] | if . > 1 then "big" elif . > 0 then "small" elif . == 0 then "zero" else "neg" end], [if (true,false) then 1 end], [if (true,false) then 1 else 2 end], (if .[0] then "t" else "f" end), [.[] | if . then 1 end], (if (.[] | . > 0) then "y" else "n" end)
+[2,1,0,-1,null,false,"s"]

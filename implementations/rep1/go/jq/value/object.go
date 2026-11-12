@@ -3,153 +3,208 @@ package value
 import (
 	"slices"
 	"strings"
-	"sync/atomic"
+	"sync"
 )
 
-// indexThreshold is the entry count above which an object keeps a hash index
-// (key -> position); smaller objects are searched linearly.
-const indexThreshold = 16
+// linearMax is the largest object size for which lookups scan the key slice
+// instead of using a hash index.
+const linearMax = 8
 
-// Entry is one key/value pair of an object.
-type Entry struct {
-	Key   string
-	Value Value
-}
-
-// Object is an immutable, insertion-ordered string-keyed map. Build one with
-// an ObjectBuilder. An Object may be shared freely, including between
-// goroutines.
+// Object is an immutable, insertion-ordered map from string keys to Values.
+// Create objects with a Builder, Merge or DeepMerge. An Object is safe for
+// concurrent use.
 type Object struct {
-	entries []Entry
-	index   map[string]int32        // nil while len(entries) <= indexThreshold
-	order   atomic.Pointer[[]int32] // memoised sorted-key permutation
+	keys []string
+	vals []Value
+
+	idxOnce sync.Once
+	idx     map[string]int
+
+	ordOnce sync.Once
+	ord     []int // positions of keys in ascending key order
 }
 
-// Len returns the number of entries.
-func (o *Object) Len() int { return len(o.entries) }
+// Len returns the number of keys.
+func (o *Object) Len() int { return len(o.keys) }
 
-// Entries returns the entries in insertion order. The slice is shared and
-// must not be modified.
-func (o *Object) Entries() []Entry { return o.entries }
+// Get returns the value stored under key and whether it exists. Lookup is
+// O(1) expected.
+func (o *Object) Get(key string) (Value, bool) {
+	if i := o.find(key); i >= 0 {
+		return o.vals[i], true
+	}
+	return nil, false
+}
+
+// Has reports whether key exists.
+func (o *Object) Has(key string) bool { return o.find(key) >= 0 }
+
+// Keys returns the keys in insertion order. The slice must not be modified.
+func (o *Object) Keys() []string { return o.keys }
+
+// Values returns the values in insertion order. The slice must not be
+// modified.
+func (o *Object) Values() []Value { return o.vals }
+
+// At returns the i'th key and value in insertion order.
+func (o *Object) At(i int) (string, Value) { return o.keys[i], o.vals[i] }
+
+// SortedKeys returns a new slice with the keys sorted by code point. The
+// sort order is computed at most once per object.
+func (o *Object) SortedKeys() []string {
+	ord := o.order()
+	out := make([]string, len(ord))
+	for i, p := range ord {
+		out[i] = o.keys[p]
+	}
+	return out
+}
+
+// order returns the insertion positions sorted by key; computed once.
+func (o *Object) order() []int {
+	o.ordOnce.Do(func() {
+		ord := make([]int, len(o.keys))
+		for i := range ord {
+			ord[i] = i
+		}
+		slices.SortFunc(ord, func(a, b int) int { return strings.Compare(o.keys[a], o.keys[b]) })
+		o.ord = ord
+	})
+	return o.ord
+}
 
 func (o *Object) find(key string) int {
-	if o.index != nil {
-		if i, ok := o.index[key]; ok {
-			return int(i)
-		}
-		return -1
+	if len(o.keys) <= linearMax {
+		return linearFind(o.keys, key)
 	}
-	for i := range o.entries {
-		if o.entries[i].Key == key {
+	o.idxOnce.Do(func() { o.idx = buildIndex(o.keys) })
+	if i, ok := o.idx[key]; ok {
+		return i
+	}
+	return -1
+}
+
+// findNoBuild is like find but never builds a hash index; it is used when a
+// scan is cheaper than building one.
+func (o *Object) findNoBuild(key string) int {
+	if len(o.keys) > linearMax && o.idx != nil {
+		// idx is only read here when it was installed by a completed Do; reading
+		// it racily is avoided by going through find in that case.
+		return o.find(key)
+	}
+	return linearFind(o.keys, key)
+}
+
+func linearFind(keys []string, key string) int {
+	for i, k := range keys {
+		if len(k) == len(key) && k == key {
 			return i
 		}
 	}
 	return -1
 }
 
-// Get returns the value stored under key.
-func (o *Object) Get(key string) (Value, bool) {
-	if i := o.find(key); i >= 0 {
-		return o.entries[i].Value, true
+func buildIndex(keys []string) map[string]int {
+	m := make(map[string]int, len(keys))
+	for i, k := range keys {
+		m[k] = i
 	}
-	return Null, false
+	return m
 }
 
-// Has reports whether key is present.
-func (o *Object) Has(key string) bool { return o.find(key) >= 0 }
-
-// SortedOrder returns the permutation of entry positions that visits the
-// entries in code-point (UTF-8 byte) order of their keys. It is computed on
-// first use and memoised. The slice is shared and must not be modified.
-func (o *Object) SortedOrder() []int32 {
-	if p := o.order.Load(); p != nil {
-		return *p
-	}
-	ord := make([]int32, len(o.entries))
-	for i := range ord {
-		ord[i] = int32(i)
-	}
-	slices.SortFunc(ord, func(a, b int32) int {
-		return strings.Compare(o.entries[a].Key, o.entries[b].Key)
-	})
-	o.order.Store(&ord)
-	return ord
+// Builder constructs an Object by inserting keys one at a time. Setting an
+// existing key replaces its value but keeps its original position. A Builder
+// must not be used after Build is called.
+type Builder struct {
+	keys []string
+	vals []Value
+	idx  map[string]int
 }
 
-// SortedKeys returns the keys in code-point order.
-func (o *Object) SortedKeys() []string {
-	ord := o.SortedOrder()
-	keys := make([]string, len(ord))
-	for i, p := range ord {
-		keys[i] = o.entries[p].Key
-	}
-	return keys
+// NewBuilder returns a Builder with room for hint keys.
+func NewBuilder(hint int) *Builder {
+	return &Builder{keys: make([]string, 0, hint), vals: make([]Value, 0, hint)}
 }
 
-// ObjectBuilder constructs an Object. Setting an existing key replaces its
-// value but keeps its original position. A builder must not be used after
-// Build.
-type ObjectBuilder struct {
-	o *Object
-}
-
-// NewObjectBuilder returns an empty builder with room for capacity entries.
-func NewObjectBuilder(capacity int) *ObjectBuilder {
-	return &ObjectBuilder{o: &Object{entries: make([]Entry, 0, capacity)}}
-}
-
-// Builder returns a builder initialised with a copy of o's entries and room
-// for extra more.
-func (o *Object) Builder(extra int) *ObjectBuilder {
-	es := make([]Entry, len(o.entries), len(o.entries)+extra)
-	copy(es, o.entries)
-	return &ObjectBuilder{o: &Object{entries: es}}
-}
-
-// Len returns the current number of entries.
-func (b *ObjectBuilder) Len() int { return len(b.o.entries) }
-
-// Get looks a key up in the object under construction.
-func (b *ObjectBuilder) Get(key string) (Value, bool) {
-	b.ensureIndex()
-	return b.o.Get(key)
-}
-
-func (b *ObjectBuilder) ensureIndex() {
-	o := b.o
-	if o.index == nil && len(o.entries) > indexThreshold {
-		o.index = make(map[string]int32, len(o.entries)*2)
-		for i, e := range o.entries {
-			o.index[e.Key] = int32(i)
+// Set inserts or replaces key.
+func (b *Builder) Set(key string, v Value) {
+	var pos int
+	if b.idx != nil {
+		if p, ok := b.idx[key]; ok {
+			b.vals[p] = v
+			return
 		}
-	}
-}
-
-// Set stores v under key.
-func (b *ObjectBuilder) Set(key string, v Value) {
-	b.ensureIndex()
-	o := b.o
-	if i := o.find(key); i >= 0 {
-		o.entries[i].Value = v
+	} else if pos = linearFind(b.keys, key); pos >= 0 {
+		b.vals[pos] = v
 		return
 	}
-	o.entries = append(o.entries, Entry{key, v})
-	if o.index != nil {
-		o.index[key] = int32(len(o.entries) - 1)
+	b.keys = append(b.keys, key)
+	b.vals = append(b.vals, v)
+	if b.idx != nil {
+		b.idx[key] = len(b.keys) - 1
+	} else if len(b.keys) > linearMax {
+		b.idx = buildIndex(b.keys)
 	}
 }
 
-// Build finishes the object and returns it as a Value.
-func (b *ObjectBuilder) Build() Value {
-	b.ensureIndex()
-	o := b.o
-	b.o = nil
-	return Value{kind: KindObject, ref: o}
+// Len returns the number of keys set so far.
+func (b *Builder) Len() int { return len(b.keys) }
+
+// Build returns the finished Object.
+func (b *Builder) Build() *Object {
+	o := &Object{keys: b.keys, vals: b.vals}
+	if b.idx != nil {
+		o.idx = b.idx
+		o.idxOnce.Do(func() {})
+	}
+	return o
 }
 
-// ObjectFromEntries builds an object directly from entries whose keys are
-// known to be distinct. It takes ownership of the slice.
-func ObjectFromEntries(entries []Entry) Value {
-	b := &ObjectBuilder{o: &Object{entries: entries}}
-	return b.Build()
+// Merge returns a with every key of b set in order (jq's object +): existing
+// keys keep their position and take b's value, new keys are appended. It costs
+// O(|a| + |b|).
+func Merge(a, b *Object) *Object { return merge(a, b, false) }
+
+// DeepMerge is like Merge but, when both values under a key are objects, they
+// are merged recursively (jq's object *).
+func DeepMerge(a, b *Object) *Object { return merge(a, b, true) }
+
+func merge(a, b *Object, deep bool) *Object {
+	if len(b.keys) == 0 {
+		return a
+	}
+	if len(a.keys) == 0 {
+		return b
+	}
+	keys := make([]string, len(a.keys), len(a.keys)+len(b.keys))
+	vals := make([]Value, len(a.keys), len(a.keys)+len(b.keys))
+	copy(keys, a.keys)
+	copy(vals, a.vals)
+	// A scan of a per key of b is cheaper than building a's index when b is
+	// small; otherwise build (and cache) the index on a.
+	useIndex := len(b.keys) > linearMax
+	for i, k := range b.keys {
+		var p int
+		if useIndex {
+			p = a.find(k)
+		} else {
+			p = a.findNoBuild(k)
+		}
+		bv := b.vals[i]
+		if p < 0 {
+			keys = append(keys, k)
+			vals = append(vals, bv)
+			continue
+		}
+		if deep {
+			if ao, ok := a.vals[p].(*Object); ok {
+				if bo, ok := bv.(*Object); ok {
+					vals[p] = merge(ao, bo, true)
+					continue
+				}
+			}
+		}
+		vals[p] = bv
+	}
+	return &Object{keys: keys, vals: vals}
 }

@@ -1,282 +1,339 @@
-/++
-Fully legal move generation.
-
-No pseudo-legal move is ever generated and then tested by playing it. Instead
-each node computes
-$(UL
-$(LI the checkers of the side to move's king,)
-$(LI an evasion mask (all non-own squares if not in check; the checker plus
-     the squares between it and the king if in single check),)
-$(LI the set of pinned pieces, which may only move along the line through
-     their king and the pinner.))
-King moves are tested with the king removed from the occupancy so that
-sliders see "through" it. En passant is tested explicitly on the
-post-capture occupancy. Castling checks the rights, empty squares and the
-attacked status of the squares the king uses.
-
-Because every generated move is legal, counting the moves of a node gives its
-perft(1) without playing anything.
-+/
+/**
+ * Legal move generation.
+ *
+ * The generator computes the checkers of the side to move's king and the
+ * pieces pinned to it, and uses them to emit only legal moves: ordinary
+ * moves are masked by the check-resolution squares and the pin line, king
+ * moves are checked against the enemy attacks (with the king lifted off the
+ * board), and only en passant captures are verified by playing them.
+ *
+ * Generation is written against a "sink" so the same code either stores
+ * moves (`MoveList`) or merely counts them (`MoveCounter`); the latter is
+ * what makes bulk counting at the perft leaves cheap.
+ */
 module chessperft.movegen;
 
 import chessperft.bitboard;
-import chessperft.move;
 import chessperft.position;
-import chessperft.tables;
 import chessperft.types;
 
-/// Upper bound on the number of legal moves in any chess position (the true maximum is 218).
+/// Upper bound on the number of legal moves in any chess position is 218.
 enum size_t maxMoves = 256;
 
-/++
-Write every legal move of `pos` to `list`.
-Params:
-    pos = the position (not modified)
-    list = destination, with room for at least `maxMoves` moves
-Returns: the number of moves written.
-+/
-size_t generateLegal(ref const Position pos, Move* list) @trusted nothrow @nogc
+/// A fixed-capacity list of moves living on the stack.
+struct MoveList
 {
-    return pos.sideToMove == Color.white
-        ? generate!(Color.white, false)(pos, list) : generate!(Color.black, false)(pos, list);
-}
+    private Move[maxMoves] moves;
+    private size_t length_;
 
-/// Number of legal moves in `pos`, computed without materialising them.
-size_t countLegal(ref const Position pos) @trusted nothrow @nogc
-{
-    return pos.sideToMove == Color.white
-        ? generate!(Color.white, true)(pos, null) : generate!(Color.black, true)(pos, null);
-}
-
-/// All legal moves of `pos` as a freshly allocated array.
-Move[] legalMoves(ref const Position pos) @trusted nothrow
-{
-    auto buf = new Move[maxMoves];
-    return buf[0 .. generateLegal(pos, buf.ptr)];
-}
-
-private:
-
-// Output sink: either writes moves or merely counts them.
-struct Sink(bool count_)
-{
-    Move* ptr;
-    size_t n;
-
-    pragma(inline, true)
-    void add(int from, int to, int flag = MoveFlag.quiet) @system nothrow @nogc
+    /// Number of moves stored.
+    size_t length() const @safe pure nothrow @nogc
     {
-        static if (!count_)
-            *ptr++ = Move(from, to, flag);
-        n++;
+        return length_;
     }
 
-    // One move from `from` to every square of `targets`.
-    pragma(inline, true)
-    void addTargets(int from, Bitboard targets) @system nothrow @nogc
+    /// The stored moves as a slice (valid while the list is alive and unchanged).
+    inout(Move)[] opSlice() inout @safe pure nothrow @nogc return
     {
-        static if (count_)
-            n += count(targets);
+        return moves[0 .. length_];
+    }
+
+    /// Indexing.
+    Move opIndex(size_t i) const @safe pure nothrow @nogc
+    {
+        return moves[i];
+    }
+
+    // Sink interface used by `generate`.
+
+    package void addTargets(int from, Bitboard targets) @safe pure nothrow @nogc
+    {
+        while (targets)
+            moves[length_++] = Move(cast(Square) from, cast(Square) popLsb(targets));
+    }
+
+    package void addPawnMove(int from, int to) @safe pure nothrow @nogc
+    {
+        const r = rankOf(to);
+        if (r == 0 || r == 7)
+            foreach (pt; [PieceType.queen, PieceType.rook, PieceType.bishop, PieceType.knight])
+                moves[length_++] = Move(cast(Square) from, cast(Square) to, pt);
         else
-            while (targets)
-            {
-                add(from, lsb(targets));
-                targets &= targets - 1;
-            }
+            moves[length_++] = Move(cast(Square) from, cast(Square) to);
     }
 
-    // `targets` are pawn destinations reached by `from = to - delta`; those on `promoRank` expand to four moves.
-    pragma(inline, true)
-    void addPawnMoves(int delta, Bitboard targets, Bitboard promoRank, int flag = MoveFlag.quiet) @system nothrow @nogc
+    package void addMove(int from, int to) @safe pure nothrow @nogc
     {
-        immutable Bitboard promo = targets & promoRank;
-        Bitboard quiet = targets & ~promoRank;
-        static if (count_)
-            n += count(quiet) + 4 * count(promo);
-        else
-        {
-            while (quiet)
-            {
-                immutable to = lsb(quiet);
-                add(to - delta, to, flag);
-                quiet &= quiet - 1;
-            }
-            Bitboard pr = promo;
-            while (pr)
-            {
-                immutable to = lsb(pr);
-                immutable from = to - delta;
-                add(from, to, MoveFlag.promoteQueen);
-                add(from, to, MoveFlag.promoteRook);
-                add(from, to, MoveFlag.promoteBishop);
-                add(from, to, MoveFlag.promoteKnight);
-                pr &= pr - 1;
-            }
-        }
+        moves[length_++] = Move(cast(Square) from, cast(Square) to);
     }
 }
 
-// Pawn pushes and captures, set-wise. `mask` restricts destinations (evasions and/or pin line).
-pragma(inline, true)
-void generatePawnMoves(Color us, bool count_)(ref Sink!count_ sink, Bitboard pawns,
-        Bitboard theirs, Bitboard empty, Bitboard mask) @system nothrow @nogc
+/// A move sink that only counts.
+struct MoveCounter
 {
-    enum int push = us == Color.white ? 8 : -8;
-    enum int capLeft = us == Color.white ? 7 : -9;
-    enum int capRight = us == Color.white ? 9 : -7;
-    enum Bitboard doubleRank = us == Color.white ? rank3 : rank6;
-    enum Bitboard promoRank = us == Color.white ? rank8 : rank1;
+    /// Number of moves seen so far.
+    size_t count;
 
-    Bitboard single = shift!push(pawns) & empty;
-    immutable Bitboard dbl = shift!push(single & doubleRank) & empty & mask;
-    single &= mask;
-    immutable Bitboard left = shift!capLeft(pawns & ~fileA) & theirs & mask;
-    immutable Bitboard right = shift!capRight(pawns & ~fileH) & theirs & mask;
+    package void addTargets(int, Bitboard targets) @safe pure nothrow @nogc
+    {
+        count += popCount(targets);
+    }
 
-    sink.addPawnMoves(push, single, promoRank);
-    sink.addPawnMoves(2 * push, dbl, 0, MoveFlag.doublePush);
-    sink.addPawnMoves(capLeft, left, promoRank);
-    sink.addPawnMoves(capRight, right, promoRank);
+    package void addPawnMove(int, int to) @safe pure nothrow @nogc
+    {
+        const r = rankOf(to);
+        count += (r == 0 || r == 7) ? 4 : 1;
+    }
+
+    package void addMove(int, int) @safe pure nothrow @nogc
+    {
+        count++;
+    }
 }
 
-size_t generate(Color us, bool count_)(ref const Position pos, Move* list) @system nothrow @nogc
+/// Returns all legal moves of the side to move.
+MoveList legalMoves(const ref Position pos) @safe pure nothrow @nogc
 {
-    enum Color them = opposite(us);
-    auto sink = Sink!count_(list, 0);
+    MoveList list;
+    generate(pos, list);
+    return list;
+}
 
-    immutable Bitboard occ = pos.occupied;
-    immutable Bitboard ours = pos.byColor[us];
-    immutable Bitboard theirs = pos.byColor[them];
-    immutable Bitboard pawnsAll = pos.byType[PieceType.pawn];
-    immutable Bitboard knightsAll = pos.byType[PieceType.knight];
-    immutable Bitboard bishopsAll = pos.byType[PieceType.bishop];
-    immutable Bitboard rooksAll = pos.byType[PieceType.rook];
-    immutable Bitboard queensAll = pos.byType[PieceType.queen];
-    immutable int ksq = lsb(pos.byType[PieceType.king] & ours);
+/// Counts the legal moves of the side to move without materialising them.
+size_t countLegalMoves(const ref Position pos) @safe pure nothrow @nogc
+{
+    MoveCounter counter;
+    generate(pos, counter);
+    return counter.count;
+}
 
-    // Enemy pieces giving check.
-    immutable Bitboard enemyDiag = (bishopsAll | queensAll) & theirs;
-    immutable Bitboard enemyOrth = (rooksAll | queensAll) & theirs;
-    immutable Bitboard checkers = (pawnAttacks[us][ksq] & pawnsAll & theirs)
-        | (knightAttacks[ksq] & knightsAll & theirs)
-        | (bishopAttacks(ksq, occ) & enemyDiag)
-        | (rookAttacks(ksq, occ) & enemyOrth);
+/**
+ * Generates every legal move of the side to move into `sink`.
+ *
+ * `Sink` must provide `addTargets(int from, Bitboard to)`,
+ * `addPawnMove(int from, int to)` (expands promotions) and
+ * `addMove(int from, int to)`.
+ */
+package void generate(Sink)(const ref Position pos, ref Sink sink) @safe pure nothrow @nogc
+{
+    const us = pos.side, them = opposite(us);
+    const occ = pos.occupied;
+    const ours = pos.colors[us], theirs = pos.colors[them];
+    const ksq = pos.kingSquare(us);
 
-    // King moves: the king is lifted off the board so sliders see through it.
+    // King moves: destination must not be attacked once the king has left its square.
     {
-        immutable Bitboard occNoKing = occ ^ bit(ksq);
-        Bitboard dests = kingAttacks[ksq] & ~ours;
-        while (dests)
+        Bitboard dests = 0;
+        Bitboard cand = kingAttacks(ksq) & ~ours;
+        const occNoKing = occ ^ bit(ksq);
+        while (cand)
         {
-            immutable to = lsb(dests);
-            dests &= dests - 1;
+            const to = popLsb(cand);
             if (!pos.isAttacked(to, them, occNoKing))
-                sink.add(ksq, to);
+                dests |= bit(to);
         }
+        sink.addTargets(ksq, dests);
     }
 
-    if (checkers & (checkers - 1)) // double check: only the king can move
-        return sink.n;
+    const checkers = pos.attackersTo(ksq, occ) & theirs;
+    const numCheckers = popCount(checkers);
+    if (numCheckers > 1)
+        return; // double check: king moves only
 
-    immutable Bitboard mask = checkers ? checkers | between[ksq][lsb(checkers)] : ~ours;
+    // Squares a non-king move may land on: anywhere, or capture/block the single checker.
+    Bitboard checkMask = ~0UL;
+    if (numCheckers == 1)
+        checkMask = between(ksq, lsb(checkers)) | checkers;
 
-    // Pinned pieces: exactly one of our pieces between the king and an enemy slider.
+    // Pieces pinned against the king by enemy sliders.
     Bitboard pinned = 0;
     {
-        Bitboard snipers = (rookRays[ksq] & enemyOrth) | (bishopRays[ksq] & enemyDiag);
+        Bitboard snipers = ((pos.pieces[PieceType.rook] | pos.pieces[PieceType.queen]) & rookRays(ksq))
+            | ((pos.pieces[PieceType.bishop] | pos.pieces[PieceType.queen]) & bishopRays(ksq));
+        snipers &= theirs;
         while (snipers)
         {
-            immutable Bitboard blockers = between[ksq][lsb(snipers)] & occ;
-            snipers &= snipers - 1;
-            if (blockers && !(blockers & (blockers - 1)))
-                pinned |= blockers & ours;
+            const blockers = between(ksq, popLsb(snipers)) & occ;
+            if (blockers && !(blockers & (blockers - 1)) && (blockers & ours))
+                pinned |= blockers;
         }
     }
 
-    // Knights (a pinned knight can never move).
-    {
-        Bitboard b = knightsAll & ours & ~pinned;
-        while (b)
+    // Knights, bishops, rooks and queens.
+    static foreach (pt; [PieceType.knight, PieceType.bishop, PieceType.rook, PieceType.queen])
+    {{
+        Bitboard set = pos.pieces[pt] & ours;
+        while (set)
         {
-            immutable from = lsb(b);
-            b &= b - 1;
-            sink.addTargets(from, knightAttacks[from] & mask);
-        }
-    }
-
-    // Sliders.
-    {
-        Bitboard b = (bishopsAll | queensAll) & ours;
-        while (b)
-        {
-            immutable from = lsb(b);
-            b &= b - 1;
-            Bitboard t = bishopAttacks(from, occ) & mask;
+            const from = popLsb(set);
+            static if (pt == PieceType.knight)
+                Bitboard att = knightAttacks(from);
+            else static if (pt == PieceType.bishop)
+                Bitboard att = bishopAttacks(from, occ);
+            else static if (pt == PieceType.rook)
+                Bitboard att = rookAttacks(from, occ);
+            else
+                Bitboard att = queenAttacks(from, occ);
+            att &= ~ours & checkMask;
             if (pinned & bit(from))
-                t &= line[ksq][from];
-            sink.addTargets(from, t);
+                att &= line(ksq, from);
+            sink.addTargets(from, att);
         }
-        b = (rooksAll | queensAll) & ours;
-        while (b)
-        {
-            immutable from = lsb(b);
-            b &= b - 1;
-            Bitboard t = rookAttacks(from, occ) & mask;
-            if (pinned & bit(from))
-                t &= line[ksq][from];
-            sink.addTargets(from, t);
-        }
-    }
+    }}
 
-    // Pawns: unpinned ones together, pinned ones one at a time along their pin line.
-    immutable Bitboard empty = ~occ;
-    immutable Bitboard ourPawns = pawnsAll & ours;
-    generatePawnMoves!(us, count_)(sink, ourPawns & ~pinned, theirs, empty, mask);
+    // Pawns.
     {
-        Bitboard b = ourPawns & pinned;
-        while (b)
+        const forward = us == Color.white ? 8 : -8;
+        const startRank = us == Color.white ? 1 : 6;
+        Bitboard set = pos.pieces[PieceType.pawn] & ours;
+        while (set)
         {
-            immutable from = lsb(b);
-            b &= b - 1;
-            generatePawnMoves!(us, count_)(sink, bit(from), theirs, empty, mask & line[ksq][from]);
-        }
-    }
+            const from = popLsb(set);
+            const allowed = checkMask & ((pinned & bit(from)) ? line(ksq, from) : ~0UL);
+            const one = from + forward;
+            if (!(occ & bit(one)))
+            {
+                if (bit(one) & allowed)
+                    sink.addPawnMove(from, one);
+                const two = one + forward;
+                if (rankOf(from) == startRank && !(occ & bit(two)) && (bit(two) & allowed))
+                    sink.addMove(from, two);
+            }
+            Bitboard caps = pawnAttacks(us, from) & theirs & allowed;
+            while (caps)
+                sink.addPawnMove(from, popLsb(caps));
 
-    // En passant: tested directly on the occupancy after the capture.
-    if (pos.epSquare != noSquare)
-    {
-        immutable int ep = pos.epSquare;
-        immutable int capSq = ep - (us == Color.white ? 8 : -8);
-        Bitboard b = pawnAttacks[them][ep] & ourPawns;
-        while (b)
-        {
-            immutable from = lsb(b);
-            b &= b - 1;
-            immutable Bitboard occAfter = (occ ^ bit(from) ^ bit(capSq)) | bit(ep);
-            if (!pos.isAttacked(ksq, them, occAfter, bit(capSq)))
-                sink.add(from, ep, MoveFlag.enPassant);
+            // En passant: verified by playing the capture (rare, and the
+            // discovered rank attack makes mask logic error-prone).
+            if (pos.epSquare != noSquare && (pawnAttacks(us, from) & bit(pos.epSquare)))
+            {
+                Position next = pos;
+                next.play(Move(cast(Square) from, pos.epSquare));
+                if (!next.isAttacked(ksq, them, next.occupied))
+                    sink.addMove(from, pos.epSquare);
+            }
         }
     }
 
     // Castling.
-    if (!checkers)
+    if (numCheckers == 0)
     {
-        static if (us == Color.white)
+        const rank = us == Color.white ? 0 : 7;
+        if (ksq == makeSquare(4, rank))
         {
-            enum ubyte kingside = whiteKingside, queenside = whiteQueenside;
-            enum int home = e1;
+            const kingsideRight = us == Color.white ? CastlingRight.whiteKingside : CastlingRight.blackKingside;
+            const queensideRight = us == Color.white ? CastlingRight.whiteQueenside : CastlingRight.blackQueenside;
+            if ((pos.castling & kingsideRight)
+                && !(occ & (bit(makeSquare(5, rank)) | bit(makeSquare(6, rank))))
+                && !pos.isAttacked(makeSquare(5, rank), them, occ)
+                && !pos.isAttacked(makeSquare(6, rank), them, occ))
+                sink.addMove(ksq, makeSquare(6, rank));
+            if ((pos.castling & queensideRight)
+                && !(occ & (bit(makeSquare(1, rank)) | bit(makeSquare(2, rank)) | bit(makeSquare(3, rank))))
+                && !pos.isAttacked(makeSquare(3, rank), them, occ)
+                && !pos.isAttacked(makeSquare(2, rank), them, occ))
+                sink.addMove(ksq, makeSquare(2, rank));
         }
-        else
-        {
-            enum ubyte kingside = blackKingside, queenside = blackQueenside;
-            enum int home = e8;
-        }
-        if ((pos.castling & kingside) && !(occ & (bit(home + 1) | bit(home + 2)))
-            && !pos.isAttacked(home + 1, them, occ) && !pos.isAttacked(home + 2, them, occ))
-            sink.add(home, home + 2, MoveFlag.castle);
-        if ((pos.castling & queenside) && !(occ & (bit(home - 1) | bit(home - 2) | bit(home - 3)))
-            && !pos.isAttacked(home - 1, them, occ) && !pos.isAttacked(home - 2, them, occ))
-            sink.add(home, home - 2, MoveFlag.castle);
     }
-    return sink.n;
+}
+
+version (unittest)
+{
+    private string[] uciMoves(string fen)
+    {
+        import std.algorithm : map, sort;
+        import std.array : array;
+
+        const pos = Position.fromFen(fen);
+        const list = legalMoves(pos);
+        auto r = list[].map!(m => m.toString).array;
+        sort(r);
+        assert(countLegalMoves(pos) == r.length);
+        return r;
+    }
+}
+
+unittest
+{
+    assert(uciMoves(startFen).length == 20);
+    // Pawn with four promotions; king restricted by the enemy king.
+    assert(uciMoves("8/P1k5/K7/8/8/8/8/8 w - - 0 1")
+        == ["a6a5", "a6b5", "a7a8b", "a7a8n", "a7a8q", "a7a8r"]);
+}
+
+unittest
+{
+    // Stalemate and checkmate have no moves.
+    assert(uciMoves("7k/5Q2/6K1/8/8/8/8/8 b - - 0 1").length == 0);
+    assert(uciMoves("rnb1kbnr/pppp1ppp/8/4p3/6Pq/5P2/PPPPP2P/RNBQKBNR w KQkq - 1 3").length == 0);
+}
+
+unittest
+{
+    import std.algorithm : canFind;
+
+    // Castling both sides available.
+    auto m = uciMoves("r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1");
+    assert(m.canFind("e1g1") && m.canFind("e1c1"));
+    // Not through an attacked square (f1 attacked by rook on f8).
+    m = uciMoves("4kr2/8/8/8/8/8/8/R3K2R w KQ - 0 1");
+    assert(!m.canFind("e1g1") && m.canFind("e1c1"));
+    // b1 may be attacked for queenside castling.
+    m = uciMoves("1r2k3/8/8/8/8/8/8/R3K3 w Q - 0 1");
+    assert(m.canFind("e1c1"));
+    // Not while in check.
+    m = uciMoves("4k3/8/8/8/8/8/4r3/R3K2R w KQ - 0 1");
+    assert(!m.canFind("e1g1") && !m.canFind("e1c1"));
+    // Not with a piece in the way.
+    m = uciMoves("4k3/8/8/8/8/8/8/RN2K2R w KQ - 0 1");
+    assert(!m.canFind("e1c1") && m.canFind("e1g1"));
+    // No right, no castling.
+    m = uciMoves("r3k2r/8/8/8/8/8/8/R3K2R b Kq - 0 1");
+    assert(!m.canFind("e8g8") && m.canFind("e8c8"));
+}
+
+unittest
+{
+    import std.algorithm : canFind;
+
+    // En passant is legal...
+    auto m = uciMoves("4k3/8/8/3pP3/8/8/8/4K3 w - d6 0 1");
+    assert(m.canFind("e5d6"));
+    // ...unless it exposes the king along the rank.
+    m = uciMoves("8/8/8/KPp4r/8/8/8/7k w - c6 0 1");
+    assert(!m.canFind("b5c6"));
+    // ...or the pawn is pinned diagonally and leaves the pin line.
+    m = uciMoves("4k3/5b2/8/2pP4/8/8/K7/8 w - c6 0 1");
+    assert(!m.canFind("d5c6") && !m.canFind("d5d6"));
+    // Capturing en passant along the pin line is fine.
+    m = uciMoves("4k3/5b2/8/3Pp3/8/8/K7/8 w - e6 0 1");
+    assert(m.canFind("d5e6") && !m.canFind("d5d6"));
+    // En passant that removes the checking pawn.
+    m = uciMoves("8/8/8/2k5/3Pp3/8/8/4K3 b - d3 0 1");
+    assert(m.canFind("e4d3"));
+    // En passant square that no pawn can use yields no move.
+    m = uciMoves("4k3/8/8/8/4P3/8/8/4K3 b - e3 0 1");
+    assert(m == uciMoves("4k3/8/8/8/4P3/8/8/4K3 b - - 0 1"));
+}
+
+unittest
+{
+    import std.algorithm : canFind;
+
+    // Pinned pieces move only along the pin line.
+    auto m = uciMoves("4k3/4r3/8/8/8/8/4R3/4K3 w - - 0 1");
+    assert(m.canFind("e2e7") && m.canFind("e2e3") && !m.canFind("e2d2"));
+    // A pinned knight cannot move at all.
+    m = uciMoves("4k3/4r3/8/8/8/8/4N3/4K3 w - - 0 1");
+    foreach (x; m)
+        assert(x[0 .. 2] != "e2");
+    // Single check: only capture or block.
+    m = uciMoves("4k3/8/8/8/8/8/4r3/R3K3 w - - 0 1");
+    assert(m.canFind("e1e2") && !m.canFind("a1a2") && !m.canFind("e1d2"));
+    // Block a slider check from afar.
+    m = uciMoves("4k3/4r3/8/8/8/3B4/8/4K3 w - - 0 1");
+    assert(m.canFind("d3e4") && !m.canFind("d3c4"));
+    // King cannot retreat along the checking ray.
+    m = uciMoves("4k3/8/8/8/8/8/8/r3K3 w - - 0 1");
+    assert(!m.canFind("e1d1") && !m.canFind("e1f1"));
 }

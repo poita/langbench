@@ -1,0 +1,3 @@
+@module main
+fn g() {}
+fn main() { let x = g; }

@@ -3,142 +3,159 @@ package cmds
 import (
 	"testing"
 
-	"kiln/errs"
-	"kiln/vfs"
+	"buildsys/kerr"
+	"buildsys/vfs"
 )
 
-func run(t *testing.T, name string, args []Arg, inputs ...string) string {
+func TestInvocationString(t *testing.T) {
+	tests := []struct {
+		inv  Invocation
+		want string
+	}{
+		{Invocation{Name: "concat"}, "concat()"},
+		{Invocation{Name: "write", Args: []Arg{{Kind: StrArg, Str: "hello\n"}}}, `write("hello\n")`},
+		{Invocation{Name: "replace", Args: []Arg{{Str: `a\b`}, {Str: `"q"`}}}, `replace("a\\b", "\"q\"")`},
+		{Invocation{Name: "indent", Args: []Arg{{Kind: IntArg, Int: 4}}}, "indent(4)"},
+		{Invocation{Name: "indent", Args: []Arg{{Kind: IntArg, Int: -4}}}, "indent(-4)"},
+		{Invocation{Name: "write", Args: []Arg{{Str: "\t\r\x00\x7fü"}}}, `write("\t\r\x00\x7fü")`},
+	}
+	for _, tc := range tests {
+		if got := tc.inv.String(); got != tc.want {
+			t.Errorf("got %s, want %s", got, tc.want)
+		}
+	}
+}
+
+func TestSplitJoinLines(t *testing.T) {
+	cases := map[string][]string{
+		"":         nil,
+		"\n":       {""},
+		"a\nb\n":   {"a", "b"},
+		"a\nb":     {"a", "b"},
+		"a\n\nb\n": {"a", "", "b"},
+		"a\r\n":    {"a\r"},
+	}
+	for in, want := range cases {
+		got := SplitLines(in)
+		if len(got) != len(want) {
+			t.Errorf("SplitLines(%q) = %q, want %q", in, got, want)
+			continue
+		}
+		for i := range got {
+			if got[i] != want[i] {
+				t.Errorf("SplitLines(%q) = %q, want %q", in, got, want)
+			}
+		}
+	}
+	if got := JoinLines([]string{"a", ""}); got != "a\n\n" {
+		t.Errorf("JoinLines = %q", got)
+	}
+}
+
+func run(t *testing.T, name string, args []Arg, files ...string) string {
 	t.Helper()
 	spec, ok := Lookup(name)
 	if !ok {
 		t.Fatalf("no command %s", name)
 	}
-	in := make([]Input, len(inputs))
-	for i, s := range inputs {
-		in[i] = Input{Path: "in" + string(rune('0'+i)), Data: []byte(s), Hash: vfs.Hash([]byte(s))}
+	var in []Input
+	for i, c := range files {
+		in = append(in, Input{Path: "in" + string(rune('0'+i)), File: vfs.NewFile(c)})
 	}
-	res, err := spec.Run(args, in, vfs.New())
+	res, err := spec.Run(Invocation{Name: name, Args: args}, in, vfs.New())
 	if err != nil {
 		t.Fatalf("%s: %v", name, err)
 	}
-	return string(res.Output)
+	return res.Output
 }
 
 func TestCommands(t *testing.T) {
-	s, i := StrArg, IntArg
-	cases := []struct {
-		name string
-		args []Arg
-		in   []string
-		want string
+	s := func(v string) Arg { return Arg{Kind: StrArg, Str: v} }
+	tests := []struct {
+		name  string
+		args  []Arg
+		files []string
+		want  string
 	}{
-		{"write", []Arg{s("hi\n")}, nil, "hi\n"},
-		{"copy", nil, []string{"x"}, "x"},
-		{"concat", nil, []string{"a", "b"}, "ab"},
-		{"upper", nil, []string{"aé z"}, "Aé Z"},
-		{"lower", nil, []string{"AÉ Z"}, "aÉ z"},
+		{"write", []Arg{s("x\n")}, nil, "x\n"},
+		{"copy", nil, []string{"a\nb"}, "a\nb"},
+		{"concat", nil, []string{"a", "b", "a"}, "aba"},
+		{"upper", nil, []string{"aB1é"}, "AB1é"},
+		{"lower", nil, []string{"aB1É"}, "ab1É"},
 		{"grep", []Arg{s("b")}, []string{"ab\ncd\nb"}, "ab\nb\n"},
-		{"grep", []Arg{s("")}, []string{"a\n\nb"}, "a\n\nb\n"},
+		{"grep", []Arg{s("")}, []string{"x\ny"}, "x\ny\n"},
 		{"replace", []Arg{s("aa"), s("b")}, []string{"aaaaa"}, "bba"},
-		{"sort_lines", nil, []string{"b\na\nc"}, "a\nb\nc\n"},
-		{"reverse_lines", nil, []string{"a\nb\n"}, "b\na\n"},
-		{"dedup", nil, []string{"a\nb\na\nb\nc\n"}, "a\nb\nc\n"},
-		{"number", nil, []string{"a\n\nc"}, "1: a\n2: \n3: c\n"},
-		{"indent", []Arg{i(2)}, []string{"a\n\n"}, "  a\n  \n"},
+		{"sort_lines", nil, []string{"b\na\nB\n"}, "B\na\nb\n"},
+		{"reverse_lines", nil, []string{"a\nb\nc"}, "c\nb\na\n"},
+		{"dedup", nil, []string{"a\nb\na\nb\nc"}, "a\nb\nc\n"},
+		{"number", nil, []string{"a\nb\nc\n"}, "1: a\n2: b\n3: c\n"},
+		{"indent", []Arg{{Kind: IntArg, Int: 2}}, []string{"a\n\nb"}, "  a\n  \n  b\n"},
 		{"wrap", []Arg{s("<"), s(">")}, []string{"x"}, "<x>"},
 		{"count_lines", nil, []string{"a\nb\n", ""}, "2 in0\n0 in1\n2 total\n"},
-		{"hash", nil, []string{"hello\n"}, "a9bc80cca21f28b3 in0\n"},
-		{"sort_lines", nil, []string{""}, ""},
+		{"hash", nil, []string{"hello\n", "hello\n"}, "a9bc80cca21f28b3 in0\na9bc80cca21f28b3 in1\n"},
 	}
-	for _, c := range cases {
-		if got := run(t, c.name, c.args, c.in...); got != c.want {
-			t.Errorf("%s%v(%q) = %q, want %q", c.name, c.args, c.in, got, c.want)
+	for _, tc := range tests {
+		if got := run(t, tc.name, tc.args, tc.files...); got != tc.want {
+			t.Errorf("%s(%v) = %q, want %q", tc.name, tc.args, got, tc.want)
 		}
 	}
 }
 
-func TestRender(t *testing.T) {
-	got := Render("replace", []Arg{StrArg("a\\b\"\n\t\r\x01\x7fü"), IntArg(-4)})
-	want := `replace("a\\b\"\n\t\r\x01\x7fü", -4)`
-	if got != want {
-		t.Errorf("Render = %s, want %s", got, want)
+func TestPreprocess(t *testing.T) {
+	fs := vfs.New()
+	fs.Write("src/part.txt", "PART\n@need src/deep.txt\n")
+	fs.Write("src/deep.txt", "DEEP\n")
+	fs.Write("src/loop.txt", "@need src/loop2.txt\n")
+	fs.Write("src/loop2.txt", "@need src/loop.txt\n")
+	spec, _ := Lookup("preprocess")
+	runIt := func(main string) (Result, *kerr.Error) {
+		return spec.Run(Invocation{Name: "preprocess"}, []Input{{Path: "src/main.txt", File: vfs.NewFile(main)}}, fs)
 	}
-	if got := Render("concat", nil); got != "concat()" {
-		t.Errorf("Render = %s", got)
+
+	res, err := runIt("title\n@need src/part.txt\n@need src/deep.txt\nend\n")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "title\nPART\nDEEP\nDEEP\nend\n"; res.Output != want {
+		t.Errorf("output = %q, want %q", res.Output, want)
+	}
+	if want := "kiln-deps 1\nneed src/deep.txt\nneed src/part.txt\n"; res.Depfile != want {
+		t.Errorf("depfile = %q, want %q", res.Depfile, want)
+	}
+
+	cases := []struct{ main, kind, detail string }{
+		{"@need bad path\n", kerr.NeedPath, "bad path"},
+		{"@need src/none.txt\n", kerr.NeedMissing, "src/none.txt needed by src/main.txt"},
+		{"@need src/loop.txt\n", kerr.NeedCycle, "src/loop.txt"},
+		{"@need src/main.txt\n", kerr.NeedCycle, "src/main.txt"},
+	}
+	fs.Write("src/main.txt", "@need src/main.txt\n")
+	for _, tc := range cases {
+		_, err := runIt(tc.main)
+		if err == nil || err.Kind != tc.kind || err.Detail != tc.detail {
+			t.Errorf("%q: got %v, want %s %s", tc.main, err, tc.kind, tc.detail)
+		}
+	}
+	// "@need" with no argument is an ordinary line.
+	if res, err := runIt("@need \n@needx\n"); err != nil || res.Output != "@need \n@needx\n" {
+		t.Errorf("non-directives: %q %v", res.Output, err)
 	}
 }
 
-func TestSpecs(t *testing.T) {
+func TestSpecChecks(t *testing.T) {
+	spec, _ := Lookup("replace")
+	if err := spec.CheckArgs(Invocation{Name: "replace", Args: []Arg{{Str: ""}, {Str: "x"}}}); err == nil {
+		t.Error("empty replace pattern accepted")
+	}
+	spec, _ = Lookup("indent")
+	if err := spec.CheckArgs(Invocation{Name: "indent", Args: []Arg{{Kind: IntArg, Int: -1}}}); err == nil {
+		t.Error("negative indent accepted")
+	}
 	if len(Names()) != 16 {
 		t.Errorf("want 16 commands, got %d", len(Names()))
 	}
 	c, _ := Lookup("concat")
-	if c.InputRange() != "1-N" || c.DefaultCost != 2 {
-		t.Errorf("concat spec wrong: %s %d", c.InputRange(), c.DefaultCost)
-	}
-	w, _ := Lookup("write")
-	if w.InputRange() != "0-0" {
-		t.Error("write takes no inputs")
-	}
-	r, _ := Lookup("replace")
-	if r.CheckArgs([]Arg{StrArg(""), StrArg("x")}) == nil {
-		t.Error("empty replace pattern accepted")
-	}
-	ind, _ := Lookup("indent")
-	if ind.CheckArgs([]Arg{IntArg(-1)}) == nil {
-		t.Error("negative indent accepted")
-	}
-}
-
-func fsWith(files map[string]string) *vfs.FS {
-	fs := vfs.New()
-	for p, c := range files {
-		fs.Write(p, []byte(c))
-	}
-	return fs
-}
-
-func preprocessRun(fs *vfs.FS, path string) (Result, *errs.Error) {
-	spec, _ := Lookup("preprocess")
-	data, h, _ := fs.Lookup(path)
-	return spec.Run(nil, []Input{{Path: path, Data: data, Hash: h}}, fs)
-}
-
-func TestPreprocess(t *testing.T) {
-	fs := fsWith(map[string]string{
-		"src/main.txt": "title\n@need src/part.txt\n@need src/part.txt\nend",
-		"src/part.txt": "PART\n@need src/deep.txt\n@need \n",
-		"src/deep.txt": "DEEP\n",
-	})
-	res, err := preprocessRun(fs, "src/main.txt")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if want := "title\nPART\nDEEP\n@need \nPART\nDEEP\n@need \nend\n"; string(res.Output) != want {
-		t.Errorf("output = %q, want %q", res.Output, want)
-	}
-	if want := "kiln-deps 1\nneed src/deep.txt\nneed src/part.txt\n"; string(res.Depfile) != want {
-		t.Errorf("depfile = %q", res.Depfile)
-	}
-	if len(res.Deps) != 2 || res.Deps[0].Hash != vfs.Hash([]byte("DEEP\n")) {
-		t.Errorf("deps = %+v", res.Deps)
-	}
-}
-
-func TestPreprocessErrors(t *testing.T) {
-	cases := []struct {
-		files map[string]string
-		want  string
-	}{
-		{map[string]string{"a": "@need Bad Path\n"}, "E_NEED_PATH Bad Path"},
-		{map[string]string{"a": "@need gone\n"}, "E_NEED_MISSING gone needed by a"},
-		{map[string]string{"a": "@need b\n", "b": "@need a\n"}, "E_NEED_CYCLE a"},
-		{map[string]string{"a": "@need b\n", "b": "@need b\n"}, "E_NEED_CYCLE b"},
-	}
-	for _, c := range cases {
-		_, err := preprocessRun(fsWith(c.files), "a")
-		if err == nil || err.Error() != c.want {
-			t.Errorf("got %v, want %s", err, c.want)
-		}
+	if c.InputRange() != "1-N" {
+		t.Errorf("concat range = %s", c.InputRange())
 	}
 }

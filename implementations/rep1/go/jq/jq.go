@@ -1,44 +1,56 @@
-// Package jq is a small, dependency-free implementation of a subset of the
-// jq query language (jq 1.7 semantics).
+// Package jq is an interpreter for a subset of the jq query language, written
+// from scratch with no dependencies beyond the Go standard library.
 //
-// A filter is compiled once with Compile and may then be run against any
-// number of input values:
+// Typical use is to compile a filter once and run it on parsed JSON values:
 //
-//	q, err := jq.Compile(`.users | map(select(.age >= 30)) | length`)
+//	q, err := jq.Compile(`.users | map(select(.age >= 30)) | sort_by(.age)`)
 //	if err != nil { ... }
-//	doc, err := jq.ParseJSON(`{"users":[{"age":31},{"age":20}]}`)
+//	doc, err := jq.ParseJSON(data)
 //	if err != nil { ... }
 //	err = q.Run(doc, func(v jq.Value) error {
-//		fmt.Println(jq.Marshal(v))
+//		fmt.Println(string(jq.Marshal(v)))
 //		return nil
 //	})
 //
-// The sub-packages hold the pieces: value (data model, ordering, JSON
-// parser and serialiser), syntax (lexer, parser and AST) and interp
-// (compiler and evaluator).
+// The packages underneath are usable on their own: package value holds the
+// JSON data model, decoder, encoder and ordering; package syntax the filter
+// parser; and package interp the evaluator.
 package jq
 
 import (
-	"github.com/peter/jq/interp"
-	"github.com/peter/jq/syntax"
-	"github.com/peter/jq/value"
+	"errors"
+	"iter"
+
+	"example.com/jq/interp"
+	"example.com/jq/syntax"
+	"example.com/jq/value"
 )
 
-// Value is an immutable JSON value.
+// Value is a JSON value: nil, bool, float64, string, []Value or *Object. See
+// package value for details. Values are immutable and may be shared freely.
 type Value = value.Value
 
-// RuntimeError is the error returned by Run when evaluation raises an error
-// (a failing operation or the error builtin).
-type RuntimeError = interp.Error
+// Object is an immutable insertion-ordered JSON object.
+type Object = value.Object
+
+// Error types returned by this package.
+type (
+	// SyntaxError reports a malformed filter.
+	SyntaxError = syntax.Error
+	// RuntimeError reports an error raised while evaluating a filter.
+	RuntimeError = interp.Error
+	// JSONError reports malformed JSON input.
+	JSONError = value.SyntaxError
+)
 
 // Query is a compiled filter. It is immutable and safe for concurrent use.
 type Query struct {
+	src  string
 	prog *interp.Program
 }
 
-// Compile parses and compiles a filter. It fails with a *syntax.Error for
-// malformed filters, or an ordinary error for undefined variables or
-// builtins.
+// Compile parses and compiles a filter. Syntax problems are reported as a
+// *SyntaxError; unknown builtins or variables as a plain error.
 func Compile(filter string) (*Query, error) {
 	ast, err := syntax.Parse(filter)
 	if err != nil {
@@ -48,32 +60,63 @@ func Compile(filter string) (*Query, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Query{prog: prog}, nil
+	return &Query{src: filter, prog: prog}, nil
 }
 
-// Run evaluates the filter on input and calls emit for each output, in
-// order. It stops at the first error, returning it: a *RuntimeError if the
-// filter raised one, or the error returned by emit.
-func (q *Query) Run(input Value, emit func(Value) error) error {
-	return q.prog.Run(input, emit)
+// MustCompile is like Compile but panics on error.
+func MustCompile(filter string) *Query {
+	q, err := Compile(filter)
+	if err != nil {
+		panic(err)
+	}
+	return q
 }
 
-// All evaluates the filter on input and collects the outputs produced before
-// the first error, if any.
+// String returns the filter text.
+func (q *Query) String() string { return q.src }
+
+// Run evaluates the filter on input and calls yield for each output, in
+// order, as it is produced. Evaluation stops at the first error: a
+// *RuntimeError raised by the filter, or any error returned by yield, which
+// is returned unchanged.
+func (q *Query) Run(input Value, yield func(Value) error) error {
+	return q.prog.Run(input, yield)
+}
+
+// All evaluates the filter and collects its outputs. On a runtime error it
+// returns the outputs produced before the error along with the error.
 func (q *Query) All(input Value) ([]Value, error) {
 	var out []Value
-	err := q.Run(input, func(v Value) error {
+	err := q.prog.Run(input, func(v Value) error {
 		out = append(out, v)
 		return nil
 	})
 	return out, err
 }
 
-// ParseJSON parses a single JSON document.
-func ParseJSON(text string) (Value, error) { return value.Parse(text) }
+var errStop = errors.New("jq: stop")
+
+// Iter returns the outputs as an iterator. A runtime error is delivered as the
+// final (nil, err) pair.
+func (q *Query) Iter(input Value) iter.Seq2[Value, error] {
+	return func(yield func(Value, error) bool) {
+		err := q.prog.Run(input, func(v Value) error {
+			if !yield(v, nil) {
+				return errStop
+			}
+			return nil
+		})
+		if err != nil && err != errStop {
+			yield(nil, err)
+		}
+	}
+}
+
+// ParseJSON decodes one JSON document.
+func ParseJSON(data []byte) (Value, error) { return value.Parse(data) }
 
 // Marshal returns the compact JSON text of v.
-func Marshal(v Value) string { return value.JSON(v) }
+func Marshal(v Value) []byte { return value.Marshal(v) }
 
-// AppendJSON appends the compact JSON text of v to buf.
-func AppendJSON(buf []byte, v Value) []byte { return value.AppendJSON(buf, v) }
+// Compare orders two values by jq's total order.
+func Compare(a, b Value) int { return value.Compare(a, b) }

@@ -1,0 +1,72 @@
+cabal-version:      3.0
+name:               jsonschema
+version:            0.1.0.0
+synopsis:           A JSON Schema draft 2020-12 validator with exact decimal arithmetic
+description:
+  A from-scratch validator for JSON Schema draft 2020-12.  It contains its own
+  JSON parser, exact decimal number type, ECMA-262 regular-expression subset
+  engine, RFC 3986 reference resolution and an annotation-aware evaluator
+  (@unevaluatedItems@ / @unevaluatedProperties@, @$dynamicRef@, ...).
+  A small command-line tool reads a schema and a list of instances on stdin
+  and prints @valid@ or @invalid@ for each instance.
+category:           Data, JSON
+license:            MIT
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: Haskell2010
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:
+    JsonSchema
+    JsonSchema.Document
+    JsonSchema.Json
+    JsonSchema.Number
+    JsonSchema.Pointer
+    JsonSchema.Regex
+    JsonSchema.Schema
+    JsonSchema.Uri
+    JsonSchema.Validate
+  build-depends:
+    base       >= 4.18 && < 5,
+    array      >= 0.5  && < 0.6,
+    bytestring >= 0.11 && < 0.13,
+    containers >= 0.6  && < 0.9,
+    text       >= 2.0  && < 2.2
+
+executable jsonschema
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  ghc-options:      -rtsopts "-with-rtsopts=-K2g"
+  build-depends:
+    base,
+    bytestring,
+    text,
+    jsonschema
+
+test-suite jsonschema-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Main.hs
+  other-modules:
+    DocumentSpec
+    JsonSpec
+    NumberSpec
+    RegexSpec
+    UriSpec
+    ValidateSpec
+  build-depends:
+    base,
+    bytestring,
+    containers,
+    text,
+    jsonschema,
+    hspec      >= 2.10,
+    QuickCheck >= 2.14

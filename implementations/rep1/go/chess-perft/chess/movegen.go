@@ -1,229 +1,172 @@
 package chess
 
-// MaxMoves is an upper bound on the number of legal moves in any position
-// (the true maximum is 218). It is the size of the buffer generate needs.
+// MaxMoves is an upper bound on the number of legal moves in any position (the
+// true maximum is 218).
 const MaxMoves = 256
 
-// LegalMoves returns the legal moves of the position in a newly allocated slice.
+// moveList is a fixed-capacity move buffer, kept on the stack.
+type moveList struct {
+	moves [MaxMoves]Move
+	n     int
+}
+
+func (l *moveList) add(from, to Square) {
+	l.moves[l.n] = Move(from) | Move(to)<<6
+	l.n++
+}
+
+func (l *moveList) addPromotions(from, to Square) {
+	for _, t := range [...]PieceType{Queen, Rook, Bishop, Knight} {
+		l.moves[l.n] = NewMove(from, to, t, true)
+		l.n++
+	}
+}
+
+// LegalMoves returns all legal moves of the side to move. The order is
+// unspecified. A checkmated or stalemated side has no moves.
 func (p *Position) LegalMoves() []Move {
-	var buf [MaxMoves]Move
-	n := p.generate(buf[:])
-	return append([]Move(nil), buf[:n]...)
+	var l moveList
+	p.generate(&l)
+	return append([]Move(nil), l.moves[:l.n]...)
 }
 
-// CountMoves returns the number of legal moves without allocating.
-func (p *Position) CountMoves() int {
-	var buf [MaxMoves]Move
-	return p.generate(buf[:])
-}
-
-// generate writes every legal move of the side to move into out (which must
-// have room for MaxMoves) and returns how many it wrote.
+// generate appends exactly the legal moves of p to l.
 //
-// Legality is established during generation, so no move needs to be played to
-// be tested:
-//   - the checkers of the king are found by looking outward from the king;
-//   - with two checkers only the king can move; with one, other pieces must
-//     land on the evasion mask (the checker and the squares between);
-//   - pinned pieces may only move along the line through king and pinner;
-//   - king destinations are tested with the king removed from the occupancy;
-//   - en passant is tested by an explicit king-safety check after the capture.
-func (p *Position) generate(out []Move) int {
-	us := p.side
-	them := us.Opponent()
-	ourOcc, theirOcc := p.colors[us], p.colors[them]
-	occ := ourOcc | theirOcc
-	ksq := (p.pieces[King] & ourOcc).Lsb()
-	kbb := ksq.Bitboard()
-	n := 0
+// Legality is established from the checkers of the king and the pieces pinned
+// to it: in check, non-king pieces may only capture the checker or interpose;
+// a pinned piece may only move along the line through its king. King moves,
+// castling and en passant captures are tested directly.
+func (p *Position) generate(l *moveList) {
+	us, them := p.stm, p.stm.Opposite()
+	own, enemy := p.occ[us], p.occ[them]
+	occ := own | enemy
+	ksq := p.bb[us][King].Lsb()
+	checkers := p.attackersTo(ksq, them, occ)
 
-	theirPawns := p.pieces[Pawn] & theirOcc
-	theirDiag := (p.pieces[Bishop] | p.pieces[Queen]) & theirOcc
-	theirOrth := (p.pieces[Rook] | p.pieces[Queen]) & theirOcc
-
-	// Checkers.
-	checkers := pawnAttacks[us][ksq]&theirPawns |
-		knightAttacks[ksq]&p.pieces[Knight]&theirOcc
-	if theirDiag != 0 {
-		checkers |= BishopAttacks(ksq, occ) & theirDiag
-	}
-	if theirOrth != 0 {
-		checkers |= RookAttacks(ksq, occ) & theirOrth
-	}
-
-	// King moves: sliders x-ray through the king's current square.
-	occNoKing := occ ^ kbb
-	for dests := kingAttacks[ksq] &^ ourOcc; dests != 0; {
-		to := dests.PopLsb()
-		if !p.attackedBy(to, them, occNoKing, 0) {
-			out[n] = newMove(ksq, to, flagQuiet)
-			n++
+	// King moves: test each destination with the king lifted off the board so
+	// that it cannot hide behind itself on a checking slider's line.
+	occNoKing := occ &^ ksq.Bit()
+	for t := kingAtt[ksq] &^ own; t != 0; {
+		to := t.Pop()
+		if p.attackersTo(to, them, occNoKing) == 0 {
+			l.add(ksq, to)
 		}
 	}
-	if checkers.MoreThanOne() {
-		return n
+	if checkers.Count() > 1 {
+		return // double check: only the king can move
 	}
 
-	// Evasion mask.
-	target := ^ourOcc
+	// Squares non-king moves may land on: anywhere, or in check, on the checker
+	// or the squares between it and the king.
+	allowed := ^own
 	if checkers != 0 {
-		target = betweenBB[ksq][checkers.Lsb()] | checkers
+		c := checkers.Lsb()
+		allowed &= between[ksq][c] | c.Bit()
 	}
 
-	// Pins.
+	// Pieces pinned to the king by an enemy slider.
 	var pinned Bitboard
-	snipers := rookRays[ksq]&theirOrth | bishopRays[ksq]&theirDiag
+	eb := &p.bb[them]
+	snipers := rookRays[ksq]&(eb[Rook]|eb[Queen]) | bishopRays[ksq]&(eb[Bishop]|eb[Queen])
 	for snipers != 0 {
-		s := snipers.PopLsb()
-		if b := betweenBB[ksq][s] & occ; b != 0 && !b.MoreThanOne() && b&ourOcc != 0 {
-			pinned |= b
+		blockers := between[ksq][snipers.Pop()] & occ
+		if blockers&(blockers-1) == 0 && blockers&own != 0 { // exactly one, and ours
+			pinned |= blockers
 		}
+	}
+	// pinMask is where a piece on s may move: everywhere unless pinned.
+	pinMask := func(s Square) Bitboard {
+		if pinned.Has(s) {
+			return line[ksq][s]
+		}
+		return ^Bitboard(0)
 	}
 
-	// Knights (a pinned knight can never move).
-	for knights := p.pieces[Knight] & ourOcc &^ pinned; knights != 0; {
-		from := knights.PopLsb()
-		for dests := knightAttacks[from] & target; dests != 0; {
-			out[n] = newMove(from, dests.PopLsb(), flagQuiet)
-			n++
+	ob := &p.bb[us]
+	for b := ob[Knight] &^ pinned; b != 0; { // a pinned knight can never move
+		from := b.Pop()
+		for t := knightAtt[from] & allowed; t != 0; {
+			l.add(from, t.Pop())
 		}
 	}
+	for b := ob[Bishop] | ob[Queen]; b != 0; {
+		from := b.Pop()
+		for t := BishopAttacks(from, occ) & allowed & pinMask(from); t != 0; {
+			l.add(from, t.Pop())
+		}
+	}
+	for b := ob[Rook] | ob[Queen]; b != 0; {
+		from := b.Pop()
+		for t := RookAttacks(from, occ) & allowed & pinMask(from); t != 0; {
+			l.add(from, t.Pop())
+		}
+	}
+	p.genPawns(l, allowed, pinMask, occ, ksq)
+	if checkers == 0 {
+		p.genCastling(l, occ)
+	}
+}
 
-	// Bishops, rooks and queens.
-	for sl := p.pieces[Bishop] & ourOcc; sl != 0; {
-		from := sl.PopLsb()
-		dests := BishopAttacks(from, occ) & target
-		if pinned.Has(from) {
-			dests &= lineBB[ksq][from]
-		}
-		for dests != 0 {
-			out[n] = newMove(from, dests.PopLsb(), flagQuiet)
-			n++
-		}
+func (p *Position) genPawns(l *moveList, allowed Bitboard, pinMask func(Square) Bitboard, occ Bitboard, ksq Square) {
+	us, them := p.stm, p.stm.Opposite()
+	step, startRank, lastRank := 8, 1, 7
+	if us == Black {
+		step, startRank, lastRank = -8, 6, 0
 	}
-	for sl := p.pieces[Rook] & ourOcc; sl != 0; {
-		from := sl.PopLsb()
-		dests := RookAttacks(from, occ) & target
-		if pinned.Has(from) {
-			dests &= lineBB[ksq][from]
-		}
-		for dests != 0 {
-			out[n] = newMove(from, dests.PopLsb(), flagQuiet)
-			n++
-		}
-	}
-	for sl := p.pieces[Queen] & ourOcc; sl != 0; {
-		from := sl.PopLsb()
-		dests := QueenAttacks(from, occ) & target
-		if pinned.Has(from) {
-			dests &= lineBB[ksq][from]
-		}
-		for dests != 0 {
-			out[n] = newMove(from, dests.PopLsb(), flagQuiet)
-			n++
-		}
-	}
+	enemy := p.occ[them]
+	for b := p.bb[us][Pawn]; b != 0; {
+		from := b.Pop()
+		pm := allowed & pinMask(from)
 
-	// Pawns.
-	pawns := p.pieces[Pawn] & ourOcc
-	if pawns != 0 {
-		var single, double, capL, capR Bitboard
-		var sh1, sh2, shL, shR int // origin = destination - shift
-		var promoRank Bitboard
-		if us == White {
-			single = pawns << 8 &^ occ
-			double = (single & Rank3) << 8 &^ occ
-			capL = (pawns &^ FileA) << 7
-			capR = (pawns &^ FileH) << 9
-			sh1, sh2, shL, shR = 8, 16, 7, 9
-			promoRank = Rank8
-		} else {
-			single = pawns >> 8 &^ occ
-			double = (single & Rank6) >> 8 &^ occ
-			capL = (pawns &^ FileA) >> 9
-			capR = (pawns &^ FileH) >> 7
-			sh1, sh2, shL, shR = -8, -16, -9, -7
-			promoRank = Rank1
-		}
-		n = pawnMoves(out, n, single&target, sh1, flagQuiet, promoRank, ksq, pinned)
-		n = pawnMoves(out, n, double&target, sh2, flagDouble, promoRank, ksq, pinned)
-		n = pawnMoves(out, n, capL&theirOcc&target, shL, flagQuiet, promoRank, ksq, pinned)
-		n = pawnMoves(out, n, capR&theirOcc&target, shR, flagQuiet, promoRank, ksq, pinned)
-
-		// En passant: tested directly on the board after the capture.
-		if p.ep != NoSquare {
-			capSq := epCaptureSquare(p.ep, us)
-			for cands := pawnAttacks[them][p.ep] & pawns; cands != 0; {
-				from := cands.PopLsb()
-				occAfter := occ&^(from.Bitboard()|capSq.Bitboard()) | p.ep.Bitboard()
-				if !p.attackedBy(ksq, them, occAfter, capSq.Bitboard()) {
-					out[n] = newMove(from, p.ep, flagEP)
-					n++
+		one := Square(int(from) + step)
+		if occ&one.Bit() == 0 {
+			if pm.Has(one) {
+				if one.Rank() == lastRank {
+					l.addPromotions(from, one)
+				} else {
+					l.add(from, one)
+				}
+			}
+			if from.Rank() == startRank {
+				two := Square(int(from) + 2*step)
+				if occ&two.Bit() == 0 && pm.Has(two) {
+					l.add(from, two)
 				}
 			}
 		}
-	}
-
-	// Castling.
-	if checkers == 0 {
-		if us == White {
-			n = p.castleMoves(out, n, occ, them, p.castling&CastleWhiteKing != 0, p.castling&CastleWhiteQueen != 0)
-		} else {
-			n = p.castleMoves(out, n, occ, them, p.castling&CastleBlackKing != 0, p.castling&CastleBlackQueen != 0)
-		}
-	}
-	return n
-}
-
-// pawnMoves appends one move per destination, expanding promotions, and drops
-// moves of pinned pawns that leave the pin line. The origin of each move is the
-// destination minus shift.
-func pawnMoves(out []Move, n int, dests Bitboard, shift int, flag int, promoRank Bitboard, ksq Square, pinned Bitboard) int {
-	for dests != 0 {
-		to := dests.PopLsb()
-		from := Square(int(to) - shift)
-		if pinned.Has(from) && !lineBB[ksq][from].Has(to) {
-			continue
-		}
-		if promoRank.Has(to) {
-			out[n] = newMove(from, to, flagPromoQ)
-			out[n+1] = newMove(from, to, flagPromoR)
-			out[n+2] = newMove(from, to, flagPromoB)
-			out[n+3] = newMove(from, to, flagPromoN)
-			n += 4
-			continue
-		}
-		out[n] = newMove(from, to, flag)
-		n++
-	}
-	return n
-}
-
-// castleMoves appends the legal castling moves of the side to move. The king
-// must not be in check (the caller checks). The king stands on its home square
-// because castling rights are only held while it does.
-func (p *Position) castleMoves(out []Move, n int, occ Bitboard, them Color, king, queen bool) int {
-	if king || queen {
-		home := E1
-		if them == White {
-			home = E8
-		}
-		if king {
-			f, g := home+1, home+2
-			if occ&(f.Bitboard()|g.Bitboard()) == 0 &&
-				!p.attackedBy(f, them, occ, 0) && !p.attackedBy(g, them, occ, 0) {
-				out[n] = newMove(home, g, flagCastle)
-				n++
+		for t := pawnAtt[us][from] & enemy & pm; t != 0; {
+			to := t.Pop()
+			if to.Rank() == lastRank {
+				l.addPromotions(from, to)
+			} else {
+				l.add(from, to)
 			}
 		}
-		if queen {
-			d, c, b := home-1, home-2, home-3
-			if occ&(d.Bitboard()|c.Bitboard()|b.Bitboard()) == 0 &&
-				!p.attackedBy(d, them, occ, 0) && !p.attackedBy(c, them, occ, 0) {
-				out[n] = newMove(home, c, flagCastle)
-				n++
+		// En passant: the captured pawn is not on the target square, so check
+		// and pin masks do not apply; test the resulting position directly.
+		if p.ep != NoSquare && pawnAtt[us][from].Has(p.ep) {
+			captured := Square(int(p.ep) - step)
+			occAfter := occ&^from.Bit()&^captured.Bit() | p.ep.Bit()
+			if p.attackersTo(ksq, them, occAfter)&^captured.Bit() == 0 {
+				l.add(from, p.ep)
 			}
 		}
 	}
-	return n
+}
+
+func (p *Position) genCastling(l *moveList, occ Bitboard) {
+	us, them := p.stm, p.stm.Opposite()
+	base, kingside, queenside := Square(0), CastleWhiteKing, CastleWhiteQueen
+	if us == Black {
+		base, kingside, queenside = 56, CastleBlackKing, CastleBlackQueen
+	}
+	safe := func(s Square) bool { return p.attackersTo(s, them, occ) == 0 }
+	if p.castling&kingside != 0 && occ&(base+5).Bit() == 0 && occ&(base+6).Bit() == 0 &&
+		safe(base+5) && safe(base+6) {
+		l.add(base+4, base+6)
+	}
+	if p.castling&queenside != 0 && occ&(base+1).Bit() == 0 && occ&(base+2).Bit() == 0 &&
+		occ&(base+3).Bit() == 0 && safe(base+3) && safe(base+2) {
+		l.add(base+4, base+2)
+	}
 }

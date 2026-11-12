@@ -1,90 +1,51 @@
 package textbuffer
 
-import (
-	"slices"
-)
-
 // Cursor is a caret with an optional selection.
+//
+// When Selected is true, Anchor holds the other end of the selection and is
+// never equal to Head; when it is false, Anchor is meaningless and the
+// cursor's range is empty.
 type Cursor struct {
 	// Head is where the caret is.
 	Head Position
-	// Anchor is the other end of the selection; it is meaningful only when
-	// HasSelection is true, and then it never equals Head.
-	Anchor       Position
-	HasSelection bool
-	// Primary marks the one primary cursor of a buffer.
+	// Anchor is the fixed end of the selection; valid only if Selected.
+	Anchor Position
+	// Selected reports whether the cursor holds a non-empty selection.
+	Selected bool
+	// Primary marks the cursor that survives GoTo and ClearCursors. Exactly
+	// one cursor of a Buffer is primary.
 	Primary bool
-	// Goal is the column used by vertical movement.
+	// Goal is the column that vertical movement tries to return to.
 	Goal int
 }
 
 // Start returns the start of the cursor's range.
 func (c Cursor) Start() Position {
-	if c.HasSelection && c.Anchor.Less(c.Head) {
-		return c.Anchor
+	if c.Selected {
+		return minPos(c.Head, c.Anchor)
 	}
 	return c.Head
 }
 
 // End returns the end of the cursor's range.
 func (c Cursor) End() Position {
-	if c.HasSelection && c.Head.Less(c.Anchor) {
-		return c.Anchor
+	if c.Selected {
+		return maxPos(c.Head, c.Anchor)
 	}
 	return c.Head
 }
 
-// Range returns the start and end of the cursor's range; for a cursor
-// without a selection both are the head.
-func (c Cursor) Range() (start, end Position) { return c.Start(), c.End() }
-
-// backward reports whether the head is at the start of a selection.
-func (c Cursor) backward() bool { return c.HasSelection && c.Head.Less(c.Anchor) }
-
-// compareCursors is the cursor order: start ascending, end descending.
-func compareCursors(a, b Cursor) int {
-	if r := a.Start().Compare(b.Start()); r != 0 {
-		return r
-	}
-	return b.End().Compare(a.End())
+// Backward reports whether the cursor has a selection whose head is at its
+// start.
+func (c Cursor) Backward() bool {
+	return c.Selected && c.Head.Less(c.Anchor)
 }
 
-// normalize sorts cs into cursor order and merges colliding cursors. It works
-// in place and returns the shortened slice.
-func normalize(cs []Cursor) []Cursor {
-	if !slices.IsSortedFunc(cs, compareCursors) {
-		slices.SortStableFunc(cs, compareCursors)
+// compareRanges orders cursors by ascending range start and, for equal
+// starts, by descending range end.
+func compareRanges(a, b Cursor) int {
+	if d := a.Start().Compare(b.Start()); d != 0 {
+		return d
 	}
-	out := 0 // cs[out] is the current group's merged cursor
-	for i := 1; i < len(cs); i++ {
-		cur, c := &cs[out], cs[i]
-		curEnd := cur.End()
-		cStart := c.Start()
-		var joins bool
-		if cur.HasSelection && c.HasSelection {
-			joins = cStart.Less(curEnd)
-		} else {
-			joins = cStart.Compare(curEnd) <= 0
-		}
-		if !joins {
-			out++
-			cs[out] = c
-			continue
-		}
-		start, end := cur.Start(), curEnd
-		if e := c.End(); end.Less(e) {
-			end = e
-		}
-		switch {
-		case start == end:
-			cur.HasSelection = false
-			cur.Head = start
-		case cur.backward():
-			cur.Head, cur.Anchor, cur.HasSelection = start, end, true
-		default:
-			cur.Head, cur.Anchor, cur.HasSelection = end, start, true
-		}
-		cur.Primary = cur.Primary || c.Primary
-	}
-	return cs[:out+1]
+	return b.End().Compare(a.End())
 }

@@ -1,3 +1,4 @@
 #!/bin/sh
-# Runs the toml command-line tool (stdin -> stdout).
-exec "$(dirname "$0")/bin/toml" "$@"
+# Runs the command-line tool: reads stdin, writes stdout.
+dir=$(cd "$(dirname "$0")" && pwd)
+exec "$dir/bin/toml" "$@"

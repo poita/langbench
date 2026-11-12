@@ -1,0 +1,15 @@
+[package]
+name = "typeset"
+version = "0.1.0"
+edition = "2021"
+description = "The Codexa typesetting engine: total-fit line breaking, Liang hyphenation, footnotes, floats and a table of contents"
+license = "MIT"
+readme = "README.md"
+
+[lib]
+name = "typeset"
+path = "src/lib.rs"
+
+[[bin]]
+name = "typeset"
+path = "src/main.rs"

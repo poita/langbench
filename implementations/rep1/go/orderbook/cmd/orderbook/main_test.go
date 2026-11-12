@@ -2,24 +2,63 @@ package main
 
 import (
 	"bytes"
+	"os"
+	"os/exec"
 	"strings"
 	"testing"
 )
 
-func TestRun(t *testing.T) {
+// TestMain lets the test binary double as the CLI: when ORDERBOOK_CLI is set
+// it runs main instead of the tests.
+func TestMain(m *testing.M) {
+	if os.Getenv("ORDERBOOK_CLI") == "1" {
+		main()
+		return
+	}
+	os.Exit(m.Run())
+}
+
+func runCLI(t *testing.T, stdin string, args ...string) (stdout string, code int) {
+	t.Helper()
+	cmd := exec.Command(os.Args[0], args...)
+	cmd.Env = append(os.Environ(), "ORDERBOOK_CLI=1")
+	cmd.Stdin = strings.NewReader(stdin)
 	var out bytes.Buffer
-	in := "3\nLIMIT a BUY 10 5\nLIMIT b SELL 10 2\nBOOK"
-	if err := run(strings.NewReader(in), &out); err != nil {
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if ee, ok := err.(*exec.ExitError); ok {
+		return out.String(), ee.ExitCode()
+	} else if err != nil {
 		t.Fatal(err)
 	}
-	want := "REST a\nTRADE b a 10 2\nFILLED b\nBID 10 3 1\n--\n"
-	if out.String() != want {
-		t.Errorf("got %q, want %q", out.String(), want)
+	return out.String(), 0
+}
+
+func TestCLIExamples(t *testing.T) {
+	for _, name := range []string{"example1", "example2", "example3"} {
+		in, err := os.ReadFile("../../testdata/" + name + ".in")
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, _ := os.ReadFile("../../testdata/" + name + ".out")
+		got, code := runCLI(t, string(in))
+		if code != 0 || got != string(want) {
+			t.Errorf("%s: exit %d, output:\n%s", name, code, got)
+		}
 	}
 }
 
-func TestRunMalformed(t *testing.T) {
-	if err := run(strings.NewReader("1\nNOPE\n"), &bytes.Buffer{}); err == nil {
-		t.Error("expected an error for malformed input")
+func TestCLIEmpty(t *testing.T) {
+	if got, code := runCLI(t, "0\n"); got != "" || code != 0 {
+		t.Errorf("got %q, exit %d", got, code)
+	}
+}
+
+func TestCLIFailures(t *testing.T) {
+	if _, code := runCLI(t, "1\nBOGUS\n"); code != 1 {
+		t.Errorf("malformed input: exit %d, want 1", code)
+	}
+	if _, code := runCLI(t, "0\n", "extra"); code != 2 {
+		t.Errorf("extra argument: exit %d, want 2", code)
 	}
 }

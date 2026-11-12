@@ -1,166 +1,110 @@
 /**
- * Type terms: a shared, mutable graph of nodes stored in an arena.
+ * Type representation.
  *
- * A type is identified by an `int` index into a `TypeStore`. A node is either
- * a type variable (unbound, or linked to another node by unification) or a
- * constructor (`int`, `bool`, `unit`, function, list, n-ary tuple). Sub-terms
- * are shared, never copied unless they must change.
+ * Types form a shared graph. A type variable is a union-find node: it is
+ * either unbound or `link`ed to another type, and carries a `level` used for
+ * Rémy-style generalisation. Constructed types (functions, tuples, lists)
+ * refer to their component types and may be shared freely.
  */
 module typeinfer.types;
 
-/// Index of a type node in a `TypeStore`.
-alias TypeId = int;
-
-/// Kind of a type node.
-enum NodeKind : ubyte
+/// The shape of a $(LREF Type) node.
+enum Kind : ubyte
 {
-    variable, /// unbound (`a < 0`) or linked to node `a`
-    int_,     /// the type `int`
-    bool_,    /// the type `bool`
-    unit,     /// the type `unit`
-    arrow,    /// `a -> b`
-    list,     /// `a list`
-    tuple,    /// `b` components at `pool[a .. a + b]`
+    int_, bool_, unit, fun, tuple, list, var,
 }
 
-/// Level value marking a quantified (generic) variable.
+/// Level of a quantified (generalised) variable.
 enum int genericLevel = int.max;
 
-/// One node of the type graph.
-struct Node
+/**
+ * A node of the type graph.
+ *
+ * Nodes are mutated by unification, so share them only within one
+ * $(REF Solver, typeinfer.solver). The fields other than `kind` and `args`
+ * are bookkeeping for the algorithms and are not part of the public contract.
+ */
+final class Type
 {
-    /// Visit stamp: equal to a walk's stamp when the node was visited by it.
-    ulong stamp;
-    /// Variable: link target or -1. Arrow: parameter. List: element. Tuple: pool start.
-    int a = -1;
-    /// Arrow: result. Tuple: component count.
-    int b;
-    /// Variable: binding level (`genericLevel` once quantified).
+    /// Shape of this node.
+    Kind kind;
+    /// For variables: nesting depth of the `let` that owns it (or `genericLevel`).
     int level;
-    /// Result slot of the walk that last stamped this node (instantiation copy or variable index).
-    int memo;
-    ///
-    NodeKind kind;
-}
+    /// Walk marker used by the algorithms in `solver` to visit each node once.
+    uint stamp;
+    /// For variables: the type this one was bound to. For merged constructed types: the representative.
+    Type link;
+    /// Scratch slot for instantiation.
+    Type copy;
+    /// Components: 2 for `fun` (argument, result), n for `tuple`, 1 for `list`, none otherwise.
+    Type[] args;
 
-/// Arena of type nodes plus the shared child pool for tuple components.
-final class TypeStore
-{
-    /// The nodes; only the first `count` are in use.
-    Node[] nodes;
-    /// Number of nodes allocated.
-    int count;
-    /// Child pool for tuples.
-    int[] pool;
-    /// Number of pool entries in use.
-    int poolCount;
-    /// Counter handing out unique walk stamps (64 bits: never wraps).
-    ulong lastStamp;
-
-    /// Shared singleton `int`.
-    enum TypeId intType = 0;
-    /// Shared singleton `bool`.
-    enum TypeId boolType = 1;
-    /// Shared singleton `unit`.
-    enum TypeId unitType = 2;
-
-    ///
-    this()
+    private this(Kind kind, int level, Type[] args) @safe nothrow @nogc
     {
-        nodes = new Node[1024];
-        pool = new int[256];
-        alloc(NodeKind.int_);
-        alloc(NodeKind.bool_);
-        alloc(NodeKind.unit);
+        this.kind = kind;
+        this.level = level;
+        this.args = args;
     }
 
-    /// A fresh stamp, distinct from every earlier one.
-    ulong newStamp() { return ++lastStamp; }
-
-    private TypeId alloc(NodeKind kind)
-    {
-        if (count == nodes.length)
-            nodes.length = nodes.length * 2;
-        nodes[count] = Node.init;
-        nodes[count].kind = kind;
-        return count++;
-    }
+    /// `int`, `bool` and `unit` are immutable singletons.
+    static Type int_() @trusted nothrow @nogc { return intType; }
+    /// ditto
+    static Type bool_() @trusted nothrow @nogc { return boolType; }
+    /// ditto
+    static Type unit() @trusted nothrow @nogc { return unitType; }
 
     /// A fresh unbound variable at `level`.
-    TypeId newVar(int level)
+    static Type newVar(int level) @safe nothrow { return new Type(Kind.var, level, null); }
+
+    /// `arg -> result`.
+    static Type fun(Type arg, Type result) @safe nothrow { return new Type(Kind.fun, 0, [arg, result]); }
+
+    /// `elem list`.
+    static Type list(Type elem) @safe nothrow { return new Type(Kind.list, 0, [elem]); }
+
+    /// `t1 * ... * tn`; `elems` must have at least two elements.
+    static Type tuple(Type[] elems) @safe nothrow
+    in (elems.length >= 2)
     {
-        immutable t = alloc(NodeKind.variable);
-        nodes[t].level = level;
-        return t;
+        return new Type(Kind.tuple, 0, elems);
     }
 
-    /// The function type `param -> result`.
-    TypeId newArrow(TypeId param, TypeId result)
-    {
-        immutable t = alloc(NodeKind.arrow);
-        nodes[t].a = param;
-        nodes[t].b = result;
-        return t;
-    }
+    /// Whether this node is a leaf constructor (`int`, `bool`, `unit`).
+    bool isBase() const @safe nothrow @nogc { return kind <= Kind.unit; }
 
-    /// The type `element list`.
-    TypeId newList(TypeId element)
-    {
-        immutable t = alloc(NodeKind.list);
-        nodes[t].a = element;
-        return t;
-    }
+    private static Type mkBase(Kind k) { return new Type(k, 0, null); }
+}
 
-    /// Reserves `n` pool slots and returns the index of the first.
-    int allocPool(int n)
-    {
-        if (poolCount + n > pool.length)
-        {
-            size_t cap = pool.length * 2;
-            while (cap < poolCount + n)
-                cap *= 2;
-            pool.length = cap;
-        }
-        immutable start = poolCount;
-        poolCount += n;
-        return start;
-    }
+private __gshared Type intType, boolType, unitType;
 
-    /// The tuple type whose components are `components` (copied into the pool).
-    TypeId newTuple(const(TypeId)[] components)
-    {
-        immutable start = allocPool(cast(int) components.length);
-        pool[start .. start + components.length] = components[];
-        return newTupleAt(start, cast(int) components.length);
-    }
+shared static this()
+{
+    intType = Type.mkBase(Kind.int_);
+    boolType = Type.mkBase(Kind.bool_);
+    unitType = Type.mkBase(Kind.unit);
+}
 
-    /// A tuple type over already-filled pool slots `pool[start .. start + n]`.
-    TypeId newTupleAt(int start, int n)
+/// Follows variable (and merge) links to the representative node, compressing the path.
+Type prune(Type t) @safe nothrow @nogc
+{
+    if (t.link is null) return t;
+    Type r = t.link;
+    while (r.link !is null) r = r.link;
+    while (t !is r)
     {
-        immutable t = alloc(NodeKind.tuple);
-        nodes[t].a = start;
-        nodes[t].b = n;
-        return t;
+        auto n = t.link;
+        t.link = r;
+        t = n;
     }
+    return r;
+}
 
-    /// The representative of `t`, following (and compressing) variable links.
-    TypeId find(TypeId t)
-    {
-        TypeId r = t;
-        while (nodes[r].kind == NodeKind.variable && nodes[r].a >= 0)
-            r = nodes[r].a;
-        while (t != r)
-        {
-            immutable next = nodes[t].a;
-            nodes[t].a = r;
-            t = next;
-        }
-        return r;
-    }
-
-    /// True if `t` (a representative) is an unbound variable.
-    bool isUnboundVar(TypeId t) const
-    {
-        return nodes[t].kind == NodeKind.variable && nodes[t].a < 0;
-    }
+unittest
+{
+    auto a = Type.newVar(0), b = Type.newVar(0), c = Type.newVar(0);
+    a.link = b;
+    b.link = c;
+    assert(prune(a) is c && a.link is c);
+    assert(prune(c) is c);
+    assert(Type.int_ is Type.int_ && Type.int_ !is Type.bool_);
 }

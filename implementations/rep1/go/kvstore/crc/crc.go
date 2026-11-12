@@ -1,21 +1,21 @@
-// Package crc implements the CRC-32 checksum used throughout Tessera
-// (reflected polynomial 0xEDB88320, initial value and final XOR 0xFFFFFFFF).
+// Package crc implements the CRC-32 checksum used throughout Tessera.
 //
-// It is a from-scratch, table-driven implementation; the standard library's
-// hash/crc32 is deliberately not used.
+// It is the reflected CRC-32 with polynomial 0xEDB88320, initial value
+// 0xFFFFFFFF and a final XOR of 0xFFFFFFFF (the same parameters as IEEE 802.3),
+// implemented here from scratch with a 256-entry lookup table.
 package crc
 
-const poly = 0xEDB88320
+// Poly is the reflected CRC-32 polynomial.
+const Poly uint32 = 0xEDB88320
 
 var table = makeTable()
 
-func makeTable() [256]uint32 {
-	var t [256]uint32
+func makeTable() (t [256]uint32) {
 	for i := range t {
 		c := uint32(i)
 		for k := 0; k < 8; k++ {
 			if c&1 != 0 {
-				c = (c >> 1) ^ poly
+				c = (c >> 1) ^ Poly
 			} else {
 				c >>= 1
 			}
@@ -25,16 +25,18 @@ func makeTable() [256]uint32 {
 	return t
 }
 
-// Update returns the checksum of the concatenation of the data that sum was
-// computed over and p. Update(0, p) equals Checksum(p), so checksums of
-// several pieces can be chained without concatenating them.
-func Update(sum uint32, p []byte) uint32 {
-	c := ^sum
-	for _, b := range p {
+// Update continues a running checksum with data. The running value is the
+// finalised CRC of the bytes seen so far, so Update(0, p) equals Checksum(p)
+// and Update(Checksum(a), b) equals Checksum(a||b).
+func Update(crc uint32, data []byte) uint32 {
+	c := ^crc
+	for _, b := range data {
 		c = table[byte(c)^b] ^ (c >> 8)
 	}
 	return ^c
 }
 
-// Checksum returns the CRC-32 of p.
-func Checksum(p []byte) uint32 { return Update(0, p) }
+// Checksum returns the CRC-32 of data.
+func Checksum(data []byte) uint32 {
+	return Update(0, data)
+}

@@ -1,67 +1,58 @@
-package toml
+package toml_test
 
-import "testing"
+import (
+	"testing"
 
-func encode(t *testing.T, js string) string {
-	t.Helper()
-	tbl, err := ParseTaggedJSON([]byte(js))
-	if err != nil {
-		t.Fatal(err)
-	}
-	return string(tbl.TOML())
-}
+	"example.com/toml"
+	"example.com/toml/tagged"
+)
 
 func TestEncode(t *testing.T) {
-	tests := []struct{ name, in, want string }{
+	tests := []struct{ name, json, want string }{
 		{"empty", `{}`, "\n"},
-		{"pairs sorted", `{"b":{"type":"integer","value":"1"},"a":{"type":"bool","value":"true"}}`, "a = true\nb = 1\n"},
+		{"example",
+			`{"db":{"enabled":{"type":"bool","value":"true"},"ports":[{"type":"integer","value":"8001"},{"type":"integer","value":"8002"}]},"dob":{"type":"datetime","value":"1979-05-27T07:32:00-08:00"},"fruit":[{"name":{"type":"string","value":"apple"}},{"name":{"type":"string","value":"banana"}}],"name":{"type":"string","value":"Tom"}}`,
+			"dob = 1979-05-27T07:32:00-08:00\nname = \"Tom\"\n\n[db]\nenabled = true\nports = [8001, 8002]\n\n[[fruit]]\nname = \"apple\"\n\n[[fruit]]\nname = \"banana\"\n"},
 		{"first header no blank", `{"a":{"b":{}}}`, "[a]\n\n[a.b]\n"},
-		{"keys quoted", `{"a b":{"type":"integer","value":"1"},"":{"type":"integer","value":"2"},"é":{"type":"integer","value":"3"}}`,
-			"\"\" = 2\n\"a b\" = 1\n\"é\" = 3\n"},
-		{"string escapes", `{"s":{"type":"string","value":"a\"\\\u0008\t\n\u000c\r\u0001\u007f é"}}`,
-			"s = \"a\\\"\\\\\\b\\t\\n\\f\\r\\u0001\\u007f é\"\n"},
-		{"inline arrays", `{"a":[[{"type":"integer","value":"1"}],[],{"x":{"type":"integer","value":"1"}}]}`,
-			"a = [[1], [], {x = 1}]\n"},
-		{"array of tables", `{"p":{"type":"integer","value":"1"},"t":[{"x":{"type":"integer","value":"1"}},{}]}`,
-			"p = 1\n\n[[t]]\nx = 1\n\n[[t]]\n"},
-		{"nested aot path", `{"a":{"b":[{"c":{}}]}}`, "[a]\n\n[[a.b]]\n\n[a.b.c]\n"},
-		{"pairs before headers", `{"z":{"k":{"type":"integer","value":"1"}},"y":{"type":"float","value":"nan"}}`,
-			"y = nan\n\n[z]\nk = 1\n"},
+		{"empty array inline", `{"a":[],"b":[[],[{"type":"integer","value":"1"}]]}`, "a = []\nb = [[], [1]]\n"},
+		{"mixed array inline", `{"a":[{"x":{"type":"integer","value":"1"}},{"type":"integer","value":"2"}]}`, "a = [{x = 1}, 2]\n"},
+		{"key quoting", `{"a b":{"type":"string","value":"q\"\\\u0001\u007f\n\u00e9"},"":{"type":"bool","value":"true"}}`,
+			"\"\" = true\n\"a b\" = \"q\\\"\\\\\\u0001\\u007f\\n\u00e9\"\n"},
+		{"type key table", `{"t":{"type":{"type":"string","value":"a"},"value":{"type":"string","value":"b"}}}`,
+			"[t]\ntype = \"a\"\nvalue = \"b\"\n"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
-			if got := encode(t, tc.in); got != tc.want {
-				t.Errorf("got %q\nwant %q", got, tc.want)
+			root, err := tagged.Unmarshal([]byte(tc.json))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := string(toml.Encode(root)); got != tc.want {
+				t.Errorf("got  %q\nwant %q", got, tc.want)
 			}
 		})
 	}
 }
 
-// TestRoundTrip checks decode(encode(x)) == x on documents with awkward shape.
+// TestRoundTrip checks decode(encode(x)) == x on decoded documents.
 func TestRoundTrip(t *testing.T) {
 	docs := []string{
-		"a = 1\n[b]\n[[c]]\nx = [1, 'two', {y = 3}]\n[[c]]\n[c.d]\n",
-		"\"weird key\\n\" = \"\\u0000\\u007f\"\nf = [1.5, inf, -inf, nan, 5e-324]\n",
-		"d = [1979-05-27, 07:32:00.5, 1979-05-27T07:32:00Z, 1979-05-27T07:32:00]\n",
-		"[a.b.c]\nx = 1\n[a.b.d]\n",
-		"a = []\nb = [{}]\nc = {}\n",
+		"a = 1\nb = 'x\\y'\n[t]\nc = [1, 'two', {d = 3.5}]\n[[t.u]]\nv = 1979-05-27T07:32:00Z\n[[t.u]]\n[e.\"f g\"]\n",
+		"x = \"\"\"\nline1\nline2\\\n   joined\"\"\"\nnan = nan\ninf = -inf\nz = -0.0\n",
+		"\"\" = 0\n\"\\u0000\" = 1e-310\n",
 	}
-	for _, d := range docs {
-		first, err := Parse([]byte(d))
-		if err != nil {
-			t.Fatalf("%q: %v", d, err)
-		}
-		js := first.TaggedJSON()
-		back, err := ParseTaggedJSON(js)
+	for _, doc := range docs {
+		root, err := toml.Parse([]byte(doc))
 		if err != nil {
 			t.Fatal(err)
 		}
-		again, err := Parse(back.TOML())
+		want := tagged.Marshal(root)
+		root2, err := toml.Parse(toml.Encode(root))
 		if err != nil {
-			t.Fatalf("re-parse of %q failed: %v", back.TOML(), err)
+			t.Fatalf("re-parse of %q: %v", toml.Encode(root), err)
 		}
-		if got := string(again.TaggedJSON()); got != string(js) {
-			t.Errorf("round trip of %q\n got %s\nwant %s", d, got, js)
+		if got := tagged.Marshal(root2); string(got) != string(want) {
+			t.Errorf("round trip changed tree\n got %s\nwant %s", got, want)
 		}
 	}
 }

@@ -1,220 +1,23 @@
 package markdown
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
-// This file implements the HTML renderer: an iterative enter/exit walk of the
-// node tree (inline nesting can be thousands of levels deep).
-
+// renderer writes the HTML for a finished tree.
 type renderer struct {
-	b       strings.Builder
-	imgDeep int // > 0 while inside an image: output plain alt text only
+	buf []byte
 }
 
-func render(doc *node) string {
-	r := &renderer{}
-	r.walk(doc)
-	return r.b.String()
-}
-
-func (r *renderer) walk(root *node) {
-	n := root
-	for {
-		r.enter(n)
-		if n.first != nil {
-			n = n.first
-			continue
-		}
-		for {
-			r.exit(n)
-			if n == root {
-				return
-			}
-			if n.next != nil {
-				n = n.next
-				break
-			}
-			n = n.parent
-		}
-	}
-}
-
-// cr emits a newline unless the output is empty or already ends with one.
 func (r *renderer) cr() {
-	if l := r.b.Len(); l > 0 && lastByte(&r.b) != '\n' {
-		r.b.WriteByte('\n')
+	if n := len(r.buf); n > 0 && r.buf[n-1] != '\n' {
+		r.buf = append(r.buf, '\n')
 	}
 }
 
-func lastByte(b *strings.Builder) byte {
-	s := b.String()
-	return s[len(s)-1]
-}
+func (r *renderer) str(s string) { r.buf = append(r.buf, s...) }
 
-func isTight(n *node) bool {
-	if n.parent == nil || n.parent.parent == nil {
-		return false
-	}
-	g := n.parent.parent
-	return g.typ == nList && g.list.tight
-}
-
-func (r *renderer) enter(n *node) {
-	if r.imgDeep > 0 {
-		switch n.typ {
-		case nText, nCode:
-			r.escape(n.literal)
-		case nSoftbreak, nLinebreak:
-			r.b.WriteByte(' ')
-		case nImage:
-			r.imgDeep++
-		}
-		return
-	}
-	b := &r.b
-	switch n.typ {
-	case nBlockQuote:
-		r.cr()
-		b.WriteString("<blockquote>\n")
-	case nList:
-		r.cr()
-		switch {
-		case !n.list.ordered:
-			b.WriteString("<ul>\n")
-		case n.list.start == 1:
-			b.WriteString("<ol>\n")
-		default:
-			b.WriteString("<ol start=\"")
-			b.WriteString(itoa(n.list.start))
-			b.WriteString("\">\n")
-		}
-	case nItem:
-		r.cr()
-		b.WriteString("<li>")
-	case nParagraph:
-		if !isTight(n) {
-			r.cr()
-			b.WriteString("<p>")
-		}
-	case nHeading:
-		r.cr()
-		b.WriteString("<h")
-		b.WriteByte(byte('0' + n.level))
-		b.WriteByte('>')
-	case nThematicBreak:
-		r.cr()
-		b.WriteString("<hr />\n")
-	case nCodeBlock:
-		r.cr()
-		if n.info == "" {
-			b.WriteString("<pre><code>")
-		} else {
-			end := 0
-			for end < len(n.info) && !isSpace(n.info[end]) {
-				end++
-			}
-			word := n.info[:end]
-			b.WriteString("<pre><code class=\"")
-			if !strings.HasPrefix(word, "language-") {
-				b.WriteString("language-")
-			}
-			r.escape(word)
-			b.WriteString("\">")
-		}
-		r.escape(n.literal)
-		b.WriteString("</code></pre>\n")
-	case nText:
-		r.escape(n.literal)
-	case nSoftbreak:
-		b.WriteByte('\n')
-	case nLinebreak:
-		b.WriteString("<br />\n")
-	case nCode:
-		b.WriteString("<code>")
-		r.escape(n.literal)
-		b.WriteString("</code>")
-	case nEmph:
-		b.WriteString("<em>")
-	case nStrong:
-		b.WriteString("<strong>")
-	case nLink:
-		b.WriteString("<a href=\"")
-		r.href(n.dest)
-		b.WriteByte('"')
-		if n.hasTitle {
-			b.WriteString(" title=\"")
-			r.escape(n.title)
-			b.WriteByte('"')
-		}
-		b.WriteByte('>')
-	case nImage:
-		b.WriteString("<img src=\"")
-		r.href(n.dest)
-		b.WriteString("\" alt=\"")
-		r.imgDeep++
-	}
-}
-
-func (r *renderer) exit(n *node) {
-	b := &r.b
-	if r.imgDeep > 0 {
-		if n.typ == nImage {
-			r.imgDeep--
-			if r.imgDeep == 0 {
-				b.WriteByte('"')
-				if n.hasTitle {
-					b.WriteString(" title=\"")
-					r.escape(n.title)
-					b.WriteByte('"')
-				}
-				b.WriteString(" />")
-			}
-		}
-		return
-	}
-	switch n.typ {
-	case nBlockQuote:
-		r.cr()
-		b.WriteString("</blockquote>\n")
-	case nList:
-		if n.list.ordered {
-			b.WriteString("</ol>\n")
-		} else {
-			b.WriteString("</ul>\n")
-		}
-	case nItem:
-		b.WriteString("</li>\n")
-	case nParagraph:
-		if !isTight(n) {
-			b.WriteString("</p>\n")
-		}
-	case nHeading:
-		b.WriteString("</h")
-		b.WriteByte(byte('0' + n.level))
-		b.WriteString(">\n")
-	case nEmph:
-		b.WriteString("</em>")
-	case nStrong:
-		b.WriteString("</strong>")
-	case nLink:
-		b.WriteString("</a>")
-	}
-}
-
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	var buf [20]byte
-	i := len(buf)
-	for n > 0 {
-		i--
-		buf[i] = byte('0' + n%10)
-		n /= 10
-	}
-	return string(buf[i:])
-}
-
-// escape writes s with & < > " replaced by entities.
 func (r *renderer) escape(s string) {
 	last := 0
 	for i := 0; i < len(s); i++ {
@@ -231,71 +34,25 @@ func (r *renderer) escape(s string) {
 		default:
 			continue
 		}
-		r.b.WriteString(s[last:i])
-		r.b.WriteString(rep)
+		r.buf = append(r.buf, s[last:i]...)
+		r.buf = append(r.buf, rep...)
 		last = i + 1
 	}
-	r.b.WriteString(s[last:])
+	r.buf = append(r.buf, s[last:]...)
 }
-
-var hrefSafe = func() (t [256]bool) {
-	for _, c := range []byte("-_.~!#$%()*+,/:;=?@") {
-		t[c] = true
-	}
-	for c := 'a'; c <= 'z'; c++ {
-		t[c] = true
-		t[c-32] = true
-	}
-	for c := '0'; c <= '9'; c++ {
-		t[c] = true
-	}
-	return
-}()
 
 const hexDigits = "0123456789ABCDEF"
 
-// href writes a link destination, percent-encoding unsafe bytes. Dangerous
-// schemes produce an empty value.
-func (r *renderer) href(dest string) {
-	if dangerousURL(dest) {
-		return
+func hrefSafe(c byte) bool {
+	switch {
+	case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9':
+		return true
 	}
-	last := 0
-	for i := 0; i < len(dest); i++ {
-		c := dest[i]
-		if hrefSafe[c] {
-			continue
-		}
-		r.b.WriteString(dest[last:i])
-		last = i + 1
-		switch c {
-		case '&':
-			r.b.WriteString("&amp;")
-		case '\'':
-			r.b.WriteString("&#x27;")
-		default:
-			r.b.WriteByte('%')
-			r.b.WriteByte(hexDigits[c>>4])
-			r.b.WriteByte(hexDigits[c&15])
-		}
-	}
-	r.b.WriteString(dest[last:])
+	return strings.IndexByte("-_.~!#$%()*+,/:;=?@", c) >= 0
 }
 
 func hasPrefixFold(s, prefix string) bool {
-	if len(s) < len(prefix) {
-		return false
-	}
-	for i := 0; i < len(prefix); i++ {
-		c := s[i]
-		if c >= 'A' && c <= 'Z' {
-			c += 32
-		}
-		if c != prefix[i] {
-			return false
-		}
-	}
-	return true
+	return len(s) >= len(prefix) && strings.EqualFold(s[:len(prefix)], prefix)
 }
 
 func dangerousURL(u string) bool {
@@ -313,4 +70,155 @@ func dangerousURL(u string) bool {
 		return true
 	}
 	return false
+}
+
+func (r *renderer) href(u string) {
+	if dangerousURL(u) {
+		return
+	}
+	for i := 0; i < len(u); i++ {
+		c := u[i]
+		switch {
+		case c == '&':
+			r.str("&amp;")
+		case c == '\'':
+			r.str("&#x27;")
+		case hrefSafe(c):
+			r.buf = append(r.buf, c)
+		default:
+			r.buf = append(r.buf, '%', hexDigits[c>>4], hexDigits[c&15])
+		}
+	}
+}
+
+func (r *renderer) children(n *node) {
+	for c := n.first; c != nil; c = c.next {
+		r.node(c)
+	}
+}
+
+func (r *renderer) node(n *node) {
+	switch n.kind {
+	case kDocument:
+		r.children(n)
+	case kBlockQuote:
+		r.cr()
+		r.str("<blockquote>\n")
+		r.children(n)
+		r.cr()
+		r.str("</blockquote>\n")
+	case kList:
+		r.cr()
+		switch {
+		case !n.ordered:
+			r.str("<ul>\n")
+		case n.start == 1:
+			r.str("<ol>\n")
+		default:
+			r.str("<ol start=\"" + strconv.Itoa(n.start) + "\">\n")
+		}
+		r.children(n)
+		if n.ordered {
+			r.str("</ol>\n")
+		} else {
+			r.str("</ul>\n")
+		}
+	case kItem:
+		r.cr()
+		r.str("<li>")
+		r.children(n)
+		r.str("</li>\n")
+	case kParagraph:
+		if n.parent != nil && n.parent.parent != nil && n.parent.parent.kind == kList && n.parent.parent.tight {
+			r.children(n)
+		} else {
+			r.cr()
+			r.str("<p>")
+			r.children(n)
+			r.str("</p>\n")
+		}
+	case kHeading:
+		r.cr()
+		tag := "h" + strconv.Itoa(n.level)
+		r.str("<" + tag + ">")
+		r.children(n)
+		r.str("</" + tag + ">\n")
+	case kThematicBreak:
+		r.cr()
+		r.str("<hr />\n")
+	case kCodeBlock:
+		r.cr()
+		if n.info == "" {
+			r.str("<pre><code>")
+		} else {
+			lang := n.info
+			if i := strings.IndexFunc(lang, func(c rune) bool { return c < 128 && isWhitespace(byte(c)) }); i >= 0 {
+				lang = lang[:i]
+			}
+			r.str("<pre><code class=\"")
+			if !strings.HasPrefix(lang, "language-") {
+				r.str("language-")
+			}
+			r.escape(lang)
+			r.str("\">")
+		}
+		r.escape(n.lit)
+		r.str("</code></pre>\n")
+	case kText:
+		r.escape(n.lit)
+	case kSoftBreak:
+		r.str("\n")
+	case kLineBreak:
+		r.str("<br />\n")
+	case kCode:
+		r.str("<code>")
+		r.escape(n.lit)
+		r.str("</code>")
+	case kEmph:
+		r.str("<em>")
+		r.children(n)
+		r.str("</em>")
+	case kStrong:
+		r.str("<strong>")
+		r.children(n)
+		r.str("</strong>")
+	case kLink:
+		r.str("<a href=\"")
+		r.href(n.dest)
+		r.str("\"")
+		if n.hasTitle {
+			r.str(" title=\"")
+			r.escape(n.title)
+			r.str("\"")
+		}
+		r.str(">")
+		r.children(n)
+		r.str("</a>")
+	case kImage:
+		r.str("<img src=\"")
+		r.href(n.dest)
+		r.str("\" alt=\"")
+		r.altText(n)
+		r.str("\"")
+		if n.hasTitle {
+			r.str(" title=\"")
+			r.escape(n.title)
+			r.str("\"")
+		}
+		r.str(" />")
+	}
+}
+
+// altText writes the plain text content of an image's descendants.
+func (r *renderer) altText(n *node) {
+	for c := n.first; c != nil; c = c.next {
+		switch c.kind {
+		case kText, kCode:
+			r.escape(c.lit)
+		case kSoftBreak, kLineBreak:
+			r.str(" ")
+		default:
+			r.altText(c)
+		}
+	}
 }

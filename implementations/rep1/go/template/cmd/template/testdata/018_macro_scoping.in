@@ -1,0 +1,13 @@
+{
+  "v": "ctx",
+  "items": [
+    1,
+    2
+  ]
+}
+--
+=== main
+{% macro show() %}[{{ v }} {{ w }} {{ i is defined }} {{ loop is defined }}]{% endmacro %}{% set w = "top" %}{{ show() }}{% for i in items %}{{ show() }}{% endfor %}
+{% macro inner() %}{% set local = "local" %}{{ local }}{% endmacro %}{{ inner() }} {{ w }} {{ local is defined }}
+{% macro outer(x) %}{% macro nested(y) %}{{ x }}{{ y }}{% endmacro %}{{ nested(1) }}{{ nested(2) }}{% endmacro %}{{ outer("o") }} {{ nested is defined }}
+{% macro shadow(v) %}{{ v }}{% endmacro %}{{ shadow("param") }} {{ v }} {{ shadow is defined }} {{ show is defined }}

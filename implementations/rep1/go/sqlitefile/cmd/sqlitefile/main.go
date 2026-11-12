@@ -1,15 +1,19 @@
-// Command sqlitefile answers a batch of queries against a SQLite 3 database.
+// Command sqlitefile answers the queries in an input directory against the
+// SQLite database stored there.
 //
 // Usage:
 //
 //	sqlitefile <input directory> <output directory>
 //
-// The input directory holds one *.sqlite file and a queries.txt with one query
-// per line. For query n the tool writes NNN.txt (n zero-padded to three digits)
-// into the output directory: the result rows, or the single line "error".
+// The input directory holds one *.sqlite file and queries.txt, one query per
+// line. For the n-th query the file NNN.txt (n zero-padded to three digits) is
+// written to the output directory. A failed query produces the single line
+// "error"; the exit status is still 0.
 package main
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -30,50 +34,46 @@ func main() {
 }
 
 func run(inDir, outDir string) error {
-	dbPath, err := findDatabase(inDir)
+	matches, err := filepath.Glob(filepath.Join(globEscape(inDir), "*.sqlite"))
 	if err != nil {
 		return err
 	}
-	raw, err := os.ReadFile(filepath.Join(inDir, "queries.txt"))
+	if len(matches) != 1 {
+		return fmt.Errorf("expected exactly one .sqlite file in %s, found %d", inDir, len(matches))
+	}
+	qdata, err := os.ReadFile(filepath.Join(inDir, "queries.txt"))
 	if err != nil {
 		return err
 	}
-	lines := strings.Split(strings.TrimSuffix(string(raw), "\n"), "\n")
-	if len(raw) == 0 {
-		lines = nil
-	}
+	queries := strings.Split(strings.TrimSuffix(string(qdata), "\n"), "\n")
 
-	// An unreadable database makes every query an error rather than a crash.
-	db, dbErr := sqlitefile.Open(dbPath)
-
-	var buf []byte
-	for i, line := range lines {
-		buf = buf[:0]
-		if dbErr == nil {
-			buf, err = db.Exec(strings.TrimSuffix(line, "\r"), buf)
-		} else {
-			err = dbErr
+	db, dbErr := sqlitefile.Open(matches[0])
+	for i, q := range queries {
+		var out bytes.Buffer
+		w := bufio.NewWriter(&out)
+		var lines []string
+		err := dbErr
+		if err == nil {
+			lines, err = db.Exec(q)
 		}
 		if err != nil {
-			buf = append(buf[:0], "error\n"...)
+			w.WriteString("error\n")
+		} else {
+			for _, l := range lines {
+				w.WriteString(l)
+				w.WriteByte('\n')
+			}
 		}
+		w.Flush()
 		name := filepath.Join(outDir, fmt.Sprintf("%03d.txt", i+1))
-		if err := os.WriteFile(name, buf, 0o644); err != nil {
+		if err := os.WriteFile(name, out.Bytes(), 0o644); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func findDatabase(dir string) (string, error) {
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		return "", err
-	}
-	for _, e := range entries {
-		if !e.IsDir() && strings.HasSuffix(e.Name(), ".sqlite") {
-			return filepath.Join(dir, e.Name()), nil
-		}
-	}
-	return "", fmt.Errorf("no .sqlite file in %s", dir)
+// globEscape escapes glob metacharacters in a directory path.
+func globEscape(s string) string {
+	return strings.NewReplacer(`\`, `\\`, `*`, `\*`, `?`, `\?`, `[`, `\[`).Replace(s)
 }

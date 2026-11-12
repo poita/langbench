@@ -1,10 +1,15 @@
 // Command chess-perft answers perft and divide queries read from standard
-// input, one per line, and writes one result per query to standard output.
+// input, one per line, writing one result per query to standard output.
 //
-// A query is a FEN record followed by either a depth or "divide" and a depth:
+// A query is a six-field FEN record followed by a depth, or by the word
+// "divide" and a depth:
 //
 //	<placement> <side> <castling> <ep> <halfmove> <fullmove> <depth>
 //	<placement> <side> <castling> <ep> <halfmove> <fullmove> divide <depth>
+//
+// A perft query prints the leaf-node count. A divide query prints one
+// "<move> <count>" line per legal root move, sorted by move text, followed by
+// "total <n>".
 package main
 
 import (
@@ -15,7 +20,7 @@ import (
 	"strconv"
 	"strings"
 
-	"chessperft/chess"
+	"github.com/example/chess-perft/chess"
 )
 
 func main() {
@@ -25,61 +30,69 @@ func main() {
 	}
 }
 
-// run reads every query from r and writes the results to w.
-func run(r io.Reader, w io.Writer) error {
-	in := bufio.NewReaderSize(r, 1<<16)
-	out := bufio.NewWriterSize(w, 1<<16)
-	for {
-		line, err := in.ReadString('\n')
-		line = strings.TrimSpace(line)
-		if line != "" {
-			if qerr := answer(out, line); qerr != nil {
-				return qerr
-			}
+// run executes every query read from in, writing the results to out. It stops
+// at the first malformed query, after writing the results of earlier ones.
+func run(in io.Reader, out io.Writer) error {
+	w := bufio.NewWriter(out)
+	defer w.Flush()
+
+	sc := bufio.NewScanner(in)
+	sc.Buffer(make([]byte, 0, 64*1024), 1<<20)
+	for lineNo := 1; sc.Scan(); lineNo++ {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" {
+			continue
 		}
-		if err == io.EOF {
-			break
-		}
+		q, err := parseQuery(line)
 		if err != nil {
-			return err
+			w.Flush()
+			return fmt.Errorf("line %d: %w", lineNo, err)
 		}
+		q.answer(w)
 	}
-	return out.Flush()
+	return sc.Err()
 }
 
-// answer evaluates one query line and writes its result.
-func answer(w *bufio.Writer, line string) error {
-	f := strings.Split(line, " ")
-	if len(f) != 7 && len(f) != 8 {
-		return fmt.Errorf("malformed query %q", line)
+// query is one parsed input line.
+type query struct {
+	pos    *chess.Position
+	depth  int
+	divide bool
+}
+
+// parseQuery parses a line of the form described in the package comment.
+func parseQuery(line string) (query, error) {
+	fields := strings.Fields(line)
+	var q query
+	switch len(fields) {
+	case 7:
+	case 8:
+		if fields[6] != "divide" {
+			return q, fmt.Errorf("expected \"divide\", got %q", fields[6])
+		}
+		q.divide = true
+	default:
+		return q, fmt.Errorf("expected 7 or 8 fields, got %d", len(fields))
 	}
-	divide := len(f) == 8
-	if divide && f[6] != "divide" {
-		return fmt.Errorf("malformed query %q", line)
+	depth, err := strconv.Atoi(fields[len(fields)-1])
+	if err != nil || depth < 0 || (q.divide && depth < 1) {
+		return q, fmt.Errorf("invalid depth %q", fields[len(fields)-1])
 	}
-	depth, err := strconv.Atoi(f[len(f)-1])
-	if err != nil || depth < 0 {
-		return fmt.Errorf("bad depth in query %q", line)
-	}
-	pos, err := chess.ParseFEN(strings.Join(f[:6], " "))
-	if err != nil {
-		return err
-	}
-	if !divide {
-		w.WriteString(strconv.FormatUint(pos.Perft(depth), 10))
-		w.WriteByte('\n')
-		return nil
+	q.depth = depth
+	q.pos, err = chess.ParseFEN(strings.Join(fields[:6], " "))
+	return q, err
+}
+
+// answer writes the result of the query to w.
+func (q query) answer(w io.Writer) {
+	if !q.divide {
+		fmt.Fprintln(w, chess.Perft(q.pos, q.depth))
+		return
 	}
 	var total uint64
-	for _, e := range pos.Divide(depth) {
-		w.WriteString(e.Move.String())
-		w.WriteByte(' ')
-		w.WriteString(strconv.FormatUint(e.Count, 10))
-		w.WriteByte('\n')
-		total += e.Count
+	for _, e := range chess.Divide(q.pos, q.depth) {
+		fmt.Fprintf(w, "%s %d\n", e.Move, e.Nodes)
+		total += e.Nodes
 	}
-	w.WriteString("total ")
-	w.WriteString(strconv.FormatUint(total, 10))
-	w.WriteByte('\n')
-	return nil
+	fmt.Fprintf(w, "total %d\n", total)
 }

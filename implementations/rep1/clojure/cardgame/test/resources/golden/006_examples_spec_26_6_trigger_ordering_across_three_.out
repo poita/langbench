@@ -1,0 +1,44 @@
+1 GAME-START A
+2 TURN 1 A
+3 PHASE dawn
+4 EMBER A 4 4
+5 EMBER B 0 0
+6 PHASE draw
+7 PHASE main1
+8 PLAY A ~1 #2 DSK-002 #5
+9 PAY A ember 2
+10 PASS A
+11 PASS B
+12 RESOLVE ~1
+13 DESTROY #5 TOK-001
+14 SPENT #2 DSK-002
+15 TRIGGER A ~2 #3 1
+16 TRIGGER A ~3 #4 1
+17 TRIGGER B ~4 #7 1
+18 PASS A
+19 PASS B
+20 RESOLVE ~2
+21 DAMAGE #3 B 1
+22 SPIRE B -1 9
+23 PASS A
+24 PASS B
+25 RESOLVE ~3
+26 SPIRE A +1 11
+27 PASS A
+28 PASS B
+29 RESOLVE ~4
+30 COUNTERS #7 +1 1
+31 PASS A
+32 PASS B
+33 PHASE clash-attack
+STATE BEGIN
+turn 1 active A phase clash-attack decision A attackers
+player A spire 11 ember 2 cap 4 vault 1 hand 0 ash 2 rift 0
+player B spire 9 ember 0 cap 0 vault 1 hand 0 ash 0 rift 0
+field A #3 CIN-018 3/4 w0 c0 ready - kw -
+field A #4 DSK-036 2/4 w0 c0 ready - kw -
+field B #7 DSK-005 5/4 w0 c1 ready - kw -
+ash A 1 #5 TOK-001
+ash A 2 #2 DSK-002
+STATE END
+34 RESULT pending none

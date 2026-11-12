@@ -1,0 +1,10 @@
+@module main
+use a;
+fn main() { print(showInt(a::f())); }
+@module a
+use b;
+pub fn f() -> Int { b::g() + 1 }
+@module b
+use a;
+pub fn g() -> Int { 41 }
+pub fn h() -> Int { a::f() }

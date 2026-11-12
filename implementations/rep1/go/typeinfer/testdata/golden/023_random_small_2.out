@@ -1,0 +1,30 @@
+error: unify
+error: unify
+h : ((bool -> bool) list * bool) * int
+acc : 'a -> ((bool -> bool) list * bool) * int
+a : 'a -> 'b -> 'c -> bool
+h : ((bool -> bool) list * bool) * int
+x2 : bool
+lst : int
+t : int * ('a list * ('b -> 'c -> 'c))
+v : 'a -> 'b -> 'c -> 'd -> 'e -> int
+l : 'a -> 'b -> 'c -> 'd -> 'e -> int
+error: unify
+error: unify
+error: unbound
+error: unbound
+k : int
+error: unify
+e : int * ('a -> 'b -> 'c -> int)
+f : 'a -> ((bool -> bool) list * bool) * int
+error: unify
+error: unify
+v : bool
+p : 'a -> 'b -> 'c -> int list
+error: unify
+p : 'a -> 'b -> 'c -> 'd -> bool * bool
+error: unify
+s : 'a list
+v : int
+error: unify
+error: unbound

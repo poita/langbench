@@ -1,216 +1,313 @@
 package engine
 
-import (
-	"datalog/ast"
-)
+import "example.com/datalog/ast"
 
-// src is a value source: a constant id or a slot in the variable environment.
+// src is a value source: a variable slot (slot >= 0) or a constant id.
 type src struct {
-	slot  bool
-	value int32 // constant id, or slot number
-}
-
-func (s src) get(env []int32) int32 {
-	if s.slot {
-		return env[s.value]
-	}
-	return s.value
-}
-
-type stepMode uint8
-
-const (
-	modeScan  stepMode = iota // iterate a position range
-	modeIndex                 // iterate an index bucket up to the snapshot
-	modeProbe                 // membership test; every argument is bound
-)
-
-type check struct {
-	pos int
-	src src
-}
-
-type bind struct {
-	pos  int
 	slot int
+	val  uint32
 }
 
-type filterKind uint8
+type colSlot struct{ col, slot int }
+
+// role says which tuples of a relation a join step reads in a round.
+type role int
 
 const (
-	filterNot filterKind = iota
-	filterCmp
+	roleFull  role = iota // everything present at the start of the round
+	roleDelta             // only the previous round's new tuples
+	roleOld               // everything before the previous round's tuples
 )
 
-// filter is a negated atom or a comparison, applied once all of its variables
+// step is one positive atom of a join plan.
+type step struct {
+	rel     *relation
+	role    role
+	ix      *index // nil: scan the id range and check keyCols
+	keyCols []int  // columns holding constants or already-bound variables
+	keySrc  []src
+	keyBuf  []uint32
+	assign  []colSlot // columns binding new variables
+	eq      []colSlot // columns repeating a variable bound earlier in this atom
+	lo, hi  int       // id range for this run
+}
+
+// filter is a negated atom or comparison, evaluated as soon as its variables
 // are bound.
 type filter struct {
-	kind filterKind
-	rel  *Relation // filterNot
-	args []src     // filterNot
-	buf  []int32   // scratch tuple for filterNot
-	op   ast.CmpOp // filterCmp
-	l, r src       // filterCmp
+	neg         bool
+	rel         *relation
+	args        []src
+	buf         []uint32
+	op          ast.CmpOp
+	left, right src
 }
 
-// step joins one positive body atom.
-type step struct {
-	mode  stepMode
-	pred  int
-	rel   *Relation
-	delta bool // scan only the previous round's delta range
-	idx   *Index
-	key   []src   // modeIndex: one per index column; modeProbe: the full tuple
-	buf   []int32 // scratch for key / probe tuple
-	pre   []check // scan: arguments that must equal a bound value
-	binds []bind  // first occurrences of unbound variables
-	post  []check // repeated unbound variables, checked after binding
-	after []filter
-}
-
-// plan is a compiled join for one rule (or one delta variant of it).
+// plan is a compiled rule variant: an indexed nested-loop join over the
+// positive atoms, with filters interleaved.
 type plan struct {
-	head    *Relation
-	headArg []src
-	headBuf []int32
-	pre     []filter // filters with no variables
 	steps   []step
-	nvars   int
-	indexes []*Index
+	filters [][]filter // filters[i] run once steps[:i] have bound their variables
+	head    *relation
+	headSrc []src
+	headBuf []uint32
+	binding []uint32
 }
 
-// compile builds the join plan for r. If delta >= 0 it is the body position of
-// the positive atom that is scanned over the previous round's delta and joined
-// first.
-func compile(db *Database, r *ast.Rule, delta int) *plan {
-	pl := &plan{head: db.rels[r.Head.Pred], nvars: r.NumVars}
-	bound := make([]bool, r.NumVars)
+func (p *plan) val(s src) uint32 {
+	if s.slot < 0 {
+		return s.val
+	}
+	return p.binding[s.slot]
+}
 
-	mk := func(t ast.Term) src { return src{slot: t.IsVar, value: int32(t.ID)} }
-	allBound := func(ts ...ast.Term) bool {
-		for _, t := range ts {
-			if t.IsVar && !bound[t.ID] {
-				return false
-			}
+// compile builds the plan for rule r. deltaAtom is the position (among the
+// rule's positive atoms, in body order) of the atom reading the delta, or -1
+// to read every atom in full. recursive[k] tells whether positive atom k is
+// in the rule's component; atoms of the component before deltaAtom read only
+// old tuples so that each combination of new tuples is derived exactly once.
+func (db *Database) compile(r ast.Rule, deltaAtom int, recursive []bool) *plan {
+	slots := map[string]int{}
+	slotOf := func(name string) int {
+		s, ok := slots[name]
+		if !ok {
+			s = len(slots)
+			slots[name] = s
 		}
-		return true
+		return s
+	}
+	srcOf := func(t ast.Term) src {
+		if t.IsVar {
+			return src{slot: slotOf(t.Var)}
+		}
+		return src{slot: -1, val: db.symID[t.Const]}
 	}
 
-	var pos []int // positive literals still to place
-	for i, l := range r.Body {
-		if l.Kind == ast.Positive && i != delta {
-			pos = append(pos, i)
-		}
-	}
-	var pending []int // filters not yet attached
-	for i, l := range r.Body {
-		if l.Kind != ast.Positive {
-			pending = append(pending, i)
-		}
-	}
-	makeFilter := func(l ast.Literal) filter {
-		if l.Kind == ast.Negative {
-			f := filter{kind: filterNot, rel: db.rels[l.Atom.Pred], buf: make([]int32, len(l.Atom.Args))}
+	var pos []ast.Atom
+	var pending []filter
+	var pendingVars [][]string
+	for _, l := range r.Body {
+		switch l.Kind {
+		case ast.Positive:
+			pos = append(pos, l.Atom)
+		case ast.Negative:
+			f := filter{neg: true, rel: db.relation(l.Atom.ID())}
+			var vars []string
 			for _, t := range l.Atom.Args {
-				f.args = append(f.args, mk(t))
+				f.args = append(f.args, srcOf(t))
+				if t.IsVar {
+					vars = append(vars, t.Var)
+				}
 			}
-			return f
+			f.buf = make([]uint32, len(f.args))
+			pending, pendingVars = append(pending, f), append(pendingVars, vars)
+		case ast.Comparison:
+			f := filter{op: l.Op, left: srcOf(l.Left), right: srcOf(l.Right)}
+			var vars []string
+			for _, t := range []ast.Term{l.Left, l.Right} {
+				if t.IsVar {
+					vars = append(vars, t.Var)
+				}
+			}
+			pending, pendingVars = append(pending, f), append(pendingVars, vars)
 		}
-		return filter{kind: filterCmp, op: l.Op, l: mk(l.Left), r: mk(l.Right)}
 	}
-	// attach moves every pending filter whose variables are all bound onto dst.
-	attach := func(dst *[]filter) {
-		rest := pending[:0]
-		for _, i := range pending {
-			l := r.Body[i]
-			ok := false
-			if l.Kind == ast.Negative {
-				ok = allBound(l.Atom.Args...)
-			} else {
-				ok = allBound(l.Left, l.Right)
+
+	p := &plan{head: db.relation(r.Head.ID())}
+	bound := map[string]bool{}
+	attach := func() {
+		var rest []filter
+		var restVars [][]string
+		at := make([]filter, 0)
+		for i, f := range pending {
+			ok := true
+			for _, v := range pendingVars[i] {
+				ok = ok && bound[v]
 			}
 			if ok {
-				*dst = append(*dst, makeFilter(l))
+				at = append(at, f)
 			} else {
-				rest = append(rest, i)
+				rest, restVars = append(rest, f), append(restVars, pendingVars[i])
 			}
 		}
-		pending = rest
+		p.filters = append(p.filters, at)
+		pending, pendingVars = rest, restVars
 	}
-	attach(&pl.pre)
+	attach()
 
-	place := func(bi int, isDelta bool) {
-		a := r.Body[bi].Atom
-		st := step{pred: a.Pred, rel: db.rels[a.Pred], delta: isDelta}
-		var boundCols []int
-		var boundSrc []src
-		seen := map[int]bool{} // variables first bound within this atom
+	// Join order: the delta atom first, then repeatedly the atom with the
+	// most bound arguments, ties broken by body order.
+	used := make([]bool, len(pos))
+	boundArgs := func(a ast.Atom) int {
+		n := 0
+		for _, t := range a.Args {
+			if !t.IsVar || bound[t.Var] {
+				n++
+			}
+		}
+		return n
+	}
+	for len(p.steps) < len(pos) {
+		pick := -1
+		if len(p.steps) == 0 && deltaAtom >= 0 {
+			pick = deltaAtom
+		} else {
+			best := -1
+			for k, a := range pos {
+				if !used[k] {
+					if n := boundArgs(a); n > best {
+						best, pick = n, k
+					}
+				}
+			}
+		}
+		used[pick] = true
+		a := pos[pick]
+		s := step{rel: db.relation(a.ID()), role: roleFull}
+		switch {
+		case pick == deltaAtom:
+			s.role = roleDelta
+		case deltaAtom >= 0 && recursive[pick] && pick < deltaAtom:
+			s.role = roleOld
+		}
+		var mask uint32
+		seen := map[string]int{} // new variables of this atom -> slot
 		for c, t := range a.Args {
 			switch {
 			case !t.IsVar:
-				boundCols = append(boundCols, c)
-				boundSrc = append(boundSrc, mk(t))
-			case bound[t.ID]:
-				boundCols = append(boundCols, c)
-				boundSrc = append(boundSrc, mk(t))
-			case seen[t.ID]:
-				st.post = append(st.post, check{pos: c, src: mk(t)})
+				mask |= 1 << c
+				s.keyCols = append(s.keyCols, c)
+				s.keySrc = append(s.keySrc, srcOf(t))
+			case bound[t.Var]:
+				mask |= 1 << c
+				s.keyCols = append(s.keyCols, c)
+				s.keySrc = append(s.keySrc, src{slot: slotOf(t.Var)})
 			default:
-				seen[t.ID] = true
-				st.binds = append(st.binds, bind{pos: c, slot: t.ID})
-			}
-		}
-		switch {
-		case isDelta:
-			st.mode = modeScan
-			for i, c := range boundCols {
-				st.pre = append(st.pre, check{pos: c, src: boundSrc[i]})
-			}
-		case len(boundCols) == len(a.Args):
-			st.mode = modeProbe
-			st.key = boundSrc
-			st.buf = make([]int32, len(a.Args))
-		case len(boundCols) > 0:
-			st.mode = modeIndex
-			st.idx = st.rel.index(boundCols)
-			st.key = boundSrc
-			st.buf = make([]int32, len(boundCols))
-			pl.indexes = append(pl.indexes, st.idx)
-		default:
-			st.mode = modeScan
-		}
-		for _, b := range st.binds {
-			bound[b.slot] = true
-		}
-		attach(&st.after)
-		pl.steps = append(pl.steps, st)
-	}
-
-	if delta >= 0 {
-		place(delta, true)
-	}
-	for len(pos) > 0 {
-		// Greedy: the atom with the most bound arguments; earliest on ties.
-		best, bestScore := 0, -1
-		for k, bi := range pos {
-			score := 0
-			for _, t := range r.Body[bi].Atom.Args {
-				if !t.IsVar || bound[t.ID] {
-					score++
+				if sl, ok := seen[t.Var]; ok {
+					s.eq = append(s.eq, colSlot{c, sl})
+				} else {
+					sl = slotOf(t.Var)
+					seen[t.Var] = sl
+					s.assign = append(s.assign, colSlot{c, sl})
 				}
 			}
-			if score > bestScore {
-				best, bestScore = k, score
-			}
 		}
-		bi := pos[best]
-		pos = append(pos[:best], pos[best+1:]...)
-		place(bi, false)
+		for v := range seen {
+			bound[v] = true
+		}
+		if mask != 0 && s.role != roleDelta {
+			s.ix = s.rel.getIndex(mask)
+			s.keyBuf = make([]uint32, len(s.keyCols))
+		}
+		p.steps = append(p.steps, s)
+		attach()
 	}
 
 	for _, t := range r.Head.Args {
-		pl.headArg = append(pl.headArg, mk(t))
+		p.headSrc = append(p.headSrc, srcOf(t))
 	}
-	pl.headBuf = make([]int32, len(r.Head.Args))
-	return pl
+	p.headBuf = make([]uint32, len(p.headSrc))
+	p.binding = make([]uint32, len(slots))
+	return p
+}
+
+// setRanges fixes the id range every step reads in the coming run.
+func (p *plan) setRanges() {
+	for i := range p.steps {
+		s := &p.steps[i]
+		switch s.role {
+		case roleFull:
+			s.lo, s.hi = 0, s.rel.n
+		case roleDelta:
+			s.lo, s.hi = s.rel.dlo, s.rel.dhi
+		case roleOld:
+			s.lo, s.hi = 0, s.rel.dlo
+		}
+		if s.ix != nil {
+			s.ix.sync(s.rel)
+		}
+	}
+}
+
+func (p *plan) run() {
+	p.setRanges()
+	if p.check(0) {
+		p.exec(0)
+	}
+}
+
+func (p *plan) check(i int) bool {
+	for k := range p.filters[i] {
+		f := &p.filters[i][k]
+		if f.neg {
+			for j, a := range f.args {
+				f.buf[j] = p.val(a)
+			}
+			if f.rel.contains(f.buf) {
+				return false
+			}
+		} else {
+			l, r := p.val(f.left), p.val(f.right)
+			c := 0
+			if l < r {
+				c = -1
+			} else if l > r {
+				c = 1
+			}
+			if !f.op.Holds(c) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (p *plan) exec(j int) {
+	if j == len(p.steps) {
+		for i, s := range p.headSrc {
+			p.headBuf[i] = p.val(s)
+		}
+		p.head.insert(p.headBuf)
+		return
+	}
+	s := &p.steps[j]
+	if s.ix == nil {
+		for id := s.lo; id < s.hi; id++ {
+			p.visit(j, s, id, true)
+		}
+		return
+	}
+	for i, k := range s.keySrc {
+		s.keyBuf[i] = p.val(k)
+	}
+	for h := s.ix.find(s.rel, s.keyBuf); h != 0; {
+		id := int(h - 1)
+		if id >= s.hi {
+			break
+		}
+		p.visit(j, s, id, false)
+		h = s.ix.next[id]
+	}
+}
+
+func (p *plan) visit(j int, s *step, id int, checkKey bool) {
+	t := s.rel.tuple(id)
+	if checkKey {
+		for i, c := range s.keyCols {
+			if t[c] != p.val(s.keySrc[i]) {
+				return
+			}
+		}
+	}
+	for _, a := range s.assign {
+		p.binding[a.slot] = t[a.col]
+	}
+	for _, e := range s.eq {
+		if t[e.col] != p.binding[e.slot] {
+			return
+		}
+	}
+	if p.check(j + 1) {
+		p.exec(j + 1)
+	}
 }

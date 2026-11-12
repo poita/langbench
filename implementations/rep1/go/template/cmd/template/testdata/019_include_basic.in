@@ -1,0 +1,19 @@
+{
+  "name": "Ada",
+  "items": [
+    "x",
+    "y"
+  ]
+}
+--
+=== main
+Start
+{% include "header" %}
+{% for it in items %}{% include "item" %}{% endfor %}
+{% set local = "L" %}{% include "footer" %}{{ inner is defined }}|{{ local }}
+=== header
+== {{ name|upper }} ==
+=== item
+<{{ it }}{{ loop_free|default("") }}>
+=== footer
+{% set inner = 1 %}{{ local }}{{ inner }} {{ name }}

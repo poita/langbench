@@ -1,5 +1,11 @@
-// Command sat reads a DIMACS CNF formula on standard input and prints SAT and
-// a satisfying assignment, or UNSAT.
+// Command sat reads a DIMACS CNF formula and prints SAT followed by a
+// satisfying assignment, or UNSAT.
+//
+// Usage:
+//
+//	sat [file]
+//
+// With no argument the formula is read from standard input.
 package main
 
 import (
@@ -7,34 +13,33 @@ import (
 	"io"
 	"os"
 
-	"github.com/example/sat/dimacs"
-	"github.com/example/sat/solver"
+	"example.com/sat/dimacs"
 )
 
 func main() {
-	if err := run(os.Stdin, os.Stdout); err != nil {
+	in := io.Reader(os.Stdin)
+	if len(os.Args) > 1 {
+		f, err := os.Open(os.Args[1])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "sat:", err)
+			os.Exit(2)
+		}
+		defer f.Close()
+		in = f
+	}
+	if err := run(in, os.Stdout); err != nil {
 		fmt.Fprintln(os.Stderr, "sat:", err)
 		os.Exit(1)
 	}
 }
 
+// run solves the formula read from in and writes the verdict to out.
 func run(in io.Reader, out io.Writer) error {
-	data, err := io.ReadAll(in)
+	cnf, err := dimacs.Parse(in)
 	if err != nil {
 		return err
 	}
-	f, err := dimacs.Parse(data)
-	if err != nil {
-		return err
-	}
-	s := solver.New(f.NumVars)
-	for _, c := range f.Clauses {
-		if !s.AddClause(c...) {
-			break
-		}
-	}
-	if s.Solve() == solver.Unsat {
-		return dimacs.WriteResult(out, false, nil)
-	}
-	return dimacs.WriteResult(out, true, s.Model())
+	s := cnf.Solver()
+	st := s.Solve()
+	return dimacs.WriteResult(out, st, s.Model())
 }

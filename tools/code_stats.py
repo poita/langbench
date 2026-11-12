@@ -11,6 +11,7 @@ test_*.py or tests/, Rust tests/ and #[cfg(test)] modules, D and C++ files under
 import argparse
 import collections
 import glob
+import gzip
 import os
 import re
 import sys
@@ -72,14 +73,26 @@ def project_lines(project, lang):
     return counts
 
 
+def source_files(project, lang):
+    return sorted(p for p in glob.glob(os.path.join(project, "**", "*"), recursive=True)
+                  if os.path.isfile(p) and p.endswith(EXT[lang]) and not BUILD.search(os.path.relpath(p, project)))
+
+
+def compressed_size(project, lang):
+    """Bytes of the project's source files (library and tests, in path order) compressed with gzip -9. Unlike line
+    counts, it discounts layout, long names and repetition, so it compares how much code languages need."""
+    data = b"".join(open(p, "rb").read() for p in source_files(project, lang))
+    return len(gzip.compress(data, 9, mtime=0))
+
+
 def collect(root, langs=None):
-    """{lang: [(slug, rep, code, test)]} for the projects under root."""
+    """{lang: [(slug, rep, code, test, compressed bytes)]} for the projects under root."""
     out = collections.defaultdict(list)
     for project in sorted(glob.glob(os.path.join(root, "rep*", "*", "*"))):
         rep, lang, slug = project.split(os.sep)[-3:]
         if lang in EXT and (not langs or lang in langs):
             c = project_lines(project, lang)
-            out[lang].append((slug, rep, c["code"], c["test"]))
+            out[lang].append((slug, rep, c["code"], c["test"], compressed_size(project, lang)))
     return out
 
 
@@ -90,13 +103,19 @@ def median(xs):
 
 
 def report(data):
-    out = ["| Language | Projects | Code lines (median) | Test lines (median) | Test share (median) |",
-           "|---|---:|---:|---:|---:|"]
+    """Size per language. The total is over the first repetition of the problems every language has, so totals
+    compare like with like."""
+    common = set.intersection(*({s for s, rep, *_ in rows if rep == "rep1"} for rows in data.values())) if data else set()
+    out = [f"| Language | Projects | Compressed source (median) | Compressed source (total, {len(common)} problems) | "
+           "Code lines (median) | Test lines (median) | Test share (median) |",
+           "|---|---:|---:|---:|---:|---:|---:|"]
     for lang in sorted(data, key=lambda l: list(NAMES).index(l)):
         rows = data[lang]
-        share = [t / (c + t) for _, _, c, t in rows if c + t]
-        out.append(f"| {NAMES[lang]} | {len(rows)} | {median([c for _, _, c, _ in rows]):.0f} | "
-                   f"{median([t for _, _, _, t in rows]):.0f} | {100 * median(share):.0f}% |")
+        share = [t / (c + t) for _, _, c, t, _ in rows if c + t]
+        total = sum(z for s, rep, _, _, z in rows if rep == "rep1" and s in common)
+        out.append(f"| {NAMES[lang]} | {len(rows)} | {median([z for *_, z in rows]) / 1024:.1f} KB | {total / 1024:.0f} KB | "
+                   f"{median([c for _, _, c, _, _ in rows]):.0f} | {median([t for _, _, _, t, _ in rows]):.0f} | "
+                   f"{100 * median(share):.0f}% |")
     return "\n".join(out)
 
 

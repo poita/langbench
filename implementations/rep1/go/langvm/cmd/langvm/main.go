@@ -1,29 +1,29 @@
 // Command langvm reads a multi-module Vellum program from standard input,
-// compiles it and runs it. Everything the program prints goes to standard
-// output; a program that fails to compile prints a single diagnostic line.
-// The exit code is 0 in every such case.
+// compiles it and runs it. Program output goes to standard output; a rejected
+// program prints one "error: <kind> at <line>:<col>" line and a program that
+// panics prints "panic: <message>" after its output. The exit status is 0 in
+// every such case.
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io"
 	"os"
 	"runtime/debug"
 
-	"langvm/vellum"
+	"langvm"
 )
 
 func main() {
-	// The front end allocates many small nodes; trade memory for fewer GCs.
-	debug.SetGCPercent(400)
-	src, err := io.ReadAll(os.Stdin)
+	// The VM allocates many short-lived values; trade some memory for speed.
+	debug.SetGCPercent(300)
+	input, err := io.ReadAll(bufio.NewReaderSize(os.Stdin, 1<<20))
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "langvm: reading stdin:", err)
-		os.Exit(1)
+		fmt.Fprintln(os.Stderr, "langvm: cannot read standard input:", err)
+		os.Exit(2)
 	}
-	out := vellum.Run(src)
-	if _, err := os.Stdout.Write(out); err != nil {
-		fmt.Fprintln(os.Stderr, "langvm: writing stdout:", err)
-		os.Exit(1)
+	if err := langvm.Run(input, os.Stdout); err != nil {
+		fmt.Fprintln(os.Stdout, err)
 	}
 }

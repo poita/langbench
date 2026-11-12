@@ -1,60 +1,86 @@
-/// Git's default path quoting (`core.quotePath` on).
+/// Git's default path quoting (`core.quotePath` behaviour).
 module gitrepo.quote;
 
-import gitrepo.oid : hexDigits;
+import std.array : Appender;
 
-/// Appends `name` to `sink`, quoted if it contains a byte outside `0x20..0x7e`, a `"` or a `\`.
-void appendQuoted(Sink)(ref Sink sink, scope const(char)[] name)
+/// Append `name` to `sink`, quoted if necessary: names made only of bytes in
+/// `0x20..0x7e` other than `"` and `\` are written as they are; anything else
+/// is wrapped in double quotes with C-style escapes and three-digit octal
+/// escapes for non-printable and non-ASCII bytes.
+void appendQuoted(ref Appender!(ubyte[]) sink, scope const(ubyte)[] name) @safe pure nothrow
 {
     bool plain = true;
-    foreach (c; name)
-    {
-        if (c < 0x20 || c > 0x7e || c == '"' || c == '\\')
+    foreach (b; name)
+        if (b < 0x20 || b > 0x7e || b == '"' || b == '\\')
         {
             plain = false;
             break;
         }
-    }
     if (plain)
     {
-        sink.put(cast(const(ubyte)[]) name);
+        sink.put(name);
         return;
     }
-    sink.put(cast(ubyte) '"');
-    foreach (char c; name)
+    sink.put('"');
+    foreach (b; name)
     {
-        switch (c)
+        switch (b)
         {
-        case 7: sink.put(cast(const(ubyte)[]) `\a`); break;
-        case 8: sink.put(cast(const(ubyte)[]) `\b`); break;
-        case 9: sink.put(cast(const(ubyte)[]) `\t`); break;
-        case 10: sink.put(cast(const(ubyte)[]) `\n`); break;
-        case 11: sink.put(cast(const(ubyte)[]) `\v`); break;
-        case 12: sink.put(cast(const(ubyte)[]) `\f`); break;
-        case 13: sink.put(cast(const(ubyte)[]) `\r`); break;
-        case '"': sink.put(cast(const(ubyte)[]) `\"`); break;
-        case '\\': sink.put(cast(const(ubyte)[]) `\\`); break;
+        case 7:
+            sink.put(cast(const(ubyte)[]) "\\a");
+            break;
+        case 8:
+            sink.put(cast(const(ubyte)[]) "\\b");
+            break;
+        case 9:
+            sink.put(cast(const(ubyte)[]) "\\t");
+            break;
+        case 10:
+            sink.put(cast(const(ubyte)[]) "\\n");
+            break;
+        case 11:
+            sink.put(cast(const(ubyte)[]) "\\v");
+            break;
+        case 12:
+            sink.put(cast(const(ubyte)[]) "\\f");
+            break;
+        case 13:
+            sink.put(cast(const(ubyte)[]) "\\r");
+            break;
+        case '"':
+            sink.put(cast(const(ubyte)[]) "\\\"");
+            break;
+        case '\\':
+            sink.put(cast(const(ubyte)[]) "\\\\");
+            break;
         default:
-            if (c < 0x20 || c >= 0x7f)
+            if (b < 0x20 || b >= 0x7f)
             {
-                sink.put(cast(ubyte) '\\');
-                sink.put(cast(ubyte)('0' + ((c >> 6) & 7)));
-                sink.put(cast(ubyte)('0' + ((c >> 3) & 7)));
-                sink.put(cast(ubyte)('0' + (c & 7)));
+                sink.put('\\');
+                sink.put(cast(ubyte)('0' + (b >> 6)));
+                sink.put(cast(ubyte)('0' + ((b >> 3) & 7)));
+                sink.put(cast(ubyte)('0' + (b & 7)));
             }
             else
-                sink.put(cast(ubyte) c);
+                sink.put(b);
         }
     }
-    sink.put(cast(ubyte) '"');
+    sink.put('"');
 }
 
-/// The quoted form of `name` as a string.
-string quotePath(scope const(char)[] name) @trusted
+/// `name` quoted as by `appendQuoted`, as a new array.
+ubyte[] quoted(scope const(ubyte)[] name) @safe pure nothrow
 {
-    import std.array : appender;
+    Appender!(ubyte[]) a;
+    appendQuoted(a, name);
+    return a[];
+}
 
-    auto sink = appender!(ubyte[]);
-    appendQuoted(sink, name);
-    return cast(string) sink.data;
+unittest
+{
+    assert(cast(string) quoted(cast(const(ubyte)[]) "plain name.txt") == "plain name.txt");
+    assert(cast(string) quoted(cast(const(ubyte)[]) "café.txt") == `"caf\303\251.txt"`);
+    assert(cast(string) quoted(cast(const(ubyte)[]) "quote\"and\\slash.txt") == `"quote\"and\\slash.txt"`);
+    assert(cast(string) quoted(cast(const(ubyte)[]) "a\tb\x01c\x7f") == `"a\tb\001c\177"`);
+    assert(cast(string) quoted(cast(const(ubyte)[]) "") == "");
 }

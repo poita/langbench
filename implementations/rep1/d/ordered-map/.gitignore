@@ -1,6 +1,6 @@
 .dub/
-ordered-map
-ordered-map-test
-*.a
+bin/
 *.o
+*.a
+*.lst
 dub.selections.json

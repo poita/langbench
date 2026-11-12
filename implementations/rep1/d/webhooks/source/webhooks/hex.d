@@ -1,79 +1,89 @@
 /**
- * Lowercase hexadecimal encoding/decoding with the `-` = empty convention
- * used by the command stream.
+ * Hexadecimal helpers and the `<hex>` argument encoding of the command
+ * protocol.
+ *
+ * Bytes are written as an even number of lowercase hex digits; the empty byte
+ * string is written as the single character `-` so that a field is never
+ * zero-length.
  */
 module webhooks.hex;
 
-import webhooks.buffer;
+private immutable char[16] hexDigits = "0123456789abcdef";
 
-private immutable string digits = "0123456789abcdef";
-
-private immutable ubyte[256] nibbleTable = () {
-    ubyte[256] t;
-    t[] = 0xff;
-    foreach (i; 0 .. 10)
-        t['0' + i] = cast(ubyte) i;
-    foreach (i; 0 .. 6)
-        t['a' + i] = cast(ubyte)(10 + i);
-    return t;
-}();
-
-/// Decodes `text` (lowercase hex, even length) into a new buffer.
-/// Returns false if `text` is not valid. The empty string is invalid here;
-/// see `decodeHexArg` for the command-stream convention.
-bool decodeHex(scope const(ubyte)[] text, out ubyte[] bytes) @safe pure nothrow
+/// Lowercase hex of `data` (the empty string for empty input).
+string toHex(scope const(ubyte)[] data) pure nothrow @safe
 {
-    if (text.length == 0 || text.length % 2 != 0)
-        return false;
-    auto result = new ubyte[text.length / 2];
-    foreach (i; 0 .. result.length)
+    auto result = new char[data.length * 2];
+    foreach (i, b; data)
     {
-        immutable hi = nibbleTable[text[2 * i]];
-        immutable lo = nibbleTable[text[2 * i + 1]];
-        if ((hi | lo) == 0xff)
-            return false;
-        result[i] = cast(ubyte)((hi << 4) | lo);
+        result[2 * i] = hexDigits[b >> 4];
+        result[2 * i + 1] = hexDigits[b & 15];
     }
-    bytes = result;
+    return (() @trusted => cast(string) result)();
+}
+
+/// Like `toHex`, but returns `"-"` for empty input (the protocol encoding).
+string toHexField(scope const(ubyte)[] data) pure nothrow @safe
+{
+    return data.length == 0 ? "-" : toHex(data);
+}
+
+private int nibble(ubyte c) pure nothrow @safe @nogc
+{
+    if (c >= '0' && c <= '9')
+        return c - '0';
+    if (c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    return -1;
+}
+
+/**
+ * Decodes a protocol `<hex>` field: `-` for no bytes, otherwise an even number
+ * of lowercase hex digits.
+ *
+ * Returns: `true` and fills `result` on success; `false` for an empty field,
+ * odd length, uppercase digits or any other character.
+ */
+bool parseHexField(scope const(ubyte)[] field, out ubyte[] result) pure nothrow @safe
+{
+    if (field.length == 0)
+        return false;
+    if (field.length == 1 && field[0] == '-')
+    {
+        result = [];
+        return true;
+    }
+    if (field.length % 2 != 0)
+        return false;
+    auto bytes = new ubyte[field.length / 2];
+    foreach (i; 0 .. bytes.length)
+    {
+        immutable hi = nibble(field[2 * i]);
+        immutable lo = nibble(field[2 * i + 1]);
+        if (hi < 0 || lo < 0)
+            return false;
+        bytes[i] = cast(ubyte)(hi << 4 | lo);
+    }
+    result = bytes;
     return true;
 }
 
-/// Decodes a `<hex>` argument: lowercase hex or the single character `-`
-/// for the empty byte string.
-bool decodeHexArg(scope const(ubyte)[] field, out ubyte[] bytes) @safe pure nothrow
+@safe unittest
 {
-    if (field.length == 1 && field[0] == '-')
-    {
-        bytes = null;
-        return true;
-    }
-    return decodeHex(field, bytes);
+    assert(toHex([0x00, 0xab, 0xff]) == "00abff");
+    assert(toHex([]) == "");
+    assert(toHexField([]) == "-");
+    assert(toHexField([1]) == "01");
 }
 
-/// Appends the lowercase hex of `data` to `sink`.
-void encodeHex(scope const(ubyte)[] data, ref ByteSink sink) @safe pure nothrow
+@safe unittest
 {
-    sink.reserve(data.length * 2);
-    foreach (b; data)
-    {
-        sink.put(cast(ubyte) digits[b >> 4]);
-        sink.put(cast(ubyte) digits[b & 15]);
-    }
-}
-
-/// Appends the lowercase hex of `data`, or `-` if it is empty.
-void encodeHexArg(scope const(ubyte)[] data, ref ByteSink sink) @safe pure nothrow
-{
-    if (data.length == 0)
-        sink.putChar('-');
-    else
-        encodeHex(data, sink);
-}
-
-/// Convenience: hex string of `data`.
-string toHex(scope const(ubyte)[] data) @trusted pure nothrow
-{
-    ByteSink s;
-    encodeHex(data, s);
-    return cast(string) s.data.idup;
+    ubyte[] r;
+    assert(parseHexField(cast(const(ubyte)[]) "-", r) && r.length == 0);
+    assert(parseHexField(cast(const(ubyte)[]) "00ff7a", r) && r == [0, 255, 0x7a]);
+    assert(!parseHexField(cast(const(ubyte)[]) "", r));
+    assert(!parseHexField(cast(const(ubyte)[]) "abc", r));
+    assert(!parseHexField(cast(const(ubyte)[]) "ABCD", r));
+    assert(!parseHexField(cast(const(ubyte)[]) "zz", r));
+    assert(!parseHexField(cast(const(ubyte)[]) "--", r));
 }

@@ -1,52 +1,46 @@
-/// Loading a workspace from a real directory and writing the session output.
+/**
+ * Loading a workspace from a real directory and writing the final workspace back.
+ */
 module kiln.fsio;
 
 import std.file;
-import std.path;
+import std.path : buildPath, dirName;
+import std.string : replace;
 
 import kiln.vfs;
 
-/// A loaded input directory.
-struct Session
-{
-    Vfs vfs; /// the initial workspace
-    string script; /// the content of `session.txt`
-}
+/// Name of the session script, which is not part of the workspace.
+enum sessionFileName = "session.txt";
 
-/// Walks `inputDir`, loading every regular file except the top-level `session.txt`.
-Session loadInput(string inputDir)
+/**
+ * Loads every regular file below `dir` into a new `Vfs`, except the top-level
+ * `session.txt`.
+ */
+Vfs loadWorkspace(string dir)
 {
-    Session s;
-    s.vfs = new Vfs;
-    s.script = cast(string) std.file.read(buildPath(inputDir, "session.txt"));
-    foreach (entry; dirEntries(inputDir, SpanMode.depth))
+    auto fs = new Vfs;
+    foreach (entry; dirEntries(dir, SpanMode.depth))
     {
         if (!entry.isFile)
             continue;
-        const rel = relativePath(entry.name, inputDir);
-        if (rel == "session.txt")
+        string rel = entry.name[dir.length .. $];
+        while (rel.length && rel[0] == '/')
+            rel = rel[1 .. $];
+        if (rel == sessionFileName)
             continue;
-        s.vfs.put(rel, cast(string) std.file.read(entry.name));
+        fs.write(rel, cast(string) read(entry.name));
     }
-    return s;
+    return fs;
 }
 
-/// Writes `log.txt` and the final workspace under `outDir`.
-void writeOutput(string outDir, string log, Vfs vfs)
+/// Writes every file of `fs` to `<outDir>/workspace/<path>`.
+void writeWorkspace(Vfs fs, string outDir)
 {
-    mkdirRecurse(outDir);
-    std.file.write(buildPath(outDir, "log.txt"), log);
     const root = buildPath(outDir, "workspace");
-    bool[string] made;
-    foreach (p; vfs.paths())
+    foreach (p; fs.paths())
     {
         const full = buildPath(root, p);
-        const dir = dirName(full);
-        if (dir !in made)
-        {
-            mkdirRecurse(dir);
-            made[dir] = true;
-        }
-        std.file.write(full, vfs.content(p));
+        mkdirRecurse(dirName(full));
+        std.file.write(full, fs.read(p));
     }
 }

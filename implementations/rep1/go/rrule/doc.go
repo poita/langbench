@@ -1,20 +1,21 @@
-// Package rrule expands iCalendar (RFC 5545) recurrence rules into lists of
-// occurrences, following the semantics of python-dateutil's rrule for the
-// supported subset: FREQ of YEARLY, MONTHLY, WEEKLY or DAILY with the
-// INTERVAL, COUNT, UNTIL, WKST, BYMONTH, BYMONTHDAY, BYYEARDAY, BYWEEKNO,
-// BYDAY and BYSETPOS parts.
+// Package rrule expands RFC 5545 recurrence rules (RRULE) into lists of
+// occurrences.
 //
-// All times are floating local times; there are no time zones. The calendar
-// arithmetic (leap years, weekdays, week numbers) is implemented by the
-// package itself on plain integer day numbers.
+// It supports FREQ=YEARLY, MONTHLY, WEEKLY and DAILY with INTERVAL, COUNT,
+// UNTIL, WKST, BYMONTH, BYMONTHDAY, BYYEARDAY, BYWEEKNO, BYDAY (with ordinals)
+// and BYSETPOS, following the behaviour of python-dateutil's rrule. All times
+// are floating local times; there are no time zones.
 //
-// A typical use parses a rule and expands it from a start time:
+// Calendar arithmetic is done in this package on integer day numbers, so it
+// does not depend on the standard library's time package.
 //
-//	r, err := rrule.ParseRule("FREQ=MONTHLY;BYDAY=-1FR;COUNT=3")
-//	if err != nil { ... }
+// Typical use:
+//
+//	rule, err := rrule.ParseRule("FREQ=MONTHLY;BYDAY=-1FR;COUNT=3")
 //	start, _ := rrule.ParseDateTime("19970902T090000")
-//	times := r.Expand(start, 100)
+//	times, err := rule.Expand(start, 0)
 //
-// For bulk work, reuse an [Expander], which keeps its scratch buffers between
-// calls and can append the textual form of the occurrences directly.
+// The package is split by responsibility: calendar.go (date arithmetic),
+// datetime.go (DateTime and Weekday), rule.go and parse.go (the Rule type and
+// its text form), weekno.go (BYWEEKNO numbering) and expand.go (expansion).
 package rrule

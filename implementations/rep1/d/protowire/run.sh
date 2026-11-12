@@ -1,3 +1,3 @@
 #!/bin/sh
-# Run the protowire CLI: schema and requests on stdin, results on stdout.
-exec "$(dirname "$0")/bin/protowire" "$@"
+# Runs the protowire CLI: schema and requests on stdin, results on stdout.
+exec "$(cd "$(dirname "$0")" && pwd)/bin/protowire" "$@"

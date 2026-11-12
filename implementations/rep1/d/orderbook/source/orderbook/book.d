@@ -1,384 +1,494 @@
-/++
-`Book`: the matching engine.
-
-A book is created for a fixed `PriceTable` (the set of prices that may occur).
-Each side is a dense array of price levels indexed by rank, with a
-`LevelTree` over it to find the best level, sum crossing liquidity and walk
-the non-empty levels in order. Resting orders live in one arena and form an
-intrusive doubly linked FIFO list per level; an `IdMap` finds them by id.
-
-Every operation appends the resulting events, in the textual form defined by
-SPEC.md, to an `OutBuf`.
-
-Order ids are borrowed slices: they must stay valid (and unchanged) for as
-long as the order may rest in the book.
-+/
+/**
+ * The matching engine: a single-instrument limit order book with price-time
+ * priority.
+ *
+ * Every operation reports what happened by calling `put(Event)` on an output
+ * range supplied by the caller (an `Appender!(Event[])`, the `TextSink` of
+ * `orderbook.format`, or anything else accepted by `isOutputRange!(Sink, Event)`).
+ *
+ * Data layout
+ * $(UL
+ *  $(LI Orders live in one pooled array and are linked into a per-level FIFO
+ *       queue by index (intrusive doubly-linked list), so removing an order
+ *       from the middle of a queue is O(1).)
+ *  $(LI Each side keeps its price levels in a red-black tree ordered best
+ *       price first, so the best level and removal of an emptied level are
+ *       O(log P). Every level stores its total quantity and order count.)
+ *  $(LI A hash map from id to pooled order serves `cancel` and `replace`.)
+ * )
+ */
 module orderbook.book;
 
-import orderbook.idmap : IdMap;
-import orderbook.leveltree : LevelTree;
-import orderbook.outbuf : OutBuf;
-import orderbook.pricetable : PriceTable;
+import std.algorithm.comparison : min;
+import std.container.rbtree : RedBlackTree;
+import std.range.primitives : isOutputRange;
+
 import orderbook.types;
 
-/// A price level: FIFO list of orders plus running totals.
+private enum uint nil = uint.max;
+
+/// Key of the per-side price tree: a price and the index of its `Level`.
+private struct PriceKey
+{
+    Price price;
+    uint level;
+}
+
+/// A price level: a FIFO queue of orders (by pool index) plus running totals.
 private struct Level
 {
-    int head = nil;
-    int tail = nil;
-    long total; // sum of remaining quantities
-    uint count; // number of orders
+    Price price;
+    uint count;
+    Qty total;
+    uint head = nil;
+    uint tail = nil;
 }
 
-/// A resting-order record in the arena.
+/// A resting order. `prev`/`next` link it into its level's queue.
 private struct Order
 {
-    const(char)[] id;
-    long rem; // remaining quantity
-    int prev = nil;
-    int next = nil; // also the free-list link for unused records
-    uint rank;
+    string id;
+    Qty remaining;
+    Price price;
     Side side;
+    uint level;
+    uint prev = nil;
+    uint next = nil;
 }
 
-/// The limit order book.
-struct Book
+/// All the price levels of one side, best price first.
+private struct BookSide(bool isBid)
 {
-    private PriceTable table;
-    private Level[][2] levels; // indexed by Side
-    private LevelTree[2] trees;
-    private Order[] arena;
-    private int freeHead = nil;
-    private IdMap ids;
+    // Bids sort descending and asks ascending, so `front` is always the best.
+    enum string ordering = isBid ? "a.price > b.price" : "a.price < b.price";
+    alias Tree = RedBlackTree!(PriceKey, ordering);
 
-    @disable this(this);
+    Tree tree;
+    Level[] levels;
+    uint[] freeLevels;
 
-    /// Create an empty book accepting the prices in `table`.
-    this(PriceTable table, size_t expectedOrders = 1024)
+    void initialize()
     {
-        this.table = table;
-        foreach (s; 0 .. 2)
-        {
-            levels[s] = new Level[table.length];
-            trees[s] = LevelTree(table.length);
-        }
-        arena.reserve(expectedOrders);
-        ids = IdMap(expectedOrders);
+        tree = new Tree;
     }
 
-    /// The price table this book was built with.
-    ref const(PriceTable) priceTable() const return
+    bool empty() const
     {
-        return table;
+        return tree.empty;
+    }
+
+    PriceKey best()
+    {
+        return tree.front;
+    }
+
+    /// Index of the level at `price`, creating it if necessary.
+    uint levelAt(Price price)
+    {
+        auto found = tree.equalRange(PriceKey(price, 0));
+        if (!found.empty)
+            return found.front.level;
+
+        uint index;
+        if (freeLevels.length)
+        {
+            index = freeLevels[$ - 1];
+            freeLevels.length = freeLevels.length - 1;
+        }
+        else
+        {
+            index = cast(uint) levels.length;
+            levels ~= Level.init;
+        }
+        levels[index] = Level(price);
+        tree.insert(PriceKey(price, index));
+        return index;
+    }
+
+    /// Drop level `index` from the tree and recycle it (it must be empty).
+    void release(uint index)
+    {
+        assert(levels[index].count == 0);
+        tree.removeKey(PriceKey(levels[index].price, index));
+        freeLevels ~= index;
+    }
+}
+
+/**
+ * A limit order book.
+ *
+ * All operations are O(fills + levels visited * log P) plus one id lookup for
+ * `cancel` and `replace`, where P is the number of price levels on a side.
+ */
+final class OrderBook
+{
+    private
+    {
+        BookSide!true bids;
+        BookSide!false asks;
+        Order[] orders;
+        uint[] freeOrders;
+        uint[string] byId;
+    }
+
+    /// Create an empty book.
+    this()
+    {
+        bids.initialize();
+        asks.initialize();
     }
 
     /// Number of orders currently resting.
-    size_t restingOrders() const
+    size_t restingOrders() const @safe pure nothrow @nogc
     {
-        return ids.length;
+        return byId.length;
     }
 
-    // ---- high-level API, in prices ------------------------------------
-
-    /// Submit a limit order; `price` must be in the price table.
-    void limit(const(char)[] id, Side side, uint price, uint qty,
-        Tif tif, ref OutBuf o)
+    /// Whether `id` names a currently resting order.
+    bool isResting(string id) const
     {
-        doLimit(id, side, table.rankOf(price), qty, tif, o);
+        return (id in byId) !is null;
     }
 
-    /// Submit a market order.
-    void market(const(char)[] id, Side side, uint qty, ref OutBuf o)
+    /// Number of non-empty price levels on `side`.
+    size_t levelCount(Side side)
     {
-        long rem = qty;
-        rem = match(id, side, marketLimit(side), rem, o);
-        if (rem == 0)
-            filledLine(id, o);
-        else
-            cancelLine(id, rem, o);
+        return side == Side.buy ? bids.tree.length : asks.tree.length;
     }
 
-    /// Cancel a resting order.
-    void cancel(scope const(char)[] id, ref OutBuf o)
+    /**
+     * Submit a limit order. Matches against the opposite side, then (for
+     * `TimeInForce.gtc`) rests the remainder at the back of its price level.
+     *
+     * The id must not have been used by an earlier order. The book keeps
+     * the `id` slice for as long as the order rests, so it must be immutable
+     * data the caller does not mutate (`.idup` it if in doubt).
+     */
+    void limit(Sink)(string id, Side side, Price price, Qty qty, TimeInForce tif, ref Sink sink)
+            if (isOutputRange!(Sink, Event))
+    in (qty > 0)
     {
-        const idx = ids.get(id);
-        if (idx < 0)
-            return rejectLine(id, o);
-        const long rem = arena[idx].rem;
-        unlink(idx);
-        refresh(arena[idx].side, arena[idx].rank);
-        ids.remove(id);
-        release(idx);
-        o.put("CANCEL ");
-        o.put(id);
-        o.putSpaceUint(rem);
-        o.put('\n');
-    }
-
-    /// Modify a resting order; `price` must be in the price table unless the id is not resting.
-    void replace(scope const(char)[] id, uint price, uint qty, ref OutBuf o)
-    {
-        if (ids.get(id) < 0)
-            return rejectLine(id, o);
-        doReplace(id, table.rankOf(price), qty, o);
-    }
-
-    /// Print the book: bids best-first, asks best-first, then `--`.
-    void printBook(ref OutBuf o) const
-    {
-        foreach (side; [Side.buy, Side.sell])
+        if (tif == TimeInForce.fok && crossingQuantity(side, price) < qty)
         {
-            const bid = side == Side.buy;
-            const ref tree = trees[side];
-            long r = bid ? tree.highest : tree.lowest;
-            while (r >= 0)
-            {
-                const ref lv = levels[side][r];
-                o.put(bid ? "BID " : "ASK ");
-                o.putUint(table.priceOf(r));
-                o.putSpaceUint(lv.total);
-                o.putSpaceUint(lv.count);
-                o.put('\n');
-                if (bid)
-                    r = r == 0 ? -1 : tree.lastAtOrBefore(r - 1);
-                else
-                    r = tree.firstAtOrAfter(r + 1);
-            }
+            sink.put(Event.reject(id));
+            return;
         }
-        o.put("--\n");
+        Qty left = side == Side.buy
+            ? match!true(id, true, price, qty, sink) : match!false(id, true, price, qty, sink);
+        finish(id, side, price, left, tif, sink);
     }
 
-    /++
-    Execute one parsed command. `input` is the buffer the command's id slice
-    points into, and `c.rank` must have been assigned.
-    +/
-    void execute(ref const Command c, scope const(char)[] input, ref OutBuf o)
+    /// Submit a market order: crosses everything, never rests.
+    void market(Sink)(string id, Side side, Qty qty, ref Sink sink)
+            if (isOutputRange!(Sink, Event))
+    in (qty > 0)
     {
-        const(char)[] id = input[c.idOff .. c.idOff + c.idLen];
-        final switch (c.kind)
+        Qty left = side == Side.buy
+            ? match!true(id, false, 0, qty, sink) : match!false(id, false, 0, qty, sink);
+        if (left == 0)
+            sink.put(Event.filled(id));
+        else
+            sink.put(Event.cancel(id, left));
+    }
+
+    /// Cancel a resting order, or reject if `id` is not resting.
+    void cancel(Sink)(string id, ref Sink sink)
+            if (isOutputRange!(Sink, Event))
+    {
+        auto p = id in byId;
+        if (p is null)
         {
-        case CmdKind.limit:
-            doLimit(id, c.side, c.rank, c.qty, c.tif, o);
-            break;
-        case CmdKind.market:
-            // Borrowed id must outlive the order only if it rests; markets never do.
-            market(id, c.side, c.qty, o);
-            break;
-        case CmdKind.cancel:
-            cancel(id, o);
-            break;
-        case CmdKind.replace:
-            doReplace(id, c.rank, c.qty, o);
-            break;
-        case CmdKind.book:
-            printBook(o);
-            break;
+            sink.put(Event.reject(id));
+            return;
         }
+        immutable remaining = orders[*p].remaining;
+        removeResting(*p);
+        sink.put(Event.cancel(id, remaining));
     }
 
-    // ---- internals -----------------------------------------------------
-
-    private int marketLimit(Side side) const
+    /**
+     * Change a resting order's price and remaining quantity. Keeps its queue
+     * position iff the price is unchanged and the quantity not increased;
+     * otherwise it is removed and re-enters as a plain limit order.
+     */
+    void replace(Sink)(string id, Price price, Qty qty, ref Sink sink)
+            if (isOutputRange!(Sink, Event))
+    in (qty > 0)
     {
-        return side == Side.buy ? cast(int) table.length - 1 : 0;
-    }
-
-    private static void filledLine(scope const(char)[] id, ref OutBuf o)
-    {
-        o.put("FILLED ");
-        o.put(id);
-        o.put('\n');
-    }
-
-    private static void rejectLine(scope const(char)[] id, ref OutBuf o)
-    {
-        o.put("REJECT ");
-        o.put(id);
-        o.put('\n');
-    }
-
-    private static void cancelLine(scope const(char)[] id, long rem, ref OutBuf o)
-    {
-        o.put("CANCEL ");
-        o.put(id);
-        o.putSpaceUint(rem);
-        o.put('\n');
-    }
-
-    private static void restLine(scope const(char)[] id, ref OutBuf o)
-    {
-        o.put("REST ");
-        o.put(id);
-        o.put('\n');
-    }
-
-    /// Recompute the tree leaf of one level from the level record.
-    private void refresh(Side side, size_t rank)
-    {
-        const ref lv = levels[side][rank];
-        trees[side].set(rank, lv.total, lv.count != 0);
-    }
-
-    private int allocate()
-    {
-        if (freeHead != nil)
+        auto p = id in byId;
+        if (p is null)
         {
-            const i = freeHead;
-            freeHead = arena[i].next;
-            return i;
+            sink.put(Event.reject(id));
+            return;
         }
-        arena ~= Order.init;
-        return cast(int) arena.length - 1;
-    }
-
-    private void release(int idx)
-    {
-        arena[idx].next = freeHead;
-        freeHead = idx;
-    }
-
-    /// Detach an order from its level's list and adjust the level totals.
-    /// The tree is NOT refreshed.
-    private void unlink(int idx)
-    {
-        auto o = &arena[idx];
-        auto lv = &levels[o.side][o.rank];
-        if (o.prev != nil)
-            arena[o.prev].next = o.next;
-        else
-            lv.head = o.next;
-        if (o.next != nil)
-            arena[o.next].prev = o.prev;
-        else
-            lv.tail = o.prev;
-        lv.total -= o.rem;
-        lv.count--;
-        o.prev = o.next = nil;
-    }
-
-    /// Append an order to the back of its level. The tree is NOT refreshed.
-    private void append(int idx)
-    {
-        auto o = &arena[idx];
-        auto lv = &levels[o.side][o.rank];
-        o.prev = lv.tail;
-        o.next = nil;
-        if (lv.tail != nil)
-            arena[lv.tail].next = idx;
-        else
-            lv.head = idx;
-        lv.tail = idx;
-        lv.total += o.rem;
-        lv.count++;
-    }
-
-    /++
-    Match a taker against the opposite side. `limitRank` is the worst
-    acceptable rank (inclusive). Returns the taker's remaining quantity.
-    +/
-    private long match(scope const(char)[] takerId, Side takerSide,
-        int limitRank, long rem, ref OutBuf o)
-    {
-        const buy = takerSide == Side.buy;
-        const opp = buy ? Side.sell : Side.buy;
-        auto tree = &trees[opp];
-        auto lvls = levels[opp];
-        while (rem > 0)
+        immutable idx = *p;
+        Order* o = &orders[idx];
+        if (price == o.price && qty <= o.remaining)
         {
-            const long best = buy ? tree.lowest : tree.highest;
-            if (best < 0 || (buy ? best > limitRank : best < limitRank))
+            level(o.side, o.level).total -= o.remaining - qty;
+            o.remaining = qty;
+            sink.put(Event.rest(id));
+            return;
+        }
+        immutable side = o.side;
+        string key = o.id;
+        removeResting(idx);
+        limit(key, side, price, qty, TimeInForce.gtc, sink);
+    }
+
+    /**
+     * Emit the book: every bid level best first (`Event.bid`), every ask
+     * level best first (`Event.ask`), then `Event.endOfBook`.
+     */
+    void snapshot(Sink)(ref Sink sink)
+            if (isOutputRange!(Sink, Event))
+    {
+        foreach (k; bids.tree[])
+        {
+            const l = bids.levels[k.level];
+            sink.put(Event.level(Side.buy, l.price, l.total, l.count));
+        }
+        foreach (k; asks.tree[])
+        {
+            const l = asks.levels[k.level];
+            sink.put(Event.level(Side.sell, l.price, l.total, l.count));
+        }
+        sink.put(Event.endOfBook());
+    }
+
+    // ------------------------------------------------------------------
+
+    private ref Level level(Side side, uint index)
+    {
+        return side == Side.buy ? bids.levels[index] : asks.levels[index];
+    }
+
+    /// Total resting quantity a taker on `side` with limit `price` would cross.
+    private Qty crossingQuantity(Side side, Price price)
+    {
+        return side == Side.buy ? sumCrossing!true(price) : sumCrossing!false(price);
+    }
+
+    private Qty sumCrossing(bool takerBuys)(Price limit)
+    {
+        static if (takerBuys)
+            alias opp = asks;
+        else
+            alias opp = bids;
+        Qty sum = 0;
+        foreach (k; opp.tree[])
+        {
+            static if (takerBuys)
+                immutable crosses = k.price <= limit;
+            else
+                immutable crosses = k.price >= limit;
+            if (!crosses)
                 break;
-            auto lv = &lvls[best];
-            const price = table.priceOf(best);
-            while (rem > 0 && lv.head != nil)
+            sum += opp.levels[k.level].total;
+        }
+        return sum;
+    }
+
+    /// Match a taker against the opposite side; returns its unfilled quantity.
+    private Qty match(bool takerBuys, Sink)(string takerId, bool hasLimit, Price limit,
+            Qty qty, ref Sink sink)
+    {
+        static if (takerBuys)
+            alias opp = asks;
+        else
+            alias opp = bids;
+
+        while (qty > 0 && !opp.empty)
+        {
+            immutable best = opp.best();
+            if (hasLimit)
             {
-                auto m = &arena[lv.head];
-                const t = rem < m.rem ? rem : m.rem;
-                o.put("TRADE ");
-                o.put(takerId);
-                o.put(' ');
-                o.put(m.id);
-                o.putSpaceUint(price);
-                o.putSpaceUint(t);
-                o.put('\n');
-                rem -= t;
-                m.rem -= t;
-                lv.total -= t;
-                if (m.rem == 0)
+                static if (takerBuys)
                 {
-                    filledLine(m.id, o);
-                    const idx = lv.head;
-                    lv.head = m.next;
-                    if (m.next != nil)
-                        arena[m.next].prev = nil;
-                    else
-                        lv.tail = nil;
-                    lv.count--;
-                    ids.remove(m.id);
-                    release(idx);
+                    if (best.price > limit)
+                        break;
+                }
+                else
+                {
+                    if (best.price < limit)
+                        break;
                 }
             }
-            tree.set(best, lv.total, lv.count != 0);
+            Level* lv = &opp.levels[best.level];
+            while (qty > 0 && lv.head != nil)
+            {
+                immutable idx = lv.head;
+                Order* maker = &orders[idx];
+                immutable traded = min(qty, maker.remaining);
+                sink.put(Event.trade(takerId, maker.id, best.price, traded));
+                qty -= traded;
+                maker.remaining -= traded;
+                lv.total -= traded;
+                if (maker.remaining == 0)
+                {
+                    sink.put(Event.filled(maker.id));
+                    lv.head = maker.next;
+                    if (lv.head == nil)
+                        lv.tail = nil;
+                    else
+                        orders[lv.head].prev = nil;
+                    lv.count--;
+                    byId.remove(maker.id);
+                    freeOrder(idx);
+                }
+            }
+            if (lv.count == 0)
+                opp.release(best.level);
         }
-        return rem;
+        return qty;
     }
 
-    private void doLimit(const(char)[] id, Side side, uint rank, uint qty,
-        Tif tif, ref OutBuf o)
+    /// Emit the taker's final event and rest the remainder if appropriate.
+    private void finish(Sink)(string id, Side side, Price price, Qty left, TimeInForce tif,
+            ref Sink sink)
     {
-        long rem = qty;
-        if (tif == Tif.fok)
+        if (left == 0)
+            sink.put(Event.filled(id));
+        else if (tif == TimeInForce.gtc)
         {
-            const avail = side == Side.buy
-                ? trees[Side.sell].prefixSum(rank)
-                : trees[Side.buy].suffixSum(rank);
-            if (avail < rem)
-                return rejectLine(id, o);
+            addResting(id, side, price, left);
+            sink.put(Event.rest(id));
         }
-        rem = match(id, side, cast(int) rank, rem, o);
-        if (rem == 0)
-            return filledLine(id, o);
-        if (tif != Tif.gtc)
-            return cancelLine(id, rem, o);
-        const idx = allocate();
-        arena[idx] = Order(id, rem, nil, nil, rank, side);
-        append(idx);
-        refresh(side, rank);
-        ids.put(id, idx);
-        restLine(id, o);
+        else
+            sink.put(Event.cancel(id, left));
     }
 
-    private void doReplace(scope const(char)[] id, uint rank, uint qty, ref OutBuf o)
+    private void addResting(string id, Side side, Price price, Qty qty)
     {
-        const idx = ids.get(id);
-        if (idx < 0)
-            return rejectLine(id, o);
-        auto ord = &arena[idx];
-        const side = ord.side;
-        if (rank == ord.rank && qty <= ord.rem)
+        uint idx;
+        if (freeOrders.length)
         {
-            levels[side][rank].total -= ord.rem - qty;
-            ord.rem = qty;
-            refresh(side, rank);
-            return restLine(ord.id, o);
+            idx = freeOrders[$ - 1];
+            freeOrders.length = freeOrders.length - 1;
         }
-        // Priority lost: leave the book, re-enter as a new plain LIMIT.
-        const oldRank = ord.rank;
-        const(char)[] oid = ord.id;
-        unlink(idx);
-        refresh(side, oldRank);
-        long rem = match(oid, side, cast(int) rank, qty, o);
-        if (rem == 0)
+        else
         {
-            ids.remove(oid);
-            release(idx);
-            return filledLine(oid, o);
+            idx = cast(uint) orders.length;
+            orders ~= Order.init;
         }
-        ord = &arena[idx];
-        ord.rank = rank;
-        ord.rem = rem;
-        append(idx);
-        refresh(side, rank);
-        restLine(oid, o);
+        uint lvIndex = side == Side.buy ? bids.levelAt(price) : asks.levelAt(price);
+        Level* lv = &level(side, lvIndex);
+        orders[idx] = Order(id, qty, price, side, lvIndex, lv.tail, nil);
+        if (lv.tail == nil)
+            lv.head = idx;
+        else
+            orders[lv.tail].next = idx;
+        lv.tail = idx;
+        lv.count++;
+        lv.total += qty;
+        byId[id] = idx;
     }
+
+    /// Unlink a resting order from its level and the id map and recycle it.
+    private void removeResting(uint idx)
+    {
+        Order* o = &orders[idx];
+        Level* lv = &level(o.side, o.level);
+        if (o.prev == nil)
+            lv.head = o.next;
+        else
+            orders[o.prev].next = o.next;
+        if (o.next == nil)
+            lv.tail = o.prev;
+        else
+            orders[o.next].prev = o.prev;
+        lv.count--;
+        lv.total -= o.remaining;
+        if (lv.count == 0)
+        {
+            if (o.side == Side.buy)
+                bids.release(o.level);
+            else
+                asks.release(o.level);
+        }
+        byId.remove(o.id);
+        freeOrder(idx);
+    }
+
+    private void freeOrder(uint idx)
+    {
+        orders[idx] = Order.init;
+        freeOrders ~= idx;
+    }
+}
+
+version (unittest) import std.array : appender;
+
+unittest
+{
+    // Matching across levels at the maker's price, FIFO, partial maker fill.
+    auto b = new OrderBook;
+    auto sink = appender!(Event[]);
+    b.limit("s1", Side.sell, 101, 5, TimeInForce.gtc, sink);
+    b.limit("s2", Side.sell, 103, 5, TimeInForce.gtc, sink);
+    b.limit("s3", Side.sell, 102, 5, TimeInForce.gtc, sink);
+    sink.clear();
+    b.limit("b1", Side.buy, 103, 12, TimeInForce.gtc, sink);
+    string[] got;
+    foreach (e; sink[])
+        got ~= e.toString;
+    assert(got == [
+        "TRADE b1 s1 101 5", "FILLED s1", "TRADE b1 s3 102 5", "FILLED s3",
+        "TRADE b1 s2 103 2", "FILLED b1"
+    ]);
+    assert(b.restingOrders == 1);
+    assert(b.levelCount(Side.sell) == 1);
+}
+
+unittest
+{
+    // FOK is rejected without side effects, accepted when exactly fillable.
+    auto b = new OrderBook;
+    auto sink = appender!(Event[]);
+    b.limit("a", Side.sell, 10, 4, TimeInForce.gtc, sink);
+    b.limit("b", Side.sell, 11, 4, TimeInForce.gtc, sink);
+    sink.clear();
+    b.limit("f1", Side.buy, 11, 9, TimeInForce.fok, sink);
+    assert(sink[].length == 1 && sink[][0].kind == EventKind.reject);
+    assert(b.restingOrders == 2);
+    sink.clear();
+    b.limit("f2", Side.buy, 11, 8, TimeInForce.fok, sink);
+    assert(sink[][$ - 1].kind == EventKind.filled && sink[][$ - 1].id == "f2");
+    assert(b.restingOrders == 0);
+}
+
+unittest
+{
+    // Quantities beyond 2^32 are summed in 64 bits.
+    auto b = new OrderBook;
+    auto sink = appender!(Event[]);
+    foreach (i; 0 .. 6)
+        b.limit(["a", "b", "c", "d", "e", "f"][i], Side.buy, 5, 1_000_000_000, TimeInForce.gtc, sink);
+    sink.clear();
+    b.snapshot(sink);
+    assert(sink[][0].qty == 6_000_000_000 && sink[][0].orders == 6);
+}
+
+unittest
+{
+    // Cancel / replace semantics.
+    auto b = new OrderBook;
+    auto sink = appender!(Event[]);
+    b.limit("x", Side.buy, 10, 5, TimeInForce.gtc, sink);
+    b.limit("y", Side.buy, 10, 5, TimeInForce.gtc, sink);
+    sink.clear();
+    b.replace("x", 10, 3, sink); // keeps priority
+    b.replace("x", 10, 4, sink); // increase: goes to the back
+    b.limit("s", Side.sell, 10, 5, TimeInForce.ioc, sink);
+    string[] got;
+    foreach (e; sink[])
+        got ~= e.toString;
+    assert(got == ["REST x", "REST x", "TRADE s y 10 5", "FILLED y", "FILLED s"]);
+    sink.clear();
+    b.cancel("x", sink);
+    b.cancel("x", sink);
+    b.replace("nope", 1, 1, sink);
+    assert(sink[][0].toString == "CANCEL x 4");
+    assert(sink[][1].toString == "REJECT x");
+    assert(sink[][2].toString == "REJECT nope");
 }

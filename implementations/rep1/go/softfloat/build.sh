@@ -1,5 +1,6 @@
 #!/bin/sh
-# Build the softfloat command into ./bin/softfloat.
+# Builds the softfloat CLI into bin/softfloat. Works from any directory.
 set -e
-cd "$(dirname "$0")"
+dir=$(cd "$(dirname "$0")" && pwd)
+cd "$dir"
 go build -o bin/softfloat ./cmd/softfloat

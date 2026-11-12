@@ -2,52 +2,77 @@ package softfloat
 
 import "math/bits"
 
-// roundPack rounds the value (m + ε) * 2^e to the binary32 grid, where
-// ε is a tiny positive amount if sticky is set (and zero otherwise), and
-// returns the packed result with the given sign (0 or signMask).
+// roundPack rounds sig * 2^e to the nearest binary32 value (ties to even,
+// gradual underflow, overflow to infinity) and packs it with the given sign.
 //
-// m must be nonzero. If sticky is set, m must carry at least two bits below
-// the final rounding position (callers guarantee at least ~6), so that the
-// sticky residue can only influence rounding, never the retained bits.
+// sig must be nonzero and below 2^63. If bits were discarded while forming
+// sig, the caller must have folded them into its least significant bit (a
+// sticky bit), and that bit must lie well below the rounding position, which
+// holds for all callers (they provide at least 30 significant bits).
 //
-// Rounding happens exactly once, directly onto the destination grid (normal
-// or denormal), so there is no double rounding.
-func roundPack(sign uint32, m uint64, e int, sticky bool) uint32 {
-	lead := bits.Len64(m) - 1
-	// g is the exponent of the destination unit in the last place.
-	g := lead + e - 23
-	if g < minExp {
-		g = minExp
-	}
-	s := g - e // number of low bits of m to discard
+// This is the only place where rounding happens.
+func roundPack(neg bool, e int, sig uint64) uint32 {
+	sign := signBit(neg)
 
-	var sig uint64
+	// Normalise so the leading bit is bit 62; then the leading bit has
+	// unbiased exponent e+62.
+	lz := bits.LeadingZeros64(sig) - 1
+	sig <<= uint(lz)
+	e -= lz
+	be := e + 62 + 127 // biased exponent of the leading bit
+
+	if be >= 0xff {
+		return sign | Inf
+	}
+
+	// Keep 24 bits for normal results; denormals keep fewer, aligned to the
+	// 2^-149 grid.
+	shift := 39
+	if be < 1 {
+		shift += 1 - be
+	}
+
+	var q uint64
+	if shift >= 64 {
+		// Magnitude below half of the smallest denormal.
+		return sign
+	}
+	q = sig >> uint(shift)
+	rem := sig & (1<<uint(shift) - 1)
+	half := uint64(1) << uint(shift-1)
+	if rem > half || (rem == half && q&1 == 1) {
+		q++
+	}
+
+	var r uint64
+	if be < 1 {
+		r = q // a carry to 2^23 yields 0x00800000, the smallest normal
+	} else {
+		// q includes the implicit bit, so adding it to (be-1)<<23 bumps
+		// the exponent field to be; a carry out of q bumps it again.
+		r = uint64(be-1)<<23 + q
+	}
+	if r >= expMask {
+		return sign | Inf
+	}
+	return sign | uint32(r)
+}
+
+// shiftRightJam shifts x right by n bits, setting the least significant bit
+// of the result if any nonzero bit was shifted out.
+func shiftRightJam(x uint64, n int) uint64 {
 	switch {
-	case s <= 0:
-		sig = m << uint(-s)
-	case s > 64:
-		// Everything, including the round bit, lies strictly below half an ulp.
-		sig = 0
-	default:
-		var rem, half uint64
-		if s == 64 {
-			sig, rem, half = 0, m, 1<<63
-		} else {
-			sig = m >> uint(s)
-			rem = m & (1<<uint(s) - 1)
-			half = 1 << uint(s-1)
+	case n <= 0:
+		return x
+	case n >= 64:
+		if x != 0 {
+			return 1
 		}
-		if rem > half || (rem == half && (sticky || sig&1 == 1)) {
-			sig++
-		}
+		return 0
 	}
-
-	// sig is in [2^23, 2^24] on normal grids and [0, 2^23] on the denormal
-	// grid; both cases pack uniformly, and a carry out of the significand
-	// ripples into the exponent field.
-	r := uint32(g-minExp)<<23 + uint32(sig)
-	if g-minExp >= 0xff || r >= expMask {
-		return sign | PosInf
+	r := x >> uint(n)
+	if x&(1<<uint(n)-1) != 0 {
+		r |= 1
 	}
-	return sign | r
+	return r
 }

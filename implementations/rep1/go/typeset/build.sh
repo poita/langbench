@@ -1,6 +1,6 @@
 #!/bin/sh
-# Build the typeset command-line tool into ./bin/typeset.
+# Build the typeset command into ./bin/typeset.
 set -e
-cd "$(dirname "$0")"
-mkdir -p bin
+dir=$(cd "$(dirname "$0")" && pwd)
+cd "$dir"
 go build -o bin/typeset ./cmd/typeset

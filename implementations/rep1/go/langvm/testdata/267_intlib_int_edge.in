@@ -1,0 +1,13 @@
+@module main
+fn main() {
+    print(showInt(divFloor(7, -2)) ++ " " ++ showInt(modFloor(7, -2)));
+    print(showInt(divFloor(intMin(), -1)));
+    print(showInt(powI(2, 63)));
+    print(showInt(gcdI(0, 0)) ++ " " ++ showInt(gcdI(intMin(), 0)));
+    print(showIntRadix(intMin(), 36));
+    print(showInt(clz(0)) ++ " " ++ showInt(ctz(0)) ++ " " ++ showInt(popCount(-1)));
+    print(showBool(parseInt("9223372036854775808") == None));
+    print(showInt(unwrapOr(parseInt("+7"), 0)));
+    print(showBool(parseInt(" 7") == None) ++ " " ++ showBool(parseInt("") == None));
+    print(showInt(unwrapOr(parseIntRadix("zz", 36), 0)));
+}

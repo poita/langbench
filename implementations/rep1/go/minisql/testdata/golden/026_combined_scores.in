@@ -1,0 +1,22 @@
+
+CREATE TABLE players (pid INTEGER, name TEXT, team TEXT);
+CREATE TABLE games (gid INTEGER, pid INTEGER, pts INTEGER, week INTEGER);
+INSERT INTO players VALUES (1, 'amy', 'red'), (2, 'ben', 'red'), (3, 'cal', 'blue'), (4, 'dan', 'blue'), (5, 'eli', NULL);
+INSERT INTO games VALUES (1, 1, 10, 1), (2, 2, 7, 1), (3, 3, 12, 1), (4, 4, NULL, 1), (5, 1, 3, 2), (6, 2, 15, 2), (7, 3, 9, 2), (8, 5, 30, 2), (9, 1, 20, 3), (10, 9, 5, 3);
+SELECT p.team, SUM(g.pts), AVG(g.pts), COUNT(g.pts), COUNT(*) FROM players p JOIN games g ON p.pid = g.pid GROUP BY p.team ORDER BY SUM(g.pts) DESC;
+SELECT p.name, SUM(g.pts) AS total FROM players p JOIN games g ON p.pid = g.pid GROUP BY p.name HAVING SUM(g.pts) > 20 ORDER BY total DESC, p.name;
+SELECT g.week, MAX(g.pts), MIN(g.pts) FROM games g GROUP BY g.week HAVING MIN(g.pts) < 5 ORDER BY g.week DESC;
+SELECT name FROM players WHERE pid IN_LIST;
+SELECT p.name, g.pts FROM players p, games g WHERE p.pid = g.pid AND g.week = 2 AND g.pts >= 9 ORDER BY g.pts;
+SELECT p.name, COUNT(*) FROM players p, games g WHERE p.pid = g.pid AND p.team = 'red' GROUP BY p.name;
+SELECT p1.name, p2.name FROM players p1 JOIN players p2 ON p1.team = p2.team AND p1.pid < p2.pid;
+SELECT week, COUNT(*), SUM(pts) FROM games WHERE pid <= 3 GROUP BY week;
+UPDATE games SET pts = 0 WHERE pts IS NULL;
+UPDATE games SET pts = pts * 2 WHERE week = 3;
+DELETE FROM games WHERE pid = 5;
+SELECT p.name, SUM(g.pts) FROM players p JOIN games g ON p.pid = g.pid GROUP BY p.name ORDER BY 2 DESC LIMIT 2;
+SELECT COUNT(*) FROM players p, games g WHERE p.pid = g.pid;
+SELECT COUNT(*) FROM players p, games g WHERE p.pid != g.pid;
+SELECT COUNT(*) FROM players p, games g WHERE p.pid <> g.pid AND p.team IS NOT NULL;
+SELECT g.gid FROM games g JOIN players p ON g.pid = p.pid WHERE p.team IS NULL;
+SELECT team, COUNT(*) FROM players GROUP BY team HAVING COUNT(*) = 1 OR team IS NULL;

@@ -1,0 +1,4 @@
+@module main
+enum E { One(Int) }
+fn main() { let One(x) = One(5); print(showInt(x)); let (a, (b, c)) = (1, (2, 3)); print(showInt(a+b+c));
+   for (i, j) in [(1, 2), (3, 4)] { print(showInt(i * j)); } }

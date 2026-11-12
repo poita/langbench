@@ -1,108 +1,139 @@
 package kbl
 
 // Expr is an expression node.
-type Expr interface{}
+type Expr interface{ exprNode() }
 
 type (
-	intLit  struct{ v int64 }
-	boolLit struct{ v bool }
-	varRef  struct{ name string }
-	listLit struct{ elems []Expr }
-	strLit  struct{ parts []strPart }
-	unary   struct {
-		op string
-		x  Expr
+	// IntLit is an integer literal.
+	IntLit struct{ V int64 }
+	// BoolLit is true or false.
+	BoolLit struct{ V bool }
+	// StrLit is a string literal; a literal without interpolation has a single
+	// literal part.
+	StrLit struct{ Parts []StrPart }
+	// VarRef refers to a variable.
+	VarRef struct{ Name string }
+	// ListLit is a list display.
+	ListLit struct{ Elems []Expr }
+	// Unary is a prefix operator application ("!" or "-").
+	Unary struct {
+		Op string
+		X  Expr
 	}
-	binary struct {
-		op   string
-		l, r Expr
+	// Binary is a binary operator application.
+	Binary struct {
+		Op   string
+		L, R Expr
 	}
-	index struct{ x, i Expr }
-	call  struct {
-		name string
-		fn   *builtin // nil when the name is not a built-in
-		args []Expr
+	// Call is a built-in function call; a pipe `a |> f(b)` is a Call f(a, b).
+	Call struct {
+		Name string
+		Args []Expr
 	}
+	// Index is x[i].
+	Index struct{ X, I Expr }
 )
 
-// strPart is a literal run (expr == nil) or an interpolation.
-type strPart struct {
-	lit  string
-	expr Expr
+// StrPart is one part of a string literal: either literal bytes (X == nil) or
+// an interpolated expression.
+type StrPart struct {
+	Lit string
+	X   Expr
 }
+
+func (IntLit) exprNode()  {}
+func (BoolLit) exprNode() {}
+func (StrLit) exprNode()  {}
+func (VarRef) exprNode()  {}
+func (ListLit) exprNode() {}
+func (Unary) exprNode()   {}
+func (Binary) exprNode()  {}
+func (Call) exprNode()    {}
+func (Index) exprNode()   {}
 
 // Stmt is a statement node.
-type Stmt interface{}
+type Stmt interface{ stmtNode() }
 
 type (
-	letStmt struct {
-		name string
-		x    Expr
+	// Let is `let name = expr`.
+	Let struct {
+		Name string
+		X    Expr
 	}
-	setStmt struct {
-		name string
-		x    Expr
+	// Set is `set name = expr`.
+	Set struct {
+		Name string
+		X    Expr
 	}
-	includeStmt struct{ x Expr }
-	abortStmt   struct{ x Expr }
-	defaultStmt struct{ x Expr }
-	phonyStmt   struct {
-		name string
-		x    Expr
+	// Include is `include expr`.
+	Include struct{ X Expr }
+	// Abort is `abort expr`.
+	Abort struct{ X Expr }
+	// Default is `default expr`.
+	Default struct{ X Expr }
+	// Phony is `phony name = expr`.
+	Phony struct {
+		Name string
+		X    Expr
 	}
-	useStmt struct {
-		name string
-		pos  []Expr
-		kws  []kwArg
+	// UseArg is one argument of a use statement; Name is empty for positional
+	// arguments.
+	UseArg struct {
+		Name string
+		X    Expr
 	}
-	whenStmt struct {
-		conds     []Expr
-		bodies    [][]Stmt
-		otherwise []Stmt
+	// Use is `use rule(args)`.
+	Use struct {
+		Rule string
+		Args []UseArg
 	}
-	eachStmt struct {
-		index, name string // index is "" in the one-name form
-		x           Expr
-		body        []Stmt
+	// When is a when/elsewhen/otherwise chain. Bodies has one entry per
+	// condition, followed by the otherwise body if HasElse.
+	When struct {
+		Conds   []Expr
+		Bodies  [][]Stmt
+		Else    []Stmt
+		HasElse bool
 	}
-	ruleStmt struct {
-		name   string
-		params []param
-		body   []Stmt
+	// Each is a loop; Index is empty in the one-name form.
+	Each struct {
+		Index, Name string
+		X           Expr
+		Body        []Stmt
 	}
-	stepStmt struct{ fields []stepField }
+	// Param is a rule parameter; Default is nil if it has none.
+	Param struct {
+		Name    string
+		Default Expr
+	}
+	// Rule is a rule definition.
+	Rule struct {
+		Name   string
+		Params []Param
+		Body   []Stmt
+	}
+	// StepStmt is a step block.
+	StepStmt struct{ Fields []StepField }
 )
 
-type kwArg struct {
-	name string
-	x    Expr
+// StepField is one field line of a step block.
+type StepField struct {
+	// Kind is out, in, after, cost, depfile or cmd.
+	Kind string
+	X    Expr
+	// Cmd and Args are set for the cmd field.
+	Cmd  string
+	Args []Expr
 }
 
-type param struct {
-	name string
-	def  Expr // nil when the parameter has no default
-}
-
-type fieldKind uint8
-
-const (
-	fOut fieldKind = iota
-	fIn
-	fAfter
-	fCost
-	fDepfile
-	fCmd
-)
-
-type stepField struct {
-	kind    fieldKind
-	x       Expr   // for all but fCmd
-	cmdName string // for fCmd
-	args    []Expr // for fCmd
-}
-
-// File is a parsed build file.
-type File struct {
-	Name  string
-	Stmts []Stmt
-}
+func (Let) stmtNode()      {}
+func (Set) stmtNode()      {}
+func (Include) stmtNode()  {}
+func (Abort) stmtNode()    {}
+func (Default) stmtNode()  {}
+func (Phony) stmtNode()    {}
+func (Use) stmtNode()      {}
+func (When) stmtNode()     {}
+func (Each) stmtNode()     {}
+func (Rule) stmtNode()     {}
+func (StepStmt) stmtNode() {}

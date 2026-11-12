@@ -1,9 +1,11 @@
 package depresolve
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
-// Requirement says that the package Name must be present in the resolution
-// at a version accepted by Range.
+// Requirement says that a package must be present at a version in Range.
 type Requirement struct {
 	Name  string
 	Range Range
@@ -12,112 +14,89 @@ type Requirement struct {
 // String formats the requirement as "name range".
 func (r Requirement) String() string { return r.Name + " " + r.Range.String() }
 
-// Registry holds every known version of every package together with the
-// requirements of each version. Package names are interned to dense integer
-// ids and all requirements live in one flat array, so the resolver works on
-// integers only. The zero Registry is not usable; call NewRegistry.
-//
-// A Registry may be resolved against any number of times, but it must not be
-// modified concurrently with Resolve.
+// ParseRequirements parses a comma-separated requirement list such as
+// "a ^1.0.0, b >=2.0.0 <3.0.0". The empty string yields no requirements.
+func ParseRequirements(s string) ([]Requirement, error) {
+	if s == "" {
+		return nil, nil
+	}
+	var out []Requirement
+	for _, item := range strings.Split(s, ", ") {
+		name, rng, ok := strings.Cut(item, " ")
+		if !ok || !ValidName(name) {
+			return nil, fmt.Errorf("invalid requirement %q", item)
+		}
+		r, err := ParseRange(rng)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, Requirement{Name: name, Range: r})
+	}
+	return out, nil
+}
+
+// MustParseRequirements is like ParseRequirements but panics on error.
+func MustParseRequirements(s string) []Requirement {
+	r, err := ParseRequirements(s)
+	if err != nil {
+		panic(err)
+	}
+	return r
+}
+
+// ValidName reports whether s is a legal package name: a lowercase letter
+// followed by lowercase letters, digits and hyphens.
+func ValidName(s string) bool {
+	if s == "" || s[0] < 'a' || s[0] > 'z' {
+		return false
+	}
+	for i := 1; i < len(s); i++ {
+		c := s[i]
+		if !(c >= 'a' && c <= 'z' || c >= '0' && c <= '9' || c == '-') {
+			return false
+		}
+	}
+	return true
+}
+
+// packageVersion is one declared version of a package.
+type packageVersion struct {
+	version Version
+	reqs    []Requirement
+}
+
+// Registry holds every known version of every package. The zero value is
+// not usable; create registries with NewRegistry or Parse.
 type Registry struct {
-	ids  map[string]int32 // name -> package id
-	pkgs []pkgInfo
-	reqs []regReq // all requirements of all versions, in Add order
-	seen map[verID]struct{}
-}
-
-type pkgInfo struct {
-	name     string
-	versions []verInfo // in Add order
-}
-
-type verInfo struct {
-	version  Version
-	key      Key
-	reqStart int32 // slice of Registry.reqs
-	reqCount int32
-}
-
-type regReq struct {
-	pkg int32
-	rng Range
-}
-
-type verID struct {
-	pkg int32
-	key Key
+	names    []string // package names in first-seen order
+	index    map[string]int
+	versions [][]packageVersion // per package, in insertion order
 }
 
 // NewRegistry returns an empty registry.
 func NewRegistry() *Registry {
-	return &Registry{ids: make(map[string]int32), seen: make(map[verID]struct{})}
+	return &Registry{index: make(map[string]int)}
 }
 
-func (r *Registry) intern(name string) int32 {
-	if id, ok := r.ids[name]; ok {
-		return id
+// Add declares version v of package name with the given requirements. It
+// returns an error if that exact name and version was already added. The
+// requirements slice is retained and must not be modified afterwards.
+func (g *Registry) Add(name string, v Version, reqs []Requirement) error {
+	id, ok := g.index[name]
+	if !ok {
+		id = len(g.names)
+		g.index[name] = id
+		g.names = append(g.names, name)
+		g.versions = append(g.versions, nil)
 	}
-	id := int32(len(r.pkgs))
-	r.ids[name] = id
-	r.pkgs = append(r.pkgs, pkgInfo{name: name})
-	return id
-}
-
-// Add declares that package name has a version v with the given requirements.
-// The requirements are copied. Versions of a package may be added in any
-// order. Adding the same name and version twice is an error.
-func (r *Registry) Add(name string, v Version, reqs []Requirement) error {
-	id := r.intern(name)
-	vid := verID{id, v.Key()}
-	if _, dup := r.seen[vid]; dup {
-		return fmt.Errorf("duplicate package version %s %s", name, v)
+	for _, pv := range g.versions[id] {
+		if pv.version == v {
+			return fmt.Errorf("duplicate package version %s %s", name, v)
+		}
 	}
-	r.seen[vid] = struct{}{}
-	start := int32(len(r.reqs))
-	for _, q := range reqs {
-		r.reqs = append(r.reqs, regReq{r.intern(q.Name), q.Range})
-	}
-	p := &r.pkgs[id]
-	p.versions = append(p.versions, verInfo{v, vid.key, start, int32(len(reqs))})
+	g.versions[id] = append(g.versions[id], packageVersion{v, reqs})
 	return nil
 }
 
-// NumPackages returns the number of distinct package names the registry
-// knows, including names that are only mentioned in requirements.
-func (r *Registry) NumPackages() int { return len(r.pkgs) }
-
-// Versions returns the versions of the named package, newest first. It
-// returns nil if the package has no versions.
-func (r *Registry) Versions(name string) []Version {
-	id, ok := r.ids[name]
-	if !ok {
-		return nil
-	}
-	src := r.pkgs[id].versions
-	out := make([]Version, len(src))
-	for i, vi := range src {
-		out[i] = vi.version
-	}
-	sortVersionsDesc(out)
-	return out
-}
-
-// Requirements returns the requirements of a package version, in the order
-// they were added, and whether that version exists.
-func (r *Registry) Requirements(name string, v Version) ([]Requirement, bool) {
-	id, ok := r.ids[name]
-	if !ok {
-		return nil, false
-	}
-	for _, vi := range r.pkgs[id].versions {
-		if vi.key == v.Key() {
-			out := make([]Requirement, vi.reqCount)
-			for i := range out {
-				q := r.reqs[int(vi.reqStart)+i]
-				out[i] = Requirement{r.pkgs[q.pkg].name, q.rng}
-			}
-			return out, true
-		}
-	}
-	return nil, false
-}
+// NumPackages returns the number of distinct packages declared.
+func (g *Registry) NumPackages() int { return len(g.names) }

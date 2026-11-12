@@ -1,0 +1,31 @@
+![foo](/url "title")
+
+* * * * *
+
+![foo ![bar](/url)](/url2)
+
+* * * * *
+
+![foo [bar](/url)](/url2)
+
+* * * * *
+
+![foo](train.jpg)
+
+* * * * *
+
+My ![foo bar](/path/to/train.jpg  "title"   )
+
+* * * * *
+
+![foo](<url>)
+
+* * * * *
+
+![](/url)
+
+* * * * *
+
+![[foo]]
+
+[[foo]]: /url "title"

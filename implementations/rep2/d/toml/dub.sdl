@@ -1,0 +1,23 @@
+name "toml"
+description "A TOML 1.0.0 parser and serializer with a tagged-JSON command-line tool"
+authors "Peter Alexander"
+copyright "Copyright © 2026, Peter Alexander"
+license "MIT"
+
+# The reusable library (source/toml/*). `dub build` and `dub test` use this.
+configuration "library" {
+    targetType "library"
+    targetName "toml"
+    sourcePaths "source"
+    importPaths "source"
+}
+
+# The command-line tool, a thin wrapper over the library (cli/main.d).
+configuration "cli" {
+    targetType "executable"
+    targetName "toml-cli"
+    targetPath "bin"
+    sourcePaths "source" "cli"
+    importPaths "source"
+    mainSourceFile "cli/main.d"
+}

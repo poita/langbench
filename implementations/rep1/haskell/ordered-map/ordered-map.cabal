@@ -1,0 +1,48 @@
+cabal-version:      3.0
+name:               ordered-map
+version:            0.1.0.0
+synopsis:           A size-balanced (AVL) ordered map with rank/select and neighbour queries
+description:
+  A from-scratch AVL tree keyed by any 'Ord' type, augmented with subtree
+  sizes. Besides the usual insert / delete / lookup it offers O(log n)
+  rank and select, floor / ceiling / successor / predecessor queries, and an
+  inclusive range traversal in O(log n + r). The package also ships a small
+  command-line interpreter (@ordered-map-cli@) that runs a line-oriented
+  script of map commands.
+license:            BSD-3-Clause
+author:             Peter Alexander
+maintainer:         peter.alexander.au@gmail.com
+category:           Data Structures
+build-type:         Simple
+extra-doc-files:    README.md
+tested-with:        GHC == 9.14.1
+
+common shared
+  default-language: GHC2021
+  ghc-options:      -Wall
+
+library
+  import:           shared
+  hs-source-dirs:   src
+  exposed-modules:  Data.OrderedMap
+                    Data.OrderedMap.Internal
+                    OrderedMap.Command
+                    OrderedMap.Interpreter
+  build-depends:    base >=4.18 && <5,
+                    bytestring >=0.11
+
+executable ordered-map-cli
+  import:           shared
+  hs-source-dirs:   app
+  main-is:          Main.hs
+  build-depends:    base, bytestring, ordered-map
+
+test-suite ordered-map-test
+  import:           shared
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          Spec.hs
+  other-modules:    Data.OrderedMapSpec
+                    OrderedMap.CommandSpec
+                    OrderedMap.InterpreterSpec
+  build-depends:    base, bytestring, ordered-map, hspec, QuickCheck

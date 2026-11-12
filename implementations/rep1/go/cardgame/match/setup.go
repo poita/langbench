@@ -1,307 +1,229 @@
-// Package match parses Spiremark match files: the setup block that precedes
-// the START line and the script lines (player actions and inspection
-// directives) that follow it.
+// Package match reads Spiremark match files (SPEC section 4) and runs them
+// against the engine, producing the program's complete output.
 package match
 
 import (
 	"errors"
+	"strconv"
 	"strings"
+
+	"github.com/spiremark/cardgame/engine"
 )
 
-// ErrBadSetup is returned for every violation of the setup-block grammar.
-var ErrBadSetup = errors.New("match: bad setup")
-
-// TraceMode selects the block printed after every accepted action.
-type TraceMode uint8
+// Trace selects the automatic block printed after every accepted action.
+type Trace int
 
 // Trace modes.
 const (
-	TraceNone TraceMode = iota
+	TraceNone Trace = iota
 	TraceLegal
 	TraceState
 )
 
-// Zone indexes Setup.Zones.
-const (
-	ZoneDeck = iota
-	ZoneHand
-	ZoneField
-	ZoneAsh
-	ZoneRift
-	NumSetupZones
-)
-
-// Entry is one `<cardid>` or `<cardid>*<count>` entry of a zone line.
-type Entry struct {
-	CardID string
-	Count  int
-}
-
-// Setup holds the parsed setup block with defaults applied.
+// Setup is the parsed setup block of a match file.
 type Setup struct {
 	CardsPath string
-	Seed      uint64
-	Spire     int64
-	Opening   int
-	MaxCap    int
-	HandMax   int
-	TurnLimit int
-	First     int // 0 for A, 1 for B
-	Shuffle   bool
-	Trace     TraceMode
-	Cap       [2]int
-	// Zones[player][zone] lists the entries in the order given.
-	Zones [2][NumSetupZones][]Entry
+	Config    engine.Config
+	Trace     Trace
+	// ScriptStart is the 0-based index of the first line after START.
+	ScriptStart int
 }
 
-// File is a match file split into its setup block and script lines.
-type File struct {
-	Setup *Setup
-	// Script holds the lines after START, each with its 1-based line number
-	// in the whole file. Comment lines are included so that numbering is
-	// preserved; use Words or IsComment to skip them.
-	Script []Line
-}
+// ErrBadSetup is returned by ParseSetup for any violation of SPEC 4.1.
+var ErrBadSetup = errors.New("bad setup")
 
-// Line is one input line.
-type Line struct {
-	No   int
-	Text string
-}
-
-// SplitLines splits input into lines on '\n', stripping one '\r' before each
-// '\n'. A final line without a terminator is still a line.
-func SplitLines(data string) []string {
-	if data == "" {
-		return nil
-	}
-	parts := strings.Split(data, "\n")
-	if parts[len(parts)-1] == "" {
-		parts = parts[:len(parts)-1]
-	}
-	for i, p := range parts {
-		parts[i] = strings.TrimSuffix(p, "\r")
-	}
-	return parts
-}
-
-// Words splits a line into words on runs of spaces and tabs.
-func Words(s string) []string {
+// splitWords splits on runs of spaces and tabs.
+func splitWords(s string) []string {
 	return strings.FieldsFunc(s, func(r rune) bool { return r == ' ' || r == '\t' })
 }
 
-// IsComment reports whether the line is blank or its first non-space
-// character is '#'.
-func IsComment(s string) bool {
-	t := strings.TrimLeft(s, " \t")
+func isComment(line string) bool {
+	t := strings.Trim(line, " \t")
 	return t == "" || t[0] == '#'
 }
 
-// ParseFile parses a whole match file. It returns ErrBadSetup when the setup
-// block is invalid.
-func ParseFile(data string) (*File, error) {
-	lines := SplitLines(data)
-	s := &Setup{
-		Spire: 25, Opening: 5, MaxCap: 10, HandMax: 7, TurnLimit: 200, Shuffle: true,
-	}
-	seen := map[string]bool{}
-	haveCards, haveSeed, started := false, false, false
-	idx := 0
-	for ; idx < len(lines); idx++ {
-		if IsComment(lines[idx]) {
-			continue
-		}
-		w := Words(lines[idx])
-		if w[0] == "START" {
-			if len(w) != 1 {
-				return nil, ErrBadSetup
-			}
-			started = true
-			idx++
-			break
-		}
-		if err := s.apply(w, seen, &haveCards, &haveSeed); err != nil {
-			return nil, err
-		}
-	}
-	if !started || !haveCards || !haveSeed {
-		return nil, ErrBadSetup
-	}
-	f := &File{Setup: s}
-	for ; idx < len(lines); idx++ {
-		f.Script = append(f.Script, Line{No: idx + 1, Text: lines[idx]})
-	}
-	return f, nil
-}
-
-func parseNum(s string, max uint64) (uint64, bool) {
+// parseUint parses a non-empty run of decimal digits (leading zeros allowed)
+// as an unsigned 64-bit value.
+func parseUint(s string) (uint64, bool) {
 	if s == "" {
 		return 0, false
 	}
-	var v uint64
 	for i := 0; i < len(s); i++ {
-		c := s[i]
-		if c < '0' || c > '9' {
+		if s[i] < '0' || s[i] > '9' {
 			return 0, false
 		}
-		d := uint64(c - '0')
-		if v > (^uint64(0)-d)/10 {
-			return 0, false
-		}
-		v = v*10 + d
 	}
-	return v, v <= max
-}
-
-func playerIdx(s string) (int, bool) {
-	switch s {
-	case "A":
+	t := strings.TrimLeft(s, "0")
+	if t == "" {
 		return 0, true
-	case "B":
-		return 1, true
 	}
-	return 0, false
+	v, err := strconv.ParseUint(t, 10, 64)
+	return v, err == nil
 }
 
-func (s *Setup) apply(w []string, seen map[string]bool, haveCards, haveSeed *bool) error {
-	once := func(key string) error {
+func ranged(s string, lo, hi int) (int, bool) {
+	v, ok := parseUint(s)
+	if !ok || v < uint64(lo) || v > uint64(hi) {
+		return 0, false
+	}
+	return int(v), true
+}
+
+func parseEntries(words []string) ([]engine.CardCount, bool) {
+	if len(words) == 0 {
+		return nil, false
+	}
+	out := make([]engine.CardCount, 0, len(words))
+	for _, w := range words {
+		id, count := w, 1
+		if i := strings.IndexByte(w, '*'); i >= 0 {
+			id = w[:i]
+			c, ok := ranged(w[i+1:], 1, 1000)
+			if !ok {
+				return nil, false
+			}
+			count = c
+		}
+		if id == "" || strings.ContainsRune(id, '*') {
+			return nil, false
+		}
+		out = append(out, engine.CardCount{ID: id, Count: count})
+	}
+	return out, true
+}
+
+// ParseSetup parses the setup block of the match file whose lines are given.
+// It returns ErrBadSetup when the block violates SPEC 4.1.
+func ParseSetup(lines []string) (*Setup, error) {
+	s := &Setup{Config: engine.DefaultConfig()}
+	cfg := &s.Config
+	seen := map[string]bool{}
+	once := func(key string) bool {
 		if seen[key] {
-			return ErrBadSetup
+			return false
 		}
 		seen[key] = true
-		return nil
+		return true
 	}
-	num := func(max uint64) (uint64, error) {
-		if len(w) != 2 {
-			return 0, ErrBadSetup
+	started := false
+	for i, line := range lines {
+		if isComment(line) {
+			continue
 		}
-		v, ok := parseNum(w[1], max)
-		if !ok {
-			return 0, ErrBadSetup
-		}
-		return v, nil
-	}
-	switch w[0] {
-	case "CARDS":
-		if len(w) != 2 || once("CARDS") != nil {
-			return ErrBadSetup
-		}
-		s.CardsPath, *haveCards = w[1], true
-	case "SEED":
-		v, err := num(^uint64(0))
-		if err != nil || once("SEED") != nil {
-			return ErrBadSetup
-		}
-		s.Seed, *haveSeed = v, true
-	case "SPIRE", "OPENING", "MAXCAP", "HANDMAX", "TURNLIMIT":
-		lo, hi := uint64(0), uint64(0)
+		w := splitWords(line)
+		args := w[1:]
+		ok := true
 		switch w[0] {
-		case "SPIRE":
-			lo, hi = 1, 1000000
-		case "OPENING":
-			hi = 20
-		case "MAXCAP":
-			lo, hi = 1, 100
-		case "HANDMAX":
-			hi = 100
-		case "TURNLIMIT":
-			lo, hi = 1, 100000
-		}
-		v, err := num(hi)
-		if err != nil || v < lo || once(w[0]) != nil {
-			return ErrBadSetup
-		}
-		switch w[0] {
-		case "SPIRE":
-			s.Spire = int64(v)
-		case "OPENING":
-			s.Opening = int(v)
-		case "MAXCAP":
-			s.MaxCap = int(v)
-		case "HANDMAX":
-			s.HandMax = int(v)
-		case "TURNLIMIT":
-			s.TurnLimit = int(v)
-		}
-	case "FIRST":
-		if len(w) != 2 || once("FIRST") != nil {
-			return ErrBadSetup
-		}
-		p, ok := playerIdx(w[1])
-		if !ok {
-			return ErrBadSetup
-		}
-		s.First = p
-	case "SHUFFLE":
-		if len(w) != 2 || once("SHUFFLE") != nil {
-			return ErrBadSetup
-		}
-		switch w[1] {
-		case "on":
-			s.Shuffle = true
-		case "off":
-			s.Shuffle = false
-		default:
-			return ErrBadSetup
-		}
-	case "TRACE":
-		if len(w) != 2 || once("TRACE") != nil {
-			return ErrBadSetup
-		}
-		switch w[1] {
-		case "none":
-			s.Trace = TraceNone
-		case "legal":
-			s.Trace = TraceLegal
-		case "state":
-			s.Trace = TraceState
-		default:
-			return ErrBadSetup
-		}
-	case "CAP":
-		if len(w) != 3 {
-			return ErrBadSetup
-		}
-		p, ok := playerIdx(w[1])
-		v, ok2 := parseNum(w[2], 100)
-		if !ok || !ok2 || once("CAP "+w[1]) != nil {
-			return ErrBadSetup
-		}
-		s.Cap[p] = int(v)
-	case "DECK", "HAND", "FIELD", "ASH", "RIFT":
-		if len(w) < 3 {
-			return ErrBadSetup
-		}
-		p, ok := playerIdx(w[1])
-		if !ok {
-			return ErrBadSetup
-		}
-		z := map[string]int{"DECK": ZoneDeck, "HAND": ZoneHand, "FIELD": ZoneField,
-			"ASH": ZoneAsh, "RIFT": ZoneRift}[w[0]]
-		for _, e := range w[2:] {
-			ent, ok := parseEntry(e)
-			if !ok {
-				return ErrBadSetup
+		case "START":
+			ok = len(args) == 0 && once("START")
+			if ok {
+				started = true
+				s.ScriptStart = i + 1
 			}
-			s.Zones[p][z] = append(s.Zones[p][z], ent)
+		case "CARDS":
+			ok = len(args) == 1 && once("CARDS")
+			if ok {
+				s.CardsPath = args[0]
+			}
+		case "SEED":
+			var v uint64
+			v, ok = 0, len(args) == 1
+			if ok {
+				v, ok = parseUint(args[0])
+			}
+			ok = ok && once("SEED")
+			cfg.Seed = v
+		case "SPIRE", "OPENING", "MAXCAP", "HANDMAX", "TURNLIMIT":
+			bounds := map[string][2]int{
+				"SPIRE": {1, 1000000}, "OPENING": {0, 20}, "MAXCAP": {1, 100},
+				"HANDMAX": {0, 100}, "TURNLIMIT": {1, 100000},
+			}[w[0]]
+			ok = len(args) == 1
+			var v int
+			if ok {
+				v, ok = ranged(args[0], bounds[0], bounds[1])
+			}
+			ok = ok && once(w[0])
+			switch w[0] {
+			case "SPIRE":
+				cfg.Spire = v
+			case "OPENING":
+				cfg.Opening = v
+			case "MAXCAP":
+				cfg.MaxCap = v
+			case "HANDMAX":
+				cfg.HandMax = v
+			case "TURNLIMIT":
+				cfg.TurnLimit = v
+			}
+		case "FIRST":
+			ok = len(args) == 1 && (args[0] == "A" || args[0] == "B") && once("FIRST")
+			if ok && args[0] == "B" {
+				cfg.First = engine.B
+			}
+		case "SHUFFLE":
+			ok = len(args) == 1 && (args[0] == "on" || args[0] == "off") && once("SHUFFLE")
+			if ok {
+				cfg.Shuffle = args[0] == "on"
+			}
+		case "TRACE":
+			ok = len(args) == 1 && once("TRACE")
+			switch {
+			case !ok:
+			case args[0] == "none":
+				s.Trace = TraceNone
+			case args[0] == "legal":
+				s.Trace = TraceLegal
+			case args[0] == "state":
+				s.Trace = TraceState
+			default:
+				ok = false
+			}
+		case "CAP":
+			ok = len(args) == 2 && (args[0] == "A" || args[0] == "B") && once("CAP "+args[0])
+			if ok {
+				var v int
+				v, ok = ranged(args[1], 0, 100)
+				if args[0] == "A" {
+					cfg.Cap[engine.A] = v
+				} else {
+					cfg.Cap[engine.B] = v
+				}
+			}
+		case "DECK", "HAND", "FIELD", "ASH", "RIFT":
+			ok = len(args) >= 2 && (args[0] == "A" || args[0] == "B")
+			if ok {
+				var entries []engine.CardCount
+				entries, ok = parseEntries(args[1:])
+				p := engine.A
+				if args[0] == "B" {
+					p = engine.B
+				}
+				switch w[0] {
+				case "DECK":
+					cfg.Deck[p] = append(cfg.Deck[p], entries...)
+				case "HAND":
+					cfg.Hand[p] = append(cfg.Hand[p], entries...)
+				case "FIELD":
+					cfg.Field[p] = append(cfg.Field[p], entries...)
+				case "ASH":
+					cfg.Ash[p] = append(cfg.Ash[p], entries...)
+				case "RIFT":
+					cfg.Rift[p] = append(cfg.Rift[p], entries...)
+				}
+			}
+		default:
+			ok = false
 		}
-	default:
-		return ErrBadSetup
+		if !ok {
+			return nil, ErrBadSetup
+		}
+		if started {
+			break
+		}
 	}
-	return nil
-}
-
-func parseEntry(e string) (Entry, bool) {
-	i := strings.IndexByte(e, '*')
-	if i < 0 {
-		return Entry{CardID: e, Count: 1}, e != ""
+	if !started || !seen["CARDS"] || !seen["SEED"] {
+		return nil, ErrBadSetup
 	}
-	if i == 0 {
-		return Entry{}, false
-	}
-	n, ok := parseNum(e[i+1:], 1000)
-	if !ok || n < 1 {
-		return Entry{}, false
-	}
-	return Entry{CardID: e[:i], Count: int(n)}, true
+	return s, nil
 }

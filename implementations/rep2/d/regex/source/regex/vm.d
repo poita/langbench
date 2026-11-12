@@ -1,233 +1,177 @@
-/// The backtracking virtual machine.
+/**
+ * The backtracking virtual machine.
+ *
+ * Implements the matching semantics of the specification with an explicit
+ * backtrack stack, so recursion depth is never a concern. The stack holds two
+ * kinds of entries: choice points (`pc >= 0`: resume at `pc` with position
+ * `a`) and undo records (`pc < 0`: restore slot `a` to the value `b`).
+ * Every write to a capture or loop-mark slot pushes an undo record, so a
+ * failed alternative is undone at a cost proportional to its writes, and
+ * after a failed attempt all slots are back to their initial state.
+ */
 module regex.vm;
 
 import regex.program;
 
-/++
-    Reusable matching state: the choice-point stack, the capture undo trail
-    and the capture/register array. One `Matcher` can be shared by any number
-    of programs; its buffers only grow.
+/// Marker stored in slots that hold no value.
+enum unset = -1;
 
-    After a successful `search`, `matchStart`, `matchEnd`, `groupStart` and
-    `groupEnd` describe the result until the next call.
-+/
+private struct Frame
+{
+    int pc; // >= 0: choice point; < 0: undo record
+    int a;  // choice: position; undo: slot index
+    int b;  // undo: old value
+}
+
+/// Reusable matcher state (slot array and backtrack stack) for one program.
 struct Matcher
 {
-    private static struct Choice
+    /// Capture slots: `slots[2g], slots[2g+1]` is group `g`'s span, or `unset`.
+    int[] slots;
+    private Frame[] stack;
+
+    /// Prepares the matcher for `prog`.
+    void reset(ref const Program prog) pure nothrow @safe
     {
-        int pc; // where to resume
-        int pos; // subject position (for charLoop: the end last continued at)
-        int trail; // trail length to restore
-        int low; // -1 for a plain split; otherwise the lowest allowed charLoop end
+        slots.length = prog.slotCount;
+        slots[] = unset;
+        if (stack.length == 0)
+            stack.length = 256;
     }
 
-    private static struct TrailEntry
+    /**
+     * Attempts a match of `prog` against `s` starting exactly at `start`.
+     * On success returns true, sets `end`, and leaves captures in `slots`;
+     * on failure returns false and leaves `slots` fully reset.
+     */
+    bool matchAt(ref const Program prog, const(ubyte)[] s, int start, out int end) nothrow
     {
-        int slot;
-        int old;
-    }
-
-    private Choice[] stack = new Choice[256];
-    private TrailEntry[] trail = new TrailEntry[256];
-    private int[] slots;
-    private int groups;
-
-    /// Start offset of the last match.
-    int matchStart;
-    /// Exclusive end offset of the last match.
-    int matchEnd;
-
-    /// Start of group `g` (1-based) in the last match, or -1 if unset.
-    int groupStart(int g) const @safe pure nothrow @nogc
-    {
-        return slots[2 * (g - 1)];
-    }
-
-    /// Exclusive end of group `g` (1-based) in the last match, or -1 if unset.
-    int groupEnd(int g) const @safe pure nothrow @nogc
-    {
-        return slots[2 * (g - 1) + 1];
-    }
-
-    /++
-        Find the first match of `prog` in `subject`, trying start positions
-        left to right. Returns whether a match was found.
-    +/
-    bool search(ref const Program prog, const(ubyte)[] subject)
-    {
-        if (slots.length < prog.slotCount)
-            slots.length = prog.slotCount;
-        groups = prog.groupCount;
-        const n = cast(int) subject.length;
-        const last = prog.anchored ? 0 : n;
-        const filter = !prog.nullable;
-        const first = prog.first.table.ptr;
-
-        for (int start = 0; start <= last; ++start)
-        {
-            if (filter)
-            {
-                // Skip starts whose character cannot begin a match.
-                while (start < n && !first[subject[start]])
-                    ++start;
-                if (start >= n)
-                    return false;
-            }
-            slots[0 .. 2 * groups] = -1;
-            const end = run(prog, subject, start);
-            if (end >= 0)
-            {
-                matchStart = start;
-                matchEnd = end;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /// Runs the program at `start`; returns the match end or -1.
-    private int run(ref const Program prog, const(ubyte)[] s, int start) @system
-    {
-        const Inst* code = prog.code.ptr;
-        const ubyte* sets = prog.sets.ptr;
-        const ubyte* str = s.ptr;
-        const n = cast(int) s.length;
-        int* sl = slots.ptr;
-        Choice* stk = stack.ptr;
-        size_t stkCap = stack.length;
-        TrailEntry* trl = trail.ptr;
-        size_t trlCap = trail.length;
+        const code = prog.code;
+        immutable n = cast(int) s.length;
+        auto slots = this.slots;
+        auto stack = this.stack;
         size_t sp = 0;
-        size_t tp = 0;
         int pc = 0;
         int pos = start;
 
+        // Pushes an undo record for `slot` and then assigns `value`.
+        // (A nested function keeps the interpreter loop readable.)
+        void write(int slot, int value) nothrow
+        {
+            if (sp == stack.length)
+            {
+                stack.length = stack.length * 2;
+            }
+            stack[sp++] = Frame(-1, slot, slots[slot]);
+            slots[slot] = value;
+        }
+
         for (;;)
         {
-            const Inst* ins = code + pc;
-            final switch (ins.op)
+            final switch (code[pc].op)
             {
-            case Op.char_:
-                if (pos < n && str[pos] == ins.a)
+            case Op.literal:
+                if (pos < n && s[pos] == code[pc].arg)
                 {
-                    ++pos;
-                    ++pc;
+                    pos++;
+                    pc++;
                     continue;
                 }
                 break;
             case Op.any:
                 if (pos < n)
                 {
-                    ++pos;
-                    ++pc;
+                    pos++;
+                    pc++;
                     continue;
                 }
                 break;
             case Op.set:
-                if (pos < n && sets[ins.a * 256 + str[pos]])
+                if (pos < n && prog.sets[code[pc].arg].contains(s[pos]))
                 {
-                    ++pos;
-                    ++pc;
+                    pos++;
+                    pc++;
                     continue;
                 }
                 break;
             case Op.bol:
                 if (pos == 0)
                 {
-                    ++pc;
+                    pc++;
                     continue;
                 }
                 break;
             case Op.eol:
                 if (pos == n)
                 {
-                    ++pc;
+                    pc++;
                     continue;
                 }
                 break;
             case Op.split:
-                if (sp == stkCap)
+                if (sp == stack.length)
+                    stack.length = stack.length * 2;
+                stack[sp++] = Frame(code[pc].arg, pos, 0);
+                pc++;
+                continue;
+            case Op.jump:
+                pc = code[pc].arg;
+                continue;
+            case Op.groupStart:
+                write(prog.groupStartSlot(code[pc].arg), pos);
+                pc++;
+                continue;
+            case Op.groupEnd:
                 {
-                    stack.length = stkCap * 2;
-                    stk = stack.ptr;
-                    stkCap = stack.length;
-                }
-                stk[sp++] = Choice(ins.b, pos, cast(int) tp, -1);
-                pc = ins.a;
-                continue;
-            case Op.jmp:
-                pc = ins.a;
-                continue;
-            case Op.save, Op.mark:
-                if (sp != 0) // with no choice point nothing can be undone
-                {
-                    if (tp == trlCap)
-                    {
-                        trail.length = trlCap * 2;
-                        trl = trail.ptr;
-                        trlCap = trail.length;
-                    }
-                    trl[tp++] = TrailEntry(ins.a, sl[ins.a]);
-                }
-                sl[ins.a] = pos;
-                ++pc;
-                continue;
-            case Op.check:
-                pc = (sl[ins.a] == pos) ? ins.b : pc + 1;
-                continue;
-            case Op.charLoop:
-                {
-                    const ubyte* tbl = sets + ins.c * 256;
-                    int limit = n - pos;
-                    if (ins.b >= 0 && ins.b < limit)
-                        limit = ins.b;
-                    int cnt = 0;
-                    while (cnt < limit && tbl[str[pos + cnt]])
-                        ++cnt;
-                    if (cnt < ins.a)
-                        break;
-                    if (cnt > ins.a)
-                    {
-                        if (sp == stkCap)
-                        {
-                            stack.length = stkCap * 2;
-                            stk = stack.ptr;
-                            stkCap = stack.length;
-                        }
-                        stk[sp++] = Choice(pc + 1, pos + cnt, cast(int) tp, pos + ins.a);
-                    }
-                    pos += cnt;
-                    ++pc;
+                    immutable g = code[pc].arg;
+                    immutable startPos = slots[prog.groupStartSlot(g)];
+                    write(Program.capSlot(g), startPos);
+                    write(Program.capSlot(g) + 1, pos);
+                    pc++;
                     continue;
                 }
-            case Op.match:
-                return pos;
+            case Op.mark:
+                write(code[pc].arg, pos);
+                pc++;
+                continue;
+            case Op.checkEmpty:
+                pc = (slots[code[pc].arg] == pos) ? code[pc].arg2 : pc + 1;
+                continue;
+            case Op.accept:
+                end = pos;
+                // Keep stack storage for reuse; slots keep the captures.
+                this.stack = stack;
+                return true;
             }
 
-            // Failure: resume the newest choice point.
-            if (sp == 0)
-                return -1;
-            Choice* c = &stk[sp - 1];
-            while (tp > c.trail)
+            // Failure: unwind to the most recent choice point.
+            for (;;)
             {
-                --tp;
-                sl[trl[tp].slot] = trl[tp].old;
-            }
-            pc = c.pc;
-            if (c.low < 0)
-            {
-                pos = c.pos;
-                --sp;
-            }
-            else
-            {
-                // Give back one character; keep the entry while ends remain.
-                pos = c.pos - 1;
-                if (pos > c.low)
-                    c.pos = pos;
+                if (sp == 0)
+                {
+                    this.stack = stack;
+                    return false;
+                }
+                immutable f = stack[--sp];
+                if (f.pc < 0)
+                    slots[f.a] = f.b;
                 else
-                    --sp;
+                {
+                    pc = f.pc;
+                    pos = f.a;
+                    break;
+                }
             }
         }
+    }
+
+    /**
+     * After a successful `matchAt`, the matcher's slots hold that match's
+     * captures. Call this before the next subject to clear them.
+     */
+    void clearCaptures(ref const Program prog) pure nothrow @safe
+    {
+        // Only capture slots are ever read before being written.
+        slots[0 .. 2 * (prog.groupCount + 1)] = unset;
     }
 }

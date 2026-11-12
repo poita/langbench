@@ -1,594 +1,405 @@
 package syntax
 
-import (
-	"fmt"
-
-	"github.com/peter/jq/value"
-)
-
-// maxDepth bounds the nesting of the filter grammar.
-const maxDepth = 1000
-
-type parser struct {
-	toks  []token
-	i     int
-	depth int
-}
-
-// Parse parses a jq filter into an AST.
-func Parse(src string) (*Node, error) {
-	toks, err := lex(src)
-	if err != nil {
-		return nil, err
-	}
-	p := &parser{toks: toks}
-	n, err := p.pipe()
-	if err != nil {
-		return nil, err
-	}
-	if p.cur().kind != tEOF {
-		return nil, p.errf("unexpected %s", p.describe())
+// Parse parses a filter. It returns an *Error for malformed input.
+func Parse(src string) (n Node, err error) {
+	defer func() {
+		if r := recover(); r != nil {
+			if e, ok := r.(*Error); ok {
+				n, err = nil, e
+				return
+			}
+			panic(r)
+		}
+	}()
+	p := &parser{toks: lex(src)}
+	n = p.parsePipe()
+	if t := p.peek(); t.kind != tEOF {
+		fail(t.pos, "unexpected %s", describe(t))
 	}
 	return n, nil
 }
 
-func (p *parser) cur() token  { return p.toks[p.i] }
-func (p *parser) next() token { t := p.toks[p.i]; p.i++; return t }
+type parser struct {
+	toks []token
+	pos  int
+}
 
-func (p *parser) describe() string {
-	t := p.cur()
+func describe(t token) string {
 	switch t.kind {
 	case tEOF:
-		return "end of filter"
-	case tString:
+		return "end of input"
+	case tStr:
 		return "string"
-	case tNumber:
+	case tNum:
 		return "number " + t.text
+	case tVar:
+		return "$" + t.text
+	case tField:
+		return "." + t.text
 	}
-	return fmt.Sprintf("%q", t.text)
+	return "'" + t.text + "'"
 }
 
-func (p *parser) errf(format string, args ...any) error {
-	return &Error{p.cur().pos, fmt.Sprintf(format, args...)}
+func (p *parser) peek() token { return p.toks[p.pos] }
+
+func (p *parser) peekAt(n int) token {
+	if p.pos+n < len(p.toks) {
+		return p.toks[p.pos+n]
+	}
+	return p.toks[len(p.toks)-1]
 }
 
-func (p *parser) isPunct(s string) bool {
-	t := p.cur()
-	return t.kind == tPunct && t.text == s
+func (p *parser) next() token {
+	t := p.toks[p.pos]
+	if t.kind != tEOF {
+		p.pos++
+	}
+	return t
 }
 
-func (p *parser) isKeyword(s string) bool {
-	t := p.cur()
+func (p *parser) isOp(s string) bool {
+	t := p.peek()
+	return t.kind == tOp && t.text == s
+}
+
+func (p *parser) isWord(s string) bool {
+	t := p.peek()
 	return t.kind == tIdent && t.text == s
 }
 
-func (p *parser) expectPunct(s string) error {
-	if !p.isPunct(s) {
-		return p.errf("expected %q but found %s", s, p.describe())
+func (p *parser) acceptOp(s string) bool {
+	if p.isOp(s) {
+		p.pos++
+		return true
 	}
-	p.i++
-	return nil
+	return false
 }
 
-func (p *parser) expectKeyword(s string) error {
-	if !p.isKeyword(s) {
-		return p.errf("expected %q but found %s", s, p.describe())
-	}
-	p.i++
-	return nil
-}
-
-func (p *parser) enter() error {
-	p.depth++
-	if p.depth > maxDepth {
-		return p.errf("filter nested too deeply")
-	}
-	return nil
-}
-
-func (p *parser) leave() { p.depth-- }
-
-// pipe := postfix "as" "$" IDENT "|" pipe | comma [ "|" pipe ]
-func (p *parser) pipe() (*Node, error) {
-	if err := p.enter(); err != nil {
-		return nil, err
-	}
-	defer p.leave()
-	lhs, err := p.comma()
-	if err != nil {
-		return nil, err
-	}
-	if p.isKeyword("as") {
-		p.i++
-		t := p.cur()
-		if t.kind != tVar {
-			return nil, p.errf("expected variable after \"as\"")
-		}
-		p.i++
-		if err := p.expectPunct("|"); err != nil {
-			return nil, err
-		}
-		body, err := p.pipe()
-		if err != nil {
-			return nil, err
-		}
-		return &Node{Op: OpAs, A: lhs, Name: t.text, B: body}, nil
-	}
-	if p.isPunct("|") {
-		p.i++
-		rhs, err := p.pipe()
-		if err != nil {
-			return nil, err
-		}
-		return &Node{Op: OpPipe, A: lhs, B: rhs}, nil
-	}
-	return lhs, nil
-}
-
-func (p *parser) comma() (*Node, error) {
-	lhs, err := p.or()
-	if err != nil {
-		return nil, err
-	}
-	for p.isPunct(",") {
-		p.i++
-		rhs, err := p.or()
-		if err != nil {
-			return nil, err
-		}
-		lhs = &Node{Op: OpComma, A: lhs, B: rhs}
-	}
-	return lhs, nil
-}
-
-func (p *parser) or() (*Node, error) {
-	lhs, err := p.and()
-	if err != nil {
-		return nil, err
-	}
-	for p.isKeyword("or") {
-		p.i++
-		rhs, err := p.and()
-		if err != nil {
-			return nil, err
-		}
-		lhs = &Node{Op: OpOr, A: lhs, B: rhs}
-	}
-	return lhs, nil
-}
-
-func (p *parser) and() (*Node, error) {
-	lhs, err := p.cmp()
-	if err != nil {
-		return nil, err
-	}
-	for p.isKeyword("and") {
-		p.i++
-		rhs, err := p.cmp()
-		if err != nil {
-			return nil, err
-		}
-		lhs = &Node{Op: OpAnd, A: lhs, B: rhs}
-	}
-	return lhs, nil
-}
-
-var cmpOps = map[string]BinOp{"==": Eq, "!=": Ne, "<": Lt, "<=": Le, ">": Gt, ">=": Ge}
-
-func (p *parser) cmp() (*Node, error) {
-	lhs, err := p.add()
-	if err != nil {
-		return nil, err
-	}
-	if t := p.cur(); t.kind == tPunct {
-		if op, ok := cmpOps[t.text]; ok {
-			p.i++
-			rhs, err := p.add()
-			if err != nil {
-				return nil, err
-			}
-			return &Node{Op: OpBinary, Bin: op, A: lhs, B: rhs}, nil
-		}
-	}
-	return lhs, nil
-}
-
-func (p *parser) add() (*Node, error) {
-	lhs, err := p.mul()
-	if err != nil {
-		return nil, err
-	}
-	for {
-		op := Add
-		switch {
-		case p.isPunct("+"):
-		case p.isPunct("-"):
-			op = Sub
-		default:
-			return lhs, nil
-		}
-		p.i++
-		rhs, err := p.mul()
-		if err != nil {
-			return nil, err
-		}
-		lhs = &Node{Op: OpBinary, Bin: op, A: lhs, B: rhs}
+func (p *parser) expectOp(s string) {
+	if !p.acceptOp(s) {
+		t := p.peek()
+		fail(t.pos, "expected '%s' but found %s", s, describe(t))
 	}
 }
 
-func (p *parser) mul() (*Node, error) {
-	lhs, err := p.unary()
-	if err != nil {
-		return nil, err
+func (p *parser) expectWord(s string) {
+	if !p.isWord(s) {
+		t := p.peek()
+		fail(t.pos, "expected '%s' but found %s", s, describe(t))
 	}
-	for {
-		var op BinOp
-		switch {
-		case p.isPunct("*"):
-			op = Mul
-		case p.isPunct("/"):
-			op = Div
-		case p.isPunct("%"):
-			op = Mod
-		default:
-			return lhs, nil
-		}
-		p.i++
-		rhs, err := p.unary()
-		if err != nil {
-			return nil, err
-		}
-		lhs = &Node{Op: OpBinary, Bin: op, A: lhs, B: rhs}
-	}
+	p.pos++
 }
 
-func (p *parser) unary() (*Node, error) {
-	if p.isPunct("-") {
-		p.i++
-		if err := p.enter(); err != nil {
-			return nil, err
-		}
-		defer p.leave()
-		a, err := p.unary()
-		if err != nil {
-			return nil, err
-		}
-		return &Node{Op: OpNeg, A: a}, nil
+func (p *parser) parsePipe() Node {
+	lhs := p.parseComma()
+	if p.acceptOp("|") {
+		return &Pipe{lhs, p.parsePipe()}
 	}
-	return p.postfix()
+	return lhs
 }
 
-func (p *parser) postfix() (*Node, error) {
-	n, err := p.primary()
-	if err != nil {
-		return nil, err
+func (p *parser) parseComma() Node {
+	lhs := p.parseOr()
+	for p.acceptOp(",") {
+		lhs = &Comma{lhs, p.parseOr()}
 	}
-	// pathOp is true while the last suffix was a field/index/iterate/slice
-	// that a following "?" should make tolerant.
-	pathOp := n.Op == OpIndex && n.A.Op == OpIdentity
-	for {
-		switch {
-		case p.cur().kind == tField:
-			t := p.next()
-			n = fieldNode(n, t.text)
-			pathOp = true
-		case p.isPunct(".") && p.i+1 < len(p.toks) && p.toks[p.i+1].kind == tString &&
-			p.toks[p.i+1].pos == p.cur().end:
-			p.i++
-			n = fieldNode(n, p.next().text)
-			pathOp = true
-		case p.isPunct(".") && p.i+1 < len(p.toks) && p.toks[p.i+1].kind == tPunct &&
-			p.toks[p.i+1].text == "[" && p.toks[p.i+1].pos == p.cur().end:
-			p.i++ // "a.[0]" is the same as "a[0]"
-		case p.isPunct("["):
-			p.i++
-			n, err = p.bracket(n)
-			if err != nil {
-				return nil, err
-			}
-			pathOp = true
-		case p.isPunct("?"):
-			p.i++
-			if pathOp {
-				n.Optional = true
-			} else {
-				n = &Node{Op: OpTry, A: n}
-			}
-			pathOp = false
-		default:
-			return n, nil
-		}
-	}
+	return lhs
 }
 
-func fieldNode(target *Node, name string) *Node {
-	return &Node{Op: OpIndex, A: target, B: &Node{Op: OpLiteral, Val: value.String(name)}}
+func (p *parser) parseOr() Node {
+	lhs := p.parseAnd()
+	for p.isWord("or") {
+		p.pos++
+		lhs = &Or{lhs, p.parseAnd()}
+	}
+	return lhs
 }
 
-// bracket parses the inside of "[...]" after the opening bracket.
-func (p *parser) bracket(target *Node) (*Node, error) {
-	if p.isPunct("]") {
-		p.i++
-		return &Node{Op: OpIter, A: target}, nil
+func (p *parser) parseAnd() Node {
+	lhs := p.parseCmp()
+	for p.isWord("and") {
+		p.pos++
+		lhs = &And{lhs, p.parseCmp()}
 	}
-	var from *Node
-	if !p.isPunct(":") {
-		var err error
-		if from, err = p.pipe(); err != nil {
-			return nil, err
-		}
-		if p.isPunct("]") {
-			p.i++
-			return &Node{Op: OpIndex, A: target, B: from}, nil
-		}
-	}
-	if err := p.expectPunct(":"); err != nil {
-		return nil, err
-	}
-	var to *Node
-	if !p.isPunct("]") {
-		var err error
-		if to, err = p.pipe(); err != nil {
-			return nil, err
-		}
-	}
-	if err := p.expectPunct("]"); err != nil {
-		return nil, err
-	}
-	return &Node{Op: OpSlice, A: target, B: from, C: to}, nil
+	return lhs
 }
 
-func (p *parser) primary() (*Node, error) {
-	t := p.cur()
-	switch t.kind {
-	case tField:
-		p.i++
-		return fieldNode(&Node{Op: OpIdentity}, t.text), nil
-	case tNumber:
-		p.i++
-		return &Node{Op: OpLiteral, Val: value.Number(t.num)}, nil
-	case tString:
-		p.i++
-		return &Node{Op: OpLiteral, Val: value.String(t.text)}, nil
-	case tVar:
-		p.i++
-		return &Node{Op: OpVar, Name: t.text}, nil
-	case tIdent:
-		return p.identPrimary()
-	case tPunct:
+func (p *parser) parseCmp() Node {
+	lhs := p.parseAdd()
+	if t := p.peek(); t.kind == tOp {
 		switch t.text {
-		case ".":
-			p.i++
-			if nt := p.cur(); nt.kind == tString && nt.pos == t.end {
-				p.i++
-				return fieldNode(&Node{Op: OpIdentity}, nt.text), nil
-			}
-			return &Node{Op: OpIdentity}, nil
-		case "(":
-			p.i++
-			n, err := p.pipe()
-			if err != nil {
-				return nil, err
-			}
-			if err := p.expectPunct(")"); err != nil {
-				return nil, err
-			}
-			return n, nil
-		case "[":
-			p.i++
-			if p.isPunct("]") {
-				p.i++
-				return &Node{Op: OpArray}, nil
-			}
-			n, err := p.pipe()
-			if err != nil {
-				return nil, err
-			}
-			if err := p.expectPunct("]"); err != nil {
-				return nil, err
-			}
-			return &Node{Op: OpArray, A: n}, nil
-		case "{":
-			p.i++
-			return p.object()
+		case "==", "!=", "<", "<=", ">", ">=":
+			p.pos++
+			return &Binary{t.text, lhs, p.parseAdd()}
 		}
 	}
-	return nil, p.errf("unexpected %s", p.describe())
+	return lhs
 }
 
-func (p *parser) identPrimary() (*Node, error) {
-	t := p.next()
-	switch t.text {
-	case "true":
-		return &Node{Op: OpLiteral, Val: value.True}, nil
-	case "false":
-		return &Node{Op: OpLiteral, Val: value.False}, nil
-	case "null":
-		return &Node{Op: OpLiteral, Val: value.Null}, nil
-	case "if":
-		return p.ifExpr()
-	case "reduce":
-		src, err := p.postfix()
-		if err != nil {
-			return nil, err
-		}
-		if err := p.expectKeyword("as"); err != nil {
-			return nil, err
-		}
-		v := p.cur()
-		if v.kind != tVar {
-			return nil, p.errf("expected variable after \"as\"")
-		}
-		p.i++
-		if err := p.expectPunct("("); err != nil {
-			return nil, err
-		}
-		init, err := p.pipe()
-		if err != nil {
-			return nil, err
-		}
-		if err := p.expectPunct(";"); err != nil {
-			return nil, err
-		}
-		upd, err := p.pipe()
-		if err != nil {
-			return nil, err
-		}
-		if err := p.expectPunct(")"); err != nil {
-			return nil, err
-		}
-		return &Node{Op: OpReduce, A: src, Name: v.text, B: init, C: upd}, nil
-	case "then", "elif", "else", "end", "as", "and", "or":
-		p.i--
-		return nil, p.errf("unexpected keyword %q", t.text)
-	}
-	n := &Node{Op: OpCall, Name: t.text}
-	if p.isPunct("(") {
-		p.i++
-		for {
-			arg, err := p.pipe()
-			if err != nil {
-				return nil, err
-			}
-			n.Args = append(n.Args, arg)
-			if p.isPunct(";") {
-				p.i++
-				continue
-			}
-			break
-		}
-		if err := p.expectPunct(")"); err != nil {
-			return nil, err
-		}
-	}
-	return n, nil
-}
-
-// ifExpr parses the rest of an if-expression after the "if" keyword.
-func (p *parser) ifExpr() (*Node, error) {
-	cond, err := p.pipe()
-	if err != nil {
-		return nil, err
-	}
-	if err := p.expectKeyword("then"); err != nil {
-		return nil, err
-	}
-	then, err := p.pipe()
-	if err != nil {
-		return nil, err
-	}
-	n := &Node{Op: OpIf, A: cond, B: then}
-	switch {
-	case p.isKeyword("elif"):
-		p.i++
-		if n.C, err = p.ifExpr(); err != nil {
-			return nil, err
-		}
-		return n, nil
-	case p.isKeyword("else"):
-		p.i++
-		if n.C, err = p.pipe(); err != nil {
-			return nil, err
-		}
-	}
-	if err := p.expectKeyword("end"); err != nil {
-		return nil, err
-	}
-	return n, nil
-}
-
-// object parses the rest of an object construction after "{".
-func (p *parser) object() (*Node, error) {
-	n := &Node{Op: OpObject}
-	if p.isPunct("}") {
-		p.i++
-		return n, nil
-	}
+func (p *parser) parseAdd() Node {
+	lhs := p.parseMul()
 	for {
-		e, err := p.objectEntry()
-		if err != nil {
-			return nil, err
-		}
-		n.Entries = append(n.Entries, e)
-		if p.isPunct(",") {
-			p.i++
+		t := p.peek()
+		if t.kind == tOp && (t.text == "+" || t.text == "-") {
+			p.pos++
+			lhs = &Binary{t.text, lhs, p.parseMul()}
 			continue
 		}
-		if err := p.expectPunct("}"); err != nil {
-			return nil, err
-		}
-		return n, nil
+		return lhs
 	}
 }
 
-func (p *parser) objectEntry() (ObjectEntry, error) {
-	t := p.cur()
-	var key *Node
-	switch {
-	case t.kind == tIdent || t.kind == tString:
-		p.i++
-		key = &Node{Op: OpLiteral, Val: value.String(t.text)}
-		if !p.isPunct(":") {
-			if t.kind == tIdent && (t.text == "if" || t.text == "reduce") {
-				return ObjectEntry{}, p.errf("expected \":\" after object key")
+func (p *parser) parseMul() Node {
+	lhs := p.parseUnary()
+	for {
+		t := p.peek()
+		if t.kind == tOp && (t.text == "*" || t.text == "/" || t.text == "%") {
+			p.pos++
+			lhs = &Binary{t.text, lhs, p.parseUnary()}
+			continue
+		}
+		return lhs
+	}
+}
+
+func (p *parser) parseUnary() Node {
+	if p.acceptOp("-") {
+		return &Neg{p.parseUnary()}
+	}
+	return p.parsePostfix()
+}
+
+// parsePostfix parses a postfix term, and, when it is followed by "as", the
+// variable binding whose body extends as far right as possible.
+func (p *parser) parsePostfix() Node {
+	n := p.parseTerm()
+	if p.isWord("as") {
+		p.pos++
+		name := p.expectVar()
+		p.expectOp("|")
+		return &As{Src: n, Name: name, Body: p.parsePipe()}
+	}
+	return n
+}
+
+func (p *parser) expectVar() string {
+	t := p.peek()
+	if t.kind != tVar {
+		fail(t.pos, "expected variable but found %s", describe(t))
+	}
+	p.pos++
+	return t.text
+}
+
+// parseTerm parses a primary followed by any number of suffixes.
+func (p *parser) parseTerm() Node {
+	n, canOpt := p.parsePrimary()
+	for {
+		t := p.peek()
+		switch {
+		case t.kind == tField:
+			p.pos++
+			n, canOpt = &Index{Term: n, Key: &Literal{t.text}}, true
+		case t.kind == tOp && t.text == ".":
+			nt := p.peekAt(1)
+			if nt.kind == tStr {
+				p.pos += 2
+				n, canOpt = &Index{Term: n, Key: &Literal{nt.text}}, true
+			} else if nt.kind == tOp && nt.text == "[" {
+				p.pos++ // ".[" continues the path
+			} else {
+				return n
 			}
-			return ObjectEntry{key, fieldNode(&Node{Op: OpIdentity}, t.text)}, nil
+		case t.kind == tOp && t.text == "[":
+			p.pos++
+			n = p.parseBracket(n)
+			canOpt = true
+		case t.kind == tOp && t.text == "?":
+			p.pos++
+			if canOpt {
+				switch x := n.(type) {
+				case *Index:
+					x.Opt = true
+				case *Iterate:
+					x.Opt = true
+				case *Slice:
+					x.Opt = true
+				}
+			} else {
+				n = &Try{n}
+			}
+			canOpt = false
+		default:
+			return n
+		}
+	}
+}
+
+// parseBracket parses the rest of a suffix after '['.
+func (p *parser) parseBracket(term Node) Node {
+	if p.acceptOp("]") {
+		return &Iterate{Term: term}
+	}
+	var from Node
+	if !p.isOp(":") {
+		from = p.parsePipe()
+		if p.acceptOp("]") {
+			return &Index{Term: term, Key: from}
+		}
+	}
+	p.expectOp(":")
+	var to Node
+	if !p.isOp("]") {
+		to = p.parsePipe()
+	}
+	p.expectOp("]")
+	return &Slice{Term: term, From: from, To: to}
+}
+
+func (p *parser) parsePrimary() (Node, bool) {
+	t := p.next()
+	switch t.kind {
+	case tNum:
+		return &Literal{t.num}, false
+	case tStr:
+		return &Literal{t.text}, false
+	case tVar:
+		return &Var{Name: t.text, Pos: t.pos}, false
+	case tField:
+		return &Index{Term: &Identity{}, Key: &Literal{t.text}}, true
+	case tOp:
+		switch t.text {
+		case ".":
+			if nt := p.peek(); nt.kind == tStr {
+				p.pos++
+				return &Index{Term: &Identity{}, Key: &Literal{nt.text}}, true
+			}
+			return &Identity{}, false
+		case "(":
+			n := p.parsePipe()
+			p.expectOp(")")
+			return n, false
+		case "[":
+			if p.acceptOp("]") {
+				return &Array{}, false
+			}
+			n := p.parsePipe()
+			p.expectOp("]")
+			return &Array{n}, false
+		case "{":
+			return p.parseObject(), false
+		}
+	case tIdent:
+		switch t.text {
+		case "true":
+			return &Literal{true}, false
+		case "false":
+			return &Literal{false}, false
+		case "null":
+			return &Literal{nil}, false
+		case "if":
+			return p.parseIf(), false
+		case "reduce":
+			return p.parseReduce(), false
+		case "then", "elif", "else", "end", "as", "and", "or":
+			fail(t.pos, "unexpected keyword '%s'", t.text)
+		}
+		call := &Call{Name: t.text, Pos: t.pos}
+		if p.acceptOp("(") {
+			call.Args = append(call.Args, p.parsePipe())
+			for p.acceptOp(";") {
+				call.Args = append(call.Args, p.parsePipe())
+			}
+			p.expectOp(")")
+		}
+		return call, false
+	}
+	fail(t.pos, "unexpected %s", describe(t))
+	return nil, false
+}
+
+func (p *parser) parseIf() Node {
+	cond := p.parsePipe()
+	p.expectWord("then")
+	then := p.parsePipe()
+	n := &If{Cond: cond, Then: then}
+	switch {
+	case p.isWord("elif"):
+		p.pos++
+		n.Else = p.parseIf() // consumes through the shared "end"
+		return n
+	case p.isWord("else"):
+		p.pos++
+		n.Else = p.parsePipe()
+	}
+	p.expectWord("end")
+	return n
+}
+
+func (p *parser) parseReduce() Node {
+	src := p.parseTerm()
+	p.expectWord("as")
+	name := p.expectVar()
+	p.expectOp("(")
+	init := p.parsePipe()
+	p.expectOp(";")
+	update := p.parsePipe()
+	p.expectOp(")")
+	return &Reduce{Src: src, Name: name, Init: init, Update: update}
+}
+
+func (p *parser) parseObject() Node {
+	obj := &Object{}
+	if p.acceptOp("}") {
+		return obj
+	}
+	for {
+		obj.Entries = append(obj.Entries, p.parseEntry())
+		if p.acceptOp("}") {
+			return obj
+		}
+		p.expectOp(",")
+	}
+}
+
+func (p *parser) parseEntry() Entry {
+	t := p.next()
+	var key Node
+	switch {
+	case t.kind == tIdent || t.kind == tStr:
+		key = &Literal{t.text}
+		if !p.isOp(":") {
+			if t.kind == tIdent && (t.text == "true" || t.text == "false" || t.text == "null") {
+				fail(t.pos, "object key shorthand needs a name")
+			}
+			return Entry{key, &Index{Term: &Identity{}, Key: &Literal{t.text}}}
 		}
 	case t.kind == tVar:
-		p.i++
-		return ObjectEntry{
-			&Node{Op: OpLiteral, Val: value.String(t.text)},
-			&Node{Op: OpVar, Name: t.text},
-		}, nil
-	case p.isPunct("("):
-		p.i++
-		k, err := p.pipe()
-		if err != nil {
-			return ObjectEntry{}, err
-		}
-		if err := p.expectPunct(")"); err != nil {
-			return ObjectEntry{}, err
-		}
-		key = k
-		if !p.isPunct(":") {
-			return ObjectEntry{}, p.errf("expected \":\" after object key")
+		return Entry{&Literal{t.text}, &Var{Name: t.text, Pos: t.pos}}
+	case t.kind == tOp && t.text == "(":
+		key = p.parsePipe()
+		p.expectOp(")")
+		if !p.isOp(":") {
+			fail(p.peek().pos, "expected ':' after computed key")
 		}
 	default:
-		return ObjectEntry{}, p.errf("unexpected %s in object construction", p.describe())
+		fail(t.pos, "unexpected %s in object", describe(t))
 	}
-	p.i++ // ":"
-	val, err := p.objVal()
-	if err != nil {
-		return ObjectEntry{}, err
-	}
-	return ObjectEntry{key, val}, nil
+	p.expectOp(":")
+	return Entry{key, p.parseObjVal()}
 }
 
-// objVal := objterm { "|" objterm }
-func (p *parser) objVal() (*Node, error) {
-	lhs, err := p.objTerm()
-	if err != nil {
-		return nil, err
+func (p *parser) parseObjVal() Node {
+	n := p.parseObjTerm()
+	for p.acceptOp("|") {
+		n = &Pipe{n, p.parseObjTerm()}
 	}
-	for p.isPunct("|") {
-		p.i++
-		rhs, err := p.objTerm()
-		if err != nil {
-			return nil, err
-		}
-		lhs = &Node{Op: OpPipe, A: lhs, B: rhs}
-	}
-	return lhs, nil
+	return n
 }
 
-func (p *parser) objTerm() (*Node, error) {
-	if p.isPunct("-") {
-		p.i++
-		a, err := p.objTerm()
-		if err != nil {
-			return nil, err
-		}
-		return &Node{Op: OpNeg, A: a}, nil
+func (p *parser) parseObjTerm() Node {
+	if p.acceptOp("-") {
+		return &Neg{p.parseObjTerm()}
 	}
-	return p.postfix()
+	return p.parseTerm()
 }

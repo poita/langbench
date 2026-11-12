@@ -1,44 +1,48 @@
 # minisql
 
-A small in-memory relational database written in D. It executes a compact SQL
-dialect (a strict subset of SQLite's): `CREATE TABLE`, `INSERT`, `UPDATE`,
-`DELETE` and `SELECT` with expressions, `LIKE`, joins of up to two tables,
-`GROUP BY`/`HAVING` with `COUNT`/`SUM`/`MIN`/`MAX`/`AVG`, `ORDER BY`, `LIMIT`
-and `OFFSET`. The engine is written from scratch and uses only D's standard
-library (Phobos and druntime).
+A small in-memory relational database written in D. It executes a subset of
+SQL (`CREATE TABLE`, `INSERT`, `UPDATE`, `DELETE`, and `SELECT` with
+expressions, `LIKE`, one join, `GROUP BY` / `HAVING`, aggregates, `ORDER BY`,
+`LIMIT` / `OFFSET`) with SQLite-compatible semantics for dynamic typing,
+`NULL` and ordering. The engine is written from scratch and uses only D's
+standard library.
 
-The project is a reusable library (`source/minisql/`) and a thin
-command-line tool on top of it (`app/main.d`).
+The project is a reusable library (`minisql`) plus a thin command-line tool.
+
+## Requirements
+
+* LDC 1.41.0 (`ldc2`) and dub 1.40.0
 
 ## Building
 
-Requires LDC 1.41 and dub 1.40.
-
 ```sh
-./build.sh          # same as: dub build -b release --compiler=ldc2
+dub build -b release --compiler=ldc2     # or ./build.sh
 ```
 
-This produces `bin/minisql`. `./run.sh` runs it from any directory.
+This produces the command-line tool `bin/minisql`.
 
-To run the unit tests (kept in `tests/`, separate from the library sources):
+## Testing
 
 ```sh
 dub test --compiler=ldc2
 ```
 
-To build only the library: `dub build --config=library --compiler=ldc2`.
+The tests are ordinary D `unittest` blocks (the standard D approach, so no
+external test framework is needed): per-module unit tests next to the code, and
+end-to-end script tests in `source/minisql/tests.d`.
 
-## Command-line use
+## Command line
 
-The tool reads a SQL script on stdin, executes the statements in order and
-prints the result of every `SELECT` to stdout. It takes no arguments and exits
-with status 0.
+`minisql` reads a SQL script from standard input, executes the statements in
+order and prints the result of every `SELECT`; it takes no arguments and
+always exits with status 0. `./run.sh` is a wrapper that finds the binary
+relative to itself.
 
-```sh
+```
 $ ./run.sh <<'SQL'
 CREATE TABLE emp (id INTEGER, name TEXT, dept TEXT, salary INTEGER);
 INSERT INTO emp VALUES (1, 'ann', 'eng', 120), (2, 'bob', 'ops', 90), (3, 'cy', 'eng', NULL);
-SELECT dept, COUNT(*), AVG(salary) FROM emp GROUP BY dept ORDER BY dept;
+SELECT dept, COUNT(*), AVG(salary) FROM emp GROUP BY dept;
 SELECT * FROM nosuch;
 SQL
 eng	2	120.00
@@ -47,84 +51,76 @@ ops	1	90.00
 error
 ```
 
-Output format:
+Output format: one line per result row with tab-separated values (`NULL`,
+decimal integers, bare text, `AVG` results with two decimals), followed by
+`-- N rows`. A statement that fails prints the single line `error` and leaves
+the database unchanged; execution continues with the next statement. The full
+dialect is specified in `SPEC.md` of the problem statement.
 
-* each `SELECT` prints one line per row (values separated by a tab; `NULL`
-  for NULL; REAL values, which only `AVG` produces, with two decimals)
-  followed by `-- N rows`;
-* a statement that fails (syntax error, unknown table or column, ...) prints
-  the single line `error`, has no effect on the database, and execution
-  continues with the next statement;
-* `CREATE`, `INSERT`, `UPDATE` and `DELETE` print nothing.
+## Library
 
-The exact dialect (lexical rules, comparison order, three-valued logic,
-aggregates, ordering and error cases) is defined by the problem specification.
-
-## Library use
+Add the package as a dependency (it exposes a `library` configuration) and
+`import minisql;`.
 
 ```d
+import std.stdio;
 import minisql;
 
 void main()
 {
     auto db = new Database;
 
-    // Statement by statement; throws SqlException on invalid SQL.
-    db.execute("CREATE TABLE t (a INTEGER, b TEXT)");
-    db.execute("INSERT INTO t VALUES (1, 'x'), (2, 'y'), (3, NULL)");
+    // Run a whole script, collecting output in the command-line format ...
+    string text = db.runScript("
+        CREATE TABLE t (k INTEGER, v TEXT);
+        INSERT INTO t VALUES (2, 'b'), (1, 'a'), (NULL, 'z');
+        SELECT * FROM t ORDER BY k;
+    ");
+    write(text);   // NULL z / 1 a / 2 b / -- 3 rows
 
-    Result res = db.execute("SELECT a, b FROM t WHERE a > 1 ORDER BY a DESC");
-    foreach (i; 0 .. res.rowCount)
-    {
-        auto row = res.row(i);               // const(Value)[]
-        assert(row[0].kind == Kind.integer);
-        // row[0].num is the integer, row[1].str the text (or row[1].isNull)
-    }
+    // ... or execute single statements and inspect typed values.
+    auto r = db.execute("SELECT v, k + 1 FROM t WHERE k IS NOT NULL ORDER BY k");
+    foreach (row; r.rows)
+        writeln(row[0].str, " ", row[1].num);   // a 2 / b 3
 
-    // Or run a whole script exactly like the command-line tool does:
-    string output = db.run("SELECT COUNT(*) FROM t; SELECT * FROM missing;");
-    assert(output == "3\n-- 1 rows\nerror\n");
+    try
+        db.execute("SELECT nope FROM t");
+    catch (SqlError e)
+        writeln("rejected: ", e.msg);
 }
 ```
 
-Public API (everything is re-exported from `import minisql;`):
+### API summary
 
-| Symbol | Purpose |
-| --- | --- |
-| `Database` | the catalog and statement pipeline: `execute(sql)` runs one statement and returns a `Result`; `run(script)` runs a script and returns the CLI output; `hasTable(name)` |
-| `Result` | rows of a `SELECT` (`isQuery`, `rowCount`, `width`, `row(i)`) |
-| `Value`, `Kind` | a NULL / INTEGER / TEXT / REAL value, plus `compareValues`, `toDisplay` |
-| `SqlException` | thrown by `execute` for any rejected statement |
-| `Table` | table storage (rows in insertion order) |
+* `Database` — `execute(string)` runs exactly one statement and returns a
+  `QueryResult` (`isQuery`, `rows`), throwing `SqlError` on any error with the
+  database unchanged; `runScript(string)` runs a script and returns (or
+  streams to a sink) the output text; `table(name)` gives read access to a
+  `Table`.
+* `Value` — a tagged value (`kind` is `null_`, `integer`, `text` or `real_`);
+  `compareValues` is the total order used everywhere.
+* `SqlError` — the exception for every syntax / binding / execution error.
 
-## Design
+### Layout
 
-A statement goes through three phases; a failure in the first two leaves the
-database untouched, and the third cannot fail.
+| Module              | Responsibility                                          |
+|---------------------|---------------------------------------------------------|
+| `minisql.lexer`     | tokens, comments, statement splitting                   |
+| `minisql.ast`       | syntax trees                                            |
+| `minisql.parser`    | recursive-descent parser                                |
+| `minisql.binder`    | resolves columns, checks aggregate / grouping rules     |
+| `minisql.expr`      | bound expressions and their tree interpreter            |
+| `minisql.select`    | SELECT: hash join, grouping, one stable ORDER BY sort   |
+| `minisql.database`  | statement execution, script runner, output formatting   |
+| `minisql.table`     | table storage                                           |
+| `minisql.value`     | values, three-valued logic, total order, formatting     |
+| `minisql.like`      | `LIKE` matcher with a single backtrack point            |
 
-1. **Parse** (`lexer`, `parser`, `ast`): the script is tokenized in one pass,
-   split into statements on `;`, and each statement is parsed by recursive
-   descent into a syntax tree.
-2. **Bind** (`binder`, `plan`): column names are resolved to
-   (FROM slot, column index), aggregate calls get accumulator slots, all
-   semantic checks run, and literals become ready-made values. `WHERE`/`ON`
-   are split into `AND` conjuncts and classified by the tables they read.
-3. **Execute** (`executor`, `eval`, `like`, `keytable`): a tree-walking
-   interpreter evaluates the bound tree. Single-table queries filter in one
-   pass. Two-table queries filter each side by its own conjuncts and then
-   hash-join on every cross-table equality (key expressions may be arbitrary),
-   emitting pairs in nested-loop order. `GROUP BY` uses a hash table of
-   streaming accumulators; `ORDER BY` is a stable sort over precomputed keys.
+### Design notes
 
-Text values are slices of the input script, so copying a value never copies
-text. `REAL` is stored as an integer number of hundredths.
-
-## Layout
-
-```
-dub.sdl             project manifest (configurations: cli, library, unittest)
-build.sh run.sh     build and run scripts
-source/minisql/     the library, one module per responsibility
-app/main.d          the command-line tool
-tests/              unit tests (one file per area)
-```
+Each statement is lexed, parsed, bound against the current schema (all
+semantic checks happen here, before any table changes) and then executed.
+Nothing is cached between statements and there are no indexes. WHERE and ON
+are split into `AND` conjuncts; conjuncts reading one table filter it before
+the join, and cross-table equalities form one composite hash key, so a join
+costs O(A + B + M) while still emitting pairs in nested-loop order.

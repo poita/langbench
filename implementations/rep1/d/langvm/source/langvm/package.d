@@ -1,10 +1,16 @@
 /// langvm: a compiler and stack virtual machine for the Vellum language.
 ///
-/// The pipeline is: module stream → tokens → AST → items and name resolution →
-/// type checking → bytecode → execution. Use [runSource] for the whole pipeline or
-/// [compile] and [execute] separately.
+/// The pipeline follows SPEC.md section 16: source text -> tokens -> syntax
+/// tree -> items and name resolution -> type checking -> bytecode -> execution.
+///
+/// Typical use:
+/// ---
+/// import langvm;
+/// string output = interpretToString("@module main\nfn main() { print(\"hi\"); }\n");
+/// ---
 module langvm;
 
-public import langvm.diag : CompileError, Panic, Pos;
-public import langvm.driver : Compiled, Outcome, RunResult, compile, execute, runSource;
-public import langvm.source : SourceModule, splitModules;
+public import langvm.bytecode : Program;
+public import langvm.diag : CompileError, Kind, Pos;
+public import langvm.driver : Sink, compile, execute, interpret, interpretToString;
+public import langvm.vm : Panic;

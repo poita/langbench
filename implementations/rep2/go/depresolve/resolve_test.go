@@ -4,227 +4,306 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
+	"os"
+	"path/filepath"
 	"sort"
 	"strings"
 	"testing"
 )
 
-func solve(t *testing.T, input string) (string, error) {
+func resolveText(t *testing.T, in string) (string, error) {
 	t.Helper()
-	p, err := ParseBytes([]byte(input))
+	reg, root, err := ParseString(in)
 	if err != nil {
 		t.Fatalf("parse: %v", err)
 	}
-	res, err := p.Resolve()
-	return res.String(), err
+	sol, err := reg.Resolve(root)
+	if err != nil {
+		return "", err
+	}
+	var sb strings.Builder
+	for _, p := range sol {
+		fmt.Fprintf(&sb, "%s %s\n", p.Name, p.Version)
+	}
+	return sb.String(), nil
 }
 
 func TestSpecExamples(t *testing.T) {
-	tests := []struct{ name, in, want string }{
-		{"diamond backtracking", "a 1.0.0: c ^1.0.0\nb 1.0.0: c ~1.2.0\nc 1.1.0:\nc 1.2.5:\nc 1.3.0:\nroot: a *, b *\n",
-			"a 1.0.0\nb 1.0.0\nc 1.2.5\n"},
-		{"first solution", "a 2.0.0: b ~1.0.0\na 1.0.0:\nb 1.0.0:\nb 1.0.5:\nb 1.5.0:\nb 2.0.0:\nroot: a *, b *\n",
-			"a 2.0.0\nb 1.0.5\n"},
-		{"conflicting majors", "a 1.0.0: c ^1.0.0\nb 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\nroot: a *, b *\n", ""},
-		{"order a b", "a 2.0.0: c ^2.0.0\na 1.0.0: c ^1.0.0\nb 2.0.0: c ^1.0.0\nb 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\nroot: a *, b *\n",
-			"a 2.0.0\nb 1.0.0\nc 2.0.0\n"},
-		{"order b a", "a 2.0.0: c ^2.0.0\na 1.0.0: c ^1.0.0\nb 2.0.0: c ^1.0.0\nb 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\nroot: b *, a *\n",
-			"a 1.0.0\nb 2.0.0\nc 1.0.0\n"},
-	}
-	for _, tc := range tests {
-		got, err := solve(t, tc.in)
-		if tc.want == "" {
-			if !errors.Is(err, ErrUnsatisfiable) {
-				t.Errorf("%s: err = %v, want ErrUnsatisfiable", tc.name, err)
-			}
-			continue
-		}
-		if err != nil || got != tc.want {
-			t.Errorf("%s: got %q, %v; want %q", tc.name, got, err, tc.want)
-		}
-	}
-}
-
-func TestEdgeCases(t *testing.T) {
-	tests := []struct {
-		name, in string
-		want     string // "" means unsatisfiable
+	cases := []struct {
+		name, in, want string
+		unsat          bool
 	}{
-		{"unknown package", "root: ghost *\n", ""},
-		{"unknown after known", "a 1.0.0:\nroot: a *, ghost 1.0.0\n", ""},
-		{"empty range", "a 1.0.0:\nroot: a >=2.0.0 <1.0.0\n", ""},
-		{"self requirement ok", "a 2.0.0: a ^2.0.0\nroot: a *\n", "a 2.0.0\n"},
-		{"self requirement conflict falls back", "a 2.0.0: a ^1.0.0\na 1.0.0:\nroot: a *\n", "a 1.0.0\n"},
-		{"cycle", "a 1.0.0: b *\nb 1.0.0: a *\nroot: a *\n", "a 1.0.0\nb 1.0.0\n"},
-		{"numeric order", "a 1.9.0:\na 1.10.0:\nroot: a *\n", "a 1.10.0\n"},
+		{"diamond", "a 1.0.0: c ^1.0.0\nb 1.0.0: c ~1.2.0\nc 1.1.0:\nc 1.2.5:\nc 1.3.0:\nroot: a *, b *\n",
+			"a 1.0.0\nb 1.0.0\nc 1.2.5\n", false},
+		{"first solution", "a 2.0.0: b ~1.0.0\na 1.0.0:\nb 1.0.0:\nb 1.0.5:\nb 1.5.0:\nb 2.0.0:\nroot: a *, b *\n",
+			"a 2.0.0\nb 1.0.5\n", false},
+		{"conflict", "a 1.0.0: c ^1.0.0\nb 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\nroot: a *, b *\n", "", true},
+		{"order ab", "a 2.0.0: c ^2.0.0\na 1.0.0: c ^1.0.0\nb 2.0.0: c ^1.0.0\nb 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\nroot: a *, b *\n",
+			"a 2.0.0\nb 1.0.0\nc 2.0.0\n", false},
+		{"order ba", "a 2.0.0: c ^2.0.0\na 1.0.0: c ^1.0.0\nb 2.0.0: c ^1.0.0\nb 1.0.0: c ^2.0.0\nc 1.0.0:\nc 2.0.0:\nroot: b *, a *\n",
+			"a 1.0.0\nb 2.0.0\nc 1.0.0\n", false},
+		{"empty root", "root:\n", "", false},
+		{"missing package", "root: ghost *\n", "", true},
+		{"self cycle", "a 1.0.0: a 1.0.0\nroot: a *\n", "a 1.0.0\n", false},
+		{"cycle", "a 1.0.0: b *\nb 1.0.0: a *\nroot: a *\n", "a 1.0.0\nb 1.0.0\n", false},
+		{"numeric order", "a 1.9.0:\na 1.10.0:\nroot: a *\n", "a 1.10.0\n", false},
 		{"name order", "mylib 1.0.0:\nmy-lib2 1.0.0:\nmy-lib 1.0.0:\nroot: mylib *, my-lib2 *, my-lib *\n",
-			"my-lib 1.0.0\nmy-lib2 1.0.0\nmylib 1.0.0\n"},
-		{"unchosen versions ignored", "a 2.0.0: ghost *\na 1.0.0:\nroot: a *\n", "a 1.0.0\n"},
-		{"max components", "a 1000000.1000000.1000000:\nroot: a ^1000000.0.0\n", "a 1000000.1000000.1000000\n"},
-		{"exclusive bound at max", "a 1000000.1000000.1000000:\nroot: a ~1000000.1000000.0\n", "a 1000000.1000000.1000000\n"},
-		{"unrelated backtrack", "x 2.0.0:\nx 1.0.0:\na 1.0.0: x ^1.0.0\nroot: x *, a *\n", "a 1.0.0\nx 1.0.0\n"},
+			"my-lib 1.0.0\nmy-lib2 1.0.0\nmylib 1.0.0\n", false},
+		{"unchosen deps ignored", "a 2.0.0: ghost *\na 1.0.0:\nroot: a *\n", "a 1.0.0\n", false},
+		{"empty range", "a 1.0.0:\nroot: a >=2.0.0 <1.0.0\n", "", true},
 	}
-	for _, tc := range tests {
-		got, err := solve(t, tc.in)
-		if tc.want == "" {
-			if !errors.Is(err, ErrUnsatisfiable) {
-				t.Errorf("%s: got %q, %v; want unsatisfiable", tc.name, got, err)
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			got, err := resolveText(t, c.in)
+			if c.unsat {
+				if !errors.Is(err, ErrUnsatisfiable) {
+					t.Fatalf("got %q, %v; want ErrUnsatisfiable", got, err)
+				}
+				return
 			}
-		} else if err != nil || got != tc.want {
-			t.Errorf("%s: got %q, %v; want %q", tc.name, got, err, tc.want)
+			if err != nil || got != c.want {
+				t.Fatalf("got %q, %v; want %q", got, err, c.want)
+			}
+		})
+	}
+}
+
+func TestLookup(t *testing.T) {
+	got, err := resolveText(t, "a 1.0.0:\nb 2.0.0:\nroot: a *, b *\n")
+	if err != nil || got != "a 1.0.0\nb 2.0.0\n" {
+		t.Fatal(got, err)
+	}
+	reg, root, _ := ParseString("a 1.0.0:\nb 2.0.0:\nroot: a *, b *\n")
+	sol, _ := reg.Resolve(root)
+	if v, ok := sol.Lookup("b"); !ok || v != (Version{2, 0, 0}) {
+		t.Errorf("Lookup(b) = %v, %v", v, ok)
+	}
+	if _, ok := sol.Lookup("c"); ok {
+		t.Error("Lookup(c) found a package")
+	}
+}
+
+func TestAPIBuilding(t *testing.T) {
+	reg := NewRegistry()
+	if err := reg.Add("a", MustParseVersion("1.0.0"), MustParseRequirements("c ^1.0.0")); err != nil {
+		t.Fatal(err)
+	}
+	if err := reg.Add("a", MustParseVersion("1.0.0"), nil); err == nil {
+		t.Error("duplicate Add succeeded")
+	}
+	reg.Add("c", MustParseVersion("1.2.0"), nil)
+	reg.Add("c", MustParseVersion("2.0.0"), nil)
+	sol, err := reg.Resolve(MustParseRequirements("a *"))
+	if err != nil || len(sol) != 2 || sol[1] != (Package{"c", Version{1, 2, 0}}) {
+		t.Fatalf("got %v, %v", sol, err)
+	}
+	// Resolve is repeatable and does not modify the registry.
+	sol2, _ := reg.Resolve(MustParseRequirements("a *"))
+	if fmt.Sprint(sol) != fmt.Sprint(sol2) {
+		t.Error("second Resolve differs")
+	}
+}
+
+func TestParseErrors(t *testing.T) {
+	for _, in := range []string{
+		"", "a 1.0.0:\n", "root:", "root: a\n", "a 1.0.0 root:\n", "A 1.0.0:\nroot:\n",
+		"a 1.0.0:\nroot:\na 2.0.0:\n", "a 1.0.0:\na 1.0.0:\nroot:\n", "a 1.0:\nroot:\n",
+		"a 1.0.0: b\nroot:\n", "nocolon\nroot:\n",
+	} {
+		if _, _, err := ParseString(in); err == nil {
+			t.Errorf("ParseString(%q) succeeded; want error", in)
 		}
 	}
 }
 
-func TestResolutionGet(t *testing.T) {
-	p, _ := ParseBytes([]byte("a 1.0.0:\nb 2.0.0:\nroot: b *, a *\n"))
-	res, err := p.Resolve()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if v, ok := res.Get("b"); !ok || v.String() != "2.0.0" {
-		t.Errorf("Get(b) = %v, %v", v, ok)
-	}
-	if _, ok := res.Get("c"); ok {
-		t.Error("Get(c) should be absent")
-	}
-}
-
-func TestResolveRepeatable(t *testing.T) {
-	p, _ := ParseBytes([]byte("a 1.0.0: b *\nb 1.0.0:\nb 2.0.0:\nroot: a *\n"))
-	r1, _ := p.Resolve()
-	r2, _ := p.Resolve()
-	if r1.String() != r2.String() || r1.String() != "a 1.0.0\nb 2.0.0\n" {
-		t.Errorf("%q vs %q", r1, r2)
-	}
-}
-
-// TestDeepChain checks that a very deep chain neither overflows the stack nor
-// is slow, including a tail that forces a retry from the root.
+// TestDeepChain checks that very long dependency paths do not exhaust the
+// call stack (the search is iterative).
 func TestDeepChain(t *testing.T) {
-	const n = 5000
-	var b strings.Builder
+	var sb strings.Builder
+	const n = 20000
 	for i := 0; i < n; i++ {
-		if i+1 < n {
-			fmt.Fprintf(&b, "p%d 2.0.0: p%d *\n", i, i+1)
-		} else {
-			fmt.Fprintf(&b, "p%d 2.0.0: leaf ^2.0.0\n", i)
-		}
-		fmt.Fprintf(&b, "p%d 1.0.0: leaf ^1.0.0\n", i)
+		fmt.Fprintf(&sb, "p%s 1.0.0: p%s *\n", name(i), name(i+1))
 	}
-	b.WriteString("leaf 1.0.0:\nroot: p0 *\n")
-	// p0 2.0.0 ... p4999 2.0.0 all fail at leaf; the search unwinds to a
-	// version of p4999 that works: p4999 1.0.0.
-	got, err := solve(t, b.String())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !strings.Contains(got, "leaf 1.0.0\n") || !strings.Contains(got, "p4999 1.0.0\n") || !strings.Contains(got, "p0 2.0.0\n") {
-		t.Errorf("unexpected resolution head: %.200q", got)
+	fmt.Fprintf(&sb, "p%s 1.0.0:\nroot: p%s *\n", name(n), name(0))
+	got, err := resolveText(t, sb.String())
+	if err != nil || strings.Count(got, "\n") != n+1 {
+		t.Fatalf("err=%v lines=%d", err, strings.Count(got, "\n"))
 	}
 }
 
-// reference is a direct transcription of the recursive pseudocode in the
-// specification, used to cross-check the optimised iterative search.
-func reference(reg map[string]map[Version][]Requirement, pending []Requirement, chosen map[string]Version) (map[string]Version, bool) {
+func name(i int) string {
+	s := ""
+	for {
+		s = string(rune('a'+i%26)) + s
+		i /= 26
+		if i == 0 {
+			return s
+		}
+	}
+}
+
+// naive is a direct transcription of the specification's recursive search,
+// used as an oracle.
+func naive(reg *Registry, pending []Requirement, chosen map[string]Version) (map[string]Version, bool) {
 	if len(pending) == 0 {
 		return chosen, true
 	}
-	q, rest := pending[0], pending[1:]
-	if v, ok := chosen[q.Name]; ok {
-		if q.Range.Contains(v) {
-			return reference(reg, rest, chosen)
+	req, rest := pending[0], pending[1:]
+	if v, ok := chosen[req.Name]; ok {
+		if req.Range.Contains(v) {
+			return naive(reg, rest, chosen)
 		}
 		return nil, false
 	}
-	var cands []Version
-	for v := range reg[q.Name] {
-		if q.Range.Contains(v) {
-			cands = append(cands, v)
+	var cands []packageVersion
+	if id, ok := reg.index[req.Name]; ok {
+		for _, pv := range reg.versions[id] {
+			if req.Range.Contains(pv.version) {
+				cands = append(cands, pv)
+			}
 		}
 	}
-	sort.Slice(cands, func(i, j int) bool { return cands[i].Compare(cands[j]) > 0 })
-	for _, v := range cands {
+	sort.Slice(cands, func(i, j int) bool { return cands[j].version.Less(cands[i].version) })
+	for _, pv := range cands {
 		next := make(map[string]Version, len(chosen)+1)
-		for k, x := range chosen {
-			next[k] = x
+		for k, v := range chosen {
+			next[k] = v
 		}
-		next[q.Name] = v
-		np := append(append([]Requirement{}, reg[q.Name][v]...), rest...)
-		if res, ok := reference(reg, np, next); ok {
+		next[req.Name] = pv.version
+		p := append(append([]Requirement(nil), pv.reqs...), rest...)
+		if res, ok := naive(reg, p, next); ok {
 			return res, true
 		}
 	}
 	return nil, false
 }
 
-func TestAgainstReference(t *testing.T) {
+func randomRange(rng *rand.Rand) string {
+	v := func() string { return fmt.Sprintf("%d.%d.%d", rng.Intn(3), rng.Intn(3), rng.Intn(3)) }
+	ops := []string{"<", "<=", ">", ">="}
+	switch rng.Intn(7) {
+	case 0:
+		return "*"
+	case 1:
+		return v()
+	case 2:
+		return "^" + v()
+	case 3:
+		return "~" + v()
+	case 4:
+		return ops[rng.Intn(4)] + v()
+	case 5:
+		return ops[rng.Intn(4)] + v() + " " + ops[rng.Intn(4)] + v()
+	}
+	return ">=" + v() + " <" + v()
+}
+
+func randomReqs(rng *rand.Rand, npkg int) string {
+	k := rng.Intn(4)
+	seen := map[int]bool{}
+	var parts []string
+	for i := 0; i < k; i++ {
+		p := rng.Intn(npkg + 1) // npkg is a package with no versions
+		if seen[p] {
+			continue
+		}
+		seen[p] = true
+		parts = append(parts, fmt.Sprintf("p%d %s", p, randomRange(rng)))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return " " + strings.Join(parts, ", ")
+}
+
+func TestRandomAgainstNaive(t *testing.T) {
 	rng := rand.New(rand.NewSource(1))
-	names := []string{"a", "b", "c", "d", "e", "f", "ghost"}
-	ranges := []string{"*", "^1.0.0", "^0.1.0", "^0.0.2", "~1.1.0", "~0.0.1", "1.0.0", "2.1.0", ">=1.0.0 <2.0.0", ">0.1.0", "<=1.1.0", "<1.0.0", ">=2.0.0 <1.0.0"}
-	randVersion := func() Version {
-		return Version{uint32(rng.Intn(3)), uint32(rng.Intn(3)), uint32(rng.Intn(3))}
-	}
-	randReqs := func() []Requirement {
-		n := rng.Intn(4)
-		var out []Requirement
-		for _, i := range rng.Perm(len(names))[:n] {
-			out = append(out, Requirement{names[i], MustParseRange(ranges[rng.Intn(len(ranges))])})
-		}
-		return out
-	}
-	unsat, sat := 0, 0
-	for iter := 0; iter < 3000; iter++ {
-		reg := map[string]map[Version][]Requirement{}
-		r := NewRegistry()
-		for i := rng.Intn(30); i > 0; i-- {
-			name, v := names[rng.Intn(len(names)-1)], randVersion()
-			if _, dup := reg[name][v]; dup {
-				continue
-			}
-			if reg[name] == nil {
-				reg[name] = map[Version][]Requirement{}
-			}
-			reqs := randReqs()
-			reg[name][v] = reqs
-			if err := r.Add(name, v, reqs); err != nil {
-				t.Fatal(err)
+	sat, unsat := 0, 0
+	for iter := 0; iter < 1500; iter++ {
+		npkg := 2 + rng.Intn(6)
+		var sb strings.Builder
+		seen := map[string]bool{}
+		for p := 0; p < npkg; p++ {
+			for n := rng.Intn(5); n > 0; n-- {
+				ver := fmt.Sprintf("%d.%d.%d", rng.Intn(3), rng.Intn(3), rng.Intn(3))
+				if seen[fmt.Sprint(p, ver)] {
+					continue
+				}
+				seen[fmt.Sprint(p, ver)] = true
+				fmt.Fprintf(&sb, "p%d %s:%s\n", p, ver, randomReqs(rng, npkg))
 			}
 		}
-		root := randReqs()
-		want, ok := reference(reg, root, map[string]Version{})
-		got, err := r.Resolve(root)
+		fmt.Fprintf(&sb, "root:%s\n", randomReqs(rng, npkg))
+		in := sb.String()
+		reg, root, err := ParseString(in)
+		if err != nil {
+			t.Fatalf("parse %q: %v", in, err)
+		}
+		want, ok := naive(reg, root, map[string]Version{})
+		got, err := reg.Resolve(root)
 		if !ok {
 			unsat++
 			if !errors.Is(err, ErrUnsatisfiable) {
-				t.Fatalf("iter %d: got %v, %v; want unsatisfiable", iter, got, err)
+				t.Fatalf("input:\n%sgot %v, %v; want unsatisfiable", in, got, err)
 			}
 			continue
 		}
 		sat++
 		if err != nil || len(got) != len(want) {
-			t.Fatalf("iter %d: got %v, %v; want %v", iter, got, err, want)
+			t.Fatalf("input:\n%sgot %v, %v; want %v", in, got, err, want)
 		}
 		for _, p := range got {
 			if want[p.Name] != p.Version {
-				t.Fatalf("iter %d: %s = %s, want %s", iter, p.Name, p.Version, want[p.Name])
+				t.Fatalf("input:\n%sgot %v; want %v", in, got, want)
 			}
 		}
-		if !sort.SliceIsSorted(got, func(i, j int) bool { return got[i].Name < got[j].Name }) {
-			t.Fatalf("iter %d: unsorted %v", iter, got)
-		}
 	}
-	if sat < 200 || unsat < 200 {
+	if sat < 100 || unsat < 100 {
 		t.Errorf("weak coverage: %d satisfiable, %d unsatisfiable", sat, unsat)
 	}
 }
 
-func TestRegistryDuplicate(t *testing.T) {
-	r := NewRegistry()
-	if err := r.Add("a", Version{1, 0, 0}, nil); err != nil {
-		t.Fatal(err)
+// TestSpecSuite runs every .in/.out pair in testdata (copies of
+// representative cases) through the library.
+func TestSpecSuite(t *testing.T) {
+	files, _ := filepath.Glob("testdata/*.in")
+	if len(files) == 0 {
+		t.Skip("no testdata")
 	}
-	if err := r.Add("a", Version{1, 0, 0}, nil); err == nil {
-		t.Error("expected duplicate error")
+	for _, f := range files {
+		t.Run(filepath.Base(f), func(t *testing.T) {
+			in, _ := os.ReadFile(f)
+			want, _ := os.ReadFile(strings.TrimSuffix(f, ".in") + ".out")
+			got, err := resolveText(t, string(in))
+			if errors.Is(err, ErrUnsatisfiable) {
+				got = "unsatisfiable\n"
+			} else if err != nil {
+				t.Fatal(err)
+			}
+			if strings.TrimSpace(got) != strings.TrimSpace(string(want)) {
+				t.Errorf("got:\n%s\nwant:\n%s", got, want)
+			}
+		})
+	}
+}
+
+func BenchmarkResolveBacktracking(b *testing.B) {
+	// 12 independent packages with 4 versions each, then a conflict that
+	// forces enumeration of many combinations before failure.
+	var sb strings.Builder
+	var roots []string
+	for p := 0; p < 8; p++ {
+		for v := 1; v <= 4; v++ {
+			fmt.Fprintf(&sb, "p%d %d.0.0:\n", p, v)
+		}
+		roots = append(roots, fmt.Sprintf("p%d *", p))
+	}
+	sb.WriteString("z 1.0.0: p0 ^9.0.0\n")
+	roots = append(roots, "z *")
+	fmt.Fprintf(&sb, "root: %s\n", strings.Join(roots, ", "))
+	reg, root, _ := ParseString(sb.String())
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		reg.Resolve(root)
 	}
 }

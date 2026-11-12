@@ -1,53 +1,50 @@
 # jsonschema
 
-A JSON Schema **draft 2020-12** validator written in Go using only the
-standard library. Everything on the critical path is implemented here rather
-than borrowed: the JSON parser (with exact decimal numbers), the
-regular-expression engine, RFC 3986 reference resolution, RFC 6901 JSON
-Pointers, the schema index (`$id` / `$anchor` / `$dynamicAnchor`) and the
-keyword evaluator with annotation tracking. It passes the 2020-12 official
-JSON-Schema-Test-Suite groups used by the project's test corpus.
+A JSON Schema **draft 2020-12** validator in Go, built only on the standard
+library. It comes as a reusable library and a thin command-line tool.
 
-Highlights
+Everything the validator needs is implemented here rather than imported: the
+JSON parser, exact-decimal arithmetic, an ECMA-262 regular-expression engine,
+RFC 3986 reference resolution, and the schema evaluator with annotation
+tracking.
 
-* **Exact numbers.** `0.3` is a multiple of `0.0001`; `1e309` is just a large
-  number. No binary floating point is used for parsing, comparison, integer
-  tests or `multipleOf`.
-* **Code-point string lengths**, ECMA-262 regex semantics (`\b` over
-  `[A-Za-z0-9_]`, `$` only at the very end).
-* Full `$ref` / `$dynamicRef` / `$anchor` / `$dynamicAnchor` support, with
-  remote documents supplied by the caller (nothing is ever fetched).
-* `unevaluatedProperties` / `unevaluatedItems` with correct annotation
-  propagation across `$ref`, `allOf`, `anyOf`, `oneOf`, `if`/`then`/`else`,
-  `dependentSchemas` and `contains`.
-* `format` is annotation-only and never rejects; `$vocabulary` is ignored.
+- Numbers are **exact decimals**: `1`, `1.0` and `1e0` are the same number, and
+  `0.3` is a multiple of `0.0001`. Nothing is ever rounded to a `float64`.
+- `$ref`, `$dynamicRef`, `$anchor`, `$dynamicAnchor` and nested `$id` resources
+  all work, across any number of supplied documents. Nothing is fetched from
+  the network.
+- `unevaluatedItems` / `unevaluatedProperties` follow the annotation rules of
+  the specification (`allOf`, `anyOf`, `oneOf`, `if`/`then`/`else`, `$ref`, ...).
+- `pattern` / `patternProperties` run on a Thompson-style matcher: O(pattern ×
+  string), no exponential backtracking.
+- `uniqueItems` is linear (hashing consistent with JSON equality).
+- `format` is an annotation only; `$vocabulary` and `$schema` are ignored.
 
 ## Layout
 
-| path | role |
+| package | responsibility |
 | --- | --- |
-| `jsonschema` (root package) | `Compiler`, `Schema`: compile once, validate many instances (concurrently) |
-| `jsonvalue/` | JSON data model, parser, exact `Number`, JSON equality and hashing |
-| `regex/` | ECMA-262 subset regex engine (memoised backtracking, membership only) |
-| `uri/` | RFC 3986 parse / resolve / recompose, percent-decoding |
-| `jsonpointer/` | RFC 6901 pointer evaluation over `jsonvalue` trees |
-| `cmd/jsonschema/` | the command-line tool |
+| `example.com/jsonschema` | compile schemas, validate instances (`Compiler`, `Schema`) |
+| `.../jsonvalue` | JSON data model, strict parser, exact `Number`, equality and hashing |
+| `.../regex` | ECMA-262 regular-expression subset, membership matching |
+| `.../uri` | RFC 3986 parsing, reference resolution, percent-decoding |
+| `.../jsonpointer` | RFC 6901 JSON Pointer |
+| `cmd/jsonschema` | the command-line tool |
 
 ## Build
 
 Requires Go 1.27 or newer.
 
 ```sh
-./build.sh          # writes bin/jsonschema
-go test ./...       # unit tests
+./build.sh          # builds bin/jsonschema
+go test ./...       # runs the tests
 ```
 
-`build.sh` is simply `go build -o bin/jsonschema ./cmd/jsonschema`;
-`run.sh` runs the resulting binary from any working directory.
+`run.sh` runs the built binary from any directory.
 
 ## Command line
 
-The tool reads one JSON document on stdin and prints one verdict per test:
+`jsonschema` reads one JSON document on standard input:
 
 ```json
 {
@@ -55,23 +52,27 @@ The tool reads one JSON document on stdin and prints one verdict per test:
   "tests":   [{"description": "positive", "data": 3},
               {"description": "zero",     "data": 0},
               {"description": "string",   "data": "3"}],
-  "remotes": {"http://localhost:1234/other.json": {"type": "string"}}
+  "remotes": {"http://example.com/other.json": {"type": "string"}}
 }
 ```
 
-* `schema` (required): the schema. `tests` (required): objects with a `data`
-  member; `description` is ignored. `remotes` (optional): absolute URI →
-  schema document, available to `$ref`/`$dynamicRef`.
-* Output: `valid` or `invalid` per test, in order, one per line (here
-  `valid`, `invalid`, `invalid`). Exit status 0.
-* A malformed request exits with status 1 and a message on stderr. If
-  validating an instance hits something unevaluable (an unresolvable
-  reference, say), that instance is reported `invalid` and a warning goes to
-  stderr.
+- `schema` (required): the schema, any JSON value (normally an object or boolean).
+- `tests` (required): instances to check; each needs a `data` member.
+  `description` and any other members are ignored.
+- `remotes` (optional): documents the schema may reference by absolute URI,
+  keyed by their retrieval URI.
 
-```sh
-echo '{"schema":{"type":"string","pattern":"^a"},"tests":[{"description":"","data":"abc"}]}' | ./run.sh
+It prints `valid` or `invalid` for each test, one per line, and exits 0:
+
+```console
+$ ./run.sh < request.json
+valid
+invalid
+invalid
 ```
+
+Malformed input (invalid JSON, a missing member, an invalid regular expression
+in the schema) is reported on stderr with exit status 1.
 
 ## Library
 
@@ -86,66 +87,44 @@ import (
 )
 
 func main() {
-	schema, _ := jsonvalue.ParseString(`{
-	  "$id": "https://example.com/person",
-	  "type": "object",
-	  "properties": {
-	    "name": {"type": "string", "minLength": 1},
-	    "age":  {"$ref": "nonneg.json"}
-	  },
-	  "required": ["name"],
-	  "unevaluatedProperties": false
+	// Parse with exact numbers, then compile once and validate many times.
+	schemaDoc, _ := jsonvalue.ParseString(`{
+		"type": "object",
+		"properties": {"price": {"$ref": "http://example.com/positive.json"}},
+		"required": ["price"],
+		"unevaluatedProperties": false
 	}`)
-	nonneg, _ := jsonvalue.ParseString(`{"type": "integer", "minimum": 0}`)
 
-	c := jsonschema.NewCompiler()
-	c.AddResource("https://example.com/nonneg.json", nonneg) // a "remote" document
-	s, err := c.Compile(schema)
+	var c jsonschema.Compiler
+	positive, _ := jsonvalue.ParseString(`{"type": "number", "exclusiveMinimum": 0}`)
+	c.AddResource("http://example.com/positive.json", positive) // no network access
+
+	schema, err := c.Compile(schemaDoc)
 	if err != nil {
-		panic(err)
+		panic(err) // e.g. an invalid "pattern"
 	}
 
-	for _, doc := range []string{
-		`{"name": "Ada", "age": 36}`,
-		`{"name": "Ada", "age": -1}`,
-		`{"name": "Ada", "email": "x"}`,
-	} {
-		ok, err := s.ValidateJSON([]byte(doc))
-		fmt.Println(doc, ok, err) // true / false / false, with a nil error
+	for _, doc := range []string{`{"price": 9.99}`, `{"price": 0}`, `{"price": 1, "x": 2}`} {
+		inst, _ := jsonvalue.ParseString(doc)
+		fmt.Println(doc, schema.Validate(inst))
 	}
+	// {"price": 9.99} true
+	// {"price": 0} false
+	// {"price": 1, "x": 2} false
 }
 ```
 
-`Compile` indexes and pre-resolves everything once; the returned `*Schema` is
-immutable and safe for concurrent use. `Validate` returns an error only if it
-reaches a reference that does not resolve, an invalid regular expression, or
-the recursion limit (a self-referencing schema that makes no progress);
-otherwise the boolean is the answer.
+For a self-contained schema, `jsonschema.CompileJSON(data)` and
+`schema.ValidateJSON(data)` work directly on bytes. A compiled `*Schema` is
+immutable and safe for concurrent use.
 
-The supporting packages are usable on their own, e.g.
-`regex.MustCompile(`^a+$`).MatchString(s)`, `jsonvalue.Equal(a, b)`,
-`uri.Resolve(base, ref)` and `jsonpointer.Resolve(&root, "/a/b")`.
+Notes on behaviour:
 
-## Design notes
-
-* Schemas are compiled into an arena of typed nodes holding only the
-  keywords present; evaluation never looks keywords up by name, and
-  references are resolved once during compilation.
-* Annotations (evaluated array indices and member positions) are positional
-  bitsets, built only for nodes that can be observed by an `unevaluated*`
-  keyword; non-collecting nodes short-circuit `anyOf` and `contains`.
-* The dynamic scope is a stack of interned base-URI ids; `$dynamicRef`
-  scans it outermost-first.
-* Regexes are compiled to a small instruction program and matched by a
-  depth-first search with a visited set over (instruction, position), so a
-  membership test is O(program size × subject length) and nested quantifiers
-  cannot blow up. Counted repetition is expanded.
-* Go stacks grow on demand, so deeply nested documents need no special
-  handling; a depth limit guards against reference cycles.
-
-## Notes on the specification
-
-Nothing in `SPEC.md` or the test corpus was found to be wrong. One point the
-spec leaves open: a `$ref` that cannot be resolved is only an error when
-evaluation actually reaches it; the CLI then prints `invalid` for that
-instance and warns on stderr.
+- `Validate` answers valid/invalid only; it does not describe errors.
+- `Compile` fails only on problems detectable up front (such as a bad regular
+  expression). A reference that cannot be resolved does not fail compilation
+  since it may never be reached; `Schema.Unresolved()` lists them, and
+  validation rejects at a dangling reference it reaches.
+- Keywords with a wrongly typed value are ignored, as unknown keywords are.
+- Regular expressions are the ECMA-262 subset documented in package `regex`
+  (no lookaround, backreferences, named groups or `\p{...}`).

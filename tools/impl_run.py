@@ -41,7 +41,9 @@ import runner  # noqa: E402
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BINARY_MAGIC = (b"\xcf\xfa\xed\xfe", b"\xce\xfa\xed\xfe", b"\xfe\xed\xfa\xcf", b"\xca\xfe\xba\xbe",
                 b"\x7fELF", b"!<arch>\n", b"MZ")
-BUILD_FILES = re.compile(r"\.(o|obj|a|pyc)$")
+# Compiled objects, build logs, and the classpath files Clojure build scripts cache for run.sh (they hold
+# absolute paths of the machine that built them).
+BUILD_FILES = re.compile(r"\.(o|obj|a|pyc|log)$|(^|/)\.(classpath|cp)$")
 # Build-output directories by language; a source directory with the same name in another language (a Go
 # package called build, say) is kept.
 BUILD_DIRS = {

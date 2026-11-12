@@ -4,40 +4,56 @@
 module linalg.cholesky;
 
 import std.math : sqrt;
+
 import linalg.errors;
 import linalg.matrix;
+import linalg.ops : isSymmetric;
 
 /**
- * Lower triangular `L` with positive diagonal and `A = L Lᵀ`, built column by
- * column. Only the lower triangle of `A` is read, after the symmetry check.
+ * Lower triangular `L` with a positive diagonal such that `A = L Lᵀ`,
+ * computed column by column.
  *
- * Throws: `not_square`, `not_symmetric` (exact comparison), and
- *         `not_positive_definite` when a pivot `s <= 0` is met.
+ * Throws: `notSquare`, `notSymmetric`, then `notPositiveDefinite` when a
+ * pivot `s <= 0`.
  */
-Matrix cholesky(const Matrix a) pure
+Matrix cholesky(const Matrix a) @safe pure
 {
-    enforceCode(a.isSquare, ErrorCode.not_square);
-    enforceCode(a.isSymmetric, ErrorCode.not_symmetric);
-    immutable n = a.rows;
+    enforceCode(a.isSquare, ErrorCode.notSquare);
+    enforceCode(isSymmetric(a), ErrorCode.notSymmetric);
+    const n = a.rows;
     auto l = Matrix(n, n);
-    auto ld = l.data;
     foreach (j; 0 .. n)
     {
-        auto rowJ = ld[j * n .. j * n + j];
         double s = a.data[j * n + j];
-        foreach (x; rowJ)
-            s -= x * x;
-        enforceCode(s > 0.0, ErrorCode.not_positive_definite);
-        immutable d = sqrt(s);
-        ld[j * n + j] = d;
+        foreach (k; 0 .. j)
+            s -= l.data[j * n + k] * l.data[j * n + k];
+        enforceCode(s > 0.0, ErrorCode.notPositiveDefinite);
+        const d = sqrt(s);
+        l.data[j * n + j] = d;
         foreach (i; j + 1 .. n)
         {
-            auto rowI = ld[i * n .. i * n + j];
             double t = a.data[i * n + j];
             foreach (k; 0 .. j)
-                t -= rowI[k] * rowJ[k];
-            ld[i * n + j] = t / d;
+                t -= l.data[i * n + k] * l.data[j * n + k];
+            l.data[i * n + j] = t / d;
         }
     }
     return l;
+}
+
+unittest
+{
+    auto a = Matrix.fromRows([[4.0, 2.0], [2.0, 5.0]]);
+    assert(cholesky(a) == Matrix.fromRows([[2.0, 0.0], [1.0, 2.0]]));
+}
+
+unittest
+{
+    import std.exception : collectException;
+
+    assert(collectException!LinAlgException(cholesky(Matrix(2, 3))).code == ErrorCode.notSquare);
+    assert(collectException!LinAlgException(cholesky(Matrix.fromRows([[1.0, 2.0], [3.0, 1.0]]))).code
+            == ErrorCode.notSymmetric);
+    assert(collectException!LinAlgException(cholesky(Matrix.fromRows([[1.0, 2.0], [2.0, 1.0]]))).code
+            == ErrorCode.notPositiveDefinite);
 }

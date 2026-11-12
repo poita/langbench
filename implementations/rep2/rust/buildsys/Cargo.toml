@@ -1,0 +1,19 @@
+[package]
+name = "buildsys"
+version = "0.1.0"
+edition = "2021"
+description = "Kiln: a deterministic, incremental build system simulator with its own build language"
+license = "MIT"
+readme = "README.md"
+keywords = ["build-system", "incremental", "simulation"]
+categories = ["development-tools::build-utils"]
+
+[lib]
+name = "kiln"
+path = "src/lib.rs"
+
+[[bin]]
+name = "kiln"
+path = "src/main.rs"
+
+[dependencies]
